@@ -28,6 +28,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled
+/// @{
+
+/// Wheeled vehicle model constructed from a JSON specification file
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
     WheeledVehicle(const std::string& filename,
@@ -81,6 +85,8 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
 
     ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
 };
+
+/// @} vehicle_wheeled
 
 }  // end namespace vehicle
 }  // end namespace chrono

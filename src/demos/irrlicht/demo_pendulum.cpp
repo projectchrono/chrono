@@ -35,17 +35,17 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-// Use the namespace of Chrono
+// Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 // This function will be used to apply forces caused by
 // a rotating fan, to all objects in front of it (a simple

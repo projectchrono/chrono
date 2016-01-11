@@ -20,34 +20,38 @@
 
 #include <irrlicht.h>
 
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_irrlicht/ChApiIrr.h"
 
 #define ESNT_CHBODY 1200
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
 
-class ChApiIrr ChBodySceneNode : public scene::ISceneNode {
+/// @addtogroup irrlicht
+/// @{
+
+/// Irrlicht scene node for a body.
+class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
   public:
     /// Build a scene node for the Irrlicht Engine. This scene node is also a
     /// rigid body for the Chrono::Engine multibody simulation.
     /// As soon as created, the wrapped ChBody is also added to Chrono system.
     /// To delete a ChBodyScene node from an Irrlicht scene, use the remove()
     /// function only! (it will also be removed from the Chrono system)
-    ChBodySceneNode(chrono::ChSystem* msystem,  ///< pointer to the Chrono::Engine physical simulation system
-                    IAnimatedMesh* mesh,        ///< a 3D mesh for representing the shape of the body
-                    ISceneNode* parent,         ///< the parent node in Irrlicht hierarchy
-                    ISceneManager* mgr,         ///< the Irrlicht scene manager
-                    s32 id                      ///< the Irrlicht identifier
+    ChBodySceneNode(ChSystem* msystem,  ///< pointer to the Chrono::Engine physical simulation system
+                    irr::scene::IAnimatedMesh* mesh,        ///< a 3D mesh for representing the shape of the body
+                    irr::scene::ISceneNode* parent,         ///< the parent node in Irrlicht hierarchy
+                    irr::scene::ISceneManager* mgr,         ///< the Irrlicht scene manager
+                    irr::s32 id                      ///< the Irrlicht identifier
                     );
 
-    ChBodySceneNode(chrono::ChSystem* msystem,        ///< pointer to the Chrono::Engine physical simulation system
-                    IAnimatedMesh* mesh,              ///< a 3D mesh for representing the shape of the body
-                    ISceneNode* parent,               ///< the parent node in Irrlicht hierarchy
-                    ISceneManager* mgr,               ///< the Irrlicht scene manager
-                    s32 id,                           ///< the Irrlicht identifier
-                    const chrono::ChVector<>& offset  ///< offset between mesh and body COG
+    ChBodySceneNode(ChSystem* msystem,        ///< pointer to the Chrono::Engine physical simulation system
+                    irr::scene::IAnimatedMesh* mesh,              ///< a 3D mesh for representing the shape of the body
+                    irr::scene::ISceneNode* parent,               ///< the parent node in Irrlicht hierarchy
+                    irr::scene::ISceneManager* mgr,               ///< the Irrlicht scene manager
+                    irr::s32 id,                           ///< the Irrlicht identifier
+                    const ChVector<>& offset  ///< offset between mesh and body COG
                     );
 
     /// Destructor.
@@ -63,20 +67,20 @@ class ChApiIrr ChBodySceneNode : public scene::ISceneNode {
 
     virtual void render();
 
-    virtual const core::aabbox3d<f32>& getBoundingBox() const;
+    virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const;
 
-    virtual void setMaterialTexture(s32 textureLayer, video::ITexture* texture);
+    virtual void setMaterialTexture(irr::s32 textureLayer, irr::video::ITexture* texture);
 
-    virtual u32 getMaterialCount();
+    virtual irr::u32 getMaterialCount();
 
-    virtual video::SMaterial& getMaterial(u32 i);
+    virtual irr::video::SMaterial& getMaterial(irr::u32 i);
 
-    void OnAnimate(u32 timeMs);
+    void OnAnimate(irr::u32 timeMs);
 
-    virtual IShadowVolumeSceneNode* addShadowVolumeSceneNode(const IMesh* shadowMesh = 0,
-                                                             s32 id = -1,
-                                                             bool zfailmethod = true,
-                                                             f32 infinity = 10000.0f);
+    virtual irr::scene::IShadowVolumeSceneNode* addShadowVolumeSceneNode(const irr::scene::IMesh* shadowMesh = 0,
+                                                                         irr::s32 id = -1,
+                                                                         bool zfailmethod = true,
+                                                                         irr::f32 infinity = 10000.0f);
 
     //
     // CHRONO::ENGINE SPECIFIC
@@ -84,7 +88,7 @@ class ChApiIrr ChBodySceneNode : public scene::ISceneNode {
 
     /// Returns reference to the shared pointer which references the
     /// rigid body wrapped by this scene node.
-    chrono::ChSharedPtr<chrono::ChBody>& GetBody() { return *bodyp; }
+    ChSharedPtr<ChBody>& GetBody() { return *bodyp; }
 
     /// Returns true if the node is moved by Chrono::Engine simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
@@ -92,22 +96,24 @@ class ChApiIrr ChBodySceneNode : public scene::ISceneNode {
     /// Set true if you want Chrono::Engine to include this body in simulation.
     virtual void SetChronoControlled(const bool& controlled) { ChronoControlled = controlled; }
 
-    IAnimatedMeshSceneNode* GetChildMesh() { return child_mesh; }
+    irr::scene::IAnimatedMeshSceneNode* GetChildMesh() { return child_mesh; }
 
-    virtual ESCENE_NODE_TYPE getType() const { return (ESCENE_NODE_TYPE)ESNT_CHBODY; }
+    virtual irr::scene::ESCENE_NODE_TYPE getType() const { return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHBODY; }
 
   private:
-    core::aabbox3d<f32> Box;
-    IAnimatedMeshSceneNode* child_mesh;
+    irr::core::aabbox3d<irr::f32> Box;
+    irr::scene::IAnimatedMeshSceneNode* child_mesh;
 
     // Chrono Engine specific data
-    chrono::ChSharedPtr<chrono::ChBody>* bodyp;
+    ChSharedPtr<ChBody>* bodyp;
     bool ChronoControlled;
 
     static int body_identifier;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrlicht
+}  // end namespace chrono
 
 #endif

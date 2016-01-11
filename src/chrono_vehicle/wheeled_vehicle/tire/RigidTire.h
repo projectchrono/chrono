@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_tire
+/// @{
+
+/// Rigid tire constructed with data from file (JSON format).
 class CH_VEHICLE_API RigidTire : public ChRigidTire {
   public:
     RigidTire(const std::string& filename);
@@ -42,6 +46,8 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     double m_radius;
     double m_width;
 };
+
+/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

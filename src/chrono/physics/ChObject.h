@@ -43,12 +43,13 @@
 
 namespace chrono {
 
-// Forward references
+/// @addtogroup chrono_physics
+/// @{
 
+// Forward references
 class ChVar;
 class ChTag;
 
-///
 /// Base class for items which can be named, deleted,
 /// copied. etc. as in the editor of a 3d modeler.
 ///
@@ -66,8 +67,6 @@ class ChTag;
 ///
 /// Also, each ChObj object has a 32 bit identifier, in case
 /// unique identifiers are used (hash algorithms, etc.)
-///
-
 class ChApi ChObj : public virtual ChShared {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChObj, ChShared);
@@ -186,6 +185,8 @@ T ChContainerSearchFromID(int myID, Iterator from, Iterator to) {
     }
     return T(0);
 }
+
+/// @} chrono_physics
 
 }  // END_OF_NAMESPACE____
 

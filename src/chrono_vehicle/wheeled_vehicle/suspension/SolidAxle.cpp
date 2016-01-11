@@ -136,21 +136,30 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
+    m_tierodMass = d["Tierod"]["Mass"].GetDouble();
+    m_tierodInertia = loadVector(d["Tierod"]["Inertia"]);
     m_points[TIEROD_K] = loadVector(d["Tierod"]["Location Knuckle"]);
+    m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
 
     // Read Draglink data
     assert(d.HasMember("Draglink"));
     assert(d["Draglink"].IsObject());
 
+    m_draglinkMass = d["Draglink"]["Mass"].GetDouble();
+    m_draglinkInertia = loadVector(d["Draglink"]["Inertia"]);
     m_points[DRAGLINK_C] = loadVector(d["Draglink"]["Location Chassis"]);
     m_points[BELLCRANK_DRAGLINK] = loadVector(d["Draglink"]["Location Bell Crank"]);
+    m_draglinkRadius = d["Draglink"]["Radius"].GetDouble();
 
     // Read Bell Crank data
     assert(d.HasMember("Bell Crank"));
     assert(d["Bell Crank"].IsObject());
 
+    m_bellCrankMass = d["Bell Crank"]["Mass"].GetDouble();
+    m_bellCrankInertia = loadVector(d["Bell Crank"]["Inertia"]);
     m_points[BELLCRANK_TIEROD] = loadVector(d["Bell Crank"]["Location Tierod"]);
     m_points[BELLCRANK_AXLE] = loadVector(d["Bell Crank"]["Location Axle"]);
+    m_bellCrankRadius = d["Bell Crank"]["Radius"].GetDouble();
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));

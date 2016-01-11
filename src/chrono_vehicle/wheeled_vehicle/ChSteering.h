@@ -27,12 +27,20 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_steering Steering subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_steering
+/// @{
+
 /// Base class for a steering subsystem.
-///
 class CH_VEHICLE_API ChSteering : public ChShared {
   public:
     ChSteering(const std::string& name  ///< [in] name of the subsystem
@@ -80,6 +88,8 @@ class CH_VEHICLE_API ChSteering : public ChShared {
 
 /// Vector of handles to steering subsystems
 typedef std::vector<ChSharedPtr<ChSteering> > ChSteeringList;
+
+/// @} vehicle_wheeled_steering
 
 }  // end namespace vehicle
 }  // end namespace chrono

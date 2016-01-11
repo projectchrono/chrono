@@ -38,19 +38,18 @@
 
 #include <irrlicht.h>
 
-// Use the namespace of Chrono
-
+// Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::collision;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 ChBodySceneNode* create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplication) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);

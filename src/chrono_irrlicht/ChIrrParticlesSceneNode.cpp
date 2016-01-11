@@ -10,18 +10,20 @@
 
 #include "chrono_irrlicht/ChIrrParticlesSceneNode.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+using namespace irr;
 
 // Initialize static variables
 int ChIrrParticlesSceneNode::particles_identifier = 0;
 
 // Constructor
-ChIrrParticlesSceneNode::ChIrrParticlesSceneNode(chrono::ChSystem* msystem,
-                                                 IAnimatedMesh* mesh,
-                                                 core::vector3df mmesh_scale,
-                                                 ISceneNode* parent,
-                                                 ISceneManager* mgr,
+ChIrrParticlesSceneNode::ChIrrParticlesSceneNode(ChSystem* msystem,
+                                                 scene::IAnimatedMesh* mesh,
+                                                 irr::core::vector3df mmesh_scale,
+                                                 scene::ISceneNode* parent,
+                                                 scene::ISceneManager* mgr,
                                                  s32 id)
     : scene::ISceneNode(parent, mgr, id), ChronoControlled(true) {
     assert(msystem);
@@ -46,7 +48,7 @@ ChIrrParticlesSceneNode::ChIrrParticlesSceneNode(chrono::ChSystem* msystem,
     child_mesh->setScale(mesh_scale);
 
     if (child_mesh)
-    child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+    child_mesh->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
     }
     }
 
@@ -60,7 +62,7 @@ ChIrrParticlesSceneNode::ChIrrParticlesSceneNode(chrono::ChSystem* msystem,
     // Creating dynamically the shared pointer from heap is not
     // nice to see, but it must be managed dynamically in this wrapper node..
 
-    particlep = new chrono::ChSharedPtr<chrono::ChParticlesClones>(new chrono::ChParticlesClones);
+    particlep = new ChSharedPtr<ChParticlesClones>(new ChParticlesClones);
 
     // set an unique identifier
     particles_identifier++;
@@ -98,17 +100,17 @@ void ChIrrParticlesSceneNode::OnRegisterSceneNode() {
 
 void ChIrrParticlesSceneNode::render() {
     // if (child_mesh)
-    //	child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+    //	child_mesh->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 }
 
-const core::aabbox3d<f32>& ChIrrParticlesSceneNode::getBoundingBox() const {
+const irr::core::aabbox3d<f32>& ChIrrParticlesSceneNode::getBoundingBox() const {
     if (child_mesh)
         return child_mesh->getBoundingBox();
     else
         return Box;
 }
 
-void ChIrrParticlesSceneNode::setMaterialTexture(s32 textureLayer, video::ITexture* texture) {
+void ChIrrParticlesSceneNode::setMaterialTexture(s32 textureLayer, irr::video::ITexture* texture) {
     sample_texture = texture;
     // if (child_mesh)
     //	return child_mesh->setMaterialTexture (textureLayer, texture);
@@ -121,7 +123,7 @@ u32 ChIrrParticlesSceneNode::getMaterialCount() {
         return 0;
 }
 
-video::SMaterial& ChIrrParticlesSceneNode::getMaterial(u32 i) {
+irr::video::SMaterial& ChIrrParticlesSceneNode::getMaterial(u32 i) {
     assert(child_mesh);
     return child_mesh->getMaterial(i);
 }
@@ -129,22 +131,22 @@ video::SMaterial& ChIrrParticlesSceneNode::getMaterial(u32 i) {
 void ChIrrParticlesSceneNode::OnAnimate(u32 timeMs) {
     UpdateChildrenHierarchy();
 
-    // setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+    // setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 
     // if (child_mesh)
-    //  child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+    //  child_mesh->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
 
     if (IsVisible) {
         // reorient/reposition the particle nodes every frame
         if (particlep && ChronoControlled) {
-            core::list<ISceneNode*>::ConstIterator it = getChildren().begin();
+            irr::core::list<ISceneNode*>::ConstIterator it = getChildren().begin();
 
             for (unsigned int j = 0; j < (*particlep)->GetNparticles(); j++) {
                 // Output: will be an Irrlicht 4x4 matrix
-                core::matrix4 irrMat;
+                irr::core::matrix4 irrMat;
 
                 // Get the particle actual rotation, as a 3x3 matrix [A]
-                const chrono::ChMatrix33<>& chMat = (*particlep)->GetParticle(j).GetA();
+                const ChMatrix33<>& chMat = (*particlep)->GetParticle(j).GetA();
 
                 // Fill the upper 3x3 submatrix with the [A] matrix
                 // transposed, since Irrlicht uses the row-major style as in D3D
@@ -183,10 +185,10 @@ void ChIrrParticlesSceneNode::OnAnimate(u32 timeMs) {
     ISceneNode::OnAnimate(timeMs);
 }
 
-IShadowVolumeSceneNode* ChIrrParticlesSceneNode::addShadowVolumeSceneNode(const IMesh* shadowMesh,
-                                                                          s32 id,
-                                                                          bool zfailmethod,
-                                                                          f32 infinity) {
+scene::IShadowVolumeSceneNode* ChIrrParticlesSceneNode::addShadowVolumeSceneNode(const scene::IMesh* shadowMesh,
+                                                                                 s32 id,
+                                                                                 bool zfailmethod,
+                                                                                 f32 infinity) {
     if (child_mesh)
         return child_mesh->addShadowVolumeSceneNode(shadowMesh, id, zfailmethod, infinity);
     return NULL;
@@ -206,7 +208,7 @@ void ChIrrParticlesSceneNode::UpdateChildrenHierarchy() {
                     child_mesh->setMaterialTexture(0, this->sample_texture);
 
                 if (child_mesh)
-                    child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                    child_mesh->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
             }
         }
         this->Nchildren = (s32)npart;
@@ -217,13 +219,13 @@ void ChIrrParticlesSceneNode::UpdateChildrenHierarchy() {
 // Utility free functions
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChParticlesSceneNode(chrono::ChSystem* asystem,
-                                    ISceneManager* amanager,
-                                    IAnimatedMesh* amesh,
-                                    core::vector3df amesh_scale,
-                                    double mmass,
-                                    ISceneNode* aparent,
-                                    s32 mid) {
+scene::ISceneNode* addChParticlesSceneNode(ChSystem* asystem,
+                                           scene::ISceneManager* amanager,
+                                           scene::IAnimatedMesh* amesh,
+                                           irr::core::vector3df amesh_scale,
+                                           double mmass,
+                                           scene::ISceneNode* aparent,
+                                           s32 mid) {
     if (!aparent)
         aparent = amanager->getRootSceneNode();
 
@@ -238,20 +240,20 @@ ISceneNode* addChParticlesSceneNode(chrono::ChSystem* asystem,
     return particleObj;
 }
 
-ISceneNode* addChParticlesSceneNode_easySpheres(chrono::ChSystem* asystem,
-                                                ISceneManager* amanager,
-                                                double mmass,
-                                                double mradius,
-                                                int Hslices,
-                                                int Vslices,
-                                                ISceneNode* aparent,
-                                                s32 mid) {
-    static IAnimatedMesh* sphereMesh = 0;
+scene::ISceneNode* addChParticlesSceneNode_easySpheres(ChSystem* asystem,
+                                                       scene::ISceneManager* amanager,
+                                                       double mmass,
+                                                       double mradius,
+                                                       int Hslices,
+                                                       int Vslices,
+                                                       scene::ISceneNode* aparent,
+                                                       s32 mid) {
+    static scene::IAnimatedMesh* sphereMesh = 0;
 
     if (!sphereMesh)
         sphereMesh = createEllipticalMesh(1.0, 1.0, -2, +2, 0, Hslices, Vslices);
 
-    core::vector3df mmeshscale((f32)mradius, (f32)mradius, (f32)mradius);
+    irr::core::vector3df mmeshscale((f32)mradius, (f32)mradius, (f32)mradius);
 
     // create a ChronoENGINE rigid body
     ChIrrParticlesSceneNode* particleObj = (ChIrrParticlesSceneNode*)addChParticlesSceneNode(
@@ -269,5 +271,5 @@ ISceneNode* addChParticlesSceneNode_easySpheres(chrono::ChSystem* asystem,
     return particleObj;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

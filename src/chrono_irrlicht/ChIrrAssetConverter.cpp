@@ -11,18 +11,21 @@
 
 #include <vector>
 
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCBox.h"
-#include "geometry/ChCTriangleMeshSoup.h"
-#include "geometry/ChCLinePath.h"
+#include "chrono/geometry/ChCSphere.h"
+#include "chrono/geometry/ChCBox.h"
+#include "chrono/geometry/ChCTriangleMeshSoup.h"
+#include "chrono/geometry/ChCLinePath.h"
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+using namespace irr;
+using namespace irr::scene;
 
 ChIrrAssetConverter::ChIrrAssetConverter(ChIrrAppInterface& ainterface) {
     minterface = &ainterface;
@@ -50,81 +53,81 @@ ChIrrAssetConverter::~ChIrrAssetConverter() {
         cylinderMesh->drop();
 }
 
-chrono::ChSharedPtr<chrono::ChIrrNodeAsset> ChIrrAssetConverter::GetIrrNodeAsset(
-    chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
-    chrono::ChSharedPtr<chrono::ChIrrNodeAsset> myirrasset;  // default: IsNull() will return true
-    std::vector<chrono::ChSharedPtr<chrono::ChAsset> > assetlist = mitem->GetAssets();
+ChSharedPtr<ChIrrNodeAsset> ChIrrAssetConverter::GetIrrNodeAsset(
+    ChSharedPtr<ChPhysicsItem> mitem) {
+    ChSharedPtr<ChIrrNodeAsset> myirrasset;  // default: IsNull() will return true
+    std::vector<ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
 
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
+        ChSharedPtr<ChAsset> k_asset = assetlist[k];
         // asset k of object i references a proxy to an irrlicht node?
-        if (k_asset.IsType<chrono::ChIrrNodeAsset>()) {
-            myirrasset = k_asset.DynamicCastTo<chrono::ChIrrNodeAsset>();
+        if (k_asset.IsType<ChIrrNodeAsset>()) {
+            myirrasset = k_asset.DynamicCastTo<ChIrrNodeAsset>();
         }
     }
     return myirrasset;
 }
 
-void ChIrrAssetConverter::Bind(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
+void ChIrrAssetConverter::Bind(ChSharedPtr<ChPhysicsItem> mitem) {
     // find a ChIrrNodeAsset if there is already one...
-    chrono::ChSharedPtr<chrono::ChIrrNodeAsset> irrasset;
+    ChSharedPtr<ChIrrNodeAsset> irrasset;
     irrasset = GetIrrNodeAsset(mitem);
 
     if (irrasset.IsNull()) {
         // add the ChIrrNodeAsset because it was not already there
-        chrono::ChSharedPtr<chrono::ChIrrNodeAsset> mirr_assetpart(new chrono::ChIrrNodeAsset);
+        ChSharedPtr<ChIrrNodeAsset> mirr_assetpart(new ChIrrNodeAsset);
         mirr_assetpart->Bind(mitem, *minterface);
         mitem->AddAsset(mirr_assetpart);
     }
 }
 
 void ChIrrAssetConverter::BindAll() {
-    chrono::ChSystem* msystem = minterface->GetSystem();
+    ChSystem* msystem = minterface->GetSystem();
 
-    chrono::ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
+    ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
     while (myiter != msystem->IterEndBodies()) {
         Bind(*myiter);
         ++myiter;
     }
-    chrono::ChSystem::IteratorOtherPhysicsItems myiterB = msystem->IterBeginOtherPhysicsItems();
+    ChSystem::IteratorOtherPhysicsItems myiterB = msystem->IterBeginOtherPhysicsItems();
     while (myiterB != msystem->IterEndOtherPhysicsItems()) {
         Bind(*myiterB);
         ++myiterB;
     }
-    chrono::ChSystem::IteratorLinks myiterC = msystem->IterBeginLinks();
+    ChSystem::IteratorLinks myiterC = msystem->IterBeginLinks();
     while (myiterC != msystem->IterEndLinks()) {
         Bind(*myiterC);
         ++myiterC;
     }
 }
 
-void ChIrrAssetConverter::Update(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
+void ChIrrAssetConverter::Update(ChSharedPtr<ChPhysicsItem> mitem) {
     CleanIrrlicht(mitem);
     PopulateIrrlicht(mitem);
 }
 
 void ChIrrAssetConverter::UpdateAll() {
-    chrono::ChSystem* msystem = minterface->GetSystem();
+    ChSystem* msystem = minterface->GetSystem();
 
-    chrono::ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
+    ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
     while (myiter != msystem->IterEndBodies()) {
         Update(*myiter);
         ++myiter;
     }
-    chrono::ChSystem::IteratorOtherPhysicsItems myiterB = msystem->IterBeginOtherPhysicsItems();
+    ChSystem::IteratorOtherPhysicsItems myiterB = msystem->IterBeginOtherPhysicsItems();
     while (myiterB != msystem->IterEndOtherPhysicsItems()) {
         Update(*myiterB);
         ++myiterB;
     }
-    chrono::ChSystem::IteratorLinks myiterC = msystem->IterBeginLinks();
+    ChSystem::IteratorLinks myiterC = msystem->IterBeginLinks();
     while (myiterC != msystem->IterEndLinks()) {
         Update(*myiterC);
         ++myiterC;
     }
 }
 
-void ChIrrAssetConverter::CleanIrrlicht(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
-    chrono::ChSharedPtr<chrono::ChIrrNodeAsset> irrasset;
+void ChIrrAssetConverter::CleanIrrlicht(ChSharedPtr<ChPhysicsItem> mitem) {
+    ChSharedPtr<ChIrrNodeAsset> irrasset;
     irrasset = GetIrrNodeAsset(mitem);
 
     if (!irrasset.IsNull()) {
@@ -132,11 +135,11 @@ void ChIrrAssetConverter::CleanIrrlicht(chrono::ChSharedPtr<chrono::ChPhysicsIte
     }
 }
 
-void ChIrrAssetConverter::PopulateIrrlicht(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
+void ChIrrAssetConverter::PopulateIrrlicht(ChSharedPtr<ChPhysicsItem> mitem) {
     camera_found_in_assets = 0;
     mcamera = 0;
-    std::vector<chrono::ChSharedPtr<chrono::ChAsset> > assetlist = mitem->GetAssets();
-    chrono::ChSharedPtr<chrono::ChIrrNodeAsset> myirrasset;
+    std::vector<ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
+    ChSharedPtr<ChIrrNodeAsset> myirrasset;
 
     // 1- Clean the ChIrrNode
     CleanIrrlicht(mitem);
@@ -166,12 +169,12 @@ void ChIrrAssetConverter::PopulateIrrlicht(chrono::ChSharedPtr<chrono::ChPhysics
 
     // ISceneNode* mnode = myirrasset->GetIrrlichtNode(); TO REMOVE
 
-    chrono::ChFrame<> bodyframe;  // begin with no rotation/translation respect to ChPhysicsItem (ex. a body)
+    ChFrame<> bodyframe;  // begin with no rotation/translation respect to ChPhysicsItem (ex. a body)
 
     _recursePopulateIrrlicht(assetlist, bodyframe, fillnode);
 }
 
-void ChIrrAssetConverter::mflipSurfacesOnX(scene::IMesh* mesh) const {
+void ChIrrAssetConverter::mflipSurfacesOnX(IMesh* mesh) const {
     if (!mesh)
         return;
 
@@ -195,18 +198,18 @@ void ChIrrAssetConverter::mflipSurfacesOnX(scene::IMesh* mesh) const {
     }
 }
 
-void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedPtr<chrono::ChAsset> >& assetlist,
-                                                   chrono::ChFrame<> parentframe,
+void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAsset> >& assetlist,
+                                                   ChFrame<> parentframe,
                                                    ISceneNode* mnode) {
-    chrono::ChSharedPtr<chrono::ChTexture> mtexture;   // def no texture in level
-    chrono::ChSharedPtr<chrono::ChColorAsset> mcolor;  // def no visualiz. settings in level
+    ChSharedPtr<ChTexture> mtexture;   // def no texture in level
+    ChSharedPtr<ChColorAsset> mcolor;  // def no visualiz. settings in level
 
     // Scan assets in object and copy them as Irrlicht meshes in the ISceneNode
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        chrono::ChSharedPtr<chrono::ChAsset> k_asset = assetlist[k];
+        ChSharedPtr<ChAsset> k_asset = assetlist[k];
 
-        if (k_asset.IsType<chrono::ChObjShapeFile>()) {
-            chrono::ChSharedPtr<chrono::ChObjShapeFile> myobj(k_asset.DynamicCastTo<chrono::ChObjShapeFile>());
+        if (k_asset.IsType<ChObjShapeFile>()) {
+            ChSharedPtr<ChObjShapeFile> myobj(k_asset.DynamicCastTo<ChObjShapeFile>());
             IAnimatedMesh* genericMesh = scenemanager->getMesh(myobj->GetFilename().c_str());
             if (genericMesh) {
                 ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(myobj, mnode);
@@ -217,14 +220,12 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedP
                 mchildnode->setScale(irr::core::vector3df(-1, 1, 1));  // because of Irrlicht being left handed!!!
                 mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING,
                                             true);  // because of Irrlicht being left handed!!!
-                mflipSurfacesOnX(
-                    ((IAnimatedMeshSceneNode*)mchildnode)
-                        ->getMesh());  // this wold be better than disabling back culling, but it does not work!
+                mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh());  // this wold be better than disabling back culling, but it does not work!
             }
         }
-        if (k_asset.IsType<chrono::ChTriangleMeshShape>()) {
-            chrono::ChSharedPtr<chrono::ChTriangleMeshShape> mytrimesh(
-                k_asset.DynamicCastTo<chrono::ChTriangleMeshShape>());
+        if (k_asset.IsType<ChTriangleMeshShape>()) {
+            ChSharedPtr<ChTriangleMeshShape> mytrimesh(
+                k_asset.DynamicCastTo<ChTriangleMeshShape>());
 
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
             //	SMeshBuffer* buffer = new SMeshBuffer();
@@ -240,8 +241,8 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedP
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mytrimesh->IsWireframe());
             mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull());
         }
-        if (k_asset.IsType<chrono::ChGlyphs>()) {
-            chrono::ChSharedPtr<chrono::ChGlyphs> myglyphs(k_asset.DynamicCastTo<chrono::ChGlyphs>());
+        if (k_asset.IsType<ChGlyphs>()) {
+            ChSharedPtr<ChGlyphs> myglyphs(k_asset.DynamicCastTo<ChGlyphs>());
 
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
             //  SMeshBuffer* buffer = new SMeshBuffer();
@@ -257,8 +258,8 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedP
             // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
         }
-        if (k_asset.IsType<chrono::ChPathShape>() || k_asset.IsType<chrono::ChLineShape>()) {
-            // chrono::ChSharedPtr<chrono::ChA> mypath(k_asset.DynamicCastTo<chrono::ChPathShape>());
+        if (k_asset.IsType<ChPathShape>() || k_asset.IsType<ChLineShape>()) {
+            // ChSharedPtr<ChA> mypath(k_asset.DynamicCastTo<ChPathShape>());
 
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
             SMesh* newmesh = new SMesh;
@@ -273,91 +274,91 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedP
             // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
         }
-        if (k_asset.IsType<chrono::ChSphereShape>() && sphereMesh) {
-            chrono::ChSharedPtr<chrono::ChSphereShape> mysphere(k_asset.DynamicCastTo<chrono::ChSphereShape>());
+        if (k_asset.IsType<ChSphereShape>() && sphereMesh) {
+            ChSharedPtr<ChSphereShape> mysphere(k_asset.DynamicCastTo<ChSphereShape>());
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mysphere, mnode);
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh, mproxynode);
 
             // Calculate transform from node to geometry
             // (concatenate node - asset and asset - geometry)
-            chrono::ChVector<> pos = mysphere->Pos + mysphere->Rot * mysphere->GetSphereGeometry().center;
-            chrono::ChCoordsys<> irrspherecoords(pos, mysphere->Rot.Get_A_quaternion());
+            ChVector<> pos = mysphere->Pos + mysphere->Rot * mysphere->GetSphereGeometry().center;
+            ChCoordsys<> irrspherecoords(pos, mysphere->Rot.Get_A_quaternion());
 
             double mradius = mysphere->GetSphereGeometry().rad;
-            mchildnode->setScale(core::vector3dfCH(chrono::ChVector<>(mradius, mradius, mradius)));
+            mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
             ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
             mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
         }
-        if (k_asset.IsType<chrono::ChCylinderShape>() && cylinderMesh) {
-            chrono::ChSharedPtr<chrono::ChCylinderShape> mycylinder(k_asset.DynamicCastTo<chrono::ChCylinderShape>());
+        if (k_asset.IsType<ChCylinderShape>() && cylinderMesh) {
+            ChSharedPtr<ChCylinderShape> mycylinder(k_asset.DynamicCastTo<ChCylinderShape>());
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycylinder, mnode);
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cylinderMesh, mproxynode);
 
             double rad = mycylinder->GetCylinderGeometry().rad;
-            chrono::ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
+            ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
             double height = dir.Length();
 
             // Calculate transform from asset to geometry
             dir.Normalize();
-            chrono::ChVector<> mx, my, mz;
+            ChVector<> mx, my, mz;
             dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            chrono::ChMatrix33<> mrot;
+            ChMatrix33<> mrot;
             mrot.Set_A_axis(mx, my, mz);
-            chrono::ChVector<> mpos =
+            ChVector<> mpos =
                 0.5 * (mycylinder->GetCylinderGeometry().p2 + mycylinder->GetCylinderGeometry().p1);
 
             // Calculate transform from node to geometry
             // (concatenate node - asset and asset - geometry)
-            chrono::ChVector<> pos = mycylinder->Pos + mycylinder->Rot * mpos;
-            chrono::ChMatrix33<> rot = mycylinder->Rot * mrot;
-            chrono::ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
+            ChVector<> pos = mycylinder->Pos + mycylinder->Rot * mpos;
+            ChMatrix33<> rot = mycylinder->Rot * mrot;
+            ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
 
             ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
             core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
             mchildnode->setScale(irrsize);
             mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
         }
-        if (k_asset.IsType<chrono::ChBoxShape>() && cubeMesh) {
-            chrono::ChSharedPtr<chrono::ChBoxShape> mybox(k_asset.DynamicCastTo<chrono::ChBoxShape>());
+        if (k_asset.IsType<ChBoxShape>() && cubeMesh) {
+            ChSharedPtr<ChBoxShape> mybox(k_asset.DynamicCastTo<ChBoxShape>());
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybox, mnode);
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cubeMesh, mproxynode);
 
             // Calculate transform from node to geometry
             // (concatenate node - asset and asset - geometry)
-            chrono::ChVector<> pos = mybox->Pos + mybox->Rot * mybox->GetBoxGeometry().Pos;
-            chrono::ChMatrix33<> rot = mybox->Rot * mybox->GetBoxGeometry().Rot;
-            chrono::ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
+            ChVector<> pos = mybox->Pos + mybox->Rot * mybox->GetBoxGeometry().Pos;
+            ChMatrix33<> rot = mybox->Rot * mybox->GetBoxGeometry().Rot;
+            ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
 
             mchildnode->setScale(core::vector3dfCH(mybox->GetBoxGeometry().Size));
             ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
             mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
         }
 
-        if (k_asset.IsType<chrono::ChTexture>()) {
-            mtexture = k_asset.DynamicCastTo<chrono::ChTexture>();
+        if (k_asset.IsType<ChTexture>()) {
+            mtexture = k_asset.DynamicCastTo<ChTexture>();
         }
-        if (k_asset.IsType<chrono::ChColorAsset>()) {
-            mcolor = k_asset.DynamicCastTo<chrono::ChColorAsset>();
+        if (k_asset.IsType<ChColorAsset>()) {
+            mcolor = k_asset.DynamicCastTo<ChColorAsset>();
         }
 
-        if (k_asset.IsType<chrono::ChCamera>()) {
+        if (k_asset.IsType<ChCamera>()) {
             camera_found_in_assets = true;
-            chrono::ChSharedPtr<chrono::ChCamera> mycamera(k_asset.DynamicCastTo<chrono::ChCamera>());
+            ChSharedPtr<ChCamera> mycamera(k_asset.DynamicCastTo<ChCamera>());
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycamera, mnode);
-            scene::RTSCamera* irrcamera =
-                new scene::RTSCamera(mdevice, mproxynode, scenemanager, -1, -160.0f, 1.0f, 0.003f);
+            RTSCamera* irrcamera =
+                new RTSCamera(mdevice, mproxynode, scenemanager, -1, -160.0f, 1.0f, 0.003f);
 
             irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
             irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
-            double fov_rad = mycamera->GetAngle() * chrono::CH_C_DEG_TO_RAD;
+            double fov_rad = mycamera->GetAngle() * CH_C_DEG_TO_RAD;
             irrcamera->setFOV((irr::f32)fov_rad);
             irrcamera->setNearValue(0.3f);
             irrcamera->setMinZoom(0.6f);
         }
-        if (k_asset.IsType<chrono::ChAssetLevel>()) {
-            chrono::ChSharedPtr<chrono::ChAssetLevel> mylevel(k_asset.DynamicCastTo<chrono::ChAssetLevel>());
-            std::vector<chrono::ChSharedPtr<chrono::ChAsset> >& subassetlist = mylevel->GetAssets();
-            chrono::ChFrame<> subassetframe = mylevel->GetFrame();
+        if (k_asset.IsType<ChAssetLevel>()) {
+            ChSharedPtr<ChAssetLevel> mylevel(k_asset.DynamicCastTo<ChAssetLevel>());
+            std::vector<ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
+            ChFrame<> subassetframe = mylevel->GetFrame();
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mylevel, mnode);
             ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mproxynode);
             // recurse level...
@@ -399,17 +400,17 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<chrono::ChSharedP
     // if a visualization setting (color) has been set, force the color attribute of all assets in same level
     if (!mcolor.IsNull()) {
         for (unsigned int k = 0; k < assetlist.size(); k++) {
-            if (chrono::ChSharedPtr<chrono::ChVisualization> k_visasset = assetlist[k].DynamicCastTo<chrono::ChVisualization>()) {
+            if (ChSharedPtr<ChVisualization> k_visasset = assetlist[k].DynamicCastTo<ChVisualization>()) {
                 k_visasset->SetColor(mcolor->GetColor());
             }
         }
     }
 
     // Set the rotation and position of the node container
-    if (!(parentframe.GetCoord() == chrono::CSYSNORM)) {
+    if (!(parentframe.GetCoord() == CSYSNORM)) {
         ChIrrTools::alignIrrlichtNodeToChronoCsys(mnode, parentframe.GetCoord());
     }
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

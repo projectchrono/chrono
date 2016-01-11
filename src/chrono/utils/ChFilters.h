@@ -24,7 +24,12 @@
 #include "chrono/core/ChApiCE.h"
 
 namespace chrono {
+
+/// Chrono core utilities
 namespace utils {
+
+/// @addtogroup chrono_utils
+/// @{
 
 /// Moving average filter for smoothing running data.
 class ChApi ChRunningAverage {
@@ -66,6 +71,8 @@ class ChApi ChMovingAverage {
     int m_n;
     std::valarray<double> m_out;
 };
+
+/// @} chrono_utils
 
 }  // end namespace utils
 }  // end namespace chrono

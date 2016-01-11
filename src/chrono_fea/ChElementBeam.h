@@ -18,8 +18,10 @@
 namespace chrono {
 namespace fea {
 
-/// Base class for most structral elements of 'beam' type.
+/// @addtogroup fea_elements
+/// @{
 
+/// Base class for most structral elements of 'beam' type.
 class ChApiFea ChElementBeam : public ChElementGeneric {
   protected:
     double mass;
@@ -81,6 +83,8 @@ class ChApiFea ChElementBeam : public ChElementGeneric {
     /// might need to override this, ex for precompressed beams etc).
     void SetRestLength(double ml) { this->length = ml; }
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

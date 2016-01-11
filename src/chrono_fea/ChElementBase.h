@@ -23,9 +23,11 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Base class for all finite elements, that can be
 /// used in the ChMesh physics item.
-
 class ChApiFea ChElementBase : public virtual ChShared {
   protected:
   public:
@@ -124,6 +126,8 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// WILL BE DEPRECATED
     virtual void VariablesFbIncrementMq() {}
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

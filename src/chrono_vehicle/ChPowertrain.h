@@ -25,15 +25,28 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_powertrain Powertrain models
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_powertrain
+/// @{
+
 /// Base class for a powertrain system.
-///
 class CH_VEHICLE_API ChPowertrain : public ChShared {
   public:
-    enum DriveMode { FORWARD, NEUTRAL, REVERSE };
+    /// Driving modes.
+    enum DriveMode {
+        FORWARD,  ///< vehicle moving forward
+        NEUTRAL,  ///< vehicle in neutral
+        REVERSE   ///< vehicle moving backward
+    };
 
     ChPowertrain();
 
@@ -83,6 +96,8 @@ class CH_VEHICLE_API ChPowertrain : public ChShared {
   protected:
     DriveMode m_drive_mode;
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

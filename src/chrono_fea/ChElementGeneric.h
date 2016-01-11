@@ -20,6 +20,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Class for all elements whose stiffness matrix can be seen
 /// as a NxN block-matrix to be splitted between N nodes.
 /// Helps reducing the complexity of inherited FEA elements because
@@ -27,7 +30,6 @@ namespace fea {
 /// This means that most FEA elements inherited from ChElementGeneric
 /// need to implement at most the following two fundamental methods:
 ///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
-
 class ChApiFea ChElementGeneric : public ChElementBase {
   protected:
     ChLcpKblockGeneric Kmatr;
@@ -88,6 +90,8 @@ class ChApiFea ChElementGeneric : public ChElementBase {
     /// implementing this VariablesFbIncrementMq function, unless you need faster code.)
     virtual void VariablesFbIncrementMq() override;
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -200,12 +200,12 @@ bool run_test(double time,
 }
 
 // use the app to draw all the springs in the specified system
-void draw_springs(ChSystem& system, ChIrrApp& app) {
+void draw_springs(ChSystem& system, irrlicht::ChIrrApp& app) {
     auto ilink = system.Get_linklist()->begin();
     for (; ilink != system.Get_linklist()->end(); ++ilink) {
         if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSpring(app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                   video::SColor(255, 150, 20, 20), 80, 15, true);
+            irrlicht::ChIrrTools::drawSpring(app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(),
+                                             link->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
         }
     }
 }
@@ -396,7 +396,7 @@ int main(int argc, char* argv[]) {
     }
 
     // 4. Create and setup the Irrlicht App
-    ChIrrApp irrapp(&system, L"testing idler joint", core::dimension2d<u32>(1000, 800), false, true);
+    irrlicht::ChIrrApp irrapp(&system, L"testing idler joint", core::dimension2d<u32>(1000, 800), false, true);
 
     irrapp.AddTypicalLogo();
     irrapp.AddTypicalSky();

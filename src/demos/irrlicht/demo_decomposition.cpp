@@ -31,11 +31,11 @@
 
 #include <irrlicht.h>
 
-// Use the namespace of Chrono
-
+// Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
+using namespace chrono::irrlicht;
 
 // Use the main namespace of Irrlicht
 // (and prefer not to use 'using ...' also for others(irr::video, irr::gui, etc.), to avoid name pollution)

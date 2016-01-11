@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
+/// Double-A arm suspension constructed with data from file.
 class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
   public:
     DoubleWishbone(const std::string& filename);
@@ -85,6 +89,8 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
 
     double m_springRestLength;
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

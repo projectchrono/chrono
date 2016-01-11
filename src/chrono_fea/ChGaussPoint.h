@@ -20,9 +20,11 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_math
+/// @{
+
 /// Class for a gauss point, that has a position (1D-3D) and a weight.
 /// It also contains the strain and the stress tensor.
-
 class ChGaussPoint {
   private:
     /// Number.
@@ -79,6 +81,8 @@ class ChGaussPoint {
     /// Returns corresponding integration rule to receiver
     //    ChIntegrationRule *giveIntegrationRule() { return irule; }
 };
+
+/// @} fea_math
 
 }  //__end mamespace fea
 }  //__end namespace chrono

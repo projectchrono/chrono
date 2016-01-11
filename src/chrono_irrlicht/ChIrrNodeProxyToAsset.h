@@ -17,8 +17,11 @@
 
 #define ESNT_CHIRRNODEPROXYTOASSET 1202
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+/// @addtogroup irrlicht
+/// @{
 
 /// Class for proxy to ChAsset, it is a node with mesh in Irrlicht system
 /// and a shared pointer to the ChAsset to whom it corresponds.
@@ -31,20 +34,18 @@ namespace scene {
 ///                                           IMeshSceneNode
 ///        ChSphereShape  <------------  ChIrrNodeProxyToAsset
 ///                                           IMeshSceneNode
-
-class ChApiIrr ChIrrNodeProxyToAsset : public scene::ISceneNode {
+class ChApiIrr ChIrrNodeProxyToAsset : public irr::scene::ISceneNode {
   private:
-    core::aabbox3d<f32> Box;
+    irr::core::aabbox3d<irr::f32> Box;
 
-    chrono::ChSharedPtr<chrono::ChAsset> visualization_asset;
+    ChSharedPtr<ChAsset> visualization_asset;
 
     bool do_update;
 
   public:
     /// Constructor
-    ChIrrNodeProxyToAsset(
-        chrono::ChSharedPtr<chrono::ChAsset> myvisualization,  ///< pointer to the Chrono::Engine visualization asset
-        ISceneNode* parent);                                   ///< the parent node in Irrlicht hierarchy
+    ChIrrNodeProxyToAsset(ChSharedPtr<ChAsset> myvisualization,  ///< pointer to the Chrono::Engine visualization asset
+                          irr::scene::ISceneNode* parent);                       ///< the parent node in Irrlicht hierarchy
 
     /// Destructor.
     ~ChIrrNodeProxyToAsset() {}
@@ -52,9 +53,9 @@ class ChApiIrr ChIrrNodeProxyToAsset : public scene::ISceneNode {
     // The following two functions must be defined here since they are abstract
     // in the base class.
     virtual void render() {}
-    virtual const core::aabbox3d<f32>& getBoundingBox() const { return Box; }
+    virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const { return Box; }
 
-    ISceneNode* clone(ISceneNode* newParent, ISceneManager* newManager);
+    ISceneNode* clone(ISceneNode* newParent, irr::scene::ISceneManager* newManager);
 
     //
     // CHRONO::ENGINE SPECIFIC
@@ -62,7 +63,7 @@ class ChApiIrr ChIrrNodeProxyToAsset : public scene::ISceneNode {
 
     /// Returns a reference to the shared pointer which references the ChAsset to
     /// whom this is a proxy.
-    chrono::ChSharedPtr<chrono::ChAsset>& GetVisualizationAsset() { return visualization_asset; }
+    ChSharedPtr<ChAsset>& GetVisualizationAsset() { return visualization_asset; }
 
     /// Returns true if the node must recompute the mesh for each time that an
     /// Update is called.
@@ -75,10 +76,12 @@ class ChApiIrr ChIrrNodeProxyToAsset : public scene::ISceneNode {
     /// Updates the child mesh to reflect the ChAsset.
     virtual void Update();
 
-    virtual ESCENE_NODE_TYPE getType() const { return (ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET; }
+    virtual irr::scene::ESCENE_NODE_TYPE getType() const { return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET; }
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrrlicht
+}  // end namespace chrono
 
 #endif

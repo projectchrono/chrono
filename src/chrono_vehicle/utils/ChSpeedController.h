@@ -29,16 +29,23 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_utils Utility classes
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-///
+/// @addtogroup vehicle_utils
+/// @{
+
 /// Data collection from the speed controller can be started (restarted) and
 /// suspended (stopped) as many times as desired.  Data collected so far can be
 /// written to a file.  The tab-separated output ASCII file contains on each line
 /// the time, current desired speed, and current actual speed.
-///
 class CH_VEHICLE_API ChSpeedController {
   public:
     /// Construct a speed controller with default parameters.
@@ -99,6 +106,8 @@ class CH_VEHICLE_API ChSpeedController {
     utils::CSV_writer* m_csv;  ///< CSV_writer object for data collection
     bool m_collect;            ///< flag indicating whether or not data is being collected
 };
+
+/// @} vehicle_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono

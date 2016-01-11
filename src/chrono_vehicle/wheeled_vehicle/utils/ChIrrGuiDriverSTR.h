@@ -28,6 +28,11 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_utils
+/// @{
+
+/// Irrlicht-based GUI driver for the a suspension test rig. This class extends
+/// the ChIrrGuiDriver for a vehicle with controls for the shaker posts.
 class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChIrrGuiDriver {
   public:
     ChIrrGuiDriverSTR(ChVehicleIrrApp& app,            ///< handle to the vehicle Irrlicht application
@@ -57,6 +62,8 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChIrrGuiDriver {
     double m_minDisplacement;
     double m_maxDisplacement;
 };
+
+/// @} vehicle_wheeled_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono

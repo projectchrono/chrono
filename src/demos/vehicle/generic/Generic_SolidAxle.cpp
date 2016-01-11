@@ -37,6 +37,9 @@ const double     Generic_SolidAxle::m_LLMass = 2.892;
 const double     Generic_SolidAxle::m_knuckleMass = 1.356;
 const double     Generic_SolidAxle::m_spindleMass = 0.248;
 const double     Generic_SolidAxle::m_axleTubeMass = 44.958;
+const double     Generic_SolidAxle::m_tierodMass = 1.633;
+const double     Generic_SolidAxle::m_draglinkMass = 0.464;
+const double     Generic_SolidAxle::m_bellCrankMass = 0.218;
 
 const double     Generic_SolidAxle::m_spindleRadius = 0.06;
 const double     Generic_SolidAxle::m_spindleWidth = 0.04;
@@ -44,6 +47,9 @@ const double     Generic_SolidAxle::m_ULRadius = 0.02;
 const double     Generic_SolidAxle::m_LLRadius = 0.02;
 const double     Generic_SolidAxle::m_axleTubeRadius = 0.03;
 const double     Generic_SolidAxle::m_knuckleRadius = 0.01;
+const double     Generic_SolidAxle::m_tierodRadius = 0.003;
+const double     Generic_SolidAxle::m_draglinkRadius = 0.003;
+const double     Generic_SolidAxle::m_bellCrankRadius = 0.003;
 
 const ChVector<> Generic_SolidAxle::m_axleTubeCOM(0, 0, 0);
 
@@ -52,6 +58,9 @@ const ChVector<> Generic_SolidAxle::m_spindleInertia(0.0000558, 0.0000279, 0.000
 const ChVector<> Generic_SolidAxle::m_ULInertia(0.011, 0.011, 0.000142);
 const ChVector<> Generic_SolidAxle::m_LLInertia(0.0514, 0.0514, 0.00037);
 const ChVector<> Generic_SolidAxle::m_knuckleInertia(0.00255, 0.00134, 0.00196);
+const ChVector<> Generic_SolidAxle::m_tierodInertia(0.252, 0.001, 0.252);
+const ChVector<> Generic_SolidAxle::m_draglinkInertia(0.005, 0.005, 0.001);
+const ChVector<> Generic_SolidAxle::m_bellCrankInertia(0.001, 0.001, 0.001);
 
 const double     Generic_SolidAxle::m_axleInertia = 0.4;
 

@@ -20,9 +20,10 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
 
 /// Base class for most structral elements of 'shell' type.
-
 class ChApiFea ChElementShell : public ChElementGeneric {
   protected:
     double mass;
@@ -85,6 +86,8 @@ class ChApiFea ChElementShell : public ChElementGeneric {
 */
 
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

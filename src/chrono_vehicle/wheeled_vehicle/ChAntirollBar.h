@@ -29,12 +29,20 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_antirollbar Anti-roll bar subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_antirollbar
+/// @{
+
 /// Base class for an anti-roll bar subsystem.
-///
 class CH_VEHICLE_API ChAntirollBar : public ChShared {
   public:
     ChAntirollBar(const std::string& name  ///< [in] name of the subsystem
@@ -71,6 +79,8 @@ class CH_VEHICLE_API ChAntirollBar : public ChShared {
 
 /// Vector of handles to antirollbar subsystems.
 typedef std::vector<ChSharedPtr<ChAntirollBar> > ChAntirollbarList;
+
+/// @} vehicle_wheeled_antirollbar
 
 }  // end namespace vehicle
 }  // end namespace chrono

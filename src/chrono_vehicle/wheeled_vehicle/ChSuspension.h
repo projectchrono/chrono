@@ -31,12 +31,20 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_suspension Suspension subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
 /// Base class for a suspension subsystem.
-///
 class CH_VEHICLE_API ChSuspension : public ChShared {
   public:
     ChSuspension(const std::string& name  ///< [in] name of the subsystem
@@ -137,6 +145,8 @@ class CH_VEHICLE_API ChSuspension : public ChShared {
 
 /// Vector of handles to suspension subsystems.
 typedef std::vector<ChSharedPtr<ChSuspension> > ChSuspensionList;
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

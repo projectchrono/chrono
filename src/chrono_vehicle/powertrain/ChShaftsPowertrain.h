@@ -37,11 +37,16 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
 // Forward reference
 class ChVehicle;
 
+/// Template for a powertrain model using shaft elements. 
 class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
   public:
+    /// Construct a shafts-based powertrain model.
     ChShaftsPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
     virtual ~ChShaftsPowertrain() {}
@@ -65,7 +70,7 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Return the output torque from the torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return m_torqueconverter->GetTorqueReactionOnOutput(); }
 
-    /// Return the current transmission gear
+    /// Return the current transmission gear.
     virtual int GetCurrentTransmissionGear() const override { return m_current_gear; }
 
     /// Return the ouput torque from the powertrain.
@@ -119,9 +124,12 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Engine speed-torque braking effect because of losses.
     virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
 
-    /// Torque converter maps:
-    /// capacity factor and torque ratio as functions of the speed ratio.
+    /// Set the capacity factor map.
+    /// Specify the capacity factor as a function of the speed ratio.
     virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+ 
+    /// Set the torque ratio map.
+    /// Specify torque ratio as a function of the speed ratio.
     virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
 
   private:
@@ -142,6 +150,8 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     double m_last_time_gearshift;
     double m_gear_shift_latency;
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -33,8 +33,10 @@
 namespace chrono {
 namespace collision {
 
-///   Class for passing basic data about contact pairs
+/// @addtogroup chrono_collision
+/// @{
 
+///   Class for passing basic data about contact pairs
 class ChCollisionInfo {
   public:
     ChCollisionModel* modelA;  ///<  model A
@@ -89,6 +91,8 @@ class ChCollisionInfo {
         vN = Vmul(vN, -1.0);
     }
 };
+
+/// @} chrono_collision
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

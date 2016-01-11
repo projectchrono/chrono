@@ -24,6 +24,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Simple beam element with two nodes and ANCF gradient-deficient
 /// formulation.
 /// For this 'basic' implementation, constant section and
@@ -38,7 +41,6 @@ namespace fea {
 /// "On the Validation and Applications of a Parallel Flexible Multi-body
 ///  Dynamics Implementation"
 ///  D. MELANZ
-
 class ChElementBeamANCF :   public ChElementBeam, 
                             public ChLoadableU, 
                             public ChLoadableUVW {
@@ -988,6 +990,8 @@ class ChElementBeamANCF :   public ChElementBeam,
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() { return this->section->Area * this->section->density; }
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

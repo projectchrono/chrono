@@ -32,6 +32,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_tire
+/// @{
+
 // Forward declarations for private structures
 struct slips;
 struct Pac2002_data;
@@ -45,10 +48,8 @@ struct zetaCoefs;
 struct relaxationL;
 struct bessel;
 
-///
 /// Concrete tire class that implements the Pacejka tire model.
 /// Detailed description goes here...
-///
 class CH_VEHICLE_API ChPacejkaTire : public ChTire {
   public:
     /// Default constructor for a Pacejka tire.
@@ -417,6 +418,8 @@ T fromTline(const std::string& tline) {
     T t = fromString<T>(splitStr(splitStr(tline, '/')[0], '=')[1]);
     return t;
 }
+
+/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -37,7 +37,9 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
 /// Base class for a double-A arm suspension modeled with distance constraints.
 /// Derived from ChSuspension, but still an abstract bas class.
 ///
@@ -49,7 +51,6 @@ namespace vehicle {
 /// All point locations are assumed to be given for the left half of the
 /// supspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
-///
 class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
   public:
     ChDoubleWishboneReduced(const std::string& name  ///< [in] name of the subsystem
@@ -158,6 +159,8 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
                                         double radius);
     static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

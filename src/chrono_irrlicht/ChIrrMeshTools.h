@@ -14,30 +14,33 @@
 #define CHIRRMESHTOOLS_H
 
 #include <irrlicht.h>
-#include "geometry/ChCTriangleMesh.h"
+
+#include "chrono/geometry/ChCTriangleMesh.h"
 #include "chrono_irrlicht/ChApiIrr.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+/// @addtogroup irrlicht
+/// @{
 
 /// Some functions to allow easy creation of meshes for Irrlicht visualization
-
-ChApiIrr IAnimatedMesh*
-createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, u32 polyCountX, u32 polyCountY);
+ChApiIrr irr::scene::IAnimatedMesh*
+createEllipticalMesh(irr::f32 radiusH, irr::f32 radiusV, irr::f32 Ylow, irr::f32 Yhigh, irr::f32 offset, irr::u32 polyCountX, irr::u32 polyCountY);
 
 /// Same as irr::CGeomentryCreator::createCubeMesh(), but with no shared normals
 /// between faces.
-ChApiIrr IMesh* createCubeMesh(const core::vector3df& size);
+ChApiIrr irr::scene::IMesh* createCubeMesh(const irr::core::vector3df& size);
 
 /// Same as irr::CGeomentryCreator::createCylinderMesh(), but with no shared
 /// normals between caps and hull
-ChApiIrr IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation);
+ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 length, irr::u32 tesselation);
 
 /// This function is based on a modified version of the irrlicht_bullet demo,
 /// see  http://www.continuousphysics.com
 /// It is used to convert an Irrlicht mesh into a ChTriangleMesh, which is used
 /// for collision detection in Chrono::Engine.
-ChApiIrr void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, IMesh* pMesh);
+ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, irr::scene::IMesh* pMesh);
 
 /// Given a ChTriangleMesh object, computes an Irrlicht mesh.
 /// Note: the ChTriangleMesh is a 'triangle soup', so no connectivity is used.
@@ -46,11 +49,13 @@ ChApiIrr void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chT
 ///
 /// ***OBSOLETE***
 ///
-ChApiIrr void fillIrlichtMeshFromChTrimesh(IMesh* pMesh,
-                                           chrono::geometry::ChTriangleMesh* chTrimesh,
-                                           video::SColor clr = video::SColor(255, 255, 255, 255));
+ChApiIrr void fillIrlichtMeshFromChTrimesh(irr::scene::IMesh* pMesh,
+                                           geometry::ChTriangleMesh* chTrimesh,
+                                           irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255));
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrlicht
+}  // end namespace chrono
 
 #endif

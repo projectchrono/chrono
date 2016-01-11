@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_steering
+/// @{
+
+/// Rack-pinion steering model constructed with data from file (JSON format).
 class CH_VEHICLE_API RackPinion : public ChRackPinion {
   public:
     RackPinion(const std::string& filename);
@@ -55,6 +59,8 @@ class CH_VEHICLE_API RackPinion : public ChRackPinion {
     double m_pinionRadius;
     double m_maxAngle;
 };
+
+/// @} vehicle_wheeled_steering
 
 }  // end namespace vehicle
 }  // end namespace chrono

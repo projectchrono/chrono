@@ -25,16 +25,18 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_mkl/ChLcpMklSolver.h"
-#include "chrono_matlab/ChMatlabEngine.h"
-#include "chrono_matlab/ChLcpMatlabSolver.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 
 using namespace chrono;
-using namespace fea;
+using namespace chrono::fea;
+using namespace chrono::irrlicht;
+
 using namespace irr;
 
 int main(int argc, char* argv[]) {
@@ -168,7 +170,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel.INP").c_str(), mmaterial, node_sets, tire_center, tire_alignment);
+        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial, node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
@@ -196,10 +198,6 @@ int main(int argc, char* argv[]) {
         ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos-tire_center);
         my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0 , 0, tire_vel_z0) +  tang_vel);
     }
-
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -301,9 +299,16 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
+
+
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+
+
 
     
         // Change solver to embedded MINRES
@@ -312,14 +317,14 @@ int main(int argc, char* argv[]) {
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);  
 
-/*   
+   
         // Change solver to pluggable MKL
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();
-*/ 
+
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise

@@ -11,16 +11,19 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-namespace irr {
+namespace chrono {
+namespace irrlicht {
 
-ChIrrApp::ChIrrApp(chrono::ChSystem* psystem,
+using namespace irr;
+
+ChIrrApp::ChIrrApp(ChSystem* psystem,
                    const wchar_t* title,
                    core::dimension2d<u32> dimens,
                    bool do_fullscreen,
                    bool do_shadows,
                    video::E_DRIVER_TYPE mydriver)
     : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, mydriver) {
-    mconverter = new scene::ChIrrAssetConverter(*this);
+    mconverter = new ChIrrAssetConverter(*this);
 }
 
 ChIrrApp::~ChIrrApp() {
@@ -28,7 +31,7 @@ ChIrrApp::~ChIrrApp() {
         delete mconverter;
 }
 
-void ChIrrApp::AssetBind(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
+void ChIrrApp::AssetBind(ChSharedPtr<ChPhysicsItem> mitem) {
     GetAssetConverter()->Bind(mitem);
 }
 
@@ -36,7 +39,7 @@ void ChIrrApp::AssetBindAll() {
     GetAssetConverter()->BindAll();
 }
 
-void ChIrrApp::AssetUpdate(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
+void ChIrrApp::AssetUpdate(ChSharedPtr<ChPhysicsItem> mitem) {
     GetAssetConverter()->Update(mitem);
 }
 
@@ -44,8 +47,8 @@ void ChIrrApp::AssetUpdateAll() {
     GetAssetConverter()->UpdateAll();
 }
 
-void ChIrrApp::AddShadow(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
-    chrono::ChSharedPtr<chrono::ChIrrNodeAsset> myirrasset;
+void ChIrrApp::AddShadow(ChSharedPtr<ChPhysicsItem> mitem) {
+    ChSharedPtr<ChIrrNodeAsset> myirrasset;
     myirrasset = GetAssetConverter()->GetIrrNodeAsset(mitem);
     if (!myirrasset.IsNull()) {
         _recurse_add_shadow(myirrasset->GetIrrlichtNode());
@@ -53,7 +56,7 @@ void ChIrrApp::AddShadow(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem) {
 }
 
 void ChIrrApp::AddShadowAll() {
-    chrono::ChSystem::IteratorPhysicsItems miter = this->GetSystem()->IterBeginPhysicsItems();
+    ChSystem::IteratorPhysicsItems miter = this->GetSystem()->IterBeginPhysicsItems();
     while (miter.HasItem()) {
         AddShadow(*miter);
         ++miter;
@@ -70,4 +73,5 @@ void ChIrrApp::_recurse_add_shadow(scene::ISceneNode* mnode) {
         GetEffects()->addShadowToNode(mnode);
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

@@ -13,30 +13,35 @@
 
 #include <irrlicht.h>
 
-#include "physics/ChSystem.h"
-#include "physics/ChParticlesClones.h"
+#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 
 #define ESNT_CHPARTICLES 1201
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
 
-class ChApiIrr ChIrrParticlesSceneNode : public scene::ISceneNode {
+/// @addtogroup irrlicht
+/// @{
+
+/// Definition of an Irrlicht scene node for particles.
+class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
   public:
     /// Build a scene node for the Irrlicht Engine. This scene node is also a
     /// rigid body for the Chrono::Engine multibody simulation. As soon as
     /// created, the wrapped ChParticlesClones is also added to the Chrono::Engine
     /// To delete a ChParticlesClonesScene node from an Irrlicht scene, use the
     /// remove() function only! (it will also be removed from the Chrono::Engine)
-    ChIrrParticlesSceneNode(chrono::ChSystem* msystem,  ///< pointer to the Chrono::Engine physical simulation system
-                            IAnimatedMesh* mesh,  ///< a sample 3D mesh for representing the shape of each particle
-                            core::vector3df mmesh_scale,  ///< scale of the sample mesh
-                            ISceneNode* parent,           ///< the parent node in Irrlicht hierarchy
-                            ISceneManager* mgr,           ///< the Irrlicht scene manager
-                            s32 id);                      ///< the Irrlicht identifier
+    ChIrrParticlesSceneNode(
+        ChSystem* msystem,         ///< pointer to the Chrono::Engine physical simulation system
+        irr::scene::IAnimatedMesh* mesh,   ///< a sample 3D mesh for representing the shape of each particle
+        irr::core::vector3df mmesh_scale,  ///< scale of the sample mesh
+        ISceneNode* parent,                ///< the parent node in Irrlicht hierarchy
+        irr::scene::ISceneManager* mgr,    ///< the Irrlicht scene manager
+        irr::s32 id);                      ///< the Irrlicht identifier
 
     /// Destructor.
     /// Note: as this Irrlicht node is destructed, it also automatically removes
@@ -51,22 +56,22 @@ class ChApiIrr ChIrrParticlesSceneNode : public scene::ISceneNode {
 
     virtual void render();
 
-    virtual const core::aabbox3d<f32>& getBoundingBox() const;
+    virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const;
 
-    virtual void setMaterialTexture(s32 textureLayer, video::ITexture* texture);
+    virtual void setMaterialTexture(irr::s32 textureLayer, irr::video::ITexture* texture);
 
-    virtual u32 getMaterialCount();
+    virtual irr::u32 getMaterialCount();
 
-    virtual video::SMaterial& getMaterial(u32 i);
+    virtual irr::video::SMaterial& getMaterial(irr::u32 i);
 
-    void OnAnimate(u32 timeMs);
+    void OnAnimate(irr::u32 timeMs);
 
-    virtual IShadowVolumeSceneNode* addShadowVolumeSceneNode(const IMesh* shadowMesh = 0,
-                                                             s32 id = -1,
+    virtual irr::scene::IShadowVolumeSceneNode* addShadowVolumeSceneNode(const irr::scene::IMesh* shadowMesh = 0,
+                                                             irr::s32 id = -1,
                                                              bool zfailmethod = true,
-                                                             f32 infinity = 10000.0f);
+                                                             irr::f32 infinity = 10000.0f);
 
-    virtual ESCENE_NODE_TYPE getType() const { return (ESCENE_NODE_TYPE)ESNT_CHPARTICLES; }
+    virtual irr::scene::ESCENE_NODE_TYPE getType() const { return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHPARTICLES; }
 
     //
     // CHRONO::ENGINE SPECIFIC
@@ -74,7 +79,7 @@ class ChApiIrr ChIrrParticlesSceneNode : public scene::ISceneNode {
 
     /// Returns reference to the shared pointer which references the rigid body
     /// wrapped by this scene node.
-    chrono::ChSharedPtr<chrono::ChParticlesClones>& GetParticles() { return *particlep; }
+    ChSharedPtr<ChParticlesClones>& GetParticles() { return *particlep; }
 
     /// Returns true if the node is moved by Chrono::Engine simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
@@ -90,17 +95,17 @@ class ChApiIrr ChIrrParticlesSceneNode : public scene::ISceneNode {
     void UpdateChildrenHierarchy();
 
     // Data
-    core::aabbox3d<f32> Box;
+    irr::core::aabbox3d<irr::f32> Box;
 
-    IAnimatedMeshSceneNode* child_mesh;
-    IAnimatedMesh* sample_mesh;
-    core::vector3df mesh_scale;
-    video::ITexture* sample_texture;
+    irr::scene::IAnimatedMeshSceneNode* child_mesh;
+    irr::scene::IAnimatedMesh* sample_mesh;
+    irr::core::vector3df mesh_scale;
+    irr::video::ITexture* sample_texture;
 
-    s32 Nchildren;
+    irr::s32 Nchildren;
 
     // Chrono Engine specific data
-    chrono::ChSharedPtr<chrono::ChParticlesClones>* particlep;
+    ChSharedPtr<ChParticlesClones>* particlep;
     bool ChronoControlled;
 
     static int particles_identifier;
@@ -108,28 +113,30 @@ class ChApiIrr ChIrrParticlesSceneNode : public scene::ISceneNode {
 
 /// Easy-to-use function which creates a ChIrrParticlesSceneNode and inserts it
 /// into the Irrlicht scene.
-ChApiIrr ISceneNode* addChParticlesSceneNode(chrono::ChSystem* asystem,
-                                             ISceneManager* amanager,
-                                             IAnimatedMesh* amesh,
-                                             core::vector3df amesh_scale,
+ChApiIrr irr::scene::ISceneNode* addChParticlesSceneNode(ChSystem* asystem,
+                                             irr::scene::ISceneManager* amanager,
+                                             irr::scene::IAnimatedMesh* amesh,
+                                             irr::core::vector3df amesh_scale,
                                              double mmass = 1.0,
-                                             ISceneNode* aparent = 0,
-                                             s32 mid = -1);
+                                             irr::scene::ISceneNode* aparent = 0,
+                                             irr::s32 mid = -1);
 
 /// Easy-to-use function which creates a ChIrrParticlesSceneNode representing a
 /// cluster of particles, ready to use for collisions (otherwise you could use
 /// addChBodySceneNode() and add collision geometry by hand, but the following
 /// is easier). The returned object has collision detection turned ON by default.
-ChApiIrr ISceneNode* addChParticlesSceneNode_easySpheres(chrono::ChSystem* asystem,
-                                                         ISceneManager* amanager,
+ChApiIrr irr::scene::ISceneNode* addChParticlesSceneNode_easySpheres(ChSystem* asystem,
+                                                         irr::scene::ISceneManager* amanager,
                                                          double mmass = 1.0,
                                                          double mradius = 1.0,
                                                          int Hslices = 12,
                                                          int Vslices = 6,
-                                                         ISceneNode* aparent = 0,
-                                                         s32 mid = -1);
+                                                         irr::scene::ISceneNode* aparent = 0,
+                                                         irr::s32 mid = -1);
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrlicht
+}  // end namespace chrono
 
 #endif

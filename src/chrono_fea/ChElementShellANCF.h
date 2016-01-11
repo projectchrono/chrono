@@ -29,6 +29,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 // ----------------------------------------------------------------------------
 /// Material definition.
 /// This class implements material properties for a layer.
@@ -406,6 +409,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     friend class MyForce;
     friend class MyJacobian;
 };
+
+/// @} fea_elements
 
 }  // end of namespace fea
 }  // end of namespace chrono

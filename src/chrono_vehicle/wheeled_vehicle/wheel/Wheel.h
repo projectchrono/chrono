@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_wheel
+/// @{
+
+/// Vehicle wheel constructed with data from file (JSON format).
 class CH_VEHICLE_API Wheel : public ChWheel {
   public:
     Wheel(const std::string& filename);
@@ -62,6 +66,8 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     std::string m_meshName;
     std::string m_meshFile;
 };
+
+/// @} vehicle_wheeled_wheel
 
 }  // end namespace vehicle
 }  // end namespace chrono

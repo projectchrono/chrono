@@ -19,9 +19,11 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks)
 /// with 8 nodes. This element has a linear displacement field.
-
 class ChApiFea ChElementHexa_8 : public ChElementHexahedron,
                                  public ChLoadableUVW {
   protected:
@@ -543,6 +545,8 @@ class ChApiFea ChElementHexa_8 : public ChElementHexahedron,
             /// This is needed so that it can be accessed by ChLoaderVolumeGravity
      virtual double GetDensity() { return this->Material->Get_density(); } 
 };
+
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

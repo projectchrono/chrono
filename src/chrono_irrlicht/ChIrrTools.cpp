@@ -10,22 +10,26 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChLinkMate.h"
-#include "lcp/ChLcpIterativeSolver.h"
-#include "physics/ChContactContainerBase.h"
+#include "chrono/lcp/ChLcpIterativeSolver.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChLinkMate.h"
+
 #include "chrono_irrlicht/ChIrrTools.h"
 
-namespace irr {
+namespace chrono {
+namespace irrlicht {
+
+using namespace irr;
 
 // -----------------------------------------------------------------------------
 // Function to align an Irrlicht object to a Chrono::Engine coordsys.
 // -----------------------------------------------------------------------------
-void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const chrono::ChCoordsys<>& mcoords) {
+void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
     // Output: will be an Irrlicht 4x4 matrix
-    core::matrix4 irrMat;
+    irr::core::matrix4 irrMat;
 
     // Get the rigid body actual rotation, as a 3x3 matrix [A]
-    chrono::ChMatrix33<> chMat(mcoords.rot);
+    ChMatrix33<> chMat(mcoords.rot);
 
     // Fill the upper 3x3 submatrix with the [A] matrix
     // transposed, since Irrlicht uses the row-major style as in D3D
@@ -59,34 +63,34 @@ void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const c
 // Draw contact points.
 // Uses the _draw_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _draw_reporter_class : public chrono::ChReportContactCallback2 {
+class _draw_reporter_class : public ChReportContactCallback2 {
   public:
-    virtual bool ReportContactCallback2(const chrono::ChVector<>& pA,
-                                       const chrono::ChVector<>& pB,
-                                       const chrono::ChMatrix33<>& plane_coord,
+    virtual bool ReportContactCallback2(const ChVector<>& pA,
+                                       const ChVector<>& pB,
+                                       const ChMatrix33<>& plane_coord,
                                        const double& distance,
-                                       const chrono::ChVector<>& react_forces,
-                                       const chrono::ChVector<>& react_torques,
-                                       chrono::ChContactable* modA,
-                                       chrono::ChContactable* modB) {
-        chrono::ChMatrix33<>& mplanecoord = const_cast<chrono::ChMatrix33<>&>(plane_coord);
-        chrono::ChVector<> v1 = pA;
-        chrono::ChVector<> v2;
-        chrono::ChVector<> vn = mplanecoord.Get_A_Xaxis();
+                                       const ChVector<>& react_forces,
+                                       const ChVector<>& react_torques,
+                                       ChContactable* modA,
+                                       ChContactable* modB) {
+        ChMatrix33<>& mplanecoord = const_cast<ChMatrix33<>&>(plane_coord);
+        ChVector<> v1 = pA;
+        ChVector<> v2;
+        ChVector<> vn = mplanecoord.Get_A_Xaxis();
 
-        video::SColor mcol = video::SColor(200, 255, 0, 0);
+        irr::video::SColor mcol = irr::video::SColor(200, 255, 0, 0);
 
         switch (drawtype) {
             case ChIrrTools::CONTACT_DISTANCES:
                 v2 = pB;
                 if (distance > 0.0)
-                    mcol = video::SColor(200, 20, 255, 0);  // green: non penetration
+                    mcol = irr::video::SColor(200, 20, 255, 0);  // green: non penetration
                 else
-                    mcol = video::SColor(200, 255, 60, 60);  // red: penetration
+                    mcol = irr::video::SColor(200, 255, 60, 60);  // red: penetration
                 break;
             case ChIrrTools::CONTACT_NORMALS:
                 v2 = pA + vn * clen;
-                mcol = video::SColor(200, 0, 100, 255);
+                mcol = irr::video::SColor(200, 0, 100, 255);
                 break;
             case ChIrrTools::CONTACT_FORCES_N:
                 v2 = pA + vn * clen * react_forces.x;
@@ -98,17 +102,17 @@ class _draw_reporter_class : public chrono::ChReportContactCallback2 {
 
         
 
-        this->cdriver->draw3DLine(core::vector3dfCH(v1), core::vector3dfCH(v2), mcol);
+        this->cdriver->draw3DLine(irr::core::vector3dfCH(v1), irr::core::vector3dfCH(v2), mcol);
         return true;  // to continue scanning contacts
     }
 
-    video::IVideoDriver* cdriver;
+    irr::video::IVideoDriver* cdriver;
     ChIrrTools::eCh_ContactsDrawMode drawtype;
     double clen;
 };
 
-int ChIrrTools::drawAllContactPoints(chrono::ChSystem& mphysicalSystem,
-                                     video::IVideoDriver* driver,
+int ChIrrTools::drawAllContactPoints(ChSystem& mphysicalSystem,
+                                     irr::video::IVideoDriver* driver,
                                      double mlen,
                                      eCh_ContactsDrawMode drawtype) {
     if (drawtype == CONTACT_NONE)
@@ -117,8 +121,8 @@ int ChIrrTools::drawAllContactPoints(chrono::ChSystem& mphysicalSystem,
     if (mphysicalSystem.GetNcontacts() == 0)
         return 0;
 
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
@@ -139,19 +143,19 @@ int ChIrrTools::drawAllContactPoints(chrono::ChSystem& mphysicalSystem,
 // Draw contact information as labels at the contact point.
 // Uses the _label_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _label_reporter_class : public chrono::ChReportContactCallback2 {
+class _label_reporter_class : public ChReportContactCallback2 {
   public:
-    virtual bool ReportContactCallback2(const chrono::ChVector<>& pA,
-                                       const chrono::ChVector<>& pB,
-                                       const chrono::ChMatrix33<>& plane_coord,
+    virtual bool ReportContactCallback2(const ChVector<>& pA,
+                                       const ChVector<>& pB,
+                                       const ChMatrix33<>& plane_coord,
                                        const double& distance,
-                                       const chrono::ChVector<>& react_forces,
-                                       const chrono::ChVector<>& react_torques,
-                                       chrono::ChContactable* modA,
-                                       chrono::ChContactable* modB) {
+                                       const ChVector<>& react_forces,
+                                       const ChVector<>& react_torques,
+                                       ChContactable* modA,
+                                       ChContactable* modB) {
         char buffer[25];
-        core::vector3df mpos((irr::f32)pA.x, (irr::f32)pA.y, (irr::f32)pA.z);
-        core::position2d<s32> spos =
+        irr::core::vector3df mpos((irr::f32)pA.x, (irr::f32)pA.y, (irr::f32)pA.z);
+        irr::core::position2d<s32> spos =
             this->cdevice->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
         gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
     
@@ -163,36 +167,36 @@ class _label_reporter_class : public chrono::ChReportContactCallback2 {
                 sprintf(buffer, "% 6.3g", react_forces.x);
                 break;
             case ChIrrTools::CONTACT_FORCES_T_VAL:
-                sprintf(buffer, "% 6.3g", chrono::ChVector<>(0, react_forces.y, react_forces.z).Length());
+                sprintf(buffer, "% 6.3g", ChVector<>(0, react_forces.y, react_forces.z).Length());
                 break;
             case ChIrrTools::CONTACT_FORCES_VAL:
-                sprintf(buffer, "% 6.3g", chrono::ChVector<>(react_forces).Length());
+                sprintf(buffer, "% 6.3g", ChVector<>(react_forces).Length());
                 break;
             case ChIrrTools::CONTACT_TORQUES_VAL:
-                sprintf(buffer, "% 6.3g", chrono::ChVector<>(react_torques).Length());
+                sprintf(buffer, "% 6.3g", ChVector<>(react_torques).Length());
                 break;
             case ChIrrTools::CONTACT_TORQUES_S_VAL:
                 sprintf(buffer, "% 6.3g", react_torques.x);
                 break;
             case ChIrrTools::CONTACT_TORQUES_R_VAL:
-                sprintf(buffer, "% 6.3g", chrono::ChVector<>(0, react_torques.y, react_torques.z).Length());
+                sprintf(buffer, "% 6.3g", ChVector<>(0, react_torques.y, react_torques.z).Length());
                 break;
         }
 
-        font->draw(core::stringw(buffer).c_str(), core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), ccol);
+        font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), ccol);
 
         return true;  // to continue scanning contacts
     }
 
     irr::IrrlichtDevice* cdevice;
     ChIrrTools::eCh_ContactsLabelMode labeltype;
-    video::SColor ccol;
+    irr::video::SColor ccol;
 };
 
-int ChIrrTools::drawAllContactLabels(chrono::ChSystem& mphysicalSystem,
+int ChIrrTools::drawAllContactLabels(ChSystem& mphysicalSystem,
                                      irr::IrrlichtDevice* device,
                                      eCh_ContactsLabelMode labeltype,
-                                     video::SColor mcol) {
+                                     irr::video::SColor mcol) {
     if (labeltype == CONTACT_NONE_VAL)
         return 0;
 
@@ -214,27 +218,27 @@ int ChIrrTools::drawAllContactLabels(chrono::ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw links as glyps.
 // ---------------------------------------------------------------------------
-int ChIrrTools::drawAllLinks(chrono::ChSystem& mphysicalSystem,
-                             video::IVideoDriver* driver,
+int ChIrrTools::drawAllLinks(ChSystem& mphysicalSystem,
+                             irr::video::IVideoDriver* driver,
                              double mlen,
                              eCh_LinkDrawMode drawtype) {
     if (drawtype == LINK_NONE)
         return 0;
 
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+    ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<chrono::ChLinkBase>()) {
-            chrono::ChSharedPtr<chrono::ChLinkBase> mylink = (*myiter).DynamicCastTo<chrono::ChLinkBase>();
-            chrono::ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();
-            chrono::ChVector<> v1abs = mlinkframe.pos;
-            chrono::ChVector<> v2;
-            chrono::ChVector<> v2abs;
+        if ((*myiter).IsType<ChLinkBase>()) {
+            ChSharedPtr<ChLinkBase> mylink = (*myiter).DynamicCastTo<ChLinkBase>();
+            ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();
+            ChVector<> v1abs = mlinkframe.pos;
+            ChVector<> v2;
+            ChVector<> v2abs;
             switch (drawtype) {
                 case ChIrrTools::LINK_REACT_FORCE:
                     v2 = mylink->Get_react_force();
@@ -247,9 +251,9 @@ int ChIrrTools::drawAllLinks(chrono::ChSystem& mphysicalSystem,
             v2 *= mlen;
             v2abs = v2 >> mlinkframe;
 
-            video::SColor mcol(200, 250, 250, 0);  // yellow vectors
+            irr::video::SColor mcol(200, 250, 250, 0);  // yellow vectors
 
-            driver->draw3DLine(core::vector3dfCH(v1abs), core::vector3dfCH(v2abs), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(v1abs), irr::core::vector3dfCH(v2abs), mcol);
         }
         ++myiter;
     }
@@ -259,22 +263,22 @@ int ChIrrTools::drawAllLinks(chrono::ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw links as labels
 // ---------------------------------------------------------------------------
-int ChIrrTools::drawAllLinkLabels(chrono::ChSystem& mphysicalSystem,
+int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
                                   irr::IrrlichtDevice* device,
                                   eCh_LinkLabelMode labeltype,
-                                  video::SColor mcol) {
+                                  irr::video::SColor mcol) {
     if (labeltype == LINK_NONE_VAL)
         return 0;
 
-    chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+    ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<chrono::ChLinkBase>()) {
-            chrono::ChSharedPtr<chrono::ChLinkBase> mylink = (*myiter).DynamicCastTo<chrono::ChLinkBase>();
-            chrono::ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();  // GetAssetsFrame();
+        if ((*myiter).IsType<ChLinkBase>()) {
+            ChSharedPtr<ChLinkBase> mylink = (*myiter).DynamicCastTo<ChLinkBase>();
+            ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();  // GetAssetsFrame();
 
             char buffer[25];
-            core::vector3df mpos((irr::f32)mlinkframe.pos.x, (irr::f32)mlinkframe.pos.y, (irr::f32)mlinkframe.pos.z);
-            core::position2d<s32> spos =
+            irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x, (irr::f32)mlinkframe.pos.y, (irr::f32)mlinkframe.pos.z);
+            irr::core::position2d<s32> spos =
                 device->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
             gui::IGUIFont* font = device->getGUIEnvironment()->getBuiltInFont();
 
@@ -305,7 +309,7 @@ int ChIrrTools::drawAllLinkLabels(chrono::ChSystem& mphysicalSystem,
                     break;
             }
 
-            font->draw(core::stringw(buffer).c_str(), core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10),
+            font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10),
                        mcol);
         }
         ++myiter;
@@ -316,59 +320,59 @@ int ChIrrTools::drawAllLinkLabels(chrono::ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw collision objects bounding boxes for rigid bodies.
 // -----------------------------------------------------------------------------
-int ChIrrTools::drawAllBoundingBoxes(chrono::ChSystem& mphysicalSystem, video::IVideoDriver* driver) {
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+int ChIrrTools::drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver) {
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+    ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<chrono::ChBody>())  // item is inherited from ChBody?
+        if ((*myiter).IsType<ChBody>())  // item is inherited from ChBody?
         {
-            chrono::ChSharedPtr<chrono::ChBody> abody((*myiter).DynamicCastTo<chrono::ChBody>());
+            ChSharedPtr<ChBody> abody((*myiter).DynamicCastTo<ChBody>());
 
-            video::SColor mcol;
+            irr::video::SColor mcol;
 
             if (abody->GetSleeping())
-                mcol = video::SColor(70, 0, 50, 255);  // blue: sleeping
+                mcol = irr::video::SColor(70, 0, 50, 255);  // blue: sleeping
             else
-                mcol = video::SColor(70, 30, 200, 200);  // cyan: not sleeping
+                mcol = irr::video::SColor(70, 30, 200, 200);  // cyan: not sleeping
 
-            chrono::ChVector<> hi = chrono::VNULL;
-            chrono::ChVector<> lo = chrono::VNULL;
+            ChVector<> hi = VNULL;
+            ChVector<> lo = VNULL;
             abody->GetTotalAABB(lo, hi);
-            chrono::ChVector<> p1(hi.x, lo.y, lo.z);
-            chrono::ChVector<> p2(lo.x, hi.y, lo.z);
-            chrono::ChVector<> p3(lo.x, lo.y, hi.z);
-            chrono::ChVector<> p4(hi.x, hi.y, lo.z);
-            chrono::ChVector<> p5(lo.x, hi.y, hi.z);
-            chrono::ChVector<> p6(hi.x, lo.y, hi.z);
-            chrono::ChVector<> p7(lo.x, lo.y, hi.z);
-            chrono::ChVector<> p8(lo.x, lo.y, hi.z);
-            chrono::ChVector<> p9(lo.x, hi.y, lo.z);
-            chrono::ChVector<> p10(lo.x, hi.y, lo.z);
-            chrono::ChVector<> p11(hi.x, lo.y, lo.z);
-            chrono::ChVector<> p12(hi.x, lo.y, lo.z);
-            chrono::ChVector<> p14(hi.x, lo.y, hi.z);
-            chrono::ChVector<> p15(lo.x, hi.y, hi.z);
-            chrono::ChVector<> p16(lo.x, hi.y, hi.z);
-            chrono::ChVector<> p17(hi.x, hi.y, lo.z);
-            chrono::ChVector<> p18(hi.x, lo.y, hi.z);
-            chrono::ChVector<> p19(hi.x, hi.y, lo.z);
-            driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p1), mcol);
-            driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p2), mcol);
-            driver->draw3DLine(core::vector3dfCH(lo), core::vector3dfCH(p3), mcol);
-            driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p4), mcol);
-            driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p5), mcol);
-            driver->draw3DLine(core::vector3dfCH(hi), core::vector3dfCH(p6), mcol);
-            driver->draw3DLine(core::vector3dfCH(p7), core::vector3dfCH(p14), mcol);
-            driver->draw3DLine(core::vector3dfCH(p8), core::vector3dfCH(p15), mcol);
-            driver->draw3DLine(core::vector3dfCH(p9), core::vector3dfCH(p16), mcol);
-            driver->draw3DLine(core::vector3dfCH(p10), core::vector3dfCH(p17), mcol);
-            driver->draw3DLine(core::vector3dfCH(p11), core::vector3dfCH(p18), mcol);
-            driver->draw3DLine(core::vector3dfCH(p12), core::vector3dfCH(p19), mcol);
+            ChVector<> p1(hi.x, lo.y, lo.z);
+            ChVector<> p2(lo.x, hi.y, lo.z);
+            ChVector<> p3(lo.x, lo.y, hi.z);
+            ChVector<> p4(hi.x, hi.y, lo.z);
+            ChVector<> p5(lo.x, hi.y, hi.z);
+            ChVector<> p6(hi.x, lo.y, hi.z);
+            ChVector<> p7(lo.x, lo.y, hi.z);
+            ChVector<> p8(lo.x, lo.y, hi.z);
+            ChVector<> p9(lo.x, hi.y, lo.z);
+            ChVector<> p10(lo.x, hi.y, lo.z);
+            ChVector<> p11(hi.x, lo.y, lo.z);
+            ChVector<> p12(hi.x, lo.y, lo.z);
+            ChVector<> p14(hi.x, lo.y, hi.z);
+            ChVector<> p15(lo.x, hi.y, hi.z);
+            ChVector<> p16(lo.x, hi.y, hi.z);
+            ChVector<> p17(hi.x, hi.y, lo.z);
+            ChVector<> p18(hi.x, lo.y, hi.z);
+            ChVector<> p19(hi.x, hi.y, lo.z);
+            driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p1), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p2), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p3), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p4), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p5), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(hi), irr::core::vector3dfCH(p6), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(p7), irr::core::vector3dfCH(p14), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(p8), irr::core::vector3dfCH(p15), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(p9), irr::core::vector3dfCH(p16), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(p10), irr::core::vector3dfCH(p17), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(p11), irr::core::vector3dfCH(p18), mcol);
+            driver->draw3DLine(irr::core::vector3dfCH(p12), irr::core::vector3dfCH(p19), mcol);
         }
 
         ++myiter;
@@ -380,46 +384,46 @@ int ChIrrTools::drawAllBoundingBoxes(chrono::ChSystem& mphysicalSystem, video::I
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of ChBody objects bodies.
 // -----------------------------------------------------------------------------
-int ChIrrTools::drawAllCOGs(chrono::ChSystem& mphysicalSystem, video::IVideoDriver* driver, double scale) {
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+int ChIrrTools::drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+    ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<chrono::ChBody>())  // item is inherited from ChBody?
+        if ((*myiter).IsType<ChBody>())  // item is inherited from ChBody?
         {
-            chrono::ChSharedPtr<chrono::ChBody> abody((*myiter).DynamicCastTo<chrono::ChBody>());
+            ChSharedPtr<ChBody> abody((*myiter).DynamicCastTo<ChBody>());
 
-            video::SColor mcol;
-            const chrono::ChFrame<>& mframe_cog = abody->GetFrame_COG_to_abs();
-            const chrono::ChFrame<>& mframe_ref = abody->GetFrame_REF_to_abs();
+            irr::video::SColor mcol;
+            const ChFrame<>& mframe_cog = abody->GetFrame_COG_to_abs();
+            const ChFrame<>& mframe_ref = abody->GetFrame_REF_to_abs();
 
-            chrono::ChVector<> p0 = mframe_cog.GetPos();
-            chrono::ChVector<> px = p0 + mframe_cog.GetA().Get_A_Xaxis() * 0.5 * scale;
-            chrono::ChVector<> py = p0 + mframe_cog.GetA().Get_A_Yaxis() * 0.5 * scale;
-            chrono::ChVector<> pz = p0 + mframe_cog.GetA().Get_A_Zaxis() * 0.5 * scale;
+            ChVector<> p0 = mframe_cog.GetPos();
+            ChVector<> px = p0 + mframe_cog.GetA().Get_A_Xaxis() * 0.5 * scale;
+            ChVector<> py = p0 + mframe_cog.GetA().Get_A_Yaxis() * 0.5 * scale;
+            ChVector<> pz = p0 + mframe_cog.GetA().Get_A_Zaxis() * 0.5 * scale;
 
-            mcol = video::SColor(70, 125, 0, 0);  // X red
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol);
-            mcol = video::SColor(70, 0, 125, 0);  // Y green
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol);
-            mcol = video::SColor(70, 0, 0, 125);  // Z blue
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol);
+            mcol = irr::video::SColor(70, 125, 0, 0);  // X red
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+            mcol = irr::video::SColor(70, 0, 125, 0);  // Y green
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+            mcol = irr::video::SColor(70, 0, 0, 125);  // Z blue
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
 
             p0 = mframe_ref.GetPos();
             px = p0 + mframe_ref.GetA().Get_A_Xaxis() * scale;
             py = p0 + mframe_ref.GetA().Get_A_Yaxis() * scale;
             pz = p0 + mframe_ref.GetA().Get_A_Zaxis() * scale;
 
-            mcol = video::SColor(70, 255, 0, 0);  // X red
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol);
-            mcol = video::SColor(70, 0, 255, 0);  // Y green
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol);
-            mcol = video::SColor(70, 0, 0, 255);  // Z blue
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol);
+            mcol = irr::video::SColor(70, 255, 0, 0);  // X red
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+            mcol = irr::video::SColor(70, 0, 255, 0);  // Y green
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+            mcol = irr::video::SColor(70, 0, 0, 255);  // Z blue
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
         }
 
         ++myiter;
@@ -431,20 +435,20 @@ int ChIrrTools::drawAllCOGs(chrono::ChSystem& mphysicalSystem, video::IVideoDriv
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of frames used by links.
 // -----------------------------------------------------------------------------
-int ChIrrTools::drawAllLinkframes(chrono::ChSystem& mphysicalSystem, video::IVideoDriver* driver, double scale) {
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+int ChIrrTools::drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    chrono::ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
+    ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<chrono::ChLinkBase>()) {
-            chrono::ChFrame<> frAabs;
-            chrono::ChFrame<> frBabs;
+        if ((*myiter).IsType<ChLinkBase>()) {
+            ChFrame<> frAabs;
+            ChFrame<> frBabs;
 
-            chrono::ChSharedPtr<chrono::ChLinkBase> mylinkbase = ((*myiter).DynamicCastTo<chrono::ChLinkBase>());
+            ChSharedPtr<ChLinkBase> mylinkbase = ((*myiter).DynamicCastTo<ChLinkBase>());
 
             // default frame alignment:
 
@@ -453,44 +457,44 @@ int ChIrrTools::drawAllLinkframes(chrono::ChSystem& mphysicalSystem, video::IVid
 
             // special cases:
 
-            if ((*myiter).IsType<chrono::ChLinkMarkers>()) {
-                chrono::ChSharedPtr<chrono::ChLinkMarkers> mylink((*myiter).DynamicCastTo<chrono::ChLinkMarkers>());
+            if ((*myiter).IsType<ChLinkMarkers>()) {
+                ChSharedPtr<ChLinkMarkers> mylink((*myiter).DynamicCastTo<ChLinkMarkers>());
                 frAabs = *mylink->GetMarker1() >> *mylink->GetBody1();
                 frBabs = *mylink->GetMarker2() >> *mylink->GetBody2();
             }
 
-            if ((*myiter).IsType<chrono::ChLinkMateGeneric>()) {
-                chrono::ChSharedPtr<chrono::ChLinkMateGeneric> mylink(
-                    (*myiter).DynamicCastTo<chrono::ChLinkMateGeneric>());
+            if ((*myiter).IsType<ChLinkMateGeneric>()) {
+                ChSharedPtr<ChLinkMateGeneric> mylink(
+                    (*myiter).DynamicCastTo<ChLinkMateGeneric>());
                 frAabs = mylink->GetFrame1() >> *mylink->GetBody1();
                 frBabs = mylink->GetFrame2() >> *mylink->GetBody2();
             }
 
-            video::SColor mcol;
+            irr::video::SColor mcol;
 
-            chrono::ChVector<> p0 = frAabs.GetPos();
-            chrono::ChVector<> px = p0 + frAabs.GetA().Get_A_Xaxis() * 0.7 * scale;
-            chrono::ChVector<> py = p0 + frAabs.GetA().Get_A_Yaxis() * 0.7 * scale;
-            chrono::ChVector<> pz = p0 + frAabs.GetA().Get_A_Zaxis() * 0.7 * scale;
+            ChVector<> p0 = frAabs.GetPos();
+            ChVector<> px = p0 + frAabs.GetA().Get_A_Xaxis() * 0.7 * scale;
+            ChVector<> py = p0 + frAabs.GetA().Get_A_Yaxis() * 0.7 * scale;
+            ChVector<> pz = p0 + frAabs.GetA().Get_A_Zaxis() * 0.7 * scale;
 
-            mcol = video::SColor(70, 125, 0, 0);  // X red
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol);
-            mcol = video::SColor(70, 0, 125, 0);  // Y green
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol);
-            mcol = video::SColor(70, 0, 0, 125);  // Z blue
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol);
+            mcol = irr::video::SColor(70, 125, 0, 0);  // X red
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+            mcol = irr::video::SColor(70, 0, 125, 0);  // Y green
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+            mcol = irr::video::SColor(70, 0, 0, 125);  // Z blue
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
 
             p0 = frBabs.GetPos();
             px = p0 + frBabs.GetA().Get_A_Xaxis() * scale;
             py = p0 + frBabs.GetA().Get_A_Yaxis() * scale;
             pz = p0 + frBabs.GetA().Get_A_Zaxis() * scale;
 
-            mcol = video::SColor(70, 255, 0, 0);  // X red
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(px), mcol);
-            mcol = video::SColor(70, 0, 255, 0);  // Y green
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(py), mcol);
-            mcol = video::SColor(70, 0, 0, 255);  // Z blue
-            driver->draw3DLine(core::vector3dfCH(p0), core::vector3dfCH(pz), mcol);
+            mcol = irr::video::SColor(70, 255, 0, 0);  // X red
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
+            mcol = irr::video::SColor(70, 0, 255, 0);  // Y green
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
+            mcol = irr::video::SColor(70, 0, 0, 255);  // Z blue
+            driver->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
         }
 
         ++myiter;
@@ -500,50 +504,50 @@ int ChIrrTools::drawAllLinkframes(chrono::ChSystem& mphysicalSystem, video::IVid
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawHUDviolation(video::IVideoDriver* driver,
+void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
                                   IrrlichtDevice* mdevice,
-                                  chrono::ChSystem& asystem,
+                                  ChSystem& asystem,
                                   int mx,
                                   int my,
                                   int sx,
                                   int sy,
                                   double spfact,
                                   double posfact) {
-    if (asystem.GetLcpSolverType() == chrono::ChSystem::LCP_SIMPLEX)
+    if (asystem.GetLcpSolverType() == ChSystem::LCP_SIMPLEX)
         return;
 
-    chrono::ChLcpIterativeSolver* msolver_speed = (chrono::ChLcpIterativeSolver*)asystem.GetLcpSolverSpeed();
-    chrono::ChLcpIterativeSolver* msolver_stab = (chrono::ChLcpIterativeSolver*)asystem.GetLcpSolverStab();
+    ChLcpIterativeSolver* msolver_speed = (ChLcpIterativeSolver*)asystem.GetLcpSolverSpeed();
+    ChLcpIterativeSolver* msolver_stab = (ChLcpIterativeSolver*)asystem.GetLcpSolverStab();
     msolver_speed->SetRecordViolation(true);
     msolver_stab->SetRecordViolation(true);
 
-    core::rect<s32> mrect(mx, my, mx + sx, my + sy);
-    driver->draw2DRectangle(video::SColor(100, 200, 200, 230), mrect);
+    irr::core::rect<s32> mrect(mx, my, mx + sx, my + sy);
+    driver->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
     for (unsigned int i = 0; i < msolver_speed->GetViolationHistory().size(); i++) {
         driver->draw2DRectangle(
-            video::SColor(90, 255, 0, 0),
-            core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetViolationHistory()[i]),
+            irr::video::SColor(90, 255, 0, 0),
+            irr::core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetViolationHistory()[i]),
                             mx + (i + 1) * 4 - 1, sy + my),
             &mrect);
     }
     for (unsigned int i = 0; i < msolver_speed->GetDeltalambdaHistory().size(); i++) {
         driver->draw2DRectangle(
-            video::SColor(100, 255, 255, 0),
-            core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetDeltalambdaHistory()[i]),
+            irr::video::SColor(100, 255, 255, 0),
+            irr::core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetDeltalambdaHistory()[i]),
                             mx + (i + 1) * 4 - 2, sy + my),
             &mrect);
     }
     for (unsigned int i = 0; i < msolver_stab->GetViolationHistory().size(); i++) {
         driver->draw2DRectangle(
-            video::SColor(90, 0, 255, 0),
-            core::rect<s32>(mx + sx / 2 + i * 4, sy + my - (int)(posfact * msolver_stab->GetViolationHistory()[i]),
+            irr::video::SColor(90, 0, 255, 0),
+            irr::core::rect<s32>(mx + sx / 2 + i * 4, sy + my - (int)(posfact * msolver_stab->GetViolationHistory()[i]),
                             mx + sx / 2 + (i + 1) * 4 - 1, sy + my),
             &mrect);
     }
     for (unsigned int i = 0; i < msolver_stab->GetDeltalambdaHistory().size(); i++) {
         driver->draw2DRectangle(
-            video::SColor(100, 0, 255, 255),
-            core::rect<s32>(mx + sx / 2 + i * 4, sy + my - (int)(posfact * msolver_stab->GetDeltalambdaHistory()[i]),
+            irr::video::SColor(100, 0, 255, 255),
+            irr::core::rect<s32>(mx + sx / 2 + i * 4, sy + my - (int)(posfact * msolver_stab->GetDeltalambdaHistory()[i]),
                             mx + sx / 2 + (i + 1) * 4 - 2, sy + my),
             &mrect);
     }
@@ -552,16 +556,16 @@ void ChIrrTools::drawHUDviolation(video::IVideoDriver* driver,
         gui::IGUIFont* font = mdevice->getGUIEnvironment()->getBuiltInFont();
         if (font) {
             char buffer[100];
-            font->draw(L"LCP speed violation", core::rect<s32>(mx + sx / 2 - 100, my, mx + sx, my + 10),
-                       video::SColor(200, 100, 0, 0));
+            font->draw(L"LCP speed violation", irr::core::rect<s32>(mx + sx / 2 - 100, my, mx + sx, my + 10),
+                       irr::video::SColor(200, 100, 0, 0));
             sprintf(buffer, "%g", sy / spfact);
-            font->draw(core::stringw(buffer).c_str(), core::rect<s32>(mx, my, mx + 30, my + 10),
-                       video::SColor(200, 100, 0, 0));
-            font->draw(L"LCP position violation", core::rect<s32>(mx + sx - 100, my, mx + sx, my + 10),
-                       video::SColor(200, 0, 100, 0));
+            font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my, mx + 30, my + 10),
+                       irr::video::SColor(200, 100, 0, 0));
+            font->draw(L"LCP position violation", irr::core::rect<s32>(mx + sx - 100, my, mx + sx, my + 10),
+                       irr::video::SColor(200, 0, 100, 0));
             sprintf(buffer, "%g", sy / posfact);
-            font->draw(core::stringw(buffer).c_str(), core::rect<s32>(mx + sx / 2, my, mx + sx / 2 + 10, my + 10),
-                       video::SColor(200, 0, 100, 0));
+            font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx + sx / 2, my, mx + sx / 2 + 10, my + 10),
+                       irr::video::SColor(200, 0, 100, 0));
         }
     }
 }
@@ -569,7 +573,7 @@ void ChIrrTools::drawHUDviolation(video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIrrTools::drawChFunction(IrrlichtDevice* mdevice,
-                                chrono::ChFunction* fx,
+                                ChFunction* fx,
                                 double xmin,
                                 double xmax,
                                 double ymin,
@@ -583,26 +587,26 @@ void ChIrrTools::drawChFunction(IrrlichtDevice* mdevice,
     if (!fx)
         return;
 
-    core::rect<s32> mrect(mx, my, mx + sx, my + sy);
-    driver->draw2DRectangle(video::SColor(100, 200, 200, 230), mrect);
+    irr::core::rect<s32> mrect(mx, my, mx + sx, my + sy);
+    driver->draw2DRectangle(irr::video::SColor(100, 200, 200, 230), mrect);
 
     if (mdevice->getGUIEnvironment()) {
         gui::IGUIFont* font = mdevice->getGUIEnvironment()->getBuiltInFont();
         if (font) {
             char buffer[100];
             sprintf(buffer, "%g", ymax);
-            font->draw(core::stringw(buffer).c_str(), core::rect<s32>(mx, my, mx + sx, my + 10),
-                       video::SColor(200, 100, 0, 0));
+            font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my, mx + sx, my + 10),
+                       irr::video::SColor(200, 100, 0, 0));
             sprintf(buffer, "%g", ymin);
-            font->draw(core::stringw(buffer).c_str(), core::rect<s32>(mx, my + sy, mx + sx, my + sy + 10),
-                       video::SColor(200, 100, 0, 0));
+            font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my + sy, mx + sx, my + sy + 10),
+                       irr::video::SColor(200, 100, 0, 0));
 
             if ((ymin < 0) && (ymax > 0)) {
                 int yzero = my + sy - (int)(((-ymin) / (ymax - ymin)) * (double)sy);
                 driver->draw2DLine(irr::core::position2d<s32>(mx, yzero), irr::core::position2d<s32>(mx + sx, yzero),
-                                   video::SColor(90, 255, 255, 255));
-                font->draw(core::stringw(buffer).c_str(), core::rect<s32>(mx, my + yzero, mx + sx, my + yzero + 10),
-                           video::SColor(200, 100, 0, 0));
+                                   irr::video::SColor(90, 255, 255, 255));
+                font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my + yzero, mx + sx, my + yzero + 10),
+                           irr::video::SColor(200, 100, 0, 0));
             }
         }
     }
@@ -617,7 +621,7 @@ void ChIrrTools::drawChFunction(IrrlichtDevice* mdevice,
         int px = mx + ix;
         if (ix > 0)
             driver->draw2DLine(irr::core::position2d<s32>(px, py), irr::core::position2d<s32>(prevx, prevy),
-                               video::SColor(200, 255, 0, 0));
+                               irr::video::SColor(200, 255, 0, 0));
         prevx = px;
         prevy = py;
     }
@@ -626,25 +630,25 @@ void ChIrrTools::drawChFunction(IrrlichtDevice* mdevice,
 // -----------------------------------------------------------------------------
 // Draw segment lines in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawSegment(video::IVideoDriver* driver,
-                             chrono::ChVector<> mstart,
-                             chrono::ChVector<> mend,
-                             video::SColor mcol,
+void ChIrrTools::drawSegment(irr::video::IVideoDriver* driver,
+                             ChVector<> mstart,
+                             ChVector<> mend,
+                             irr::video::SColor mcol,
                              bool use_Zbuffer) {
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = use_Zbuffer;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
-    driver->draw3DLine(core::vector3dfCH(mstart), core::vector3dfCH(mend), mcol);
+    driver->draw3DLine(irr::core::vector3dfCH(mstart), irr::core::vector3dfCH(mend), mcol);
 }
 
 // -----------------------------------------------------------------------------
 // Draw a polyline in 3D space, given the array of points as a std::vector.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawPolyline(video::IVideoDriver* driver,
-                              std::vector<chrono::ChVector<> > mpoints,
-                              video::SColor mcol,
+void ChIrrTools::drawPolyline(irr::video::IVideoDriver* driver,
+                              std::vector<ChVector<> >& mpoints,
+                              irr::video::SColor mcol,
                               bool use_Zbuffer) {
     // not very efficient, but enough as an example..
     if (mpoints.size() < 2)
@@ -657,14 +661,14 @@ void ChIrrTools::drawPolyline(video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw a circle line in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawCircle(video::IVideoDriver* driver,
+void ChIrrTools::drawCircle(irr::video::IVideoDriver* driver,
                             double radius,
-                            chrono::ChCoordsys<> mpos,
-                            video::SColor mcol,
+                            ChCoordsys<> mpos,
+                            irr::video::SColor mcol,
                             int mresolution,
                             bool use_Zbuffer) {
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
@@ -673,9 +677,9 @@ void ChIrrTools::drawCircle(video::IVideoDriver* driver,
     double phaseB = 0;
 
     for (int iu = 1; iu <= mresolution; iu++) {
-        phaseB = chrono::CH_C_2PI * (double)iu / (double)mresolution;
-        chrono::ChVector<> V1(radius * cos(phaseA), radius * sin(phaseA), 0);
-        chrono::ChVector<> V2(radius * cos(phaseB), radius * sin(phaseB), 0);
+        phaseB = CH_C_2PI * (double)iu / (double)mresolution;
+        ChVector<> V1(radius * cos(phaseA), radius * sin(phaseA), 0);
+        ChVector<> V2(radius * cos(phaseB), radius * sin(phaseB), 0);
         drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
         phaseA = phaseB;
     }
@@ -684,27 +688,27 @@ void ChIrrTools::drawCircle(video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw a spring in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawSpring(video::IVideoDriver* driver,
+void ChIrrTools::drawSpring(irr::video::IVideoDriver* driver,
                             double radius,
-                            chrono::ChVector<> start,
-                            chrono::ChVector<> end,
-                            video::SColor mcol,
+                            ChVector<> start,
+                            ChVector<> end,
+                            irr::video::SColor mcol,
                             int mresolution,
                             double turns,
                             bool use_Zbuffer) {
-    chrono::ChMatrix33<> rel_matrix;
-    chrono::ChVector<> dist = end - start;
-    chrono::ChVector<> Vx, Vy, Vz;
+    ChMatrix33<> rel_matrix;
+    ChVector<> dist = end - start;
+    ChVector<> Vx, Vy, Vz;
     double length = dist.Length();
-    chrono::ChVector<> dir = chrono::Vnorm(dist);
-    chrono::ChVector<> singul(chrono::VECT_Y);
-    chrono::XdirToDxDyDz(&dir, &singul, &Vx, &Vy, &Vz);
+    ChVector<> dir = Vnorm(dist);
+    ChVector<> singul(VECT_Y);
+    XdirToDxDyDz(&dir, &singul, &Vx, &Vy, &Vz);
     rel_matrix.Set_A_axis(Vx, Vy, Vz);
-    chrono::ChQuaternion<> Q12 = rel_matrix.Get_A_quaternion();
-    chrono::ChCoordsys<> mpos(start, Q12);
+    ChQuaternion<> Q12 = rel_matrix.Get_A_quaternion();
+    ChCoordsys<> mpos(start, Q12);
 
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
@@ -715,10 +719,10 @@ void ChIrrTools::drawSpring(video::IVideoDriver* driver,
     double heightB = 0;
 
     for (int iu = 1; iu <= mresolution; iu++) {
-        phaseB = turns * chrono::CH_C_2PI * (double)iu / (double)mresolution;
+        phaseB = turns * CH_C_2PI * (double)iu / (double)mresolution;
         heightB = length * ((double)iu / (double)mresolution);
-        chrono::ChVector<> V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
-        chrono::ChVector<> V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
+        ChVector<> V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
+        ChVector<> V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
         drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
         phaseA = phaseB;
         heightA = heightB;
@@ -728,66 +732,66 @@ void ChIrrTools::drawSpring(video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw grids in 3D space, with given orientation, colour and spacing.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawGrid(video::IVideoDriver* driver,
+void ChIrrTools::drawGrid(irr::video::IVideoDriver* driver,
                           double ustep,
                           double vstep,
                           int nu,
                           int nv,
-                          chrono::ChCoordsys<> mpos,
-                          video::SColor mcol,
+                          ChCoordsys<> mpos,
+                          irr::video::SColor mcol,
                           bool use_Zbuffer) {
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
     for (int iu = -nu / 2; iu <= nu / 2; iu++) {
-        chrono::ChVector<> V1(iu * ustep, vstep * (nv / 2), 0);
-        chrono::ChVector<> V2(iu * ustep, -vstep * (nv / 2), 0);
+        ChVector<> V1(iu * ustep, vstep * (nv / 2), 0);
+        ChVector<> V2(iu * ustep, -vstep * (nv / 2), 0);
         drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
     }
 
     for (int iv = -nv / 2; iv <= nv / 2; iv++) {
-        chrono::ChVector<> V1(ustep * (nu / 2), iv * vstep, 0);
-        chrono::ChVector<> V2(-ustep * (nu / 2), iv * vstep, 0);
+        ChVector<> V1(ustep * (nu / 2), iv * vstep, 0);
+        ChVector<> V2(-ustep * (nu / 2), iv * vstep, 0);
         drawSegment(driver, mpos.TransformLocalToParent(V1), mpos.TransformLocalToParent(V2), mcol, use_Zbuffer);
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawPlot3D(video::IVideoDriver* driver,
-                            chrono::ChMatrix<> X,
-                            chrono::ChMatrix<> Y,
-                            chrono::ChMatrix<> Z,
-                            chrono::ChCoordsys<> mpos,
-                            video::SColor mcol,
+void ChIrrTools::drawPlot3D(irr::video::IVideoDriver* driver,
+                            ChMatrix<> X,
+                            ChMatrix<> Y,
+                            ChMatrix<> Z,
+                            ChCoordsys<> mpos,
+                            irr::video::SColor mcol,
                             bool use_Zbuffer) {
-    driver->setTransform(video::ETS_WORLD, core::matrix4());
-    video::SMaterial mattransp;
+    driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
     if ((X.GetColumns() != Y.GetColumns()) || (X.GetColumns() != Z.GetColumns()) || (X.GetRows() != Y.GetRows()) ||
         (X.GetRows() != Z.GetRows())) {
-        chrono::GetLog() << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns \n";
+        GetLog() << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns \n";
         return;
     }
 
     for (int iy = 0; iy < X.GetColumns(); ++iy) {
         for (int ix = 0; ix < X.GetRows(); ++ix) {
             if (ix > 0) {
-                chrono::ChVector<> Vx1(X(ix - 1, iy), Y(ix - 1, iy), Z(ix - 1, iy));
-                chrono::ChVector<> Vx2(X(ix, iy), Y(ix, iy), Z(ix, iy));
+                ChVector<> Vx1(X(ix - 1, iy), Y(ix - 1, iy), Z(ix - 1, iy));
+                ChVector<> Vx2(X(ix, iy), Y(ix, iy), Z(ix, iy));
                 drawSegment(driver, mpos.TransformLocalToParent(Vx1), mpos.TransformLocalToParent(Vx2), mcol,
                             use_Zbuffer);
             }
 
             if (iy > 0) {
-                chrono::ChVector<> Vy1(X(ix, iy - 1), Y(ix, iy - 1), Z(ix, iy - 1));
-                chrono::ChVector<> Vy2(X(ix, iy), Y(ix, iy), Z(ix, iy));
+                ChVector<> Vy1(X(ix, iy - 1), Y(ix, iy - 1), Z(ix, iy - 1));
+                ChVector<> Vy2(X(ix, iy), Y(ix, iy), Z(ix, iy));
                 drawSegment(driver, mpos.TransformLocalToParent(Vy1), mpos.TransformLocalToParent(Vy2), mcol,
                             use_Zbuffer);
             }
@@ -795,4 +799,5 @@ void ChIrrTools::drawPlot3D(video::IVideoDriver* driver,
     }
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

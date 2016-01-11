@@ -12,14 +12,17 @@
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+using namespace irr;
+using namespace irr::scene;
 
 // Initialize static variables
 int ChBodySceneNode::body_identifier = 0;
 
 // Constructors
-ChBodySceneNode::ChBodySceneNode(chrono::ChSystem* msystem,
+ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
                                  IAnimatedMesh* mesh,
                                  ISceneNode* parent,
                                  ISceneManager* mgr,
@@ -43,7 +46,7 @@ ChBodySceneNode::ChBodySceneNode(chrono::ChSystem* msystem,
     // pointer. Creating dynamically the shared pointer from heap is not nice
     // to see, but it must be managed dynamically in this wrapper node.
 
-    bodyp = new chrono::ChSharedPtr<chrono::ChBody>(new chrono::ChBody);
+    bodyp = new ChSharedPtr<ChBody>(new ChBody);
 
     // set an unique identifier
     body_identifier++;
@@ -53,12 +56,12 @@ ChBodySceneNode::ChBodySceneNode(chrono::ChSystem* msystem,
     msystem->AddBody(GetBody());
 }
 
-ChBodySceneNode::ChBodySceneNode(chrono::ChSystem* msystem,
+ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
                                  IAnimatedMesh* mesh,
                                  ISceneNode* parent,
                                  ISceneManager* mgr,
                                  s32 id,
-                                 const chrono::ChVector<>& offset)
+                                 const ChVector<>& offset)
     : scene::ISceneNode(parent, mgr, id), ChronoControlled(true) {
     assert(msystem);
 
@@ -75,7 +78,7 @@ ChBodySceneNode::ChBodySceneNode(chrono::ChSystem* msystem,
     if (child_mesh)
         child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
 
-    bodyp = new chrono::ChSharedPtr<chrono::ChBody>(new chrono::ChBody);
+    bodyp = new ChSharedPtr<ChBody>(new ChBody);
 
     body_identifier++;
     GetBody()->SetIdentifier(body_identifier);
@@ -143,7 +146,7 @@ void ChBodySceneNode::OnAnimate(u32 timeMs) {
             core::matrix4 irrMat;
 
             // Get the rigid body actual rotation, as a 3x3 matrix [A]
-            const chrono::ChMatrix33<>& chMat = GetBody()->GetFrame_REF_to_abs().GetA();
+            const ChMatrix33<>& chMat = GetBody()->GetFrame_REF_to_abs().GetA();
 
             // Fill the upper 3x3 submatrix with the [A] matrix transposed, since
             // Irrlicht uses the row-major style as in D3D
@@ -187,5 +190,5 @@ IShadowVolumeSceneNode* ChBodySceneNode::addShadowVolumeSceneNode(const IMesh* s
     return NULL;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

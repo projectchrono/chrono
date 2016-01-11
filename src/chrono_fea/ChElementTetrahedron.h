@@ -19,13 +19,14 @@
 namespace chrono {
 namespace fea {
 
-///
+/// @addtogroup fea_elements
+/// @{
+
 /// Class for tetrahedral elements.
-///
 class ChApiFea ChElementTetrahedron : public ChElement3D,
                                       public ChElementCorotational
-                                      //		  /|\						//
-                                      {  //		 / |  \						//
+//		  /|\						//
+{                                        //		 / |  \						//
   protected:                             //		/  |	\					//
                                          //	   /.  |	  \					//
   public:                                //	   \   |.		\				//
@@ -40,6 +41,8 @@ class ChApiFea ChElementTetrahedron : public ChElement3D,
         this->UpdateRotation();
     };
 };
+
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

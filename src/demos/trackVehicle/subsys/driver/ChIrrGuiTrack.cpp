@@ -36,7 +36,7 @@ using namespace irr;
 namespace chrono {
 
 // -----------------------------------------------------------------------------
-ChIrrGuiTrack::ChIrrGuiTrack(ChIrrApp& app,
+ChIrrGuiTrack::ChIrrGuiTrack(irrlicht::ChIrrApp& app,
                              ChTrackVehicle& vehicle,
                              const ChVector<>& ptOnChassis,
                              double chaseDist,
@@ -256,11 +256,11 @@ void ChIrrGuiTrack::renderSprings() {
     auto ilink = m_app.GetSystem()->Get_linklist()->begin();
     for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
         if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                   video::SColor(255, 150, 20, 20), 80, 15, true);
+            irrlicht::ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(),
+                                             link->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
         } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                   video::SColor(255, 150, 20, 20), 80, 15, true);
+            irrlicht::ChIrrTools::drawSpring(m_app.GetVideoDriver(), 0.05, link->GetEndPoint1Abs(),
+                                             link->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
         }
     }
 }
@@ -269,11 +269,11 @@ void ChIrrGuiTrack::renderLinks() {
     auto ilink = m_app.GetSystem()->Get_linklist()->begin();
     for (; ilink != m_app.GetSystem()->Get_linklist()->end(); ++ilink) {
         if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSegment(m_app.GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                    video::SColor(255, 0, 20, 0), true);
+            irrlicht::ChIrrTools::drawSegment(m_app.GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
+                                              video::SColor(255, 0, 20, 0), true);
         } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSegment(m_app.GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
-                                    video::SColor(255, 180, 0, 0), true);
+            irrlicht::ChIrrTools::drawSegment(m_app.GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
+                                              video::SColor(255, 180, 0, 0), true);
         }
     }
 }
@@ -282,7 +282,7 @@ void ChIrrGuiTrack::renderGrid() {
     ChCoordsys<> gridCsys(m_vehicle.GetChassisPos());
     // ,chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
 
-    ChIrrTools::drawGrid(m_app.GetVideoDriver(), 0.1, 0.1, 30, 30, gridCsys, video::SColor(70, 125, 125, 125), true);
+    irrlicht::ChIrrTools::drawGrid(m_app.GetVideoDriver(), 0.1, 0.1, 30, 30, gridCsys, video::SColor(70, 125, 125, 125), true);
 }
 
 // data gets appended when the specified shoe pin and gear are in contact,
@@ -293,23 +293,26 @@ void ChIrrGuiTrack::renderContactShoeGear(double lenScale, int chain_id) {
             // only plot if the force magitude is non-zero
             if (m_vehicle.Get_SG_Persistent_Fn(pc, chain_id).Length() > 0) {
                 // draw persistent contact point red
-                ChIrrTools::drawSegment(
-                    m_app.GetVideoDriver(), m_vehicle.Get_SG_Persistent_PosAbs(pc, chain_id),
-                    m_vehicle.Get_SG_Persistent_PosAbs(pc, chain_id) + m_vehicle.Get_SG_Persistent_Fn(pc, chain_id) * lenScale,
-                    video::SColor(200, 255, 60, 60), true);  // red
+                irrlicht::ChIrrTools::drawSegment(m_app.GetVideoDriver(),
+                                                  m_vehicle.Get_SG_Persistent_PosAbs(pc, chain_id),
+                                                  m_vehicle.Get_SG_Persistent_PosAbs(pc, chain_id) +
+                                                      m_vehicle.Get_SG_Persistent_Fn(pc, chain_id) * lenScale,
+                                                  video::SColor(200, 255, 60, 60), true);  // red
             }
 
-        /*
-        // all other contact points that aren't the tracked collision are green
-        std::vector<ChVector<> >::const_iterator pos_iter;
-        std::vector<ChVector<> >::const_iterator Fn_iter;
-        for (pos_iter = m_vehicle.Get_SG_PosAbs_all(chain_id).begin(), Fn_iter = m_vehicle.Get_SG_Fn_all(chain_id).begin();
-            pos_iter < m_vehicle.Get_SG_PosAbs_all(chain_id).end() && Fn_iter < m_vehicle.Get_SG_Fn_all(chain_id).end();
-             pos_iter++, Fn_iter++) {
-            ChIrrTools::drawSegment(m_app.GetVideoDriver(), (*pos_iter), (*pos_iter) + (*Fn_iter) * lenScale,
-                                    video::SColor(200, 20, 255, 20), true);  // green
-        }
-        */
+            /*
+            // all other contact points that aren't the tracked collision are green
+            std::vector<ChVector<> >::const_iterator pos_iter;
+            std::vector<ChVector<> >::const_iterator Fn_iter;
+            for (pos_iter = m_vehicle.Get_SG_PosAbs_all(chain_id).begin(), Fn_iter =
+            m_vehicle.Get_SG_Fn_all(chain_id).begin();
+                pos_iter < m_vehicle.Get_SG_PosAbs_all(chain_id).end() && Fn_iter <
+            m_vehicle.Get_SG_Fn_all(chain_id).end();
+                 pos_iter++, Fn_iter++) {
+                ChIrrTools::drawSegment(m_app.GetVideoDriver(), (*pos_iter), (*pos_iter) + (*Fn_iter) * lenScale,
+                                        video::SColor(200, 20, 255, 20), true);  // green
+            }
+            */
     }
 }
 

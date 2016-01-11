@@ -34,13 +34,13 @@ namespace chrono {
 /// Namespace for classes which represent basic geometric objects
 namespace geometry {
 
+/// @addtogroup chrono_geometry
+/// @{
+
 #define CH_GEOCLASS_GEOMETRY 0
 
-///
 /// Base class for geometric objects.
 /// Geometric object are used for collisions and such.
-///
-
 class ChApi ChGeometry : public ChShared {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChGeometry, ChShared);
@@ -179,6 +179,8 @@ class ChApi ChGeometry : public ChShared {
     }
 
 };
+
+/// @} chrono_geometry
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

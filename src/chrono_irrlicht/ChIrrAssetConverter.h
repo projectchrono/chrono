@@ -15,43 +15,45 @@
 #include <string>
 #include <irrlicht.h>
 
-#include "assets/ChCamera.h"
-#include "assets/ChBoxShape.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChSphereShape.h"
-#include "assets/ChObjShapeFile.h"
-#include "assets/ChTexture.h"
-#include "assets/ChVisualization.h"
-#include "assets/ChColorAsset.h"
-#include "assets/ChAssetLevel.h"
-#include "assets/ChTriangleMeshShape.h"
-#include "assets/ChGlyphs.h"
-#include "assets/ChPathShape.h"
-#include "assets/ChLineShape.h"
+#include "chrono/assets/ChCamera.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChAssetLevel.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChGlyphs.h"
+#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChLineShape.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrNodeAsset.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+/// @addtogroup irrlicht
+/// @{
 
 /// Class with static functions which allow creation of Irrlicht frequent
 /// 'scene nodes' like lights, camera, sky box etc. with very simple statements.
-
 class ChApiIrr ChIrrAssetConverter {
   public:
     // shared meshes
-    IAnimatedMesh* sphereMesh;
-    IMesh* cubeMesh;
-    IMesh* cylinderMesh;
+    irr::scene::IAnimatedMesh* sphereMesh;
+    irr::scene::IMesh* cubeMesh;
+    irr::scene::IMesh* cylinderMesh;
 
-    ISceneManager* scenemanager;
-    IrrlichtDevice* mdevice;
+    irr::scene::ISceneManager* scenemanager;
+    irr::IrrlichtDevice* mdevice;
 
     ChIrrAppInterface* minterface;
 
-    chrono::ChCamera* mcamera;
+    ChCamera* mcamera;
     bool camera_found_in_assets;
 
     /// Constructor
@@ -63,11 +65,11 @@ class ChApiIrr ChIrrAssetConverter {
     /// Returns the proxy to the ChIrrNode, by scanning all assets.
     /// Note, check for the returned pointer, using mnode.IsNull(), just in case a
     /// proxy has not been added.
-    chrono::ChSharedPtr<chrono::ChIrrNodeAsset> GetIrrNodeAsset(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem);
+    ChSharedPtr<ChIrrNodeAsset> GetIrrNodeAsset(ChSharedPtr<ChPhysicsItem> mitem);
 
     /// Shortcut to add and bind a ChIrrNodeAsset to an item, if it has not been
     /// added previously.
-    void Bind(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem);
+    void Bind(ChSharedPtr<ChPhysicsItem> mitem);
 
     /// Shortcut to add and bind a ChIrrNodeAsset to all items in a ChSystem.
     /// If it has been already added, the existing ChIrrNodeAsset is used.
@@ -88,7 +90,7 @@ class ChApiIrr ChIrrAssetConverter {
     /// NOTE. This conversion should be done only if needed (e.g. at the beginning
     /// of an animation or when a shape changes), i.e. not too often, for
     /// performance reasons.
-    void Update(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem);
+    void Update(ChSharedPtr<ChPhysicsItem> mitem);
 
     /// For all items in a ChSystem, this function sets up the Irrlicht nodes
     /// corresponding to the geometric assets that have been added to the items.
@@ -100,19 +102,21 @@ class ChApiIrr ChIrrAssetConverter {
 
     /// Clean all Irrlicht stuff that has been put in the ChIrrNode in a previous
     /// Update or PopulateIrrlicht operation.
-    void CleanIrrlicht(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem);
+    void CleanIrrlicht(ChSharedPtr<ChPhysicsItem> mitem);
 
   private:
-    void PopulateIrrlicht(chrono::ChSharedPtr<chrono::ChPhysicsItem> mitem);
+    void PopulateIrrlicht(ChSharedPtr<ChPhysicsItem> mitem);
 
-    void mflipSurfacesOnX(scene::IMesh* mesh) const;
+    void mflipSurfacesOnX(irr::scene::IMesh* mesh) const;
 
-    void _recursePopulateIrrlicht(std::vector<chrono::ChSharedPtr<chrono::ChAsset> >& assetlist,
-                                  chrono::ChFrame<> parentframe,
-                                  ISceneNode* mnode);
+    void _recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAsset> >& assetlist,
+                                  ChFrame<> parentframe,
+                                  irr::scene::ISceneNode* mnode);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrlicht
+}  // end namespace chrono
 
 #endif
