@@ -34,7 +34,9 @@
 
 
 using namespace chrono;
-using namespace fea;
+using namespace chrono::fea;
+using namespace chrono::irrlicht;
+
 using namespace irr;
 
 int main(int argc, char* argv[]) {
