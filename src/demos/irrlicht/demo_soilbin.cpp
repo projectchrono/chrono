@@ -22,13 +22,14 @@
 
 using namespace chrono;
 using namespace chrono::collision;
-using namespace irr;
+using namespace chrono::irrlicht;
 
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 class ParticleGenerator {
   public:

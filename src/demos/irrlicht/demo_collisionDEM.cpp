@@ -29,17 +29,17 @@
 
 #include <irrlicht.h>
 
-// Use the namespace of Chrono
+// Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 void AddFallingItems(ChIrrApp& application) {
     for (int ix = -2; ix < 3; ix++) {

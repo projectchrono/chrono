@@ -38,19 +38,18 @@
 
 #include <irrlicht.h>
 
-// Use the namespace of Chrono
-
+// Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::geometry;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 // First of all, define a class for the 'tank' (that is, a set of
 // bodies and links which are grouped within this class; so it is
