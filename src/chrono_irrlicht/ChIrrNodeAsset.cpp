@@ -13,9 +13,11 @@
 #include "chrono_irrlicht/ChIrrNodeAsset.h"
 
 namespace chrono {
+namespace irrlicht {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 ChClassRegister<ChIrrNodeAsset> a_registration_ChIrrNodeAsset;
 
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

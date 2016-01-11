@@ -10,23 +10,26 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCBox.h"
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "chrono/geometry/ChCSphere.h"
+#include "chrono/geometry/ChCBox.h"
+#include "chrono/geometry/ChCTriangleMeshSoup.h"
 
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+using namespace irr;
+using namespace irr::scene;
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode(ChSystem* asystem,
                                ISceneManager* amanager,
                                IAnimatedMesh* amesh,
                                double mmass,
-                               const chrono::ChVector<>& position,
-                               const chrono::ChQuaternion<>& rotation,
+                               const ChVector<>& position,
+                               const ChQuaternion<>& rotation,
                                ISceneNode* aparent,
                                s32 mid) {
     if (!aparent)
@@ -46,13 +49,13 @@ ISceneNode* addChBodySceneNode(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_offsetCOG(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_offsetCOG(ChSystem* asystem,
                                          ISceneManager* amanager,
                                          IAnimatedMesh* amesh,
                                          double mmass,
-                                         const chrono::ChVector<>& mesh_position,
-                                         const chrono::ChQuaternion<>& rotation,
-                                         const chrono::ChVector<>& COG_offset,
+                                         const ChVector<>& mesh_position,
+                                         const ChQuaternion<>& rotation,
+                                         const ChVector<>& COG_offset,
                                          ISceneNode* aparent,
                                          s32 mid) {
     if (!aparent)
@@ -72,10 +75,10 @@ ISceneNode* addChBodySceneNode_offsetCOG(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easySphere(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easySphere(ChSystem* asystem,
                                           ISceneManager* amanager,
                                           double mmass,
-                                          const chrono::ChVector<>& position,
+                                          const ChVector<>& position,
                                           double mradius,
                                           int Hslices,
                                           int Vslices,
@@ -88,7 +91,7 @@ ISceneNode* addChBodySceneNode_easySphere(chrono::ChSystem* asystem,
 
     // create a ChronoENGINE rigid body
     ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(
-        asystem, amanager, sphereMesh, mmass, position, chrono::ChQuaternion<>(1, 0, 0, 0), aparent, mid);
+        asystem, amanager, sphereMesh, mmass, position, ChQuaternion<>(1, 0, 0, 0), aparent, mid);
 
     rigidBodyZ->setScale(core::vector3df((f32)mradius, (f32)mradius, (f32)mradius));
 
@@ -102,24 +105,24 @@ ISceneNode* addChBodySceneNode_easySphere(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyBox(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyBox(ChSystem* asystem,
                                        ISceneManager* amanager,
                                        double mmass,
-                                       const chrono::ChVector<>& position,
-                                       const chrono::ChQuaternion<>& rotation,
-                                       const chrono::ChVector<>& size,
+                                       const ChVector<>& position,
+                                       const ChQuaternion<>& rotation,
+                                       const ChVector<>& size,
                                        ISceneNode* aparent,
                                        s32 mid) {
     static IAnimatedMesh* cubeMesh = 0;
 
     if (!cubeMesh)
-        cubeMesh = amanager->getMesh(chrono::GetChronoDataFile("cube.obj").c_str());
+        cubeMesh = amanager->getMesh(GetChronoDataFile("cube.obj").c_str());
 
     // create a ChronoENGINE rigid body
     ChBodySceneNode* rigidBodyZ =
         (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, cubeMesh, mmass, position, rotation, aparent, mid);
 
-    chrono::ChVector<> hsize = size * 0.5;
+    ChVector<> hsize = size * 0.5;
 
     core::vector3df irrsize((f32)hsize.x, (f32)hsize.y, (f32)hsize.z);
     rigidBodyZ->setScale(irrsize);
@@ -134,24 +137,24 @@ ISceneNode* addChBodySceneNode_easyBox(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyCylinder(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyCylinder(ChSystem* asystem,
                                             ISceneManager* amanager,
                                             double mmass,
-                                            const chrono::ChVector<>& position,
-                                            const chrono::ChQuaternion<>& rotation,
-                                            const chrono::ChVector<>& size,
+                                            const ChVector<>& position,
+                                            const ChQuaternion<>& rotation,
+                                            const ChVector<>& size,
                                             ISceneNode* aparent,
                                             s32 mid) {
     static IAnimatedMesh* cylinderMesh = 0;
 
     if (!cylinderMesh)
-        cylinderMesh = amanager->getMesh(chrono::GetChronoDataFile("cylinder.obj").c_str());
+        cylinderMesh = amanager->getMesh(GetChronoDataFile("cylinder.obj").c_str());
 
     // create a ChronoENGINE rigid body
     ChBodySceneNode* rigidBodyZ =
         (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, cylinderMesh, mmass, position, rotation, aparent, mid);
 
-    chrono::ChVector<> hsize = size * 0.5;
+    ChVector<> hsize = size * 0.5;
 
     core::vector3df irrsize((f32)hsize.x, (f32)hsize.y, (f32)hsize.z);
     rigidBodyZ->setScale(irrsize);
@@ -166,10 +169,10 @@ ISceneNode* addChBodySceneNode_easyCylinder(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyBarrel(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyBarrel(ChSystem* asystem,
                                           ISceneManager* amanager,
                                           double mmass,
-                                          const chrono::ChVector<>& position,
+                                          const ChVector<>& position,
                                           double mradiusH,
                                           double mradiusV,
                                           double mYlow,
@@ -184,7 +187,7 @@ ISceneNode* addChBodySceneNode_easyBarrel(chrono::ChSystem* asystem,
 
     // create a ChronoENGINE rigid body
     ChBodySceneNode* rigidBodyZ = (ChBodySceneNode*)addChBodySceneNode(
-        asystem, amanager, barrellMesh, mmass, position, chrono::ChQuaternion<>(1, 0, 0, 0), aparent, mid);
+        asystem, amanager, barrellMesh, mmass, position, ChQuaternion<>(1, 0, 0, 0), aparent, mid);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
     rigidBodyZ->GetBody()->GetCollisionModel()->AddBarrel(mYlow, mYhigh, mradiusV, mradiusH, mOffset);
@@ -196,11 +199,11 @@ ISceneNode* addChBodySceneNode_easyBarrel(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyClone(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyClone(ChSystem* asystem,
                                          ISceneManager* amanager,
                                          ChBodySceneNode* source,
-                                         const chrono::ChVector<>& position,
-                                         const chrono::ChQuaternion<>& rotation,
+                                         const ChVector<>& position,
+                                         const ChQuaternion<>& rotation,
                                          ISceneNode* aparent,
                                          s32 mid) {
     // create a ChronoENGINE rigid body
@@ -226,11 +229,11 @@ ISceneNode* addChBodySceneNode_easyClone(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyGenericMesh(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyGenericMesh(ChSystem* asystem,
                                                ISceneManager* amanager,
                                                double mmass,
-                                               const chrono::ChVector<>& position,
-                                               const chrono::ChQuaternion<>& rotation,
+                                               const ChVector<>& position,
+                                               const ChQuaternion<>& rotation,
                                                const char* mesh_filemane,
                                                bool is_static,
                                                bool is_convex,
@@ -242,7 +245,7 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(chrono::ChSystem* asystem,
 
     assert(genericMesh);
 
-    chrono::geometry::ChTriangleMeshSoup temp_trianglemesh;  // temp., only in function scope, since AddTriangleMesh
+    geometry::ChTriangleMeshSoup temp_trianglemesh;  // temp., only in function scope, since AddTriangleMesh
                                                              // doesn't reference by striding interface -just copy
     fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, genericMesh->getMesh(0));
 
@@ -262,11 +265,11 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyStaticMesh(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyStaticMesh(ChSystem* asystem,
                                               ISceneManager* amanager,
                                               const char* mesh_filename,
-                                              const chrono::ChVector<>& position,
-                                              const chrono::ChQuaternion<>& rotation,
+                                              const ChVector<>& position,
+                                              const ChQuaternion<>& rotation,
                                               ISceneNode* aparent,
                                               s32 mid) {
     return addChBodySceneNode_easyGenericMesh(asystem, amanager, 1.0, position, rotation, mesh_filename, true, false,
@@ -275,12 +278,12 @@ ISceneNode* addChBodySceneNode_easyStaticMesh(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyConvexMesh(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyConvexMesh(ChSystem* asystem,
                                               ISceneManager* amanager,
                                               const char* mesh_filename,
                                               double mmass,
-                                              const chrono::ChVector<>& position,
-                                              const chrono::ChQuaternion<>& rotation,
+                                              const ChVector<>& position,
+                                              const ChQuaternion<>& rotation,
                                               ISceneNode* aparent,
                                               s32 mid) {
     return addChBodySceneNode_easyGenericMesh(asystem, amanager, mmass, position, rotation, mesh_filename, false, true,
@@ -289,17 +292,17 @@ ISceneNode* addChBodySceneNode_easyConvexMesh(chrono::ChSystem* asystem,
 
 // -----------------------------------------------------------------------------
 
-ISceneNode* addChBodySceneNode_easyConcaveMesh(chrono::ChSystem* asystem,
+ISceneNode* addChBodySceneNode_easyConcaveMesh(ChSystem* asystem,
                                                ISceneManager* amanager,
                                                const char* mesh_filename,
                                                double mmass,
-                                               const chrono::ChVector<>& position,
-                                               const chrono::ChQuaternion<>& rotation,
+                                               const ChVector<>& position,
+                                               const ChQuaternion<>& rotation,
                                                ISceneNode* aparent,
                                                s32 mid) {
     return addChBodySceneNode_easyGenericMesh(asystem, amanager, mmass, position, rotation, mesh_filename, false, false,
                                               aparent, mid);
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

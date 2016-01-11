@@ -10,16 +10,17 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChLinkSpring.h"
-#include "collision/ChCModelBullet.h"
-#include "serialization/ChArchiveAsciiDump.h"
-#include "serialization/ChArchiveJSON.h"
-#include "core/ChStream.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/physics/ChLinkSpring.h"
+#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChArchiveJSON.h"
 
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
 
-namespace irr {
+namespace chrono {
+namespace irrlicht {
 
 // -----------------------------------------------------------------------------
 // ChIrrAppEventReceiver
@@ -27,16 +28,16 @@ namespace irr {
 // A custom Irrlicht Event Receiver class.
 // -----------------------------------------------------------------------------
 
-class ChIrrAppEventReceiver : public IEventReceiver {
+class ChIrrAppEventReceiver : public irr::IEventReceiver {
   public:
     ChIrrAppEventReceiver(ChIrrAppInterface* m_app) : app(m_app) {}
-    bool OnEvent(const SEvent& event);
+    bool OnEvent(const irr::SEvent& event);
 
   private:
     ChIrrAppInterface* app;
 };
 
-bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
+bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
     // Check if there are any user-specified event receivers. Give them the
     // first chance to process the event (in the order in which the user-specified
     // event receivers were registered with the application.
@@ -48,90 +49,90 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
     }
 
     // Process keyboard events.
-    if (event.EventType == EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
+    if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
-            case KEY_KEY_I:
+        case irr::KEY_KEY_I:
                 app->SetShowInfos(!app->GetShowInfos());
                 return true;
-            case KEY_SPACE:
+        case irr::KEY_SPACE:
                 app->pause_step = !app->pause_step;
                 return true;
-            case KEY_KEY_P:
+        case irr::KEY_KEY_P:
                 app->pause_step = true;
                 app->do_single_step = true;
                 return true;
-            case KEY_F11:
-                chrono::GetLog() << "---Computing linear static solution---\n";
+        case irr::KEY_F11:
+                GetLog() << "---Computing linear static solution---\n";
                 app->GetSystem()->DoStaticLinear();
                 return true;
-            case KEY_F10:
-                chrono::GetLog() << "---Computing NONlinear static solution, 20 steps---\n";
+        case irr::KEY_F10:
+                GetLog() << "---Computing NONlinear static solution, 20 steps---\n";
                 app->GetSystem()->DoStaticNonlinear(20);
                 return true;
-            case KEY_F8:
+        case irr::KEY_F8:
             {
-                chrono::GetLog() << "Saving system in JSON format to dump.json file \n";
-                chrono::ChStreamOutAsciiFile mfileo("dump.json");
-                chrono::ChArchiveOutJSON marchiveout(mfileo);
+                GetLog() << "Saving system in JSON format to dump.json file \n";
+                ChStreamOutAsciiFile mfileo("dump.json");
+                ChArchiveOutJSON marchiveout(mfileo);
                 marchiveout.SetUseVersions(false);
                 marchiveout << CHNVP(app->GetSystem(),"System");
 
-                chrono::GetLog() << "Saving system in ASCII format to dump.txt file \n";
-                chrono::ChStreamOutAsciiFile mfileo2("dump.txt");
-                chrono::ChArchiveAsciiDump marchiveout2(mfileo2);
+                GetLog() << "Saving system in ASCII format to dump.txt file \n";
+                ChStreamOutAsciiFile mfileo2("dump.txt");
+                ChArchiveAsciiDump marchiveout2(mfileo2);
                 marchiveout2.SetUseVersions(false);
                 marchiveout2 << CHNVP(app->GetSystem(),"System");
             }
-            case KEY_F6:
-                chrono::GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
+        case irr::KEY_F6:
+                GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
                 app->DumpMatrices();
                 return true;
-            case KEY_F7:
+        case irr::KEY_F7:
                 if (!app->system->GetDumpMatrices()) {
-                    chrono::GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
+                    GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
                     app->system->SetDumpMatrices(true);
                 }
                 else {
-                    chrono::GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
+                    GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
                     app->system->SetDumpMatrices(false);
                 }
                 return true;
-            case KEY_SNAPSHOT:
+        case irr::KEY_SNAPSHOT:
                 if (app->videoframe_save == false) {
                     app->videoframe_save = true;
-                    chrono::GetLog() << "Start saving frames to snapshotnnnnn.bmp pictures...\n";
+                    GetLog() << "Start saving frames to snapshotnnnnn.bmp pictures...\n";
                 } else {
                     app->videoframe_save = false;
-                    chrono::GetLog() << "Stop saving frames.\n";
+                    GetLog() << "Stop saving frames.\n";
                 }
                 return true;
-            case KEY_ESCAPE:
+        case irr::KEY_ESCAPE:
                 app->GetDevice()->closeDevice();
                 return true;
         }
     }
 
-    core::dimension2d<u32> ssize = app->GetVideoDriver()->getScreenSize();
+    irr::core::dimension2d<irr::u32> ssize = app->GetVideoDriver()->getScreenSize();
 
     // Process mouse events.
-    if (event.EventType == EET_MOUSE_INPUT_EVENT) {
+    if (event.EventType == irr::EET_MOUSE_INPUT_EVENT) {
         switch (event.MouseInput.Event) {
-            case EMIE_MMOUSE_PRESSED_DOWN: {
-                core::line3d<f32> mline =
+        case irr::EMIE_MMOUSE_PRESSED_DOWN: {
+                irr::core::line3d<irr::f32> mline =
                     app->GetSceneManager()->getSceneCollisionManager()->getRayFromScreenCoordinates(
                         app->GetDevice()->getCursorControl()->getPosition());
-                chrono::ChVector<> mfrom(mline.start.X, mline.start.Y, mline.start.Z);
-                chrono::ChVector<> mto(mline.end.X, mline.end.Y, mline.end.Z);
-                chrono::collision::ChCollisionSystem::ChRayhitResult mresult;
+                ChVector<> mfrom(mline.start.X, mline.start.Y, mline.start.Z);
+                ChVector<> mto(mline.end.X, mline.end.Y, mline.end.Z);
+                collision::ChCollisionSystem::ChRayhitResult mresult;
                 app->GetSystem()->GetCollisionSystem()->RayHit(mfrom, mto, mresult);
                 if (mresult.hit) {
-                    if (chrono::ChBody* mbo =
-                            dynamic_cast<chrono::ChBody*>(mresult.hitModel->GetContactable())) {
-                        app->selectedmover = new chrono::ChSharedPtr<chrono::ChBody>(mbo);
+                    if (ChBody* mbo =
+                            dynamic_cast<ChBody*>(mresult.hitModel->GetContactable())) {
+                        app->selectedmover = new ChSharedPtr<ChBody>(mbo);
                         app->selectedpoint = (*(app->selectedmover))->Point_World2Body(mresult.abs_hitPoint);
                         app->selecteddist = (mfrom - mresult.abs_hitPoint).Length();
-                        app->selectedspring = new chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-                        app->selectedtruss = new chrono::ChSharedPtr<chrono::ChBody>(new chrono::ChBody);
+                        app->selectedspring = new ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+                        app->selectedtruss = new ChSharedPtr<ChBody>(new ChBody);
                         (*(app->selectedtruss))->SetBodyFixed(true);
                         app->GetSystem()->AddBody(*(app->selectedtruss));
                         (*(app->selectedspring))
@@ -142,7 +143,7 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                 }
                 break;
             }
-            case EMIE_MMOUSE_LEFT_UP:
+        case irr::EMIE_MMOUSE_LEFT_UP:
                 if (app->selectedtruss) {
                     app->GetSystem()->RemoveBody((*(app->selectedtruss)));
                     app->GetSystem()->RemoveLink((*(app->selectedspring)));
@@ -152,17 +153,17 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
                     app->selectedspring = 0;
                 }
                 break;
-            case EMIE_MOUSE_MOVED:
+        case irr::EMIE_MOUSE_MOVED:
                 if (app->selectedtruss) {
-                    core::line3d<f32> mline =
+                    irr::core::line3d<irr::f32> mline =
                         app->GetSceneManager()->getSceneCollisionManager()->getRayFromScreenCoordinates(
                             app->GetDevice()->getCursorControl()->getPosition());
-                    chrono::ChVector<> mfrom(mline.start.X, mline.start.Y, mline.start.Z);
-                    chrono::ChVector<> mto(mline.end.X, mline.end.Y, mline.end.Z);
-                    chrono::ChVector<> mdir = mto - mfrom;
+                    ChVector<> mfrom(mline.start.X, mline.start.Y, mline.start.Z);
+                    ChVector<> mto(mline.end.X, mline.end.Y, mline.end.Z);
+                    ChVector<> mdir = mto - mfrom;
                     mdir.Normalize();
-                    chrono::ChVector<> springP1 = mfrom + mdir * app->selecteddist;
-                    chrono::ChVector<> springP2 = (*(app->selectedmover))->Point_Body2World(app->selectedpoint);
+                    ChVector<> springP1 = mfrom + mdir * app->selecteddist;
+                    ChVector<> springP2 = (*(app->selectedmover))->Point_Body2World(app->selectedpoint);
                     (*(app->selectedspring))->SetEndPoint1Abs(springP1);
                     (*(app->selectedspring))->SetEndPoint2Abs(springP2);
                     (*(app->selectedspring))->Set_SpringK(25 * (*(app->selectedmover))->GetMass());
@@ -173,155 +174,155 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
     }
 
     // Check if user moved the sliders with mouse.
-    if (event.EventType == EET_GUI_EVENT) {
-        s32 id = event.GUIEvent.Caller->getID();
+    if (event.EventType == irr::EET_GUI_EVENT) {
+        irr::s32 id = event.GUIEvent.Caller->getID();
 
         switch (event.GUIEvent.EventType) {
-            case gui::EGET_SCROLL_BAR_CHANGED:
+            case irr::gui::EGET_SCROLL_BAR_CHANGED:
                 switch (id) {
                     case 9904:
                         app->GetSystem()->SetIterLCPmaxItersSpeed(
-                            ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                            ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9905:
                         app->GetSystem()->SetIterLCPmaxItersStab(
-                            ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                            ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9909:
                         app->GetSystem()->SetIterLCPomega((1.0 / 50.0) *
-                                                          ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                                                          ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9910:
                         app->GetSystem()->SetIterLCPsharpnessLambda(
-                            (1.0 / 50.0) * ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                            (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9911:
                         app->GetSystem()->SetMaxPenetrationRecoverySpeed(
-                            (3.0 / 50.0) * ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                            (3.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9912:
                         app->GetSystem()->SetMinBounceSpeed((1.0 / 200.0) *
-                                                            ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                                                            ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                 }
                 break;
 
-            case gui::EGET_COMBO_BOX_CHANGED:
+            case irr::gui::EGET_COMBO_BOX_CHANGED:
                 if (id == 9907) {
-                    int sel = ((gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
+                    int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SOR);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
                             break;
                         case 1:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SYMMSOR);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SYMMSOR);
                             break;
                         case 2:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_JACOBI);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_JACOBI);
                             break;
                         case 3:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
                             break;
                         case 4:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN);
                             break;
                         case 5:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PCG);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_PCG);
                             break;
                         case 6:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_PMINRES);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
                             break;
                         case 7:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_APGD);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_APGD);
                             break;
                         case 8:
-                            app->GetSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_MINRES);
+                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
                             break;
                         case 9:
-                            chrono::GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
+                            GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
                             break;
                     }
                     break;
                 }
 
                 if (id == 9908) {
-                    int sel = ((gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
+                    int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_ANITESCU);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_ANITESCU);
                             break;
                         case 1:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_TASORA);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TASORA);
                             break;
                         case 2:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);
                             break;
                         case 3:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
                             break;
                         case 4:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_PROJECTED);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);
                             break;
                         case 5:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_TRAPEZOIDAL);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TRAPEZOIDAL);
                             break;
                         case 6:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_TRAPEZOIDAL_LINEARIZED);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TRAPEZOIDAL_LINEARIZED);
                             break;
                         case 7:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_HHT);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_HHT);
                             break;
                         case 8:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_HEUN);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_HEUN);
                             break;
                         case 9:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_RUNGEKUTTA45);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_RUNGEKUTTA45);
                             break;
                         case 10:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_EULER_EXPLICIT);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_EXPLICIT);
                             break;
                         case 11:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_LEAPFROG);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_LEAPFROG);
                             break;
                         case 12:
-                            app->GetSystem()->SetIntegrationType(chrono::ChSystem::INT_NEWMARK);
+                            app->GetSystem()->SetIntegrationType(ChSystem::INT_NEWMARK);
                             break;
                         case 13:
-                            chrono::GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ instead.\n";
+                            GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ instead.\n";
                             break;
                     }
                     break;
                 }
 
-            case gui::EGET_CHECKBOX_CHANGED:
+            case irr::gui::EGET_CHECKBOX_CHANGED:
                 switch (id) {
                     case 9906:
                         app->GetSystem()->SetIterLCPwarmStarting(
-                            ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
+                            ((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
                         break;
                     case 9913:
-                        app->GetSystem()->SetUseSleeping(((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
+                        app->GetSystem()->SetUseSleeping(((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
                         break;
                     case 9916:
-                        app->SetTryRealtime(((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
+                        app->SetTryRealtime(((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
                         break;
                     case 9917:
-                        app->pause_step = ((gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked();
+                        app->pause_step = ((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked();
                         break;
                 }
                 break;
 
-            case gui::EGET_EDITBOX_ENTER:
+            case irr::gui::EGET_EDITBOX_ENTER:
                 if (id == 9918) {
                     double dt = 0.01;
-                    dt = atof(core::stringc(((gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                    dt = atof(irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
                     app->SetTimestep(dt);
                     break;
                 }
 
                 if (id == 9921) {
                     double scale = 0.01;
-                    scale = atof(core::stringc(((gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                    scale = atof(irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
                     app->SetSymbolscale(scale);
                     break;
                 }
@@ -336,12 +337,12 @@ bool ChIrrAppEventReceiver::OnEvent(const SEvent& event) {
 // -----------------------------------------------------------------------------
 
 // Create the IRRLICHT context (device, etc.)
-ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
+ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
                                      const wchar_t* title,
-                                     core::dimension2d<u32> dimens,
+                                     irr::core::dimension2d<irr::u32> dimens,
                                      bool do_fullscreen,
                                      bool do_shadows,
-                                     video::E_DRIVER_TYPE mydriver)
+                                     irr::video::E_DRIVER_TYPE mydriver)
     : step_manage(true),
       try_realtime(false),
       pause_step(false),
@@ -354,18 +355,18 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
       selectedtruss(0),
       selectedspring(0),
       selectedmover(0) {
-    device = createDevice(mydriver, dimens, 32, do_fullscreen, do_shadows);
+    device = irr::createDevice(mydriver, dimens, 32, do_fullscreen, do_shadows);
 
     if (device == 0) {
-        chrono::GetLog() << "Cannot use default video driver - fall back to OpenGL \n";
-        device = createDevice(video::EDT_OPENGL, dimens, 32, do_fullscreen, do_shadows);
+        GetLog() << "Cannot use default video driver - fall back to OpenGL \n";
+        device = irr::createDevice(irr::video::EDT_OPENGL, dimens, 32, do_fullscreen, do_shadows);
         if (!device)
             return;
     }
 
     // Xeffects for shadow maps!
     effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true);
-    effect->setAmbientColor(video::SColor(255, 122, 122, 122));
+    effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
     use_effects = false;  // will be true as sson as a lightwith shadow is added.
 
     if (title)
@@ -373,21 +374,21 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     else
         device->setWindowCaption(L"Chrono::Engine");
 
-    gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
-    gui::IGUIFont* font = GetIGUIEnvironment()->getFont(chrono::GetChronoDataFile("fonts/arial8.xml").c_str());
+    irr::gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
+    irr::gui::IGUIFont* font = GetIGUIEnvironment()->getFont(GetChronoDataFile("fonts/arial8.xml").c_str());
     if (font)
         skin->setFont(font);
-    skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255, 40, 50, 50));
+    skin->setColor(irr::gui::EGDC_BUTTON_TEXT, irr::video::SColor(255, 40, 50, 50));
 
-    gad_tabbed = GetIGUIEnvironment()->addTabControl(core::rect<s32>(2, 70, 220, 496), 0, true, true);
+    gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 496), 0, true, true);
     gad_tab1 = gad_tabbed->addTab(L"Stats");
     gad_tab2 = gad_tabbed->addTab(L"System");
     gad_tab3 = gad_tabbed->addTab(L"Help");
 
     // create GUI gadgets
-    gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10, 10, 200, 230), true, true, gad_tab1);
+    gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, gad_tab1);
 
-    gad_labelcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 240, 200, 240 + 20), gad_tab1, 9901);
+    gad_labelcontacts = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 240, 200, 240 + 20), gad_tab1, 9901);
     gad_labelcontacts->addItem(L"Contact distances");
     gad_labelcontacts->addItem(L"Contact force modulus");
     gad_labelcontacts->addItem(L"Contact force (normal)");
@@ -398,7 +399,7 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_labelcontacts->addItem(L"Don't print contact values");
     gad_labelcontacts->setSelected(7);
 
-    gad_drawcontacts = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 260, 200, 260 + 20), gad_tab1, 9901);
+    gad_drawcontacts = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 260, 200, 260 + 20), gad_tab1, 9901);
     gad_drawcontacts->addItem(L"Contact normals");
     gad_drawcontacts->addItem(L"Contact distances");
     gad_drawcontacts->addItem(L"Contact N forces");
@@ -406,7 +407,7 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_drawcontacts->addItem(L"Don't draw contacts");
     gad_drawcontacts->setSelected(4);
 
-    gad_labellinks = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 280, 200, 280 + 20), gad_tab1, 9923);
+    gad_labellinks = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 280, 200, 280 + 20), gad_tab1, 9923);
     gad_labellinks->addItem(L"Link react.force modulus");
     gad_labellinks->addItem(L"Link react.force X");
     gad_labellinks->addItem(L"Link react.force Y");
@@ -418,51 +419,51 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_labellinks->addItem(L"Don't print link values");
     gad_labellinks->setSelected(8);
 
-    gad_drawlinks = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 300, 200, 300 + 20), gad_tab1, 9924);
+    gad_drawlinks = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 300, 200, 300 + 20), gad_tab1, 9924);
     gad_drawlinks->addItem(L"Link reaction forces");
     gad_drawlinks->addItem(L"Link reaction torques");
     gad_drawlinks->addItem(L"Don't draw link vectors");
     gad_drawlinks->setSelected(2);
 
     gad_plot_aabb =
-        GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 330, 200, 330 + 15), gad_tab1, 9914, L"Draw AABB");
+        GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), gad_tab1, 9914, L"Draw AABB");
 
     gad_plot_cogs =
-        GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 345, 200, 345 + 15), gad_tab1, 9915, L"Draw COGs");
+        GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), gad_tab1, 9915, L"Draw COGs");
 
-    gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 360, 200, 360 + 15), gad_tab1,
+    gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), gad_tab1,
                                                             9920, L"Draw link frames");
 
     gad_symbolscale =
-        GetIGUIEnvironment()->addEditBox(L"", core::rect<s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
+        GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
     gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(
-        L"Symbols scale", core::rect<s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
+        L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
     SetSymbolscale(symbolscale);
 
-    gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 375, 200, 375 + 15), gad_tab1,
+    gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15), gad_tab1,
                                                              9902, L"Plot convergence");
 
     // --
 
     gad_speed_iternumber =
-        GetIGUIEnvironment()->addScrollBar(true, core::rect<s32>(10, 10, 150, 10 + 20), gad_tab2, 9904);
+        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 10, 150, 10 + 20), gad_tab2, 9904);
     gad_speed_iternumber->setMax(120);
     gad_speed_iternumber_info =
-        GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
+        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
 
     gad_pos_iternumber =
-        GetIGUIEnvironment()->addScrollBar(true, core::rect<s32>(10, 40, 150, 40 + 20), gad_tab2, 9905);
+        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 40, 150, 40 + 20), gad_tab2, 9905);
     gad_pos_iternumber->setMax(120);
     gad_pos_iternumber_info =
-        GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155, 40, 220, 40 + 20), false, false, gad_tab2);
+        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 40, 220, 40 + 20), false, false, gad_tab2);
 
-    gad_warmstart = GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 70, 200, 70 + 20), gad_tab2, 9906,
+    gad_warmstart = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 70, 200, 70 + 20), gad_tab2, 9906,
                                                       L"Warm starting");
 
-    gad_usesleep = GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 100, 200, 100 + 20), gad_tab2, 9913,
+    gad_usesleep = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 100, 200, 100 + 20), gad_tab2, 9913,
                                                      L"Enable sleeping");
 
-    gad_ccpsolver = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 130, 200, 130 + 20), gad_tab2, 9907);
+    gad_ccpsolver = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 130, 200, 130 + 20), gad_tab2, 9907);
     gad_ccpsolver->addItem(L"Projected SOR");
     gad_ccpsolver->addItem(L"Projected SSOR");
     gad_ccpsolver->addItem(L"Projected Jacobi");
@@ -475,7 +476,7 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
     gad_ccpsolver->addItem(L"(custom)");
     gad_ccpsolver->setSelected(5);
 
-    gad_stepper = GetIGUIEnvironment()->addComboBox(core::rect<s32>(10, 160, 200, 160 + 20), gad_tab2, 9908);
+    gad_stepper = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 160, 200, 160 + 20), gad_tab2, 9908);
     gad_stepper->addItem(L"Anitescu stepper");
     gad_stepper->addItem(L"Tasora stepper");
     gad_stepper->addItem(L"Euler implicit");
@@ -493,38 +494,38 @@ ChIrrAppInterface::ChIrrAppInterface(chrono::ChSystem* psystem,
 
     gad_stepper->setSelected(0);
 
-    gad_omega = GetIGUIEnvironment()->addScrollBar(true, core::rect<s32>(10, 190, 150, 190 + 20), gad_tab2, 9909);
+    gad_omega = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 190, 150, 190 + 20), gad_tab2, 9909);
     gad_omega->setMax(100);
     gad_omega_info =
-        GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155, 190, 220, 190 + 20), false, false, gad_tab2);
+        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 190, 220, 190 + 20), false, false, gad_tab2);
 
-    gad_lambda = GetIGUIEnvironment()->addScrollBar(true, core::rect<s32>(10, 220, 150, 220 + 20), gad_tab2, 9910);
+    gad_lambda = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 220, 150, 220 + 20), gad_tab2, 9910);
     gad_lambda->setMax(100);
     gad_lambda_info =
-        GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155, 220, 220, 220 + 20), false, false, gad_tab2);
+        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 220, 220, 220 + 20), false, false, gad_tab2);
 
-    gad_clamping = GetIGUIEnvironment()->addScrollBar(true, core::rect<s32>(10, 250, 150, 250 + 20), gad_tab2, 9911);
+    gad_clamping = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 250, 150, 250 + 20), gad_tab2, 9911);
     gad_clamping->setMax(100);
     gad_clamping_info =
-        GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155, 250, 220, 250 + 20), false, false, gad_tab2);
+        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 250, 220, 250 + 20), false, false, gad_tab2);
 
-    gad_minbounce = GetIGUIEnvironment()->addScrollBar(true, core::rect<s32>(10, 280, 150, 280 + 20), gad_tab2, 9912);
+    gad_minbounce = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 280, 150, 280 + 20), gad_tab2, 9912);
     gad_minbounce->setMax(100);
     gad_minbounce_info =
-        GetIGUIEnvironment()->addStaticText(L"", core::rect<s32>(155, 280, 220, 280 + 20), false, false, gad_tab2);
+        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 280, 220, 280 + 20), false, false, gad_tab2);
 
     gad_timestep =
-        GetIGUIEnvironment()->addEditBox(L"", core::rect<s32>(140, 320, 200, 320 + 15), true, gad_tab2, 9918);
-    gad_timestep_info = GetIGUIEnvironment()->addStaticText(L"Time step", core::rect<s32>(10, 320, 130, 320 + 15),
+        GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(140, 320, 200, 320 + 15), true, gad_tab2, 9918);
+    gad_timestep_info = GetIGUIEnvironment()->addStaticText(L"Time step", irr::core::rect<irr::s32>(10, 320, 130, 320 + 15),
                                                             false, false, gad_tab2);
 
-    gad_try_realtime = GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 340, 200, 340 + 15), gad_tab2, 9916,
+    gad_try_realtime = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 340, 200, 340 + 15), gad_tab2, 9916,
                                                          L"Realtime step");
-    gad_pause_step = GetIGUIEnvironment()->addCheckBox(false, core::rect<s32>(10, 355, 200, 355 + 15), gad_tab2, 9917,
+    gad_pause_step = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 355, 200, 355 + 15), gad_tab2, 9917,
                                                        L"Pause physics");
 
-    gad_textHelp = GetIGUIEnvironment()->addStaticText(L"FPS", core::rect<s32>(10, 10, 200, 350), true, true, gad_tab3);
-    core::stringw hstr = "Instructions for interface.\n\n";
+    gad_textHelp = GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 350), true, true, gad_tab3);
+    irr::core::stringw hstr = "Instructions for interface.\n\n";
     hstr += "MOUSE \n\n";
     hstr += " left button: camera rotation \n";
     hstr += " righ button: camera translate \n";
@@ -571,30 +572,30 @@ ChIrrAppInterface::~ChIrrAppInterface() {
 
 // Set integration time step.
 void ChIrrAppInterface::SetTimestep(double val) {
-    timestep = chrono::ChMax(10e-9, val);
+    timestep = ChMax(10e-9, val);
     char message[50];
     sprintf(message, "%g", timestep);
-    gad_timestep->setText(core::stringw(message).c_str());
+    gad_timestep->setText(irr::core::stringw(message).c_str());
 }
 
 // Set the scale for drawing symbols.
 void ChIrrAppInterface::SetSymbolscale(double val) {
-    symbolscale = chrono::ChMax(10e-12, val);
+    symbolscale = ChMax(10e-12, val);
     char message[50];
     sprintf(message, "%g", symbolscale);
-    gad_symbolscale->setText(core::stringw(message).c_str());
+    gad_symbolscale->setText(irr::core::stringw(message).c_str());
 }
 
 // Set the fonts to be used from now on.
 void ChIrrAppInterface::SetFonts(const std::string& mfontdir) {
-    gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
-    gui::IGUIFont* font = GetIGUIEnvironment()->getFont(mfontdir.c_str());
+    irr::gui::IGUISkin* skin = GetIGUIEnvironment()->getSkin();
+    irr::gui::IGUIFont* font = GetIGUIEnvironment()->getFont(mfontdir.c_str());
     if (font)
         skin->setFont(font);
 }
 
 // Clean canvas at beginning of scene.
-void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, video::SColor color) {
+void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SColor color) {
     GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
 }
 
@@ -617,7 +618,7 @@ void ChIrrAppInterface::DoStep() {
 
     if (videoframe_save) {
         if (videoframe_num % videoframe_each == 0) {
-            video::IImage* image = GetVideoDriver()->createScreenShot();
+            irr::video::IImage* image = GetVideoDriver()->createScreenShot();
             char filename[100];
             sprintf(filename, "screenshot%05d.bmp", (videoframe_num + 1) / videoframe_each);
             if (image)
@@ -638,7 +639,7 @@ void ChIrrAppInterface::DoStep() {
 
 // Redraw all 3D shapes and GUI elements
 void ChIrrAppInterface::DrawAll() {
-    core::stringw str = "World time   =";
+    irr::core::stringw str = "World time   =";
     str += (int)(1000 * system->GetChTime());
     str += " ms  \n\nCPU step (total)      =";
     str += (int)(1000 * system->GetTimerStep());
@@ -705,54 +706,54 @@ void ChIrrAppInterface::DrawAll() {
 
         gad_speed_iternumber->setPos(GetSystem()->GetIterLCPmaxItersSpeed());
         sprintf(message, "%i vel.iters", GetSystem()->GetIterLCPmaxItersSpeed());
-        gad_speed_iternumber_info->setText(core::stringw(message).c_str());
+        gad_speed_iternumber_info->setText(irr::core::stringw(message).c_str());
 
         gad_pos_iternumber->setPos(GetSystem()->GetIterLCPmaxItersStab());
         sprintf(message, "%i pos.iters", GetSystem()->GetIterLCPmaxItersStab());
-        gad_pos_iternumber_info->setText(core::stringw(message).c_str());
+        gad_pos_iternumber_info->setText(irr::core::stringw(message).c_str());
 
-        gad_omega->setPos((s32)(50.0 * (GetSystem()->GetIterLCPomega())));
+        gad_omega->setPos((irr::s32)(50.0 * (GetSystem()->GetIterLCPomega())));
         sprintf(message, "%g omega", GetSystem()->GetIterLCPomega());
-        gad_omega_info->setText(core::stringw(message).c_str());
+        gad_omega_info->setText(irr::core::stringw(message).c_str());
 
-        gad_lambda->setPos((s32)(50.0 * (GetSystem()->GetIterLCPsharpnessLambda())));
+        gad_lambda->setPos((irr::s32)(50.0 * (GetSystem()->GetIterLCPsharpnessLambda())));
         sprintf(message, "%g lambda", GetSystem()->GetIterLCPsharpnessLambda());
-        gad_lambda_info->setText(core::stringw(message).c_str());
+        gad_lambda_info->setText(irr::core::stringw(message).c_str());
 
-        gad_clamping->setPos((s32)((50.0 / 3.0) * (GetSystem()->GetMaxPenetrationRecoverySpeed())));
+        gad_clamping->setPos((irr::s32)((50.0 / 3.0) * (GetSystem()->GetMaxPenetrationRecoverySpeed())));
         sprintf(message, "%g stab.clamp", GetSystem()->GetMaxPenetrationRecoverySpeed());
-        gad_clamping_info->setText(core::stringw(message).c_str());
+        gad_clamping_info->setText(irr::core::stringw(message).c_str());
 
-        gad_minbounce->setPos((s32)(200.0 * (GetSystem()->GetMinBounceSpeed())));
+        gad_minbounce->setPos((irr::s32)(200.0 * (GetSystem()->GetMinBounceSpeed())));
         sprintf(message, "%g min.bounce v", GetSystem()->GetMinBounceSpeed());
-        gad_minbounce_info->setText(core::stringw(message).c_str());
+        gad_minbounce_info->setText(irr::core::stringw(message).c_str());
 
         switch (GetSystem()->GetLcpSolverType()) {
-            case chrono::ChSystem::LCP_ITERATIVE_SOR:
+            case ChSystem::LCP_ITERATIVE_SOR:
                 gad_ccpsolver->setSelected(0);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_SYMMSOR:
+            case ChSystem::LCP_ITERATIVE_SYMMSOR:
                 gad_ccpsolver->setSelected(1);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_JACOBI:
+            case ChSystem::LCP_ITERATIVE_JACOBI:
                 gad_ccpsolver->setSelected(2);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD:
+            case ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD:
                 gad_ccpsolver->setSelected(3);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN:
+            case ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN:
                 gad_ccpsolver->setSelected(4);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_PCG:
+            case ChSystem::LCP_ITERATIVE_PCG:
                 gad_ccpsolver->setSelected(5);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_PMINRES:
+            case ChSystem::LCP_ITERATIVE_PMINRES:
                 gad_ccpsolver->setSelected(6);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_APGD:
+            case ChSystem::LCP_ITERATIVE_APGD:
                 gad_ccpsolver->setSelected(7);
                 break;
-            case chrono::ChSystem::LCP_ITERATIVE_MINRES:
+            case ChSystem::LCP_ITERATIVE_MINRES:
                 gad_ccpsolver->setSelected(8);
                 break;
             default:
@@ -761,43 +762,43 @@ void ChIrrAppInterface::DrawAll() {
         }
 
         switch (GetSystem()->GetIntegrationType()) {
-            case chrono::ChSystem::INT_ANITESCU:
+            case ChSystem::INT_ANITESCU:
                 gad_stepper->setSelected(0);
                 break;
-            case chrono::ChSystem::INT_TASORA:
+            case ChSystem::INT_TASORA:
                 gad_stepper->setSelected(1);
                 break;
-            case chrono::ChSystem::INT_EULER_IMPLICIT:
+            case ChSystem::INT_EULER_IMPLICIT:
                 gad_stepper->setSelected(2);
                 break;
-            case chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED:
+            case ChSystem::INT_EULER_IMPLICIT_LINEARIZED:
                 gad_stepper->setSelected(3);
                 break;
-            case chrono::ChSystem::INT_EULER_IMPLICIT_PROJECTED:
+            case ChSystem::INT_EULER_IMPLICIT_PROJECTED:
                 gad_stepper->setSelected(4);
                 break;
-            case chrono::ChSystem::INT_TRAPEZOIDAL:
+            case ChSystem::INT_TRAPEZOIDAL:
                 gad_stepper->setSelected(5);
                 break;
-            case chrono::ChSystem::INT_TRAPEZOIDAL_LINEARIZED:
+            case ChSystem::INT_TRAPEZOIDAL_LINEARIZED:
                 gad_stepper->setSelected(6);
                 break;
-            case chrono::ChSystem::INT_HHT:
+            case ChSystem::INT_HHT:
                 gad_stepper->setSelected(7);
                 break;
-            case chrono::ChSystem::INT_HEUN:
+            case ChSystem::INT_HEUN:
                 gad_stepper->setSelected(8);
                 break;
-            case chrono::ChSystem::INT_RUNGEKUTTA45:
+            case ChSystem::INT_RUNGEKUTTA45:
                 gad_stepper->setSelected(9);
                 break;
-            case chrono::ChSystem::INT_EULER_EXPLICIT:
+            case ChSystem::INT_EULER_EXPLICIT:
                 gad_stepper->setSelected(10);
                 break;
-            case chrono::ChSystem::INT_LEAPFROG:
+            case ChSystem::INT_LEAPFROG:
                 gad_stepper->setSelected(11);
                 break;
-            case chrono::ChSystem::INT_NEWMARK:
+            case ChSystem::INT_NEWMARK:
                 gad_stepper->setSelected(12);
                 break;
             default:
@@ -810,7 +811,7 @@ void ChIrrAppInterface::DrawAll() {
 
         if (!GetStepManage()) {
             sprintf(message, "%g", GetSystem()->GetStep());
-            gad_timestep->setText(core::stringw(message).c_str());
+            gad_timestep->setText(irr::core::stringw(message).c_str());
         }
 
         // disable timestep-related gadgets if dt not handled by application object
@@ -831,12 +832,12 @@ void ChIrrAppInterface::DumpMatrices() {
 
     // Save the current speeds, maybe these are needed.
     try {
-        chrono::ChMatrixDynamic<double> mvold;
+        ChMatrixDynamic<double> mvold;
         GetSystem()->GetLcpSystemDescriptor()->FromVariablesToVector(mvold);
-        chrono::ChStreamOutAsciiFile file_vold("dump_v_old.dat");
+        ChStreamOutAsciiFile file_vold("dump_v_old.dat");
         mvold.StreamOUTdenseMatlabFormat(file_vold);
-    } catch (chrono::ChException myexc) {
-        chrono::GetLog() << myexc.what();
+    } catch (ChException myexc) {
+        GetLog() << myexc.what();
     }
 
     // This DoStep() is necessary because we want to get the matrices as they
@@ -848,4 +849,5 @@ void ChIrrAppInterface::DumpMatrices() {
     GetSystem()->GetLcpSystemDescriptor()->DumpLastMatrices("dump_");
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono
