@@ -40,6 +40,12 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     custom_vector<real> shear_trace;
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;
+    // custom_vector<real3> den_con_diag;
+    custom_vector<real3> den_con_jac;
+
+    custom_vector<real3> visc1_jac;
+    custom_vector<real3> visc2_jac;
+    custom_vector<real3> visc3_jac;
 
   private:
     uint num_fluid_contacts;

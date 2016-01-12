@@ -24,7 +24,10 @@ void ChConstraintFluidFluid::Density_Fluid() {
     real inv_density = 1.0 / density_fluid;
     real mass_over_density = mass * inv_density;
     real eta = .01;
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    //CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+
+    den_con_jac.resize(num_fluid_bodies * max_neighbors);
+
 #pragma omp parallel for
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
         int rdoff = index_offset + body_a;
@@ -32,10 +35,12 @@ void ChConstraintFluidFluid::Density_Fluid() {
         real dens = 0;
         real3 dcon_diag = real3(0.0);
         real3 pos_p = sorted_pos[body_a];
+        int d_ind = 0;
         for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
             int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
             if (body_a == body_b) {
                 dens += mass_fluid * CPOLY6 * H6;
+                d_ind = i;
                 continue;
             }
             int column = body_offset + body_b * 3;
@@ -47,9 +52,12 @@ void ChConstraintFluidFluid::Density_Fluid() {
             real3 kernel_xij = KGSPIKY * xij;
             real3 dcon_od = mass_over_density * kernel_xij;  // off diagonal
             dcon_diag -= dcon_od;                            // diagonal is sum
-            SetRow3Check(D_T, rdoff, column, dcon_od);
+            // SetRow3Check(D_T, rdoff, column, dcon_od);
+            den_con_jac[body_a * max_neighbors + i] = dcon_od;
         }
-        SetRow3Check(D_T, rdoff, body_offset + body_a * 3, dcon_diag);
+        den_con_jac[body_a * max_neighbors + d_ind] = dcon_diag;
+
+        // SetRow3Check(D_T, rdoff, body_offset + body_a * 3, dcon_diag);
         density[body_a] = dens;
     }
 }
@@ -108,6 +116,10 @@ void ChConstraintFluidFluid::Build_D() {
     Density_Fluid();
     Normalize_Density_Fluid();
 
+    visc1_jac.resize(num_fluid_bodies * max_neighbors);
+    visc2_jac.resize(num_fluid_bodies * max_neighbors);
+    visc3_jac.resize(num_fluid_bodies * max_neighbors);
+
     real visca = data_manager->settings.fluid.viscosity;
     real viscb = data_manager->settings.fluid.viscosity;
     const real mass_2 = mass * mass;
@@ -121,9 +133,11 @@ void ChConstraintFluidFluid::Build_D() {
             real3 vmat_row1(0);
             real3 vmat_row2(0);
             real3 vmat_row3(0);
+            int d_ind = 0;
             for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
                 if (body_a == body_b) {
+                    d_ind = i;
                     continue;
                 }
                 int column = body_offset + body_b * 3;
@@ -143,18 +157,65 @@ void ChConstraintFluidFluid::Build_D() {
                 real3 r2 = xij[1] * kernel_xij * scalar;
                 real3 r3 = xij[2] * kernel_xij * scalar;
 
-                SetRow3Check(D_T, rvoff + 0, column, r1);
-                SetRow3Check(D_T, rvoff + 1, column, r2);
-                SetRow3Check(D_T, rvoff + 2, column, r3);
+                visc1_jac[body_a * max_neighbors + i] = r1;
+                visc2_jac[body_a * max_neighbors + i] = r2;
+                visc3_jac[body_a * max_neighbors + i] = r3;
+                //
+                //                SetRow3Check(D_T, rvoff + 0, column, r1);
+                //                SetRow3Check(D_T, rvoff + 1, column, r2);
+                //                SetRow3Check(D_T, rvoff + 2, column, r3);
 
                 vmat_row1 -= r1;
                 vmat_row2 -= r2;
                 vmat_row3 -= r3;
             }
+            visc1_jac[body_a * max_neighbors + d_ind] = vmat_row1;
+            visc2_jac[body_a * max_neighbors + d_ind] = vmat_row2;
+            visc3_jac[body_a * max_neighbors + d_ind] = vmat_row3;
 
-            SetRow3Check(D_T, rvoff + 0, body_offset + body_a * 3, vmat_row1);
-            SetRow3Check(D_T, rvoff + 1, body_offset + body_a * 3, vmat_row2);
-            SetRow3Check(D_T, rvoff + 2, body_offset + body_a * 3, vmat_row3);
+            //            SetRow3Check(D_T, rvoff + 0, body_offset + body_a * 3, vmat_row1);
+            //            SetRow3Check(D_T, rvoff + 1, body_offset + body_a * 3, vmat_row2);
+            //            SetRow3Check(D_T, rvoff + 2, body_offset + body_a * 3, vmat_row3);
+        }
+    }
+
+    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+        // D_T.reserve(index_offset + body_a, data_manager->settings.fluid.max_interactions * 3);
+
+        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            AppendRow3(D_T, index_offset + body_a, body_offset + body_b * 3, den_con_jac[body_a * max_neighbors + i]);
+        }
+        D_T.finalize(index_offset + body_a);
+    }
+    // Add more entries for viscosity
+    // Code is repeated because there are three rows per viscosity constraint
+    if (data_manager->settings.fluid.enable_viscosity) {
+        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 0,
+            //            data_manager->settings.fluid.max_interactions * 3);
+            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3,
+                           visc1_jac[body_a * max_neighbors + i]);
+            }
+            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 0);
+            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 1,
+            //            data_manager->settings.fluid.max_interactions * 3);
+            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3,
+                           visc2_jac[body_a * max_neighbors + i]);
+            }
+            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 1);
+            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 2,
+            //            data_manager->settings.fluid.max_interactions * 3);
+            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3,
+                           visc3_jac[body_a * max_neighbors + i]);
+            }
+            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 2);
         }
     }
 
@@ -217,42 +278,42 @@ void ChConstraintFluidFluid::GenerateSparsity() {
     LOG(INFO) << "ChConstraintFluidFluid::GenerateSparsityFluid";
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
-        // D_T.reserve(index_offset + body_a, data_manager->settings.fluid.max_interactions * 3);
-
-        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-            AppendRow3(D_T, index_offset + body_a, body_offset + body_b * 3, 0);
-        }
-        D_T.finalize(index_offset + body_a);
-    }
-    // Add more entries for viscosity
-    // Code is repeated because there are three rows per viscosity constraint
-    if (data_manager->settings.fluid.enable_viscosity) {
-        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
-            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 0,
-            //            data_manager->settings.fluid.max_interactions * 3);
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3, 0);
-            }
-            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 0);
-            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 1,
-            //            data_manager->settings.fluid.max_interactions * 3);
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3, 0);
-            }
-            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 1);
-            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 2,
-            //            data_manager->settings.fluid.max_interactions * 3);
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
-                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3, 0);
-            }
-            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 2);
-        }
-    }
+    //    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    //        // D_T.reserve(index_offset + body_a, data_manager->settings.fluid.max_interactions * 3);
+    //
+    //        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+    //            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+    //            AppendRow3(D_T, index_offset + body_a, body_offset + body_b * 3, 0);
+    //        }
+    //        D_T.finalize(index_offset + body_a);
+    //    }
+    //    // Add more entries for viscosity
+    //    // Code is repeated because there are three rows per viscosity constraint
+    //    if (data_manager->settings.fluid.enable_viscosity) {
+    //        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    //            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 0,
+    //            //            data_manager->settings.fluid.max_interactions * 3);
+    //            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+    //                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+    //                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3, 0);
+    //            }
+    //            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 0);
+    //            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 1,
+    //            //            data_manager->settings.fluid.max_interactions * 3);
+    //            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+    //                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+    //                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3, 0);
+    //            }
+    //            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 1);
+    //            // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 2,
+    //            //            data_manager->settings.fluid.max_interactions * 3);
+    //            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+    //                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+    //                AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3, 0);
+    //            }
+    //            D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 2);
+    //        }
+    //    }
 }
 
 void ChConstraintFluidFluid::ArtificialPressure() {

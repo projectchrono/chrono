@@ -43,6 +43,12 @@ static void inline AppendRow3(T& D, const int row, const int col, const real ini
     D.append(row, col + 2, init);
 }
 template <typename T>
+static void inline AppendRow3(T& D, const int row, const int col, const real3 init) {
+    D.append(row, col + 0, init.x);
+    D.append(row, col + 1, init.y);
+    D.append(row, col + 2, init.z);
+}
+template <typename T>
 static void inline AppendRow6(T& D, const int row, const int col, const real init) {
     D.append(row, col + 0, init);
     D.append(row, col + 1, init);

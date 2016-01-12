@@ -183,7 +183,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint num_fluid_fluid = num_fluid_contacts * 3;
 
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        int max_interactions = data_manager->settings.fluid.max_interactions;
+        int max_interactions = max_neighbors ;//data_manager->settings.fluid.max_interactions;
         nnz_fluid_fluid = num_fluid_bodies * 6 * max_interactions;  // + num_fluid_bodies * 18 * max_interactions;
         num_fluid_fluid = num_fluid_bodies;                         // + num_fluid_bodies * 3;
 

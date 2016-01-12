@@ -98,7 +98,7 @@ struct fluid_settings {
         fluid_is_rigid = true;
         max_velocity = 3;
         viscosity = 0;
-        max_interactions = 15;
+        //max_interactions = 15;
         collision_envelope = 0;
         contact_recovery_speed = 1;
         artificial_pressure = false;
@@ -123,7 +123,7 @@ struct fluid_settings {
     real collision_envelope;
     bool fluid_is_rigid;
     real max_velocity;            // limit on the maximum speed the fluid can move at
-    int max_interactions;         // maximum neighbors supported, increase as needed
+    //int max_interactions;         // maximum neighbors supported, increase as needed
     real contact_recovery_speed;  // The speed at which 'rigid' fluid  bodies resolve contact
     bool artificial_pressure;     // Enable artificial pressure term
     real artificial_pressure_k;

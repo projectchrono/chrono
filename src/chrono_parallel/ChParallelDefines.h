@@ -117,5 +117,5 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 // Supported Logging Levels
 enum LOGGINGLEVEL { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
 
-#define max_neighbors 64
+#define max_neighbors 32
 #define max_rigid_neighbors 16
