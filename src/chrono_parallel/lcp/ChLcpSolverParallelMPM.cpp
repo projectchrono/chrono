@@ -409,7 +409,7 @@ void ChLcpSolverParallelMPM::Solve(const DynamicVector<real>& b, DynamicVector<r
     //        p = rsnew / rsold * p + r;
     //        rsold = rsnew;
     //    }
-    int max_iterations = 10;
+    int max_iterations = data_manager->settings.mpm.max_iterations;
     real rho_old = FLT_MAX;
     real convergence_norm = 0;
     real tolerance = Max(1e-4 * Convergence_Norm(b), 1e-6);

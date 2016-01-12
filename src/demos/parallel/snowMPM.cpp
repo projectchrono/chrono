@@ -204,6 +204,7 @@ int main(int argc, char* argv[]) {
 
     real initial_density = 400;
     msystem.GetSettings()->mpm.mass = .004;
+    msystem.GetSettings()->mpm.max_iterations = 20;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
