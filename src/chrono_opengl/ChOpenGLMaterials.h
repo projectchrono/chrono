@@ -19,6 +19,9 @@
 namespace chrono {
 namespace opengl {
 
+/// @addtogroup opengl
+/// @{
+
 static ChOpenGLMaterial white(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
 static ChOpenGLMaterial red(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 1, 1));
 static ChOpenGLMaterial river(glm::vec3(0, 0, 0),
@@ -76,6 +79,9 @@ static ChOpenGLMaterial t5(glm::vec3(83.0f, 119.0f, 122.0f) / 255.0f * ambient,
                            glm::vec3(1, 1, 1));
 
 static ChOpenGLMaterial text_mat(glm::vec3(0, 0, 0), glm::vec3(100.0f, 145.0f, 170.0f) / 255.0f, glm::vec3(1, 1, 1));
+
+/// @} opengl
+
 }
 }
 #endif  // END of CHOPENGLMATERIALS_H

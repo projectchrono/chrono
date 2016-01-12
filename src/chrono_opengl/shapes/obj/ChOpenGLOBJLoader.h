@@ -21,6 +21,11 @@
 #include "thirdparty/tinyobjloader/tiny_obj_loader.h"
 namespace chrono {
 namespace opengl {
+
+/// @addtogroup opengl
+/// @{
+
+/// Uses the tiny_obj_loader library to load an OBJ file in the proper format.
 class ChOpenGLOBJLoader : public ChOpenGLBase {
  public:
   ChOpenGLOBJLoader();
@@ -34,6 +39,9 @@ class ChOpenGLOBJLoader : public ChOpenGLBase {
 
  private:
 };
+
+/// @} opengl
+
 }
 }
 
