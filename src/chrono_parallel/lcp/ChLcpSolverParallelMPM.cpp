@@ -324,7 +324,7 @@ void ChLcpSolverParallelMPM::Multiply(DynamicVector<real>& v_array, DynamicVecto
     }
 
     printf("Apply Hessian B\n");
-
+#pragma omp parallel for
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
         real plastic_determinant = Determinant(Fp[p]);
@@ -334,20 +334,34 @@ void ChLcpSolverParallelMPM::Multiply(DynamicVector<real>& v_array, DynamicVecto
         Mat33 Fe_hat_inv_transpose = InverseTranspose(Fe_hat[p]);
 
         real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F[p]);
-        Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F[p]) * Fe_hat_inv_transpose;
+        Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * TransposeMult(delta_F[p], Fe_hat_inv_transpose);
         Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
         Mat33 RD = Rotational_Derivative(Fe_hat[p], delta_F[p]);
 
-        Mat33 Ap = 2 * current_mu * (delta_F[p] - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
-                   (current_lambda * (J - 1.0)) * dJF_inverse_transposed;
+        Mat33 volume_Ap_Fe_transpose =
+            volume[p] * (2 * current_mu * (delta_F[p] - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
+                         (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
+            Transpose(Fe[p]);
 
-        LOOPOVERNODES(                                                                                     //
-            real3 res = volume[p] * Ap * Transpose(Fe[p]) * dN(xi - current_node_location, inv_bin_edge);  //
-            result_array[current_node * 3 + 0] += res.x;                                                   //
-            result_array[current_node * 3 + 1] += res.y;                                                   //
-            result_array[current_node * 3 + 2] += res.z;                                                   //
+        const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
+        const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
+        const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
 
-            )
+        for (int i = cx - 2; i <= cx + 2; ++i) {
+            for (int j = cy - 2; j <= cy + 2; ++j) {
+                for (int k = cz - 2; k <= cz + 2; ++k) {
+                    const int current_node = GridHash(i, j, k, bins_per_axis);
+                    real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
+                    real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
+#pragma omp atomic
+                    result_array[current_node * 3 + 0] += res.x;  //
+#pragma omp atomic
+                    result_array[current_node * 3 + 1] += res.y;  //
+#pragma omp atomic
+                    result_array[current_node * 3 + 2] += res.z;  //
+                }
+            }
+        }
     }
 #pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
