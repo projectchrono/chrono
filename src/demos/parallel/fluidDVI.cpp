@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->fluid.mu = .1;
     msystem.GetSettings()->fluid.density = 1000;
     msystem.GetSettings()->fluid.fluid_is_rigid = false;
-    msystem.GetSettings()->fluid.max_interactions = 30;
+    //msystem.GetSettings()->fluid.max_interactions = 30;
     msystem.GetSettings()->fluid.artificial_pressure = true;
     msystem.GetSettings()->fluid.artificial_pressure_k = .001;
     msystem.GetSettings()->fluid.artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
