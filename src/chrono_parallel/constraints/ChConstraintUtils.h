@@ -52,7 +52,24 @@ static void inline AppendRow6(T& D, const int row, const int col, const real ini
     D.append(row, col + 4, init);
     D.append(row, col + 5, init);
 }
+//
+template <typename T>
+static void inline AppendRow3Weak(T& D, const int row, const int col, const real init) {
+    D.weakAppend(row, col + 0, init);
+    D.weakAppend(row, col + 1, init);
+    D.weakAppend(row, col + 2, init);
+}
+template <typename T>
+static void inline AppendRow6Weak(T& D, const int row, const int col, const real init) {
+    D.weakAppend(row, col + 0, init);
+    D.weakAppend(row, col + 1, init);
+    D.weakAppend(row, col + 2, init);
 
+    D.weakAppend(row, col + 3, init);
+    D.weakAppend(row, col + 4, init);
+    D.weakAppend(row, col + 5, init);
+}
+//
 template <typename T>
 static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
 	assert(D.find( row, col + 0)!=D.end(row));
@@ -68,6 +85,22 @@ static void inline SetRow3Check(T& D, const int row, const int col, const real3&
     if (A.z != 0.0) {
         D.set(row, col + 2, A.z);
     }
+}
+template <typename T>
+static void inline SetRow3Weak(T& D, const int row, const int col, const real3& A) {
+	//assert(D.find( row, col + 0)!=D.end(row));
+	//assert(D.find( row, col + 1)!=D.end(row));
+	//assert(D.find( row, col + 2)!=D.end(row));
+
+    //if (A.x != 0.0) {
+        D.weakSet(row, col + 0, A.x);
+    //}
+    //if (A.y != 0.0) {
+        D.weakSet(row, col + 1, A.y);
+    //}
+    //if (A.z != 0.0) {
+        D.weakSet(row, col + 2, A.z);
+    //}
 }
 template <typename T>
 static void inline SetRow6Check(T& D, const int row, const int col, const real3& A, const real3& B) {
