@@ -23,6 +23,16 @@ namespace chrono {
 #define CGSPIKY -45.0 / (F_PI * H6)
 #define KGSPIKY CGSPIKY* Pow(h - dist, 2)
 
+inline real N(const real& dist, const real& h) {
+    real x = Abs(dist) / h;
+    if (Abs(x) < real(1.0)) {
+        return real(0.5) * Cube(Abs(x)) - Sqr(x) + 2.0 / 3.0;
+    } else if (Abs(x) < real(2.0)) {
+        return -1.0 / 6.0 * Cube(Abs(x)) + Sqr(x) - real(2.0) * Abs(x) + 4.0 / 3.0;
+    }
+    return real(0.0);
+}
+
 // Cubic spline kernel
 // d is positive. h is the sph particle  radius (i.e. h in the document) d is the distance of 2 particles
 inline real cubic_spline(const real& dist, const real& h) {

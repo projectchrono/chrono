@@ -107,6 +107,7 @@ struct fluid_settings {
         artificial_pressure_n = 4;
         enable_viscosity = false;
         vorticity_confinement = 0;
+        initialize_mass = false;
     }
     real kernel_radius;
     real volume;
@@ -130,6 +131,7 @@ struct fluid_settings {
     real artificial_pressure_n;
     real artificial_pressure_dq;
     bool enable_viscosity;
+    bool initialize_mass;
 };
 struct mpm_settings {
     mpm_settings() {

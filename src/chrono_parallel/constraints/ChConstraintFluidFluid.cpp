@@ -10,8 +10,70 @@ namespace chrono {
 // No projection for constraint fluids
 void ChConstraintFluidFluid::Project(real* gamma) {}
 
+void ChConstraintFluidFluid::Initialize() {
+    custom_vector<real>& density = data_manager->host_data.den_fluid;
+    density.resize(num_fluid_bodies);
+
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    real h = data_manager->settings.fluid.kernel_radius;
+    real density_fluid = data_manager->settings.fluid.density;
+    real mass_fluid = data_manager->settings.fluid.mass;
+    real vol = 4.0 / 3.0 * CH_C_PI * h * h * h;
+//#pragma omp parallel for
+
+#pragma omp parallel for
+    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+        real dens = 0;
+        real3 pos_p = sorted_pos[body_a];
+        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            if (body_a == body_b) {
+                dens += mass_fluid * CPOLY6 * H6;
+                continue;
+            }
+            real3 xij = pos_p - sorted_pos[body_b];
+            real dist = Length(xij);
+            dens += mass_fluid * KPOLY6;
+        }
+        density[body_a] = dens;
+    }
+
+#pragma omp parallel for
+    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+        real dens = 0;
+        real3 diag = real3(0);
+        real3 pos_p = sorted_pos[body_a];
+        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            if (body_a == body_b) {
+                dens += mass_fluid / density[body_b] * CPOLY6 * H6;
+                continue;
+            }
+            real3 xij = pos_p - sorted_pos[body_b];
+            real dist = Length(xij);
+            dens += (mass_fluid / density[body_b]) * KPOLY6;
+        }
+        density[body_a] = density[body_a] / dens;
+    }
+    real total_density = 0;
+    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+        total_density += density[body_a];
+    }
+    real avg_density = total_density / num_fluid_bodies;
+    real scale = density_fluid / avg_density;
+
+    data_manager->settings.fluid.mass = mass_fluid * scale;
+    printf("Computed mass: %f\n", data_manager->settings.fluid.mass);
+}
+
+bool init_mass = false;
+
 // Compute the fluid density================================================================================
 void ChConstraintFluidFluid::Density_Fluid() {
+    if (data_manager->settings.fluid.initialize_mass && init_mass == false) {
+        Initialize();
+        init_mass = true;
+    }
     LOG(INFO) << "ChConstraintFluidFluid::Density_Fluid";
     real mass_fluid = data_manager->settings.fluid.mass;
     custom_vector<real>& density = data_manager->host_data.den_fluid;
@@ -24,7 +86,6 @@ void ChConstraintFluidFluid::Density_Fluid() {
     real inv_density = 1.0 / density_fluid;
     real mass_over_density = mass * inv_density;
     real eta = .01;
-    //CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     den_con_jac.resize(num_fluid_bodies * max_neighbors);
 
@@ -52,12 +113,9 @@ void ChConstraintFluidFluid::Density_Fluid() {
             real3 kernel_xij = KGSPIKY * xij;
             real3 dcon_od = mass_over_density * kernel_xij;  // off diagonal
             dcon_diag -= dcon_od;                            // diagonal is sum
-            // SetRow3Check(D_T, rdoff, column, dcon_od);
             den_con_jac[body_a * max_neighbors + i] = dcon_od;
         }
         den_con_jac[body_a * max_neighbors + d_ind] = dcon_diag;
-
-        // SetRow3Check(D_T, rdoff, body_offset + body_a * 3, dcon_diag);
         density[body_a] = dens;
     }
 }
@@ -145,7 +203,6 @@ void ChConstraintFluidFluid::Build_D() {
                 real dist = Length(xij);
                 real3 kernel_xij = KGSPIKY * xij;
                 //
-                //
                 real density_a = density[body_a];
                 real density_b = density[body_b];
                 real part_a = (8.0 / (density_a + density_b));
@@ -160,10 +217,6 @@ void ChConstraintFluidFluid::Build_D() {
                 visc1_jac[body_a * max_neighbors + i] = r1;
                 visc2_jac[body_a * max_neighbors + i] = r2;
                 visc3_jac[body_a * max_neighbors + i] = r3;
-                //
-                //                SetRow3Check(D_T, rvoff + 0, column, r1);
-                //                SetRow3Check(D_T, rvoff + 1, column, r2);
-                //                SetRow3Check(D_T, rvoff + 2, column, r3);
 
                 vmat_row1 -= r1;
                 vmat_row2 -= r2;
@@ -172,16 +225,11 @@ void ChConstraintFluidFluid::Build_D() {
             visc1_jac[body_a * max_neighbors + d_ind] = vmat_row1;
             visc2_jac[body_a * max_neighbors + d_ind] = vmat_row2;
             visc3_jac[body_a * max_neighbors + d_ind] = vmat_row3;
-
-            //            SetRow3Check(D_T, rvoff + 0, body_offset + body_a * 3, vmat_row1);
-            //            SetRow3Check(D_T, rvoff + 1, body_offset + body_a * 3, vmat_row2);
-            //            SetRow3Check(D_T, rvoff + 2, body_offset + body_a * 3, vmat_row3);
         }
     }
 
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
         // D_T.reserve(index_offset + body_a, data_manager->settings.fluid.max_interactions * 3);
-
         for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
             int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
             AppendRow3(D_T, index_offset + body_a, body_offset + body_b * 3, den_con_jac[body_a * max_neighbors + i]);

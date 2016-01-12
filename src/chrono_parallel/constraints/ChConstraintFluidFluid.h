@@ -22,6 +22,7 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
         index_offset = num_unilaterals + num_bilaterals + num_rigid_fluid_contacts * 3;
         body_offset = num_rigid_bodies * 6 + num_shafts;
     }
+    void Initialize();
     void Build_D();
     void Build_b();
     void Build_E();
