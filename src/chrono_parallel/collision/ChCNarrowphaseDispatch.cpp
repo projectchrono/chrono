@@ -678,7 +678,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
 
     data_manager->num_fluid_contacts = Thrust_Total(contact_counts);
-    LOG(TRACE) << "stop DispatchFLuidFluid: ";
+    LOG(TRACE) << "stop DispatchFluidFluid: "<<data_manager->num_fluid_contacts;
 }
 
 }  // end namespace collision
