@@ -148,7 +148,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
     tot_iterations = data_manager->measures.solver.maxd_hist.size();
 
-    LOG(TRACE) << "Solve Done: " << residual;
+    LOG(TRACE) << "Solve Done: " << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve")<<" "<<data_manager->system_timer.GetTime("ShurProduct") << residual;
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
