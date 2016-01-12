@@ -47,6 +47,5 @@ class CH_PARALLEL_API ChSolverBB : public ChSolverParallel {
     // BB specific vectors
     DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
     DynamicVector<real> mD, invmD;
-    std::vector<real> f_hist;
 };
 }
