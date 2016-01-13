@@ -18,7 +18,7 @@
 #include "chrono_opengl/ChOpenGLViewer.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 #include <chrono_parallel/physics/ChSystemParallel.h>
-#include <chrono_parallel/physics/ChFluidContainer.h>
+#include <chrono_parallel/physics/Ch3DOFContainer.h>
 
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"

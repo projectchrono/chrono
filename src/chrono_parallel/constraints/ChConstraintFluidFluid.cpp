@@ -18,7 +18,6 @@ void ChConstraintFluidFluid::Initialize() {
     real density_fluid = data_manager->settings.fluid.density;
     real mass_fluid = data_manager->settings.fluid.mass;
     real vol = 4.0 / 3.0 * CH_C_PI * h * h * h;
-//#pragma omp parallel for
 
 #pragma omp parallel for
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {

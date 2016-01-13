@@ -83,7 +83,7 @@ void AddContainer(ChSystemParallelMPM* sys) {
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
 void AddFluid(ChSystemParallelMPM* sys) {
-    ChFluidContainer* fluid_container = new ChFluidContainer(sys);
+    ChMPMContainer* mpm_container = new ChMPMContainer(sys);
 
     real radius = sys->GetSettings()->fluid.kernel_radius * 10;  //*5
     real dens = 30;
@@ -104,8 +104,8 @@ void AddFluid(ChSystemParallelMPM* sys) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
         vel_fluid[i] = real3(10, 0, 0);
     }
-    fluid_container->UpdatePosition(0);
-    fluid_container->AddFluid(pos_fluid, vel_fluid);
+    mpm_container->UpdatePosition(0);
+    mpm_container->AddNodes(pos_fluid, vel_fluid);
 
     points = sampler.SampleSphere(ChVector<>(.1, 0, 0), radius);
 
@@ -115,7 +115,7 @@ void AddFluid(ChSystemParallelMPM* sys) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
         vel_fluid[i] = real3(-10, 0, 0);
     }
-    fluid_container->AddFluid(pos_fluid, vel_fluid);
+    mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
     std::ifstream ifile("snowMPMinit.dat");

@@ -232,7 +232,7 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
     data_manager->host_data.shaft_active.push_back(true);
 }
 
-void ChSystemParallel::AddFluid(ChFluidContainer* fluid) {
+void ChSystemParallel::AddFluid(Ch3DOFContainer* fluid) {
     fluid->AddRef();
     fluid_container = fluid;
 }

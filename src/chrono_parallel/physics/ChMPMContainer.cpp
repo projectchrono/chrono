@@ -15,13 +15,13 @@ using namespace geometry;
 
 /// CLASS FOR A 3DOF FLUID NODE
 
-ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
+ChMPMContainer::ChMPMContainer(ChSystemParallelMPM* physics_system) {
     system = physics_system;
     system->AddFluid(this);
 }
-ChFluidContainer::~ChFluidContainer() {}
+ChMPMContainer::~ChMPMContainer() {}
 
-void ChFluidContainer::AddFluid(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
+void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_fluid = system->data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = system->data_manager->host_data.vel_3dof;
 
@@ -31,7 +31,7 @@ void ChFluidContainer::AddFluid(const std::vector<real3>& positions, const std::
     vel_fluid.resize(pos_fluid.size());
     system->data_manager->num_fluid_bodies = pos_fluid.size();
 }
-void ChFluidContainer::Update(double ChTime) {
+void ChMPMContainer::Update(double ChTime) {
     uint num_fluid_bodies = system->data_manager->num_fluid_bodies;
     uint num_rigid_bodies = system->data_manager->num_rigid_bodies;
     uint num_shafts = system->data_manager->num_shafts;
@@ -52,7 +52,7 @@ void ChFluidContainer::Update(double ChTime) {
     }
 }
 
-void ChFluidContainer::UpdatePosition(double ChTime) {
+void ChMPMContainer::UpdatePosition(double ChTime) {
     uint num_fluid_bodies = system->data_manager->num_fluid_bodies;
     uint num_rigid_bodies = system->data_manager->num_rigid_bodies;
     uint num_shafts = system->data_manager->num_shafts;

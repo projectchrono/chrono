@@ -38,7 +38,7 @@
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include <chrono_parallel/physics/ChFluidContainer.h>
+#include <chrono_parallel/physics/Ch3DOFContainer.h>
 namespace chrono {
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
@@ -108,8 +108,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     double CalculateConstraintViolation(std::vector<double>& cvec);
 
     ChParallelDataManager* data_manager;
-    ChFluidContainer* fluid_container;
-    void AddFluid(ChFluidContainer* fluid);
+    Ch3DOFContainer* fluid_container;
+    void AddFluid(Ch3DOFContainer* fluid);
 
     int current_threads;
 

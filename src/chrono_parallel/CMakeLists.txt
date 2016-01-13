@@ -132,12 +132,14 @@ SOURCE_GROUP("" FILES ${ChronoEngine_Parallel_BASE})
 
 SET(ChronoEngine_Parallel_PHYSICS
     physics/ChSystemParallel.h
-    physics/ChFluidContainer.h
+    physics/Ch3DOFContainer.h
     physics/ChSystemParallel.cpp
     physics/ChSystemParallelDVI.cpp
     physics/ChSystemParallelDEM.cpp
     physics/ChSystemParallelMPM.cpp
+    physics/Ch3DOFContainer.cpp
     physics/ChFluidContainer.cpp
+    physics/ChMPMContainer.cpp
     )
 
 SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})

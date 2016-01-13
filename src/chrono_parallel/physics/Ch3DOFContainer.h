@@ -29,18 +29,20 @@ namespace chrono {
 class ChSystemParallelDVI;
 class ChSystemParallelMPM;
 
-class CH_PARALLEL_API ChFluidContainer : public ChPhysicsItem {
+class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
-    ChFluidContainer(ChSystemParallelDVI* system);
-    ChFluidContainer(ChSystemParallelMPM* system);
-    ~ChFluidContainer();
+    Ch3DOFContainer();
+    ~Ch3DOFContainer();
 
-    ChFluidContainer(const ChFluidContainer& other);             // Copy constructor
-    ChFluidContainer& operator=(const ChFluidContainer& other);  // Assignment operator
+    Ch3DOFContainer(const Ch3DOFContainer& other);             // Copy constructor
+    Ch3DOFContainer& operator=(const Ch3DOFContainer& other);  // Assignment operator
 
-    void AddFluid(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    void Update(double ChTime);
-    void UpdatePosition(double ChTime);
+    // void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    // Update occurs before he solve
+    virtual void Update(double ChTime) = 0;
+    virtual void UpdatePosition(double ChTime) = 0;
+    // Integrate happens after the solve
+    // void Integrate(double ChTime);
     // Position of the node - in absolute csys.
     real3 GetPos(int i);
     // Position of the node - in absolute csys.
@@ -51,7 +53,29 @@ class CH_PARALLEL_API ChFluidContainer : public ChPhysicsItem {
     // Velocity of the node - in absolute csys.
     void SetPos_dt(const int& i, const real3& mposdt);
 
-  private:
+  protected:
     ChSystemParallel* system;
 };
+
+class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
+  public:
+    ChFluidContainer(ChSystemParallelDVI* system);
+    ~ChFluidContainer();
+    void AddFluid(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    void Update(double ChTime);
+    void UpdatePosition(double ChTime);
+};
+class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
+  public:
+    ChMPMContainer(ChSystemParallelMPM* system);
+    ~ChMPMContainer();
+    void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    void Update(double ChTime);
+    void UpdatePosition(double ChTime);
+};
+// class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
+//  public:
+//    ChFEMContainer(ChSystemParallelDVI* system);
+//    ~ChFEMContainer();
+//};
 }
