@@ -396,7 +396,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     real3 global_origin = data_manager->measures.collision.global_origin;
     int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
-    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
     custom_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
     custom_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
@@ -543,15 +543,15 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
         return;
     }
     //=======
-    const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_fluid;
-    const custom_vector<real3>& vel_fluid = data_manager->host_data.vel_fluid;
-    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_fluid;
-    custom_vector<real3>& sorted_vel_fluid = data_manager->host_data.sorted_vel_fluid;
+    const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
+    const custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
+    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
+    custom_vector<real3>& sorted_vel_fluid = data_manager->host_data.sorted_vel_3dof;
 
-    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_fluid_fluid;
-    custom_vector<int>& particle_indices = data_manager->host_data.particle_indices_fluid;
-    custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping;
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_3dof_3dof;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_3dof_3dof;
+    custom_vector<int>& particle_indices = data_manager->host_data.particle_indices_3dof;
+    custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping_3dof;
 
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
     contact_counts.resize(num_fluid_bodies);

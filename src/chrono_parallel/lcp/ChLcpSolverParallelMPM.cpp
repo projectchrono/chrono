@@ -7,10 +7,6 @@
 #include <algorithm>
 
 using namespace chrono;
-#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
-    clear(M);                                    \
-    M.reserve(nnz);                              \
-    M.resize(rows, cols, false);
 
 // Make sure that differences between this and the physbam version are not indexing related.
 // Here the particles are sorted for performance reasons
@@ -25,8 +21,8 @@ void ChLcpSolverParallelMPM::Initialize() {
     const real dt = data_manager->settings.step_size;
     const real mass = data_manager->settings.mpm.mass;
     const real3 gravity = data_manager->settings.gravity;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const int num_particles = data_manager->num_fluid_bodies;
     real mu = data_manager->settings.mpm.mu;
     real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
@@ -52,24 +48,16 @@ void ChLcpSolverParallelMPM::Initialize() {
     grid_mass = 0;
 
     for (int p = 0; p < num_particles; p++) {
-        int original_index = data_manager->host_data.particle_indices_fluid[p];
+        int original_index = data_manager->host_data.particle_indices_3dof[p];
         const real3 xi = sorted_pos[p];
         const real3 vi = sorted_vel[p];
 
         LOOPOVERNODES(                                                                //
             real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
-            //            printf("node: %d %f [%f %f %f] [%f %f %f]\n", current_node, weight, xi.x, xi.y, xi.z,
-            //            current_node_location.x,
-            //            current_node_location.y, current_node_location.z);
-            grid_mass[current_node] += weight;                //
-            grid_vel[current_node * 3 + 0] += weight * vi.x;  //
-            grid_vel[current_node * 3 + 1] += weight * vi.y;  //
-            grid_vel[current_node * 3 + 2] += weight * vi.z;  //
-            //            printf("node: %f [%f %f %f] [%f %f %f] [%f %f %f] %d [%d %d %d]\n", weight, weight * vi.x,
-            //            weight * vi.y,
-            //                   weight * vi.z, grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1],
-            //                   grid_vel[current_node * 3 + 2], current_node_location.x, current_node_location.y,
-            //                   current_node_location.z, original_index, i, j, k);
+            grid_mass[current_node] += weight;                                        //
+            grid_vel[current_node * 3 + 0] += weight * vi.x;                          //
+            grid_vel[current_node * 3 + 1] += weight * vi.y;                          //
+            grid_vel[current_node * 3 + 2] += weight * vi.z;                          //
             )
     }
 
@@ -81,7 +69,8 @@ void ChLcpSolverParallelMPM::Initialize() {
 
         LOOPOVERNODES(                                                  //
             real weight = N(xi - current_node_location, inv_bin_edge);  //
-            particle_density += grid_mass[current_node] * weight;)
+            particle_density += grid_mass[current_node] * weight;       //
+            )
         particle_density /= (bin_edge * bin_edge * bin_edge);
         volume[p] = mass / particle_density;
     }
@@ -107,8 +96,8 @@ void ChLcpSolverParallelMPM::RunTimeStep() {
     const real dt = data_manager->settings.step_size;
     const real mass = data_manager->settings.mpm.mass;
     const real3 gravity = data_manager->settings.gravity;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const int num_particles = data_manager->num_fluid_bodies;
     real mu = data_manager->settings.mpm.mu;
     real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
@@ -300,8 +289,8 @@ void ChLcpSolverParallelMPM::Multiply(DynamicVector<real>& v_array, DynamicVecto
     real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
     real lambda = data_manager->settings.mpm.lambda;
     const int num_particles = data_manager->num_fluid_bodies;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const real fluid_radius = data_manager->settings.fluid.kernel_radius;
     const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
@@ -386,43 +375,6 @@ void ChLcpSolverParallelMPM::Solve(const DynamicVector<real>& b, DynamicVector<r
     q.resize(b.size());
     s.resize(b.size());
 
-    // Ap.resize(mb.size();
-    //    real rsold;
-    //    real alpha;
-    //    real rsnew = 0;
-    //    real normb = Sqrt((mb, mb));
-    //
-    //    if (normb == 0.0) {
-    //        normb = 1;
-    //    }
-    //
-    //    Multiply(ml, r);
-    //    p = r = mb - r;
-    //    rsold = (r, r);
-    //    normb = 1.0 / normb;
-    //    //    if (Sqrt(rsold) * normb <= data_manager->settings.solver.tolerance) {
-    //    //        return ;
-    //    //    }
-    //    for (int current_iteration = 0; current_iteration < 10; current_iteration++) {
-    //        Multiply(p, Ap);  // Ap = data_manager->host_data.D_T *
-    //                          // (data_manager->host_data.M_invD * p);
-    //        real denom = (p, Ap);
-    //        //        if (denom == 0) {
-    //        //            break;
-    //        //        }
-    //        alpha = rsold / denom;
-    //        rsnew = 0;
-    //        ml = alpha * p + ml;
-    //        r = -alpha * Ap + r;
-    //        rsnew = (r, r);
-    //
-    //        residual = Sqrt(rsnew) * normb;
-    //        if (residual < 1e-10) {
-    //            break;
-    //        }
-    //        p = rsnew / rsold * p + r;
-    //        rsold = rsnew;
-    //    }
     int max_iterations = data_manager->settings.mpm.max_iterations;
     real rho_old = FLT_MAX;
     real convergence_norm = 0;

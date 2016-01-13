@@ -98,7 +98,7 @@ void ChConstraintRigidFluid::Build_D() {
 
     SubMatrixType D_rfn_T = _DRFNT_;
     SubMatrixType D_rft_T = _DRFTT_;
-    custom_vector<real3>& pos = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.sorted_pos_3dof;
 
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;

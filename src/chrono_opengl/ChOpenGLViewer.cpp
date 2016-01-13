@@ -235,7 +235,7 @@ void ChOpenGLViewer::Render() {
       fluid_data.resize(parallel_system->data_manager->num_fluid_bodies);
 #pragma omp parallel for
       for (int i = 0; i < parallel_system->data_manager->num_fluid_bodies; i++) {
-        real3 pos = parallel_system->data_manager->host_data.pos_fluid[i];
+        real3 pos = parallel_system->data_manager->host_data.pos_3dof[i];
         fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
       }
 

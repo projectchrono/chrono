@@ -189,12 +189,12 @@ struct host_container {
 
     // custom_vector<int2> bids_fluid_fluid;
     // each particle has a finite number of neighbors preallocated
-    custom_vector<int> neighbor_fluid_fluid;
-    custom_vector<int> c_counts_fluid_fluid;
-    custom_vector<int> particle_indices_fluid;
+    custom_vector<int> neighbor_3dof_3dof;
+    custom_vector<int> c_counts_3dof_3dof;
+    custom_vector<int> particle_indices_3dof;
     // custom_vector<int> fluid_contact_index;
     // custom_vector<long long> bids_fluid_fluid;
-    custom_vector<int> reverse_mapping;
+    custom_vector<int> reverse_mapping_3dof;
 
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
@@ -229,11 +229,12 @@ struct host_container {
     custom_vector<char> collide_rigid;
     custom_vector<real> mass_rigid;
 
-    custom_vector<real3> pos_fluid;
-    custom_vector<real3> sorted_pos_fluid;
-    custom_vector<real3> vel_fluid;
-    custom_vector<real3> sorted_vel_fluid;
-    custom_vector<real> den_fluid;
+    //Information for 3dof nodes
+    custom_vector<real3> pos_3dof;
+    custom_vector<real3> sorted_pos_3dof;
+    custom_vector<real3> vel_3dof;
+    custom_vector<real3> sorted_vel_3dof;
+
 
     // Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;

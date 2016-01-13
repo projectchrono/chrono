@@ -47,6 +47,7 @@ class CH_PARALLEL_API ChConstraintFluidFluid {
     custom_vector<real3> visc1_jac;
     custom_vector<real3> visc2_jac;
     custom_vector<real3> visc3_jac;
+    custom_vector<real> density;
 
   private:
     uint num_fluid_contacts;

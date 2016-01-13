@@ -11,10 +11,9 @@ namespace chrono {
 void ChConstraintFluidFluid::Project(real* gamma) {}
 
 void ChConstraintFluidFluid::Initialize() {
-    custom_vector<real>& density = data_manager->host_data.den_fluid;
     density.resize(num_fluid_bodies);
 
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     real h = data_manager->settings.fluid.kernel_radius;
     real density_fluid = data_manager->settings.fluid.density;
     real mass_fluid = data_manager->settings.fluid.mass;
@@ -25,8 +24,8 @@ void ChConstraintFluidFluid::Initialize() {
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
         real dens = 0;
         real3 pos_p = sorted_pos[body_a];
-        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+        for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
             if (body_a == body_b) {
                 dens += mass_fluid * CPOLY6 * H6;
                 continue;
@@ -43,8 +42,8 @@ void ChConstraintFluidFluid::Initialize() {
         real dens = 0;
         real3 diag = real3(0);
         real3 pos_p = sorted_pos[body_a];
-        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+        for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
             if (body_a == body_b) {
                 dens += mass_fluid / density[body_b] * CPOLY6 * H6;
                 continue;
@@ -76,8 +75,7 @@ void ChConstraintFluidFluid::Density_Fluid() {
     }
     LOG(INFO) << "ChConstraintFluidFluid::Density_Fluid";
     real mass_fluid = data_manager->settings.fluid.mass;
-    custom_vector<real>& density = data_manager->host_data.den_fluid;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     real viscosity = data_manager->settings.fluid.viscosity;
     real mass = data_manager->settings.fluid.mass;
     real h = data_manager->settings.fluid.kernel_radius;
@@ -97,8 +95,8 @@ void ChConstraintFluidFluid::Density_Fluid() {
         real3 dcon_diag = real3(0.0);
         real3 pos_p = sorted_pos[body_a];
         int d_ind = 0;
-        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+        for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
             if (body_a == body_b) {
                 dens += mass_fluid * CPOLY6 * H6;
                 d_ind = i;
@@ -121,22 +119,21 @@ void ChConstraintFluidFluid::Density_Fluid() {
 }
 void ChConstraintFluidFluid::Normalize_Density_Fluid() {
     real h = data_manager->settings.fluid.kernel_radius;
-    custom_vector<real3>& pos = data_manager->host_data.pos_fluid;
+    custom_vector<real3>& pos = data_manager->host_data.pos_3dof;
     real mass_fluid = data_manager->settings.fluid.mass;
-    custom_vector<real>& density = data_manager->host_data.den_fluid;
     real density_fluid = data_manager->settings.fluid.density;
     real inv_density = 1.0 / density_fluid;
     real mass = data_manager->settings.fluid.mass;
     real mass_over_density = mass_fluid * inv_density;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
 #pragma omp parallel for
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
         real dens = 0;
         real3 diag = real3(0);
         real3 pos_p = sorted_pos[body_a];
-        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+        for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
             if (body_a == body_b) {
                 dens += mass / density[body_b] * CPOLY6 * H6;
                 continue;
@@ -163,9 +160,8 @@ void ChConstraintFluidFluid::Build_D() {
     real mass_over_density = mass * inv_density;
     real eta = .01;
 
-    custom_vector<real>& density = data_manager->host_data.den_fluid;
-    // custom_vector<real3>& vel = data_manager->host_data.vel_fluid;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    // custom_vector<real3>& vel = data_manager->host_data.vel_3dof;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
@@ -192,8 +188,8 @@ void ChConstraintFluidFluid::Build_D() {
             real3 vmat_row2(0);
             real3 vmat_row3(0);
             int d_ind = 0;
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 if (body_a == body_b) {
                     d_ind = i;
                     continue;
@@ -230,8 +226,8 @@ void ChConstraintFluidFluid::Build_D() {
 
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
         // D_T.reserve(index_offset + body_a, data_manager->settings.fluid.max_interactions * 3);
-        for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-            int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+        for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+            int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
             AppendRow3(D_T, index_offset + body_a, body_offset + body_b * 3, den_con_jac[body_a * max_neighbors + i]);
         }
         D_T.finalize(index_offset + body_a);
@@ -242,24 +238,24 @@ void ChConstraintFluidFluid::Build_D() {
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 0,
             //            data_manager->settings.fluid.max_interactions * 3);
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 0, body_offset + body_b * 3,
                            visc1_jac[body_a * max_neighbors + i]);
             }
             D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 0);
             // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 1,
             //            data_manager->settings.fluid.max_interactions * 3);
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 1, body_offset + body_b * 3,
                            visc2_jac[body_a * max_neighbors + i]);
             }
             D_T.finalize(index_offset + num_fluid_bodies + body_a * 3 + 1);
             // D_T.reserve(index_offset + num_fluid_bodies + body_a * 3 + 2,
             //            data_manager->settings.fluid.max_interactions * 3);
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 AppendRow3(D_T, index_offset + num_fluid_bodies + body_a * 3 + 2, body_offset + body_b * 3,
                            visc3_jac[body_a * max_neighbors + i]);
             }
@@ -280,7 +276,6 @@ void ChConstraintFluidFluid::Build_b() {
     real zeta = 1.0 / (1.0 + 4.0 * tau / h);
 
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, index_offset, num_fluid_bodies);
-    custom_vector<real>& density = data_manager->host_data.den_fluid;
     DynamicVector<real> g(num_fluid_bodies);
     SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_fluid_bodies * 3);
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
@@ -369,8 +364,8 @@ void ChConstraintFluidFluid::ArtificialPressure() {
         return;
     }
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
-        custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
+        custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+        custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
         real mass_fluid = data_manager->settings.fluid.mass;
         real inv_density = 1.0 / data_manager->settings.fluid.density;
         real vorticity_confinement = data_manager->settings.fluid.vorticity_confinement;
@@ -405,8 +400,8 @@ void ChConstraintFluidFluid::ArtificialPressure() {
             real corr = 0;
             real3 vorticity_grad(0);
             real3 pos_a = sorted_pos[body_a];
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 if (body_a == body_b) {
                     continue;
                 }
@@ -437,8 +432,8 @@ void ChConstraintFluidFluid::ArtificialPressure() {
 void ChConstraintFluidFluid::XSPHViscosity() {
     return;
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
-        custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_fluid;
+        custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+        custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
         real mass_fluid = data_manager->settings.fluid.mass;
         real inv_density = 1.0 / data_manager->settings.fluid.density;
         real vorticity_confinement = data_manager->settings.fluid.vorticity_confinement;
@@ -459,8 +454,8 @@ void ChConstraintFluidFluid::XSPHViscosity() {
             //			vela.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 1];
             //			vela.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + body_a * 3 + 2];
 
-            for (int i = 0; i < data_manager->host_data.c_counts_fluid_fluid[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_fluid_fluid[body_a * max_neighbors + i];
+            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 //				if(body_a==body_b) {
                 //					continue;
                 //				}
@@ -486,10 +481,10 @@ void ChConstraintFluidFluid::XSPHViscosity() {
 }
 
 void ChConstraintFluidFluid::Dx(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
-    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_3dof_3dof;
+    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_3dof_3dof;
+    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_3dof;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
     real viscosity = data_manager->settings.fluid.viscosity;
     real mass = data_manager->settings.fluid.mass;
@@ -523,10 +518,10 @@ void ChConstraintFluidFluid::Dx(const DynamicVector<real>& x, DynamicVector<real
     }
 }
 void ChConstraintFluidFluid::D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output) {
-    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_fluid_fluid;
-    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_fluid_fluid;
-    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_fluid;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_fluid;
+    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_3dof_3dof;
+    custom_vector<int>& c_counts_fluid_fluid = data_manager->host_data.c_counts_3dof_3dof;
+    custom_vector<int>& particle_indices_fluid = data_manager->host_data.particle_indices_3dof;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
     real viscosity = data_manager->settings.fluid.viscosity;
     real mass = data_manager->settings.fluid.mass;
