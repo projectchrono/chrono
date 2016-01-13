@@ -98,8 +98,10 @@ void AddFluid(ChSystemParallelDVI* sys) {
     real initial_density = 1000;
     mpm_container->mass = .004;
     mpm_container->max_iterations = 20;
+    mpm_container->kernel_radius = .005;
+    mpm_container->contact_recovery_speed = 10000;
 
-    real radius = sys->GetSettings()->fluid.kernel_radius * 10;  //*5
+    real radius = mpm_container->kernel_radius * 10;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, .2);
@@ -108,7 +110,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
 #if 1
-    double dist = sys->GetSettings()->fluid.kernel_radius;
+    double dist = mpm_container->kernel_radius;
     utils::HCPSampler<> sampler(dist);
     utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(-.1, 0, 0), radius);
 
@@ -202,9 +204,10 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.cache_step_length = true;
     msystem.ChangeSolverType(BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-    msystem.GetSettings()->fluid.kernel_radius = .005;
-    msystem.GetSettings()->fluid.contact_recovery_speed=10000;
-    msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
+
+    AddFluid(&msystem);
+
+    msystem.GetSettings()->collision.collision_envelope = (mpm_container->kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
     msystem.SetLoggingLevel(LOG_TRACE, true);
     msystem.SetLoggingLevel(LOG_INFO, true);
@@ -212,7 +215,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     AddContainer(&msystem);
-    AddFluid(&msystem);
+
     // This initializes all of the MPM stuff
     msystem.Initialize();
 // Perform the simulation

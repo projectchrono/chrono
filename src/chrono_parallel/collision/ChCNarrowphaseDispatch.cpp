@@ -390,7 +390,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
 void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     LOG(TRACE) << "start DispatchRigidFluid: ";
 
-    real fluid_radius = data_manager->settings.fluid.kernel_radius;
+    real fluid_radius = data_manager->node_container->kernel_radius;
     int num_fluid_bodies = data_manager->num_fluid_bodies;
     int num_rigid_shapes = data_manager->num_rigid_shapes;
     real3 global_origin = data_manager->measures.collision.global_origin;
@@ -565,7 +565,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
 
-    const real radius = data_manager->settings.fluid.kernel_radius;
+    const real radius = data_manager->node_container->kernel_radius;
     const real radiusSq = radius * radius;
 
     bbox res(pos_fluid[0], pos_fluid[0]);
@@ -589,7 +589,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 
     bins_per_axis = int3(diag / (radius * 2));
 
-    real inv_bin_edge = real(1.0) / (radius * 2 + data_manager->settings.fluid.collision_envelope);
+    real inv_bin_edge = real(1.0) / (radius * 2 + data_manager->node_container->collision_envelope);
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     ff_bin_starts.resize(grid_size);

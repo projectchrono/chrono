@@ -35,8 +35,8 @@ void ChConstraintRigidFluid::Project(real* gamma) {
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-    real mu = data_manager->settings.fluid.mu;
-    real coh = data_manager->settings.fluid.cohesion;
+    real mu = data_manager->node_container->mu;
+    real coh = data_manager->node_container->cohesion;
 
     custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
@@ -103,7 +103,7 @@ void ChConstraintRigidFluid::Build_D() {
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 
-    real h = data_manager->settings.fluid.kernel_radius;
+    real h = data_manager->node_container->kernel_radius;
     // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
     custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
     custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
@@ -156,7 +156,7 @@ void ChConstraintRigidFluid::Build_b() {
             real bi = 0;
             real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
 
-            bi = std::max(real(1.0) / step_size * depth, -data_manager->settings.fluid.contact_recovery_speed);
+            bi = std::max(real(1.0) / step_size * depth, -data_manager->node_container->contact_recovery_speed);
             //
             data_manager->host_data.b[num_unilaterals + num_bilaterals + index + 0] = bi;
             data_manager->host_data.b[num_unilaterals + num_bilaterals + num_rigid_fluid_contacts + index * 2 + 0] = 0;
@@ -179,10 +179,6 @@ void ChConstraintRigidFluid::Build_E() {
 #pragma omp parallel for
     for (int index = 0; index < num_rigid_fluid_contacts; index++) {
         int ind = num_unilaterals + num_bilaterals;
-        real epsilon = data_manager->settings.fluid.epsilon;
-        real tau = data_manager->settings.fluid.tau;
-        real h = data_manager->settings.fluid.kernel_radius;
-        real compliance = 4.0 / (step_size * step_size) * (epsilon / (1.0 + 4.0 * tau / h));
 
         E[ind + index + 0] = 0;
         E[ind + num_rigid_fluid_contacts + index * 2 + 0] = 0;

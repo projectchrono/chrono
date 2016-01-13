@@ -42,7 +42,8 @@
 
 using namespace chrono;
 using namespace chrono::collision;
-
+double time_step = 1e-3;
+ChFluidContainer* fluid_container;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
 // blade attached through a revolute joint to ground. The mixer is constrained
@@ -66,7 +67,25 @@ void AddContainer(ChSystemParallelDVI* sys) {
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
 void AddFluid(ChSystemParallelDVI* sys) {
-    ChFluidContainer* fluid_container = new ChFluidContainer(sys);
+    fluid_container = new ChFluidContainer(sys);
+
+    fluid_container->tau = time_step * 4;
+    fluid_container->cohesion = 0;
+    fluid_container->epsilon = 0;  // 1e-3;
+    fluid_container->kernel_radius = .016;
+    fluid_container->mass = .007 * 5.5;
+    fluid_container->viscosity = 20;
+    fluid_container->enable_viscosity = false;
+
+    fluid_container->mu = .1;
+    fluid_container->rho = 1000;
+    fluid_container->initialize_mass = false;
+    // msystem.GetSettings()->fluid.max_interactions = 30;
+    fluid_container->artificial_pressure = true;
+    fluid_container->artificial_pressure_k = .001;
+    fluid_container->artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
+    fluid_container->artificial_pressure_n = 4;
+    fluid_container->collision_envelope = fluid_container->kernel_radius * .05;
 
     real radius = .1;  //*5
     real dens = 30;
@@ -77,7 +96,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
 
-    double dist = sys->GetSettings()->fluid.kernel_radius * .9;
+    double dist = fluid_container->kernel_radius * .9;
     utils::HCPSampler<> sampler(dist);
     vol = dist * dist * dist * .8;
 #if 1
@@ -97,8 +116,8 @@ void AddFluid(ChSystemParallelDVI* sys) {
         vel_fluid[i] = real3(0, 0, 0);
     }
 
-    sys->GetSettings()->fluid.mass = sys->GetSettings()->fluid.density * vol;
-    std::cout << "fluid_mass: " << sys->GetSettings()->fluid.mass << std::endl;
+    fluid_container->mass = fluid_container->rho * vol;
+    std::cout << "fluid_mass: " << fluid_container->mass << std::endl;
     fluid_container->UpdatePosition(0);
     fluid_container->AddFluid(pos_fluid, vel_fluid);
 }
@@ -112,7 +131,7 @@ int main(int argc, char* argv[]) {
     // ---------------------
 
     double gravity = 9.81;
-    double time_step = 1e-3;
+
     double time_end = 1;
 
     double out_fps = 50;
@@ -151,33 +170,16 @@ int main(int argc, char* argv[]) {
     msystem.ChangeSolverType(BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
-    msystem.GetSettings()->fluid.tau = time_step * 4;
-    msystem.GetSettings()->fluid.cohesion = 0;
-    msystem.GetSettings()->fluid.epsilon = 0;  // 1e-3;
-    msystem.GetSettings()->fluid.kernel_radius = .016;
-    msystem.GetSettings()->fluid.mass = .007 * 5.5;
-    msystem.GetSettings()->fluid.viscosity = 20;
-    msystem.GetSettings()->fluid.enable_viscosity = false;
+    AddFluid(&msystem);
 
-    msystem.GetSettings()->fluid.mu = .1;
-    msystem.GetSettings()->fluid.density = 1000;
-    msystem.GetSettings()->fluid.fluid_is_rigid = false;
-    msystem.GetSettings()->fluid.initialize_mass = false;
-    // msystem.GetSettings()->fluid.max_interactions = 30;
-    msystem.GetSettings()->fluid.artificial_pressure = true;
-    msystem.GetSettings()->fluid.artificial_pressure_k = .001;
-    msystem.GetSettings()->fluid.artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
-    msystem.GetSettings()->fluid.artificial_pressure_n = 4;
-    msystem.GetSettings()->fluid.collision_envelope = msystem.GetSettings()->fluid.kernel_radius * .05;
-
-    msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
+    msystem.GetSettings()->collision.collision_envelope = (fluid_container->kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
     msystem.SetLoggingLevel(LOG_TRACE, true);
     msystem.SetLoggingLevel(LOG_INFO, true);
     // Create the fixed and moving bodies
     // ----------------------------------
     AddContainer(&msystem);
-    AddFluid(&msystem);
+
 
 // Perform the simulation
 // ----------------------

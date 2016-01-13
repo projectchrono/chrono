@@ -48,7 +48,7 @@ void ChMPMContainer::Update(double ChTime) {
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     real3 g_acc = data_manager->settings.gravity;
-    real3 h_gravity = data_manager->settings.step_size * data_manager->settings.fluid.mass * g_acc;
+    real3 h_gravity = data_manager->settings.step_size *mass * g_acc;
     for (int i = 0; i < num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
@@ -79,8 +79,8 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
         vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2];
 
         real speed = Length(vel);
-        if (speed > data_manager->settings.fluid.max_velocity) {
-            vel = vel * data_manager->settings.fluid.max_velocity / speed;
+        if (speed > max_velocity) {
+            vel = vel * max_velocity / speed;
         }
         vel_fluid[original_index] = vel;
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
@@ -118,8 +118,8 @@ void ChMPMContainer::Initialize() {
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
     const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
-    const real fluid_radius = data_manager->settings.fluid.kernel_radius;
-    const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
+    const real fluid_radius = kernel_radius;
+    const real bin_edge = fluid_radius * 2 + collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
     const real3 gravity = data_manager->settings.gravity;
@@ -206,7 +206,7 @@ void ChMPMContainer::IsInside() {
                                data_manager->host_data.convex_data.data());            //
 
             ConvexShape shapeB(SPHERE, location,                                         //
-                               real3(data_manager->settings.fluid.kernel_radius, 0, 0),  //
+                               real3(kernel_radius, 0, 0),  //
                                real3(0),                                                 //
                                quaternion(1, 0, 0, 0),                                   //
                                data_manager->host_data.convex_data.data());              //
@@ -226,8 +226,8 @@ void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>&
     const int num_particles = data_manager->num_fluid_bodies;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
-    const real fluid_radius = data_manager->settings.fluid.kernel_radius;
-    const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
+    const real fluid_radius = kernel_radius;
+    const real bin_edge = fluid_radius * 2 + collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
@@ -379,8 +379,8 @@ void ChMPMContainer::PreSolve() {
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
     const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
-    const real fluid_radius = data_manager->settings.fluid.kernel_radius;
-    const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
+    const real fluid_radius = kernel_radius;
+    const real bin_edge = fluid_radius * 2 + collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
     const real3 gravity = data_manager->settings.gravity;

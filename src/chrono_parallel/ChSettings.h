@@ -81,50 +81,6 @@ struct collision_settings {
     bool use_two_level;
 };
 
-// Fluid settings structure
-// Currently only one phase is supported
-struct fluid_settings {
-    fluid_settings() {
-        kernel_radius = .04;
-        compliance = 0;
-        epsilon = 10e-3;
-        tau = 4 * .01;
-        cohesion = 0;
-        mu = 0;
-        density = 1000;
-        mass = 0.037037;
-        fluid_is_rigid = true;
-        max_velocity = 3;
-        viscosity = 0;
-        collision_envelope = 0;
-        contact_recovery_speed = 1;
-        artificial_pressure = false;
-        artificial_pressure_k = 0.1;
-        artificial_pressure_dq = .2 * kernel_radius;
-        artificial_pressure_n = 4;
-        enable_viscosity = false;
-        initialize_mass = false;
-    }
-    real kernel_radius;
-    real compliance;
-    real epsilon;  // Regularization parameter
-    real tau;      // Constraint relaxation time
-    real cohesion;
-    real mu;  // friction
-    real density;
-    real mass;
-    real viscosity;
-    real collision_envelope;
-    bool fluid_is_rigid;
-    real max_velocity;            // limit on the maximum speed the fluid can move at
-    real contact_recovery_speed;  // The speed at which 'rigid' fluid  bodies resolve contact
-    bool artificial_pressure;     // Enable artificial pressure term
-    real artificial_pressure_k;
-    real artificial_pressure_n;
-    real artificial_pressure_dq;
-    bool enable_viscosity;
-    bool initialize_mass;
-};
 
 // solver_settings, like the name implies is the structure that contains all
 // settings associated with the parallel solver.
@@ -280,8 +236,6 @@ struct settings_container {
     collision_settings collision;
     // The settings for the solver
     solver_settings solver;
-    // The settings for the fluid
-    fluid_settings fluid;
 
     // System level settings
     // If set to true chrono parallel will automatically check to see if increasing

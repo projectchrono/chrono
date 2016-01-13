@@ -71,6 +71,11 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     void SetPos_dt(const int& i, const real3& mposdt);
 
     real kernel_radius;
+    real collision_envelope;
+    real contact_recovery_speed;  // The speed at which 'rigid' fluid  bodies resolve contact
+    real cohesion;
+    real mu;            // friction
+    real max_velocity;  // limit on the maximum speed the fluid can move at
 
   protected:
     ChParallelDataManager* data_manager;
@@ -102,6 +107,19 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     custom_vector<Mat33> shear_tensor;
     custom_vector<real> shear_trace;
     custom_vector<real> density;
+
+    real compliance;
+    real epsilon;  // Regularization parameter
+    real tau;      // Constraint relaxation time
+    real rho;
+    real mass;
+    real viscosity;
+    bool artificial_pressure;  // Enable artificial pressure term
+    real artificial_pressure_k;
+    real artificial_pressure_n;
+    real artificial_pressure_dq;
+    bool enable_viscosity;
+    bool initialize_mass;
 
   private:
     uint num_fluid_contacts;

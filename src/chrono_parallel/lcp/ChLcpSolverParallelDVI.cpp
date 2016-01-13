@@ -319,14 +319,9 @@ void ChLcpSolverParallelDVI::SetR() {
         subvector(R, num_unilaterals + num_bilaterals, num_rigid_fluid) =
             subvector(R_full, num_unilaterals + num_bilaterals, num_rigid_fluid);
 
-        if (data_manager->settings.fluid.fluid_is_rigid == false) {
-            subvector(R, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies) =
-                subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies);
-
-        } else {
-            subvector(R, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_fluid) =
-                subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_fluid);
-        }
+        // TODO: Set R in the associated 3dof container
+        subvector(R, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies) =
+            subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies);
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case BILATERAL: {
