@@ -45,7 +45,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     rigid_rigid.Setup(data_manager);
     bilateral.Setup(data_manager);
     rigid_fluid.Setup(data_manager);
-    fluid_fluid.Setup(data_manager);
+    data_manager->node_container->Setup();
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
     data_manager->measures.solver.total_iteration = 0;
@@ -55,7 +55,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     solver->rigid_rigid = &rigid_rigid;
     solver->bilateral = &bilateral;
     solver->rigid_fluid = &rigid_fluid;
-    solver->fluid_fluid = &fluid_fluid;
+    solver->three_dof =  data_manager->node_container;
     solver->Setup(data_manager);
 
     ComputeD();
@@ -119,8 +119,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     //        timer.start();
     //        rigid_rigid.Dx(data_manager->host_data.gamma, temp);
     //        rigid_rigid.D_Tx(temp, output);
-    //        // fluid_fluid.Dx(data_manager->host_data.gamma, temp);
-    //        // fluid_fluid.D_Tx(temp, output);
+    //        // data_manager->node_container->Dx(data_manager->host_data.gamma, temp);
+    //        // data_manager->node_container->D_Tx(temp, output);
     //        timer.stop();
     //        t1 = timer();
     //    }
@@ -134,9 +134,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     data_manager->Fc_current = false;
     data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
-    fluid_fluid.ArtificialPressure();
+    data_manager->node_container->PostSolve();
     ComputeImpulses();
-    fluid_fluid.XSPHViscosity();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
                        i);
@@ -221,11 +220,11 @@ void ChLcpSolverParallelDVI::ComputeD() {
     rigid_rigid.GenerateSparsity();
     bilateral.GenerateSparsity();
     rigid_fluid.GenerateSparsity();
-    fluid_fluid.GenerateSparsity();
+    data_manager->node_container->GenerateSparsity();
     rigid_rigid.Build_D();
     bilateral.Build_D();
     rigid_fluid.Build_D();
-    fluid_fluid.Build_D();
+    data_manager->node_container->Build_D();
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 
     D = trans(D_T);
@@ -274,7 +273,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
     rigid_rigid.Build_b();
     bilateral.Build_b();
     rigid_fluid.Build_b();
-    fluid_fluid.Build_b();
+    data_manager->node_container->Build_b();
     R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");

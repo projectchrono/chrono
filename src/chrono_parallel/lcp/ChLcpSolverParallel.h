@@ -25,7 +25,7 @@
 #include "chrono_parallel/physics/ChIntegratorParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/constraints/ChConstraintRigidFluid.h"
-#include "chrono_parallel/constraints/ChConstraintFluidFluid.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
@@ -86,7 +86,6 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
   private:
     ChConstraintRigidRigid rigid_rigid;
     ChConstraintRigidFluid rigid_fluid;
-    ChConstraintFluidFluid fluid_fluid;
 };
 class CH_PARALLEL_API ChLcpSolverParallelMPM : public ChLcpSolverParallel {
   public:
@@ -102,7 +101,7 @@ class CH_PARALLEL_API ChLcpSolverParallelMPM : public ChLcpSolverParallel {
     custom_vector<real3> grid_forces;
     DynamicVector<real> volume, rhs;
     custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
-    void ComputeImpulses(){}
+    void ComputeImpulses() {}
 
     DynamicVector<real> r, p, Ap, q, s;
 
