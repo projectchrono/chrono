@@ -169,7 +169,6 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->fluid.artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
     msystem.GetSettings()->fluid.artificial_pressure_n = 4;
     msystem.GetSettings()->fluid.collision_envelope = msystem.GetSettings()->fluid.kernel_radius * .05;
-    msystem.GetSettings()->fluid.vorticity_confinement = 40;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
@@ -177,7 +176,6 @@ int main(int argc, char* argv[]) {
     msystem.SetLoggingLevel(LOG_INFO, true);
     // Create the fixed and moving bodies
     // ----------------------------------
-
     AddContainer(&msystem);
     AddFluid(&msystem);
 

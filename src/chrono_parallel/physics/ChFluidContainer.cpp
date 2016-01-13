@@ -486,13 +486,11 @@ void ChFluidContainer::PostSolve() {
         custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
         real mass_fluid = data_manager->settings.fluid.mass;
         real inv_density = 1.0 / data_manager->settings.fluid.density;
-        real vorticity_confinement = data_manager->settings.fluid.vorticity_confinement;
         real h = data_manager->settings.fluid.kernel_radius;
         real k = data_manager->settings.fluid.artificial_pressure_k;
         real dq = data_manager->settings.fluid.artificial_pressure_dq;
         real n = data_manager->settings.fluid.artificial_pressure_n;
         real dt = data_manager->settings.step_size;
-
 #pragma omp parallel for
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             real corr = 0;

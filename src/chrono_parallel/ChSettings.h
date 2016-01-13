@@ -86,11 +86,9 @@ struct collision_settings {
 struct fluid_settings {
     fluid_settings() {
         kernel_radius = .04;
-        volume = 4.0 / 3.0 * 3.14159265359 * pow(kernel_radius, 3);
         compliance = 0;
         epsilon = 10e-3;
         tau = 4 * .01;
-        tau_density = 4 * .01;
         cohesion = 0;
         mu = 0;
         density = 1000;
@@ -98,7 +96,6 @@ struct fluid_settings {
         fluid_is_rigid = true;
         max_velocity = 3;
         viscosity = 0;
-        //max_interactions = 15;
         collision_envelope = 0;
         contact_recovery_speed = 1;
         artificial_pressure = false;
@@ -106,25 +103,20 @@ struct fluid_settings {
         artificial_pressure_dq = .2 * kernel_radius;
         artificial_pressure_n = 4;
         enable_viscosity = false;
-        vorticity_confinement = 0;
         initialize_mass = false;
     }
     real kernel_radius;
-    real volume;
     real compliance;
     real epsilon;  // Regularization parameter
     real tau;      // Constraint relaxation time
-    real tau_density;
     real cohesion;
     real mu;  // friction
     real density;
-    real vorticity_confinement;
     real mass;
     real viscosity;
     real collision_envelope;
     bool fluid_is_rigid;
     real max_velocity;            // limit on the maximum speed the fluid can move at
-    //int max_interactions;         // maximum neighbors supported, increase as needed
     real contact_recovery_speed;  // The speed at which 'rigid' fluid  bodies resolve contact
     bool artificial_pressure;     // Enable artificial pressure term
     real artificial_pressure_k;
