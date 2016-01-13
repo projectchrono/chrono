@@ -60,7 +60,6 @@ void ChMPMContainer::Update(double ChTime) {
         data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = h_gravity.y;
         data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = h_gravity.z;
     }
-    data_manager->num_3dof_3dof_constraints = 0;
 }
 
 void ChMPMContainer::UpdatePosition(double ChTime) {

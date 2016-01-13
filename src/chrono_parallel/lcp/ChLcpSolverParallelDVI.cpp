@@ -26,7 +26,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
 
     uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
-    uint num_3dof_3dof = data_manager->num_3dof_3dof_constraints;
+    uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
 
     // Get the number of 3dof constraints, from the 3dof container in use right now
 
@@ -176,21 +176,11 @@ void ChLcpSolverParallelDVI::ComputeD() {
     int num_spinning = 3 * num_rigid_contacts;
 
     int nnz_rigid_fluid = 9 * 3 * num_rigid_fluid_contacts;
-    int nnz_fluid_fluid = 6 * num_fluid_contacts;
 
     uint num_rigid_fluid = num_rigid_fluid_contacts * 3;
-    uint num_fluid_fluid = num_fluid_contacts * 3;
 
-    if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        int max_interactions = max_neighbors;                       // data_manager->settings.fluid.max_interactions;
-        nnz_fluid_fluid = num_fluid_bodies * 6 * max_interactions;  // + num_fluid_bodies * 18 * max_interactions;
-        num_fluid_fluid = num_fluid_bodies;                         // + num_fluid_bodies * 3;
-
-        if (data_manager->settings.fluid.enable_viscosity) {
-            nnz_fluid_fluid += data_manager->num_fluid_bodies * 18 * max_interactions;
-            num_fluid_fluid += num_fluid_bodies * 3;
-        }
-    }
+    uint num_fluid_fluid = data_manager->node_container->GetNumConstraints();
+    uint nnz_fluid_fluid = data_manager->node_container->GetNumNonZeros();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& D = data_manager->host_data.D;

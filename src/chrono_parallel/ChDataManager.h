@@ -363,7 +363,6 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_bilaterals;             // The number of bilateral constraints
     uint num_constraints;            // Total number of constraints
     uint nnz_bilaterals;             // The number of non-zero entries in the bilateral Jacobian
-    uint num_3dof_3dof_constraints;  // The number of constraints between 3dof nodes
 
     // Flag indicating whether or not the contact forces are current (DVI only).
     bool Fc_current;

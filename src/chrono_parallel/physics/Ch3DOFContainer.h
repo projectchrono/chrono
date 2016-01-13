@@ -46,6 +46,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void Update(double ChTime) = 0;
     virtual void UpdatePosition(double ChTime) = 0;
     virtual int GetNumConstraints() = 0;
+    virtual int GetNumNonZeros() = 0;
     virtual void Setup() = 0;
     virtual void Initialize() = 0;
     virtual void PreSolve() = 0;
@@ -81,6 +82,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
     int GetNumConstraints();
+    int GetNumNonZeros();
     void Setup();
     void Initialize();
     void PreSolve() {}
@@ -137,7 +139,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void ComputeMass(int offset);
     void PostSolve() {}
     int GetNumConstraints() { return 0; }
-
+    int GetNumNonZeros() { return 0; }
     DynamicVector<real> grid_mass;
     DynamicVector<real> grid_vel;
     DynamicVector<real> grid_vel_old;
