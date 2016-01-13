@@ -91,15 +91,7 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
     }
 
     int offset = num_bodies * 6 + num_shafts;
-    real inv_fluid_mass = 1.0 / data_manager->settings.fluid.mass;
-    for (int i = 0; i < num_fluid_bodies; i++) {
-        M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_fluid_mass);
-        M_inv.finalize(offset + i * 3 + 0);
-        M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_fluid_mass);
-        M_inv.finalize(offset + i * 3 + 1);
-        M_inv.append(offset + i * 3 + 2, offset + i * 3 + 2, inv_fluid_mass);
-        M_inv.finalize(offset + i * 3 + 2);
-    }
+    data_manager->node_container->ComputeInvMass(offset);
 
     M_invk = v + M_inv * hf;
 }
@@ -176,15 +168,9 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
     }
 
     int offset = num_bodies * 6 + num_shafts;
-    real fluid_mass = data_manager->settings.fluid.mass;
-    for (int i = 0; i < num_fluid_bodies; i++) {
-        M.append(offset + i * 3 + 0, offset + i * 3 + 0, fluid_mass);
-        M.finalize(offset + i * 3 + 0);
-        M.append(offset + i * 3 + 1, offset + i * 3 + 1, fluid_mass);
-        M.finalize(offset + i * 3 + 1);
-        M.append(offset + i * 3 + 2, offset + i * 3 + 2, fluid_mass);
-        M.finalize(offset + i * 3 + 2);
-    }
+    data_manager->node_container->ComputeMass(offset);
+
+
 }
 
 void ChLcpSolverParallel::PerformStabilization() {
