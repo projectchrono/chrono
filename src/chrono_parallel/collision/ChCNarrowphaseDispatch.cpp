@@ -111,10 +111,10 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
     const custom_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
     const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
 
-    obj_data_A_global.resize(num_shapes);
-    obj_data_B_global.resize(num_shapes);
-    obj_data_C_global.resize(num_shapes);
-    obj_data_R_global.resize(num_shapes);
+    data_manager->host_data.obj_data_A_global.resize(num_shapes);
+    data_manager->host_data.obj_data_B_global.resize(num_shapes);
+    data_manager->host_data.obj_data_C_global.resize(num_shapes);
+    data_manager->host_data.obj_data_R_global.resize(num_shapes);
 
 #pragma omp parallel for
     for (int index = 0; index < num_shapes; index++) {
@@ -126,15 +126,15 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         real3 pos = body_pos[ID];       // Get the global object position
         quaternion rot = body_rot[ID];  // Get the global object rotation
 
-        obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
+        data_manager->host_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
         if (T == TRIANGLEMESH) {
-            obj_data_B_global[index] = TransformLocalToParent(pos, rot, obj_data_B[index]);
-            obj_data_C_global[index] = TransformLocalToParent(pos, rot, obj_data_C[index]);
+            data_manager->host_data.obj_data_B_global[index] = TransformLocalToParent(pos, rot, obj_data_B[index]);
+            data_manager->host_data.obj_data_C_global[index] = TransformLocalToParent(pos, rot, obj_data_C[index]);
         } else {
-            obj_data_B_global[index] = obj_data_B[index];
-            obj_data_C_global[index] = obj_data_C[index];
+            data_manager->host_data.obj_data_B_global[index] = obj_data_B[index];
+            data_manager->host_data.obj_data_C_global[index] = obj_data_C[index];
         }
-        obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
+        data_manager->host_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }
     LOG(TRACE) << "stop PreprocessLocalToParent: ";
 }
@@ -160,14 +160,14 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
     shapeA.type = obj_data_T[pair.x];
     shapeB.type = obj_data_T[pair.y];  // Load the type data for each object in the collision pair
 
-    shapeA.A = obj_data_A_global[pair.x];
-    shapeB.A = obj_data_A_global[pair.y];
-    shapeA.B = obj_data_B_global[pair.x];
-    shapeB.B = obj_data_B_global[pair.y];
-    shapeA.C = obj_data_C_global[pair.x];
-    shapeB.C = obj_data_C_global[pair.y];
-    shapeA.R = obj_data_R_global[pair.x];
-    shapeB.R = obj_data_R_global[pair.y];
+    shapeA.A = data_manager->host_data.obj_data_A_global[pair.x];
+    shapeB.A = data_manager->host_data.obj_data_A_global[pair.y];
+    shapeA.B = data_manager->host_data.obj_data_B_global[pair.x];
+    shapeB.B = data_manager->host_data.obj_data_B_global[pair.y];
+    shapeA.C = data_manager->host_data.obj_data_C_global[pair.x];
+    shapeB.C = data_manager->host_data.obj_data_C_global[pair.y];
+    shapeA.R = data_manager->host_data.obj_data_R_global[pair.x];
+    shapeB.R = data_manager->host_data.obj_data_R_global[pair.y];
     shapeA.convex = convex_data;
     shapeB.convex = convex_data;
 
@@ -490,12 +490,12 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
                         continue;
                     }
 
-                    ConvexShape shapeA(data_manager->host_data.typ_rigid[shape_id_a],  //
-                                       obj_data_A_global[shape_id_a],                  //
-                                       obj_data_B_global[shape_id_a],                  //
-                                       obj_data_C_global[shape_id_a],                  //
-                                       obj_data_R_global[shape_id_a],                  //
-                                       data_manager->host_data.convex_data.data());    //
+                    ConvexShape shapeA(data_manager->host_data.typ_rigid[shape_id_a],          //
+                                       data_manager->host_data.obj_data_A_global[shape_id_a],  //
+                                       data_manager->host_data.obj_data_B_global[shape_id_a],  //
+                                       data_manager->host_data.obj_data_C_global[shape_id_a],  //
+                                       data_manager->host_data.obj_data_R_global[shape_id_a],  //
+                                       data_manager->host_data.convex_data.data());            //
 
                     ConvexShape shapeB(SPHERE, pos_fluid,                            //
                                        real3(fluid_radius, 0, 0),                    //
@@ -678,7 +678,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
 
     data_manager->num_fluid_contacts = Thrust_Total(contact_counts);
-    LOG(TRACE) << "stop DispatchFluidFluid: "<<data_manager->num_fluid_contacts;
+    LOG(TRACE) << "stop DispatchFluidFluid: " << data_manager->num_fluid_contacts;
 }
 
 }  // end namespace collision

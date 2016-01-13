@@ -324,6 +324,13 @@ struct host_container {
     custom_vector<uint> bin_aabb_number;
     custom_vector<uint> bin_start_index;
     custom_vector<uint> bin_num_contact;
+
+    //========Narrowphase Data========
+
+    custom_vector<real3> obj_data_A_global;
+    custom_vector<real3> obj_data_B_global;
+    custom_vector<real3> obj_data_C_global;
+    custom_vector<quaternion> obj_data_R_global;
 };
 
 class CH_PARALLEL_API ChParallelDataManager {
@@ -351,18 +358,18 @@ class CH_PARALLEL_API ChParallelDataManager {
     std::vector<ChSharedPtr<ChPhysicsItem> >* other_physics_list;  // List to other items
 
     // Indexing variables
-    uint num_rigid_bodies;           // The number of rigid bodies in a system
-    uint num_fluid_bodies;           // The number of fluid bodies in the system
-    uint num_shafts;                 // The number of shafts in a system
-    uint num_dof;                    // The number of degrees of freedom in the system
-    uint num_rigid_shapes;           // The number of collision models in a system
-    uint num_rigid_contacts;         // The number of contacts between rigid bodies in a system
-    uint num_rigid_fluid_contacts;   // The number of contacts between rigid and fluid objects
-    uint num_fluid_contacts;         // The number of contacts between fluid objects
-    uint num_unilaterals;            // The number of contact constraints
-    uint num_bilaterals;             // The number of bilateral constraints
-    uint num_constraints;            // Total number of constraints
-    uint nnz_bilaterals;             // The number of non-zero entries in the bilateral Jacobian
+    uint num_rigid_bodies;          // The number of rigid bodies in a system
+    uint num_fluid_bodies;          // The number of fluid bodies in the system
+    uint num_shafts;                // The number of shafts in a system
+    uint num_dof;                   // The number of degrees of freedom in the system
+    uint num_rigid_shapes;          // The number of collision models in a system
+    uint num_rigid_contacts;        // The number of contacts between rigid bodies in a system
+    uint num_rigid_fluid_contacts;  // The number of contacts between rigid and fluid objects
+    uint num_fluid_contacts;        // The number of contacts between fluid objects
+    uint num_unilaterals;           // The number of contact constraints
+    uint num_bilaterals;            // The number of bilateral constraints
+    uint num_constraints;           // Total number of constraints
+    uint nnz_bilaterals;            // The number of non-zero entries in the bilateral Jacobian
 
     // Flag indicating whether or not the contact forces are current (DVI only).
     bool Fc_current;

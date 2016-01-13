@@ -184,7 +184,44 @@ void ChMPMContainer::Initialize() {
 
     // Initialize_Bodies
 }
+void ChMPMContainer::IsInside() {
+    const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
+    size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
+    grid_inside.resize(num_nodes);
+    std::fill(grid_inside.begin(), grid_inside.end(), false);
+    uint num_shapes = data_manager->num_rigid_shapes;
+#if 0
+    for (int i = 0; i < num_nodes; i++) {
+        if (grid_mass[i] <= 0) {
+            continue;
+        }
 
+        real3 location = grid_loc[i];
+        for (int shape_id_a = 0; shape_id_a < num_shapes; shape_id_a++) {
+            ConvexShape shapeA(data_manager->host_data.typ_rigid[shape_id_a],          //
+                               data_manager->host_data.obj_data_A_global[shape_id_a],  //
+                               data_manager->host_data.obj_data_B_global[shape_id_a],  //
+                               data_manager->host_data.obj_data_C_global[shape_id_a],  //
+                               data_manager->host_data.obj_data_R_global[shape_id_a],  //
+                               data_manager->host_data.convex_data.data());            //
+
+            ConvexShape shapeB(SPHERE, location,                                         //
+                               real3(data_manager->settings.fluid.kernel_radius, 0, 0),  //
+                               real3(0),                                                 //
+                               quaternion(1, 0, 0, 0),                                   //
+                               data_manager->host_data.convex_data.data());              //
+
+            real3 ptA, ptB, norm;
+            real depth;
+
+            if (MPRCollision(shapeA, shapeB, data_manager->settings.collision.collision_envelope, norm, ptA, ptB,
+                             depth)) {
+                grid_inside[i] = true;
+            }
+        }
+    }
+#endif
+}
 void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
     const int num_particles = data_manager->num_fluid_bodies;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
@@ -205,8 +242,10 @@ void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>&
         Mat33 delta_F_t(0);
         LOOPOVERNODES(                                                                                              //
             real3 v0(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);  //
-            real3 v1 = dN(xi - current_node_location, inv_bin_edge);
-            delta_F_t = delta_F_t + OuterProduct(v0, v1) * Fe[p];)
+            real3 v1 = dN(xi - current_node_location, inv_bin_edge);                                                //
+            if (grid_inside[current_node] == false) {                                                               //
+                delta_F_t = delta_F_t + OuterProduct(v0, v1) * Fe[p];                                               //
+            })
         delta_F[p] = delta_F_t;
     }
 
@@ -240,30 +279,51 @@ void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>&
                     const int current_node = GridHash(i, j, k, bins_per_axis);
                     real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
                     real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
+                    if (grid_inside[current_node] == false) {
 #pragma omp atomic
-                    result_array[current_node * 3 + 0] += res.x;  //
+                        result_array[current_node * 3 + 0] += res.x;  //
 #pragma omp atomic
-                    result_array[current_node * 3 + 1] += res.y;  //
+                        result_array[current_node * 3 + 1] += res.y;  //
 #pragma omp atomic
-                    result_array[current_node * 3 + 2] += res.z;  //
+                        result_array[current_node * 3 + 2] += res.z;  //
+                    }
                 }
             }
         }
     }
 #pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
-        result_array[i * 3 + 0] = grid_mass[i] * v_array[i * 3 + 0] + dt * dt * result_array[i * 3 + 0];
-        result_array[i * 3 + 1] = grid_mass[i] * v_array[i * 3 + 1] + dt * dt * result_array[i * 3 + 1];
-        result_array[i * 3 + 2] = grid_mass[i] * v_array[i * 3 + 2] + dt * dt * result_array[i * 3 + 2];
+        if (grid_inside[i] == false) {
+            result_array[i * 3 + 0] = grid_mass[i] * v_array[i * 3 + 0] + dt * dt * result_array[i * 3 + 0];
+            result_array[i * 3 + 1] = grid_mass[i] * v_array[i * 3 + 1] + dt * dt * result_array[i * 3 + 1];
+            result_array[i * 3 + 2] = grid_mass[i] * v_array[i * 3 + 2] + dt * dt * result_array[i * 3 + 2];
+        } else {
+            result_array[i * 3 + 0] = 0;
+            result_array[i * 3 + 1] = 0;
+            result_array[i * 3 + 2] = 0;
+        }
     }
 }
 
-real Convergence_Norm(const DynamicVector<real>& r) {
+real ChMPMContainer::Convergence_Norm(const DynamicVector<real>& r) {
     real result = (real)0.;
     for (int i = 0; i < r.size(); i += 3) {
-        real3 v(r[i + 0], r[i + 1], r[i + 2]);
-        real mag = Length(v);
-        result = Max(result, mag);
+        if (grid_inside[i] == false) {
+            real3 v(r[i + 0], r[i + 1], r[i + 2]);
+            real mag = Length(v);
+            result = Max(result, mag);
+        }
+    }
+    return result;
+}
+real ChMPMContainer::DotProduct(const DynamicVector<real>& a, const DynamicVector<real>& b) {
+    real result = 0;
+
+    for (int i = 0; i < grid_inside.size(); i++) {
+        if (grid_inside[i] == false) {
+            result += a[i * 3 + 0] * b[i * 3 + 0] + a[i * 3 + 1] * b[i * 3 + 1] + a[i * 3 + 2] * b[i * 3 + 2];
+        } else {
+        }
     }
     return result;
 }
@@ -300,14 +360,14 @@ void ChMPMContainer::Solve(const DynamicVector<real>& b, DynamicVector<real>& x)
             break;
         }
 
-        real rho = (r, r);
+        real rho = DotProduct(r, r);
         if (restart) {
             s = r;
         } else {
             s = rho / rho_old * s + r;
         }
         Multiply(s, q);
-        real s_dot_q = (s, q);
+        real s_dot_q = DotProduct(s, q);
         real alpha = s_dot_q ? rho / s_dot_q : (real)FLT_MAX;
         x = alpha * s + x;
         r = -alpha * q + r;
@@ -339,6 +399,7 @@ void ChMPMContainer::PreSolve() {
     grid_vel.resize(num_nodes * 3);
     grid_vel_old.resize(num_nodes * 3);
     grid_forces.resize(num_nodes);
+    grid_loc.resize(num_nodes);
 
     volume.resize(num_particles);
     rhs.resize(num_nodes * 3);
@@ -356,7 +417,6 @@ void ChMPMContainer::PreSolve() {
     grid_vel = 0;
     grid_mass = 0;
 
-    // DynamicVector<real3> grid_loc(num_nodes);
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
 
@@ -372,10 +432,12 @@ void ChMPMContainer::PreSolve() {
             grid_vel[current_node * 3 + 0] += weight * vi.x;                   //
             grid_vel[current_node * 3 + 1] += weight * vi.y;                   //
             grid_vel[current_node * 3 + 2] += weight * vi.z;                   //
-            // grid_loc[current_node] = current_node_location;
-
+            grid_loc[current_node] = current_node_location;                    // This is not efficient
             )
     }
+
+    IsInside();
+
 // normalize weights for the velocity (to conserve momentum)
 #pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
@@ -444,9 +506,15 @@ void ChMPMContainer::PreSolve() {
     printf("Compute RHS\n");
 #pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
-        rhs[i * 3 + 0] = grid_mass[i] * grid_vel[i * 3 + 0];
-        rhs[i * 3 + 1] = grid_mass[i] * grid_vel[i * 3 + 1];
-        rhs[i * 3 + 2] = grid_mass[i] * grid_vel[i * 3 + 2];
+        if (grid_inside[i] == false) {
+            rhs[i * 3 + 0] = grid_mass[i] * grid_vel[i * 3 + 0];
+            rhs[i * 3 + 1] = grid_mass[i] * grid_vel[i * 3 + 1];
+            rhs[i * 3 + 2] = grid_mass[i] * grid_vel[i * 3 + 2];
+        } else {
+            rhs[i * 3 + 0] = 0;
+            rhs[i * 3 + 1] = 0;
+            rhs[i * 3 + 2] = 0;
+        }
     }
 
     printf("Solve\n");

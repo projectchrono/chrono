@@ -70,6 +70,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     // Velocity of the node - in absolute csys.
     void SetPos_dt(const int& i, const real3& mposdt);
 
+    real kernel_radius;
+
   protected:
     ChParallelDataManager* data_manager;
 };
@@ -127,7 +129,10 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void UpdatePosition(double ChTime);
     void Setup() {}
     void Initialize();
+    void IsInside();
+    real Convergence_Norm(const DynamicVector<real>& r);
     void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
+    real DotProduct(const DynamicVector<real>& a, const DynamicVector<real>& b);
     void Solve(const DynamicVector<real>& b, DynamicVector<real>& x);
     void PreSolve();
     void Build_D() {}
@@ -143,7 +148,9 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     DynamicVector<real> grid_mass;
     DynamicVector<real> grid_vel;
     DynamicVector<real> grid_vel_old;
+    custom_vector<bool> grid_inside;
     custom_vector<real3> grid_forces;
+    custom_vector<real3> grid_loc;
     DynamicVector<real> volume, rhs;
     custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
 

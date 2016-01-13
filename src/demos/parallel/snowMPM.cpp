@@ -85,7 +85,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container = new ChMPMContainer(sys);
 
-    real youngs_modulus = 1.4e7;
+    real youngs_modulus = 1.4e8;
     real poissons_ratio = 0.2;
 
     mpm_container->theta_c = 2.5e-2;
@@ -198,12 +198,12 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.alpha = 0;
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->collision.use_two_level = false;
-    msystem.GetSettings()->solver.contact_recovery_speed = 100;
+    msystem.GetSettings()->solver.contact_recovery_speed = 10000;
     msystem.GetSettings()->solver.cache_step_length = true;
-
+    msystem.ChangeSolverType(BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     msystem.GetSettings()->fluid.kernel_radius = .005;
-
+    msystem.GetSettings()->fluid.contact_recovery_speed=10000;
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
     msystem.SetLoggingLevel(LOG_TRACE, true);
