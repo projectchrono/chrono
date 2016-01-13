@@ -19,6 +19,15 @@ using namespace geometry;
 ChMPMContainer::ChMPMContainer(ChSystemParallelDVI* physics_system) {
     data_manager = physics_system->data_manager;
     data_manager->Add3DOFContainer(this);
+
+    max_iterations = 10;
+    real mass = 1;
+    real mu = 1;
+    real hardening_coefficient = 1;
+    real lambda = 1;
+    real theta_s = 1;
+    real theta_c = 1;
+    real alpha = 1;
 }
 ChMPMContainer::~ChMPMContainer() {}
 
@@ -51,6 +60,7 @@ void ChMPMContainer::Update(double ChTime) {
         data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = h_gravity.y;
         data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = h_gravity.z;
     }
+    data_manager->num_3dof_3dof_constraints = 0;
 }
 
 void ChMPMContainer::UpdatePosition(double ChTime) {
@@ -81,7 +91,7 @@ void ChMPMContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
-    real inv_mass = 1.0 / data_manager->settings.mpm.mass;
+    real inv_mass = 1.0 / mass;
     for (int i = 0; i < num_fluid_bodies; i++) {
         M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
         M_inv.finalize(offset + i * 3 + 0);
@@ -95,13 +105,12 @@ void ChMPMContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
-    real mpm_mass = data_manager->settings.mpm.mass;
     for (int i = 0; i < num_fluid_bodies; i++) {
-        M.append(offset + i * 3 + 0, offset + i * 3 + 0, mpm_mass);
+        M.append(offset + i * 3 + 0, offset + i * 3 + 0, mass);
         M.finalize(offset + i * 3 + 0);
-        M.append(offset + i * 3 + 1, offset + i * 3 + 1, mpm_mass);
+        M.append(offset + i * 3 + 1, offset + i * 3 + 1, mass);
         M.finalize(offset + i * 3 + 1);
-        M.append(offset + i * 3 + 2, offset + i * 3 + 2, mpm_mass);
+        M.append(offset + i * 3 + 2, offset + i * 3 + 2, mass);
         M.finalize(offset + i * 3 + 2);
     }
 }
@@ -114,14 +123,10 @@ void ChMPMContainer::Initialize() {
     const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
-    const real mass = data_manager->settings.mpm.mass;
     const real3 gravity = data_manager->settings.gravity;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const int num_particles = data_manager->num_fluid_bodies;
-    real mu = data_manager->settings.mpm.mu;
-    real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
-    real lambda = data_manager->settings.mpm.lambda;
 
     size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
@@ -182,9 +187,6 @@ void ChMPMContainer::Initialize() {
 }
 
 void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
-    real mu = data_manager->settings.mpm.mu;
-    real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
-    real lambda = data_manager->settings.mpm.lambda;
     const int num_particles = data_manager->num_fluid_bodies;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
@@ -272,7 +274,6 @@ void ChMPMContainer::Solve(const DynamicVector<real>& b, DynamicVector<real>& x)
     q.resize(b.size());
     s.resize(b.size());
 
-    int max_iterations = data_manager->settings.mpm.max_iterations;
     real rho_old = FLT_MAX;
     real convergence_norm = 0;
     real tolerance = Max(1e-4 * Convergence_Norm(b), 1e-6);
@@ -323,14 +324,10 @@ void ChMPMContainer::PreSolve() {
     const real bin_edge = fluid_radius * 2 + data_manager->settings.fluid.collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
-    const real mass = data_manager->settings.mpm.mass;
     const real3 gravity = data_manager->settings.gravity;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const int num_particles = data_manager->num_fluid_bodies;
-    real mu = data_manager->settings.mpm.mu;
-    real hardening_coefficient = data_manager->settings.mpm.hardening_coefficient;
-    real lambda = data_manager->settings.mpm.lambda;
 
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -456,10 +453,6 @@ void ChMPMContainer::PreSolve() {
     printf("Solve\n");
     Solve(rhs, grid_vel);
 
-    const real theta_c = data_manager->settings.mpm.theta_c;
-    const real theta_s = data_manager->settings.mpm.theta_s;
-    const real alpha = data_manager->settings.mpm.alpha;
-
     printf("Update_Deformation_Gradient\n");
 #pragma omp parallel for
     for (int p = 0; p < num_particles; p++) {
@@ -502,7 +495,6 @@ void ChMPMContainer::PreSolve() {
             V_flip.x += (grid_vel[current_node * 3 + 0] - grid_vel_old[current_node * 3 + 0]) * weight;  //
             V_flip.y += (grid_vel[current_node * 3 + 1] - grid_vel_old[current_node * 3 + 1]) * weight;  //
             V_flip.z += (grid_vel[current_node * 3 + 2] - grid_vel_old[current_node * 3 + 2]) * weight;  //
-
             )
 
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;

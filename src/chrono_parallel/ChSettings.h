@@ -133,26 +133,7 @@ struct fluid_settings {
     bool enable_viscosity;
     bool initialize_mass;
 };
-struct mpm_settings {
-    mpm_settings() {
-        max_iterations = 10;
-        real mass = 1;
-        real mu = 1;
-        real hardening_coefficient = 1;
-        real lambda = 1;
-        real theta_s = 1;
-        real theta_c = 1;
-        real alpha = 1;
-    }
-    real mass;
-    real mu;
-    real hardening_coefficient;
-    real lambda;
-    real theta_s;
-    real theta_c;
-    real alpha;
-    real max_iterations;
-};
+
 // solver_settings, like the name implies is the structure that contains all
 // settings associated with the parallel solver.
 struct solver_settings {
@@ -309,7 +290,6 @@ struct settings_container {
     solver_settings solver;
     // The settings for the fluid
     fluid_settings fluid;
-    mpm_settings mpm;
 
     // System level settings
     // If set to true chrono parallel will automatically check to see if increasing

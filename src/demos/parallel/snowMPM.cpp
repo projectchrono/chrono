@@ -42,13 +42,13 @@
 
 using namespace chrono;
 using namespace chrono::collision;
-
+ChMPMContainer* mpm_container;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelMPM* sys) {
+void AddContainer(ChSystemParallelDVI* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -82,8 +82,22 @@ void AddContainer(ChSystemParallelMPM* sys) {
 // -----------------------------------------------------------------------------
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
-void AddFluid(ChSystemParallelMPM* sys) {
-    ChMPMContainer* mpm_container = new ChMPMContainer(sys);
+void AddFluid(ChSystemParallelDVI* sys) {
+    mpm_container = new ChMPMContainer(sys);
+
+    real youngs_modulus = 1.4e7;
+    real poissons_ratio = 0.2;
+
+    mpm_container->theta_c = 2.5e-2;
+    mpm_container->theta_s = 7.5e-3;
+    mpm_container->lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
+    mpm_container->mu = youngs_modulus / (2. * (1. + poissons_ratio));
+    mpm_container->alpha = .95;
+    mpm_container->hardening_coefficient = 10.0;
+
+    real initial_density = 1000;
+    mpm_container->mass = .004;
+    mpm_container->max_iterations = 20;
 
     real radius = sys->GetSettings()->fluid.kernel_radius * 10;  //*5
     real dens = 30;
@@ -102,20 +116,20 @@ void AddFluid(ChSystemParallelMPM* sys) {
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(10, 0, 0);
+        vel_fluid[i] = real3(0, 0, -10);
     }
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
-    points = sampler.SampleSphere(ChVector<>(.1, 0, 0), radius);
-
-    pos_fluid.resize(points.size());
-    vel_fluid.resize(points.size());
-    for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(-10, 0, 0);
-    }
-    mpm_container->AddNodes(pos_fluid, vel_fluid);
+//    points = sampler.SampleSphere(ChVector<>(.1, 0, 0), radius);
+//
+//    pos_fluid.resize(points.size());
+//    vel_fluid.resize(points.size());
+//    for (int i = 0; i < points.size(); i++) {
+//        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+//        vel_fluid[i] = real3(-10, 0, 0);
+//    }
+//    mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
     std::ifstream ifile("snowMPMinit.dat");
@@ -162,7 +176,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelMPM msystem;
+    ChSystemParallelDVI msystem;
     // omp_set_num_threads(4);
     // Set number of threads.
     //    int max_threads = 2;//CHOMPfunctions::GetNumProcs();
@@ -173,9 +187,6 @@ int main(int argc, char* argv[]) {
 
     // Set gravitational acceleration
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
-
-    real youngs_modulus = 1.4e5;
-    real poissons_ratio = 0.2;
 
     // Set solver parameters
     msystem.GetSettings()->solver.solver_mode = SLIDING;
@@ -192,24 +203,11 @@ int main(int argc, char* argv[]) {
 
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     msystem.GetSettings()->fluid.kernel_radius = .005;
-    msystem.GetSettings()->fluid.mass = .007 * 5.5;
-    msystem.GetSettings()->fluid.density = 1000;
-    msystem.GetSettings()->mpm.theta_c = (real)2.5e-2;
-    msystem.GetSettings()->mpm.theta_s = (real)7.5e-3;
-    msystem.GetSettings()->mpm.lambda =
-        youngs_modulus * poissons_ratio / (((real)1. + poissons_ratio) * ((real)1. - (real)2. * poissons_ratio));
-    msystem.GetSettings()->mpm.mu = youngs_modulus / ((real)2. * ((real)1. + poissons_ratio));
-    msystem.GetSettings()->mpm.alpha = (real).95;
-    msystem.GetSettings()->mpm.hardening_coefficient = 10.0;
-
-    real initial_density = 400;
-    msystem.GetSettings()->mpm.mass = .004;
-    msystem.GetSettings()->mpm.max_iterations = 20;
 
     msystem.GetSettings()->collision.collision_envelope = (msystem.GetSettings()->fluid.kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
-    // msystem.SetLoggingLevel(LOG_TRACE, true);
-    // msystem.SetLoggingLevel(LOG_INFO, true);
+    msystem.SetLoggingLevel(LOG_TRACE, true);
+    msystem.SetLoggingLevel(LOG_INFO, true);
     // Create the fixed and moving bodies
     // ----------------------------------
 
@@ -223,7 +221,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+    gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1);
     gl_window.Pause();
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.

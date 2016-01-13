@@ -115,6 +115,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     custom_vector<real3> visc2_jac;
     custom_vector<real3> visc3_jac;
 };
+
 class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
   public:
     ChMPMContainer(ChSystemParallelDVI* system);
@@ -145,6 +146,15 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
 
     DynamicVector<real> r, p, Ap, q, s;
+
+    real mass;
+    real mu;
+    real hardening_coefficient;
+    real lambda;
+    real theta_s;
+    real theta_c;
+    real alpha;
+    real max_iterations;
 };
 // class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
 //  public:
