@@ -26,22 +26,17 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
 
     uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
-    uint num_fluid_fluid = data_manager->num_fluid_contacts * 3;
+    uint num_3dof_3dof = data_manager->num_3dof_3dof_constraints;
 
-    if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        num_fluid_fluid = data_manager->num_fluid_bodies;  // + ;
-        if (data_manager->settings.fluid.enable_viscosity) {
-            num_fluid_fluid += data_manager->num_fluid_bodies * 3;
-        }
-    }
+    // Get the number of 3dof constraints, from the 3dof container in use right now
 
     // This is the total number of constraints
     data_manager->num_constraints =
-        data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid + num_fluid_fluid;
+        data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid + num_3dof_3dof;
 
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
-    //ComputeMassMatrix();
+    // ComputeMassMatrix();
 
     data_manager->host_data.gamma.resize(data_manager->num_constraints);
     data_manager->host_data.gamma.reset();
@@ -148,7 +143,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
     tot_iterations = data_manager->measures.solver.maxd_hist.size();
 
-    LOG(TRACE) << "Solve Done: " << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve")<<" "<<data_manager->system_timer.GetTime("ShurProduct") << residual;
+    LOG(TRACE) << "Solve Done: " << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve") << " "
+               << data_manager->system_timer.GetTime("ShurProduct") << residual;
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
@@ -183,7 +179,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint num_fluid_fluid = num_fluid_contacts * 3;
 
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        int max_interactions = max_neighbors ;//data_manager->settings.fluid.max_interactions;
+        int max_interactions = max_neighbors;  // data_manager->settings.fluid.max_interactions;
         nnz_fluid_fluid = num_fluid_bodies * 6 * max_interactions;  // + num_fluid_bodies * 18 * max_interactions;
         num_fluid_fluid = num_fluid_bodies;                         // + num_fluid_bodies * 3;
 
@@ -394,7 +390,7 @@ void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
             solver = new ChSolverAPGDREF();
             break;
         case BB:
-                    solver = new ChSolverBB();
-                    break;
+            solver = new ChSolverBB();
+            break;
     }
 }

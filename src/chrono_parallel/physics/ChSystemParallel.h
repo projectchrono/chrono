@@ -59,7 +59,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     void UpdateOtherPhysics();
     void UpdateRigidBodies();
     void UpdateShafts();
-    void UpdateFluidBodies();
+    void Update3DOFBodies();
     void RecomputeThreads();
 
     virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
@@ -108,8 +108,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     double CalculateConstraintViolation(std::vector<double>& cvec);
 
     ChParallelDataManager* data_manager;
-    Ch3DOFContainer* fluid_container;
-    void AddFluid(Ch3DOFContainer* fluid);
+    Ch3DOFContainer* node_container;
+    void Add3DOFContainer(Ch3DOFContainer* fluid);
 
     int current_threads;
 

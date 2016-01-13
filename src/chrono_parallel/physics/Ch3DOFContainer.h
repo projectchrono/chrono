@@ -41,6 +41,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     // Update occurs before he solve
     virtual void Update(double ChTime) = 0;
     virtual void UpdatePosition(double ChTime) = 0;
+    virtual int GetNumConstraints() = 0;
     // Integrate happens after the solve
     // void Integrate(double ChTime);
     // Position of the node - in absolute csys.
@@ -53,6 +54,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     // Velocity of the node - in absolute csys.
     void SetPos_dt(const int& i, const real3& mposdt);
 
+
+
   protected:
     ChSystemParallel* system;
 };
@@ -64,6 +67,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void AddFluid(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
+    int GetNumConstraints();
 };
 class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
   public:
@@ -72,6 +76,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
+    int GetNumConstraints(){return 0;}
 };
 // class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
 //  public:

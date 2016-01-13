@@ -17,7 +17,7 @@ using namespace geometry;
 
 ChMPMContainer::ChMPMContainer(ChSystemParallelMPM* physics_system) {
     system = physics_system;
-    system->AddFluid(this);
+    system->Add3DOFContainer(this);
 }
 ChMPMContainer::~ChMPMContainer() {}
 

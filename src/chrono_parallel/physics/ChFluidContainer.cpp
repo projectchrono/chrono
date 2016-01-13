@@ -17,7 +17,7 @@ using namespace geometry;
 
 ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     system = physics_system;
-    system->AddFluid(this);
+    system->Add3DOFContainer(this);
 }
 ChFluidContainer::~ChFluidContainer() {}
 
@@ -50,6 +50,8 @@ void ChFluidContainer::Update(double ChTime) {
         system->data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = h_gravity.y;
         system->data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = h_gravity.z;
     }
+
+    system->data_manager->num_3dof_3dof_constraints = GetNumConstraints();
 }
 
 void ChFluidContainer::UpdatePosition(double ChTime) {
@@ -77,6 +79,14 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
     }
 }
 
+int ChFluidContainer::GetNumConstraints() {
+    int num_fluid_fluid = system->data_manager->num_fluid_bodies;
+
+    if (system->data_manager->settings.fluid.enable_viscosity) {
+        num_fluid_fluid += system->data_manager->num_fluid_bodies * 3;
+    }
+    return num_fluid_fluid;
+}
 }  // END_OF_NAMESPACE____
 
 /////////////////////

@@ -21,7 +21,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
     collision_system = new ChCollisionSystemParallel(data_manager);
 
     collision_system_type = COLLSYS_PARALLEL;
-    fluid_container = 0;
+    node_container = 0;
     counter = 0;
     timer_accumulator.resize(10, 0);
     cd_accumulator.resize(10, 0);
@@ -137,8 +137,8 @@ int ChSystemParallel::Integrate_Y() {
         otherphysicslist[i]->Update(ChTime);
     }
 
-    if (fluid_container != 0) {
-        fluid_container->UpdatePosition(ChTime);
+    if (node_container != 0) {
+        node_container->UpdatePosition(ChTime);
     }
 
     data_manager->system_timer.stop("update");
@@ -232,9 +232,9 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
     data_manager->host_data.shaft_active.push_back(true);
 }
 
-void ChSystemParallel::AddFluid(Ch3DOFContainer* fluid) {
-    fluid->AddRef();
-    fluid_container = fluid;
+void ChSystemParallel::Add3DOFContainer(Ch3DOFContainer* container) {
+	container->AddRef();
+    node_container = container;
 }
 
 //
@@ -279,7 +279,7 @@ void ChSystemParallel::Update() {
     UpdateOtherPhysics();
     UpdateRigidBodies();
     UpdateShafts();
-    UpdateFluidBodies();
+    Update3DOFBodies();
     LCP_descriptor->EndInsertion();
 
     UpdateBilaterals();
@@ -363,9 +363,9 @@ void ChSystemParallel::UpdateShafts() {
 //
 // Update all fluid nodes
 // currently a stub
-void ChSystemParallel::UpdateFluidBodies() {
-    if (fluid_container != 0) {
-        fluid_container->Update(ChTime);
+void ChSystemParallel::Update3DOFBodies() {
+    if (node_container != 0) {
+        node_container->Update(ChTime);
     }
 }
 
