@@ -21,13 +21,13 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
-#include "chrono_parallel/ChDataManager.h"
 
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
 class ChSystemParallelDVI;
 class ChSystemParallelMPM;
+class ChParallelDataManager;
 
 class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
@@ -54,10 +54,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     // Velocity of the node - in absolute csys.
     void SetPos_dt(const int& i, const real3& mposdt);
 
-
-
   protected:
-    ChSystemParallel* system;
+    ChParallelDataManager* data_manager;
 };
 
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
@@ -76,7 +74,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
-    int GetNumConstraints(){return 0;}
+    int GetNumConstraints() { return 0; }
 };
 // class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
 //  public:

@@ -20,7 +20,7 @@ Ch3DOFContainer::Ch3DOFContainer() {}
 Ch3DOFContainer::~Ch3DOFContainer() {}
 
 Ch3DOFContainer::Ch3DOFContainer(const Ch3DOFContainer& other) : ChPhysicsItem(other) {
-    this->system = other.system;
+    this->data_manager = other.data_manager;
 }
 
 Ch3DOFContainer& Ch3DOFContainer::operator=(const Ch3DOFContainer& other) {
@@ -32,17 +32,17 @@ Ch3DOFContainer& Ch3DOFContainer::operator=(const Ch3DOFContainer& other) {
 }
 
 real3 Ch3DOFContainer::GetPos(int i) {
-    return system->data_manager->host_data.pos_3dof[i];
+    return data_manager->host_data.pos_3dof[i];
 }
 void Ch3DOFContainer::SetPos(const int& i, const real3& mpos) {
-    system->data_manager->host_data.pos_3dof[i] = mpos;
+    data_manager->host_data.pos_3dof[i] = mpos;
 }
 
 real3 Ch3DOFContainer::GetPos_dt(int i) {
-    return system->data_manager->host_data.vel_3dof[i];
+    return data_manager->host_data.vel_3dof[i];
 }
 void Ch3DOFContainer::SetPos_dt(const int& i, const real3& mposdt) {
-    system->data_manager->host_data.vel_3dof[i] = mposdt;
+    data_manager->host_data.vel_3dof[i] = mposdt;
 }
 
 }  // END_OF_NAMESPACE____

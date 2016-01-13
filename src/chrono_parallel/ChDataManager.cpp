@@ -15,7 +15,9 @@ ChParallelDataManager::ChParallelDataManager()
       num_constraints(0),
       num_shafts(0),
       num_dof(0),
-      nnz_bilaterals(0) {}
+      nnz_bilaterals(0) {
+    node_container = 0;
+}
 
 ChParallelDataManager::~ChParallelDataManager() {}
 
