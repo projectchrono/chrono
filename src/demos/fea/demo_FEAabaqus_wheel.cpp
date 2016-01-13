@@ -75,16 +75,16 @@ int main(int argc, char* argv[]) {
     // about friction etc.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetKn(2e6);
-    mysurfmaterial->SetKt(2e6);
-    mysurfmaterial->SetGn(4200);
-    mysurfmaterial->SetGt(4200);
+    mysurfmaterial->SetYoungModulus(10e4);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
+    mysurfmaterial->SetAdhesion(0);
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial2 (new ChMaterialSurfaceDEM);
-    mysurfmaterial2->SetKn(12e6);
-    mysurfmaterial2->SetKt(12e6);
-    mysurfmaterial2->SetGn(16000);
-    mysurfmaterial2->SetGt(16000);
+    mysurfmaterial->SetYoungModulus(30e4);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
+    mysurfmaterial->SetAdhesion(0);
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:

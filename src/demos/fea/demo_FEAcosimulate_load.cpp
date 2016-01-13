@@ -102,10 +102,10 @@ int main(int argc, char* argv[]) {
     // about friction etc.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetKn(2e6);
-    mysurfmaterial->SetKt(2e6);
-    mysurfmaterial->SetGn(4200);
-    mysurfmaterial->SetGt(4200);
+    mysurfmaterial->SetYoungModulus(10e4);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
+    mysurfmaterial->SetAdhesion(0);
 
   
     // Create a mesh, that is a container for groups
