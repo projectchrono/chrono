@@ -87,26 +87,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
     ChConstraintRigidRigid rigid_rigid;
     ChConstraintRigidFluid rigid_fluid;
 };
-class CH_PARALLEL_API ChLcpSolverParallelMPM : public ChLcpSolverParallel {
-  public:
-    ChLcpSolverParallelMPM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}
-    virtual void Initialize();
-    virtual void RunTimeStep();
-    void ChangeSolverType(SOLVERTYPE type);
-    void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
-    void Solve(const DynamicVector<real>& mb, DynamicVector<real>& ml);
-    DynamicVector<real> grid_mass;
-    DynamicVector<real> grid_vel;
-    DynamicVector<real> grid_vel_old;
-    custom_vector<real3> grid_forces;
-    DynamicVector<real> volume, rhs;
-    custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
-    void ComputeImpulses() {}
 
-    DynamicVector<real> r, p, Ap, q, s;
-
-  private:
-};
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
   public:
     ChLcpSolverParallelDEM(ChParallelDataManager* dc) : ChLcpSolverParallel(dc) {}

@@ -45,7 +45,9 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     rigid_rigid.Setup(data_manager);
     bilateral.Setup(data_manager);
     rigid_fluid.Setup(data_manager);
-    data_manager->node_container->Setup();
+    if (data_manager->node_container) {
+        data_manager->node_container->Setup();
+    }
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
     data_manager->measures.solver.total_iteration = 0;
@@ -55,7 +57,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     solver->rigid_rigid = &rigid_rigid;
     solver->bilateral = &bilateral;
     solver->rigid_fluid = &rigid_fluid;
-    solver->three_dof =  data_manager->node_container;
+    solver->three_dof = data_manager->node_container;
     solver->Setup(data_manager);
 
     ComputeD();
@@ -63,9 +65,9 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     ComputeR();
 
     ComputeN();
-
-    // PreSolve();
-
+    if (data_manager->node_container) {
+        data_manager->node_container->PreSolve();
+    }
     data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
     //  if (data_manager->settings.solver.max_iteration_bilateral > 0) {
@@ -134,7 +136,9 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     data_manager->Fc_current = false;
     data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
-    data_manager->node_container->PostSolve();
+    if (data_manager->node_container) {
+        data_manager->node_container->PostSolve();
+    }
     ComputeImpulses();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
@@ -178,7 +182,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint num_fluid_fluid = num_fluid_contacts * 3;
 
     if (data_manager->settings.fluid.fluid_is_rigid == false) {
-        int max_interactions = max_neighbors;  // data_manager->settings.fluid.max_interactions;
+        int max_interactions = max_neighbors;                       // data_manager->settings.fluid.max_interactions;
         nnz_fluid_fluid = num_fluid_bodies * 6 * max_interactions;  // + num_fluid_bodies * 18 * max_interactions;
         num_fluid_fluid = num_fluid_bodies;                         // + num_fluid_bodies * 3;
 
@@ -220,11 +224,15 @@ void ChLcpSolverParallelDVI::ComputeD() {
     rigid_rigid.GenerateSparsity();
     bilateral.GenerateSparsity();
     rigid_fluid.GenerateSparsity();
-    data_manager->node_container->GenerateSparsity();
+    if (data_manager->node_container) {
+        data_manager->node_container->GenerateSparsity();
+    }
     rigid_rigid.Build_D();
     bilateral.Build_D();
     rigid_fluid.Build_D();
-    data_manager->node_container->Build_D();
+    if (data_manager->node_container) {
+        data_manager->node_container->Build_D();
+    }
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 
     D = trans(D_T);
@@ -273,7 +281,9 @@ void ChLcpSolverParallelDVI::ComputeR() {
     rigid_rigid.Build_b();
     bilateral.Build_b();
     rigid_fluid.Build_b();
-    data_manager->node_container->Build_b();
+    if (data_manager->node_container) {
+        data_manager->node_container->Build_b();
+    }
     R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");

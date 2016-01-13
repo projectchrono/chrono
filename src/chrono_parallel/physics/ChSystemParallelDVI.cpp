@@ -174,3 +174,17 @@ void ChSystemParallelDVI::AssembleSystem() {
     this->contact_container->InjectConstraints(*this->LCP_descriptor);
     this->LCP_descriptor->EndInsertion();
 }
+void ChSystemParallelDVI::Initialize() {
+    Setup();
+
+    data_manager->system_timer.start("update");
+    Update();
+    data_manager->system_timer.stop("update");
+
+    data_manager->system_timer.start("collision");
+    collision_system->Run();
+    collision_system->ReportContacts(this->contact_container.get_ptr());
+    data_manager->system_timer.stop("collision");
+
+    data_manager->node_container->Initialize();
+}

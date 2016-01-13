@@ -22,6 +22,10 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
 #include "chrono/physics/ChPhysicsItem.h"
+#include <blaze/math/DynamicVector.h>
+
+using blaze::DynamicVector;
+
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
@@ -44,6 +48,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual int GetNumConstraints() = 0;
     virtual void Setup() = 0;
     virtual void Initialize() = 0;
+    virtual void PreSolve() = 0;
     virtual void Build_D() = 0;
     virtual void Build_b() = 0;
     virtual void Build_E() = 0;
@@ -78,6 +83,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     int GetNumConstraints();
     void Setup();
     void Initialize();
+    void PreSolve() {}
     void Density_Fluid();
     void Normalize_Density_Fluid();
     void Build_D();
@@ -111,22 +117,34 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
 };
 class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
   public:
-    ChMPMContainer(ChSystemParallelMPM* system);
+    ChMPMContainer(ChSystemParallelDVI* system);
     ~ChMPMContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
     void Setup() {}
-    void Initialize() {}
+    void Initialize();
+    void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
+    void Solve(const DynamicVector<real>& b, DynamicVector<real>& x);
+    void PreSolve();
     void Build_D() {}
     void Build_b() {}
     void Build_E() {}
     void Project(real* gamma) {}
-    void GenerateSparsity(){}
+    void GenerateSparsity() {}
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
-    void PostSolve(){}
+    void PostSolve() {}
     int GetNumConstraints() { return 0; }
+
+    DynamicVector<real> grid_mass;
+    DynamicVector<real> grid_vel;
+    DynamicVector<real> grid_vel_old;
+    custom_vector<real3> grid_forces;
+    DynamicVector<real> volume, rhs;
+    custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
+
+    DynamicVector<real> r, p, Ap, q, s;
 };
 // class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
 //  public:
