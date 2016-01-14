@@ -591,7 +591,7 @@ int main(int argc, char* argv[]) {
 
     ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
     mystepper->SetAlpha(-0.2);  // Important for convergence
-    mystepper->SetMaxiters(5);
+    mystepper->SetMaxiters(10);
     mystepper->SetTolerance(5e-05);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);  //
@@ -675,7 +675,7 @@ int main(int argc, char* argv[]) {
             if (!application.GetPaused()) {
                 std::cout << "Time t = " << my_system.GetChTime() << "s \n";
                 AccuNoIterations += mystepper->GetNumIterations();
-                printf("Forward position of rim X:      %12.4e ", Body_2->coord.pos.x);
+                printf("Forward position of rim X:      %12.4e \n", Body_2->coord.pos.x);
                 out << my_system.GetChTime() << Body_2->GetPos().x << Body_2->GetPos().y << Body_2->GetPos().z
                     << Body_3->GetPos().x << Body_3->GetPos().y << Body_3->GetPos().z << Body_4->GetPos().x
                     << Body_4->GetPos().y << Body_4->GetPos().z << std::endl;
@@ -683,8 +683,7 @@ int main(int argc, char* argv[]) {
             }
         }
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        chrono::GetLog() << "Computation Time: " << duration;
-        system("pause");
+        chrono::GetLog() << "Computation Time: " << duration << "\n";
     } else {
         for (unsigned int it = 0; it < num_steps; it++) {
             my_system.DoStepDynamics(time_step);
@@ -702,8 +701,7 @@ int main(int argc, char* argv[]) {
             }
         }
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        chrono::GetLog() << "Computation Time: " << duration;
-        system("pause");
+        chrono::GetLog() << "Computation Time: " << duration << "\n";
     }
 
     return 0;
