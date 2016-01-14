@@ -53,7 +53,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Diag 3 Matrix\n";
     WeakEqual(Mat33(real3(1, 2, 3)), Mat33(1, 0, 0, 0, 2, 0, 0, 0, 3));
 
-    std::cout << "Construct Full Matrix\n";
+    std::cout << "Column Constructor\n";
+    WeakEqual(Mat33(real3(1, 2, 4), real3(5, 6, 7), real3(8, 9, 10)), A1);
+
+    std::cout << "Element Constructor\n";
     WeakEqual(A4[0], -24);
     WeakEqual(A4[1], 20);
     WeakEqual(A4[2], -5);
@@ -71,12 +74,18 @@ int main(int argc, char* argv[]) {
     WeakEqual(Mat33(R1), ToMat33(ToChQuaternion(R1)), C_EPSILON * 3);
 
     std::cout << "() Operator \n";
-
     WeakEqual(A4(0, 0), -24);
     WeakEqual(A4(1, 2), -4);
 
     std::cout << "col Operator \n";
     WeakEqual(A4.col(0), real3(-24, 20, -5));
+    WeakEqual(A4.col(1), real3(18, -15, 4));
+    WeakEqual(A4.col(2), real3(5, -4, 1));
+
+    std::cout << "row Operator \n";
+    WeakEqual(A4.row(0), real3(-24, 18, 5));
+    WeakEqual(A4.row(1), real3(20, -15, -4));
+    WeakEqual(A4.row(2), real3(-5, 4, 1));
 
     {
         std::cout << "= Operator\n";

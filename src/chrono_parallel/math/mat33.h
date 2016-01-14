@@ -27,17 +27,16 @@ class Mat33 {
   public:
     // Zero constructor
     Mat33() : array{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} {}
-    // diagonal matrix constructor
+    // Diagonal matrix constructor
     Mat33(real v) : array{v, 0, 0, 0, 0, v, 0, 0, 0, 0, v, 0} {}
-    // diagonal matrix constructor
+    // Diagonal matrix constructor
     Mat33(real3 v) : array{v.x, 0, 0, 0, 0, v.y, 0, 0, 0, 0, v.z, 0} {}
 
     // Constructor that takes three columns of the matrix
-    //    Mat33(const real3& col1, const real3& col2, const real3& col3) {
-    //        cols[0] = col1;
-    //        cols[1] = col2;
-    //        cols[2] = col3;
-    //    }
+    Mat33(const real3& col1, const real3& col2, const real3& col3)
+        : array{col1.x, col1.y, col1.z, 0, col2.x, col2.y, col2.z, 0, col3.x, col3.y, col3.z, 0} {}
+
+    // Constructor that takes individial elements
     Mat33(const real& v11,
           const real& v21,
           const real& v31,
@@ -48,9 +47,10 @@ class Mat33 {
           const real& v23,
           const real& v33)
         : array{v11, v21, v31, 0, v12, v22, v32, 0, v13, v23, v33, 0} {}
-
+    // Copy constructor
     Mat33(const Mat33& M) { memcpy(array, M.array, 12 * sizeof(real)); }
 
+    // Constructor that takes a quaternion and generates a rotation matrix
     Mat33(const quaternion& q) {
         array[0] = real(1.0) - real(2.0) * q.y * q.y - real(2.0) * q.z * q.z;
         array[1] = real(2.0) * q.x * q.y + real(2.0) * q.z * q.w;
@@ -70,6 +70,7 @@ class Mat33 {
     inline real operator()(int i, int j) const { return array[j * 4 + i]; }
     inline real& operator()(int i, int j) { return array[j * 4 + i]; }
     inline real3 col(unsigned int i) const { return real3(array[i * 4], array[i * 4 + 1], array[i * 4 + 2]); }
+    inline real3 row(unsigned int i) const { return real3(array[0 * 4 + i], array[1 * 4 + i], array[2 * 4 + i]); }
 
     inline Mat33& operator=(const Mat33& M) {
         memcpy(array, M.array, 12 * sizeof(real));
