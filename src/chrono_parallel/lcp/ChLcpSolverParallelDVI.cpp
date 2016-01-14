@@ -345,18 +345,20 @@ void ChLcpSolverParallelDVI::SetR() {
 void ChLcpSolverParallelDVI::ComputeImpulses() {
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeImpulses()";
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
     const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
+    const DynamicVector<real>& hf = data_manager->host_data.hf;
     DynamicVector<real>& v = data_manager->host_data.v;
 
     if (data_manager->num_constraints > 0) {
         // Compute new velocity based on the lagrange multipliers
-        v = M_invk + M_invD * gamma;
+        v = v + M_inv * hf + M_invD * gamma;
     } else {
         // When there are no constraints we need to still apply gravity and other
         // body forces!
-        v = M_invk;
+        v = v + M_inv * hf;
     }
 }
 
