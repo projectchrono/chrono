@@ -70,14 +70,14 @@ void AddFluid(ChSystemParallelDVI* sys) {
     fluid_container = new ChFluidContainer(sys);
 
     fluid_container->tau = time_step * 4;
-    fluid_container->cohesion = 0;
+    fluid_container->contact_cohesion = 0;
     fluid_container->epsilon = 0;  // 1e-3;
     fluid_container->kernel_radius = .016;
     fluid_container->mass = .007 * 5.5;
     fluid_container->viscosity = 20;
     fluid_container->enable_viscosity = false;
 
-    fluid_container->mu = .1;
+    fluid_container->contact_mu = .1;
     fluid_container->rho = 1000;
     fluid_container->initialize_mass = false;
     // msystem.GetSettings()->fluid.max_interactions = 30;

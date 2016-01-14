@@ -35,8 +35,8 @@ void ChConstraintRigidFluid::Project(real* gamma) {
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-    real mu = data_manager->node_container->mu;
-    real coh = data_manager->node_container->cohesion;
+    real mu = data_manager->node_container->contact_mu;
+    real coh = data_manager->node_container->contact_cohesion;
 
     custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;

@@ -19,8 +19,8 @@ Ch3DOFContainer::Ch3DOFContainer() {
     kernel_radius = .04;
     collision_envelope = 0;
     contact_recovery_speed = 1;
-    cohesion = 0;
-    mu = 0;
+    contact_cohesion = 0;
+    contact_mu = 0;
     max_velocity = 20;
 }
 

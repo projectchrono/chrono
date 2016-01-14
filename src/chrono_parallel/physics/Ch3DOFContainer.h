@@ -73,8 +73,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real kernel_radius;
     real collision_envelope;
     real contact_recovery_speed;  // The speed at which 'rigid' fluid  bodies resolve contact
-    real cohesion;
-    real mu;            // friction
+    real contact_cohesion;
+    real contact_mu;    // friction
     real max_velocity;  // limit on the maximum speed the fluid can move at
 
   protected:
