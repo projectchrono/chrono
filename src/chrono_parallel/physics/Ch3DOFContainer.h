@@ -183,9 +183,25 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real alpha;
     real max_iterations;
 };
-// class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
-//  public:
-//    ChFEMContainer(ChSystemParallelDVI* system);
-//    ~ChFEMContainer();
-//};
+class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
+  public:
+    ChFEMContainer(ChSystemParallelDVI* system);
+    ~ChFEMContainer();
+
+    // Compute initial shape matrix
+    void Initialize();
+    void Build_D();
+    int num_tets;
+    custom_vector<real3> nodes;
+
+    custom_vector<int4> tet_indices;
+
+    custom_vector<Mat33> X0;  // Inverse of intial shape matrix
+    custom_vector<Mat33> Ds;  // Shape matrix
+
+    custom_vector<real> V;    // volume of tet
+    custom_vector<real4> dV;  // derivative with respect to each point
+    real youngs_modulus;
+    real poisson_ratio;
+};
 }
