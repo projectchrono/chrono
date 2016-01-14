@@ -38,7 +38,8 @@ void ChCBroadphase::DetermineBoundingBox() {
             Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
         data_manager->measures.collision.max_bounding_point =
             Max(res.second, data_manager->measures.collision.ff_max_bounding_point);
-        data_manager->measures.collision.global_origin = Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
+        data_manager->measures.collision.global_origin =
+            Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
     }
 
     LOG(TRACE) << "Minimum bounding point: (" << res.first.x << ", " << res.first.y << ", " << res.first.z << ")";

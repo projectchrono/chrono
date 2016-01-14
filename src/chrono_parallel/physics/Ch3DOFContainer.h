@@ -160,7 +160,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void GenerateSparsity() {}
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
-    void PostSolve() {}
+    void PostSolve();
     int GetNumConstraints() { return 0; }
     int GetNumNonZeros() { return 0; }
     DynamicVector<real> grid_mass;

@@ -99,8 +99,8 @@ void ChCollisionSystemParallel::Run() {
         return;
     }
     if (data_manager->num_fluid_bodies != 0) {
-        narrowphase->DispatchFluid();  // do this first so that we can augment the min/max for rigids toget a larger
-                                       // grid
+        // do this first so that we can augment the min/max for rigids to get a larger grid
+        narrowphase->DispatchFluid();
     }
 
     data_manager->system_timer.start("collision_broad");

@@ -48,7 +48,7 @@ void ChMPMContainer::Update(double ChTime) {
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     real3 g_acc = data_manager->settings.gravity;
-    real3 h_gravity = data_manager->settings.step_size *mass * g_acc;
+    real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
     for (int i = 0; i < num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
@@ -190,7 +190,7 @@ void ChMPMContainer::IsInside() {
     grid_inside.resize(num_nodes);
     std::fill(grid_inside.begin(), grid_inside.end(), false);
     uint num_shapes = data_manager->num_rigid_shapes;
-#if 0
+#if 1
     for (int i = 0; i < num_nodes; i++) {
         if (grid_mass[i] <= 0) {
             continue;
@@ -205,11 +205,11 @@ void ChMPMContainer::IsInside() {
                                data_manager->host_data.obj_data_R_global[shape_id_a],  //
                                data_manager->host_data.convex_data.data());            //
 
-            ConvexShape shapeB(SPHERE, location,                                         //
-                               real3(kernel_radius, 0, 0),  //
-                               real3(0),                                                 //
-                               quaternion(1, 0, 0, 0),                                   //
-                               data_manager->host_data.convex_data.data());              //
+            ConvexShape shapeB(SPHERE, location,                             //
+                               real3(kernel_radius, 0, 0),                   //
+                               real3(0),                                     //
+                               quaternion(1, 0, 0, 0),                       //
+                               data_manager->host_data.convex_data.data());  //
 
             real3 ptA, ptB, norm;
             real depth;
@@ -335,7 +335,7 @@ void ChMPMContainer::Solve(const DynamicVector<real>& b, DynamicVector<real>& x)
 
     real rho_old = FLT_MAX;
     real convergence_norm = 0;
-    real tolerance = Max(1e-4 * Convergence_Norm(b), 1e-6);
+    real tolerance = 1e-4;  // Max(1e-4 * Convergence_Norm(b), 1e-6);
     int min_iterations = 0;
 
     int iterations;
@@ -374,7 +374,7 @@ void ChMPMContainer::Solve(const DynamicVector<real>& b, DynamicVector<real>& x)
         rho_old = rho;
     }
 }
-
+void ChMPMContainer::PostSolve() {}
 void ChMPMContainer::PreSolve() {
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
@@ -425,6 +425,10 @@ void ChMPMContainer::PreSolve() {
     for (int p = 0; p < num_particles; p++) {
         const real3 xi = sorted_pos[p];
         const real3 vi = sorted_vel[p];
+        //        real3 vi;
+        //        vi.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0];
+        //        vi.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1];
+        //        vi.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2];
 
         LOOPOVERNODES(                                                         //
             real weight = N(xi - current_node_location, inv_bin_edge) * mass;  //
