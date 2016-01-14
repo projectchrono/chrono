@@ -45,9 +45,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     rigid_rigid.Setup(data_manager);
     bilateral.Setup(data_manager);
     rigid_fluid.Setup(data_manager);
-    if (data_manager->node_container) {
-        data_manager->node_container->Setup();
-    }
+    data_manager->node_container->Setup();
+
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
     data_manager->measures.solver.total_iteration = 0;
@@ -65,9 +64,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     ComputeR();
 
     ComputeN();
-    if (data_manager->node_container) {
-        data_manager->node_container->PreSolve();
-    }
+    data_manager->node_container->PreSolve();
+
     data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
     //  if (data_manager->settings.solver.max_iteration_bilateral > 0) {
@@ -136,9 +134,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     data_manager->Fc_current = false;
     data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
-    if (data_manager->node_container) {
-        data_manager->node_container->PostSolve();
-    }
+    data_manager->node_container->PostSolve();
+
     ComputeImpulses();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
@@ -214,15 +211,13 @@ void ChLcpSolverParallelDVI::ComputeD() {
     rigid_rigid.GenerateSparsity();
     bilateral.GenerateSparsity();
     rigid_fluid.GenerateSparsity();
-    if (data_manager->node_container) {
-        data_manager->node_container->GenerateSparsity();
-    }
+    data_manager->node_container->GenerateSparsity();
+
     rigid_rigid.Build_D();
     bilateral.Build_D();
     rigid_fluid.Build_D();
-    if (data_manager->node_container) {
-        data_manager->node_container->Build_D();
-    }
+    data_manager->node_container->Build_D();
+
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 
     D = trans(D_T);
@@ -271,9 +266,8 @@ void ChLcpSolverParallelDVI::ComputeR() {
     rigid_rigid.Build_b();
     bilateral.Build_b();
     rigid_fluid.Build_b();
-    if (data_manager->node_container) {
-        data_manager->node_container->Build_b();
-    }
+    data_manager->node_container->Build_b();
+
     R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");

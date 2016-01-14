@@ -43,21 +43,21 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
 
     // void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     // Update occurs before he solve
-    virtual void Update(double ChTime) = 0;
-    virtual void UpdatePosition(double ChTime) = 0;
-    virtual int GetNumConstraints() = 0;
-    virtual int GetNumNonZeros() = 0;
-    virtual void Setup() = 0;
-    virtual void Initialize() = 0;
-    virtual void PreSolve() = 0;
-    virtual void Build_D() = 0;
-    virtual void Build_b() = 0;
-    virtual void Build_E() = 0;
-    virtual void Project(real* gamma) = 0;
-    virtual void GenerateSparsity() = 0;
-    virtual void ComputeInvMass(int offset) = 0;
-    virtual void ComputeMass(int offset) = 0;
-    virtual void PostSolve() = 0;
+    virtual void Update(double ChTime){};
+    virtual void UpdatePosition(double ChTime) {}
+    virtual int GetNumConstraints() { return 0; }
+    virtual int GetNumNonZeros() { return 0; }
+    virtual void Setup() {}
+    virtual void Initialize() {}
+    virtual void PreSolve() {}
+    virtual void Build_D() {}
+    virtual void Build_b() {}
+    virtual void Build_E() {}
+    virtual void Project(real* gamma) {}
+    virtual void GenerateSparsity() {}
+    virtual void ComputeInvMass(int offset) {}
+    virtual void ComputeMass(int offset) {}
+    virtual void PostSolve() {}
     // Integrate happens after the solve
     // void Integrate(double ChTime);
     // Position of the node - in absolute csys.

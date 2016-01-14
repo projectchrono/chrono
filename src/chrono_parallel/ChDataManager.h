@@ -339,6 +339,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     ~ChParallelDataManager();
     void Add3DOFContainer(Ch3DOFContainer* container) {
         container->AddRef();
+        delete node_container;
         node_container = container;
     }
     // Structure that contains the data on the host, the naming convention is

@@ -136,9 +136,7 @@ int ChSystemParallel::Integrate_Y() {
         otherphysicslist[i]->Update(ChTime);
     }
 
-    if (data_manager->node_container != 0) {
-        data_manager->node_container->UpdatePosition(ChTime);
-    }
+    data_manager->node_container->UpdatePosition(ChTime);
 
     data_manager->system_timer.stop("update");
 
@@ -358,9 +356,7 @@ void ChSystemParallel::UpdateShafts() {
 // Update all fluid nodes
 // currently a stub
 void ChSystemParallel::Update3DOFBodies() {
-    if (data_manager->node_container != 0) {
-        data_manager->node_container->Update(ChTime);
-    }
+    data_manager->node_container->Update(ChTime);
 }
 
 //
