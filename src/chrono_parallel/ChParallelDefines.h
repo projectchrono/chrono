@@ -32,12 +32,9 @@ typedef int shape_type;
 
 #ifdef __CDT_PARSER__
 #define BLAZE_SERIAL_SECTION
-#endif
-
-#ifndef __CDT_PARSER__
+#define CH_PARALLEL_API
 #define custom_vector std::vector
 #else
-
 #define custom_vector std::vector
 #endif
 
