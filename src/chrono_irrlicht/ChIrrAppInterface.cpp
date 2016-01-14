@@ -15,6 +15,7 @@
 #include "chrono/physics/ChLinkSpring.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/core/ChFileutils.h"
 
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
@@ -100,10 +101,10 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
         case irr::KEY_SNAPSHOT:
                 if (app->videoframe_save == false) {
                     app->videoframe_save = true;
-                    GetLog() << "Start saving frames to snapshotnnnnn.bmp pictures...\n";
+                    GetLog() << "Start saving frames in /video_capture/snapshotnnnnn.bmp pictures...\n";
                 } else {
                     app->videoframe_save = false;
-                    GetLog() << "Stop saving frames.\n";
+                    GetLog() << "Stop saving frames in /video_capture directory.\n";
                 }
                 return true;
         case irr::KEY_ESCAPE:
@@ -379,7 +380,10 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     if (font)
         skin->setFont(font);
     skin->setColor(irr::gui::EGDC_BUTTON_TEXT, irr::video::SColor(255, 40, 50, 50));
-
+    skin->setColor(irr::gui::EGDC_HIGH_LIGHT, irr::video::SColor(255, 40, 70, 250));
+    skin->setColor(irr::gui::EGDC_FOCUSED_EDITABLE, irr::video::SColor(255, 0, 255, 255));
+    skin->setColor(irr::gui::EGDC_3D_HIGH_LIGHT, irr::video::SColor(200, 210, 210, 210));
+  
     gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 496), 0, true, true);
     gad_tab1 = gad_tabbed->addTab(L"Stats");
     gad_tab2 = gad_tabbed->addTab(L"System");
@@ -617,10 +621,11 @@ void ChIrrAppInterface::DoStep() {
     }
 
     if (videoframe_save) {
-        if (videoframe_num % videoframe_each == 0) {
+        if (videoframe_num % videoframe_each == 0) {          
+            ChFileutils::MakeDirectory("video_capture");
             irr::video::IImage* image = GetVideoDriver()->createScreenShot();
             char filename[100];
-            sprintf(filename, "screenshot%05d.bmp", (videoframe_num + 1) / videoframe_each);
+            sprintf(filename, "video_capture/screenshot%05d.bmp", (videoframe_num + 1) / videoframe_each);
             if (image)
                 device->getVideoDriver()->writeImageToFile(image, filename);
             image->drop();
