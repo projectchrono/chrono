@@ -34,7 +34,7 @@ namespace chrono
 		{
 			// not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE ConvertToMatrixForm()
 			n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-			matCSR3.Reset(n, n, static_cast<int>(n*n*SPM_DEF_FULLNESS)); 
+			matCSR3.Reset(n, n, static_cast<int>(n*(n*SPM_DEF_FULLNESS)));
 			sol.Resize(n, 1); // ConvertToMatrixForm() takes care of eventually resizing matCSR3 and rhs, but not sol; this can be done also AFTER CTMF()
 			res.Resize(n, 1);
 		}
