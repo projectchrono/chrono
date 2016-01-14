@@ -115,6 +115,7 @@ class CH_PARALLEL_API ChSolverParallel {
     ChConstraintBilateral* bilateral;
     ChConstraintRigidFluid* rigid_fluid;
     Ch3DOFContainer* three_dof;
+    Ch3DOFContainer* fem;
 
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;

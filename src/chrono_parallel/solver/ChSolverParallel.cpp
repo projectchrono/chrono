@@ -8,6 +8,7 @@ ChSolverParallel::ChSolverParallel() {
     rigid_rigid = NULL;
     rigid_fluid = NULL;
     three_dof = NULL;
+    fem = NULL;
     bilateral = NULL;
 }
 
@@ -15,9 +16,10 @@ void ChSolverParallel::Project(real* gamma) {
     data_manager->system_timer.start("ChSolverParallel_Project");
     rigid_rigid->Project(gamma);
     rigid_fluid->Project(gamma);
-    if (three_dof) {
-        three_dof->Project(gamma);
-    }
+
+    three_dof->Project(gamma);
+    fem->Project(gamma);
+
     data_manager->system_timer.stop("ChSolverParallel_Project");
 }
 

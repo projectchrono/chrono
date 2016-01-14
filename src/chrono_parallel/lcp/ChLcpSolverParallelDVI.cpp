@@ -27,12 +27,13 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
     uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
+    uint num_tet_constraints = data_manager->fem_container->GetNumConstraints();
 
     // Get the number of 3dof constraints, from the 3dof container in use right now
 
     // This is the total number of constraints
     data_manager->num_constraints =
-        data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid + num_3dof_3dof;
+        data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid + num_3dof_3dof + num_tet_constraints;
 
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
@@ -46,6 +47,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     bilateral.Setup(data_manager);
     rigid_fluid.Setup(data_manager);
     data_manager->node_container->Setup();
+    data_manager->fem_container->Setup();
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
@@ -57,6 +59,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     solver->bilateral = &bilateral;
     solver->rigid_fluid = &rigid_fluid;
     solver->three_dof = data_manager->node_container;
+    solver->fem = data_manager->fem_container;
     solver->Setup(data_manager);
 
     ComputeD();
@@ -65,6 +68,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     ComputeN();
     data_manager->node_container->PreSolve();
+    data_manager->fem_container->PreSolve();
 
     data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
@@ -135,6 +139,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->Fc_current = false;
     data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
     data_manager->node_container->PostSolve();
+    data_manager->fem_container->PostSolve();
 
     ComputeImpulses();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
@@ -179,14 +184,18 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint num_fluid_fluid = data_manager->node_container->GetNumConstraints();
     uint nnz_fluid_fluid = data_manager->node_container->GetNumNonZeros();
 
+    uint num_fem = data_manager->fem_container->GetNumConstraints();
+    uint nnz_fem = data_manager->fem_container->GetNumNonZeros();
+
+
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& D = data_manager->host_data.D;
     CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-    int nnz_total = nnz_bilaterals + nnz_rigid_fluid + nnz_fluid_fluid;
-    int num_rows = num_bilaterals + num_rigid_fluid + num_fluid_fluid;
+    int nnz_total = nnz_bilaterals + nnz_rigid_fluid + nnz_fluid_fluid + nnz_fem;
+    int num_rows = num_bilaterals + num_rigid_fluid + num_fluid_fluid + num_fem;
 
     switch (data_manager->settings.solver.solver_mode) {
         case NORMAL:
@@ -212,11 +221,13 @@ void ChLcpSolverParallelDVI::ComputeD() {
     bilateral.GenerateSparsity();
     rigid_fluid.GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
+    data_manager->fem_container->GenerateSparsity();
 
     rigid_rigid.Build_D();
     bilateral.Build_D();
     rigid_fluid.Build_D();
     data_manager->node_container->Build_D();
+    data_manager->fem_container->Build_D();
 
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 
@@ -267,7 +278,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
     bilateral.Build_b();
     rigid_fluid.Build_b();
     data_manager->node_container->Build_b();
-
+    data_manager->fem_container->Build_b();
     R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");
