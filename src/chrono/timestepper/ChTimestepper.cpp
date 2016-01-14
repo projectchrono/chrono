@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <cstdlib>
+#include <cmath>
 
 #include "timestepper/ChTimestepper.h"
 
