@@ -15,8 +15,11 @@ ChParallelDataManager::ChParallelDataManager()
       num_constraints(0),
       num_shafts(0),
       num_dof(0),
+      num_nodes(0),
+      num_rigid_tet_contacts(0),
       nnz_bilaterals(0) {
     node_container = new Ch3DOFContainer();
+    fem_container = new Ch3DOFContainer();
 }
 
 ChParallelDataManager::~ChParallelDataManager() {}

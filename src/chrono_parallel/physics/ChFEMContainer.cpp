@@ -19,16 +19,29 @@ ChFEMContainer::ChFEMContainer(ChSystemParallelDVI* system) {}
 
 ChFEMContainer::~ChFEMContainer() {}
 
+void ChFEMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+    custom_vector<real3>& vel_node = data_manager->host_data.vel_node;
+
+    pos_node.insert(pos_node.end(), positions.begin(), positions.end());
+    vel_node.insert(vel_node.end(), velocities.begin(), velocities.end());
+    // In case the number of velocities provided were not enough, resize to the number of fluid bodies
+    vel_node.resize(pos_node.size());
+    data_manager->num_nodes = pos_node.size();
+}
+
 void ChFEMContainer::Initialize() {
     X0.resize(num_tets);
+
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
 
     for (int i = 0; i < num_tets; i++) {
         int4 tet_index = tet_indices[i];
 
-        real3 x0 = nodes[tet_index.x];
-        real3 x1 = nodes[tet_index.y];
-        real3 x2 = nodes[tet_index.z];
-        real3 x3 = nodes[tet_index.w];
+        real3 x0 = pos_node[tet_index.x];
+        real3 x1 = pos_node[tet_index.y];
+        real3 x2 = pos_node[tet_index.z];
+        real3 x3 = pos_node[tet_index.w];
 
         real3 c1 = x1 - x0;
         real3 c2 = x2 - x0;
@@ -71,6 +84,8 @@ void ChFEMContainer::Build_D() {
                         nu, nu, omn);  //
 
     Mat33 Einv = Inverse(E);
+    Mat33 C_upper = Einv;
+    Mat33 C_lower(real3(muInv, muInv, muInv));
 }
 }  // END_OF_NAMESPACE____
 

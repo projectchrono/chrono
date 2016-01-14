@@ -187,12 +187,11 @@ class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
   public:
     ChFEMContainer(ChSystemParallelDVI* system);
     ~ChFEMContainer();
-
+    void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     // Compute initial shape matrix
     void Initialize();
     void Build_D();
     int num_tets;
-    custom_vector<real3> nodes;
 
     custom_vector<int4> tet_indices;
 
