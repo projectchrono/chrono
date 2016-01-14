@@ -137,7 +137,7 @@ int ChSystemParallel::Integrate_Y() {
     }
 
     data_manager->node_container->UpdatePosition(ChTime);
-
+    data_manager->fem_container->UpdatePosition(ChTime);
     data_manager->system_timer.stop("update");
 
     //=============================================================================================
@@ -357,6 +357,7 @@ void ChSystemParallel::UpdateShafts() {
 // currently a stub
 void ChSystemParallel::Update3DOFBodies() {
     data_manager->node_container->Update(ChTime);
+    data_manager->fem_container->Update(ChTime);
 }
 
 //
@@ -496,8 +497,8 @@ void ChSystemParallel::Setup() {
 
     // Calculate the total number of degrees of freedom (6 per rigid body and 1
     // for each shaft element).
-    data_manager->num_dof =
-        data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_fluid_bodies * 3;
+    data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts +
+                            data_manager->num_fluid_bodies * 3 + data_manager->num_nodes * 3;
 
     // Set variables that are stored in the ChSystem class
     nbodies = data_manager->num_rigid_bodies;

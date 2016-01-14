@@ -252,6 +252,8 @@ struct host_container {
     // Information for FEM nodes
     custom_vector<real3> pos_node;
     custom_vector<real3> vel_node;
+    custom_vector<real> mass_node;
+    custom_vector<int4> tet_indices;
 
     // Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;
@@ -376,6 +378,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_bilaterals;            // The number of bilateral constraints
     uint num_constraints;           // Total number of constraints
     uint num_nodes;                 // Total number of FEM nodes
+    uint num_tets;                  // Total number of FEM nodes
     uint num_rigid_tet_contacts;    // The number of contacts between tetrahedron and rigid bodies
     uint nnz_bilaterals;            // The number of non-zero entries in the bilateral Jacobian
 

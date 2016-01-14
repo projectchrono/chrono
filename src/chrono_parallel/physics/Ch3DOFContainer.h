@@ -188,12 +188,14 @@ class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
     ChFEMContainer(ChSystemParallelDVI* system);
     ~ChFEMContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    void AddTets(const std::vector<int4>& indices);
     // Compute initial shape matrix
     void Initialize();
+    int GetNumConstraints();
+    int GetNumNonZeros();
     void Build_D();
-    int num_tets;
-
-    custom_vector<int4> tet_indices;
+    void ComputeInvMass(int offset);
+    void ComputeMass(int offset);
 
     custom_vector<Mat33> X0;  // Inverse of intial shape matrix
     custom_vector<Mat33> Ds;  // Shape matrix
@@ -202,5 +204,6 @@ class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
     custom_vector<real4> dV;  // derivative with respect to each point
     real youngs_modulus;
     real poisson_ratio;
+    real material_density;
 };
 }
