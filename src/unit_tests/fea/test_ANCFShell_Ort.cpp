@@ -204,13 +204,13 @@ int main(int argc, char* argv[]) {
 
     // Setup integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().StaticCastTo<ChTimestepperHHT>();
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
     mystepper->SetTolerance(1e-08);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(false);
+    mystepper->SetVerbose(true);
 
     /*utils::Data m_data;
     m_data.resize(4);

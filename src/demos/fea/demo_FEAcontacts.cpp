@@ -24,6 +24,8 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChBuilderBeam.h"
@@ -32,8 +34,10 @@
 
 
 using namespace chrono;
-using namespace geometry;
-using namespace fea;
+using namespace chrono::geometry;
+using namespace chrono::fea;
+using namespace chrono::irrlicht;
+
 using namespace irr;
 
 int main(int argc, char* argv[]) {
@@ -53,7 +57,7 @@ int main(int argc, char* argv[]) {
     application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                                    video::SColorf(1, 1, 1));
 
-    application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
+    application.SetContactsDrawMode(ChIrrTools::CONTACT_DISTANCES);
 
 
     //
@@ -75,8 +79,8 @@ int main(int argc, char* argv[]) {
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
     mysurfmaterial->SetYoungModulus(6e4);
-    mysurfmaterial->SetFriction(0.3);
-    mysurfmaterial->SetRestitution(0.2);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0); 
 
     // Create a floor:
@@ -206,9 +210,9 @@ int main(int argc, char* argv[]) {
 
 
     // Create the contact surface(s). 
-    // In this case it is a ChContactSurfaceGeneric, that allows mesh-mesh collsions.
+    // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
 
-    ChSharedPtr<ChContactSurfaceGeneric> mcontactsurf (new ChContactSurfaceGeneric);
+    ChSharedPtr<ChContactSurfaceMesh> mcontactsurf (new ChContactSurfaceMesh);
     my_mesh->AddContactSurface(mcontactsurf);
 
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness); // do this after my_mesh->AddContactSurface

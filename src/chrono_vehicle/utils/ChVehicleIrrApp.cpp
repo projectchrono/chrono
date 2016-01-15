@@ -268,11 +268,11 @@ void ChVehicleIrrApp::renderSprings() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
         if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                   video::SColor(255, 150, 20, 20), 80, 15, true);
+            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
+                                             video::SColor(255, 150, 20, 20), 80, 15, true);
         } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                   video::SColor(255, 150, 20, 20), 80, 15, true);
+            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
+                                             video::SColor(255, 150, 20, 20), 80, 15, true);
         }
     }
 }
@@ -282,11 +282,11 @@ void ChVehicleIrrApp::renderLinks() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
         if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSegment(GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                    video::SColor(255, 0, 20, 0), true);
+            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
+                                              video::SColor(255, 0, 20, 0), true);
         } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSegment(GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
-                                    video::SColor(255, 180, 0, 0), true);
+            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
+                                              video::SColor(255, 180, 0, 0), true);
         }
     }
 }
@@ -295,7 +295,7 @@ void ChVehicleIrrApp::renderLinks() {
 void ChVehicleIrrApp::renderGrid() {
     ChCoordsys<> gridCsys(ChVector<>(0, 0, m_gridHeight), chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
 
-    ChIrrTools::drawGrid(GetVideoDriver(), 0.5, 0.5, 100, 100, gridCsys, video::SColor(255, 80, 130, 255), true);
+    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), 0.5, 0.5, 100, 100, gridCsys, video::SColor(255, 80, 130, 255), true);
 }
 
 // Render a linear gauge in the HUD.

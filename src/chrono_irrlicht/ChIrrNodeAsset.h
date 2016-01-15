@@ -12,24 +12,28 @@
 #define CHIRRNODEASSET_H
 
 #include <irrlicht.h>
-#include "assets/ChAsset.h"
+
+#include "chrono/assets/ChAsset.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrNode.h"
 
 namespace chrono {
+namespace irrlicht {
+
+/// @addtogroup irrlicht
+/// @{
 
 /// Class for adding Irrlicht visualization to a ChPhysicsItem.
 /// This must be added as an 'asset' to the item (ex., a ChBody).
-
 class ChApiIrr ChIrrNodeAsset : public ChAsset {
 
     // Chrono RTTI, needed for serialization
     CH_RTTI(ChIrrNodeAsset, ChAsset);
 
   protected:
-    irr::scene::ChIrrNode* mnode;
+    ChIrrNode* mnode;
 
   public:
     ChIrrNodeAsset() : mnode(0) {}
@@ -41,10 +45,10 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
 
     irr::scene::ISceneNode* GetIrrlichtNode() { return mnode; }
 
-    void Bind(chrono::ChSharedPtr<chrono::ChPhysicsItem> aitem, irr::ChIrrAppInterface& aapp) {
+    void Bind(ChSharedPtr<ChPhysicsItem> aitem, ChIrrAppInterface& aapp) {
         UnBind();
 
-        mnode = new irr::scene::ChIrrNode(aitem, aapp.GetContainer(), aapp.GetSceneManager(), 0);
+        mnode = new ChIrrNode(aitem, aapp.GetContainer(), aapp.GetSceneManager(), 0);
 
         // Grab() to avoid dangling pointer if irrlicht scene is deleted before this obj:
         //  ***NOT NEEDED! Already done in ctor OF ISceneNode when attaching to parent
@@ -67,6 +71,9 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
     }
 };
 
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrlicht
+}  // end namespace chrono
 
 #endif

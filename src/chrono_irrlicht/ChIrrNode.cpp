@@ -10,16 +10,18 @@
 //
 // File author: A.Tasora
 
-#include "core/ChLog.h"
+#include "chrono/core/ChLog.h"
 #include "chrono_irrlicht/ChIrrNode.h"
 #include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
 
-ChIrrNode::ChIrrNode(chrono::ChSharedPtr<chrono::ChPhysicsItem> mphysicsitem,
-                     ISceneNode* parent,
-                     ISceneManager* mgr,
+using namespace irr;
+
+ChIrrNode::ChIrrNode(ChSharedPtr<ChPhysicsItem> mphysicsitem,
+                     scene::ISceneNode* parent,
+                     scene::ISceneManager* mgr,
                      s32 id)
     : ISceneNode(parent, mgr, id), ChronoControlled(true) {
 #ifdef _DEBUG
@@ -41,14 +43,14 @@ void ChIrrNode::OnRegisterSceneNode() {
     ISceneNode::OnRegisterSceneNode();
 }
 
-ISceneNode* ChIrrNode::clone(ISceneNode* newParent, ISceneManager* newManager) {
-    // chrono::GetLog() << "Cloning!\n";
+scene::ISceneNode* ChIrrNode::clone(scene::ISceneNode* newParent, scene::ISceneManager* newManager) {
+    // GetLog() << "Cloning!\n";
     if (!newParent)
         newParent = Parent;
     if (!newManager)
         newManager = SceneManager;
 
-    chrono::ChSharedPtr<chrono::ChPhysicsItem> shphysicsitem(this->physicsitem);
+    ChSharedPtr<ChPhysicsItem> shphysicsitem(this->physicsitem);
     shphysicsitem->AddRef();  // trick because shphysicsitem ctor took raw this->physicsitem that is not a new()
 
     ChIrrNode* nb = new ChIrrNode(shphysicsitem, newParent, newManager, this->ID);
@@ -82,13 +84,13 @@ bool ChIrrNode::SetupClones() {
             return true;
 
         while (needed_clones > actual_clones) {
-            core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
+            irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
             (*it)->clone();
             ++actual_clones;
         }
 
         while (needed_clones < actual_clones) {
-            core::list<ISceneNode*>::ConstIterator it = this->getChildren().end();
+            irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().end();
             (*it)->remove();
             --actual_clones;
         }
@@ -110,7 +112,7 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
                     // make each clone node match the corresponding asset frame :
                     unsigned int nclones = physicsitem->GetAssetsFrameNclones();
                     unsigned int iclone = 0;
-                    core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
+                    irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                     for (; it != Children.end(); ++it) {
                         ChIrrTools::alignIrrlichtNodeToChronoCsys((*it),
                                                                   physicsitem->GetAssetsFrame(iclone).GetCoord());
@@ -124,8 +126,8 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
     ISceneNode::OnAnimate(timeMs);
 }
 
-chrono::ChSharedPtr<chrono::ChPhysicsItem> ChIrrNode::GetPhysicsItem() {
-    chrono::ChSharedPtr<chrono::ChPhysicsItem> shphysicsitem(this->physicsitem);
+ChSharedPtr<ChPhysicsItem> ChIrrNode::GetPhysicsItem() {
+    ChSharedPtr<ChPhysicsItem> shphysicsitem(this->physicsitem);
     shphysicsitem->AddRef();  // trick because shphysicsitem ctor took raw this->physicsitem that is not a new()
     return shphysicsitem;
 }
@@ -135,11 +137,11 @@ void ChIrrNode::UpdateAssetsProxies() {
 }
 
 void ChIrrNode::_recurse_update_asset_proxies(ISceneNode* mnode) {
-    ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
+    scene::ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
 
     for (; it != mnode->getChildren().end(); ++it) {
         // if (ChIrrNodeProxyToAsset* mproxy = dynamic_cast<ChIrrNodeProxyToAsset*>(*it))
-        if ((*it)->getType() == (ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET) {
+        if ((*it)->getType() == (scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET) {
             ChIrrNodeProxyToAsset* mproxy = (ChIrrNodeProxyToAsset*)(*it);
             mproxy->Update();
         }
@@ -149,5 +151,5 @@ void ChIrrNode::_recurse_update_asset_proxies(ISceneNode* mnode) {
     }
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

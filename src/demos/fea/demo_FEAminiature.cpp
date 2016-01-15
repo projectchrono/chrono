@@ -39,7 +39,8 @@
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
-using namespace fea;
+using namespace chrono::fea;
+using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
@@ -216,9 +217,6 @@ int main(int argc, char* argv[]) {
     //
     // Final touches to mesh..
     //
-    // This is necessary in order to precompute the
-    // stiffness matrices for all inserted elements in mesh
-    my_mesh->SetupInitial();
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -321,6 +319,9 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
 
     application.AssetUpdateAll();
+
+    // Mark completion of system construction
+    my_system.SetupInitial();
 
     //
     // THE SOFT-REAL-TIME CYCLE

@@ -53,7 +53,7 @@ class ChCameraEventReceiver;  ///< custom event receiver for chase-cam control
 ///   - rendering of the entire Irrlicht scene
 ///   - implements a custom chase-camera (which can be controlled with keyboard)
 ///   - optional rendering of links, springs, stats, etc.
-class CH_VEHICLE_API ChVehicleIrrApp : public irr::ChIrrApp {
+class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
   public:
     /// Construct a vehicle Irrlicht application.
     ChVehicleIrrApp(

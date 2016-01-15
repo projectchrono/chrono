@@ -18,6 +18,7 @@ SET(FEA_DEMOS_IRR
     demo_FEAcables
     demo_FEAancfShell
     demo_FEAbrick
+	demo_FEAcosimulate_load
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
@@ -31,13 +32,15 @@ SET(FEA_DEMOS_IRR_MATLAB
 SET(FEA_DEMOS_IRR_MKL
     demo_FEAcablesMKL
     demo_ToroidalTire
+	demo_FEAabaqus_wheel
+	demo_FEAabaqus_wheel4
+demo_4ToroidalTires
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
     demo_FEAbeamsconstr
     demo_FEAbeams
-	demo_FEAabaqus_wheel
 )
 
 INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)

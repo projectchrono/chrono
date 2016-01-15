@@ -19,6 +19,8 @@
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChFaceTetra_4.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
+#include "chrono_fea/ChContactSurfaceMesh.h"
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChGlyphs.h"
 
@@ -336,7 +338,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     if (this->fem_data_type == E_PLOT_CONTACTSURFACES) {
 
         for (unsigned int isu=0; isu < this->FEMmesh->GetNcontactSurfaces(); ++isu) {
-            if (ChSharedPtr<ChContactSurfaceGeneric> msurface = this->FEMmesh->GetContactSurface(isu).DynamicCastTo<ChContactSurfaceGeneric>()) {
+            if (ChSharedPtr<ChContactSurfaceMesh> msurface = this->FEMmesh->GetContactSurface(isu).DynamicCastTo<ChContactSurfaceMesh>()) {
                 n_verts +=  3* msurface->GetTriangleList().size();
 			    n_vcols +=  3* msurface->GetTriangleList().size();
 			    n_vnorms +=    msurface->GetTriangleList().size(); // flat faces
@@ -922,7 +924,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
         for (unsigned int isu=0; isu < this->FEMmesh->GetNcontactSurfaces(); ++isu) {
 
-            if (ChSharedPtr<ChContactSurfaceGeneric> msurface = this->FEMmesh->GetContactSurface(isu).DynamicCastTo<ChContactSurfaceGeneric>()) {
+            if (ChSharedPtr<ChContactSurfaceMesh> msurface = this->FEMmesh->GetContactSurface(isu).DynamicCastTo<ChContactSurfaceMesh>()) {
 
                 for (unsigned int ifa=0; ifa < msurface->GetTriangleList().size(); ++ifa)
 	            {

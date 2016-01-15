@@ -663,7 +663,6 @@ EXCLUDE                = ../src/chrono/collision/bullet \
                          ../src/chrono/collision/convexdecomposition \
                          ../src/chrono/collision/gimpact \
 						 ../src/chrono/collision/edgetempest\
-                         ../src/chrono_irrlicht \
                          ../src/chrono_matlab \
 						 ../src/chrono_python
 

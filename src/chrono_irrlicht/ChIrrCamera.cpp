@@ -12,8 +12,11 @@
 
 #include "chrono_irrlicht/ChIrrCamera.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+using namespace irr;
+using namespace irr::scene;
 
 RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
                      ISceneNode* parent,
@@ -489,5 +492,5 @@ void RTSCamera::updateAnimationState() {
 void RTSCamera::updateMatrices() {
 }
 
-}  // end namespace
-}  // end namespace
+}  // end namespace irrlicht
+}  // end namespace chrono

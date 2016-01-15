@@ -38,18 +38,17 @@
 #include <irrlicht.h>
 
 // Use the namespace of Chrono
-
 using namespace chrono;
-using namespace geometry;
+using namespace chrono::geometry;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system

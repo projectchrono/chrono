@@ -24,6 +24,12 @@ endif("${isSystemDir}" STREQUAL "-1")
 
 message(STATUS "==== Additional test programs ====")
 
+option(BUILD_ADDITIONAL_TESTS_BASE "Build additional test programs for base Chroono module" TRUE)
+mark_as_advanced(FORCE BUILD_ADDITIONAL_TESTS_BASE)
+if(BUILD_ADDITIONAL_TESTS_BASE)
+	add_subdirectory(timestepper)
+endif()
+
 if(ENABLE_MODULE_FEA)
  	option(BUILD_ADDITIONAL_TESTS_FEA "Build additional test programs for FEA module" TRUE)
 	mark_as_advanced(FORCE BUILD_ADDITIONAL_TESTS_FEA)

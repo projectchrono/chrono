@@ -24,26 +24,34 @@
 
 namespace chrono {
 namespace opengl {
+
+/// @addtogroup opengl
+/// @{
+
+/// Generic renderable text class that uses an atlas stored in the FontData.h file.
 class CH_OPENGL_API ChOpenGLText : public ChOpenGLObject {
- public:
-  ChOpenGLText();
-  virtual bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
-  virtual void Draw(const glm::mat4& projection = glm::mat4(1), const glm::mat4& view = glm::mat4(1));
-  void TakeDown();
-  void Update();
-  void GenerateFontIndex();
-  void Render(const std::string& str, float x, float y, float sx, float sy);
+  public:
+    ChOpenGLText();
+    virtual bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
+    virtual void Draw(const glm::mat4& projection = glm::mat4(1), const glm::mat4& view = glm::mat4(1));
+    void TakeDown();
+    void Update();
+    void GenerateFontIndex();
+    void Render(const std::string& str, float x, float y, float sx, float sy);
 
- private:
-  glm::vec4 color;
-  GLuint color_handle, texture_handle;
-  std::vector<glm::vec4> text_data;
-  std::map<char, int> char_index;
-  GLuint vbo, vao;
+  private:
+    glm::vec4 color;
+    GLuint color_handle, texture_handle;
+    std::vector<glm::vec4> text_data;
+    std::map<char, int> char_index;
+    GLuint vbo, vao;
 
-  GLuint texture, sampler;
-  typedef ChOpenGLObject super;
+    GLuint texture, sampler;
+    typedef ChOpenGLObject super;
 };
+
+/// @} opengl
+
 }
 }
 #endif  // END of CHOPENGLTEXT_H

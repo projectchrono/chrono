@@ -40,7 +40,7 @@
 #include "subsys/driver/ChIrrGuiTrack.h"
 // Use the main namespaces of Irrlicht
 using namespace irr;
-using namespace core;
+using namespace irr::core;
 /*
 # define USE_IRRLICHT
 #endif
@@ -50,6 +50,8 @@ using namespace core;
 #include "ModelDefs.h"
 // Use the main namespace of Chrono
 using namespace chrono;
+using namespace chrono::irrlicht;
+
 
 // =============================================================================
 // User Settings

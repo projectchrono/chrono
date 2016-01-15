@@ -44,12 +44,13 @@
 */
 #include "subsys/trackVehicle/TrackVehicle.h"
 #include "ModelDefs.h"
-// Use the main namespace of Chrono
+// Use the main namespaces of Chrono
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-using namespace core;
+using namespace irr::core;
 
 // =============================================================================
 // User Settings

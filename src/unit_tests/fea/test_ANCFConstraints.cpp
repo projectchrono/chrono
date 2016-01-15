@@ -83,7 +83,6 @@ ChSharedPtr<ChLinkPointFrame> constraint_hinge;
 ChSharedPtr<ChLinkDirFrame> constraintDir;
 
 // Output data
-bool print_data = true;
 bool store_data = true;
 utils::Data m_data;
 
@@ -309,8 +308,7 @@ int main(int argc, char* argv[]) {
     AddConstraints(my_system);
 
     // Set up linear solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED THIS OR ::LCP_SIMPLEX because other
-    // solvers can't handle stiffness matrices
+    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(2000);
     my_system.SetIterLCPmaxItersStab(2000);
@@ -318,14 +316,16 @@ int main(int argc, char* argv[]) {
     chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
+
     // Set up integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
     ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(1000);
-    mystepper->SetTolerance(1e-06);
+    mystepper->SetTolerance(1e-05);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
+    mystepper->SetVerbose(true);
 
     // Mark completion of system construction
     my_system.SetupInitial();
@@ -347,8 +347,7 @@ int main(int argc, char* argv[]) {
 
     for (int it = 0; it < num_steps; it++) {
         my_system.DoStepDynamics(time_step);
-        std::cout << "\nTime t = " << my_system.GetChTime() << "s \n";
-        // if (print_data) {
+        std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         if (include_bodies) {
             printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x, Body_2->coord.pos.y,
                    Body_2->coord.pos.z);
@@ -392,7 +391,8 @@ int main(int argc, char* argv[]) {
             printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", C23->GetElement(0, 0),
                    C23->GetElement(1, 0), C23->GetElement(2, 0), C23->GetElement(3, 0), C23->GetElement(4, 0));
         }
-        // }
+
+        printf("\n\n");
 
         StoreData(my_system, csv, it, m_data, dot, tip, NodeFirst->pos, C12, C23);
         for (unsigned int iterind = 1; iterind < 16; iterind++) {

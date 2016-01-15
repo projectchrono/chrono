@@ -37,18 +37,18 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the main namespace of Chrono, and other chrono namespaces
-
 using namespace chrono;
 using namespace chrono::particlefactory;
 using namespace chrono::geometry;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 //     A callback executed at each particle creation can be attached to the emitter.
 //     For example, we need that new particles will be bound to Irrlicht visualization:
@@ -68,7 +68,7 @@ class MyCreatorForAll : public ChCallbackPostCreation {
         // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
         mbody->SetNoGyroTorque(true);
     }
-    irr::ChIrrApp* airrlicht_application;
+    ChIrrApp* airrlicht_application;
 };
 
 int main(int argc, char* argv[]) {

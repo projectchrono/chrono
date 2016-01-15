@@ -15,37 +15,40 @@
 #include <string>
 #include <irrlicht.h>
 
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChGlobal.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
 
-namespace irr {
+namespace chrono {
+namespace irrlicht {
+
+/// @addtogroup irrlicht
+/// @{
 
 /// Class with static functions which allow creation of Irrlicht frequent
 /// 'scene nodes' like lights, camera, sky box etc. with very simple statements.
-
 class ChApiIrr ChIrrWizard {
   public:
     /// A very basic and simple function which is just a shortcut to avoid lot of
     /// typing when someone wants to add a logo in a 3D scene, using Irrlicht.
 
     static void add_typical_Logo(
-        IrrlichtDevice* device,
-        const std::string& mlogofilename = chrono::GetChronoDataFile("logo_chronoengine_alpha.png"));
+        irr::IrrlichtDevice* device,
+        const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
 
     /// A very basic and simple function which is just a shortcut to avoid lot of
     /// typing when someone wants to add two lights in a 3D scene, using Irrlicht.
     /// Note: if you want more precise control on lights, just use plain commands
     /// of Irrlicht.
 
-    static void add_typical_Lights(IrrlichtDevice* device,
-                                   core::vector3df pos1 = core::vector3df(30.f, 100.f, 30.f),
-                                   core::vector3df pos2 = core::vector3df(30.f, 80.f, -30.f),
+    static void add_typical_Lights(irr::IrrlichtDevice* device,
+                                   irr::core::vector3df pos1 = irr::core::vector3df(30.f, 100.f, 30.f),
+                                   irr::core::vector3df pos2 = irr::core::vector3df(30.f, 80.f, -30.f),
                                    double rad1 = 290,
                                    double rad2 = 190,
-                                   video::SColorf col1 = video::SColorf(0.7f, 0.7f, 0.7f, 1.0f),
-                                   video::SColorf col2 = video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
+                                   irr::video::SColorf col1 = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f),
+                                   irr::video::SColorf col2 = irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
 
     /// A very basic and simple function which is just a  shortcut to avoid lot of
     /// typing when someone wants to add a sky dome (sky box) in a 3D scene, using
@@ -53,8 +56,8 @@ class ChApiIrr ChIrrWizard {
     /// Note: it is assumed that the specified "mtexturedir" directory contains
     /// the following three texture images: sky_lf.jpg, sky_up.jpg, sky_dn.jpg
 
-    static void add_typical_Sky(IrrlichtDevice* device,
-                                const std::string& mtexturedir = chrono::GetChronoDataFile("skybox/"));
+    static void add_typical_Sky(irr::IrrlichtDevice* device,
+                                const std::string& mtexturedir = GetChronoDataFile("skybox/"));
 
     /// A very basic and simple function which is just a shortcut to avoid lot of
     /// typing when someone wants to add a Maya-like camera in a Irrlicht 3D scene.
@@ -65,11 +68,14 @@ class ChApiIrr ChIrrWizard {
     /// position and target. Note: if you want more precise control on camera
     /// specs, just use plain commands of Irrlicht.
 
-    static void add_typical_Camera(IrrlichtDevice* device,
-                                   core::vector3df mpos = core::vector3df(0, 0, -8),
-                                   core::vector3df mtarg = core::vector3df(0, 0, 0));
+    static void add_typical_Camera(irr::IrrlichtDevice* device,
+                                   irr::core::vector3df mpos = irr::core::vector3df(0, 0, -8),
+                                   irr::core::vector3df mtarg = irr::core::vector3df(0, 0, 0));
 };
 
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrlicht
+}  // end namespace chrono
 
 #endif

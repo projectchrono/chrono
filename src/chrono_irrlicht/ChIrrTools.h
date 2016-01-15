@@ -16,23 +16,20 @@
 #include <vector>
 #include <irrlicht.h>
 
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChCoordsys.h"
-#include "motion_functions/ChFunction_Base.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 
 namespace irr {
 namespace core {
 
-// -----------------------------------------------------------------------------
 /// Utility class to easily convert a Chrono::Engine vector into an Irrlicht
 /// vector3df. Simply create an Irrlicht compatible vector as:
 ///          myvector=vector3dfCH(mychronovector);
-// -----------------------------------------------------------------------------
-
 class ChApiIrr vector3dfCH : public vector3df {
   public:
     vector3dfCH(const chrono::ChVector<>& mch) {
@@ -47,16 +44,18 @@ class ChApiIrr vector3dfCH : public vector3df {
     }
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace core
+}  // end namespace irr
 
-namespace irr {
+namespace chrono {
+namespace irrlicht {
+
+/// @addtogroup irrlicht
+/// @{
 
 // -----------------------------------------------------------------------------
 /// Class with static functions which help with the integration of
 /// Chrono::Engine and Irrlicht 3D rendering library.
-// -----------------------------------------------------------------------------
-
 class ChApiIrr ChIrrTools {
   public:
     enum eCh_ContactsDrawMode {
@@ -97,52 +96,52 @@ class ChApiIrr ChIrrTools {
     };
 
     /// Function to align an Irrlicht object to a Chrono::Engine coordsys.
-    static void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const chrono::ChCoordsys<>& mcoords);
+    static void alignIrrlichtNodeToChronoCsys(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
     /// Easy-to-use function which draws contact points used by a ChSystem in the
     /// current Irrlicht viewer (the IVideoDriver). The contact points are
     /// visually represented with short lines, of length mlen, aligned to contact
     /// normals.
-    static int drawAllContactPoints(chrono::ChSystem& mphysicalSystem,
-                                    video::IVideoDriver* driver,
+    static int drawAllContactPoints(ChSystem& mphysicalSystem,
+                                    irr::video::IVideoDriver* driver,
                                     double mlen = 1.0,
                                     eCh_ContactsDrawMode drawtype = CONTACT_NORMALS);
 
     /// Easy-to-use function which draws contact informations as labels at the
     /// contact point
-    static int drawAllContactLabels(chrono::ChSystem& mphysicalSystem,
+    static int drawAllContactLabels(ChSystem& mphysicalSystem,
                                     irr::IrrlichtDevice* device,
                                     eCh_ContactsLabelMode labeltype = CONTACT_FORCES_N_VAL,
-                                    video::SColor mcol = video::SColor(255, 255, 255, 255));
+                                    irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
 
     /// Easy-to-use function which draws reaction forces in all contacts in
     /// current Irrlicht viewer (the IVideoDriver).
-    static int drawAllLinks(chrono::ChSystem& mphysicalSystem,
-                            video::IVideoDriver* driver,
+    static int drawAllLinks(ChSystem& mphysicalSystem,
+                            irr::video::IVideoDriver* driver,
                             double mlen = 1.0,
                             eCh_LinkDrawMode drawtype = LINK_REACT_FORCE);
 
     /// Easy-to-use function which draws contact informations as labels at the
     /// contact point
-    static int drawAllLinkLabels(chrono::ChSystem& mphysicalSystem,
+    static int drawAllLinkLabels(ChSystem& mphysicalSystem,
                                  irr::IrrlichtDevice* device,
                                  eCh_LinkLabelMode labeltype = LINK_REACT_FORCE_X,
-                                 video::SColor mcol = video::SColor(255, 255, 255, 255));
+                                 irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
 
     /// Easy-to-use function which draws collision objects bounding boxes for
     /// rigid bodies - if they have a collision shape.
-    static int drawAllBoundingBoxes(chrono::ChSystem& mphysicalSystem, video::IVideoDriver* driver);
+    static int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver);
 
     /// Easy-to-use function which draws coordinate systems of ChBody objects.
-    static int drawAllCOGs(chrono::ChSystem& mphysicalSystem, video::IVideoDriver* driver, double scale = 0.01);
+    static int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale = 0.01);
 
     /// Easy-to-use function which draws coordinate systems of link frames.
-    static int drawAllLinkframes(chrono::ChSystem& mphysicalSystem, video::IVideoDriver* driver, double scale = 0.01);
+    static int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale = 0.01);
 
     /// --
-    static void drawHUDviolation(video::IVideoDriver* driver,
-                                 IrrlichtDevice* mdevice,
-                                 chrono::ChSystem& asystem,
+    static void drawHUDviolation(irr::video::IVideoDriver* driver,
+                                 irr::IrrlichtDevice* mdevice,
+                                 ChSystem& asystem,
                                  int mx = 10,
                                  int my = 290,
                                  int sx = 300,
@@ -151,8 +150,8 @@ class ChApiIrr ChIrrTools {
                                  double posfact = 500.0);
 
     /// --
-    static void drawChFunction(IrrlichtDevice* mdevice,
-                               chrono::ChFunction* fx,
+    static void drawChFunction(irr::IrrlichtDevice* mdevice,
+                               ChFunction* fx,
                                double xmin = 0,
                                double xmax = 1,
                                double ymin = -1,
@@ -163,62 +162,65 @@ class ChApiIrr ChIrrTools {
                                int sy = 100);
 
     /// Easy-to-use function to draw segment lines in 3D space, with given color.
-    static void drawSegment(video::IVideoDriver* driver,
-                            chrono::ChVector<> mstart,
-                            chrono::ChVector<> mend,
-                            video::SColor mcol = video::SColor(255, 0, 0, 0),
+    static void drawSegment(irr::video::IVideoDriver* driver,
+                            ChVector<> mstart,
+                            ChVector<> mend,
+                            irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
                             bool use_Zbuffer = false);
 
     /// Easy-to-use function to draw a polyline in 3D space, given the array of
     /// points as a std::vector.
-    static void drawPolyline(video::IVideoDriver* driver,
-                             std::vector<chrono::ChVector<> > mpoints,
-                             video::SColor mcol = video::SColor(255, 0, 0, 0),
+    static void drawPolyline(irr::video::IVideoDriver* driver,
+                             std::vector<ChVector<> >& mpoints,
+                             irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
                              bool use_Zbuffer = false);
 
     /// Easy-to-use function to draw a circle line in 3D space, with given color.
     /// Specify the center as coordsys position. Orientation as coordsys
     /// quaternion (default in xy plane)
-    static void drawCircle(video::IVideoDriver* driver,
+    static void drawCircle(irr::video::IVideoDriver* driver,
                            double radius,
-                           chrono::ChCoordsys<> mpos = chrono::CSYSNORM,
-                           video::SColor mcol = video::SColor(255, 0, 0, 0),
+                           ChCoordsys<> mpos = CSYSNORM,
+                           irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
                            int mresolution = 36,
                            bool use_Zbuffer = false);
 
     /// Easy-to-use function to draw a spring in 3D space, with given color.
     /// Specify the radius, the end points in absolute space, the resolution (i.e.
     /// the number of segments approximating the helix) and the number of turns.
-    static void drawSpring(video::IVideoDriver* driver,
+    static void drawSpring(irr::video::IVideoDriver* driver,
                            double radius,
-                           chrono::ChVector<> start,
-                           chrono::ChVector<> end,
-                           video::SColor mcol = video::SColor(255, 0, 0, 0),
+                           ChVector<> start,
+                           ChVector<> end,
+                           irr::video::SColor mcol = irr::video::SColor(255, 0, 0, 0),
                            int mresolution = 65,
                            double turns = 5,
                            bool use_Zbuffer = false);
 
     /// Easy-to-use function to draw grids in 3D space, with given orientation,
     /// color and spacing.
-    static void drawGrid(video::IVideoDriver* driver,
+    static void drawGrid(irr::video::IVideoDriver* driver,
                          double ustep = 0.1,
                          double vstep = 0.1,
                          int nu = 20,
                          int nv = 20,
-                         chrono::ChCoordsys<> mpos = chrono::CSYSNORM,
-                         video::SColor mcol = video::SColor(50, 80, 110, 110),
+                         ChCoordsys<> mpos = CSYSNORM,
+                         irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
                          bool use_Zbuffer = false);
 
     /// --
-    static void drawPlot3D(video::IVideoDriver* driver,
-                           chrono::ChMatrix<> X,  // x of points, in local csys x
-                           chrono::ChMatrix<> Y,  // y of points, in local csys y
-                           chrono::ChMatrix<> Z,  // z height map of points, in local csys z
-                           chrono::ChCoordsys<> mpos = chrono::CSYSNORM,
-                           video::SColor mcol = video::SColor(50, 80, 110, 110),
+    static void drawPlot3D(irr::video::IVideoDriver* driver,
+                           ChMatrix<> X,  // x of points, in local csys x
+                           ChMatrix<> Y,  // y of points, in local csys y
+                           ChMatrix<> Z,  // z height map of points, in local csys z
+                           ChCoordsys<> mpos = CSYSNORM,
+                           irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
                            bool use_Zbuffer = false);
 };
 
-}  // END_OF_NAMESPACE____
+/// @} irrlicht
+
+}  // end namespace irrlicht
+}  // end namespace chrono
 
 #endif

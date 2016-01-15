@@ -25,9 +25,13 @@
 namespace chrono {
 namespace opengl {
 
+/// @addtogroup opengl
+/// @{
+
 enum CameraType { ORTHO, FREE };
 enum CameraDirection { UP, DOWN, LEFT, RIGHT, FORWARD, BACK };
 
+/// OpenGL camera class
 class CH_OPENGL_API ChOpenGLCamera : ChOpenGLBase {
  public:
   ChOpenGLCamera();
@@ -113,6 +117,9 @@ class CH_OPENGL_API ChOpenGLCamera : ChOpenGLBase {
   glm::mat4 model;
   glm::mat4 MVP;
 };
+
+/// @} opengl
+
 }
 }
 #endif  // END of CHOPENGLCAMERA_H
