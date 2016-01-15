@@ -359,6 +359,52 @@ void ChFEMContainer::Build_D() {
                 volSqrt * (Ftr[2] * y[3].y + Ftr[6] * y[3].x) + vf * eps[5] * gradV[11]);
     }
 }
+void ChFEMContainer::Build_b() {
+    uint num_tets = data_manager->num_tets;
+    SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_row, num_tets * 6);
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+
+#pragma omp parallel for
+    for (int i = 0; i < num_tets; i++) {
+        int4 tet_ind = tet_indices[i];
+
+        real3 x0 = pos_node[tet_ind.x];
+        real3 x1 = pos_node[tet_ind.y];
+        real3 x2 = pos_node[tet_ind.z];
+        real3 x3 = pos_node[tet_ind.w];
+
+        real3 c1 = x1 - x0;
+        real3 c2 = x2 - x0;
+        real3 c3 = x3 - x0;
+        Mat33 Ds = Mat33(c1, c2, c3);
+
+        real det = Determinant(Ds);
+        real vol = Abs(det) / 6.0;
+        real volSqrt = Sqrt(vol);
+        Mat33 X = X0[i];
+        Mat33 F = Ds * X;
+        Mat33 Ftr = Transpose(F);
+
+        real3 y[4];
+        y[1] = X.row(0);
+        y[2] = X.row(1);
+        y[3] = X.row(2);
+        y[0] = -y[1] - y[2] - y[3];
+
+        Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
+
+        b_sub[i * 6 + 0] = volSqrt * strain[0];
+        b_sub[i * 6 + 1] = volSqrt * strain[5];
+        b_sub[i * 6 + 2] = volSqrt * strain[10];
+
+        b_sub[i * 6 + 3] = volSqrt * strain[9];
+        b_sub[i * 6 + 4] = volSqrt * strain[8];
+        b_sub[i * 6 + 5] = volSqrt * strain[4];
+    }
+}
+void ChFEMContainer::Build_E() {}
+
 template <typename T>
 static void inline AppendRow12(T& D, const int row, const int offset, const int4 col, const real init) {
     D.append(row, offset + col.x * 3 + 0, init);

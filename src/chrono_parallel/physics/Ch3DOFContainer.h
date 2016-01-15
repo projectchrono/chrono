@@ -197,6 +197,8 @@ class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
     int GetNumConstraints();
     int GetNumNonZeros();
     void Build_D();
+    void Build_b();
+    void Build_E();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
 
