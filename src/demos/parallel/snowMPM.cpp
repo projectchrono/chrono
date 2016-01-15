@@ -110,7 +110,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
 #if 1
-    double dist = mpm_container->kernel_radius;
+    double dist = mpm_container->kernel_radius * .9;
     utils::HCPSampler<> sampler(dist);
     utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(-.1, 0, 0), radius);
 
@@ -118,20 +118,20 @@ void AddFluid(ChSystemParallelDVI* sys) {
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(0, 0, -10);
+        vel_fluid[i] = real3(-3, 0, 0);
     }
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
-//    points = sampler.SampleSphere(ChVector<>(.1, 0, 0), radius);
-//
-//    pos_fluid.resize(points.size());
-//    vel_fluid.resize(points.size());
-//    for (int i = 0; i < points.size(); i++) {
-//        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-//        vel_fluid[i] = real3(-10, 0, 0);
-//    }
-//    mpm_container->AddNodes(pos_fluid, vel_fluid);
+    points = sampler.SampleSphere(ChVector<>(.1, 0, 0), radius);
+
+    pos_fluid.resize(points.size());
+    vel_fluid.resize(points.size());
+    for (int i = 0; i < points.size(); i++) {
+        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+        vel_fluid[i] = real3(-3, 0, 0);
+    }
+    mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
     std::ifstream ifile("snowMPMinit.dat");
