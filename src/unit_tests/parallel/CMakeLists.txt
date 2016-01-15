@@ -21,7 +21,7 @@ SET(TESTS
     test_r
     test_shafts
     test_mpm
-    test_blaze
+    #test_blaze
 )
 
 MESSAGE(STATUS "Unit test programs for PARALLEL module...")
