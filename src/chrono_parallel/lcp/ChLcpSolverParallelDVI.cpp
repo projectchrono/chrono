@@ -32,8 +32,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     // Get the number of 3dof constraints, from the 3dof container in use right now
 
     // This is the total number of constraints
-    data_manager->num_constraints =
-        data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid + num_3dof_3dof + num_tet_constraints;
+    data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid +
+                                    num_3dof_3dof + num_tet_constraints;
 
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
@@ -187,7 +187,6 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint num_fem = data_manager->fem_container->GetNumConstraints();
     uint nnz_fem = data_manager->fem_container->GetNumNonZeros();
 
-
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& D = data_manager->host_data.D;
     CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
@@ -220,14 +219,14 @@ void ChLcpSolverParallelDVI::ComputeD() {
     rigid_rigid.GenerateSparsity();
     bilateral.GenerateSparsity();
     rigid_fluid.GenerateSparsity();
-    data_manager->node_container->GenerateSparsity();
-    data_manager->fem_container->GenerateSparsity();
+    data_manager->node_container->GenerateSparsity(num_rows - num_fem - num_fluid_fluid);
+    data_manager->fem_container->GenerateSparsity(num_rows - num_fem);
 
     rigid_rigid.Build_D();
     bilateral.Build_D();
     rigid_fluid.Build_D();
-    data_manager->node_container->Build_D();
-    data_manager->fem_container->Build_D();
+    data_manager->node_container->Build_D(num_rows - num_fem - num_fluid_fluid);
+    data_manager->fem_container->Build_D(num_rows - num_fem);
 
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 

@@ -40,8 +40,8 @@ int ChFEMContainer::GetNumConstraints() {
     return num_constraints;
 }
 int ChFEMContainer::GetNumNonZeros() {
-    // 12 entries in the elastic, 24 entries in the shear
-    int nnz = data_manager->num_tets * 12 + data_manager->num_tets * 24;
+    // 12*3 entries in the elastic, 12*3 entries in the shear
+    int nnz = data_manager->num_tets * 12 * 3 + data_manager->num_tets * 12 * 3;
 
     return nnz;
 }
@@ -87,12 +87,12 @@ void ChFEMContainer::Initialize() {
     Thrust_Fill(mass_node, 0);
 
     for (int i = 0; i < num_tets; i++) {
-        int4 tet_index = tet_indices[i];
+        int4 tet_ind = tet_indices[i];
 
-        real3 x0 = pos_node[tet_index.x];
-        real3 x1 = pos_node[tet_index.y];
-        real3 x2 = pos_node[tet_index.z];
-        real3 x3 = pos_node[tet_index.w];
+        real3 x0 = pos_node[tet_ind.x];
+        real3 x1 = pos_node[tet_ind.y];
+        real3 x2 = pos_node[tet_ind.z];
+        real3 x3 = pos_node[tet_ind.w];
 
         real3 c1 = x1 - x0;
         real3 c2 = x2 - x0;
@@ -105,10 +105,10 @@ void ChFEMContainer::Initialize() {
         real tet_mass = material_density * V[i];
         real node_mass = tet_mass / 4.0;
 
-        mass_node[tet_index.x] += node_mass;
-        mass_node[tet_index.y] += node_mass;
-        mass_node[tet_index.z] += node_mass;
-        mass_node[tet_index.w] += node_mass;
+        mass_node[tet_ind.x] += node_mass;
+        mass_node[tet_ind.y] += node_mass;
+        mass_node[tet_ind.z] += node_mass;
+        mass_node[tet_ind.w] += node_mass;
 
         //        real3 y[4];
         //        y[1] = X0[i].row(0);
@@ -127,7 +127,7 @@ void ChFEMContainer::Initialize() {
     //                          nud, nud, omnd);  //
 }
 
-void ChFEMContainer::Build_D() {
+void ChFEMContainer::Build_D(uint start_row) {
     real e = youngs_modulus;
     real nu = poisson_ratio;
 
@@ -145,6 +145,271 @@ void ChFEMContainer::Build_D() {
     Mat33 Einv = Inverse(E);
     Mat33 C_upper = Einv;
     Mat33 C_lower(real3(muInv, muInv, muInv));
+
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
+
+    for (int i = 0; i < num_tets; i++) {
+        int4 tet_ind = tet_indices[i];
+
+        real3 x0 = pos_node[tet_ind.x];
+        real3 x1 = pos_node[tet_ind.y];
+        real3 x2 = pos_node[tet_ind.z];
+        real3 x3 = pos_node[tet_ind.w];
+
+        real3 c1 = x1 - x0;
+        real3 c2 = x2 - x0;
+        real3 c3 = x3 - x0;
+        Mat33 Ds = Mat33(c1, c2, c3);
+
+        real det = Determinant(Ds);
+        real vol = Abs(det) / 6.0;
+        real volSqrt = Sqrt(vol);
+        Mat33 X = X0[i];
+        Mat33 F = Ds * S;
+        Mat33 Ftr = Transpose(F);
+
+        real3 y[4];
+        y[1] = X.row(0);
+        y[2] = X.row(1);
+        y[3] = X.row(2);
+        y[0] = -y[1] - y[2] - y[3];
+
+        Mat33 Hs[4];
+        Mat33 Hn[4];
+
+        // Green strain Jacobian
+        for (int j = 0; j < 4; j++) {
+            Hn[j] = Mat33(y[j].x * Ftr[0], y[j].x * Ftr[4], y[j].x * Ftr[8],  //
+                          y[j].y * Ftr[1], y[j].y * Ftr[5], y[j].y * Ftr[9],  //
+                          y[j].z * Ftr[2], y[j].z * Ftr[6], y[j].z * Ftr[10]);
+
+            Hs[j] = 0.5 * Mat33(0, y[j].z, y[j].y, y[j].z, 0, y[j].x, y[j].y, y[j].x, 0) * Ftr;
+        }
+
+        Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
+        real3 delV[4];
+
+        delV[1] = Cross(c2, c3);
+        delV[2] = Cross(c3, c1);
+        delV[3] = Cross(c1, c2);
+        delV[0] = -delV[1] - delV[2] - delV[3];
+
+        real eps[6];
+        // diagonal elements of strain matrix
+        eps[0] = strain[0];
+        eps[1] = strain[5];
+        eps[2] = strain[10];
+        // Off diagonal elements
+        eps[3] = strain[9];
+        eps[4] = strain[8];
+        eps[5] = strain[4];
+
+        real gradV[12];
+
+        gradV[0] = delV[0][0];
+        gradV[1] = delV[0][1];
+        gradV[2] = delV[0][2];
+
+        gradV[3] = delV[1][0];
+        gradV[4] = delV[1][1];
+        gradV[5] = delV[1][2];
+
+        gradV[6] = delV[2][0];
+        gradV[7] = delV[2][1];
+        gradV[8] = delV[2][2];
+
+        gradV[9] = delV[3][0];
+        gradV[10] = delV[3][1];
+        gradV[11] = delV[3][2];
+
+        real vf = (0.5 / (6.0 * volSqrt));
+
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.x * 3 + 0, volSqrt * y[0].x * Ftr[0] + vf * eps[0] * gradV[0]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.x * 3 + 1, volSqrt * y[0].x * Ftr[1] + vf * eps[0] * gradV[1]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.x * 3 + 2, volSqrt * y[0].x * Ftr[2] + vf * eps[0] * gradV[2]);
+
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.y * 3 + 0, volSqrt * y[1].x * Ftr[0] + vf * eps[0] * gradV[3]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.y * 3 + 1, volSqrt * y[1].x * Ftr[1] + vf * eps[0] * gradV[4]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.y * 3 + 2, volSqrt * y[1].x * Ftr[2] + vf * eps[0] * gradV[5]);
+
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.z * 3 + 0, volSqrt * y[2].x * Ftr[0] + vf * eps[0] * gradV[6]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.z * 3 + 1, volSqrt * y[2].x * Ftr[1] + vf * eps[0] * gradV[7]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.z * 3 + 2, volSqrt * y[2].x * Ftr[2] + vf * eps[0] * gradV[8]);
+
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.w * 3 + 0, volSqrt * y[3].x * Ftr[0] + vf * eps[0] * gradV[9]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.w * 3 + 1, volSqrt * y[3].x * Ftr[1] + vf * eps[0] * gradV[10]);
+        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.w * 3 + 2, volSqrt * y[3].x * Ftr[2] + vf * eps[0] * gradV[11]);
+        /////==================================================================================================================================
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.x * 3 + 0, volSqrt * y[0].y * Ftr[4] + vf * eps[1] * gradV[0]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.x * 3 + 1, volSqrt * y[0].y * Ftr[5] + vf * eps[1] * gradV[1]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.x * 3 + 2, volSqrt * y[0].y * Ftr[6] + vf * eps[1] * gradV[2]);
+
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.y * 3 + 0, volSqrt * y[1].y * Ftr[4] + vf * eps[1] * gradV[3]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.y * 3 + 1, volSqrt * y[1].y * Ftr[5] + vf * eps[1] * gradV[4]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.y * 3 + 2, volSqrt * y[1].y * Ftr[6] + vf * eps[1] * gradV[5]);
+
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.z * 3 + 0, volSqrt * y[2].y * Ftr[4] + vf * eps[1] * gradV[6]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.z * 3 + 1, volSqrt * y[2].y * Ftr[5] + vf * eps[1] * gradV[7]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.z * 3 + 2, volSqrt * y[2].y * Ftr[6] + vf * eps[1] * gradV[8]);
+
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.w * 3 + 0, volSqrt * y[3].y * Ftr[4] + vf * eps[1] * gradV[9]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.w * 3 + 1, volSqrt * y[3].y * Ftr[5] + vf * eps[1] * gradV[10]);
+        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.w * 3 + 2, volSqrt * y[3].y * Ftr[6] + vf * eps[1] * gradV[11]);
+        /////==================================================================================================================================
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.x * 3 + 0, volSqrt * y[0].z * Ftr[8] + vf * eps[2] * gradV[0]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.x * 3 + 1, volSqrt * y[0].z * Ftr[9] + vf * eps[2] * gradV[1]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.x * 3 + 2, volSqrt * y[0].z * Ftr[10] + vf * eps[2] * gradV[2]);
+
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.y * 3 + 0, volSqrt * y[1].z * Ftr[8] + vf * eps[2] * gradV[3]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.y * 3 + 1, volSqrt * y[1].z * Ftr[9] + vf * eps[2] * gradV[4]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.y * 3 + 2, volSqrt * y[1].z * Ftr[10] + vf * eps[2] * gradV[5]);
+
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.z * 3 + 0, volSqrt * y[2].z * Ftr[8] + vf * eps[2] * gradV[6]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.z * 3 + 1, volSqrt * y[2].z * Ftr[9] + vf * eps[2] * gradV[7]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.z * 3 + 2, volSqrt * y[2].z * Ftr[10] + vf * eps[2] * gradV[8]);
+
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.w * 3 + 0, volSqrt * y[3].z * Ftr[8] + vf * eps[2] * gradV[9]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.w * 3 + 1, volSqrt * y[3].z * Ftr[9] + vf * eps[2] * gradV[10]);
+        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.w * 3 + 2, volSqrt * y[3].z * Ftr[10] + vf * eps[2] * gradV[11]);
+        /////==================================================================================================================================
+
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.x * 3 + 0,
+                volSqrt * (Ftr[4] * y[0].z + Ftr[8] * y[0].y) + vf * eps[3] * gradV[0]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.x * 3 + 1,
+                volSqrt * (Ftr[5] * y[0].z + Ftr[9] * y[0].y) + vf * eps[3] * gradV[1]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.x * 3 + 2,
+                volSqrt * (Ftr[6] * y[0].z + Ftr[10] * y[0].y) + vf * eps[3] * gradV[2]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.y * 3 + 0,
+                volSqrt * (Ftr[4] * y[1].z + Ftr[8] * y[1].y) + vf * eps[3] * gradV[3]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.y * 3 + 1,
+                volSqrt * (Ftr[5] * y[1].z + Ftr[9] * y[1].y) + vf * eps[3] * gradV[4]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.y * 3 + 2,
+                volSqrt * (Ftr[6] * y[1].z + Ftr[10] * y[1].y) + vf * eps[3] * gradV[5]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.z * 3 + 0,
+                volSqrt * (Ftr[4] * y[2].z + Ftr[8] * y[2].y) + vf * eps[3] * gradV[6]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.z * 3 + 1,
+                volSqrt * (Ftr[5] * y[2].z + Ftr[9] * y[2].y) + vf * eps[3] * gradV[7]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.z * 3 + 2,
+                volSqrt * (Ftr[6] * y[2].z + Ftr[10] * y[2].y) + vf * eps[3] * gradV[8]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.w * 3 + 0,
+                volSqrt * (Ftr[4] * y[3].z + Ftr[8] * y[3].y) + vf * eps[3] * gradV[9]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.w * 3 + 1,
+                volSqrt * (Ftr[5] * y[3].z + Ftr[9] * y[3].y) + vf * eps[3] * gradV[10]);
+        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.w * 3 + 2,
+                volSqrt * (Ftr[6] * y[3].z + Ftr[10] * y[3].y) + vf * eps[3] * gradV[11]);
+        /////==================================================================================================================================
+
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.x * 3 + 0,
+                volSqrt * (Ftr[0] * y[0].z + Ftr[8] * y[0].x) + vf * eps[4] * gradV[0]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.x * 3 + 1,
+                volSqrt * (Ftr[1] * y[0].z + Ftr[9] * y[0].x) + vf * eps[4] * gradV[1]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.x * 3 + 2,
+                volSqrt * (Ftr[2] * y[0].z + Ftr[10] * y[0].x) + vf * eps[4] * gradV[2]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.y * 3 + 0,
+                volSqrt * (Ftr[0] * y[1].z + Ftr[8] * y[1].x) + vf * eps[4] * gradV[3]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.y * 3 + 1,
+                volSqrt * (Ftr[1] * y[1].z + Ftr[9] * y[1].x) + vf * eps[4] * gradV[4]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.y * 3 + 2,
+                volSqrt * (Ftr[2] * y[1].z + Ftr[10] * y[1].x) + vf * eps[4] * gradV[5]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.z * 3 + 0,
+                volSqrt * (Ftr[0] * y[2].z + Ftr[8] * y[2].x) + vf * eps[4] * gradV[6]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.z * 3 + 1,
+                volSqrt * (Ftr[1] * y[2].z + Ftr[9] * y[2].x) + vf * eps[4] * gradV[7]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.z * 3 + 2,
+                volSqrt * (Ftr[2] * y[2].z + Ftr[10] * y[2].x) + vf * eps[4] * gradV[8]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.w * 3 + 0,
+                volSqrt * (Ftr[0] * y[3].z + Ftr[8] * y[3].x) + vf * eps[4] * gradV[9]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.w * 3 + 1,
+                volSqrt * (Ftr[1] * y[3].z + Ftr[9] * y[3].x) + vf * eps[4] * gradV[10]);
+        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.w * 3 + 2,
+                volSqrt * (Ftr[2] * y[3].z + Ftr[10] * y[3].x) + vf * eps[4] * gradV[11]);
+        /////==================================================================================================================================
+
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.x * 3 + 0,
+                volSqrt * (Ftr[0] * y[0].y + Ftr[4] * y[0].x) + vf * eps[5] * gradV[0]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.x * 3 + 1,
+                volSqrt * (Ftr[1] * y[0].y + Ftr[5] * y[0].x) + vf * eps[5] * gradV[1]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.x * 3 + 2,
+                volSqrt * (Ftr[2] * y[0].y + Ftr[6] * y[0].x) + vf * eps[5] * gradV[2]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.y * 3 + 0,
+                volSqrt * (Ftr[0] * y[1].y + Ftr[4] * y[1].x) + vf * eps[5] * gradV[3]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.y * 3 + 1,
+                volSqrt * (Ftr[1] * y[1].y + Ftr[5] * y[1].x) + vf * eps[5] * gradV[4]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.y * 3 + 2,
+                volSqrt * (Ftr[2] * y[1].y + Ftr[6] * y[1].x) + vf * eps[5] * gradV[5]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.z * 3 + 0,
+                volSqrt * (Ftr[0] * y[2].y + Ftr[4] * y[2].x) + vf * eps[5] * gradV[6]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.z * 3 + 1,
+                volSqrt * (Ftr[1] * y[2].y + Ftr[5] * y[2].x) + vf * eps[5] * gradV[7]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.z * 3 + 2,
+                volSqrt * (Ftr[2] * y[2].y + Ftr[6] * y[2].x) + vf * eps[5] * gradV[8]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 0,
+                volSqrt * (Ftr[0] * y[3].y + Ftr[4] * y[3].x) + vf * eps[5] * gradV[9]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 1,
+                volSqrt * (Ftr[1] * y[3].y + Ftr[5] * y[3].x) + vf * eps[5] * gradV[10]);
+        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 2,
+                volSqrt * (Ftr[2] * y[3].y + Ftr[6] * y[3].x) + vf * eps[5] * gradV[11]);
+
+        /////==================================================================================================================================
+
+        /////==================================================================================================================================
+
+        /////==================================================================================================================================
+    }
+}
+template <typename T>
+static void inline AppendRow12(T& D, const int row, const int offset, const int4 col, const real init) {
+    D.weakAppend(row, offset + col.x * 3 + 0, init);
+    D.weakAppend(row, offset + col.x * 3 + 1, init);
+    D.weakAppend(row, offset + col.x * 3 + 2, init);
+
+    D.weakAppend(row, offset + col.y * 3 + 0, init);
+    D.weakAppend(row, offset + col.y * 3 + 1, init);
+    D.weakAppend(row, offset + col.y * 3 + 2, init);
+
+    D.weakAppend(row, offset + col.z * 3 + 0, init);
+    D.weakAppend(row, offset + col.z * 3 + 1, init);
+    D.weakAppend(row, offset + col.z * 3 + 2, init);
+
+    D.weakAppend(row, offset + col.w * 3 + 0, init);
+    D.weakAppend(row, offset + col.w * 3 + 1, init);
+    D.weakAppend(row, offset + col.w * 3 + 2, init);
+}
+void ChFEMContainer::GenerateSparsity(uint start_row) {
+    uint num_tets = data_manager->num_tets;
+    uint num_rigid_bodies = data_manager->num_rigid_bodies;
+    uint num_shafts = data_manager->num_shafts;
+    uint num_fluid_bodies = data_manager->num_fluid_bodies;
+
+    uint body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
+
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+
+    for (int i = 0; i < num_tets; i++) {
+        int4 tet_ind = tet_indices[i];
+        AppendRow12(start_row + i * 6 + 0, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 6 + 0);
+
+        AppendRow12(start_row + i * 6 + 1, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 6 + 1);
+
+        AppendRow12(start_row + i * 6 + 2, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 6 + 2);
+        ///==================================================================================================================================
+
+        AppendRow12(start_row + i * 6 + 3, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 6 + 3);
+
+        AppendRow12(start_row + i * 6 + 4, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 6 + 4);
+
+        AppendRow12(start_row + i * 6 + 5, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 6 + 5);
+    }
 }
 }  // END_OF_NAMESPACE____
 

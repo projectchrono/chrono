@@ -272,7 +272,7 @@ void ChFluidContainer::Normalize_Density_Fluid() {
     }
 }
 
-void ChFluidContainer::Build_D() {
+void ChFluidContainer::Build_D(uint start_row) {
     LOG(INFO) << "ChConstraintFluidFluid::Build_D_Fluid";
     if (num_fluid_contacts <= 0) {
         return;
@@ -429,7 +429,7 @@ void ChFluidContainer::Build_E() {
     }
 }
 void ChFluidContainer::Project(real* gamma) {}
-void ChFluidContainer::GenerateSparsity() {
+void ChFluidContainer::GenerateSparsity(uint start_row) {
     if (data_manager->num_fluid_contacts <= 0) {
         return;
     }

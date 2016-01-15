@@ -50,11 +50,11 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void Setup() {}
     virtual void Initialize() {}
     virtual void PreSolve() {}
-    virtual void Build_D() {}
+    virtual void Build_D(int start_row) {}
     virtual void Build_b() {}
     virtual void Build_E() {}
     virtual void Project(real* gamma) {}
-    virtual void GenerateSparsity() {}
+    virtual void GenerateSparsity(int start_row) {}
     virtual void ComputeInvMass(int offset) {}
     virtual void ComputeMass(int offset) {}
     virtual void PostSolve() {}
@@ -95,11 +95,11 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void PreSolve() {}
     void Density_Fluid();
     void Normalize_Density_Fluid();
-    void Build_D();
+    void Build_D(uint start_row);
     void Build_b();
     void Build_E();
     void Project(real* gamma);
-    void GenerateSparsity();
+    void GenerateSparsity(uint start_row);
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     void PostSolve();
@@ -153,11 +153,11 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real DotProduct(const DynamicVector<real>& a, const DynamicVector<real>& b);
     void Solve(const DynamicVector<real>& b, DynamicVector<real>& x);
     void PreSolve();
-    void Build_D() {}
+    void Build_D(uint start_row) {}
     void Build_b() {}
     void Build_E() {}
     void Project(real* gamma) {}
-    void GenerateSparsity() {}
+    void GenerateSparsity(uint start_row) {}
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     void PostSolve();
@@ -191,9 +191,10 @@ class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
     void AddTets(const std::vector<int4>& indices);
     // Compute initial shape matrix
     void Initialize();
+    void GenerateSparsity(uint start_row);
     int GetNumConstraints();
     int GetNumNonZeros();
-    void Build_D();
+    void Build_D(uint start_row);
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
 
