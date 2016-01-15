@@ -47,14 +47,14 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void UpdatePosition(double ChTime) {}
     virtual int GetNumConstraints() { return 0; }
     virtual int GetNumNonZeros() { return 0; }
-    virtual void Setup() {}
+    virtual void Setup(int start_constraint) { start_row = start_constraint; }
     virtual void Initialize() {}
     virtual void PreSolve() {}
-    virtual void Build_D(int start_row) {}
+    virtual void Build_D() {}
     virtual void Build_b() {}
     virtual void Build_E() {}
     virtual void Project(real* gamma) {}
-    virtual void GenerateSparsity(int start_row) {}
+    virtual void GenerateSparsity() {}
     virtual void ComputeInvMass(int offset) {}
     virtual void ComputeMass(int offset) {}
     virtual void PostSolve() {}
@@ -76,6 +76,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real contact_cohesion;
     real contact_mu;    // friction
     real max_velocity;  // limit on the maximum speed the fluid can move at
+    real start_row;
 
   protected:
     ChParallelDataManager* data_manager;
@@ -90,16 +91,16 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void UpdatePosition(double ChTime);
     int GetNumConstraints();
     int GetNumNonZeros();
-    void Setup();
+    void Setup(int start_constraint);
     void Initialize();
     void PreSolve() {}
     void Density_Fluid();
     void Normalize_Density_Fluid();
-    void Build_D(uint start_row);
+    void Build_D();
     void Build_b();
     void Build_E();
     void Project(real* gamma);
-    void GenerateSparsity(uint start_row);
+    void GenerateSparsity();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     void PostSolve();
@@ -145,7 +146,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
-    void Setup() {}
+    void Setup(int start_constraint) {}
     void Initialize();
     void IsInside();
     real Convergence_Norm(const DynamicVector<real>& r);
@@ -153,11 +154,11 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real DotProduct(const DynamicVector<real>& a, const DynamicVector<real>& b);
     void Solve(const DynamicVector<real>& b, DynamicVector<real>& x);
     void PreSolve();
-    void Build_D(uint start_row) {}
+    void Build_D() {}
     void Build_b() {}
     void Build_E() {}
     void Project(real* gamma) {}
-    void GenerateSparsity(uint start_row) {}
+    void GenerateSparsity() {}
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     void PostSolve();
@@ -191,10 +192,11 @@ class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
     void AddTets(const std::vector<int4>& indices);
     // Compute initial shape matrix
     void Initialize();
-    void GenerateSparsity(uint start_row);
+    void Setup(int start_constraint) { start_row = start_constraint; }
+    void GenerateSparsity();
     int GetNumConstraints();
     int GetNumNonZeros();
-    void Build_D(uint start_row);
+    void Build_D();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
 

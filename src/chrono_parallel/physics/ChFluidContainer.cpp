@@ -135,7 +135,7 @@ void ChFluidContainer::ComputeMass(int offset) {
         M.finalize(offset + i * 3 + 2);
     }
 }
-void ChFluidContainer::Setup() {
+void ChFluidContainer::Setup(int start_constraint) {
     num_fluid_contacts = data_manager->num_fluid_contacts;
     num_fluid_bodies = data_manager->num_fluid_bodies;
     num_rigid_bodies = data_manager->num_rigid_bodies;
@@ -146,6 +146,7 @@ void ChFluidContainer::Setup() {
 
     index_offset = num_unilaterals + num_bilaterals + num_rigid_fluid_contacts * 3;
     body_offset = num_rigid_bodies * 6 + num_shafts;
+    start_row = start_constraint;
 }
 
 void ChFluidContainer::Initialize() {
@@ -272,7 +273,7 @@ void ChFluidContainer::Normalize_Density_Fluid() {
     }
 }
 
-void ChFluidContainer::Build_D(uint start_row) {
+void ChFluidContainer::Build_D() {
     LOG(INFO) << "ChConstraintFluidFluid::Build_D_Fluid";
     if (num_fluid_contacts <= 0) {
         return;
@@ -429,7 +430,7 @@ void ChFluidContainer::Build_E() {
     }
 }
 void ChFluidContainer::Project(real* gamma) {}
-void ChFluidContainer::GenerateSparsity(uint start_row) {
+void ChFluidContainer::GenerateSparsity() {
     if (data_manager->num_fluid_contacts <= 0) {
         return;
     }

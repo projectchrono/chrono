@@ -46,8 +46,9 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     rigid_rigid.Setup(data_manager);
     bilateral.Setup(data_manager);
     rigid_fluid.Setup(data_manager);
-    data_manager->node_container->Setup();
-    data_manager->fem_container->Setup();
+    data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid);
+    data_manager->fem_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid +
+                                       num_3dof_3dof);
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
@@ -219,14 +220,14 @@ void ChLcpSolverParallelDVI::ComputeD() {
     rigid_rigid.GenerateSparsity();
     bilateral.GenerateSparsity();
     rigid_fluid.GenerateSparsity();
-    data_manager->node_container->GenerateSparsity(num_rows - num_fem - num_fluid_fluid);
-    data_manager->fem_container->GenerateSparsity(num_rows - num_fem);
+    data_manager->node_container->GenerateSparsity();
+    data_manager->fem_container->GenerateSparsity();
 
     rigid_rigid.Build_D();
     bilateral.Build_D();
     rigid_fluid.Build_D();
-    data_manager->node_container->Build_D(num_rows - num_fem - num_fluid_fluid);
-    data_manager->fem_container->Build_D(num_rows - num_fem);
+    data_manager->node_container->Build_D();
+    data_manager->fem_container->Build_D();
 
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 

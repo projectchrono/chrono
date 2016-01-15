@@ -127,7 +127,12 @@ void ChFEMContainer::Initialize() {
     //                          nud, nud, omnd);  //
 }
 
-void ChFEMContainer::Build_D(uint start_row) {
+void ChFEMContainer::Build_D() {
+    uint num_fluid_bodies = data_manager->num_fluid_bodies;
+    uint num_rigid_bodies = data_manager->num_rigid_bodies;
+    uint num_shafts = data_manager->num_shafts;
+    uint num_tets = data_manager->num_tets;
+
     real e = youngs_modulus;
     real nu = poisson_ratio;
 
@@ -168,7 +173,7 @@ void ChFEMContainer::Build_D(uint start_row) {
         real vol = Abs(det) / 6.0;
         real volSqrt = Sqrt(vol);
         Mat33 X = X0[i];
-        Mat33 F = Ds * S;
+        Mat33 F = Ds * X;
         Mat33 Ftr = Transpose(F);
 
         real3 y[4];
@@ -352,33 +357,27 @@ void ChFEMContainer::Build_D(uint start_row) {
                 volSqrt * (Ftr[1] * y[3].y + Ftr[5] * y[3].x) + vf * eps[5] * gradV[10]);
         D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 2,
                 volSqrt * (Ftr[2] * y[3].y + Ftr[6] * y[3].x) + vf * eps[5] * gradV[11]);
-
-        /////==================================================================================================================================
-
-        /////==================================================================================================================================
-
-        /////==================================================================================================================================
     }
 }
 template <typename T>
 static void inline AppendRow12(T& D, const int row, const int offset, const int4 col, const real init) {
-    D.weakAppend(row, offset + col.x * 3 + 0, init);
-    D.weakAppend(row, offset + col.x * 3 + 1, init);
-    D.weakAppend(row, offset + col.x * 3 + 2, init);
+    D.append(row, offset + col.x * 3 + 0, init);
+    D.append(row, offset + col.x * 3 + 1, init);
+    D.append(row, offset + col.x * 3 + 2, init);
 
-    D.weakAppend(row, offset + col.y * 3 + 0, init);
-    D.weakAppend(row, offset + col.y * 3 + 1, init);
-    D.weakAppend(row, offset + col.y * 3 + 2, init);
+    D.append(row, offset + col.y * 3 + 0, init);
+    D.append(row, offset + col.y * 3 + 1, init);
+    D.append(row, offset + col.y * 3 + 2, init);
 
-    D.weakAppend(row, offset + col.z * 3 + 0, init);
-    D.weakAppend(row, offset + col.z * 3 + 1, init);
-    D.weakAppend(row, offset + col.z * 3 + 2, init);
+    D.append(row, offset + col.z * 3 + 0, init);
+    D.append(row, offset + col.z * 3 + 1, init);
+    D.append(row, offset + col.z * 3 + 2, init);
 
-    D.weakAppend(row, offset + col.w * 3 + 0, init);
-    D.weakAppend(row, offset + col.w * 3 + 1, init);
-    D.weakAppend(row, offset + col.w * 3 + 2, init);
+    D.append(row, offset + col.w * 3 + 0, init);
+    D.append(row, offset + col.w * 3 + 1, init);
+    D.append(row, offset + col.w * 3 + 2, init);
 }
-void ChFEMContainer::GenerateSparsity(uint start_row) {
+void ChFEMContainer::GenerateSparsity() {
     uint num_tets = data_manager->num_tets;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -391,23 +390,23 @@ void ChFEMContainer::GenerateSparsity(uint start_row) {
 
     for (int i = 0; i < num_tets; i++) {
         int4 tet_ind = tet_indices[i];
-        AppendRow12(start_row + i * 6 + 0, body_offset, tet_ind, 0);
+        AppendRow12(D_T, start_row + i * 6 + 0, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 0);
 
-        AppendRow12(start_row + i * 6 + 1, body_offset, tet_ind, 0);
+        AppendRow12(D_T, start_row + i * 6 + 1, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 1);
 
-        AppendRow12(start_row + i * 6 + 2, body_offset, tet_ind, 0);
+        AppendRow12(D_T, start_row + i * 6 + 2, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 2);
         ///==================================================================================================================================
 
-        AppendRow12(start_row + i * 6 + 3, body_offset, tet_ind, 0);
+        AppendRow12(D_T, start_row + i * 6 + 3, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 3);
 
-        AppendRow12(start_row + i * 6 + 4, body_offset, tet_ind, 0);
+        AppendRow12(D_T, start_row + i * 6 + 4, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 4);
 
-        AppendRow12(start_row + i * 6 + 5, body_offset, tet_ind, 0);
+        AppendRow12(D_T, start_row + i * 6 + 5, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 5);
     }
 }
