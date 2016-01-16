@@ -590,8 +590,10 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
       
     // Add nodes to the mesh (only those effectively used for elements or node sets)
     for (unsigned int i = 0; i< parsed_nodes.size(); ++i) {
-        if (parsed_nodes_used[i] == true)
+        if (parsed_nodes_used[i] == true){
+        	parsed_nodes[i]->SetIndex(i);
             this->AddNode(parsed_nodes[i]);
+        }
     }
 }
 

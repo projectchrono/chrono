@@ -47,9 +47,13 @@ public:
 				/// Sets the 'fixed' state of the node. 
 				/// If true, its current field value is not changed by solver.
 	virtual void SetFixed  (bool mev) =0;  
+				/// Sets the global index of the node
+	virtual void SetIndex(unsigned int mindex){g_index = mindex;}
 				/// Gets the 'fixed' state of the node. 
 				/// If true, its current field value is not changed by solver.
     virtual bool GetFixed()  =0;  
+    			/// Gets the global index of the node
+    virtual unsigned int GetIndex(){return g_index;}
 
 
 protected:
@@ -57,6 +61,8 @@ protected:
     //
     // DATA
     //
+
+	unsigned int g_index; ///< global node index
 
 };
 
