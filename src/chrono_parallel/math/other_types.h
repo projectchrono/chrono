@@ -78,6 +78,9 @@ struct int4 {
     int x, y, z, w;
 };
 
+struct uint4 {
+    unsigned int x, y, z, w;
+};
 int3 operator-(const int3& a, const int3& b);
 int3 operator-(const int3& a, const int& b);
 int3 operator+(const int3& a, const int3& b);

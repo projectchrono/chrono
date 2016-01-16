@@ -253,7 +253,7 @@ struct host_container {
     custom_vector<real3> pos_node;
     custom_vector<real3> vel_node;
     custom_vector<real> mass_node;
-    custom_vector<int4> tet_indices;
+    custom_vector<uint4> tet_indices;
 
     // Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;

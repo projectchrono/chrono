@@ -6,6 +6,10 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+
+#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono_fea/ChElementTetra_4.h"
+
 #include <numeric>
 
 using namespace chrono;
@@ -194,6 +198,8 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
     if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
         AddShaft(shaft);
+    } else if (ChSharedPtr<fea::ChMesh> mesh = newitem.DynamicCastTo<fea::ChMesh>()) {
+        AddMesh(mesh);
     } else {
         newitem->SetSystem(this);
         otherphysicslist.push_back(newitem);
@@ -227,6 +233,49 @@ void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
     data_manager->host_data.shaft_rot.push_back(0);
     data_manager->host_data.shaft_inr.push_back(0);
     data_manager->host_data.shaft_active.push_back(true);
+}
+
+//
+// Add a ChMesh to the system
+// The mesh is passed to the FEM container where it gets added to the system
+// Mesh gets blown up into different data structures, connectivity and nodes are preserved
+// Adding multiple meshes isn't a problem
+void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
+    uint num_nodes = mesh->GetNnodes();
+    uint num_elements = mesh->GetNelements();
+
+    std::vector<real3> positions(num_nodes);
+    std::vector<real3> velocities(num_nodes);
+
+    uint current_nodes = data_manager->num_nodes;
+
+    for (int i = 0; i < num_nodes; i++) {
+        if (ChSharedPtr<fea::ChNodeFEAxyz> node = mesh->GetNode(i).DynamicCastTo<fea::ChNodeFEAxyz>()) {
+            positions[i] = real3(node->GetPos().x, node->GetPos().y, node->GetPos().z);
+            velocities[i] = real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
+            // Offset the element index by the current number of nodes at the start
+            node->SetIndex(i + current_nodes);
+        }
+    }
+    ChFEMContainer* container = (ChFEMContainer*)data_manager->fem_container;
+
+    container->AddNodes(positions, velocities);
+
+    std::vector<uint4> elements(num_elements);
+
+    for (int i = 0; i < num_elements; i++) {
+        if (ChSharedPtr<fea::ChElementTetra_4> tet = mesh->GetElement(i).DynamicCastTo<fea::ChElementTetra_4>()) {
+            uint4 elem;
+
+            elem.x = tet->GetNodeN(0)->GetIndex();  //
+            elem.y = tet->GetNodeN(1)->GetIndex();  //
+            elem.z = tet->GetNodeN(2)->GetIndex();  //
+            elem.w = tet->GetNodeN(3)->GetIndex();  //
+            elements[i] = elem;
+
+        }
+    }
+    container->AddElements(elements);
 }
 
 //

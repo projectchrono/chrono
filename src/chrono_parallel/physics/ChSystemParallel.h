@@ -39,6 +39,8 @@
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
+#include "chrono_fea/ChMesh.h"
+
 namespace chrono {
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
@@ -124,6 +126,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   private:
     void AddShaft(ChSharedPtr<ChShaft> shaft);
+    void AddMesh(ChSharedPtr<fea::ChMesh> mesh);
 
     std::vector<ChShaft*> shaftlist;
 };

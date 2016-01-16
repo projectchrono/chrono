@@ -397,7 +397,7 @@ SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_parallel ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
+TARGET_LINK_LIBRARIES(ChronoEngine_parallel ChronoEngine ChronoEngine_fea ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_parallel
         RUNTIME DESTINATION bin

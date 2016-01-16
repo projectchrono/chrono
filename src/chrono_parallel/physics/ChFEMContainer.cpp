@@ -30,8 +30,8 @@ void ChFEMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     vel_node.resize(pos_node.size());
     data_manager->num_nodes = pos_node.size();
 }
-void ChFEMContainer::AddTets(const std::vector<int4>& indices) {
-    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+void ChFEMContainer::AddElements(const std::vector<uint4>& indices) {
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     tet_indices.insert(tet_indices.end(), indices.begin(), indices.end());
     data_manager->num_tets = tet_indices.size();
 }
@@ -81,13 +81,13 @@ void ChFEMContainer::Initialize() {
     X0.resize(num_tets);
 
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
-    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node;
     // initialize node masses to zero;
     Thrust_Fill(mass_node, 0);
 
     for (int i = 0; i < num_tets; i++) {
-        int4 tet_ind = tet_indices[i];
+        uint4 tet_ind = tet_indices[i];
 
         real3 x0 = pos_node[tet_ind.x];
         real3 x1 = pos_node[tet_ind.y];
@@ -152,12 +152,12 @@ void ChFEMContainer::Build_D() {
     Mat33 C_lower(real3(muInv, muInv, muInv));
 
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
-    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
 
     for (int i = 0; i < num_tets; i++) {
-        int4 tet_ind = tet_indices[i];
+        uint4 tet_ind = tet_indices[i];
 
         real3 x0 = pos_node[tet_ind.x];
         real3 x1 = pos_node[tet_ind.y];
@@ -363,11 +363,11 @@ void ChFEMContainer::Build_b() {
     uint num_tets = data_manager->num_tets;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_row, num_tets * 6);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
-    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
 
 #pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
-        int4 tet_ind = tet_indices[i];
+        uint4 tet_ind = tet_indices[i];
 
         real3 x0 = pos_node[tet_ind.x];
         real3 x1 = pos_node[tet_ind.y];
@@ -406,7 +406,7 @@ void ChFEMContainer::Build_b() {
 void ChFEMContainer::Build_E() {}
 
 template <typename T>
-static void inline AppendRow12(T& D, const int row, const int offset, const int4 col, const real init) {
+static void inline AppendRow12(T& D, const int row, const int offset, const uint4 col, const real init) {
     D.append(row, offset + col.x * 3 + 0, init);
     D.append(row, offset + col.x * 3 + 1, init);
     D.append(row, offset + col.x * 3 + 2, init);
@@ -432,10 +432,10 @@ void ChFEMContainer::GenerateSparsity() {
     uint body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    custom_vector<int4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
 
     for (int i = 0; i < num_tets; i++) {
-        int4 tet_ind = tet_indices[i];
+        uint4 tet_ind = tet_indices[i];
         AppendRow12(D_T, start_row + i * 6 + 0, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 0);
 
