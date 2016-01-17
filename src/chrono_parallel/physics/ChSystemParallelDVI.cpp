@@ -177,6 +177,8 @@ void ChSystemParallelDVI::AssembleSystem() {
 void ChSystemParallelDVI::Initialize() {
     Setup();
 
+    data_manager->fea_container->Initialize();
+
     data_manager->system_timer.start("update");
     Update();
     data_manager->system_timer.stop("update");
@@ -187,5 +189,5 @@ void ChSystemParallelDVI::Initialize() {
     data_manager->system_timer.stop("collision");
 
     data_manager->node_container->Initialize();
-    data_manager->fea_container->Initialize();
+
 }

@@ -78,6 +78,51 @@ void ChFEAContainer::ComputeMass(int offset) {
         M.finalize(offset + i * 3 + 2);
     }
 }
+
+void ChFEAContainer::Update(double ChTime) {
+    uint num_nodes = data_manager->num_nodes;
+    uint num_fluid_bodies = data_manager->num_fluid_bodies;
+    uint num_rigid_bodies = data_manager->num_rigid_bodies;
+    uint num_shafts = data_manager->num_shafts;
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+    custom_vector<real3>& vel_node = data_manager->host_data.vel_node;
+    real3 g_acc = data_manager->settings.gravity;
+    custom_vector<real>& mass_node = data_manager->host_data.mass_node;
+    for (int i = 0; i < num_nodes; i++) {
+        real3 vel = vel_node[i];
+        real3 h_gravity = data_manager->settings.step_size * mass_node[i] * g_acc;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0] = vel.x;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1] = vel.y;
+        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2] = vel.z;
+
+        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0] = h_gravity.x;
+        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1] = h_gravity.y;
+        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2] = h_gravity.z;
+    }
+}
+void ChFEAContainer::UpdatePosition(double ChTime) {
+    uint num_nodes = data_manager->num_nodes;
+    uint num_fluid_bodies = data_manager->num_fluid_bodies;
+    uint num_rigid_bodies = data_manager->num_rigid_bodies;
+    uint num_shafts = data_manager->num_shafts;
+    //
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+    custom_vector<real3>& vel_node = data_manager->host_data.vel_node;
+    //
+    for (int i = 0; i < num_nodes; i++) {
+        real3 vel;
+        vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0];
+        vel.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1];
+        vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2];
+
+        real speed = Length(vel);
+        if (speed > max_velocity) {
+            vel = vel * max_velocity / speed;
+        }
+        vel_node[i] = vel;
+        pos_node[i] += vel * data_manager->settings.step_size;
+    }
+}
 void ChFEAContainer::Initialize() {
     uint num_tets = data_manager->num_tets;
     uint num_nodes = data_manager->num_nodes;
@@ -168,22 +213,29 @@ void ChFEAContainer::Build_D() {
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
 
-        real3 x0 = pos_node[tet_ind.x];
-        real3 x1 = pos_node[tet_ind.y];
-        real3 x2 = pos_node[tet_ind.z];
-        real3 x3 = pos_node[tet_ind.w];
+        real3 p0 = pos_node[tet_ind.x];
+        real3 p1 = pos_node[tet_ind.y];
+        real3 p2 = pos_node[tet_ind.z];
+        real3 p3 = pos_node[tet_ind.w];
 
-        real3 c1 = x1 - x0;
-        real3 c2 = x2 - x0;
-        real3 c3 = x3 - x0;
+        real3 c1 = p1 - p0;
+        real3 c2 = p2 - p0;
+        real3 c3 = p3 - p0;
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
         real vol = Abs(det) / 6.0;
         real volSqrt = Sqrt(vol);
         Mat33 X = X0[i];
-        Mat33 F = Ds * X;
+        Mat33 F = Ds * X;  // 4.27
         Mat33 Ftr = Transpose(F);
+
+        Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
+
+        Print(Ds, "Ds");
+        Print(X, "X");
+        Print(strain, "strain");
+        // std::cin.get();
 
         real3 y[4];
         y[1] = X.row(0);
@@ -203,7 +255,6 @@ void ChFEAContainer::Build_D() {
             Hs[j] = 0.5 * Mat33(0, y[j].z, y[j].y, y[j].z, 0, y[j].x, y[j].y, y[j].x, 0) * Ftr;
         }
 
-        Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
         real3 delV[4];
 
         delV[1] = Cross(c2, c3);
@@ -220,6 +271,8 @@ void ChFEAContainer::Build_D() {
         eps[3] = strain[9];
         eps[4] = strain[8];
         eps[5] = strain[4];
+
+        // printf("eps [%f,%f,%f,%f,%f,%f] \n", eps[0], eps[1], eps[2], eps[3], eps[4], eps[5]);
 
         real gradV[12];
 
@@ -403,13 +456,17 @@ void ChFEAContainer::Build_b() {
 
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
 
-        b_sub[i * 6 + 0] = volSqrt * strain[0];
-        b_sub[i * 6 + 1] = volSqrt * strain[5];
-        b_sub[i * 6 + 2] = volSqrt * strain[10];
+        b_sub[i * 6 + 0] = -volSqrt * strain[0];
+        b_sub[i * 6 + 1] = -volSqrt * strain[5];
+        b_sub[i * 6 + 2] = -volSqrt * strain[10];
 
-        b_sub[i * 6 + 3] = volSqrt * strain[9];
-        b_sub[i * 6 + 4] = volSqrt * strain[8];
-        b_sub[i * 6 + 5] = volSqrt * strain[4];
+        b_sub[i * 6 + 3] = -volSqrt * strain[9];
+        b_sub[i * 6 + 4] = -volSqrt * strain[8];
+        b_sub[i * 6 + 5] = -volSqrt * strain[4];
+
+        //        printf("b [%f,%f,%f,%f,%f,%f] \n", b_sub[i * 6 + 0], b_sub[i * 6 + 1], b_sub[i * 6 + 2], b_sub[i * 6 +
+        //        3],
+        //               b_sub[i * 6 + 4], b_sub[i * 6 + 5]);
     }
 }
 void ChFEAContainer::Build_E() {}
@@ -446,7 +503,7 @@ void ChFEAContainer::GenerateSparsity() {
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
 
-        //tet_ind = Sort(tet_ind);
+        // tet_ind = Sort(tet_ind);
 
         AppendRow12(D_T, start_row + i * 6 + 0, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 0);

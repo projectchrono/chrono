@@ -193,6 +193,8 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     // Compute initial shape matrix
     void Initialize();
     void Setup(int start_constraint) { start_row = start_constraint; }
+    void Update(double ChTime);
+    void UpdatePosition(double ChTime);
     void GenerateSparsity();
     int GetNumConstraints();
     int GetNumNonZeros();
@@ -203,10 +205,8 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     void ComputeMass(int offset);
 
     custom_vector<Mat33> X0;  // Inverse of intial shape matrix
-    custom_vector<Mat33> Ds;  // Shape matrix
 
-    custom_vector<real> V;    // volume of tet
-    custom_vector<real4> dV;  // derivative with respect to each point
+    custom_vector<real> V;  // volume of tet
     real youngs_modulus;
     real poisson_ratio;
     real material_density;
