@@ -121,6 +121,39 @@ static inline uint3 _make_uint3(const uint& a, const uint& b, const uint& c) {
     return t;
 }
 
+static inline uint4 _make_uint4(const uint& a, const uint& b, const uint& c, const uint& d) {
+    uint4 t;
+    t.x = a;
+    t.y = b;
+    t.z = c;
+    t.w = d;
+    return t;
+}
+static inline uint4 Sort(const uint4& a) {
+    uint4 t = a;
+    if (t.x > t.w) {
+        Swap(t.x, t.w);
+    }
+    if (t.x > t.z) {
+        Swap(t.x, t.z);
+    }
+    if (t.x > t.y) {
+        Swap(t.x, t.y);
+    }
+
+    if (t.y > t.w) {
+        Swap(t.y, t.w);
+    }
+    if (t.y > t.z) {
+        Swap(t.y, t.z);
+    }
+
+    if (t.z > t.w) {
+        Swap(t.z, t.w);
+    }
+    return t;
+}
+
 static inline uint3 operator-(const uint3& a, const uint3& b) {
     return U3(a.x - b.x, a.y - b.y, a.z - b.z);
 }

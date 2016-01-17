@@ -21,6 +21,7 @@ SET(TESTS
     test_r
     test_shafts
     test_mpm
+    test_other_math
     #test_blaze
 )
 

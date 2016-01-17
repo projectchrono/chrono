@@ -73,6 +73,13 @@ void StrictEqual(const int& x, const int& y) {
     }
 }
 
+void StrictEqual(const uint& x, const uint& y) {
+    if (x != y) {
+        std::cout << x << " does not equal " << y << std::endl;
+        exit(1);
+    }
+}
+
 void StrictEqual(const real& x, const real& y) {
     if (x != y) {
         std::cout << x << " does not equal " << y << std::endl;
@@ -97,6 +104,13 @@ void StrictEqual(const Mat33& a, const Mat33& b) {
     StrictEqual(a.col(0), b.col(0));
     StrictEqual(a.col(1), b.col(1));
     StrictEqual(a.col(2), b.col(2));
+}
+
+void StrictEqual(const uint4& a, const uint4& b) {
+    StrictEqual(a.x, b.x);
+    StrictEqual(a.y, b.y);
+    StrictEqual(a.z, b.z);
+    StrictEqual(a.w, b.w);
 }
 
 void WeakEqual(const real& x, const real& y, real COMPARE_EPS = C_EPSILON) {
