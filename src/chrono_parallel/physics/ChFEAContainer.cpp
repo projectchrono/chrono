@@ -149,12 +149,16 @@ void ChFEAContainer::Initialize() {
         real3 c1 = x1 - x0;
         real3 c2 = x2 - x0;
         real3 c3 = x3 - x0;
-        Mat33 D = Mat33(c1, c2, c3);
+        Mat33 Ds = Mat33(c1, c2, c3);
 
-        X0[i] = Inverse(D);
-        V[i] = Determinant(D) / 6.0;
+        X0[i] = Inverse(Ds);
+        real det = Determinant(Ds);
+        real vol = (det) / 6.0;
+        real volSqrt = Sqrt(vol);
 
-        real tet_mass = material_density * V[i];
+        V[i] = vol;
+
+        real tet_mass = material_density * vol;
         real node_mass = tet_mass / 4.0;
 
         mass_node[tet_ind.x] += node_mass;
@@ -162,7 +166,7 @@ void ChFEAContainer::Initialize() {
         mass_node[tet_ind.z] += node_mass;
         mass_node[tet_ind.w] += node_mass;
 
-        printf("Vol: %f Mass: %f \n", V[i], tet_mass);
+        //printf("Vol: %f Mass: %f \n", vol, tet_mass);
 
         //        real3 y[4];
         //        y[1] = X0[i].row(0);
@@ -224,7 +228,7 @@ void ChFEAContainer::Build_D() {
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
-        real vol = Abs(det) / 6.0;
+        real vol = (det) / 6.0;
         real volSqrt = Sqrt(vol);
         Mat33 X = X0[i];
         Mat33 F = Ds * X;  // 4.27
@@ -232,9 +236,9 @@ void ChFEAContainer::Build_D() {
 
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
 
-        Print(Ds, "Ds");
-        Print(X, "X");
-        Print(strain, "strain");
+        //Print(Ds, "Ds");
+        //Print(X, "X");
+        //Print(strain, "strain");
         // std::cin.get();
 
         real3 y[4];
@@ -442,7 +446,7 @@ void ChFEAContainer::Build_b() {
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
-        real vol = Abs(det) / 6.0;
+        real vol = (det) / 6.0;
         real volSqrt = Sqrt(vol);
         Mat33 X = X0[i];
         Mat33 F = Ds * X;
@@ -456,13 +460,13 @@ void ChFEAContainer::Build_b() {
 
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
 
-        b_sub[i * 6 + 0] = -volSqrt * strain[0];
-        b_sub[i * 6 + 1] = -volSqrt * strain[5];
-        b_sub[i * 6 + 2] = -volSqrt * strain[10];
+        b_sub[i * 6 + 0] = volSqrt * strain[0];
+        b_sub[i * 6 + 1] = volSqrt * strain[5];
+        b_sub[i * 6 + 2] = volSqrt * strain[10];
 
-        b_sub[i * 6 + 3] = -volSqrt * strain[9];
-        b_sub[i * 6 + 4] = -volSqrt * strain[8];
-        b_sub[i * 6 + 5] = -volSqrt * strain[4];
+        b_sub[i * 6 + 3] = volSqrt * strain[9];
+        b_sub[i * 6 + 4] = volSqrt * strain[8];
+        b_sub[i * 6 + 5] = volSqrt * strain[4];
 
         //        printf("b [%f,%f,%f,%f,%f,%f] \n", b_sub[i * 6 + 0], b_sub[i * 6 + 1], b_sub[i * 6 + 2], b_sub[i * 6 +
         //        3],
@@ -499,11 +503,11 @@ void ChFEAContainer::GenerateSparsity() {
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
-    std::cout << "start_row " << start_row << std::endl;
+    //std::cout << "start_row " << start_row << std::endl;
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
 
-        // tet_ind = Sort(tet_ind);
+        tet_ind = Sort(tet_ind);
 
         AppendRow12(D_T, start_row + i * 6 + 0, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 0);

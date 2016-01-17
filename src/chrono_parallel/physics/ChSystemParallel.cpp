@@ -252,14 +252,14 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
     for (int i = 0; i < num_nodes; i++) {
         if (ChSharedPtr<fea::ChNodeFEAxyz> node = mesh->GetNode(i).DynamicCastTo<fea::ChNodeFEAxyz>()) {
             positions[i] = real3(node->GetPos().x, node->GetPos().y, node->GetPos().z);
-            velocities[i] = real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
+            velocities[i] = real3(0,0,0);//real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
             // Offset the element index by the current number of nodes at the start
             node->SetIndex(i + current_nodes);
+
+            //printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x, node->GetPos().y, node->GetPos().z);
         }
     }
     ChFEAContainer* container = (ChFEAContainer*)data_manager->fea_container;
-
-    container->AddNodes(positions, velocities);
 
     std::vector<uint4> elements(num_elements);
 
@@ -271,11 +271,23 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
             elem.y = tet->GetNodeN(1)->GetIndex();  //
             elem.z = tet->GetNodeN(2)->GetIndex();  //
             elem.w = tet->GetNodeN(3)->GetIndex();  //
-            elem = Sort(elem);
-            elements[i] = elem;
 
+            real3 c1, c2, c3;
+            c1 = positions[elem.y] - positions[elem.x];
+            c2 = positions[elem.z] - positions[elem.x];
+            c3 = positions[elem.w] - positions[elem.x];
+
+            if (Determinant(Mat33(c1, c2, c3)) < 0) {
+                Swap(elem.x, elem.y);
+            }
+
+            // elem = Sort(elem);
+
+            // printf("%d %d %d %d \n", elem.x, elem.y, elem.z, elem.w);
+            elements[i] = elem;
         }
     }
+    container->AddNodes(positions, velocities);
     container->AddElements(elements);
 }
 
