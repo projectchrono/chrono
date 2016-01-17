@@ -56,6 +56,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   void RenderContacts();
   void RenderAABB();
   void RenderGrid();
+  void RenderFluid();
+  void RenderFEA();
   void RenderPlots();
   void HandleInput(unsigned char key, int x, int y);
 
@@ -83,12 +85,17 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLCloud fluid;
   ChOpenGLWires grid;
 
+  ChOpenGLCloud fea_nodes;
+  ChOpenGLWires fea_elements;
+
   ChOpenGLContacts contact_renderer;
   ChOpenGLHUD HUD_renderer;
   ChOpenGLGraphs graph_renderer;
 
   std::vector<glm::vec3> cloud_data;
   std::vector<glm::vec3> fluid_data;
+  std::vector<glm::vec3> fea_node_data;
+  std::vector<glm::vec3> fea_element_data;
   std::vector<glm::vec3> grid_data;
   int simulation_frame;   // The current frame number
   float simulation_h;     // The simulation step size
