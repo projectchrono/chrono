@@ -271,6 +271,7 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
             elem.y = tet->GetNodeN(1)->GetIndex();  //
             elem.z = tet->GetNodeN(2)->GetIndex();  //
             elem.w = tet->GetNodeN(3)->GetIndex();  //
+            elem = Sort(elem);
             elements[i] = elem;
 
         }

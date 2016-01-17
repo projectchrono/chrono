@@ -187,4 +187,5 @@ void ChSystemParallelDVI::Initialize() {
     data_manager->system_timer.stop("collision");
 
     data_manager->node_container->Initialize();
+    data_manager->fea_container->Initialize();
 }

@@ -80,12 +80,16 @@ void ChFEAContainer::ComputeMass(int offset) {
 }
 void ChFEAContainer::Initialize() {
     uint num_tets = data_manager->num_tets;
-
-    X0.resize(num_tets);
+    uint num_nodes = data_manager->num_nodes;
 
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node;
+
+    X0.resize(num_tets);
+    V.resize(num_tets);
+    mass_node.resize(num_nodes);
+
     // initialize node masses to zero;
     Thrust_Fill(mass_node, 0);
 
@@ -112,6 +116,8 @@ void ChFEAContainer::Initialize() {
         mass_node[tet_ind.y] += node_mass;
         mass_node[tet_ind.z] += node_mass;
         mass_node[tet_ind.w] += node_mass;
+
+        printf("Vol: %f Mass: %f \n", V[i], tet_mass);
 
         //        real3 y[4];
         //        y[1] = X0[i].row(0);
@@ -436,9 +442,12 @@ void ChFEAContainer::GenerateSparsity() {
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
-
+    std::cout << "start_row " << start_row << std::endl;
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
+
+        //tet_ind = Sort(tet_ind);
+
         AppendRow12(D_T, start_row + i * 6 + 0, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 0);
 
