@@ -67,7 +67,7 @@ void ChConstraintRigidFluid::Project(real* gamma) {
                 gamma[num_unilaterals + num_bilaterals + index] = gam.x;
                 gamma[num_unilaterals + num_bilaterals + num_rigid_fluid_contacts + index * 2 + 0] = gam.y;
                 gamma[num_unilaterals + num_bilaterals + num_rigid_fluid_contacts + index * 2 + 1] = gam.z;
-
+                index++;
                 continue;
             }
 
