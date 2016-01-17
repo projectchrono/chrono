@@ -141,7 +141,7 @@ int ChSystemParallel::Integrate_Y() {
     }
 
     data_manager->node_container->UpdatePosition(ChTime);
-    data_manager->fem_container->UpdatePosition(ChTime);
+    data_manager->fea_container->UpdatePosition(ChTime);
     data_manager->system_timer.stop("update");
 
     //=============================================================================================
@@ -257,7 +257,7 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
             node->SetIndex(i + current_nodes);
         }
     }
-    ChFEMContainer* container = (ChFEMContainer*)data_manager->fem_container;
+    ChFEAContainer* container = (ChFEAContainer*)data_manager->fea_container;
 
     container->AddNodes(positions, velocities);
 
@@ -406,7 +406,7 @@ void ChSystemParallel::UpdateShafts() {
 // currently a stub
 void ChSystemParallel::Update3DOFBodies() {
     data_manager->node_container->Update(ChTime);
-    data_manager->fem_container->Update(ChTime);
+    data_manager->fea_container->Update(ChTime);
 }
 
 //

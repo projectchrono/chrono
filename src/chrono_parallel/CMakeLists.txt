@@ -139,7 +139,7 @@ SET(ChronoEngine_Parallel_PHYSICS
     physics/Ch3DOFContainer.cpp
     physics/ChFluidContainer.cpp
     physics/ChMPMContainer.cpp
-    physics/ChFEMContainer.cpp
+    physics/ChFEAContainer.cpp
     )
 
 SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})

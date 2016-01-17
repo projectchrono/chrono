@@ -348,6 +348,11 @@ class CH_PARALLEL_API ChParallelDataManager {
         delete node_container;
         node_container = container;
     }
+    void AddFEAContainer(ChFEAContainer* container) {
+        container->AddRef();
+        delete fea_container;
+        fea_container = container;
+    }
     // Structure that contains the data on the host, the naming convention is
     // from when the code supported the GPU (host vs device)
     host_container host_data;
@@ -357,7 +362,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     ChLcpSystemDescriptor* lcp_system_descriptor;
 
     Ch3DOFContainer* node_container;
-    Ch3DOFContainer* fem_container;
+    Ch3DOFContainer* fea_container;
 
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure

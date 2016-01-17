@@ -184,10 +184,10 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real alpha;
     real max_iterations;
 };
-class CH_PARALLEL_API ChFEMContainer : public Ch3DOFContainer {
+class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
-    ChFEMContainer(ChSystemParallelDVI* system);
-    ~ChFEMContainer();
+    ChFEAContainer(ChSystemParallelDVI* system);
+    ~ChFEAContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void AddElements(const std::vector<uint4>& indices);
     // Compute initial shape matrix

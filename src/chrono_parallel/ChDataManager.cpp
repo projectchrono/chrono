@@ -19,7 +19,7 @@ ChParallelDataManager::ChParallelDataManager()
       num_rigid_tet_contacts(0),
       nnz_bilaterals(0) {
     node_container = new Ch3DOFContainer();
-    fem_container = new Ch3DOFContainer();
+    fea_container = new Ch3DOFContainer();
 }
 
 ChParallelDataManager::~ChParallelDataManager() {}

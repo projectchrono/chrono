@@ -16,11 +16,14 @@ using namespace geometry;
 
 /// CLASS FOR A 3DOF FLUID NODE
 
-ChFEMContainer::ChFEMContainer(ChSystemParallelDVI* system) {}
+ChFEAContainer::ChFEAContainer(ChSystemParallelDVI* system) {
+    data_manager = system->data_manager;
+    data_manager->AddFEAContainer(this);
+}
 
-ChFEMContainer::~ChFEMContainer() {}
+ChFEAContainer::~ChFEAContainer() {}
 
-void ChFEMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
+void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
     custom_vector<real3>& vel_node = data_manager->host_data.vel_node;
 
@@ -30,22 +33,22 @@ void ChFEMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     vel_node.resize(pos_node.size());
     data_manager->num_nodes = pos_node.size();
 }
-void ChFEMContainer::AddElements(const std::vector<uint4>& indices) {
+void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     tet_indices.insert(tet_indices.end(), indices.begin(), indices.end());
     data_manager->num_tets = tet_indices.size();
 }
-int ChFEMContainer::GetNumConstraints() {
+int ChFEAContainer::GetNumConstraints() {
     int num_constraints = data_manager->num_tets * 6;  // 6 rows in the tetrahedral jacobian
     return num_constraints;
 }
-int ChFEMContainer::GetNumNonZeros() {
+int ChFEAContainer::GetNumNonZeros() {
     // 12*3 entries in the elastic, 12*3 entries in the shear
     int nnz = data_manager->num_tets * 12 * 3 + data_manager->num_tets * 12 * 3;
 
     return nnz;
 }
-void ChFEMContainer::ComputeInvMass(int offset) {
+void ChFEAContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     uint num_nodes = data_manager->num_nodes;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node;
@@ -60,7 +63,7 @@ void ChFEMContainer::ComputeInvMass(int offset) {
         M_inv.finalize(offset + i * 3 + 2);
     }
 }
-void ChFEMContainer::ComputeMass(int offset) {
+void ChFEAContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
     uint num_nodes = data_manager->num_nodes;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node;
@@ -75,7 +78,7 @@ void ChFEMContainer::ComputeMass(int offset) {
         M.finalize(offset + i * 3 + 2);
     }
 }
-void ChFEMContainer::Initialize() {
+void ChFEAContainer::Initialize() {
     uint num_tets = data_manager->num_tets;
 
     X0.resize(num_tets);
@@ -127,7 +130,7 @@ void ChFEMContainer::Initialize() {
     //                          nud, nud, omnd);  //
 }
 
-void ChFEMContainer::Build_D() {
+void ChFEAContainer::Build_D() {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -359,7 +362,7 @@ void ChFEMContainer::Build_D() {
                 volSqrt * (Ftr[2] * y[3].y + Ftr[6] * y[3].x) + vf * eps[5] * gradV[11]);
     }
 }
-void ChFEMContainer::Build_b() {
+void ChFEAContainer::Build_b() {
     uint num_tets = data_manager->num_tets;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_row, num_tets * 6);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
@@ -403,7 +406,7 @@ void ChFEMContainer::Build_b() {
         b_sub[i * 6 + 5] = volSqrt * strain[4];
     }
 }
-void ChFEMContainer::Build_E() {}
+void ChFEAContainer::Build_E() {}
 
 template <typename T>
 static void inline AppendRow12(T& D, const int row, const int offset, const uint4 col, const real init) {
@@ -423,7 +426,7 @@ static void inline AppendRow12(T& D, const int row, const int offset, const uint
     D.append(row, offset + col.w * 3 + 1, init);
     D.append(row, offset + col.w * 3 + 2, init);
 }
-void ChFEMContainer::GenerateSparsity() {
+void ChFEAContainer::GenerateSparsity() {
     uint num_tets = data_manager->num_tets;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
