@@ -365,7 +365,7 @@ void ChMesh::LoadFromAbaqusFile(const char* filename,
 	node_sets.resize(0);
 
     std::vector< ChSharedPtr<ChNodeFEAbase> > parsed_nodes;
-    std::vector< bool > parsed_nodes_used;
+    std::vector< char > parsed_nodes_used;
 
 	int totnodes = 0;
 	unsigned int nodes_offset = this->GetNnodes();
