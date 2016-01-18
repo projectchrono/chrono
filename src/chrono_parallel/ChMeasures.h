@@ -38,6 +38,10 @@ struct collision_measures {
         ff_min_bounding_point = real3(0);
         ff_max_bounding_point = real3(0);
         ff_bins_per_axis = int3(0);
+
+        node_min_bounding_point = real3(0);
+        node_max_bounding_point = real3(0);
+        node_bins_per_axis = int3(0);
     }
     real3 min_bounding_point;          // The minimal global bounding point
     real3 max_bounding_point;          // The maximum global bounding point
@@ -52,6 +56,10 @@ struct collision_measures {
     int3 ff_bins_per_axis;
     real3 ff_min_bounding_point;
     real3 ff_max_bounding_point;
+    // Tet Collision info
+    int3 node_bins_per_axis;
+    real3 node_min_bounding_point;
+    real3 node_max_bounding_point;
 };
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.

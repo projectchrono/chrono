@@ -183,6 +183,9 @@ struct host_container {
     custom_vector<real3> aabb_max;        // List of bounding boxes maximum point
     custom_vector<real3> convex_data;     // list of convex points
 
+    custom_vector<real3> aabb_min_tet;  // List of bounding boxes minimum point for tets
+    custom_vector<real3> aabb_max_tet;  // List of bounding boxes maximum point for tets
+
     // Contact data
     custom_vector<long long> contact_pairs;
 
@@ -209,6 +212,12 @@ struct host_container {
     // custom_vector<int> fluid_contact_index;
     // custom_vector<long long> bids_fluid_fluid;
     custom_vector<int> reverse_mapping_3dof;
+
+    custom_vector<real3> norm_rigid_node;
+    custom_vector<real3> cpta_rigid_node;
+    custom_vector<real> dpth_rigid_node;
+    custom_vector<int> neighbor_rigid_node;
+    custom_vector<int> c_counts_rigid_node;
 
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
@@ -384,6 +393,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_constraints;           // Total number of constraints
     uint num_nodes;                 // Total number of FEM nodes
     uint num_tets;                  // Total number of FEM nodes
+    uint num_rigid_node_contacts;   // The number of contacts between rigids and  nodes
     uint num_rigid_tet_contacts;    // The number of contacts between tetrahedron and rigid bodies
     uint nnz_bilaterals;            // The number of non-zero entries in the bilateral Jacobian
 

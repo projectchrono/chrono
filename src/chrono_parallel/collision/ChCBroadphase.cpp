@@ -38,9 +38,15 @@ void ChCBroadphase::DetermineBoundingBox() {
             Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
         data_manager->measures.collision.max_bounding_point =
             Max(res.second, data_manager->measures.collision.ff_max_bounding_point);
-        data_manager->measures.collision.global_origin =
-            Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
     }
+    if (data_manager->num_nodes != 0) {
+        data_manager->measures.collision.min_bounding_point =
+            Min(res.first, data_manager->measures.collision.node_min_bounding_point);
+        data_manager->measures.collision.max_bounding_point =
+            Max(res.second, data_manager->measures.collision.node_max_bounding_point);
+    }
+
+    data_manager->measures.collision.global_origin = data_manager->measures.collision.min_bounding_point;
 
     LOG(TRACE) << "Minimum bounding point: (" << res.first.x << ", " << res.first.y << ", " << res.first.z << ")";
     LOG(TRACE) << "Maximum bounding point: (" << res.second.x << ", " << res.second.y << ", " << res.second.z << ")";
@@ -318,6 +324,20 @@ void ChCBroadphase::TwoLevelBroadphase() {
     //    // number_of_contacts_possible = Thrust_Unique(contact_pairs);
     //
     //    contact_pairs.resize(number_of_contacts_possible);
+}
+
+void ChCBroadphase::DispatchTets() {
+    custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
+    custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
+    // determine the bounds on the total space and subdivide based on the bins per axis
+    bbox res(aabb_min_tet[0], aabb_min_tet[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(aabb_min_tet.begin(), aabb_min_tet.end(), unary_op, res, binary_op);
+    res = thrust::transform_reduce(aabb_max_tet.begin(), aabb_max_tet.end(), unary_op, res, binary_op);
+
+    data_manager->measures.collision.node_min_bounding_point = res.first;
+    data_manager->measures.collision.node_max_bounding_point = res.second;
 }
 }
 }

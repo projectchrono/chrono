@@ -146,5 +146,28 @@ void ChCAABBGenerator::GenerateAABB() {
         aabb_max[index] = temp_max;
     }
 
+    // Deal with tetrahedral elements
+    const uint num_tets = data_manager->num_tets;
+    if (num_tets > 0) {
+        custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
+        custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
+        custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+        custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+        real node_radius = data_manager->fea_container->kernel_radius;
+        aabb_min_tet.resize(num_tets);
+        aabb_max_tet.resize(num_tets);
+#pragma omp parallel for
+        for (int index = 0; index < num_tets; index++) {
+            uint4 tet_ind = tet_indices[index];
+
+            real3 x0 = pos_node[tet_ind.x];
+            real3 x1 = pos_node[tet_ind.y];
+            real3 x2 = pos_node[tet_ind.z];
+            real3 x3 = pos_node[tet_ind.w];
+
+            aabb_min_tet[index] = Min(Min(Min(x0, x1), x2), x3) - collision_envelope - real3(node_radius);
+            aabb_max_tet[index] = Max(Max(Max(x0, x1), x2), x3) + collision_envelope + real3(node_radius);
+        }
+    }
     LOG(TRACE) << "AABB END";
 }

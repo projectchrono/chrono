@@ -35,6 +35,7 @@ class CH_PARALLEL_API ChCBroadphase {
     void DetermineBoundingBox();
     void OffsetAABB();
     void ComputeTopLevelResolution();
+    void DispatchTets();
 
     ChParallelDataManager* data_manager;
     real level_one_density;

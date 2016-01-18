@@ -22,7 +22,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     // clear contact data structures
     void ClearContacts();
     // Perform collision detection
-    void Process();
+    void ProcessRigids();
 
     void PreprocessCount();
     // Transform the shape data to the global reference frame
@@ -35,6 +35,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     // For each contact pair decide what to do.
     void DispatchRigid();
     void DispatchRigidFluid();
+    void DispatchRigidNode();
     void DispatchFluid();
     void DispatchMPR();
     void DispatchGJK();
@@ -57,6 +58,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     real collision_envelope;
     NARROWPHASETYPE narrowphase_algorithm;
     SYSTEMTYPE system_type;
+
     custom_vector<uint> f_bin_intersections;
     custom_vector<uint> f_bin_number;
     custom_vector<uint> f_bin_number_out;
@@ -66,6 +68,13 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<int> ff_bin_ids;
     custom_vector<int> ff_bin_starts;
     custom_vector<int> ff_bin_ends;
+
+    custom_vector<uint> n_bin_intersections;
+    custom_vector<uint> n_bin_number;
+    custom_vector<uint> n_bin_number_out;
+    custom_vector<uint> n_bin_node_number;
+    custom_vector<uint> n_bin_start_index;
+
 };
 }  // end namespace collision
 }  // end namespace chrono

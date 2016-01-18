@@ -94,22 +94,30 @@ void ChCollisionSystemParallel::Run() {
             }
         }
     }
-
-    if (data_manager->num_rigid_shapes <= 0) {
-        return;
-    }
+    data_manager->system_timer.start("collision_broad");
+    aabb_generator->GenerateAABB();
+    data_manager->system_timer.stop("collision_broad");
     if (data_manager->num_fluid_bodies != 0) {
         // do this first so that we can augment the min/max for rigids to get a larger grid
         narrowphase->DispatchFluid();
+        data_manager->system_timer.stop("collision_narrow");
     }
 
-    data_manager->system_timer.start("collision_broad");
-    aabb_generator->GenerateAABB();
-    broadphase->DetectPossibleCollisions();
-    data_manager->system_timer.stop("collision_broad");
+    if (data_manager->num_tets != 0) {
+        data_manager->system_timer.start("collision_narrow");
+        broadphase->DispatchTets();
+        // narrowphase->DispatchTets();
+        data_manager->system_timer.stop("collision_narrow");
+    }
+    if (data_manager->num_rigid_shapes != 0) {
+        data_manager->system_timer.start("collision_broad");
+        broadphase->DetectPossibleCollisions();
+        data_manager->system_timer.stop("collision_broad");
+        data_manager->system_timer.start("collision_narrow");
+        narrowphase->ProcessRigids();
+        data_manager->system_timer.stop("collision_narrow");
+    }
 
-    data_manager->system_timer.start("collision_narrow");
-    narrowphase->Process();
     data_manager->system_timer.stop("collision_narrow");
 }
 
