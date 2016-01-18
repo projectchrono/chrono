@@ -5,6 +5,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include <chrono_parallel/physics/Ch3DOFContainer.h>
 #include <thrust/fill.h>
+#include "chrono_parallel/constraints/ChConstraintUtils.h"
 
 namespace chrono {
 
@@ -40,12 +41,13 @@ void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
 }
 int ChFEAContainer::GetNumConstraints() {
     int num_constraints = data_manager->num_tets * 6;  // 6 rows in the tetrahedral jacobian
+    num_constraints += data_manager->num_rigid_node_contacts * 3;
     return num_constraints;
 }
 int ChFEAContainer::GetNumNonZeros() {
     // 12*3 entries in the elastic, 12*3 entries in the shear
     int nnz = data_manager->num_tets * 12 * 3 + data_manager->num_tets * 12 * 3;
-
+    nnz += 9 * 3 * data_manager->num_rigid_node_contacts;
     return nnz;
 }
 void ChFEAContainer::ComputeInvMass(int offset) {
@@ -166,7 +168,7 @@ void ChFEAContainer::Initialize() {
         mass_node[tet_ind.z] += node_mass;
         mass_node[tet_ind.w] += node_mass;
 
-        //printf("Vol: %f Mass: %f \n", vol, tet_mass);
+        // printf("Vol: %f Mass: %f \n", vol, tet_mass);
 
         //        real3 y[4];
         //        y[1] = X0[i].row(0);
@@ -236,9 +238,9 @@ void ChFEAContainer::Build_D() {
 
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
 
-        //Print(Ds, "Ds");
-        //Print(X, "X");
-        //Print(strain, "strain");
+        // Print(Ds, "Ds");
+        // Print(X, "X");
+        // Print(strain, "strain");
         // std::cin.get();
 
         real3 y[4];
@@ -498,12 +500,13 @@ void ChFEAContainer::GenerateSparsity() {
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
+    uint num_rigid_node_contacts = data_manager->num_rigid_node_contacts;
 
     uint body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
-    //std::cout << "start_row " << start_row << std::endl;
+    // std::cout << "start_row " << start_row << std::endl;
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
 
@@ -527,6 +530,39 @@ void ChFEAContainer::GenerateSparsity() {
 
         AppendRow12(D_T, start_row + i * 6 + 5, body_offset, tet_ind, 0);
         D_T.finalize(start_row + i * 6 + 5);
+    }
+
+    int index_n = 0;
+    int index_t = 0;
+    int num_nodes = data_manager->num_fluid_bodies;
+    custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
+    int off = start_row + num_tets * 6;
+    for (int p = 0; p < num_nodes; p++) {
+        for (int i = 0; i < contact_counts[p]; i++) {
+            int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
+            int node = p;
+            AppendRow6(D_T, off + index_n + 0, rigid * 6, 0);
+            AppendRow3(D_T, off + index_n + 0, body_offset + node * 3, 0);
+            D_T.finalize(off + index_n + 0);
+            index_n++;
+        }
+    }
+    for (int p = 0; p < num_nodes; p++) {
+        for (int i = 0; i < contact_counts[p]; i++) {
+            int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
+            int node = p;
+
+            AppendRow6(D_T, off + num_rigid_node_contacts + index_t * 2 + 0, rigid * 6, 0);
+            AppendRow3(D_T, off + num_rigid_node_contacts + index_t * 2 + 0, body_offset + node * 3, 0);
+            D_T.finalize(off + num_rigid_node_contacts + index_t * 2 + 0);
+
+            AppendRow6(D_T, off + num_rigid_node_contacts + index_t * 2 + 1, rigid * 6, 0);
+            AppendRow3(D_T, off + num_rigid_node_contacts + index_t * 2 + 1, body_offset + node * 3, 0);
+
+            D_T.finalize(off + num_rigid_node_contacts + index_t * 2 + 1);
+            index_t++;
+        }
     }
 }
 }  // END_OF_NAMESPACE____
