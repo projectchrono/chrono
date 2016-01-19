@@ -320,7 +320,9 @@ Mat33 Abs(const Mat33& m) {
 Mat33 SkewSymmetric(const real3& r) {
     return Mat33(0, r[2], -r[1], -r[2], 0, r[0], r[1], -r[0], 0);
 }
-
+Mat33 SkewSymmetricAlt(const real3& r) {
+    return Mat33(0, r[2], r[1], r[2], 0, r[0], r[1], r[0], 0);
+}
 Mat33 MultTranspose(const Mat33& M, const Mat33& N) {
     // Not a clean way to write this in AVX, might as well transpose first and then multiply
     return M * Transpose(N);

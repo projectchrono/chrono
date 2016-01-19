@@ -109,6 +109,8 @@ static inline Mat33 operator*(const real s, const Mat33& a) {
     return a * s;
 }
 Mat33 SkewSymmetric(const real3& r);
+//This form generates a skew symmetric structure without flipping signs
+Mat33 SkewSymmetricAlt(const real3& r);
 real Determinant(const Mat33& m);
 Mat33 Abs(const Mat33& m);
 Mat33 Transpose(const Mat33& a);
