@@ -376,10 +376,14 @@ void ChFEAContainer::Build_D() {
 
         /////==================================================================================================================================
         // Off diagonal strain elements
-        Mat33 B1 = 0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
-        Mat33 B2 = 0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
-        Mat33 B3 = 0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
-        Mat33 B4 = 0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+        Mat33 B1 = 0.5 * cf * SkewSymmetricAlt(y[0]) *
+                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+        Mat33 B2 = 0.5 * cf * SkewSymmetricAlt(y[1]) *
+                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+        Mat33 B3 = 0.5 * cf * SkewSymmetricAlt(y[2]) *
+                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+        Mat33 B4 = 0.5 * cf * SkewSymmetricAlt(y[3]) *
+                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
 
         SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
         SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
@@ -418,6 +422,7 @@ void ChFEAContainer::Build_D() {
     custom_vector<real3>& norm = data_manager->host_data.norm_rigid_node;
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
+    uint num_rigid_node_contacts = data_manager->num_rigid_node_contacts;
     int num_nodes = data_manager->num_nodes;
     uint off = start_row + num_tet_constraints;
     if (data_manager->num_rigid_node_contacts > 0) {
@@ -426,7 +431,7 @@ void ChFEAContainer::Build_D() {
         for (int p = 0; p < num_nodes; p++) {
             for (int i = 0; i < contact_counts[p]; i++) {
                 int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
-                int node = p;  // fluid body is in second index
+                int node = p;  // node body is in second index
                 real3 U = norm[p * max_rigid_neighbors + i], V, W;
                 Orthogonalize(U, V, W);
                 real3 T1, T2, T3;
@@ -434,12 +439,12 @@ void ChFEAContainer::Build_D() {
                                  T2, T3);
 
                 SetRow6(D_T, off + index + 0, rigid * 6, -U, T1);
-                SetRow6(D_T, off + index * 2 + 0, rigid * 6, -V, T2);
-                SetRow6(D_T, off + index * 2 + 1, rigid * 6, -W, T3);
+                SetRow6(D_T, off + num_rigid_node_contacts + index * 2 + 0, rigid * 6, -V, T2);
+                SetRow6(D_T, off + num_rigid_node_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
                 SetRow3(D_T, off + index + 0, b_off + node * 3, U);
-                SetRow3(D_T, off + index * 2 + 0, b_off + node * 3, V);
-                SetRow3(D_T, off + index * 2 + 1, b_off + node * 3, W);
+                SetRow3(D_T, off + num_rigid_node_contacts + index * 2 + 0, b_off + node * 3, V);
+                SetRow3(D_T, off + num_rigid_node_contacts + index * 2 + 1, b_off + node * 3, W);
                 index++;
             }
         }
