@@ -18,7 +18,7 @@ using namespace geometry;
 Ch3DOFContainer::Ch3DOFContainer() {
     kernel_radius = .04;
     collision_envelope = 0;
-    contact_recovery_speed = 1;
+    contact_recovery_speed = 10;
     contact_cohesion = 0;
     contact_mu = 0;
     max_velocity = 20;

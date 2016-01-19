@@ -192,7 +192,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     void AddElements(const std::vector<uint4>& indices);
     // Compute initial shape matrix
     void Initialize();
-    void Setup(int start_constraint) { start_row = start_constraint; }
+    void Setup(int start_constraint);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
     void GenerateSparsity();
@@ -211,5 +211,6 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     real youngs_modulus;
     real poisson_ratio;
     real material_density;
+    uint num_tet_constraints;  // Strain constraints + volume constraint
 };
 }

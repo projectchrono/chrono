@@ -252,7 +252,7 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
     for (int i = 0; i < num_nodes; i++) {
         if (ChSharedPtr<fea::ChNodeFEAxyz> node = mesh->GetNode(i).DynamicCastTo<fea::ChNodeFEAxyz>()) {
             positions[i] = real3(node->GetPos().x, node->GetPos().y, node->GetPos().z);
-            velocities[i] = real3(0,0,0);//real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
+            velocities[i] = real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
             // Offset the element index by the current number of nodes at the start
             node->SetIndex(i + current_nodes);
 

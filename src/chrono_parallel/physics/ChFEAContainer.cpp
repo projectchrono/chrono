@@ -6,7 +6,7 @@
 #include <chrono_parallel/physics/Ch3DOFContainer.h>
 #include <thrust/fill.h>
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
-
+#include "chrono_parallel/math/svd.h"
 namespace chrono {
 
 using namespace collision;
@@ -40,16 +40,24 @@ void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
     data_manager->num_tets = tet_indices.size();
 }
 int ChFEAContainer::GetNumConstraints() {
-    int num_constraints = data_manager->num_tets * 6;  // 6 rows in the tetrahedral jacobian
+    // 6 rows in the tetrahedral jacobian 1 row for volume constraint
+    int num_constraints = data_manager->num_tets * (6 + 1);
     num_constraints += data_manager->num_rigid_node_contacts * 3;
     return num_constraints;
 }
 int ChFEAContainer::GetNumNonZeros() {
-    // 12*3 entries in the elastic, 12*3 entries in the shear
-    int nnz = data_manager->num_tets * 12 * 3 + data_manager->num_tets * 12 * 3;
+    // 12*3 entries in the elastic, 12*3 entries in the shear, 12 entries in volume
+    int nnz = data_manager->num_tets * 12 * 3 + data_manager->num_tets * 12 * 3 + data_manager->num_tets * 12 * 1;
+    // 6 entries for rigid body side, 3 for node
     nnz += 9 * 3 * data_manager->num_rigid_node_contacts;
     return nnz;
 }
+
+void ChFEAContainer::Setup(int start_constraint) {
+    start_row = start_constraint;
+    num_tet_constraints = data_manager->num_tets * (6 + 1);
+}
+
 void ChFEAContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     uint num_nodes = data_manager->num_nodes;
@@ -218,11 +226,15 @@ void ChFEAContainer::Project(real* gamma) {
     uint num_rigid_node_contacts = data_manager->num_rigid_node_contacts;
     real mu = data_manager->fea_container->contact_mu;
     real coh = data_manager->fea_container->contact_cohesion;
+    if (data_manager->num_rigid_node_contacts == 0) {
+        return;
+    }
 
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
     uint num_nodes = data_manager->num_nodes;
     uint num_tets = data_manager->num_tets;
+    uint off = start_row + num_tet_constraints;
     //#pragma omp parallel for
     int index = 0;
     for (int p = 0; p < num_nodes; p++) {
@@ -234,9 +246,9 @@ void ChFEAContainer::Project(real* gamma) {
             real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
 
             real3 gam;
-            gam.x = gamma[start_row + num_tets * 6 + index];
-            gam.y = gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0];
-            gam.z = gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1];
+            gam.x = gamma[off + index];
+            gam.y = gamma[off + num_rigid_node_contacts + index * 2 + 0];
+            gam.z = gamma[off + num_rigid_node_contacts + index * 2 + 1];
 
             gam.x += cohesion;
 
@@ -245,9 +257,9 @@ void ChFEAContainer::Project(real* gamma) {
                 gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
                 gam.y = gam.z = 0;
 
-                gamma[start_row + num_tets * 6 + index] = gam.x;
-                gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0] = gam.y;
-                gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1] = gam.z;
+                gamma[off + index] = gam.x;
+                gamma[off + num_rigid_node_contacts + index * 2 + 0] = gam.y;
+                gamma[off + num_rigid_node_contacts + index * 2 + 1] = gam.z;
                 index++;
                 continue;
             }
@@ -255,9 +267,9 @@ void ChFEAContainer::Project(real* gamma) {
             if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
             }
 
-            gamma[start_row + num_tets * 6 + index] = gam.x - cohesion;
-            gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0] = gam.y;
-            gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1] = gam.z;
+            gamma[off + index] = gam.x - cohesion;
+            gamma[off + num_rigid_node_contacts + index * 2 + 0] = gam.y;
+            gamma[off + num_rigid_node_contacts + index * 2 + 1] = gam.z;
             index++;
         }
     }
@@ -311,7 +323,15 @@ void ChFEAContainer::Build_D() {
         Mat33 F = Ds * X;  // 4.27
         Mat33 Ftr = Transpose(F);
 
+        Mat33 U, V;
+        real3 SV;
+
+        // chrono::SVD(F, U, SV, V);
+        // Mat33 R = MultTranspose(U, V);
+        // Mat33 S = V * Mat33(SV) * Transpose(V);
+
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
+        // Mat33 strain = S - Mat33(1);
 
         // Print(Ds, "Ds");
         // Print(X, "X");
@@ -324,182 +344,69 @@ void ChFEAContainer::Build_D() {
         y[3] = X.row(2);
         y[0] = -y[1] - y[2] - y[3];
 
-        Mat33 Hs[4];
-        Mat33 Hn[4];
+        real3 r1 = 1. / 6. * Cross(c2, c3);
+        real3 r2 = 1. / 6. * Cross(c3, c1);
+        real3 r3 = 1. / 6. * Cross(c1, c2);
+        real3 r0 = -r1 - r2 - r3;
 
-        // Green strain Jacobian
-        for (int j = 0; j < 4; j++) {
-            Hn[j] = Mat33(y[j].x * Ftr[0], y[j].x * Ftr[4], y[j].x * Ftr[8],  //
-                          y[j].y * Ftr[1], y[j].y * Ftr[5], y[j].y * Ftr[9],  //
-                          y[j].z * Ftr[2], y[j].z * Ftr[6], y[j].z * Ftr[10]);
-
-            Hs[j] = 0.5 * Mat33(0, y[j].z, y[j].y, y[j].z, 0, y[j].x, y[j].y, y[j].x, 0) * Ftr;
-        }
-
-        real3 delV[4];
-
-        delV[1] = Cross(c2, c3);
-        delV[2] = Cross(c3, c1);
-        delV[3] = Cross(c1, c2);
-        delV[0] = -delV[1] - delV[2] - delV[3];
-
-        real eps[6];
+        real vf = 0;  //(0.5 / (6.0 * volSqrt));
+        real cf = 1;  // volSqrt;
         // diagonal elements of strain matrix
-        eps[0] = strain[0];
-        eps[1] = strain[5];
-        eps[2] = strain[10];
-        // Off diagonal elements
-        eps[3] = strain[9];
-        eps[4] = strain[8];
-        eps[5] = strain[4];
+        Mat33 A1 = cf * Mat33(y[0]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
+        Mat33 A2 = cf * Mat33(y[1]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
+        Mat33 A3 = cf * Mat33(y[2]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
+        Mat33 A4 = cf * Mat33(y[3]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
 
-        // printf("eps [%f,%f,%f,%f,%f,%f] \n", eps[0], eps[1], eps[2], eps[3], eps[4], eps[5]);
-
-        real gradV[12];
-
-        gradV[0] = delV[0][0];
-        gradV[1] = delV[0][1];
-        gradV[2] = delV[0][2];
-
-        gradV[3] = delV[1][0];
-        gradV[4] = delV[1][1];
-        gradV[5] = delV[1][2];
-
-        gradV[6] = delV[2][0];
-        gradV[7] = delV[2][1];
-        gradV[8] = delV[2][2];
-
-        gradV[9] = delV[3][0];
-        gradV[10] = delV[3][1];
-        gradV[11] = delV[3][2];
-
-        real vf = (0.5 / (6.0 * volSqrt));
-
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.x * 3 + 0, volSqrt * y[0].x * Ftr[0] + vf * eps[0] * gradV[0]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.x * 3 + 1, volSqrt * y[0].x * Ftr[1] + vf * eps[0] * gradV[1]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.x * 3 + 2, volSqrt * y[0].x * Ftr[2] + vf * eps[0] * gradV[2]);
-
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.y * 3 + 0, volSqrt * y[1].x * Ftr[0] + vf * eps[0] * gradV[3]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.y * 3 + 1, volSqrt * y[1].x * Ftr[1] + vf * eps[0] * gradV[4]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.y * 3 + 2, volSqrt * y[1].x * Ftr[2] + vf * eps[0] * gradV[5]);
-
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.z * 3 + 0, volSqrt * y[2].x * Ftr[0] + vf * eps[0] * gradV[6]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.z * 3 + 1, volSqrt * y[2].x * Ftr[1] + vf * eps[0] * gradV[7]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.z * 3 + 2, volSqrt * y[2].x * Ftr[2] + vf * eps[0] * gradV[8]);
-
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.w * 3 + 0, volSqrt * y[3].x * Ftr[0] + vf * eps[0] * gradV[9]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.w * 3 + 1, volSqrt * y[3].x * Ftr[1] + vf * eps[0] * gradV[10]);
-        D_T.set(start_row + i * 6 + 0, b_off + tet_ind.w * 3 + 2, volSqrt * y[3].x * Ftr[2] + vf * eps[0] * gradV[11]);
-        /////==================================================================================================================================
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.x * 3 + 0, volSqrt * y[0].y * Ftr[4] + vf * eps[1] * gradV[0]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.x * 3 + 1, volSqrt * y[0].y * Ftr[5] + vf * eps[1] * gradV[1]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.x * 3 + 2, volSqrt * y[0].y * Ftr[6] + vf * eps[1] * gradV[2]);
-
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.y * 3 + 0, volSqrt * y[1].y * Ftr[4] + vf * eps[1] * gradV[3]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.y * 3 + 1, volSqrt * y[1].y * Ftr[5] + vf * eps[1] * gradV[4]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.y * 3 + 2, volSqrt * y[1].y * Ftr[6] + vf * eps[1] * gradV[5]);
-
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.z * 3 + 0, volSqrt * y[2].y * Ftr[4] + vf * eps[1] * gradV[6]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.z * 3 + 1, volSqrt * y[2].y * Ftr[5] + vf * eps[1] * gradV[7]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.z * 3 + 2, volSqrt * y[2].y * Ftr[6] + vf * eps[1] * gradV[8]);
-
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.w * 3 + 0, volSqrt * y[3].y * Ftr[4] + vf * eps[1] * gradV[9]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.w * 3 + 1, volSqrt * y[3].y * Ftr[5] + vf * eps[1] * gradV[10]);
-        D_T.set(start_row + i * 6 + 1, b_off + tet_ind.w * 3 + 2, volSqrt * y[3].y * Ftr[6] + vf * eps[1] * gradV[11]);
-        /////==================================================================================================================================
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.x * 3 + 0, volSqrt * y[0].z * Ftr[8] + vf * eps[2] * gradV[0]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.x * 3 + 1, volSqrt * y[0].z * Ftr[9] + vf * eps[2] * gradV[1]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.x * 3 + 2, volSqrt * y[0].z * Ftr[10] + vf * eps[2] * gradV[2]);
-
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.y * 3 + 0, volSqrt * y[1].z * Ftr[8] + vf * eps[2] * gradV[3]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.y * 3 + 1, volSqrt * y[1].z * Ftr[9] + vf * eps[2] * gradV[4]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.y * 3 + 2, volSqrt * y[1].z * Ftr[10] + vf * eps[2] * gradV[5]);
-
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.z * 3 + 0, volSqrt * y[2].z * Ftr[8] + vf * eps[2] * gradV[6]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.z * 3 + 1, volSqrt * y[2].z * Ftr[9] + vf * eps[2] * gradV[7]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.z * 3 + 2, volSqrt * y[2].z * Ftr[10] + vf * eps[2] * gradV[8]);
-
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.w * 3 + 0, volSqrt * y[3].z * Ftr[8] + vf * eps[2] * gradV[9]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.w * 3 + 1, volSqrt * y[3].z * Ftr[9] + vf * eps[2] * gradV[10]);
-        D_T.set(start_row + i * 6 + 2, b_off + tet_ind.w * 3 + 2, volSqrt * y[3].z * Ftr[10] + vf * eps[2] * gradV[11]);
+        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
+        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
+        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.z * 3, A3.row(0));
+        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.w * 3, A4.row(0));
         /////==================================================================================================================================
 
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.x * 3 + 0,
-                volSqrt * (Ftr[4] * y[0].z + Ftr[8] * y[0].y) + vf * eps[3] * gradV[0]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.x * 3 + 1,
-                volSqrt * (Ftr[5] * y[0].z + Ftr[9] * y[0].y) + vf * eps[3] * gradV[1]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.x * 3 + 2,
-                volSqrt * (Ftr[6] * y[0].z + Ftr[10] * y[0].y) + vf * eps[3] * gradV[2]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.y * 3 + 0,
-                volSqrt * (Ftr[4] * y[1].z + Ftr[8] * y[1].y) + vf * eps[3] * gradV[3]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.y * 3 + 1,
-                volSqrt * (Ftr[5] * y[1].z + Ftr[9] * y[1].y) + vf * eps[3] * gradV[4]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.y * 3 + 2,
-                volSqrt * (Ftr[6] * y[1].z + Ftr[10] * y[1].y) + vf * eps[3] * gradV[5]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.z * 3 + 0,
-                volSqrt * (Ftr[4] * y[2].z + Ftr[8] * y[2].y) + vf * eps[3] * gradV[6]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.z * 3 + 1,
-                volSqrt * (Ftr[5] * y[2].z + Ftr[9] * y[2].y) + vf * eps[3] * gradV[7]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.z * 3 + 2,
-                volSqrt * (Ftr[6] * y[2].z + Ftr[10] * y[2].y) + vf * eps[3] * gradV[8]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.w * 3 + 0,
-                volSqrt * (Ftr[4] * y[3].z + Ftr[8] * y[3].y) + vf * eps[3] * gradV[9]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.w * 3 + 1,
-                volSqrt * (Ftr[5] * y[3].z + Ftr[9] * y[3].y) + vf * eps[3] * gradV[10]);
-        D_T.set(start_row + i * 6 + 3, b_off + tet_ind.w * 3 + 2,
-                volSqrt * (Ftr[6] * y[3].z + Ftr[10] * y[3].y) + vf * eps[3] * gradV[11]);
+        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.x * 3, A1.row(1));
+        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.y * 3, A2.row(1));
+        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.z * 3, A3.row(1));
+        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.w * 3, A4.row(1));
         /////==================================================================================================================================
 
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.x * 3 + 0,
-                volSqrt * (Ftr[0] * y[0].z + Ftr[8] * y[0].x) + vf * eps[4] * gradV[0]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.x * 3 + 1,
-                volSqrt * (Ftr[1] * y[0].z + Ftr[9] * y[0].x) + vf * eps[4] * gradV[1]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.x * 3 + 2,
-                volSqrt * (Ftr[2] * y[0].z + Ftr[10] * y[0].x) + vf * eps[4] * gradV[2]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.y * 3 + 0,
-                volSqrt * (Ftr[0] * y[1].z + Ftr[8] * y[1].x) + vf * eps[4] * gradV[3]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.y * 3 + 1,
-                volSqrt * (Ftr[1] * y[1].z + Ftr[9] * y[1].x) + vf * eps[4] * gradV[4]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.y * 3 + 2,
-                volSqrt * (Ftr[2] * y[1].z + Ftr[10] * y[1].x) + vf * eps[4] * gradV[5]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.z * 3 + 0,
-                volSqrt * (Ftr[0] * y[2].z + Ftr[8] * y[2].x) + vf * eps[4] * gradV[6]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.z * 3 + 1,
-                volSqrt * (Ftr[1] * y[2].z + Ftr[9] * y[2].x) + vf * eps[4] * gradV[7]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.z * 3 + 2,
-                volSqrt * (Ftr[2] * y[2].z + Ftr[10] * y[2].x) + vf * eps[4] * gradV[8]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.w * 3 + 0,
-                volSqrt * (Ftr[0] * y[3].z + Ftr[8] * y[3].x) + vf * eps[4] * gradV[9]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.w * 3 + 1,
-                volSqrt * (Ftr[1] * y[3].z + Ftr[9] * y[3].x) + vf * eps[4] * gradV[10]);
-        D_T.set(start_row + i * 6 + 4, b_off + tet_ind.w * 3 + 2,
-                volSqrt * (Ftr[2] * y[3].z + Ftr[10] * y[3].x) + vf * eps[4] * gradV[11]);
+        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.x * 3, A1.row(2));
+        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.y * 3, A2.row(2));
+        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.z * 3, A3.row(2));
+        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.w * 3, A4.row(2));
+
+        /////==================================================================================================================================
+        // Off diagonal strain elements
+        Mat33 B1 = 0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+        Mat33 B2 = 0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+        Mat33 B3 = 0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+        Mat33 B4 = 0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr;// + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+
+        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
+        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
+        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.z * 3, B3.row(0));
+        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.w * 3, B4.row(0));
+
         /////==================================================================================================================================
 
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.x * 3 + 0,
-                volSqrt * (Ftr[0] * y[0].y + Ftr[4] * y[0].x) + vf * eps[5] * gradV[0]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.x * 3 + 1,
-                volSqrt * (Ftr[1] * y[0].y + Ftr[5] * y[0].x) + vf * eps[5] * gradV[1]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.x * 3 + 2,
-                volSqrt * (Ftr[2] * y[0].y + Ftr[6] * y[0].x) + vf * eps[5] * gradV[2]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.y * 3 + 0,
-                volSqrt * (Ftr[0] * y[1].y + Ftr[4] * y[1].x) + vf * eps[5] * gradV[3]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.y * 3 + 1,
-                volSqrt * (Ftr[1] * y[1].y + Ftr[5] * y[1].x) + vf * eps[5] * gradV[4]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.y * 3 + 2,
-                volSqrt * (Ftr[2] * y[1].y + Ftr[6] * y[1].x) + vf * eps[5] * gradV[5]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.z * 3 + 0,
-                volSqrt * (Ftr[0] * y[2].y + Ftr[4] * y[2].x) + vf * eps[5] * gradV[6]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.z * 3 + 1,
-                volSqrt * (Ftr[1] * y[2].y + Ftr[5] * y[2].x) + vf * eps[5] * gradV[7]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.z * 3 + 2,
-                volSqrt * (Ftr[2] * y[2].y + Ftr[6] * y[2].x) + vf * eps[5] * gradV[8]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 0,
-                volSqrt * (Ftr[0] * y[3].y + Ftr[4] * y[3].x) + vf * eps[5] * gradV[9]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 1,
-                volSqrt * (Ftr[1] * y[3].y + Ftr[5] * y[3].x) + vf * eps[5] * gradV[10]);
-        D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 2,
-                volSqrt * (Ftr[2] * y[3].y + Ftr[6] * y[3].x) + vf * eps[5] * gradV[11]);
+        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.x * 3, B1.row(1));
+        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.y * 3, B2.row(1));
+        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.z * 3, B3.row(1));
+        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.w * 3, B4.row(1));
+
+        /////==================================================================================================================================
+
+        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.x * 3, B1.row(2));
+        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.y * 3, B2.row(2));
+        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.z * 3, B3.row(2));
+        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.w * 3, B4.row(2));
+
+        /////==================================================================================================================================
+        // Volume
+
+        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.x * 3, r0);
+        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.y * 3, r1);
+        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.z * 3, r2);
+        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.w * 3, r3);
     }
 
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
@@ -512,33 +419,36 @@ void ChFEAContainer::Build_D() {
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
     int num_nodes = data_manager->num_nodes;
-    //#pragma omp parallel for
-    int index = 0;
-    for (int p = 0; p < num_nodes; p++) {
-        for (int i = 0; i < contact_counts[p]; i++) {
-            int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
-            int node = p;  // fluid body is in second index
-            real3 U = norm[p * max_rigid_neighbors + i], V, W;
-            Orthogonalize(U, V, W);
-            real3 T1, T2, T3;
-            Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2,
-                             T3);
+    uint off = start_row + num_tet_constraints;
+    if (data_manager->num_rigid_node_contacts > 0) {
+        //#pragma omp parallel for
+        int index = 0;
+        for (int p = 0; p < num_nodes; p++) {
+            for (int i = 0; i < contact_counts[p]; i++) {
+                int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
+                int node = p;  // fluid body is in second index
+                real3 U = norm[p * max_rigid_neighbors + i], V, W;
+                Orthogonalize(U, V, W);
+                real3 T1, T2, T3;
+                Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
+                                 T2, T3);
 
-            SetRow6Check(D_T, start_row + num_tets * 6 + index + 0, rigid * 6, -U, T1);
-            SetRow6Check(D_T, start_row + num_tets * 6 + index * 2 + 0, rigid * 6, -V, T2);
-            SetRow6Check(D_T, start_row + num_tets * 6 + index * 2 + 1, rigid * 6, -W, T3);
+                SetRow6(D_T, off + index + 0, rigid * 6, -U, T1);
+                SetRow6(D_T, off + index * 2 + 0, rigid * 6, -V, T2);
+                SetRow6(D_T, off + index * 2 + 1, rigid * 6, -W, T3);
 
-            SetRow3Check(D_T, start_row + num_tets * 6 + index + 0, b_off + node * 3, U);
-            SetRow3Check(D_T, start_row + num_tets * 6 + index * 2 + 0, b_off + node * 3, V);
-            SetRow3Check(D_T, start_row + num_tets * 6 + index * 2 + 1, b_off + node * 3, W);
-            index++;
+                SetRow3(D_T, off + index + 0, b_off + node * 3, U);
+                SetRow3(D_T, off + index * 2 + 0, b_off + node * 3, V);
+                SetRow3(D_T, off + index * 2 + 1, b_off + node * 3, W);
+                index++;
+            }
         }
     }
 }
 void ChFEAContainer::Build_b() {
     LOG(INFO) << "ChConstraintTet::Build_b";
     uint num_tets = data_manager->num_tets;
-    SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_row, num_tets * 6);
+    SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_row, num_tet_constraints);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
 
@@ -569,19 +479,27 @@ void ChFEAContainer::Build_b() {
         y[3] = X.row(2);
         y[0] = -y[1] - y[2] - y[3];
 
+        // Mat33 U, V;
+        // real3 SV;
+
+        // chrono::SVD(F, U, SV, V);
+        // Mat33 R = MultTranspose(U, V);
+        // Mat33 S = V * Mat33(SV) * Transpose(V);
+
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
+                                                    // Mat33 strain = S - Mat33(1);
+        real cf = volSqrt;
 
-        b_sub[i * 6 + 0] = volSqrt * strain[0];
-        b_sub[i * 6 + 1] = volSqrt * strain[5];
-        b_sub[i * 6 + 2] = volSqrt * strain[10];
+        b_sub[i * 7 + 0] = cf * strain[0];
+        b_sub[i * 7 + 1] = cf * strain[5];
+        b_sub[i * 7 + 2] = cf * strain[10];
 
-        b_sub[i * 6 + 3] = volSqrt * strain[9];
-        b_sub[i * 6 + 4] = volSqrt * strain[8];
-        b_sub[i * 6 + 5] = volSqrt * strain[4];
+        b_sub[i * 7 + 3] = cf * strain[9];
+        b_sub[i * 7 + 4] = cf * strain[8];
+        b_sub[i * 7 + 5] = cf * strain[4];
 
-        //        printf("b [%f,%f,%f,%f,%f,%f] \n", b_sub[i * 6 + 0], b_sub[i * 6 + 1], b_sub[i * 6 + 2], b_sub[i * 6 +
-        //        3],
-        //               b_sub[i * 6 + 4], b_sub[i * 6 + 5]);
+        // Volume
+        b_sub[i * 7 + 6] = Determinant(F) - 1;
     }
 
     LOG(INFO) << "ChConstraintRigidNode::Build_b";
@@ -593,7 +511,7 @@ void ChFEAContainer::Build_b() {
         custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
         int num_nodes = data_manager->num_nodes;
-
+        uint off = start_row + num_tet_constraints;
         //#pragma omp parallel for
         int index = 0;
         for (int p = 0; p < num_nodes; p++) {
@@ -603,15 +521,47 @@ void ChFEAContainer::Build_b() {
 
                 bi = std::max(real(1.0) / step_size * depth, -data_manager->fea_container->contact_recovery_speed);
                 //
-                data_manager->host_data.b[start_row + num_tets * 6 + index + 0] = bi;
-                data_manager->host_data.b[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0] = 0;
-                data_manager->host_data.b[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1] = 0;
+                data_manager->host_data.b[off + index + 0] = bi;
+                data_manager->host_data.b[off + num_rigid_node_contacts + index * 2 + 0] = 0;
+                data_manager->host_data.b[off + num_rigid_node_contacts + index * 2 + 1] = 0;
                 index++;
             }
         }
     }
 }
-void ChFEAContainer::Build_E() {}
+void ChFEAContainer::Build_E() {
+    uint num_tets = data_manager->num_tets;
+    SubVectorType E_sub = blaze::subvector(data_manager->host_data.E, start_row, num_tet_constraints);
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+
+    const real mu = 0.5 * youngs_modulus / (1. + poisson_ratio);  // 0.5?
+    const real muInv = 1. / mu;
+
+    real omn = 1.f - poisson_ratio;
+    real om2n = 1.f - 2 * poisson_ratio;
+    real s = youngs_modulus / (1.f + poisson_ratio);
+    real f = s / om2n;
+    Mat33 E = f * Mat33(omn, poisson_ratio, poisson_ratio, poisson_ratio, omn, poisson_ratio, poisson_ratio,
+                        poisson_ratio, omn);
+    E = Inverse(E);
+
+#pragma omp parallel for
+    for (int i = 0; i < num_tets; i++) {
+        E_sub[i * 7 + 0] = E[0];
+        E_sub[i * 7 + 1] = E[5];
+        E_sub[i * 7 + 2] = E[10];
+
+        E_sub[i * 7 + 3] = muInv;
+        E_sub[i * 7 + 4] = muInv;
+        E_sub[i * 7 + 5] = muInv;
+        // Volume
+        E_sub[i * 7 + 6] = 0;
+        //        printf("b [%f,%f,%f,%f,%f,%f] \n", b_sub[i * 6 + 0], b_sub[i * 6 + 1], b_sub[i * 6 + 2], b_sub[i * 6 +
+        //        3],
+        //               b_sub[i * 6 + 4], b_sub[i * 6 + 5]);
+    }
+}
 
 template <typename T>
 static void inline AppendRow12(T& D, const int row, const int offset, const uint4 col, const real init) {
@@ -648,24 +598,28 @@ void ChFEAContainer::GenerateSparsity() {
 
         tet_ind = Sort(tet_ind);
 
-        AppendRow12(D_T, start_row + i * 6 + 0, body_offset, tet_ind, 0);
-        D_T.finalize(start_row + i * 6 + 0);
+        AppendRow12(D_T, start_row + i * 7 + 0, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 7 + 0);
 
-        AppendRow12(D_T, start_row + i * 6 + 1, body_offset, tet_ind, 0);
-        D_T.finalize(start_row + i * 6 + 1);
+        AppendRow12(D_T, start_row + i * 7 + 1, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 7 + 1);
 
-        AppendRow12(D_T, start_row + i * 6 + 2, body_offset, tet_ind, 0);
-        D_T.finalize(start_row + i * 6 + 2);
+        AppendRow12(D_T, start_row + i * 7 + 2, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 7 + 2);
         ///==================================================================================================================================
 
-        AppendRow12(D_T, start_row + i * 6 + 3, body_offset, tet_ind, 0);
-        D_T.finalize(start_row + i * 6 + 3);
+        AppendRow12(D_T, start_row + i * 7 + 3, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 7 + 3);
 
-        AppendRow12(D_T, start_row + i * 6 + 4, body_offset, tet_ind, 0);
-        D_T.finalize(start_row + i * 6 + 4);
+        AppendRow12(D_T, start_row + i * 7 + 4, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 7 + 4);
 
-        AppendRow12(D_T, start_row + i * 6 + 5, body_offset, tet_ind, 0);
-        D_T.finalize(start_row + i * 6 + 5);
+        AppendRow12(D_T, start_row + i * 7 + 5, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 7 + 5);
+
+        // Volume constraint
+        AppendRow12(D_T, start_row + i * 7 + 6, body_offset, tet_ind, 0);
+        D_T.finalize(start_row + i * 7 + 6);
     }
 
     int index_n = 0;
@@ -673,7 +627,7 @@ void ChFEAContainer::GenerateSparsity() {
     int num_nodes = data_manager->num_fluid_bodies;
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
-    int off = start_row + num_tets * 6;
+    int off = start_row + num_tet_constraints;
     for (int p = 0; p < num_nodes; p++) {
         for (int i = 0; i < contact_counts[p]; i++) {
             int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
