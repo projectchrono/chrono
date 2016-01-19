@@ -15,7 +15,7 @@ using namespace geometry;
 //////////////////////////////////////
 //////////////////////////////////////
 
-/// CLASS FOR A 3DOF FLUID NODE
+/// CLASS FOR TETRAHEDRAL FEA ELEMENTS
 
 ChFEAContainer::ChFEAContainer(ChSystemParallelDVI* system) {
     data_manager = system->data_manager;
@@ -30,7 +30,7 @@ void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::ve
 
     pos_node.insert(pos_node.end(), positions.begin(), positions.end());
     vel_node.insert(vel_node.end(), velocities.begin(), velocities.end());
-    // In case the number of velocities provided were not enough, resize to the number of fluid bodies
+    // In case the number of velocities provided were not enough, resize to the number of fea nodes
     vel_node.resize(pos_node.size());
     data_manager->num_nodes = pos_node.size();
 }
@@ -187,6 +187,81 @@ void ChFEAContainer::Initialize() {
     //                          nud, nud, omnd);  //
 }
 
+bool Cone_generalized_rnode(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
+    real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
+
+    // inside upper cone? keep untouched!
+    if (f_tang < (mu * gamma_n)) {
+        return false;
+    }
+
+    // inside lower cone? reset  normal,u,v to zero!
+    if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+        gamma_n = 0;
+        gamma_u = 0;
+        gamma_v = 0;
+        return false;
+    }
+
+    // remaining case: project orthogonally to generator segment of upper cone
+
+    gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
+    real tproj_div_t = (gamma_n * mu) / f_tang;
+    gamma_u *= tproj_div_t;
+    gamma_v *= tproj_div_t;
+
+    return true;
+}
+
+void ChFEAContainer::Project(real* gamma) {
+    // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
+    uint num_rigid_node_contacts = data_manager->num_rigid_node_contacts;
+    real mu = data_manager->fea_container->contact_mu;
+    real coh = data_manager->fea_container->contact_cohesion;
+
+    custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
+    uint num_nodes = data_manager->num_nodes;
+    uint num_tets = data_manager->num_tets;
+    //#pragma omp parallel for
+    int index = 0;
+    for (int p = 0; p < num_nodes; p++) {
+        for (int i = 0; i < contact_counts[p]; ++i) {
+            int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];  // rigid is stored in the first index
+            int node = p;                                                  // fluid body is in second index
+            real rigid_fric = data_manager->host_data.fric_data[rigid].x;
+            real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
+            real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+
+            real3 gam;
+            gam.x = gamma[start_row + num_tets * 6 + index];
+            gam.y = gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0];
+            gam.z = gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1];
+
+            gam.x += cohesion;
+
+            real mu = friction;
+            if (mu == 0) {
+                gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
+                gam.y = gam.z = 0;
+
+                gamma[start_row + num_tets * 6 + index] = gam.x;
+                gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0] = gam.y;
+                gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1] = gam.z;
+                index++;
+                continue;
+            }
+
+            if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+            }
+
+            gamma[start_row + num_tets * 6 + index] = gam.x - cohesion;
+            gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0] = gam.y;
+            gamma[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1] = gam.z;
+            index++;
+        }
+    }
+}
 void ChFEAContainer::Build_D() {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
@@ -426,8 +501,42 @@ void ChFEAContainer::Build_D() {
         D_T.set(start_row + i * 6 + 5, b_off + tet_ind.w * 3 + 2,
                 volSqrt * (Ftr[2] * y[3].y + Ftr[6] * y[3].x) + vf * eps[5] * gradV[11]);
     }
+
+    custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+    custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
+
+    real h = data_manager->fea_container->kernel_radius;
+    // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
+    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_node;
+    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_node;
+    custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
+    int num_nodes = data_manager->num_nodes;
+    //#pragma omp parallel for
+    int index = 0;
+    for (int p = 0; p < num_nodes; p++) {
+        for (int i = 0; i < contact_counts[p]; i++) {
+            int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
+            int node = p;  // fluid body is in second index
+            real3 U = norm[p * max_rigid_neighbors + i], V, W;
+            Orthogonalize(U, V, W);
+            real3 T1, T2, T3;
+            Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2,
+                             T3);
+
+            SetRow6Check(D_T, start_row + num_tets * 6 + index + 0, rigid * 6, -U, T1);
+            SetRow6Check(D_T, start_row + num_tets * 6 + index * 2 + 0, rigid * 6, -V, T2);
+            SetRow6Check(D_T, start_row + num_tets * 6 + index * 2 + 1, rigid * 6, -W, T3);
+
+            SetRow3Check(D_T, start_row + num_tets * 6 + index + 0, b_off + node * 3, U);
+            SetRow3Check(D_T, start_row + num_tets * 6 + index * 2 + 0, b_off + node * 3, V);
+            SetRow3Check(D_T, start_row + num_tets * 6 + index * 2 + 1, b_off + node * 3, W);
+            index++;
+        }
+    }
 }
 void ChFEAContainer::Build_b() {
+    LOG(INFO) << "ChConstraintTet::Build_b";
     uint num_tets = data_manager->num_tets;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_row, num_tets * 6);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
@@ -473,6 +582,33 @@ void ChFEAContainer::Build_b() {
         //        printf("b [%f,%f,%f,%f,%f,%f] \n", b_sub[i * 6 + 0], b_sub[i * 6 + 1], b_sub[i * 6 + 2], b_sub[i * 6 +
         //        3],
         //               b_sub[i * 6 + 4], b_sub[i * 6 + 5]);
+    }
+
+    LOG(INFO) << "ChConstraintRigidNode::Build_b";
+    uint num_rigid_node_contacts = data_manager->num_rigid_node_contacts;
+    uint num_unilaterals = data_manager->num_unilaterals;
+    uint num_bilaterals = data_manager->num_bilaterals;
+    real step_size = data_manager->settings.step_size;
+    if (num_rigid_node_contacts > 0) {
+        custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
+        int num_nodes = data_manager->num_nodes;
+
+        //#pragma omp parallel for
+        int index = 0;
+        for (int p = 0; p < num_nodes; p++) {
+            for (int i = 0; i < contact_counts[p]; i++) {
+                real bi = 0;
+                real depth = data_manager->host_data.dpth_rigid_node[p * max_rigid_neighbors + i];
+
+                bi = std::max(real(1.0) / step_size * depth, -data_manager->fea_container->contact_recovery_speed);
+                //
+                data_manager->host_data.b[start_row + num_tets * 6 + index + 0] = bi;
+                data_manager->host_data.b[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 0] = 0;
+                data_manager->host_data.b[start_row + num_tets * 6 + num_rigid_node_contacts + index * 2 + 1] = 0;
+                index++;
+            }
+        }
     }
 }
 void ChFEAContainer::Build_E() {}

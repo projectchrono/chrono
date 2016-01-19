@@ -76,7 +76,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real contact_cohesion;
     real contact_mu;    // friction
     real max_velocity;  // limit on the maximum speed the fluid can move at
-    real start_row;
+    uint start_row;
 
   protected:
     ChParallelDataManager* data_manager;
@@ -198,6 +198,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     void GenerateSparsity();
     int GetNumConstraints();
     int GetNumNonZeros();
+    void Project(real* gamma);
     void Build_D();
     void Build_b();
     void Build_E();
