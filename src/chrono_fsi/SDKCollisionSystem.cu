@@ -1319,7 +1319,9 @@ void reorderDataAndFindCellStart(thrust::device_vector<uint>& cellStart,
 	computeGridSize(numAllMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
 
 	/* Set all cells to empty */
-	cudaMemset(U1CAST(cellStart), 0xffffffff, numCells * sizeof(uint));
+//	cudaMemset(U1CAST(cellStart), 0xffffffff, numCells * sizeof(uint));
+	thrust::fill(cellStart.begin(), cellStart.end(), 0);
+	thrust::fill(cellEnd.begin(), cellEnd.end(), 0);
 
 	//#if USE_TEX
 	//#if 0

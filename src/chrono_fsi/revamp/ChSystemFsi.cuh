@@ -20,13 +20,12 @@
 
 namespace fsi {
 
-class CH_FSI_API ChSystemFsi {
-	FsiDataContainer* fsiData;
+class CH_FSI_API ChSystemFsi : public ChFsiGeneral{
+
+public:
 
 void InitSystem();
 
-void ForceSPH();
-void DensityReinitialization();
 void IntegrateSPH();
 void UpdateFluid();
 void Copy_SortedVelXSPH_To_VelXSPH();
@@ -40,7 +39,6 @@ void RecalcVelocity_XSPH();
 void MapSPH_ToGrid();
 void CalcCartesianData();
 
-
 void MakeRigidIdentifier();
 void Populate_RigidSPH_MeshPos_LRF();
 void Rigid_Forces_Torques();
@@ -48,6 +46,11 @@ void UpdateRigidMarkersPositionVelocity1();
 void UpdateRigidMarkersPositionVelocity2();
 void CalcBceAcceleration();
 
+friend ChFsiForceParallel;
+
+protected:
+	FsiDataContainer* fsiData;
+	ChFsiFoceParallel* force_sph;
 };
 }
 

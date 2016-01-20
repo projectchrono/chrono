@@ -12,11 +12,19 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Base class for fsi system.//
+// Class for fsi properties and functions.//
 // =============================================================================
 
+#include "ChFsiGeneral.h"
+using namespace fsi;
 
+uint ChFsiGeneral::iDivUp(uint a, uint b) {
+	return (a % b != 0) ? (a / b + 1) : (a / b);
+}
 
-
-
-
+ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks,
+		uint& numThreads) {
+	uint n2 = (n == 0) ? 1 : n;
+	numThreads = min(blockSize, n2);
+	numBlocks = iDivUp(n2, numThreads);
+}
