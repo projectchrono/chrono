@@ -1,11 +1,11 @@
-sudo: false 
+sudo: required
+dist: trusty
 language: cpp
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - libirrlicht1.7a
       - libirrlicht-dev
       - libxxf86vm-dev
       - freeglut3-dev

@@ -97,9 +97,9 @@ add_executable(myexe my_example.cpp)
 #--------------------------------------------------------------
 
 set_target_properties(myexe PROPERTIES 
-	    COMPILE_FLAGS "${CHRONO_CSS_FLAGS}"
+	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS}"
 	    COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
-	    LINK_FLAGS "${CHRONO_CSS_FLAGS}")
+	    LINK_FLAGS "${CHRONO_CXX_FLAGS}")
 
 #--------------------------------------------------------------
 # Link to Chrono libraries and dependency libraries

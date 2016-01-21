@@ -14,58 +14,12 @@
 #define CHLOADCONTACTSURFACEMESH_H
 
 #include "chrono_fea/ChContactSurfaceMesh.h"
-#include "physics/ChLoad.h"
+#include "physics/ChLoadsXYZnode.h"
 
 
 namespace chrono {
 
 namespace fea {
-
-
-
-/// FORCE AT XYZ NODE
-/// Loader for a constant force applied at a XYZ node.
-/// Note that an equivalent shortcut is to set directly the node's own force member data
-/// as mynode->SetForce(), but this other approach is more object-oriented (es. you can 
-/// apply multiple forces at a single node, etc)
-
-class ChLoaderXYZnode : public ChLoaderUVWatomic {
-private:
-    ChVector<> force;
-public:
-        // Useful: a constructor that also sets ChLoadable    
-        ChLoaderXYZnode(ChSharedPtr<ChLoadableUVW> mloadable) 
-            :  ChLoaderUVWatomic(mloadable,0,0,0) {
-            this->force = VNULL;
-        };
-
-        // Compute F=F(u,v,w)
-        // Implement it from base class.
-        virtual void ComputeF(const double U,     ///< parametric coordinate -not used
-                              const double V,     ///< parametric coordinate -not used
-                              const double W,     ///< parametric coordinate -not used
-                        ChVectorDynamic<>& F,       ///< Result F vector here, size must be = n.field coords.of loadable
-                        ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
-                        ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
-                        ) {
-            F.PasteVector( this->force, 0,0);    // load, force part
-        }
-
-            /// Set force (ex. in [N] units), assumed to be constant in space and time,
-            /// assumed applyed at the node.
-        void SetForce(const ChVector<>& mf) {this->force = mf;}
-        ChVector<> GetForce() const {return this->force;}
-};
-
-
-/// FORCE AT XYZ NODE (ready to use load)
-
-class ChLoadXYZnode : public ChLoad<ChLoaderXYZnode> {
-public:
-    ChLoadXYZnode(ChSharedPtr<ChNodeFEAxyz> mloadable) 
-        : ChLoad<ChLoaderXYZnode>(mloadable)
-    {}
-};
 
 
 
@@ -194,8 +148,8 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
         this->contactmesh = mmesh;
         this->forces.clear();
     }
-        /// Get the contact mesh (also resets the applied nodes)
-    ChSharedPtr<ChContactSurfaceMesh> GetContactMesh(ChSharedPtr<ChContactSurfaceMesh> mmesh) { return this->contactmesh;}
+        /// Get the contact mesh
+    ChSharedPtr<ChContactSurfaceMesh> GetContactMesh() { return this->contactmesh;}
 
         /// Access the list of applied forces, so you can add new ones by using push_back(), 
         /// remove them, count them, etc.

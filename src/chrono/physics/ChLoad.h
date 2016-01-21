@@ -419,6 +419,19 @@ public:
     {
         load_Q.Reset(this->LoadGet_ndof_w());
     }
+    ChLoadCustomMultiple(ChSharedPtr<ChLoadable> mloadableA, ChSharedPtr<ChLoadable> mloadableB) 
+    {
+        loadables.push_back(mloadableA);
+        loadables.push_back(mloadableB);
+        load_Q.Reset(this->LoadGet_ndof_w());
+    }
+    ChLoadCustomMultiple(ChSharedPtr<ChLoadable> mloadableA, ChSharedPtr<ChLoadable> mloadableB, ChSharedPtr<ChLoadable> mloadableC) 
+    {
+        loadables.push_back(mloadableA);
+        loadables.push_back(mloadableB);
+        loadables.push_back(mloadableC);
+        load_Q.Reset(this->LoadGet_ndof_w());
+    }
 
     virtual ~ChLoadCustomMultiple() {}
 
