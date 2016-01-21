@@ -252,6 +252,10 @@ void ChLcpSolverParallelDVI::ComputeE() {
     rigid_rigid.Build_E();
     bilateral.Build_E();
     rigid_fluid.Build_E();
+
+    data_manager->fea_container->Build_E();
+    data_manager->node_container->Build_E();
+
     data_manager->system_timer.stop("ChLcpSolverParallel_E");
 }
 

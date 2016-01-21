@@ -421,7 +421,7 @@ void ChFluidContainer::Build_E() {
 
 #pragma omp parallel for
     for (int index = 0; index < num_fluid_bodies; index++) {
-        E[index_offset + index] = compliance;
+        E[index_offset + index] = 0;//compliance;
         if (enable_viscosity) {
             E[index_offset + num_fluid_bodies + index * 3 + 0] = 0;
             E[index_offset + num_fluid_bodies + index * 3 + 1] = 0;

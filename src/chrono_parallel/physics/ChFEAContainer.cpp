@@ -166,7 +166,7 @@ void ChFEAContainer::Initialize() {
         real vol = (det) / 6.0;
         real volSqrt = Sqrt(vol);
 
-        V[i] = vol;
+        V[i] = vol;  // Abs(Dot(x1-x0, Cross(x2-x0, x3-x0)))/6.0;
 
         real tet_mass = material_density * vol;
         real node_mass = tet_mass / 4.0;
@@ -302,7 +302,7 @@ void ChFEAContainer::Build_D() {
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
-
+#pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
 
@@ -350,67 +350,68 @@ void ChFEAContainer::Build_D() {
         real3 r0 = -r1 - r2 - r3;
 
         real vf = 0;  //(0.5 / (6.0 * volSqrt));
-        real cf = 1;  // volSqrt;
+        // This helps to scale jacboian so boundaries aren't ignored
+        real cf = 2 * volSqrt;
         // diagonal elements of strain matrix
-        Mat33 A1 = cf * Mat33(y[0]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
-        Mat33 A2 = cf * Mat33(y[1]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
-        Mat33 A3 = cf * Mat33(y[2]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
-        Mat33 A4 = cf * Mat33(y[3]) * Ftr;  // + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
+        Mat33 A1 = cf * Mat33(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
+        Mat33 A2 = cf * Mat33(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
+        Mat33 A3 = cf * Mat33(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
+        Mat33 A4 = cf * Mat33(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
 
-        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
-        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
-        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.z * 3, A3.row(0));
-        SetRow3(D_T, start_row + i * 7 + 0, b_off + tet_ind.w * 3, A4.row(0));
+        SetRow3Check(D_T, start_row + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
+        SetRow3Check(D_T, start_row + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
+        SetRow3Check(D_T, start_row + i * 7 + 0, b_off + tet_ind.z * 3, A3.row(0));
+        SetRow3Check(D_T, start_row + i * 7 + 0, b_off + tet_ind.w * 3, A4.row(0));
         /////==================================================================================================================================
 
-        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.x * 3, A1.row(1));
-        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.y * 3, A2.row(1));
-        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.z * 3, A3.row(1));
-        SetRow3(D_T, start_row + i * 7 + 1, b_off + tet_ind.w * 3, A4.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 1, b_off + tet_ind.x * 3, A1.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 1, b_off + tet_ind.y * 3, A2.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 1, b_off + tet_ind.z * 3, A3.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 1, b_off + tet_ind.w * 3, A4.row(1));
         /////==================================================================================================================================
 
-        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.x * 3, A1.row(2));
-        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.y * 3, A2.row(2));
-        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.z * 3, A3.row(2));
-        SetRow3(D_T, start_row + i * 7 + 2, b_off + tet_ind.w * 3, A4.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 2, b_off + tet_ind.x * 3, A1.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 2, b_off + tet_ind.y * 3, A2.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 2, b_off + tet_ind.z * 3, A3.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 2, b_off + tet_ind.w * 3, A4.row(2));
 
         /////==================================================================================================================================
         // Off diagonal strain elements
-        Mat33 B1 = 0.5 * cf * SkewSymmetricAlt(y[0]) *
-                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
-        Mat33 B2 = 0.5 * cf * SkewSymmetricAlt(y[1]) *
-                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
-        Mat33 B3 = 0.5 * cf * SkewSymmetricAlt(y[2]) *
-                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
-        Mat33 B4 = 0.5 * cf * SkewSymmetricAlt(y[3]) *
-                   Ftr;  // + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+        Mat33 B1 =
+            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+        Mat33 B2 =
+            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+        Mat33 B3 =
+            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+        Mat33 B4 =
+            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
 
-        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
-        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
-        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.z * 3, B3.row(0));
-        SetRow3(D_T, start_row + i * 7 + 3, b_off + tet_ind.w * 3, B4.row(0));
-
-        /////==================================================================================================================================
-
-        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.x * 3, B1.row(1));
-        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.y * 3, B2.row(1));
-        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.z * 3, B3.row(1));
-        SetRow3(D_T, start_row + i * 7 + 4, b_off + tet_ind.w * 3, B4.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
+        SetRow3Check(D_T, start_row + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
+        SetRow3Check(D_T, start_row + i * 7 + 3, b_off + tet_ind.z * 3, B3.row(0));
+        SetRow3Check(D_T, start_row + i * 7 + 3, b_off + tet_ind.w * 3, B4.row(0));
 
         /////==================================================================================================================================
 
-        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.x * 3, B1.row(2));
-        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.y * 3, B2.row(2));
-        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.z * 3, B3.row(2));
-        SetRow3(D_T, start_row + i * 7 + 5, b_off + tet_ind.w * 3, B4.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 4, b_off + tet_ind.x * 3, B1.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 4, b_off + tet_ind.y * 3, B2.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 4, b_off + tet_ind.z * 3, B3.row(1));
+        SetRow3Check(D_T, start_row + i * 7 + 4, b_off + tet_ind.w * 3, B4.row(1));
+
+        /////==================================================================================================================================
+
+        SetRow3Check(D_T, start_row + i * 7 + 5, b_off + tet_ind.x * 3, B1.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 5, b_off + tet_ind.y * 3, B2.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 5, b_off + tet_ind.z * 3, B3.row(2));
+        SetRow3Check(D_T, start_row + i * 7 + 5, b_off + tet_ind.w * 3, B4.row(2));
 
         /////==================================================================================================================================
         // Volume
 
-        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.x * 3, r0);
-        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.y * 3, r1);
-        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.z * 3, r2);
-        SetRow3(D_T, start_row + i * 7 + 6, b_off + tet_ind.w * 3, r3);
+        SetRow3Check(D_T, start_row + i * 7 + 6, b_off + tet_ind.x * 3, r0);
+        SetRow3Check(D_T, start_row + i * 7 + 6, b_off + tet_ind.y * 3, r1);
+        SetRow3Check(D_T, start_row + i * 7 + 6, b_off + tet_ind.z * 3, r2);
+        SetRow3Check(D_T, start_row + i * 7 + 6, b_off + tet_ind.w * 3, r3);
     }
 
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
@@ -438,13 +439,13 @@ void ChFEAContainer::Build_D() {
                 Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
                                  T2, T3);
 
-                SetRow6(D_T, off + index + 0, rigid * 6, -U, T1);
-                SetRow6(D_T, off + num_rigid_node_contacts + index * 2 + 0, rigid * 6, -V, T2);
-                SetRow6(D_T, off + num_rigid_node_contacts + index * 2 + 1, rigid * 6, -W, T3);
+                SetRow6Check(D_T, off + index + 0, rigid * 6, -U, T1);
+                SetRow6Check(D_T, off + num_rigid_node_contacts + index * 2 + 0, rigid * 6, -V, T2);
+                SetRow6Check(D_T, off + num_rigid_node_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
-                SetRow3(D_T, off + index + 0, b_off + node * 3, U);
-                SetRow3(D_T, off + num_rigid_node_contacts + index * 2 + 0, b_off + node * 3, V);
-                SetRow3(D_T, off + num_rigid_node_contacts + index * 2 + 1, b_off + node * 3, W);
+                SetRow3Check(D_T, off + index + 0, b_off + node * 3, U);
+                SetRow3Check(D_T, off + num_rigid_node_contacts + index * 2 + 0, b_off + node * 3, V);
+                SetRow3Check(D_T, off + num_rigid_node_contacts + index * 2 + 1, b_off + node * 3, W);
                 index++;
             }
         }
@@ -473,27 +474,21 @@ void ChFEAContainer::Build_b() {
 
         real det = Determinant(Ds);
         real vol = (det) / 6.0;
-        real volSqrt = Sqrt(vol);
+
         Mat33 X = X0[i];
         Mat33 F = Ds * X;
         Mat33 Ftr = Transpose(F);
 
-        real3 y[4];
-        y[1] = X.row(0);
-        y[2] = X.row(1);
-        y[3] = X.row(2);
-        y[0] = -y[1] - y[2] - y[3];
-
-        // Mat33 U, V;
-        // real3 SV;
-
-        // chrono::SVD(F, U, SV, V);
-        // Mat33 R = MultTranspose(U, V);
-        // Mat33 S = V * Mat33(SV) * Transpose(V);
+        //        real3 y[4];
+        //        y[1] = X.row(0);
+        //        y[2] = X.row(1);
+        //        y[3] = X.row(2);
+        //        y[0] = -y[1] - y[2] - y[3];
 
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
                                                     // Mat33 strain = S - Mat33(1);
-        real cf = volSqrt;
+        real volSqrt = Sqrt(vol);
+        real cf = 1;
 
         b_sub[i * 7 + 0] = cf * strain[0];
         b_sub[i * 7 + 1] = cf * strain[5];
@@ -504,7 +499,12 @@ void ChFEAContainer::Build_b() {
         b_sub[i * 7 + 5] = cf * strain[4];
 
         // Volume
-        b_sub[i * 7 + 6] = Determinant(F) - 1;
+
+        b_sub[i * 7 + 6] = (Determinant(F) - 1);  // 100 * (vol - V[i]);
+        // real vv = vol;
+
+        // printf("vol: %f %f %f\n", (Determinant(F) - 1), (Determinant(Ds) - Determinant(Inverse(X))), 100 * vol -
+        // V[i]);
     }
 
     LOG(INFO) << "ChConstraintRigidNode::Build_b";
@@ -543,28 +543,32 @@ void ChFEAContainer::Build_E() {
     const real mu = 0.5 * youngs_modulus / (1. + poisson_ratio);  // 0.5?
     const real muInv = 1. / mu;
 
-    real omn = 1.f - poisson_ratio;
-    real om2n = 1.f - 2 * poisson_ratio;
-    real s = youngs_modulus / (1.f + poisson_ratio);
+    real omn = 1. - poisson_ratio;
+    real om2n = 1. - 2 * poisson_ratio;
+    real s = youngs_modulus / (1. + poisson_ratio);
     real f = s / om2n;
     Mat33 E = f * Mat33(omn, poisson_ratio, poisson_ratio, poisson_ratio, omn, poisson_ratio, poisson_ratio,
                         poisson_ratio, omn);
+
     E = Inverse(E);
+
+// real diag_stretch = youngs_modulus * (1. - poisson_ratio) / ((1. + poisson_ratio) * (1. - 2 * poisson_ratio));
+// real diag_strain = youngs_modulus * (1. - 2 * poisson_ratio) / ((1. + poisson_ratio) * (1. - 2 * poisson_ratio));
 
 #pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
-        E_sub[i * 7 + 0] = E[0];
-        E_sub[i * 7 + 1] = E[5];
-        E_sub[i * 7 + 2] = E[10];
+        E_sub[i * 7 + 0] = E[0];  // diag_stretch;
+        E_sub[i * 7 + 1] = E[5];  // diag_stretch;
+        E_sub[i * 7 + 2] = E[10];  // diag_stretch;
 
-        E_sub[i * 7 + 3] = muInv;
-        E_sub[i * 7 + 4] = muInv;
-        E_sub[i * 7 + 5] = muInv;
+        E_sub[i * 7 + 3] = muInv;  // diag_strain;
+        E_sub[i * 7 + 4] = muInv;  // diag_strain;
+        E_sub[i * 7 + 5] = muInv;  // diag_strain;
         // Volume
-        E_sub[i * 7 + 6] = 0;
-        //        printf("b [%f,%f,%f,%f,%f,%f] \n", b_sub[i * 6 + 0], b_sub[i * 6 + 1], b_sub[i * 6 + 2], b_sub[i * 6 +
+        E_sub[i * 7 + 6] = 0;//1.0 / youngs_modulus;
+        //        printf("E [%f,%f,%f,%f,%f,%f] \n", E_sub[i * 7 + 0], E_sub[i * 7 + 1], E_sub[i * 7 + 2], E_sub[i * 7 +
         //        3],
-        //               b_sub[i * 6 + 4], b_sub[i * 6 + 5]);
+        //               E_sub[i * 7 + 4], E_sub[i * 7 + 5], E_sub[i * 7 + 6]);
     }
 }
 
