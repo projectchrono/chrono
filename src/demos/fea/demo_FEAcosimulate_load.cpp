@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetPos(tire_center + ChVector<>(-1,0,0));
 
     ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-    mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
+    mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
     mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
     mrigidbody->AddAsset(mrigidmesh);
 
