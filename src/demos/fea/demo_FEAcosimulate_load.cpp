@@ -54,14 +54,14 @@ void PerformEsternalCosimulation(   const std::vector<ChVector<>>& input_vert_po
     vert_output_forces.clear();
     vert_output_indexes.clear();
     double ky = 10000; // upward stiffness
-    double ry = 10; // upward damping
+    double ry = 20; // upward damping
     // simple example: scan through all vertexes in the mesh, see if they sink below zero,
     // apply a penalty upward spring force if so.
     for (int iv = 0; iv < input_vert_pos.size(); ++iv) {
         if (input_vert_pos[iv].y < 0) {
             double yforce = - ky * input_vert_pos[iv].y - ry * input_vert_vel[iv].y;
             if (yforce > 0) {
-                vert_output_forces.push_back(ChVector<>(0,yforce,0));
+                vert_output_forces.push_back(ChVector<>(0 ,yforce, 0));
                 vert_output_indexes.push_back(iv);
             }
         }
@@ -72,9 +72,10 @@ void PerformEsternalCosimulation(   const std::vector<ChVector<>>& input_vert_po
 }
 
 
-// Utility to draw some triangles that are affected by cosimulation
+// Utility to draw some triangles that are affected by cosimulation.
+// Also plot forces as vectors.
 // Mostly for debugging. 
-void draw_affected_triangles(ChIrrApp& application, std::vector<ChVector<>>& vert_pos, std::vector<ChVector<int>>& triangles, std::vector<int>& vert_indexes) {
+void draw_affected_triangles(ChIrrApp& application, std::vector<ChVector<>>& vert_pos, std::vector<ChVector<int>>& triangles, std::vector<int>& vert_indexes, std::vector<ChVector<>>& vert_forces, double forcescale=0.01) {
     for (int it= 0;it < triangles.size(); ++it) {
         bool vert_hit = false;
         for (int io = 0; io < vert_indexes.size(); ++io) {
@@ -89,6 +90,12 @@ void draw_affected_triangles(ChIrrApp& application, std::vector<ChVector<>>& ver
             ChIrrTools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255,240,200,0), true); 
         }
     }
+    if (forcescale>0)
+     for (int io = 0; io < vert_indexes.size(); ++io) {
+        std::vector<chrono::ChVector<> > forceline =  { vert_pos[vert_indexes[io]],   
+                                                        vert_pos[vert_indexes[io]]+vert_forces[io]*forcescale};
+        ChIrrTools::drawPolyline(application.GetVideoDriver(), forceline, irr::video::SColor(100,240,0,0), true);
+     }
 }
 
 
@@ -213,8 +220,8 @@ int main(int argc, char* argv[]) {
 
     ChSharedPtr<ChBody> mrigidbody (new ChBody);
     my_system.Add(mrigidbody);
-    mrigidbody->SetMass(150);
-    mrigidbody->SetInertiaXX(ChVector<>(15,15,15));
+    mrigidbody->SetMass(200);
+    mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
     mrigidbody->SetPos(tire_center + ChVector<>(-1,0,0));
 
     ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
@@ -222,6 +229,11 @@ int main(int argc, char* argv[]) {
     mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
     mrigidbody->AddAsset(mrigidmesh);
 
+    ChSharedPtr<ChColorAsset> mcol(new ChColorAsset);
+    mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+    mrigidbody->AddAsset(mcol);
+
+            // this is used to use the mesh in cosimulation!
     ChSharedPtr<ChLoadBodyMesh> mrigidmeshload(new ChLoadBodyMesh(mrigidbody, mrigidmesh->GetMesh()));
     mloadcontainer->Add(mrigidmeshload);
 
@@ -299,7 +311,7 @@ int main(int argc, char* argv[]) {
 
         // now, just for debugging and some fun, draw some triangles
         // (only those that have a vertex that has a force applied):
-        draw_affected_triangles(application, vert_pos, triangles, vert_indexes);
+        draw_affected_triangles(application, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
 
 
         // Other example: call another cosimulation, this time for the rigid body 
@@ -322,7 +334,7 @@ int main(int argc, char* argv[]) {
 
         // now, just for debugging and some fun, draw some triangles
         // (only those that have a vertex that has a force applied):
-        draw_affected_triangles(application, vert_pos, triangles, vert_indexes);
+        draw_affected_triangles(application, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
         
 
         // End of cosimulation block
