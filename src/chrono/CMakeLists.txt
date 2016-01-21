@@ -290,6 +290,8 @@ set(ChronoEngine_physics_HEADERS
 	physics/ChLoaderUVW.h
 	physics/ChLoad.h
 	physics/ChLoadsXYZnode.h
+	physics/ChLoadsBody.h
+	physics/ChLoadBodyMesh.h
 	physics/ChLoadContainer.h
     )
 
