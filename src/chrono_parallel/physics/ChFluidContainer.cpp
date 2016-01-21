@@ -421,7 +421,7 @@ void ChFluidContainer::Build_E() {
 
 #pragma omp parallel for
     for (int index = 0; index < num_fluid_bodies; index++) {
-        E[index_offset + index] = 0;//compliance;
+        E[index_offset + index] = 0;  // compliance;
         if (enable_viscosity) {
             E[index_offset + num_fluid_bodies + index * 3 + 0] = 0;
             E[index_offset + num_fluid_bodies + index * 3 + 1] = 0;
@@ -507,6 +507,40 @@ void ChFluidContainer::PostSolve() {
         data_manager->host_data.gamma[index_offset + body_a] += corr;
     }
 }
+
+void ChFluidContainer::CalculateContactForces() {
+    uint num_contacts = data_manager->num_fluid_contacts;
+    if (num_contacts <= 0) {
+        return;
+    }
+    SubMatrixType DRFN = submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_);
+    SubMatrixType DRFT =
+        submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_);
+
+    DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    SubVectorType gamma_n = subvector(gamma, _num_uni_ + _num_bil_, _num_rf_c_);
+    SubVectorType gamma_t = subvector(gamma, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_);
+
+    contact_forces =
+        DRFN * gamma_n / data_manager->settings.step_size + DRFT * gamma_t / data_manager->settings.step_size;
+
+    // contact_forces
+}
+
+real3 ChFluidContainer::GetBodyContactForce(uint body_id) {
+    if (data_manager->num_fluid_contacts <= 0) {
+        return real3(0);
+    }
+    return real3(contact_forces[body_id * 6 + 0], contact_forces[body_id * 6 + 1], contact_forces[body_id * 6 + 2]);
+}
+
+real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
+    if (data_manager->num_fluid_contacts <= 0) {
+        return real3(0);
+    }
+    return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
+}
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////

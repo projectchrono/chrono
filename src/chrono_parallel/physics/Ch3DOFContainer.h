@@ -58,6 +58,9 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void ComputeInvMass(int offset) {}
     virtual void ComputeMass(int offset) {}
     virtual void PostSolve() {}
+    virtual void CalculateContactForces() {}
+    virtual real3 GetBodyContactForce(uint body_id) {}
+    virtual real3 GetBodyContactTorque(uint body_id) {}
     // Integrate happens after the solve
     // void Integrate(double ChTime);
     // Position of the node - in absolute csys.
@@ -77,7 +80,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real contact_mu;    // friction
     real max_velocity;  // limit on the maximum speed the fluid can move at
     uint start_row;
-
+    //Store boundary forces here for rigid bodies
+    DynamicVector<real> contact_forces;
   protected:
     ChParallelDataManager* data_manager;
 };
@@ -104,7 +108,9 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     void PostSolve();
-
+    void CalculateContactForces();
+    real3 GetBodyContactForce(uint body_id);
+    real3 GetBodyContactTorque(uint body_id);
     custom_vector<Mat33> shear_tensor;
     custom_vector<real> shear_trace;
     custom_vector<real> density;
