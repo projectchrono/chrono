@@ -13,7 +13,10 @@ IF(ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 ENDIF()
-
+IF(ENABLE_MODULE_FEA)
+    INCLUDE_DIRECTORIES(${CH_FEA_INCLUDES})
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_fea)
+ENDIF()
 # ------------------------------------------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -32,11 +35,17 @@ SET(DEMOS
     mixerDVI
     fluidDVI
     snowMPM
+    
 )
 
 # Programs that require OpenGL support
 IF(ENABLE_MODULE_OPENGL)
     SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
+ENDIF()
+
+
+IF(ENABLE_MODULE_FEA)
+    SET(DEMOS ${DEMOS} tireFEA)
 ENDIF()
 
 # ------------------------------------------------------------------------------
