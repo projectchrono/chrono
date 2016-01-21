@@ -60,7 +60,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 
     ChVector<> hdim(.55, .6, .55);
 
-    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.05, Vector(0, 0, 0), QUNIT, true, false, true, true);
+    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.05, Vector(0, 0, 0), Q_from_AngAxis(-10, VECT_Y), true, false, true, true);
 }
 
 // -----------------------------------------------------------------------------
@@ -77,7 +77,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     fluid_container->viscosity = 20;
     fluid_container->enable_viscosity = false;
 
-    fluid_container->contact_mu = .1;
+    fluid_container->contact_mu = 0;
     fluid_container->rho = 1000;
     fluid_container->initialize_mass = false;
     // msystem.GetSettings()->fluid.max_interactions = 30;
@@ -90,7 +90,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     real radius = .1;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
-    real3 origin(0, 0, .2);
+    real3 origin(0, 0, -.2);
     real vol;
 
     std::vector<real3> pos_fluid;
