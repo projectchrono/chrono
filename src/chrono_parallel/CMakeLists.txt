@@ -211,8 +211,6 @@ SET(ChronoEngine_Parallel_CONSTRAINTS
     constraints/ChConstraintRigidRigid.h
     constraints/ChConstraintBilateral.cpp
     constraints/ChConstraintBilateral.h
-    constraints/ChConstraintRigidFluid.cpp
-    constraints/ChConstraintRigidFluid.h
     )
 
 SOURCE_GROUP(constraints FILES ${ChronoEngine_Parallel_CONSTRAINTS})

@@ -25,15 +25,14 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
         data_manager->num_unilaterals = 6 * data_manager->num_rigid_contacts;
     }
 
-    uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
     uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
     uint num_tet_constraints = data_manager->fea_container->GetNumConstraints();
 
     // Get the number of 3dof constraints, from the 3dof container in use right now
 
     // This is the total number of constraints
-    data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid +
-                                    num_3dof_3dof + num_tet_constraints;
+    data_manager->num_constraints =
+        data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof + num_tet_constraints;
 
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
@@ -45,10 +44,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     // Perform any setup tasks for all constraint types
     rigid_rigid.Setup(data_manager);
     bilateral.Setup(data_manager);
-    rigid_fluid.Setup(data_manager);
-    data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid);
-    data_manager->fea_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_rigid_fluid +
-                                       num_3dof_3dof);
+    data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals);
+    data_manager->fea_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
@@ -58,7 +55,6 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     // Set pointers to constraint objects and perform setup actions for solver
     solver->rigid_rigid = &rigid_rigid;
     solver->bilateral = &bilateral;
-    solver->rigid_fluid = &rigid_fluid;
     solver->three_dof = data_manager->node_container;
     solver->fem = data_manager->fea_container;
     solver->Setup(data_manager);
@@ -178,10 +174,6 @@ void ChLcpSolverParallelDVI::ComputeD() {
     int num_tangential = 2 * num_rigid_contacts;
     int num_spinning = 3 * num_rigid_contacts;
 
-    int nnz_rigid_fluid = 9 * 3 * num_rigid_fluid_contacts;
-
-    uint num_rigid_fluid = num_rigid_fluid_contacts * 3;
-
     uint num_fluid_fluid = data_manager->node_container->GetNumConstraints();
     uint nnz_fluid_fluid = data_manager->node_container->GetNumNonZeros();
 
@@ -194,8 +186,8 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-    int nnz_total = nnz_bilaterals + nnz_rigid_fluid + nnz_fluid_fluid + nnz_fem;
-    int num_rows = num_bilaterals + num_rigid_fluid + num_fluid_fluid + num_fem;
+    int nnz_total = nnz_bilaterals + nnz_fluid_fluid + nnz_fem;
+    int num_rows = num_bilaterals + num_fluid_fluid + num_fem;
 
     switch (data_manager->settings.solver.solver_mode) {
         case NORMAL:
@@ -219,13 +211,11 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
     rigid_rigid.GenerateSparsity();
     bilateral.GenerateSparsity();
-    rigid_fluid.GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
     data_manager->fea_container->GenerateSparsity();
 
     rigid_rigid.Build_D();
     bilateral.Build_D();
-    rigid_fluid.Build_D();
     data_manager->node_container->Build_D();
     data_manager->fea_container->Build_D();
 
@@ -251,7 +241,6 @@ void ChLcpSolverParallelDVI::ComputeE() {
 
     rigid_rigid.Build_E();
     bilateral.Build_E();
-    rigid_fluid.Build_E();
 
     data_manager->fea_container->Build_E();
     data_manager->node_container->Build_E();
@@ -280,7 +269,6 @@ void ChLcpSolverParallelDVI::ComputeR() {
 
     rigid_rigid.Build_b();
     bilateral.Build_b();
-    rigid_fluid.Build_b();
     data_manager->node_container->Build_b();
     data_manager->fea_container->Build_b();
     R = -b - D_T * M_invk;

@@ -21,7 +21,6 @@
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "chrono_parallel/constraints/ChConstraintRigidFluid.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 
@@ -113,7 +112,6 @@ class CH_PARALLEL_API ChSolverParallel {
 
     ChConstraintRigidRigid* rigid_rigid;
     ChConstraintBilateral* bilateral;
-    ChConstraintRigidFluid* rigid_fluid;
     Ch3DOFContainer* three_dof;
     Ch3DOFContainer* fem;
 

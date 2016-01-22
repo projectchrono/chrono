@@ -22,6 +22,7 @@ Ch3DOFContainer::Ch3DOFContainer() {
     contact_cohesion = 0;
     contact_mu = 0;
     max_velocity = 20;
+    data_manager = 0;
 }
 
 Ch3DOFContainer::~Ch3DOFContainer() {}
@@ -52,6 +53,18 @@ void Ch3DOFContainer::SetPos_dt(const int& i, const real3& mposdt) {
     data_manager->host_data.vel_3dof[i] = mposdt;
 }
 
+void Ch3DOFContainer::Setup(int start_constraint) {
+    start_row = start_constraint;
+    if (data_manager) {
+        num_fluid_contacts = data_manager->num_fluid_contacts;
+        num_fluid_bodies = data_manager->num_fluid_bodies;
+        num_rigid_bodies = data_manager->num_rigid_bodies;
+        num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
+        num_unilaterals = data_manager->num_unilaterals;
+        num_bilaterals = data_manager->num_bilaterals;
+        num_shafts = data_manager->num_shafts;
+    }
+}
 }  // END_OF_NAMESPACE____
 
 /////////////////////

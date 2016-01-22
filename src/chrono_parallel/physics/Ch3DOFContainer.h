@@ -47,7 +47,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void UpdatePosition(double ChTime) {}
     virtual int GetNumConstraints() { return 0; }
     virtual int GetNumNonZeros() { return 0; }
-    virtual void Setup(int start_constraint) { start_row = start_constraint; }
+    virtual void Setup(int start_constraint);
     virtual void Initialize() {}
     virtual void PreSolve() {}
     virtual void Build_D() {}
@@ -80,10 +80,24 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real contact_mu;    // friction
     real max_velocity;  // limit on the maximum speed the fluid can move at
     uint start_row;
-    //Store boundary forces here for rigid bodies
+
+    uint start_boundary;
+    uint start_density;
+    uint start_viscous;
+
+    // Store boundary forces here for rigid bodies
     DynamicVector<real> contact_forces;
+
   protected:
     ChParallelDataManager* data_manager;
+
+    uint num_fluid_contacts;
+    uint num_fluid_bodies;
+    uint num_rigid_bodies;
+    uint num_rigid_fluid_contacts;
+    uint num_unilaterals;
+    uint num_bilaterals;
+    uint num_shafts;
 };
 
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
@@ -129,14 +143,6 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     bool initialize_mass;
 
   private:
-    uint num_fluid_contacts;
-    uint num_fluid_bodies;
-    uint num_rigid_bodies;
-    uint num_rigid_fluid_contacts;
-    uint num_unilaterals;
-    uint num_bilaterals;
-    uint num_shafts;
-    uint index_offset;
     uint body_offset;
 
     custom_vector<real3> den_con_jac;
