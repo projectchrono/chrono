@@ -51,6 +51,17 @@ namespace fsi {
 		thrust::device_vector<uint> bodyIndexD;
 		thrust::device_vector<Real4> derivVelRhoD;
 
+		thrust::device_vector<Real3> sortedPosRadD;
+		thrust::device_vector<Real3> sortedVelMasD;
+		thrust::device_vector<Real4> sortedRhoPreMuD;
+		thrust::device_vector<uint> mapOriginalToSorted;
+		thrust::device_vector<Real3> vel_XSPH_D;
+
+		thrust::device_vector<uint> gridMarkerHashD;//(numAllMarkers);
+		thrust::device_vector<uint> gridMarkerIndexD;//(numAllMarkers);
+		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
+		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
+
 		thrust::device_vector<Real3> posRigid_fsiBodies_D;
 		thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
 		thrust::device_vector<Real3> accRigid_fsiBodies_D;
@@ -68,11 +79,6 @@ namespace fsi {
 
 		thrust::device_vector<Real3> rigid_FSI_ForcesD;
 		thrust::device_vector<Real3> rigid_FSI_TorquesD;
-
-		thrust::device_vector<uint> gridMarkerHashD;//(numAllMarkers);
-		thrust::device_vector<uint> gridMarkerIndexD;//(numAllMarkers);
-		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
-		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
 	};
 }
 

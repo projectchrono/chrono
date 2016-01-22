@@ -19,6 +19,41 @@ using namespace fsi;
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
+__device__ Real3 deltaVShare(int3 gridPos, uint index, Real3 posRadA,
+		Real3 velMasA, Real4 rhoPresMuA, Real3* sortedPosRad,
+		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* cellStart,
+		uint* cellEnd) {
+	uint gridHash = calcGridHash(gridPos);
+	// get start of bucket for this cell
+	Real3 deltaV = mR3(0.0f);
+
+	uint startIndex = FETCH(cellStart, gridHash);
+	if (startIndex != 0xffffffff) {  // cell is not empty
+		// iterate over particles in this cell
+		uint endIndex = FETCH(cellEnd, gridHash);
+
+		for (uint j = startIndex; j < endIndex; j++) {
+			if (j != index) {  // check not colliding with self
+				Real3 posRadB = FETCH(sortedPosRad, j);
+				Real3 dist3 = Distance(posRadA, posRadB);
+				Real d = length(dist3);
+				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
+					continue;
+				Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+				if (rhoPresMuB.w > -.1)
+					continue; //# B must be fluid (A was checked originally and it is fluid at this point), accoring to
+				// colagrossi (2003), the other phase (i.e. rigid) should not be considered)
+				Real multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
+				Real3 velMasB = FETCH(sortedVelMas, j);
+				deltaV += paramsD.markerMass * (velMasB - velMasA) * W3(d)
+						* multRho;
+			}
+		}
+	}
+	return deltaV;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// collide a particle against all other particles in a given cell
 __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 		Real3 velMasA, Real3 vel_XSPH_A, Real4 rhoPresMuA, Real3* sortedPosRad,
 		Real3* sortedVelMas, Real3* vel_XSPH_Sorted_D, Real4* sortedRhoPreMu,
@@ -303,7 +338,7 @@ void ChFsiForceParallel::ModifyBceVelocity() {
 	if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers && rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
 		throw std::runtime_error ("Error! size error velMas_ModifiedBCE and rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
 	}
-	int2 updatePortion = mI2(referenceArray[0].y, referenceArray[2 + numObjects.numRigidBodies - 1].y);
+	int2 updatePortion = mI2(fsiData->referenceArray[0].y, fsiData->referenceArray[2 + numObjects.numRigidBodies - 1].y);
 	if (paramsH.bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
 		if (numObjects.numRigid_SphMarkers > 0) {
@@ -311,7 +346,7 @@ void ChFsiForceParallel::ModifyBceVelocity() {
 					fsiData->omegaAccLRF_fsiBodies_D, fsiData->rigidSPH_MeshPos_LRF_D, fsiData->rigidIdentifierD, numObjects.numRigid_SphMarkers);
 		}
 		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
-				fsiData->m_dSortedPosRad, fsiData->m_dSortedVelMas, fsiData->m_dSortedRhoPreMu, fsiData->cellStartD, fsiData->cellEndD, 
+				fsiData->sortedPosRadD, fsiData->sortedVelMasD, fsiData->sortedRhoPreMuD, fsiData->cellStartD, fsiData->cellEndD, 
 				fsiData->mapOriginalToSorted, bceAcc, updatePortion);
 		bceAcc.clear();
 	} else {
@@ -363,8 +398,8 @@ void ChFsiForceParallel::CalculateXSPH_velocity() {
 	if (vel_XSPH_Sorted_D.size() != numAllMarkers) {
 		throw std::runtime_error ("Error! size error vel_XSPH_Sorted_D Thrown from CalculateXSPH_velocity!\n");
 	}
-	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, fsiData->m_dSortedPosRad, fsiData->m_dSortedVelMas,
-			fsiData->m_dSortedRhoPreMu, fsiData->gridMarkerIndexD, fsiData->cellStartD, fsiData->cellEndD,
+	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, fsiData->sortedPosRadD, fsiData->sortedVelMasD,
+			fsiData->sortedRhoPreMuD, fsiData->gridMarkerIndexD, fsiData->cellStartD, fsiData->cellEndD,
 			paramsH.numAllMarkers, paramsH.m_numGridCells);
 
 	/* Collide */
@@ -434,13 +469,13 @@ void ChFsiForceParallel::CollideWrapper() {
 	thrust::device_vector<Real4> m_dSortedDerivVelRho_fsi_D(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
 	thrust::fill(m_dSortedDerivVelRho_fsi_D.begin(), m_dSortedDerivVelRho_fsi_D.end(), mR4(0));
 
-	collide(m_dSortedDerivVelRho_fsi_D, fsiData->m_dSortedPosRad, fsiData->m_dSortedVelMas, vel_XSPH_Sorted_D,
-			fsiData->m_dSortedRhoPreMu, fsiData->velMas_ModifiedBCE, fsiData->rhoPreMu_ModifiedBCE, fsiData->gridMarkerIndexD, 
+	collide(m_dSortedDerivVelRho_fsi_D, fsiData->sortedPosRadD, fsiData->sortedVelMasD, vel_XSPH_Sorted_D,
+			fsiData->sortedRhoPreMuD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, fsiData->gridMarkerIndexD, 
 			fsiData->cellStartD, fsiData->cellEndD,
 			paramsH.numAllMarkers, paramsH.m_numGridCells);
 
-	CopySortedToOriginal_Invasive_R3(vel_XSPH_D, vel_XSPH_Sorted_D, gridMarkerIndexD);
-	CopySortedToOriginal_Invasive_R4(derivVelRhoD, m_dSortedDerivVelRho_fsi_D, gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R3(fsiData->vel_XSPH_D, vel_XSPH_Sorted_D, fsiData->gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R4(fsiData->derivVelRhoD, m_dSortedDerivVelRho_fsi_D, fsiData->gridMarkerIndexD);
 
 	m_dSortedDerivVelRho_fsi_D.clear();
 	// vel_XSPH_Sorted_D.clear();
@@ -452,8 +487,8 @@ void ChFsiForceParallel::AddGravityToFluid() {
 	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
 	thrust::device_vector<Real4> bodyForceD(numAllMarkers);
 	thrust::fill(bodyForceD.begin(), bodyForceD.end(), mR4(totalFluidBodyForce3));
-	thrust::transform(fsiData->derivVelRhoD.begin() + referenceArray[0].x, fsiData->derivVelRhoD.begin() + referenceArray[0].y,
-			bodyForceD.begin(), fsiData->derivVelRhoD.begin() + referenceArray[0].x, thrust::plus<Real4>());
+	thrust::transform(fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x, fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].y,
+			bodyForceD.begin(), fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x, thrust::plus<Real4>());
 	bodyForceD.clear();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
