@@ -300,7 +300,7 @@ struct host_container {
     // This matrix, if used will hold D^TxM^-1xD in sparse form
     CompressedMatrix<real> Nshur;
     // The D Matrix hold the Jacobian for the entire system
-    CompressedMatrix<real> D;
+    CompressedMatrix<real, blaze::columnMajor> D;
     // D_T is the transpose of the D matrix, note that D_T is actually computed
     // first and D is taken as the transpose. This is due to the way that blaze
     // handles sparse matrix allocation, it is easier to do it on a per row basis
@@ -323,7 +323,6 @@ struct host_container {
     DynamicVector<real> gamma;   // THe unknowns we are solving for
     DynamicVector<real> v;       // This vector holds the velocities for all objects
     DynamicVector<real> hf;      // This vector holds h*forces, h is time step
-    DynamicVector<real> rhs_bilateral;
     // While E is the compliance matrix, in reality it is completely diagonal
     // therefore it is stored in a vector for performance reasons
     DynamicVector<real> E;

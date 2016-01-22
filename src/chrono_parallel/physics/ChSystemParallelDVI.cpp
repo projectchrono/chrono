@@ -75,9 +75,8 @@ void ChSystemParallelDVI::CalculateContactForces() {
         Fc = 0;
         return;
     }
-    CompressedMatrix<real>& D = data_manager->host_data.D;
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    Fc = D * gamma / data_manager->settings.step_size;
+    Fc = data_manager->host_data.D * gamma / data_manager->settings.step_size;
 }
 
 real3 ChSystemParallelDVI::GetBodyContactForce(uint body_id) const {

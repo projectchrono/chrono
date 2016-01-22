@@ -181,7 +181,6 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint nnz_fem = data_manager->fea_container->GetNumNonZeros();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& D = data_manager->host_data.D;
     CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
@@ -206,8 +205,8 @@ void ChLcpSolverParallelDVI::ComputeD() {
     }
 
     CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
-    CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
-    CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
+    // CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
+    // CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
 
     rigid_rigid.GenerateSparsity();
     bilateral.GenerateSparsity();
@@ -221,10 +220,10 @@ void ChLcpSolverParallelDVI::ComputeD() {
 
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 
-    D = trans(D_T);
+    data_manager->host_data.D = trans(D_T);
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - M_invD";
 
-    M_invD = M_inv * D;
+    M_invD = M_inv * data_manager->host_data.D;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_D");
 }
@@ -249,7 +248,7 @@ void ChLcpSolverParallelDVI::ComputeE() {
 }
 
 void ChLcpSolverParallelDVI::ComputeR() {
-    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR()";
+    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR() ";
     data_manager->system_timer.start("ChLcpSolverParallel_R");
     if (data_manager->num_constraints <= 0) {
         return;
@@ -271,6 +270,8 @@ void ChLcpSolverParallelDVI::ComputeR() {
     bilateral.Build_b();
     data_manager->node_container->Build_b();
     data_manager->fea_container->Build_b();
+    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR() " << b.size() << " " << D_T.rows() << " " << D_T.columns() << " "
+              << M_invk.size();
     R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");

@@ -273,76 +273,8 @@ void ChFluidContainer::Normalize_Density_Fluid() {
 
 void ChFluidContainer::Build_D() {
     LOG(INFO) << "ChConstraintFluidFluid::Build_D_Fluid";
-    if (num_fluid_contacts <= 0) {
-        return;
-    }
-    real h = kernel_radius;
-    real envel = data_manager->settings.collision.collision_envelope;
-    real inv_density = 1.0 / rho;
-    real mass_over_density = mass * inv_density;
-    real eta = .01;
-
-    // custom_vector<real3>& vel = data_manager->host_data.vel_3dof;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-
-    //=======COMPUTE DENSITY OF FLUID
-    density.resize(num_fluid_bodies);
-    Density_Fluid();
-    Normalize_Density_Fluid();
-
-    visc1_jac.resize(num_fluid_bodies * max_neighbors);
-    visc2_jac.resize(num_fluid_bodies * max_neighbors);
-    visc3_jac.resize(num_fluid_bodies * max_neighbors);
-
-    real visca = viscosity;
-    real viscb = viscosity;
-    const real mass_2 = mass * mass;
-    const real eta_2 = eta * eta;
-    if (enable_viscosity) {
-#pragma omp parallel for
-        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
-            real3 pos_p = sorted_pos[body_a];
-            real3 vmat_row1(0);
-            real3 vmat_row2(0);
-            real3 vmat_row3(0);
-            int d_ind = 0;
-            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                if (body_a == body_b) {
-                    d_ind = i;
-                    continue;
-                }
-                int column = body_offset + body_b * 3;
-                real3 xij = pos_p - sorted_pos[body_b];
-                real dist = Length(xij);
-                real3 kernel_xij = KGSPIKY * xij;
-                //
-                real density_a = density[body_a];
-                real density_b = density[body_b];
-                real part_a = (8.0 / (density_a + density_b));
-                real part_b = visca + viscb;  //(visca / density_a + viscb / density_b);  // /
-                real part_c = 1.0 / (h * ((dist * dist / (H2)) + eta_2));
-                real scalar = -mass_2 * part_a * part_b * part_c;
-
-                real3 r1 = xij[0] * kernel_xij * scalar;
-                real3 r2 = xij[1] * kernel_xij * scalar;
-                real3 r3 = xij[2] * kernel_xij * scalar;
-
-                visc1_jac[body_a * max_neighbors + i] = r1;
-                visc2_jac[body_a * max_neighbors + i] = r2;
-                visc3_jac[body_a * max_neighbors + i] = r3;
-
-                vmat_row1 -= r1;
-                vmat_row2 -= r2;
-                vmat_row3 -= r3;
-            }
-            visc1_jac[body_a * max_neighbors + d_ind] = vmat_row1;
-            visc2_jac[body_a * max_neighbors + d_ind] = vmat_row2;
-            visc3_jac[body_a * max_neighbors + d_ind] = vmat_row3;
-        }
-    }
 
     if (num_rigid_fluid_contacts > 0) {
         custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
@@ -378,6 +310,72 @@ void ChFluidContainer::Build_D() {
         }
     }
     if (data_manager->num_fluid_contacts >= 0) {
+        real h = kernel_radius;
+        real envel = data_manager->settings.collision.collision_envelope;
+        real inv_density = 1.0 / rho;
+        real mass_over_density = mass * inv_density;
+        real eta = .01;
+
+        // custom_vector<real3>& vel = data_manager->host_data.vel_3dof;
+        custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+
+        //=======COMPUTE DENSITY OF FLUID
+        density.resize(num_fluid_bodies);
+        Density_Fluid();
+        Normalize_Density_Fluid();
+
+        visc1_jac.resize(num_fluid_bodies * max_neighbors);
+        visc2_jac.resize(num_fluid_bodies * max_neighbors);
+        visc3_jac.resize(num_fluid_bodies * max_neighbors);
+
+        real visca = viscosity;
+        real viscb = viscosity;
+        const real mass_2 = mass * mass;
+        const real eta_2 = eta * eta;
+        if (enable_viscosity) {
+#pragma omp parallel for
+            for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+                real3 pos_p = sorted_pos[body_a];
+                real3 vmat_row1(0);
+                real3 vmat_row2(0);
+                real3 vmat_row3(0);
+                int d_ind = 0;
+                for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                    int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
+                    if (body_a == body_b) {
+                        d_ind = i;
+                        continue;
+                    }
+                    int column = body_offset + body_b * 3;
+                    real3 xij = pos_p - sorted_pos[body_b];
+                    real dist = Length(xij);
+                    real3 kernel_xij = KGSPIKY * xij;
+                    //
+                    real density_a = density[body_a];
+                    real density_b = density[body_b];
+                    real part_a = (8.0 / (density_a + density_b));
+                    real part_b = visca + viscb;  //(visca / density_a + viscb / density_b);  // /
+                    real part_c = 1.0 / (h * ((dist * dist / (H2)) + eta_2));
+                    real scalar = -mass_2 * part_a * part_b * part_c;
+
+                    real3 r1 = xij[0] * kernel_xij * scalar;
+                    real3 r2 = xij[1] * kernel_xij * scalar;
+                    real3 r3 = xij[2] * kernel_xij * scalar;
+
+                    visc1_jac[body_a * max_neighbors + i] = r1;
+                    visc2_jac[body_a * max_neighbors + i] = r2;
+                    visc3_jac[body_a * max_neighbors + i] = r3;
+
+                    vmat_row1 -= r1;
+                    vmat_row2 -= r2;
+                    vmat_row3 -= r3;
+                }
+                visc1_jac[body_a * max_neighbors + d_ind] = vmat_row1;
+                visc2_jac[body_a * max_neighbors + d_ind] = vmat_row2;
+                visc3_jac[body_a * max_neighbors + d_ind] = vmat_row3;
+            }
+        }
+
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
@@ -560,7 +558,7 @@ void ChFluidContainer::GenerateSparsity() {
                 int fluid = p;
 
                 AppendRow6(D_T, start_boundary + index_n + 0, rigid * 6, 0);
-                AppendRow3(D_T, start_boundary + index_n + 0, num_rigid_bodies * 6 + num_shafts + fluid * 3, 0);
+                AppendRow3(D_T, start_boundary + index_n + 0, body_offset + fluid * 3, 0);
                 D_T.finalize(start_boundary + index_n + 0);
                 index_n++;
             }
@@ -657,16 +655,16 @@ void ChFluidContainer::CalculateContactForces() {
     if (num_contacts <= 0) {
         return;
     }
-    SubMatrixType DRFN = submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_);
-    SubMatrixType DRFT =
-        submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_);
 
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = subvector(gamma, _num_uni_ + _num_bil_, _num_rf_c_);
     SubVectorType gamma_t = subvector(gamma, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_);
 
     contact_forces =
-        DRFN * gamma_n / data_manager->settings.step_size + DRFT * gamma_t / data_manager->settings.step_size;
+        submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_) * gamma_n /
+            data_manager->settings.step_size +
+        submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) *
+            gamma_t / data_manager->settings.step_size;
 
     // contact_forces
 }
