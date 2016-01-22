@@ -154,8 +154,8 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStart, // output: cell st
 
 
 void ChCollisionSystemFsi::calcHash() {
-	if (!(fsiData->m_dGridMarkerHash.size() == paramsH.numAllMarkers &&
-		fsiData->m_dGridMarkerIndex.size() == paramsH.numAllMarkers)) {
+	if (!(fsiData->gridMarkerHashD.size() == paramsH.numAllMarkers &&
+		fsiData->gridMarkerIndexD.size() == paramsH.numAllMarkers)) {
 		throw std::runtime_error ("Error! size error, calcHash!\n");
 	}
 
@@ -217,8 +217,8 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
 
 void ChCollisionSystemFsi::ArrangeData() {
 	calcHash();
-	thrust::sort_by_key(fsiData->m_dGridMarkerHash.begin(), fsiData->m_dGridMarkerHash.end(),
-			fsiData->m_dGridMarkerIndex.begin());
+	thrust::sort_by_key(fsiData->gridMarkerHashD.begin(), fsiData->gridMarkerHashD.end(),
+			fsiData->gridMarkerIndexD.begin());
 	reorderDataAndFindCellStart();
 }
 

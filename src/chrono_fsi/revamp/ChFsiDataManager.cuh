@@ -69,13 +69,10 @@ namespace fsi {
 		thrust::device_vector<Real3> rigid_FSI_ForcesD;
 		thrust::device_vector<Real3> rigid_FSI_TorquesD;
 
-		thrust::device_vector<uint> m_dGridMarkerHash;//(numAllMarkers);
-		thrust::device_vector<uint> m_dGridMarkerIndex;//(numAllMarkers);
-		thrust::device_vector<uint> m_dCellStart;//(m_numGridCells); // Index of start cell in sorted list
-		thrust::device_vector<uint> m_dCellEnd;//(m_numGridCells); // Index of end cell in sorted list
-
-		thrust::device_vector<Real3> velMas_ModifiedBCE;//(numRigidAndBoundaryMarkers);
-		thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;//(numRigidAndBoundaryMarkers);
+		thrust::device_vector<uint> gridMarkerHashD;//(numAllMarkers);
+		thrust::device_vector<uint> gridMarkerIndexD;//(numAllMarkers);
+		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
+		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
 	};
 }
 

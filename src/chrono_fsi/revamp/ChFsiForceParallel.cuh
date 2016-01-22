@@ -40,11 +40,43 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
  */
 		void ModifyBceVelocity();
 
+		void CalculateXSPH_velocity();
+
+		void CollideWrapper();
+
 		void DensityReinitialization();
 
 	private:
 		ChCollisionSystemFsi* fsiCollisionSystem;
 		FsiDataContainer* fsiData;
+
+
+		thrust::device_vector<Real3> velMas_ModifiedBCE;//(numRigidAndBoundaryMarkers);
+		thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;//(numRigidAndBoundaryMarkers);
+		thrust::device_vector<Real3> vel_XSPH_Sorted_D;
+
+
+		void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real3>& sortedVelMas,
+		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<Real3>& velMas_ModifiedBCE,
+		thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
+
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint numAllMarkers, uint numCells,
+		Real dT);
+
+		void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
+		thrust::device_vector<Real3>& sortedPosRad,
+		thrust::device_vector<Real3>& sortedVelMas,
+		thrust::device_vector<Real4>& sortedRhoPreMu,
+		thrust::device_vector<uint>& gridMarkerIndex,
+		thrust::device_vector<uint>& cellStart,
+		thrust::device_vector<uint>& cellEnd, uint numAllMarkers,
+		uint numCells);
 
 
 
