@@ -181,7 +181,6 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint nnz_fem = data_manager->fea_container->GetNumNonZeros();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
@@ -223,7 +222,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     data_manager->host_data.D = trans(D_T);
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - M_invD";
 
-    M_invD = M_inv * data_manager->host_data.D;
+    data_manager->host_data.M_invD = M_inv * trans(D_T);
 
     data_manager->system_timer.stop("ChLcpSolverParallel_D");
 }
@@ -286,9 +285,8 @@ void ChLcpSolverParallelDVI::ComputeN() {
     data_manager->system_timer.start("ChLcpSolverParallel_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
-    const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-    Nshur = D_T * M_invD;
+    Nshur = D_T * data_manager->host_data.M_invD;
     data_manager->system_timer.stop("ChLcpSolverParallel_N");
 }
 
@@ -351,14 +349,13 @@ void ChLcpSolverParallelDVI::ComputeImpulses() {
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
     const DynamicVector<real>& hf = data_manager->host_data.hf;
     DynamicVector<real>& v = data_manager->host_data.v;
 
     if (data_manager->num_constraints > 0) {
         // Compute new velocity based on the lagrange multipliers
-        v = v + M_inv * hf + M_invD * gamma;
+        v = v + M_inv * hf + data_manager->host_data.M_invD * gamma;
     } else {
         // When there are no constraints we need to still apply gravity and other
         // body forces!
