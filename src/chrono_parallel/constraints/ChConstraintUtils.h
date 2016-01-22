@@ -81,18 +81,18 @@ static void inline AppendRow6Weak(T& D, const int row, const int col, const real
 template <typename T>
 static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
     //    printf("%d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
-    //    if (D.find(row, col + 0) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 0);
-    //        exit(1);
-    //    }
-    //    if (D.find(row, col + 1) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 1);
-    //        exit(1);
-    //    }
-    //    if (D.find(row, col + 2) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 2);
-    //        exit(1);
-    //    }
+        if (D.find(row, col + 0) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 0);
+            exit(1);
+        }
+        if (D.find(row, col + 1) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 1);
+            exit(1);
+        }
+        if (D.find(row, col + 2) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 2);
+            exit(1);
+        }
 
     if (A.x != 0.0) {
         D.set(row, col + 0, A.x);
@@ -123,30 +123,30 @@ static void inline SetRow3Weak(T& D, const int row, const int col, const real3& 
 template <typename T>
 static void inline SetRow6Check(T& D, const int row, const int col, const real3& A, const real3& B) {
     //    printf("%d [%d %d %d] [%d %d %d]\n", row, col + 0, col + 1, col + 2, col + 3, col + 4, col + 5);
-    //    if (D.find(row, col + 0) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 0);
-    //        exit(1);
-    //    }
-    //    if (D.find(row, col + 1) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 1);
-    //        exit(1);
-    //    }
-    //    if (D.find(row, col + 2) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 2);
-    //        exit(1);
-    //    }
-    //    if (D.find(row, col + 3) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 3);
-    //        exit(1);
-    //    }
-    //    if (D.find(row, col + 4) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 4);
-    //        exit(1);
-    //    }
-    //    if (D.find(row, col + 5) == D.end(row)) {
-    //        printf("fail: %d %d\n", row, col + 5);
-    //        exit(1);
-    //    }
+        if (D.find(row, col + 0) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 0);
+            exit(1);
+        }
+        if (D.find(row, col + 1) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 1);
+            exit(1);
+        }
+        if (D.find(row, col + 2) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 2);
+            exit(1);
+        }
+        if (D.find(row, col + 3) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 3);
+            exit(1);
+        }
+        if (D.find(row, col + 4) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 4);
+            exit(1);
+        }
+        if (D.find(row, col + 5) == D.end(row)) {
+            printf("fail: %d %d\n", row, col + 5);
+            exit(1);
+        }
 
     if (A.x != 0.0) {
         D.set(row, col + 0, A.x);
