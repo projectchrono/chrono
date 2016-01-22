@@ -15,7 +15,7 @@ using namespace geometry;
 ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     data_manager = physics_system->data_manager;
     data_manager->Add3DOFContainer(this);
-
+    body_offset = 0;
     compliance = 0;
     epsilon = 10e-3;
     tau = 4 * .01;
@@ -97,7 +97,7 @@ int ChFluidContainer::GetNumConstraints() {
         num_fluid_fluid += data_manager->num_fluid_bodies * 3;
     }
 
-    //printf("ChFluidContainer::GetNumConstraints() %d\n", num_fluid_fluid);
+    // printf("ChFluidContainer::GetNumConstraints() %d\n", num_fluid_fluid);
     return num_fluid_fluid;
 }
 int ChFluidContainer::GetNumNonZeros() {
@@ -107,7 +107,7 @@ int ChFluidContainer::GetNumNonZeros() {
     if (enable_viscosity) {
         nnz_fluid_fluid += data_manager->num_fluid_bodies * 18 * max_neighbors;
     }
-    //printf("ChFluidContainer::GetNumNonZeros() %d\n", nnz_fluid_fluid);
+    // printf("ChFluidContainer::GetNumNonZeros() %d\n", nnz_fluid_fluid);
     return nnz_fluid_fluid;
 }
 
@@ -546,6 +546,8 @@ void ChFluidContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     if (num_rigid_fluid_contacts > 0) {
+        LOG(INFO) << "ChConstraintRIGIDFluid::GenerateSparsity";
+
         int index_n = 0;
         int index_t = 0;
 
@@ -583,7 +585,7 @@ void ChFluidContainer::GenerateSparsity() {
         }
     }
     if (data_manager->num_fluid_contacts > 0) {
-        LOG(INFO) << "ChConstraintFluidFluid::GenerateSparsityFluid";
+        LOG(INFO) << "ChConstraintFluidFluid::GenerateSparsity";
 
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
