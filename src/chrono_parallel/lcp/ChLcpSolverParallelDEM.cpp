@@ -630,13 +630,14 @@ void ChLcpSolverParallelDEM::ComputeImpulses() {
     DynamicVector<real>& v = data_manager->host_data.v;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD;
 
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
     if (data_manager->num_constraints > 0) {
         ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-        v = M_invk + data_manager->host_data.M_invD * gamma_b;
+        v = M_invk + M_invD_b * gamma_b;
     } else {
         v = M_invk;
     }

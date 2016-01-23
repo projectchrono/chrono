@@ -313,7 +313,7 @@ struct host_container {
     // performed in two steps, first R = Minv_D*x, and then D_T*R where R is just
     // a temporary variable used here for illustrative purposes. In reality the
     // entire operation happens inline without a temp variable.
-    CompressedMatrix<real, blaze::columnMajor> M_invD;
+    CompressedMatrix<real> M_invD;
 
     DynamicVector<real> R_full;  // The right hand side of the system
     DynamicVector<real> R;       // The rhs of the system, changes during solve

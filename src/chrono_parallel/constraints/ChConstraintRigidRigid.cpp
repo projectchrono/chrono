@@ -245,18 +245,18 @@ void ChConstraintRigidRigid::Build_s() {
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
 
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_n = _MINVDN_;
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_t = _MINVDT_;
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_s = _MINVDS_;
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_b = _MINVDB_;
-    const CompressedMatrix<real, blaze::columnMajor>& M_invD = data_manager->host_data.M_invD;
+    const SubMatrixType& M_invD_n = _MINVDN_;
+    const SubMatrixType& M_invD_t = _MINVDT_;
+    const SubMatrixType& M_invD_s = _MINVDS_;
+    const SubMatrixType& M_invD_b = _MINVDB_;
+    const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
 
     uint num_contacts = data_manager->num_rigid_contacts;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
-    blaze::DenseSubvector<const DynamicVector<real>> gamma_b = subvector(gamma, num_unilaterals, num_bilaterals);
-    blaze::DenseSubvector<const DynamicVector<real>> gamma_n = subvector(gamma, 0, num_contacts);
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_b = subvector(gamma, num_unilaterals, num_bilaterals);
+    blaze::DenseSubvector<const DynamicVector<real> > gamma_n = subvector(gamma, 0, num_contacts);
 
     v_new = M_invk + M_invD * gamma;
 
@@ -344,7 +344,7 @@ void ChConstraintRigidRigid::Build_D() {
 
     SOLVERMODE solver_mode = data_manager->settings.solver.solver_mode;
 
-    const std::vector<ChSharedPtr<ChBody>>* body_list = data_manager->body_list;
+    const std::vector<ChSharedPtr<ChBody> >* body_list = data_manager->body_list;
 
 #pragma omp parallel for
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {

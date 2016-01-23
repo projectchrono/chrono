@@ -50,20 +50,21 @@ void ChSolverParallel::ShurProduct(const DynamicVector<real>& x, DynamicVector<r
     output.reset();
 
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    const CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
     const CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
 
     if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
         if (data_manager->settings.solver.compute_N) {
             output = Nshur * x + E * x;
         } else {
-            output = D_T * data_manager->host_data.M_invD * x + E * x;
+            output = D_T * M_invD * x + E * x;
         }
 
     } else {
         const SubMatrixType& D_n_T = _DNT_;
         const SubMatrixType& D_b_T = _DBT_;
-        const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_n = _MINVDN_;
-        const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_b = _MINVDB_;
+        const SubMatrixType& M_invD_n = _MINVDN_;
+        const SubMatrixType& M_invD_b = _MINVDB_;
 
         SubVectorType o_b = subvector(output, num_unilaterals, num_bilaterals);
         ConstSubVectorType x_b = subvector(x, num_unilaterals, num_bilaterals);
@@ -86,7 +87,7 @@ void ChSolverParallel::ShurProduct(const DynamicVector<real>& x, DynamicVector<r
 
             case SLIDING: {
                 const SubMatrixType& D_t_T = _DTT_;
-                const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_t = _MINVDT_;
+                const SubMatrixType& M_invD_t = _MINVDT_;
                 SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);
@@ -101,8 +102,8 @@ void ChSolverParallel::ShurProduct(const DynamicVector<real>& x, DynamicVector<r
             case SPINNING: {
                 const SubMatrixType& D_t_T = _DTT_;
                 const SubMatrixType& D_s_T = _DST_;
-                const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_t = _MINVDT_;
-                const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_s = _MINVDS_;
+                const SubMatrixType& M_invD_t = _MINVDT_;
+                const SubMatrixType& M_invD_s = _MINVDS_;
                 SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);
@@ -125,7 +126,7 @@ void ChSolverParallel::ShurProduct(const DynamicVector<real>& x, DynamicVector<r
 
 void ChSolverParallel::ShurBilaterals(const DynamicVector<real>& x, DynamicVector<real>& output) {
     const SubMatrixType& D_b_T = _DBT_;
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_b = _MINVDB_;
+    const SubMatrixType& M_invD_b = _MINVDB_;
 
     output = D_b_T * (M_invD_b * x);
 }
@@ -197,8 +198,9 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
     w.resize(N);
     Av.resize(x.size());
     const SubMatrixType& D_b_T = _DBT_;
+    const SubMatrixType& M_invD_b = _MINVDB_;
 
-    CompressedMatrix<real> NshurB = D_b_T * _MINVDB_;
+    CompressedMatrix<real> NshurB = D_b_T * M_invD_b;
 
     real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1,
                r2, r3;
