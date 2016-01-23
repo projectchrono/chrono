@@ -245,10 +245,10 @@ void ChConstraintRigidRigid::Build_s() {
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
 
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_n = _MINVDN_;
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_t = _MINVDT_;
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_s = _MINVDS_;
-    const blaze::SparseSubmatrix<CompressedMatrix<real, blaze::columnMajor> >& M_invD_b = _MINVDB_;
+    const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_n = _MINVDN_;
+    const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_t = _MINVDT_;
+    const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_s = _MINVDS_;
+    const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_b = _MINVDB_;
     const CompressedMatrix<real, blaze::columnMajor>& M_invD = data_manager->host_data.M_invD;
 
     uint num_contacts = data_manager->num_rigid_contacts;

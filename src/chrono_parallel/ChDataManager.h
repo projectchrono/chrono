@@ -300,7 +300,7 @@ struct host_container {
     // This matrix, if used will hold D^TxM^-1xD in sparse form
     CompressedMatrix<real> Nshur;
     // The D Matrix hold the Jacobian for the entire system
-    CompressedMatrix<real, blaze::columnMajor> D;
+    CompressedMatrix<real> D;
     // D_T is the transpose of the D matrix, note that D_T is actually computed
     // first and D is taken as the transpose. This is due to the way that blaze
     // handles sparse matrix allocation, it is easier to do it on a per row basis
@@ -313,7 +313,7 @@ struct host_container {
     // performed in two steps, first R = Minv_D*x, and then D_T*R where R is just
     // a temporary variable used here for illustrative purposes. In reality the
     // entire operation happens inline without a temp variable.
-    CompressedMatrix<real, blaze::columnMajor> M_invD;
+    CompressedMatrix<real> M_invD;
 
     DynamicVector<real> R_full;  // The right hand side of the system
     DynamicVector<real> R;       // The rhs of the system, changes during solve

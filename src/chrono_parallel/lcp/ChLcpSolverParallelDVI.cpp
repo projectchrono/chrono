@@ -222,7 +222,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     data_manager->host_data.D = trans(D_T);
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - M_invD";
 
-    data_manager->host_data.M_invD = M_inv * trans(D_T);
+    data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_D");
 }
