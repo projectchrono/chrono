@@ -214,8 +214,7 @@ void ChFluidContainer::Density_Fluid() {
     real inv_density = 1.0 / rho;
     real mass_over_density = mass * inv_density;
     real eta = .01;
-
-    den_con_jac.resize(num_fluid_bodies * max_neighbors);
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
 #pragma omp parallel for
     for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
@@ -239,9 +238,11 @@ void ChFluidContainer::Density_Fluid() {
             real3 kernel_xij = KGSPIKY * xij;
             real3 dcon_od = mass_over_density * kernel_xij;  // off diagonal
             dcon_diag -= dcon_od;                            // diagonal is sum
-            den_con_jac[body_a * max_neighbors + i] = dcon_od;
+            // den_con_jac[body_a * max_neighbors + i] = dcon_od;
+            SetRow3Check(D_T, start_density + body_a, body_offset + body_b * 3, dcon_od);
         }
-        den_con_jac[body_a * max_neighbors + d_ind] = dcon_diag;
+        // den_con_jac[body_a * max_neighbors + d_ind] = dcon_diag;
+        SetRow3Check(D_T, start_density + body_a, body_offset + body_a * 3, dcon_diag);
         density[body_a] = dens;
     }
 }
@@ -324,10 +325,6 @@ void ChFluidContainer::Build_D() {
         Density_Fluid();
         Normalize_Density_Fluid();
 
-        visc1_jac.resize(num_fluid_bodies * max_neighbors);
-        visc2_jac.resize(num_fluid_bodies * max_neighbors);
-        visc3_jac.resize(num_fluid_bodies * max_neighbors);
-
         real visca = viscosity;
         real viscb = viscosity;
         const real mass_2 = mass * mass;
@@ -362,50 +359,23 @@ void ChFluidContainer::Build_D() {
                     real3 r2 = xij[1] * kernel_xij * scalar;
                     real3 r3 = xij[2] * kernel_xij * scalar;
 
-                    visc1_jac[body_a * max_neighbors + i] = r1;
-                    visc2_jac[body_a * max_neighbors + i] = r2;
-                    visc3_jac[body_a * max_neighbors + i] = r3;
+                    SetRow3Check(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, r1);
+                    SetRow3Check(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3, r2);
+                    SetRow3Check(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3, r3);
 
                     vmat_row1 -= r1;
                     vmat_row2 -= r2;
                     vmat_row3 -= r3;
                 }
-                visc1_jac[body_a * max_neighbors + d_ind] = vmat_row1;
-                visc2_jac[body_a * max_neighbors + d_ind] = vmat_row2;
-                visc3_jac[body_a * max_neighbors + d_ind] = vmat_row3;
+
+                SetRow3Check(D_T, start_viscous + body_a * 3 + 0, body_offset + body_a * 3, vmat_row1);
+                SetRow3Check(D_T, start_viscous + body_a * 3 + 1, body_offset + body_a * 3, vmat_row2);
+                SetRow3Check(D_T, start_viscous + body_a * 3 + 2, body_offset + body_a * 3, vmat_row3);
             }
         }
 
-        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
-            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                SetRow3Check(D_T, start_density + body_a, body_offset + body_b * 3,
-                             den_con_jac[body_a * max_neighbors + i]);
-            }
-        }
         // Add more entries for viscosity
         // Code is repeated because there are three rows per viscosity constraint
-        if (enable_viscosity) {
-            for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
-                for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                    SetRow3Check(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3,
-                                 visc1_jac[body_a * max_neighbors + i]);
-                }
-
-                for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                    SetRow3Check(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3,
-                                 visc2_jac[body_a * max_neighbors + i]);
-                }
-
-                for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                    SetRow3Check(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3,
-                                 visc3_jac[body_a * max_neighbors + i]);
-                }
-            }
-        }
     }
     LOG(INFO) << "ChConstraintFluidFluid::JACOBIAN OF FLUID";
 }
@@ -657,14 +627,12 @@ void ChFluidContainer::CalculateContactForces() {
     }
 
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    SubVectorType gamma_n = subvector(gamma, _num_uni_ + _num_bil_, _num_rf_c_);
-    SubVectorType gamma_t = subvector(gamma, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_);
+    SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
+    SubVectorType gamma_t = subvector(gamma, start_boundary + _num_rf_c_, 2 * _num_rf_c_);
 
     contact_forces =
-        submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_) * gamma_n /
-            data_manager->settings.step_size +
-        submatrix(data_manager->host_data.D, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) *
-            gamma_t / data_manager->settings.step_size;
+        submatrix(data_manager->host_data.D, 0, start_boundary, _num_dof_, _num_rf_c_) * gamma_n / data_manager->settings.step_size +
+        submatrix(data_manager->host_data.D, 0, start_boundary + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) * gamma_t / data_manager->settings.step_size;
 
     // contact_forces
 }

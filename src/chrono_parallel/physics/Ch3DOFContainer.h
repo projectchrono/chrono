@@ -144,11 +144,6 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
 
   private:
     uint body_offset;
-
-    custom_vector<real3> den_con_jac;
-    custom_vector<real3> visc1_jac;
-    custom_vector<real3> visc2_jac;
-    custom_vector<real3> visc3_jac;
 };
 
 class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
