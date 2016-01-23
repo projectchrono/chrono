@@ -224,5 +224,8 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     real poisson_ratio;
     real material_density;
     uint num_tet_constraints;  // Strain constraints + volume constraint
+    uint start_tet;
+    uint start_boundary;
+
 };
 }
