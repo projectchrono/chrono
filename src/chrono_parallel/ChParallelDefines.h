@@ -90,7 +90,8 @@ enum SOLVERTYPE {
     JACOBI,
     GAUSS_SEIDEL,
     PDIP,
-    BB
+    BB,
+    SPGQP
 };
 
 enum SOLVERMODE { NORMAL, SLIDING, SPINNING, BILATERAL };

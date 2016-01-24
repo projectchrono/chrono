@@ -4,6 +4,7 @@
 #include "chrono_parallel/solver/ChSolverAPGD.h"
 #include "chrono_parallel/solver/ChSolverAPGDREF.h"
 #include "chrono_parallel/solver/ChSolverBB.h"
+#include "chrono_parallel/solver/ChSolverSPGQP.h"
 using namespace chrono;
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
@@ -382,6 +383,9 @@ void ChLcpSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
             break;
         case BB:
             solver = new ChSolverBB();
+            break;
+        case SPGQP:
+            solver = new ChSolverSPGQP();
             break;
     }
 }
