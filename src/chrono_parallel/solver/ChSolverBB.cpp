@@ -169,9 +169,10 @@ uint ChSolverBB::SolveBB(const uint max_iter,
         real g_proj_norm = Sqrt((temp, temp));
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
+            objective_value = mf_p;
             ml_candidate = ml;
         }
-        objective_value = mf_p;
+
         AtIterationEnd(lastgoodres, objective_value);
         // t4.stop();
     }

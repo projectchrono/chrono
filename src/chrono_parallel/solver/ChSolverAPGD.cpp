@@ -159,11 +159,11 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
         if (res < residual) {
             residual = res;
             gamma_hat = gamma_new;
-        }
 
-        // Compute the objective value
-        temp = 0.5 * N_gamma_new - r;
-        objective_value = (gamma_new, temp);
+            // Compute the objective value
+            temp = 0.5 * N_gamma_new - r;
+            objective_value = (gamma_new, temp);
+        }
 
         AtIterationEnd(residual, objective_value);
 

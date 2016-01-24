@@ -96,7 +96,6 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
         g = g + beta_k * Ad_k;
         f_hist[current_iteration + 1] = (0.5 * (g - r, x));
         alpha = (d_k, d_k) / (Ad_k_dot_d_k);
-        objective_value = f_hist[current_iteration + 1];
 
         temp = x - gdiff * g;
         Project(temp.data());
@@ -105,9 +104,10 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
         real g_proj_norm = Sqrt((temp, temp));
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
+            objective_value = f_hist[current_iteration + 1];
             x_candidate = x;
         }
-
+        // printf("R O [%f %f] \n", lastgoodres, objective_value);
         AtIterationEnd(lastgoodres, objective_value);
     }
 
