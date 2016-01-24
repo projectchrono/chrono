@@ -35,7 +35,9 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
     real sigma_max = 0.9999;
     real gam = .1;
     int m = 10;
-
+    real gdiff = 1.0 / pow(size, 2.0);
+    lastgoodres = 10e30;
+    f_hist.resize(max_iter + 1);
     temp.resize(size);
     Ad_k.resize(size);
 
@@ -53,36 +55,60 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
             alpha = 0.0001;
         }
     } else {
-        alpha = 0.0001;
+        //        data_manager->measures.solver.lambda_max =
+        //            LargestEigenValue(temp, data_manager->measures.solver.lambda_max);
+        //        alpha = 1.95 / data_manager->measures.solver.lambda_max;
     }
     x = gamma;
-
+    x_candidate = gamma;
     ShurProduct(x, temp);
     g = temp - r;
-    f_hist.push_back(0.5 * (g - r, x));
+
+    f_hist[0] = (0.5 * (g - r, x));
 
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
         temp = x - alpha * g;
         Project(temp.data());
-        g_alpha = 1.0 / alpha * (x - temp);
+        // g_alpha = 1.0 / alpha * (x - temp);
 
-        if (Sqrt((g_alpha, g_alpha)) < data_manager->settings.solver.tolerance) {
-            break;
-        }
+        // printf("||g_alpha||: %f \n", Sqrt((g_alpha, g_alpha)));
+        //        if (Sqrt((g_alpha, g_alpha)) < data_manager->settings.solver.tolerance) {
+        //            break;
+        //        }
 
         d_k = temp - x;
-        f_max = *std::max_element(f_hist.begin(), f_hist.begin() + Min(current_iteration, m));
+
+        real max_compare = -10e29;
+        for (int h = 1; h <= Min(current_iteration, m); h++) {
+            real compare = f_hist[current_iteration - h];
+            max_compare = Max(max_compare, compare);
+        }
+
+        f_max = max_compare;
         ShurProduct(d_k, Ad_k);
         real Ad_k_dot_d_k = (Ad_k, d_k);
 
-        xi = (f_max = f_hist[current_iteration]) / Ad_k_dot_d_k;
+        xi = (f_max - f_hist[current_iteration]) / Ad_k_dot_d_k;
         beta_bar = -(g, d_k) / Ad_k_dot_d_k;
         beta_tilde = gam * beta_bar + Sqrt(gam * gam * beta_bar * beta_bar + 2 * xi);
         beta_k = Min(sigma_max, beta_tilde);
         x = x + beta_k * d_k;
         g = g + beta_k * Ad_k;
-        f_hist.push_back(0.5 * (g - r, x));
+        f_hist[current_iteration + 1] = (0.5 * (g - r, x));
         alpha = (d_k, d_k) / (Ad_k_dot_d_k);
+        objective_value = f_hist[current_iteration + 1];
+
+        temp = x - gdiff * g;
+        Project(temp.data());
+        temp = (x - temp) / (-gdiff);
+
+        real g_proj_norm = Sqrt((temp, temp));
+        if (g_proj_norm < lastgoodres) {
+            lastgoodres = g_proj_norm;
+            x_candidate = x;
+        }
+
+        AtIterationEnd(lastgoodres, objective_value);
     }
 
     // printf("TIME: [%f %f %f %f]\n", t1(), t2(), t3(), t4());
@@ -95,7 +121,7 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
     } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
         data_manager->measures.solver.bilateral_apgd_step_length = alpha;
     }
-    gamma = x;
+    gamma = x_candidate;
 
     data_manager->system_timer.stop("ChSolverParallel_Solve");
     return current_iteration;

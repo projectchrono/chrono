@@ -46,7 +46,7 @@ class CH_PARALLEL_API ChSolverSPGQP : public ChSolverParallel {
 
     // BB specific vectors
     real alpha, f_max, xi, beta_bar, beta_tilde, beta_k, gam;
-    DynamicVector<real> g, d_k, x, temp, Ad_k,g_alpha;
+    DynamicVector<real> g, d_k, x, temp, Ad_k, g_alpha, x_candidate;
     std::vector<real> f_hist;
 };
 }

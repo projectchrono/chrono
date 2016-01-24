@@ -81,7 +81,6 @@ struct collision_settings {
     bool use_two_level;
 };
 
-
 // solver_settings, like the name implies is the structure that contains all
 // settings associated with the parallel solver.
 struct solver_settings {
@@ -122,6 +121,8 @@ struct solver_settings {
         min_slip_vel = 1e-4;
         cache_step_length = false;
         precondition = false;
+        max_power_iteration = 15;
+        power_iter_tolerance = 0.1;
     }
 
     // The solver type variable defines name of the solver that will be used to
@@ -169,6 +170,8 @@ struct solver_settings {
     bool use_full_inertia_tensor;
     bool cache_step_length;
     bool precondition;
+    int max_power_iteration;
+    real power_iter_tolerance;
 
     // Contact force model for DEM
     ChSystemDEM::ContactForceModel contact_force_model;

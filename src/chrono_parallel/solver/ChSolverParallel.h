@@ -104,6 +104,8 @@ class CH_PARALLEL_API ChSolverParallel {
     // Set the maximum number of iterations for all solvers
     void SetMaxIterations(const int max_iteration_value) { max_iteration = max_iteration_value; }
 
+    real LargestEigenValue(DynamicVector<real>& temp,real lambda = 0);
+
     // The maximum number of iterations that the solver will perform
     // This is local to a solver because it can be changed depending on what is
     // being solved
@@ -119,5 +121,6 @@ class CH_PARALLEL_API ChSolverParallel {
     ChParallelDataManager* data_manager;
 
     DynamicVector<real> v, v_hat, w, w_old, xMR, v_old, Av, w_oold;
+    DynamicVector<real> eigen_vec;
 };
 }

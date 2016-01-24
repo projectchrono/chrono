@@ -257,3 +257,33 @@ uint ChSolverParallel::SolveStab(const uint max_iter, const uint size, const Con
     LOG(INFO) << "Done ChSolverParallel::SolveStab";
     return current_iteration;
 }
+bool init_eigen_vec = 0;
+
+real ChSolverParallel::LargestEigenValue(DynamicVector<real>& temp, real lambda) {
+    eigen_vec.resize(temp.size());
+    if (init_eigen_vec == 0) {
+        eigen_vec = 1;
+        init_eigen_vec = 1;
+    }
+
+    if (lambda != 0) {
+        ShurProduct(eigen_vec, temp);
+        eigen_vec = 1.0 / lambda * temp;
+    }
+    real lambda_old;
+
+    for (int i = 0; i < data_manager->settings.solver.max_power_iteration; i++) {
+        ShurProduct(eigen_vec, temp);
+        lambda = Sqrt((temp, temp));
+        if (lambda == 0) {
+            return 1;
+        }
+        printf("Lambda: %.20f \n", lambda);
+        if (Abs(lambda_old - lambda) < data_manager->settings.solver.power_iter_tolerance) {
+            break;
+        }
+        eigen_vec = 1.0 / lambda * temp;
+        lambda_old = lambda;
+    }
+    return lambda;
+}

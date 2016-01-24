@@ -74,6 +74,7 @@ struct solver_measures {
         sliding_apgd_step_length = 1;
         spinning_apgd_step_length = 1;
         old_objective_value = 0;
+        lambda_max = 0;
     }
     int total_iteration;       // The total number of iterations performed, this variable accumulates
     real residual;             // Current residual for the solver
@@ -84,7 +85,7 @@ struct solver_measures {
     real normal_apgd_step_length;
     real sliding_apgd_step_length;
     real spinning_apgd_step_length;
-
+    real lambda_max; //largest eigenvalue
     // These three variables are used to store the convergence history of the solver
     std::vector<real> maxd_hist, maxdeltalambda_hist, time;
     std::vector<real> apgd_beta;
