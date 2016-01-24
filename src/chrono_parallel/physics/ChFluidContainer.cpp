@@ -514,7 +514,7 @@ void ChFluidContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     if (num_rigid_fluid_contacts > 0) {
-        LOG(INFO) << "ChConstraintRIGIDFluid::GenerateSparsity";
+        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
 
         int index_n = 0;
         int index_t = 0;

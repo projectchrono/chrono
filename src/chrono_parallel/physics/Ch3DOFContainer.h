@@ -171,6 +171,8 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void PostSolve();
     int GetNumConstraints() { return 0; }
     int GetNumNonZeros() { return 0; }
+    real ComputeTotalEnergy(DynamicVector<real>& x);
+
     DynamicVector<real> grid_mass;
     DynamicVector<real> grid_vel;
     DynamicVector<real> grid_vel_old;
@@ -211,7 +213,6 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     void Build_E();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
-
     custom_vector<Mat33> X0;  // Inverse of intial shape matrix
 
     custom_vector<real> V;  // volume of tet
@@ -221,6 +222,5 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint num_tet_constraints;  // Strain constraints + volume constraint
     uint start_tet;
     uint start_boundary;
-
 };
 }
