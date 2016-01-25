@@ -65,6 +65,48 @@ void ChMPMContainer::Update(double ChTime) {
 void ChMPMContainer::UpdatePosition(double ChTime) {
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
+    const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
+    const real fluid_radius = kernel_radius;
+    const real bin_edge = fluid_radius * 2 + collision_envelope;
+    const real inv_bin_edge = real(1) / bin_edge;
+    const real dt = data_manager->settings.step_size;
+
+    printf("Update_Particle_Velocities\n");
+#pragma omp parallel for
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        int original_index = data_manager->host_data.particle_indices_3dof[p];
+        const real3 xi = sorted_pos[p];
+        real3 V_flip;
+        V_flip.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0];
+        V_flip.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1];
+        V_flip.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2];
+
+        real3 V_pic = real3(0.0);
+        LOOPOVERNODES(                                                                                   //
+            real weight = N(xi - current_node_location, inv_bin_edge);                                   //
+            V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                          //
+            V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                          //
+            V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                          //
+            V_flip.x += (grid_vel[current_node * 3 + 0] - grid_vel_old[current_node * 3 + 0]) * weight;  //
+            V_flip.y += (grid_vel[current_node * 3 + 1] - grid_vel_old[current_node * 3 + 1]) * weight;  //
+            V_flip.z += (grid_vel[current_node * 3 + 2] - grid_vel_old[current_node * 3 + 2]) * weight;  //
+            )
+
+        real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
+
+        real speed = Length(new_vel);
+        if (speed > max_velocity) {
+            new_vel = new_vel * max_velocity / speed;
+        }
+        vel_fluid[original_index] = new_vel;
+        pos_fluid[original_index] += new_vel * data_manager->settings.step_size;
+
+        // printf("v [%f %f %f] [%f %f %f]\n", V_pic.x, V_pic.y, V_pic.z, V_flip.x, V_flip.y, V_flip.z);
+    }
 
     for (int i = 0; i < num_fluid_bodies; i++) {
         real3 vel;
@@ -73,13 +115,6 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
         vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0];
         vel.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1];
         vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2];
-
-        real speed = Length(vel);
-        if (speed > max_velocity) {
-            vel = vel * max_velocity / speed;
-        }
-        vel_fluid[original_index] = vel;
-        pos_fluid[original_index] += vel * data_manager->settings.step_size;
     }
 }
 
@@ -651,32 +686,6 @@ void ChMPMContainer::PostSolve() {
         Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
-    }
-    printf("Update_Particle_Velocities\n");
-#pragma omp parallel for
-    for (int p = 0; p < num_particles; p++) {
-        const real3 xi = sorted_pos[p];
-        real3 V_flip;
-        V_flip.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0];
-        V_flip.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1];
-        V_flip.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2];
-
-        real3 V_pic = real3(0.0);
-        LOOPOVERNODES(                                                                                   //
-            real weight = N(xi - current_node_location, inv_bin_edge);                                   //
-            V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                          //
-            V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                          //
-            V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                          //
-            V_flip.x += (grid_vel[current_node * 3 + 0] - grid_vel_old[current_node * 3 + 0]) * weight;  //
-            V_flip.y += (grid_vel[current_node * 3 + 1] - grid_vel_old[current_node * 3 + 1]) * weight;  //
-            V_flip.z += (grid_vel[current_node * 3 + 2] - grid_vel_old[current_node * 3 + 2]) * weight;  //
-            )
-
-        real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0] = new_vel.x;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1] = new_vel.y;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2] = new_vel.z;
-        // printf("v [%f %f %f] [%f %f %f]\n", V_pic.x, V_pic.y, V_pic.z, V_flip.x, V_flip.y, V_flip.z);
     }
 }
 
