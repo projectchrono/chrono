@@ -31,6 +31,10 @@ ChMPMContainer::ChMPMContainer(ChSystemParallelDVI* physics_system) {
 }
 ChMPMContainer::~ChMPMContainer() {}
 
+void ChMPMContainer::Setup(int start_constraint) {
+    Ch3DOFContainer::Setup(start_constraint);
+}
+
 void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
@@ -42,13 +46,9 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     data_manager->num_fluid_bodies = pos_fluid.size();
 }
 void ChMPMContainer::Update(double ChTime) {
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_rigid_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
-    real3 g_acc = data_manager->settings.gravity;
-    real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
+    real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
     for (int i = 0; i < num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
@@ -63,10 +63,6 @@ void ChMPMContainer::Update(double ChTime) {
 }
 
 void ChMPMContainer::UpdatePosition(double ChTime) {
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_rigid_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
-
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
 
@@ -86,10 +82,16 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
     }
 }
+
+int ChMPMContainer::GetNumConstraints() {
+    return 0;
+}
+int ChMPMContainer::GetNumNonZeros() {
+    return 0;
+}
+
 void ChMPMContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
-
     real inv_mass = 1.0 / mass;
     for (int i = 0; i < num_fluid_bodies; i++) {
         M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
@@ -102,8 +104,6 @@ void ChMPMContainer::ComputeInvMass(int offset) {
 }
 void ChMPMContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
-
     for (int i = 0; i < num_fluid_bodies; i++) {
         M.append(offset + i * 3 + 0, offset + i * 3 + 0, mass);
         M.finalize(offset + i * 3 + 0);
@@ -122,7 +122,6 @@ void ChMPMContainer::Initialize() {
     const real bin_edge = fluid_radius * 2 + collision_envelope;
     const real inv_bin_edge = real(1) / bin_edge;
     const real dt = data_manager->settings.step_size;
-    const real3 gravity = data_manager->settings.gravity;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const int num_particles = data_manager->num_fluid_bodies;
@@ -328,65 +327,98 @@ real ChMPMContainer::DotProduct(const DynamicVector<real>& a, const DynamicVecto
     return result;
 }
 real ChMPMContainer::ComputeTotalEnergy(DynamicVector<real>& x) {
-    // Kinetic Energy of grid nodes
-    const int num_particles = data_manager->num_fluid_bodies;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
-    const real fluid_radius = kernel_radius;
-    const real bin_edge = fluid_radius * 2 + collision_envelope;
-    const real inv_bin_edge = real(1) / bin_edge;
-    const real dt = data_manager->settings.step_size;
-    const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
-    const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
-    const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
-    size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
-
-
-    //Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
-    //Not in the original paper like this but using it for testing
-#if 1
-#pragma omp parallel for
-for (int p = 0; p < num_particles; p++) {
-    const real3 xi = sorted_pos[p];
-    Fe_hat[p] = Mat33(1.0);
-    Mat33 Fe_hat_t(1);
-    LOOPOVERNODES(  //
-        real3 vel(x[current_node * 3 + 0], x[current_node * 3 + 1], x[current_node * 3 + 2]);
-        real3 kern = dN(xi - current_node_location, inv_bin_edge); Fe_hat_t += OuterProduct(dt * vel, kern);  //
-        )
-    Fe_hat[p] = Fe_hat_t * Fe[p];
-}
-#endif
-
-    real KE = 0;
-
-    for (int i = 0; i < num_nodes; i++) {
-        real3 v;
-        v.x = x[i * 3 + 0] - grid_vel_old[i * 3 + 0];
-        v.y = x[i * 3 + 1] - grid_vel_old[i * 3 + 1];
-        v.z = x[i * 3 + 2] - grid_vel_old[i * 3 + 2];
-
-        KE += 1.0 / 2.0 * grid_mass[i] * Length(v) * Length(v);
-    }
-
-    real PE = 0;
-
-    for (int p = 0; p < num_particles; p++) {
-        const real3 xi = sorted_pos[p];
-        real plastic_determinant = Determinant(Fp[p]);
-        real J = Determinant(Fe_hat[p]);
-        real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-        real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-
-        Mat33 U, V, RE;
-        real3 E, b;
-        SVD(Fe_hat[p], U, E, V);
-        // Perform polar decomposition F = R*S
-        RE = MultTranspose(U, V);
-
-        PE += volume[p] * current_mu * Norm(Fe_hat[p] - RE) + current_lambda / 2.0 * (J - 1.0) * (J - 1.0);
-    }
-    return PE + KE;
+    //    // Kinetic Energy of grid nodes
+    //    const int num_particles = data_manager->num_fluid_bodies;
+    //    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+    //    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
+    //    const real fluid_radius = kernel_radius;
+    //    const real bin_edge = fluid_radius * 2 + collision_envelope;
+    //    const real inv_bin_edge = real(1) / bin_edge;
+    //    const real dt = data_manager->settings.step_size;
+    //    const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    //    const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    //    const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
+    //    size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
+    //
+    //// Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
+    //// Not in the original paper like this but using it for testing
+    //#if 1
+    //#pragma omp parallel for
+    //    for (int p = 0; p < num_particles; p++) {
+    //        const real3 xi = sorted_pos[p];
+    //        Fe_hat[p] = Mat33(1.0);
+    //        Mat33 Fe_hat_t(1);
+    //        LOOPOVERNODES(  //
+    //            real3 vel(x[current_node * 3 + 0], x[current_node * 3 + 1], x[current_node * 3 + 2]);
+    //            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+    //            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
+    //            )
+    //        Fe_hat[p] = Fe_hat_t * Fe[p];
+    //    }
+    //#endif
+    //
+    //    real KE = 0;
+    //
+    //    for (int i = 0; i < num_nodes; i++) {
+    //        real3 v;
+    //        v.x = x[i * 3 + 0] - grid_vel_old[i * 3 + 0];
+    //        v.y = x[i * 3 + 1] - grid_vel_old[i * 3 + 1];
+    //        v.z = x[i * 3 + 2] - grid_vel_old[i * 3 + 2];
+    //
+    //        KE += 1.0 / 2.0 * grid_mass[i] * Length(v) * Length(v);
+    //    }
+    //
+    //    real PE = 0;
+    //
+    //    for (int p = 0; p < num_particles; p++) {
+    //        const real3 xi = sorted_pos[p];
+    //        real plastic_determinant = Determinant(Fp[p]);
+    //        real J = Determinant(Fe_hat[p]);
+    //        real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+    //        real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+    //
+    //        Mat33 U, V, RE;
+    //        real3 E, b;
+    //        SVD(Fe_hat[p], U, E, V);
+    //        // Perform polar decomposition F = R*S
+    //        RE = MultTranspose(U, V);
+    //
+    //        PE += volume[p] * current_mu * Norm(Fe_hat[p] - RE) + current_lambda / 2.0 * (J - 1.0) * (J - 1.0);
+    //    }
+    //    return PE + KE;
+    //
+    //    // Compute derivative of the potential energy wrt x
+    //    // Compute force on each grid node
+    //
+    //    for (int p = 0; p < num_particles; p++) {
+    //        const real3 xi = sorted_pos[p];
+    //
+    //        real plastic_determinant = Determinant(Fp[p]);
+    //        real J = Determinant(Fe_hat[p]);
+    //        real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+    //        real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+    //        Mat33 Fe_hat_inv_transpose = InverseTranspose(Fe_hat[p]);
+    //
+    //        Mat33 v_sigma_p;
+    //
+    //        Mat33 U, V, RE;
+    //        real3 E, b;
+    //        SVD(Fe_hat[p], U, E, V);
+    //        // Perform polar decomposition F = R*S
+    //        RE = MultTranspose(U, V);
+    //
+    //        partial_Psi_partial_FE =
+    //            2 * current_mu * (Fe_hat[p] - RE) + current_lambda * (J - 1) * J * Fe_hat_inv_transpose;
+    //        v_sigma_p = -volume[p] * 1. / plastic_determinant * partial_Psi_partial_FE * Transpose(Fe[p]);
+    //
+    //        LOOPOVERNODES(  //
+    //            real3 res = v_sigma_p * dN(xi - current_node_location, inv_bin_edge);
+    //
+    //            force_internal[current_node * 3 + 0] += res.x;  //
+    //            force_internal[current_node * 3 + 1] += res.y;  //
+    //            force_internal[current_node * 3 + 2] += res.z;  //
+    //            )
+    //    }
 }
 
 void ChMPMContainer::Solve(const DynamicVector<real>& b, DynamicVector<real>& x) {
@@ -434,13 +466,9 @@ void ChMPMContainer::Solve(const DynamicVector<real>& b, DynamicVector<real>& x)
         r = -alpha * q + r;
         rho_old = rho;
 
-
-
-        printf("ENERGY: %f\n",ComputeTotalEnergy(x));
-
+        printf("ENERGY: %f\n", ComputeTotalEnergy(x));
     }
 }
-void ChMPMContainer::PostSolve() {}
 void ChMPMContainer::PreSolve() {
     const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
@@ -453,9 +481,6 @@ void ChMPMContainer::PreSolve() {
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const int num_particles = data_manager->num_fluid_bodies;
-
-    uint num_rigid_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
 
     size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
@@ -589,6 +614,19 @@ void ChMPMContainer::PreSolve() {
 
     printf("Solve\n");
     Solve(rhs, grid_vel);
+}
+void ChMPMContainer::PostSolve() {
+    const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
+    const real fluid_radius = kernel_radius;
+    const real bin_edge = fluid_radius * 2 + collision_envelope;
+    const real inv_bin_edge = real(1) / bin_edge;
+    const real dt = data_manager->settings.step_size;
+    const real3 gravity = data_manager->settings.gravity;
+    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
+    const int num_particles = data_manager->num_fluid_bodies;
 
     printf("Update_Deformation_Gradient\n");
 #pragma omp parallel for
@@ -641,6 +679,75 @@ void ChMPMContainer::PreSolve() {
         // printf("v [%f %f %f] [%f %f %f]\n", V_pic.x, V_pic.y, V_pic.z, V_flip.x, V_flip.y, V_flip.z);
     }
 }
+
+void ChMPMContainer::UpdateRhs() {}
+
+void ChMPMContainer::ComputeInternalForces() {
+    //    // Kinetic Energy of grid nodes
+    //    const int num_particles = data_manager->num_fluid_bodies;
+    //    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
+    //    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
+    //    const real fluid_radius = kernel_radius;
+    //    const real bin_edge = fluid_radius * 2 + collision_envelope;
+    //    const real inv_bin_edge = real(1) / bin_edge;
+    //    const real dt = data_manager->settings.step_size;
+    //    const real3 max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    //    const real3 min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    //    const int3 bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
+    //    size_t num_nodes = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
+    //
+    //// Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
+    //// Not in the original paper like this but using it for testing
+    //#if 1
+    //#pragma omp parallel for
+    //    for (int p = 0; p < num_particles; p++) {
+    //        const real3 xi = sorted_pos[p];
+    //        Fe_hat[p] = Mat33(1.0);
+    //        Mat33 Fe_hat_t(1);
+    //        LOOPOVERNODES(  //
+    //            real3 vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 +
+    //            2]);
+    //            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+    //            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
+    //            )
+    //        Fe_hat[p] = Fe_hat_t * Fe[p];
+    //    }
+    //#endif
+    //
+    //    // Compute derivative of the potential energy wrt x
+    //    // Compute force on each grid node
+    //
+    //    for (int p = 0; p < num_particles; p++) {
+    //        const real3 xi = sorted_pos[p];
+    //
+    //        real plastic_determinant = Determinant(Fp[p]);
+    //        real J = Determinant(Fe_hat[p]);
+    //        real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+    //        real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+    //        Mat33 Fe_hat_inv_transpose = InverseTranspose(Fe_hat[p]);
+    //
+    //        Mat33 v_sigma_p;
+    //
+    //        Mat33 U, V, RE;
+    //        real3 E, b;
+    //        SVD(Fe_hat[p], U, E, V);
+    //        // Perform polar decomposition F = R*S
+    //        RE = MultTranspose(U, V);
+    //
+    //        partial_Psi_partial_FE =
+    //            2 * current_mu * (Fe_hat[p] - RE) + current_lambda * (J - 1) * J * Fe_hat_inv_transpose;
+    //        v_sigma_p = -volume[p] * 1. / plastic_determinant * partial_Psi_partial_FE * Transpose(Fe[p]);
+    //
+    //        LOOPOVERNODES(  //
+    //            real3 res = v_sigma_p * dN(xi - current_node_location, inv_bin_edge);
+    //
+    //            force_internal[current_node * 3 + 0] += res.x;  //
+    //            force_internal[current_node * 3 + 1] += res.y;  //
+    //            force_internal[current_node * 3 + 2] += res.z;  //
+    //            )
+    //    }
+}
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////

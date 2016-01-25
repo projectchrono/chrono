@@ -45,21 +45,21 @@ real dN(const real x) {
 
 real3 dN(const real3& X, real inv_grid_dx) {
     real3 val = real3(0);
-        real3 T = X * inv_grid_dx;
-        val.x = dN(T.x) * inv_grid_dx * N(T.y) * N(T.z);
-        val.y = N(T.x) * dN(T.y) * inv_grid_dx * N(T.z);
-        val.z = N(T.x) * N(T.y) * dN(T.z) * inv_grid_dx;
-        return val;
-//
-//    for (int axis = 0; axis < 3; ++axis) {
-//        val[axis] = 1.;
-//        for (int other_axis = 0; other_axis < 3; ++other_axis) {
-//            if (other_axis == axis)
-//                val[axis] *= dN(X[axis] * inv_grid_dx) * inv_grid_dx;
-//            else
-//                val[axis] *= N(X[other_axis] * inv_grid_dx);
-//        }
-//    }
+    real3 T = X * inv_grid_dx;
+    val.x = dN(T.x) * inv_grid_dx * N(T.y) * N(T.z);
+    val.y = N(T.x) * dN(T.y) * inv_grid_dx * N(T.z);
+    val.z = N(T.x) * N(T.y) * dN(T.z) * inv_grid_dx;
+    return val;
+    //
+    //    for (int axis = 0; axis < 3; ++axis) {
+    //        val[axis] = 1.;
+    //        for (int other_axis = 0; other_axis < 3; ++other_axis) {
+    //            if (other_axis == axis)
+    //                val[axis] *= dN(X[axis] * inv_grid_dx) * inv_grid_dx;
+    //            else
+    //                val[axis] *= N(X[other_axis] * inv_grid_dx);
+    //        }
+    //    }
     return val;
 }
 
@@ -87,6 +87,21 @@ inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding
     for (int i = cx - 2; i <= cx + 2; ++i) {                                                       \
         for (int j = cy - 2; j <= cy + 2; ++j) {                                                   \
             for (int k = cz - 2; k <= cz + 2; ++k) {                                               \
+                const int current_node = GridHash(i, j, k, bins_per_axis);                         \
+                real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
+                X                                                                                  \
+            }                                                                                      \
+        }                                                                                          \
+    }
+
+#define LOOPONERING(X)                                                                             \
+    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                            \
+    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
+    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                            \
+                                                                                                   \
+    for (int i = cx - 1; i <= cx + 1; ++i) {                                                       \
+        for (int j = cy - 1; j <= cy + 1; ++j) {                                                   \
+            for (int k = cz - 1; k <= cz + 1; ++k) {                                               \
                 const int current_node = GridHash(i, j, k, bins_per_axis);                         \
                 real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
                 X                                                                                  \

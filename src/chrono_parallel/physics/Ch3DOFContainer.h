@@ -35,29 +35,35 @@ class ChParallelDataManager;
 
 class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
+    // Constructors
     Ch3DOFContainer();
     ~Ch3DOFContainer();
 
     Ch3DOFContainer(const Ch3DOFContainer& other);             // Copy constructor
     Ch3DOFContainer& operator=(const Ch3DOFContainer& other);  // Assignment operator
 
-    // void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    // Update occurs before he solve
+    // Before Solve
     virtual void Update(double ChTime){};
-    virtual void UpdatePosition(double ChTime) {}
-    virtual int GetNumConstraints() { return 0; }
-    virtual int GetNumNonZeros() { return 0; }
     virtual void Setup(int start_constraint);
     virtual void Initialize() {}
-    virtual void PreSolve() {}
+    virtual void ComputeInvMass(int offset) {}
+    virtual void ComputeMass(int offset) {}
+    virtual void GenerateSparsity() {}
     virtual void Build_D() {}
     virtual void Build_b() {}
     virtual void Build_E() {}
+    virtual void PreSolve() {}
+
+    // During Solve
     virtual void Project(real* gamma) {}
-    virtual void GenerateSparsity() {}
-    virtual void ComputeInvMass(int offset) {}
-    virtual void ComputeMass(int offset) {}
+    virtual void UpdateRhs() {}
+    // After Solve
+    virtual void UpdatePosition(double ChTime) {}
     virtual void PostSolve() {}
+
+    // Helper Functions
+    virtual int GetNumConstraints() { return 0; }
+    virtual int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
     virtual real3 GetBodyContactForce(uint body_id) {}
     virtual real3 GetBodyContactTorque(uint body_id) {}
@@ -153,7 +159,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
-    void Setup(int start_constraint) {}
+    void Setup(int start_constraint);
     void Initialize();
     void IsInside();
     real Convergence_Norm(const DynamicVector<real>& r);
@@ -164,14 +170,16 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void Build_D() {}
     void Build_b() {}
     void Build_E() {}
+    void UpdateRhs();
     void Project(real* gamma) {}
     void GenerateSparsity() {}
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     void PostSolve();
-    int GetNumConstraints() { return 0; }
-    int GetNumNonZeros() { return 0; }
+    int GetNumConstraints();
+    int GetNumNonZeros();
     real ComputeTotalEnergy(DynamicVector<real>& x);
+    void ComputeInternalForces();
 
     DynamicVector<real> grid_mass;
     DynamicVector<real> grid_vel;
