@@ -35,6 +35,7 @@ SET(DEMOS
     mixerDVI
     fluidDVI
     snowMPM
+    benchmarkSolver
     
 )
 
