@@ -54,10 +54,9 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
         } else {
             alpha = 0.0001;
         }
-    } else {
-        //        data_manager->measures.solver.lambda_max =
-        //            LargestEigenValue(temp, data_manager->measures.solver.lambda_max);
-        //        alpha = 1.95 / data_manager->measures.solver.lambda_max;
+    } else if (data_manager->settings.solver.use_power_iteration){
+        data_manager->measures.solver.lambda_max = LargestEigenValue(temp, data_manager->measures.solver.lambda_max);
+        alpha = 1.95 / data_manager->measures.solver.lambda_max;
     }
     x = gamma;
     x_candidate = gamma;

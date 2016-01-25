@@ -53,10 +53,10 @@ uint ChSolverMinRes::SolveMinRes(const uint max_iter,
         real zNMr = (mz, mNMr);
         real MNpNp = (mMNp, mNp);
         if (std::abs(MNpNp) < 10e-30) {
-            if (data_manager->settings.solver.verbose) {
-                std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / "
-                          << MNpNp << "\n";
-            }
+//            if (data_manager->settings.solver.verbose) {
+//                std::cout << "Iter=" << current_iteration << " Rayleygh quotient alpha breakdown: " << zNMr << " / "
+//                          << MNpNp << "\n";
+//            }
             MNpNp = 10e-12;
         }
         real alpha = zNMr / MNpNp;

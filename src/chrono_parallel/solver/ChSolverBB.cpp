@@ -71,8 +71,10 @@ uint ChSolverBB::SolveBB(const uint max_iter,
             alpha = data_manager->measures.solver.spinning_apgd_step_length;
         } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
             alpha = data_manager->measures.solver.bilateral_apgd_step_length;
-        } else {
-            alpha = 0.0001;
+        } else if (data_manager->settings.solver.use_power_iteration) {
+            data_manager->measures.solver.lambda_max =
+                LargestEigenValue(temp, data_manager->measures.solver.lambda_max);
+            alpha = 1.95 / data_manager->measures.solver.lambda_max;
         }
     } else {
         alpha = 0.0001;

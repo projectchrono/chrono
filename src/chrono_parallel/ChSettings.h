@@ -88,19 +88,13 @@ struct solver_settings {
         tolerance = 1e-4;
         tol_speed = 1e-4;
         tolerance_objective = 1e-6;
-        collision_in_solver = false;
         update_rhs = false;
-        verbose = false;
         test_objective = false;
 
         alpha = .2;
         contact_recovery_speed = .6;
         bilateral_clamp_speed = .6;
-        cohesion_epsilon = 0;
         clamp_bilaterals = true;
-        perform_stabilization = false;
-        collision_in_solver = false;
-        presolve = false;
         compute_N = false;
         use_full_inertia_tensor = true;
         max_iteration = 100;
@@ -121,6 +115,7 @@ struct solver_settings {
         min_slip_vel = 1e-4;
         cache_step_length = false;
         precondition = false;
+        use_power_iteration = false;
         max_power_iteration = 15;
         power_iter_tolerance = 0.1;
     }
@@ -155,21 +150,14 @@ struct solver_settings {
     // It is possible to disable clamping for bilaterals entirely. When set to true
     // bilateral_clamp_speed is ignored
     bool clamp_bilaterals;
-    // An extra prestabilization can be performed for bilaterals before the normal
-    // solve, in some cases this will improve the stability of bilateral
-    // bilateral constraints
-    bool perform_stabilization;
     // Experimental options that probably don't work for all solvers
-    bool collision_in_solver;
     bool update_rhs;
-    bool presolve;
     bool compute_N;
-    bool verbose;
     bool test_objective;
-    real cohesion_epsilon;
     bool use_full_inertia_tensor;
     bool cache_step_length;
     bool precondition;
+    bool use_power_iteration;
     int max_power_iteration;
     real power_iter_tolerance;
 
