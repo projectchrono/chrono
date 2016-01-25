@@ -109,6 +109,10 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
         }
         // printf("R O [%f %f] \n", lastgoodres, objective_value);
         AtIterationEnd(lastgoodres, objective_value);
+
+        if (lastgoodres < data_manager->settings.solver.tol_speed) {
+            break;
+        }
     }
 
     // printf("TIME: [%f %f %f %f]\n", t1(), t2(), t3(), t4());

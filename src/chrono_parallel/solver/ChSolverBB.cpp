@@ -174,6 +174,10 @@ uint ChSolverBB::SolveBB(const uint max_iter,
         }
 
         AtIterationEnd(lastgoodres, objective_value);
+        if (lastgoodres < data_manager->settings.solver.tol_speed) {
+            break;
+        }
+
         // t4.stop();
     }
     // printf("TIME: [%f %f %f %f]\n", t1(), t2(), t3(), t4());
