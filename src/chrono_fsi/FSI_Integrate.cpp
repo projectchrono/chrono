@@ -84,7 +84,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 
 		thrust::device_vector<Real4>& derivVelRhoD,
 		thrust::device_vector<uint>& rigidIdentifierD,
-		thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
 
 		thrust::device_vector<Real3>& posRigid_fsiBodies_D,
 		thrust::device_vector<Real4>& velMassRigid_fsiBodies_D,

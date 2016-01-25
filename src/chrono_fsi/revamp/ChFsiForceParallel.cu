@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Base class for processing sph force in fsi system.//
+// Class for handling time integration in fsi system.//
 // =============================================================================
 #include "ChFsiForceParallel.h"
 using namespace fsi;
@@ -494,6 +494,7 @@ void ChFsiForceParallel::AddGravityToFluid() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiForceParallel::ForceSPH() {
+	// Arman: Change this function by getting in the arrays of the current stage: useful for RK2. array pointers need to be private members
 	fsiCollisionSystem->ArrangeData();
 	ModifyBceVelocity();
 	CalculateXSPH_velocity();
