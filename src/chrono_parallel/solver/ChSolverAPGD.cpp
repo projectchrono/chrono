@@ -72,7 +72,22 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
 
     temp = gamma - one;
     real norm_temp = Sqrt((real)(temp, temp));
-    if (data_manager->settings.solver.cache_step_length == false) {
+    if (data_manager->settings.solver.cache_step_length == true) {
+        if (data_manager->settings.solver.solver_mode == NORMAL) {
+            L = data_manager->measures.solver.normal_apgd_step_length;
+        } else if (data_manager->settings.solver.solver_mode == SLIDING) {
+            L = data_manager->measures.solver.sliding_apgd_step_length;
+        } else if (data_manager->settings.solver.solver_mode == SPINNING) {
+            L = data_manager->measures.solver.spinning_apgd_step_length;
+        } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
+            L = data_manager->measures.solver.bilateral_apgd_step_length;
+        } else {
+            L = 1.0;
+        }
+    } else if (data_manager->settings.solver.use_power_iteration) {
+        data_manager->measures.solver.lambda_max = LargestEigenValue(temp, data_manager->measures.solver.lambda_max);
+        L = data_manager->measures.solver.lambda_max;
+    } else {
         // If gamma is one temp should be zero, in that case set L to one
         // We cannot divide by 0
         if (norm_temp == 0) {
@@ -94,18 +109,6 @@ uint ChSolverAPGD::SolveAPGD(const uint max_iter,
         } else {
             // Compute the step size
             t = 1.0 / L;
-        }
-    } else {
-        if (data_manager->settings.solver.solver_mode == NORMAL) {
-            L = data_manager->measures.solver.normal_apgd_step_length;
-        } else if (data_manager->settings.solver.solver_mode == SLIDING) {
-            L = data_manager->measures.solver.sliding_apgd_step_length;
-        } else if (data_manager->settings.solver.solver_mode == SPINNING) {
-            L = data_manager->measures.solver.spinning_apgd_step_length;
-        } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
-            L = data_manager->measures.solver.bilateral_apgd_step_length;
-        } else {
-            L = 1.0;
         }
     }
 
