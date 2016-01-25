@@ -729,7 +729,7 @@ class ChApi ChBody :            public ChPhysicsItem,
         ChVector<> absF=F.ClipVector(0,0);
         ChVector<> absT=F.ClipVector(3,0);
         ChVector<> body_absF;
-        ChVector<> body_absT;
+        ChVector<> body_locT;
         ChCoordsys<> bodycoord;
         if(state_x)
             bodycoord = state_x->ClipCoordsys(0,0); // the numerical jacobian algo might change state_x
@@ -737,9 +737,9 @@ class ChApi ChBody :            public ChPhysicsItem,
             bodycoord = this->coord;
         // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
         body_absF = absF;
-        body_absT = bodycoord.rot.RotateBack( absT + ((abs_pos-bodycoord.pos) % absF) );
+        body_locT = bodycoord.rot.RotateBack( absT + ((abs_pos-bodycoord.pos) % absF) );
         Qi.PasteVector(body_absF,0,0);
-        Qi.PasteVector(body_absT,3,0);
+        Qi.PasteVector(body_locT,3,0);
         detJ=1; // not needed because not used in quadrature.
     }
 

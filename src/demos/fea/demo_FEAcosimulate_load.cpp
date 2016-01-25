@@ -22,6 +22,8 @@
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadBodyMesh.h"
+#include "chrono/geometry/ChCTriangleMeshConnected.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 
 #include "chrono_fea/ChElementTetra_4.h"
@@ -49,22 +51,51 @@ void PerformEsternalCosimulation(   const std::vector<ChVector<>>& input_vert_po
                                     std::vector<ChVector<>>& vert_output_forces,
                                     std::vector<int>& vert_output_indexes
                                     ) {
+    vert_output_forces.clear();
+    vert_output_indexes.clear();
     double ky = 10000; // upward stiffness
-    double ry = 10; // upward damping
+    double ry = 20; // upward damping
     // simple example: scan through all vertexes in the mesh, see if they sink below zero,
     // apply a penalty upward spring force if so.
     for (int iv = 0; iv < input_vert_pos.size(); ++iv) {
         if (input_vert_pos[iv].y < 0) {
             double yforce = - ky * input_vert_pos[iv].y - ry * input_vert_vel[iv].y;
             if (yforce > 0) {
-                vert_output_forces.push_back(ChVector<>(0,yforce,0));
+                vert_output_forces.push_back(ChVector<>(0 ,yforce, 0));
                 vert_output_indexes.push_back(iv);
             }
         }
     }
     // note that: 
-    // - we avoided addingfroces to  vert_output_forces  when force was zero.
+    // - we avoided adding forces to  vert_output_forces  when force was zero.
     // - vert_output_forces has the same size of vert_output_indexes, maybe smaller than input_vert_pos 
+}
+
+
+// Utility to draw some triangles that are affected by cosimulation.
+// Also plot forces as vectors.
+// Mostly for debugging. 
+void draw_affected_triangles(ChIrrApp& application, std::vector<ChVector<>>& vert_pos, std::vector<ChVector<int>>& triangles, std::vector<int>& vert_indexes, std::vector<ChVector<>>& vert_forces, double forcescale=0.01) {
+    for (int it= 0;it < triangles.size(); ++it) {
+        bool vert_hit = false;
+        for (int io = 0; io < vert_indexes.size(); ++io) {
+            if (triangles[it].x == vert_indexes[io] || triangles[it].y == vert_indexes[io] || triangles[it].z == vert_indexes[io])
+                vert_hit = true;
+        }
+        if (vert_hit == true) {
+            std::vector<chrono::ChVector<> > fourpoints = { vert_pos[triangles[it].x], 
+                                                            vert_pos[triangles[it].y], 
+                                                            vert_pos[triangles[it].z],
+                                                            vert_pos[triangles[it].x]};
+            ChIrrTools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255,240,200,0), true); 
+        }
+    }
+    if (forcescale>0)
+     for (int io = 0; io < vert_indexes.size(); ++io) {
+        std::vector<chrono::ChVector<> > forceline =  { vert_pos[vert_indexes[io]],   
+                                                        vert_pos[vert_indexes[io]]+vert_forces[io]*forcescale};
+        ChIrrTools::drawPolyline(application.GetVideoDriver(), forceline, irr::video::SColor(100,240,0,0), true);
+     }
 }
 
 
@@ -95,17 +126,17 @@ int main(int argc, char* argv[]) {
                                    video::SColorf(0.8, 0.8, 1));
 
     //
-    // CREATE THE PHYSICAL SYSTEM
+    // CREATE A FINITE ELEMENT MESH
     //
 
     // Create the surface material, containing information
     // about friction etc.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetKn(2e6);
-    mysurfmaterial->SetKt(2e6);
-    mysurfmaterial->SetGn(4200);
-    mysurfmaterial->SetGt(4200);
+    mysurfmaterial->SetYoungModulus(10e4);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
+    mysurfmaterial->SetAdhesion(0);
 
   
     // Create a mesh, that is a container for groups
@@ -179,6 +210,35 @@ int main(int argc, char* argv[]) {
     my_mesh->AddAsset(mvisualizemesh); 
     
  
+    //
+    // CREATE A RIGID BODY WITH A MESH
+    //
+
+    // Create also a rigid body with a rigid mesh that will be used for the cosimulation,
+    // this time the ChLoadContactSurfaceMesh cannot be used as in the FEA case, so we
+    // will use the ChLoadBodyMesh class:
+
+    ChSharedPtr<ChBody> mrigidbody (new ChBody);
+    my_system.Add(mrigidbody);
+    mrigidbody->SetMass(200);
+    mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
+    mrigidbody->SetPos(tire_center + ChVector<>(-1,0,0));
+
+    ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+    mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
+    mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
+    mrigidbody->AddAsset(mrigidmesh);
+
+    ChSharedPtr<ChColorAsset> mcol(new ChColorAsset);
+    mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+    mrigidbody->AddAsset(mcol);
+
+            // this is used to use the mesh in cosimulation!
+    ChSharedPtr<ChLoadBodyMesh> mrigidmeshload(new ChLoadBodyMesh(mrigidbody, mrigidmesh->GetMesh()));
+    mloadcontainer->Add(mrigidmeshload);
+
+
+
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
@@ -249,26 +309,36 @@ int main(int argc, char* argv[]) {
 
         mmeshload->InputSimpleForces(vert_forces, vert_indexes);
 
-        // End of cosimulation block
-        // -------------------------------------------------------------------------
+        // now, just for debugging and some fun, draw some triangles
+        // (only those that have a vertex that has a force applied):
+        draw_affected_triangles(application, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
 
+
+        // Other example: call another cosimulation, this time for the rigid body 
+        // mesh (the second tire, the rigid one):
+        vert_pos.clear();
+        vert_vel.clear();
+        triangles.clear();
+        vert_forces.clear();
+        vert_indexes.clear();
+
+        mrigidmeshload->OutputSimpleMesh(vert_pos, vert_vel, triangles);
+
+        PerformEsternalCosimulation(vert_pos, 
+                                    vert_vel, 
+                                    triangles, 
+                                    vert_forces, 
+                                    vert_indexes);
+
+        mrigidmeshload->InputSimpleForces(vert_forces, vert_indexes);
 
         // now, just for debugging and some fun, draw some triangles
         // (only those that have a vertex that has a force applied):
-        for (int it= 0;it < triangles.size(); ++it) {
-            bool vert_hit = false;
-            for (int io = 0; io < vert_indexes.size(); ++io) {
-                if (triangles[it].x == vert_indexes[io] || triangles[it].y == vert_indexes[io] || triangles[it].z == vert_indexes[io])
-                    vert_hit = true;
-            }
-            if (vert_hit == true) {
-                std::vector<chrono::ChVector<> > fourpoints = { vert_pos[triangles[it].x], 
-                                                                vert_pos[triangles[it].y], 
-                                                                vert_pos[triangles[it].z],
-                                                                vert_pos[triangles[it].x]};
-                ChIrrTools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255,240,200,0), true); 
-            }
-        }
+        draw_affected_triangles(application, vert_pos, triangles, vert_indexes, vert_forces, 0.01);
+        
+
+        // End of cosimulation block
+        // -------------------------------------------------------------------------
 
 
         ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20,
