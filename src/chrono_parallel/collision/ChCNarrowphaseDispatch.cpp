@@ -689,14 +689,14 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
     // bins_per_axis.x,
     //       bins_per_axis.y, bins_per_axis.z, global_origin.x, global_origin.y, global_origin.z, num_nodes);
 
-    custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+    custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
 
     custom_vector<real3>& norm_rigid_node = data_manager->host_data.norm_rigid_node;
     custom_vector<real3>& cpta_rigid_node = data_manager->host_data.cpta_rigid_node;
     custom_vector<real>& dpth_rigid_node = data_manager->host_data.dpth_rigid_node;
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
-    custom_vector<real3>& pos_nodes = data_manager->host_data.pos_node;
+    custom_vector<real3>& pos_nodes = data_manager->host_data.pos_node_fea;
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
 
     is_rigid_bin_active.resize(total_bins);

@@ -103,7 +103,7 @@ void ChCollisionSystemParallel::Run() {
         data_manager->system_timer.stop("collision_narrow");
     }
 
-    if (data_manager->num_tets != 0) {
+    if (data_manager->num_fea_tets != 0) {
         data_manager->system_timer.start("collision_narrow");
         broadphase->DispatchTets();
         // narrowphase->DispatchTets();

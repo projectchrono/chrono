@@ -541,7 +541,7 @@ void ChOpenGLViewer::RenderFEA() {
         fea_node_data.resize(parallel_system->data_manager->num_fea_nodes);
 #pragma omp parallel for
         for (int i = 0; i < parallel_system->data_manager->num_fea_nodes; i++) {
-            real3 pos = parallel_system->data_manager->host_data.pos_node[i];
+            real3 pos = parallel_system->data_manager->host_data.pos_node_fea[i];
             fea_node_data[i] = glm::vec3(pos.x, pos.y, pos.z);
         }
 
@@ -550,12 +550,12 @@ void ChOpenGLViewer::RenderFEA() {
         glm::mat4 model(1);
         fea_nodes.Draw(projection, view * model);
         fea_element_data.clear();
-        for (int i = 0; i < parallel_system->data_manager->num_tets; i++) {
+        for (int i = 0; i < parallel_system->data_manager->num_fea_tets; i++) {
             uint4 ind = parallel_system->data_manager->host_data.tet_indices[i];
-            real3 pos1 = parallel_system->data_manager->host_data.pos_node[ind.x];
-            real3 pos2 = parallel_system->data_manager->host_data.pos_node[ind.y];
-            real3 pos3 = parallel_system->data_manager->host_data.pos_node[ind.z];
-            real3 pos4 = parallel_system->data_manager->host_data.pos_node[ind.w];
+            real3 pos1 = parallel_system->data_manager->host_data.pos_node_fea[ind.x];
+            real3 pos2 = parallel_system->data_manager->host_data.pos_node_fea[ind.y];
+            real3 pos3 = parallel_system->data_manager->host_data.pos_node_fea[ind.z];
+            real3 pos4 = parallel_system->data_manager->host_data.pos_node_fea[ind.w];
 
             fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
             fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));

@@ -147,12 +147,12 @@ void ChCAABBGenerator::GenerateAABB() {
     }
 
     // Deal with tetrahedral elements
-    const uint num_tets = data_manager->num_tets;
+    const uint num_tets = data_manager->num_fea_tets;
     if (num_tets > 0) {
         custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
         custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
         custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
-        custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
+        custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
         real node_radius = data_manager->fea_container->kernel_radius;
         aabb_min_tet.resize(num_tets);
         aabb_max_tet.resize(num_tets);
