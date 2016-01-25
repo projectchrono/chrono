@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <vector>
 #include <cmath>
-
+#include <string>
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono/ChConfig.h"
@@ -135,16 +135,24 @@ void AddFallingBalls(ChSystemParallel* sys) {
 int main(int argc, char* argv[]) {
     int threads = 8;
 
+    int solver = 0;
+    int max_iteration = 10000;
+    if (argc == 2) {
+        solver = atoi(argv[1]);
+    }
+    if (argc == 3) {
+        solver = atoi(argv[1]);
+        max_iteration = atoi(argv[2]);
+    }
     // Simulation parameters
     // ---------------------
 
     double gravity = 9.81;
-    double time_step = 5e-3;
+    double time_step = 1e-3;
     double time_end = 5;
 
     double out_fps = 50;
 
-    uint max_iteration = 10000;
     real tolerance = 1e-3;
 
     // Create system
@@ -171,7 +179,13 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.tolerance = tolerance / time_step;
     msystem.GetSettings()->solver.alpha = 0;
     msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-    msystem.ChangeSolverType(SPGQP);
+    if (solver == 0) {
+        msystem.ChangeSolverType(SPGQP);
+    } else if (solver == 1) {
+        msystem.ChangeSolverType(BB);
+    } else if (solver == 2) {
+        msystem.ChangeSolverType(APGD);
+    }
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
     msystem.GetSettings()->collision.collision_envelope = 0.01;
@@ -211,7 +225,7 @@ int main(int argc, char* argv[]) {
     }
 #else
 
-    std::ofstream ofile("residual.txt");
+    std::ofstream ofile("residual" + std::to_string(solver) + ".txt");
 
     // Run simulation for specified time
     int num_steps = std::ceil(time_end / time_step);
@@ -222,9 +236,11 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < num_steps; i++) {
         msystem.DoStepDynamics(time_step);
         ofile << time << " " << msystem.data_manager->measures.solver.residual << " "
-              << msystem.data_manager->measures.solver.total_iteration << std::endl;
+              << msystem.data_manager->measures.solver.total_iteration << " "
+              << msystem.data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve") << std::endl;
         std::cout << time << " " << msystem.data_manager->measures.solver.residual << " "
-                  << msystem.data_manager->measures.solver.total_iteration << std::endl;
+                  << msystem.data_manager->measures.solver.total_iteration << " "
+                  << msystem.data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve") << std::endl;
         time += time_step;
     }
     ofile.close();
