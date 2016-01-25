@@ -137,12 +137,20 @@ int main(int argc, char* argv[]) {
 
     int solver = 0;
     int max_iteration = 10000;
+    bool enable_alpha_init;
+    bool enable_cache_step;
     if (argc == 2) {
         solver = atoi(argv[1]);
     }
     if (argc == 3) {
         solver = atoi(argv[1]);
         max_iteration = atoi(argv[2]);
+    }
+    if (argc == 5) {
+        solver = atoi(argv[1]);
+        max_iteration = atoi(argv[2]);
+        enable_alpha_init = atoi(argv[3]);
+        enable_cache_step = atoi(argv[4]);
     }
     // Simulation parameters
     // ---------------------
@@ -178,6 +186,8 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.max_iteration_bilateral = 0;
     msystem.GetSettings()->solver.tolerance = tolerance / time_step;
     msystem.GetSettings()->solver.alpha = 0;
+    msystem.GetSettings()->solver.use_power_iteration = enable_alpha_init;
+    msystem.GetSettings()->solver.cache_step_length = enable_cache_step;
     msystem.GetSettings()->solver.contact_recovery_speed = 10000;
     if (solver == 0) {
         msystem.ChangeSolverType(SPGQP);
