@@ -20,7 +20,7 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
@@ -103,7 +103,7 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;

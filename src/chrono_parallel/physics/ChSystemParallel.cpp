@@ -247,7 +247,7 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
     std::vector<real3> positions(num_nodes);
     std::vector<real3> velocities(num_nodes);
 
-    uint current_nodes = data_manager->num_nodes;
+    uint current_nodes = data_manager->num_fea_nodes;
 
     for (int i = 0; i < num_nodes; i++) {
         if (ChSharedPtr<fea::ChNodeFEAxyz> node = mesh->GetNode(i).DynamicCastTo<fea::ChNodeFEAxyz>()) {
@@ -560,7 +560,7 @@ void ChSystemParallel::Setup() {
     // Calculate the total number of degrees of freedom (6 per rigid body and 1
     // for each shaft element).
     data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts +
-                            data_manager->num_fluid_bodies * 3 + data_manager->num_nodes * 3;
+                            data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3;
 
     // Set variables that are stored in the ChSystem class
     nbodies = data_manager->num_rigid_bodies;

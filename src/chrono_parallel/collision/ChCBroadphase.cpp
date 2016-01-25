@@ -39,7 +39,7 @@ void ChCBroadphase::DetermineBoundingBox() {
         data_manager->measures.collision.max_bounding_point =
             Max(res.second, data_manager->measures.collision.ff_max_bounding_point);
     }
-    if (data_manager->num_nodes != 0) {
+    if (data_manager->num_fea_nodes != 0) {
         data_manager->measures.collision.min_bounding_point =
             Min(res.first, data_manager->measures.collision.node_min_bounding_point);
         data_manager->measures.collision.max_bounding_point =

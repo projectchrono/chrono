@@ -43,7 +43,7 @@
 
   "Driveline":
   {
-    "Input File":           "hmmwv/driveline/HMMWV_DrivelineSimple.json",
+    "Input File":           "hmmwv/driveline/HMMWV_Driveline4WD.json",
     "Suspension Indexes":   [0, 1]
   },
 

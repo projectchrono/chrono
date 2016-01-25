@@ -390,11 +390,20 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_unilaterals;           // The number of contact constraints
     uint num_bilaterals;            // The number of bilateral constraints
     uint num_constraints;           // Total number of constraints
-    uint num_nodes;                 // Total number of FEM nodes
+    uint num_fea_nodes;                 // Total number of FEM nodes
     uint num_tets;                  // Total number of FEM nodes
     uint num_rigid_node_contacts;   // The number of contacts between rigids and  nodes
     uint num_rigid_tet_contacts;    // The number of contacts between tetrahedron and rigid bodies
     uint nnz_bilaterals;            // The number of non-zero entries in the bilateral Jacobian
+
+//
+//    uint num_fluid_markers;
+//
+//    uint num_mpm_markers;
+//    uint num_mpm_nodes;
+//
+//    uint num_fea_nodes;
+//    uint num_fea_tets;
 
     // Flag indicating whether or not the contact forces are current (DVI only).
     bool Fc_current;

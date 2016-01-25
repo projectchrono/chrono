@@ -47,7 +47,7 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
     if (data_manager->num_fluid_bodies != 0) {
         DispatchRigidFluid();
     }
-    if (data_manager->num_nodes != 0) {
+    if (data_manager->num_fea_nodes != 0) {
         DispatchRigidNode();
     }
 }
@@ -678,7 +678,7 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
     LOG(TRACE) << "start DispatchRigidNode: ";
 
     real node_radius = data_manager->fea_container->kernel_radius;
-    int num_nodes = data_manager->num_nodes;
+    int num_nodes = data_manager->num_fea_nodes;
     int num_rigid_shapes = data_manager->num_rigid_shapes;
 
     real3 global_origin = data_manager->measures.collision.global_origin;

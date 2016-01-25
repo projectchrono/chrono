@@ -32,7 +32,7 @@ void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     vel_node.insert(vel_node.end(), velocities.begin(), velocities.end());
     // In case the number of velocities provided were not enough, resize to the number of fea nodes
     vel_node.resize(pos_node.size());
-    data_manager->num_nodes = pos_node.size();
+    data_manager->num_fea_nodes = pos_node.size();
 }
 void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
@@ -61,7 +61,7 @@ void ChFEAContainer::Setup(int start_constraint) {
 
 void ChFEAContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node;
 
     for (int i = 0; i < num_nodes; i++) {
@@ -76,7 +76,7 @@ void ChFEAContainer::ComputeInvMass(int offset) {
 }
 void ChFEAContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node;
 
     for (int i = 0; i < num_nodes; i++) {
@@ -91,7 +91,7 @@ void ChFEAContainer::ComputeMass(int offset) {
 }
 
 void ChFEAContainer::Update(double ChTime) {
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -112,7 +112,7 @@ void ChFEAContainer::Update(double ChTime) {
     }
 }
 void ChFEAContainer::UpdatePosition(double ChTime) {
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -136,7 +136,7 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
 }
 void ChFEAContainer::Initialize() {
     uint num_tets = data_manager->num_tets;
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
 
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
@@ -233,7 +233,7 @@ void ChFEAContainer::Project(real* gamma) {
 
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
-    uint num_nodes = data_manager->num_nodes;
+    uint num_nodes = data_manager->num_fea_nodes;
     uint num_tets = data_manager->num_tets;
     //#pragma omp parallel for
     int index = 0;
@@ -424,7 +424,7 @@ void ChFEAContainer::Build_D() {
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
     uint num_rigid_node_contacts = data_manager->num_rigid_node_contacts;
-    int num_nodes = data_manager->num_nodes;
+    int num_nodes = data_manager->num_fea_nodes;
     if (data_manager->num_rigid_node_contacts > 0) {
         //#pragma omp parallel for
         int index = 0;
@@ -514,7 +514,7 @@ void ChFEAContainer::Build_b() {
     if (num_rigid_node_contacts > 0) {
         custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
-        int num_nodes = data_manager->num_nodes;
+        int num_nodes = data_manager->num_fea_nodes;
         //#pragma omp parallel for
         int index = 0;
         for (int p = 0; p < num_nodes; p++) {
@@ -631,7 +631,7 @@ void ChFEAContainer::GenerateSparsity() {
 
     int index_n = 0;
     int index_t = 0;
-    int num_nodes = data_manager->num_nodes;
+    int num_nodes = data_manager->num_fea_nodes;
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
     for (int p = 0; p < num_nodes; p++) {

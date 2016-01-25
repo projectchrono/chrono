@@ -534,13 +534,13 @@ void ChOpenGLViewer::RenderFluid() {
 
 void ChOpenGLViewer::RenderFEA() {
     if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        if (parallel_system->data_manager->num_nodes <= 0) {
+        if (parallel_system->data_manager->num_fea_nodes <= 0) {
             return;
         }
 
-        fea_node_data.resize(parallel_system->data_manager->num_nodes);
+        fea_node_data.resize(parallel_system->data_manager->num_fea_nodes);
 #pragma omp parallel for
-        for (int i = 0; i < parallel_system->data_manager->num_nodes; i++) {
+        for (int i = 0; i < parallel_system->data_manager->num_fea_nodes; i++) {
             real3 pos = parallel_system->data_manager->host_data.pos_node[i];
             fea_node_data[i] = glm::vec3(pos.x, pos.y, pos.z);
         }
