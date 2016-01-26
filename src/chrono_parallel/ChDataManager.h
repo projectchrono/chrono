@@ -25,24 +25,11 @@
 #include <blaze/math/DynamicVector.h>
 #include <blaze/math/DenseSubvector.h>
 
-// Chrono Includes
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "physics/ChBody.h"
-#include "physics/ChLinksAll.h"
-
 // Chrono Parallel Includes
 #include "chrono_parallel/ChTimerParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/math/real4.h"
-#include "chrono_parallel/math/mat33.h"
-#include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
-
-#include <chrono_parallel/physics/Ch3DOFContainer.h>
-
-// Thrust Includes
-//#include <thrust/host_vector.h>
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
@@ -52,6 +39,23 @@ using blaze::subvector;
 using custom_vector;
 
 namespace chrono {
+
+class ChBody;
+class ChLcpSystemDescriptor;
+class ChLink;
+class ChPhysicsItem;
+class Mat33;
+class real2;
+class real3;
+class real4;
+class int3;
+class Ch3DOFContainer;
+class ChFEAContainer;
+class ChFluidContainer;
+class ChMPMContainer;
+
+template <typename TT>
+class ChSharedPtr;
 
 typedef blaze::SparseSubmatrix<CompressedMatrix<real> > SubMatrixType;
 typedef blaze::DenseSubvector<DynamicVector<real> > SubVectorType;
@@ -260,7 +264,6 @@ struct host_container {
 
     custom_vector<real3> vel_node_mpm;
 
-
     // Information for FEM nodes
     custom_vector<real3> pos_node_fea;
     custom_vector<real3> vel_node_fea;
@@ -354,16 +357,8 @@ class CH_PARALLEL_API ChParallelDataManager {
   public:
     ChParallelDataManager();
     ~ChParallelDataManager();
-    void Add3DOFContainer(Ch3DOFContainer* container) {
-        container->AddRef();
-        delete node_container;
-        node_container = container;
-    }
-    void AddFEAContainer(ChFEAContainer* container) {
-        container->AddRef();
-        delete fea_container;
-        fea_container = container;
-    }
+    void Add3DOFContainer(Ch3DOFContainer* container);
+    void AddFEAContainer(ChFEAContainer* container);
     // Structure that contains the data on the host, the naming convention is
     // from when the code supported the GPU (host vs device)
     host_container host_data;

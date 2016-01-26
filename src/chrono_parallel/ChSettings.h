@@ -26,7 +26,8 @@
 namespace chrono {
 // collision_settings, like the name implies is the structure that contains all
 // settings associated with the collision detection step of chrono parallel
-struct collision_settings {
+class collision_settings {
+  public:
     // The default values are specified in the constructor, use these as
     // guidelines when experimenting with your own simulation setup.
     collision_settings() {
@@ -83,7 +84,8 @@ struct collision_settings {
 
 // solver_settings, like the name implies is the structure that contains all
 // settings associated with the parallel solver.
-struct solver_settings {
+class solver_settings {
+  public:
     solver_settings() {
         tolerance = 1e-4;
         tol_speed = 1e-4;
@@ -203,7 +205,8 @@ struct solver_settings {
     real tolerance_objective;
 };
 
-struct settings_container {
+class settings_container {
+  public:
     settings_container() {
         // The default minimum number of threads is 1, set this to your max threads
         // if you already know that it will run the fastest with that configuration.

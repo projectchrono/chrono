@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "chrono_parallel/collision/ChCAABBGenerator.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 using namespace chrono;
 using namespace chrono::collision;
 

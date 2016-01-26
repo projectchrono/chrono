@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "chrono_parallel/math/real3.h"               // for real3
+
 #define S2 _make_short2
 #define U3 _make_uint3
 #define I2 _make_int2

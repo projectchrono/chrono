@@ -7,6 +7,14 @@
 #include "chrono_parallel/lcp/MPMUtils.h"
 #include <chrono_parallel/collision/ChCBroadphaseUtils.h>
 #include <thrust/transform_reduce.h>
+
+#include "chrono_parallel/math/other_types.h"         // for uint, int2, int3
+#include "chrono_parallel/math/real.h"                // for real
+#include "chrono_parallel/math/real2.h"               // for real2
+#include "chrono_parallel/math/real3.h"               // for real3
+#include "chrono_parallel/math/real4.h"               // for quaternion, real4
+#include "chrono_parallel/math/mat33.h"               // for quaternion, real4
+
 namespace chrono {
 
 using namespace collision;

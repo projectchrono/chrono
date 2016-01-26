@@ -6,6 +6,7 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+#include "chrono_parallel/math/mat33.h"               // for quaternion, real4
 
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChElementTetra_4.h"

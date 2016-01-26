@@ -9,6 +9,8 @@
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
 
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
+
 #include <thrust/remove.h>
 #include <thrust/sort.h>
 #include <thrust/transform_reduce.h>

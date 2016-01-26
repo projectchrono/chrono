@@ -35,6 +35,9 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsGenerators.h"
+
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
+
 #include <fstream>
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"

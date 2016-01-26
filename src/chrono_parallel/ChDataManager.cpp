@@ -1,4 +1,5 @@
 #include "chrono_parallel/ChDataManager.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
 using namespace chrono;
@@ -117,4 +118,15 @@ void ChParallelDataManager::PrintMatrix(CompressedMatrix<real> src) {
         }
         std::cout << "\n";
     }
+}
+
+void ChParallelDataManager::Add3DOFContainer(Ch3DOFContainer* container) {
+    container->AddRef();
+    delete node_container;
+    node_container = container;
+}
+void ChParallelDataManager::AddFEAContainer(ChFEAContainer* container) {
+    container->AddRef();
+    delete fea_container;
+    fea_container = container;
 }

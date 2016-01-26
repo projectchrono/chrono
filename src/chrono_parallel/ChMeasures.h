@@ -21,11 +21,16 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "parallel/ChOpenMP.h"
-
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/real.h"         // for real
+#include "chrono_parallel/math/real2.h"        // for real2
+#include "chrono_parallel/math/real3.h"        // for real3
+#include "chrono_parallel/math/real4.h"        // for quaternion, real4
 namespace chrono {
 // collision_measures, like the name implies is the structure that contains all
 // measures associated with the collision detection step of chrono parallel
-struct collision_measures {
+class collision_measures {
+  public:
     collision_measures() {
         min_bounding_point = real3(0);
         max_bounding_point = real3(0);
@@ -63,7 +68,8 @@ struct collision_measures {
 };
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.
-struct solver_measures {
+class solver_measures {
+  public:
     solver_measures() {
         total_iteration = 0;
         residual = 0;
@@ -85,7 +91,7 @@ struct solver_measures {
     real normal_apgd_step_length;
     real sliding_apgd_step_length;
     real spinning_apgd_step_length;
-    real lambda_max; //largest eigenvalue
+    real lambda_max;  // largest eigenvalue
     // These three variables are used to store the convergence history of the solver
     std::vector<real> maxd_hist, maxdeltalambda_hist, time;
     std::vector<real> apgd_beta;
@@ -94,7 +100,8 @@ struct solver_measures {
     std::vector<real> violation;
 };
 
-struct measures_container {
+class measures_container {
+  public:
     collision_measures collision;
     solver_measures solver;
 };
