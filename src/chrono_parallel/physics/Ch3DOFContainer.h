@@ -200,6 +200,16 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real theta_c;
     real alpha;
     real max_iterations;
+
+
+    real3 min_bounding_point;
+    real3 max_bounding_point;
+    int3 bins_per_axis;
+    real bin_edge;
+    real inv_bin_edge;
+    uint grid_size;
+
+
 };
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
