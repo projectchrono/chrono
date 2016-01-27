@@ -53,6 +53,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void Build_b() {}
     virtual void Build_E() {}
     virtual void PreSolve() {}
+    virtual void ComputeDOF(){}
 
     // During Solve
     virtual void Project(real* gamma) {}
@@ -161,6 +162,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     ChMPMContainer(ChSystemParallelDVI* system);
     ~ChMPMContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    void ComputeDOF();
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
     void Setup(int start_constraint);

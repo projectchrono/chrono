@@ -174,6 +174,9 @@ void ChSystemParallelDVI::AssembleSystem() {
     this->LCP_descriptor->EndInsertion();
 }
 void ChSystemParallelDVI::Initialize() {
+    // Mpm update is special because it computes the number of nodes that we have
+    data_manager->mpm_container->ComputeDOF();
+
     Setup();
 
     data_manager->fea_container->Initialize();
@@ -189,5 +192,4 @@ void ChSystemParallelDVI::Initialize() {
 
     data_manager->node_container->Initialize();
     data_manager->mpm_container->Initialize();
-
 }

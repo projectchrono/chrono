@@ -70,6 +70,9 @@ int ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.Reset();
     data_manager->system_timer.start("step");
 
+    // Mpm update is special because it computes the number of nodes that we have
+    data_manager->mpm_container->ComputeDOF();
+
     Setup();
 
     data_manager->system_timer.start("update");

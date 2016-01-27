@@ -39,15 +39,6 @@ ChMPMContainer::~ChMPMContainer() {}
 void ChMPMContainer::Setup(int start_constraint) {
     Ch3DOFContainer::Setup(start_constraint);
     body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + num_fea_nodes * 3;
-
-    min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-    max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-
-    real3 diag = max_bounding_point - min_bounding_point;
-    bin_edge = kernel_radius * 2;
-    bins_per_axis = int3(diag / bin_edge);
-    inv_bin_edge = real(1.) / bin_edge;
-    grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 }
 
 void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
@@ -69,10 +60,9 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     std::fill(Fp.begin(), Fp.end(), Mat33(1));
     std::fill(Fe.begin(), Fe.end(), Mat33(1));
 }
-void ChMPMContainer::Update(double ChTime) {
+void ChMPMContainer::ComputeDOF() {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
-
     real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
     real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
 
@@ -89,6 +79,21 @@ void ChMPMContainer::Update(double ChTime) {
                                (Floor(res.first.y), (res.first.y - kernel_radius * 12)),
                                (Floor(res.first.z), (res.first.z - kernel_radius * 12)));
 
+    min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
+
+    real3 diag = max_bounding_point - min_bounding_point;
+    bin_edge = kernel_radius * 2;
+    bins_per_axis = int3(diag / bin_edge);
+    inv_bin_edge = real(1.) / bin_edge;
+    grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
+    data_manager->num_mpm_nodes = grid_size;
+}
+
+void ChMPMContainer::Update(double ChTime) {
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+
     Setup(0);
 
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
@@ -100,6 +105,14 @@ void ChMPMContainer::Update(double ChTime) {
     grid_vel_old.resize(grid_size * 3);
 
     grid_mass = 0;
+
+    for (int i = 0; i < grid_size; i++) {
+        data_manager->host_data.v[body_offset + i * 3 + 0] = 0;
+        data_manager->host_data.v[body_offset + i * 3 + 1] = 0;
+        data_manager->host_data.v[body_offset + i * 3 + 2] = 0;
+    }
+    std::cout << "SIZE " << (data_manager->host_data.v.size()) << std::endl;
+
 
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
@@ -126,7 +139,7 @@ void ChMPMContainer::Update(double ChTime) {
         grid_vel_old[i * 3 + 2] = data_manager->host_data.v[body_offset + i * 3 + 2];
     }
 
-//     /UpdateRhs();
+    //     /UpdateRhs();
 
     // update the position of the markers based on the nodal velocities
 }
