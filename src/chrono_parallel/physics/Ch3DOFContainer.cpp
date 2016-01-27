@@ -23,6 +23,18 @@ Ch3DOFContainer::Ch3DOFContainer() {
     contact_mu = 0;
     max_velocity = 20;
     data_manager = 0;
+
+    num_fluid_contacts = 0;
+    num_fluid_bodies = 0;
+    num_rigid_bodies = 0;
+    num_rigid_fluid_contacts = 0;
+    num_unilaterals = 0;
+    num_bilaterals = 0;
+    num_shafts = 0;
+    num_fea_tets = 0;
+    num_fea_nodes = 0;
+    num_mpm_markers = 0;
+    num_mpm_nodes = 0;
 }
 
 Ch3DOFContainer::~Ch3DOFContainer() {}

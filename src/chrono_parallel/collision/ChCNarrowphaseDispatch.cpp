@@ -826,24 +826,24 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
     LOG(TRACE) << "stop DispatchRigidNode: " << data_manager->num_rigid_node_contacts;
 }
 void ChCNarrowphaseDispatch::DispatchMPM() {
-    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
-    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
-
-    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-
-    bbox res(pos_marker[0], pos_marker[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
-
-    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + data_manager->mpm_container->kernel_radius * 12)),
-                               (Ceil(res.second.y), (res.second.y + data_manager->mpm_container->kernel_radius * 12)),
-                               (Ceil(res.second.z), (res.second.z + data_manager->mpm_container->kernel_radius * 12)));
-
-    min_bounding_point = real3((Floor(res.first.x), (res.first.x - data_manager->mpm_container->kernel_radius * 12)),
-                               (Floor(res.first.y), (res.first.y - data_manager->mpm_container->kernel_radius * 12)),
-                               (Floor(res.first.z), (res.first.z - data_manager->mpm_container->kernel_radius * 12)));
+//    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+//    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+//
+//    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+//    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
+//
+//    bbox res(pos_marker[0], pos_marker[0]);
+//    bbox_transformation unary_op;
+//    bbox_reduction binary_op;
+//    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
+//
+//    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + data_manager->mpm_container->kernel_radius * 12)),
+//                               (Ceil(res.second.y), (res.second.y + data_manager->mpm_container->kernel_radius * 12)),
+//                               (Ceil(res.second.z), (res.second.z + data_manager->mpm_container->kernel_radius * 12)));
+//
+//    min_bounding_point = real3((Floor(res.first.x), (res.first.x - data_manager->mpm_container->kernel_radius * 12)),
+//                               (Floor(res.first.y), (res.first.y - data_manager->mpm_container->kernel_radius * 12)),
+//                               (Floor(res.first.z), (res.first.z - data_manager->mpm_container->kernel_radius * 12)));
 }
 
 }  // end namespace collision

@@ -136,7 +136,7 @@ bool ChOpenGLViewer::Initialize() {
     cloud.Initialize(cloud_data, white, &cloud_shader);
     fluid.Initialize(cloud_data, blue_jeans, &sphere_shader);
     grid.Initialize(grid_data, darkriver, &cloud_shader);
-    mpm.Initialize(cloud_data, elated, &sphere_shader);
+    mpm.Initialize(cloud_data, blue_jeans, &sphere_shader);
 
     fea_nodes.Initialize(fea_node_data, darkred, &dot_shader);
     fea_elements.Initialize(fea_element_data, greyslate, &cloud_shader);

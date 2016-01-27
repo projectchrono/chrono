@@ -48,11 +48,6 @@ void ChMPMContainer::Setup(int start_constraint) {
     bins_per_axis = int3(diag / bin_edge);
     inv_bin_edge = real(1.) / bin_edge;
     grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
-
-    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
-    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("SETUP [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge,
-           num_mpm_markers);
 }
 
 void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
@@ -65,13 +60,11 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     vel_marker.resize(pos_marker.size());
     data_manager->num_mpm_markers = pos_marker.size();
 
-    printf("Initialize_Deformation_Gradients\n");
-
     delta_F.resize(data_manager->num_mpm_markers);
     Fe.resize(data_manager->num_mpm_markers);
     Fe_hat.resize(data_manager->num_mpm_markers);
     Fp.resize(data_manager->num_mpm_markers);
-    volume.resize(num_mpm_markers);
+    volume.resize(data_manager->num_mpm_markers);
 
     std::fill(Fp.begin(), Fp.end(), Mat33(1));
     std::fill(Fe.begin(), Fe.end(), Mat33(1));
@@ -79,6 +72,29 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
 void ChMPMContainer::Update(double ChTime) {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+
+    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
+
+    bbox res(pos_marker[0], pos_marker[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
+
+    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + kernel_radius * 12)),
+                               (Ceil(res.second.y), (res.second.y + kernel_radius * 12)),
+                               (Ceil(res.second.z), (res.second.z + kernel_radius * 12)));
+
+    min_bounding_point = real3((Floor(res.first.x), (res.first.x - kernel_radius * 12)),
+                               (Floor(res.first.y), (res.first.y - kernel_radius * 12)),
+                               (Floor(res.first.z), (res.first.z - kernel_radius * 12)));
+
+    Setup(0);
+
+    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
+    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
+    printf("SETUP [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge,
+           num_mpm_markers);
 
     grid_mass.resize(grid_size);
     grid_vel_old.resize(grid_size * 3);
@@ -97,8 +113,8 @@ void ChMPMContainer::Update(double ChTime) {
             data_manager->host_data.v[body_offset + i * 3 + 2] += weight * vi.z;  //
             )
     }
-// normalize weights for the velocity (to conserve momentum)
-//#pragma omp parallel for
+    // normalize weights for the velocity (to conserve momentum)
+    //#pragma omp parallel for
     for (int i = 0; i < grid_size; i++) {
         if (grid_mass[i] > C_EPSILON) {
             data_manager->host_data.v[body_offset + i * 3 + 0] /= grid_mass[i];
@@ -110,7 +126,7 @@ void ChMPMContainer::Update(double ChTime) {
         grid_vel_old[i * 3 + 2] = data_manager->host_data.v[body_offset + i * 3 + 2];
     }
 
-    UpdateRhs();
+//     /UpdateRhs();
 
     // update the position of the markers based on the nodal velocities
 }
@@ -120,7 +136,7 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
     DynamicVector<real>& v = data_manager->host_data.v;
     printf("Update_Particle_Velocities\n");
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         real3 V_flip = vel_marker[p];
@@ -180,24 +196,14 @@ void ChMPMContainer::ComputeMass(int offset) {
 }
 
 void ChMPMContainer::Initialize() {
-    Setup(0);
     const real dt = data_manager->settings.step_size;
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
 
-    min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-    max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-
-    real3 diag = max_bounding_point - min_bounding_point;
-    bin_edge = kernel_radius * 2;
-    bins_per_axis = int3(diag / bin_edge);
-    inv_bin_edge = real(1.) / bin_edge;
-    grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
-
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("Initialize [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge,
-           num_mpm_markers);
+    printf("Initialize [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
+           bin_edge, num_mpm_markers);
 
     volume.resize(num_mpm_markers);
     grid_mass.resize(grid_size);
@@ -213,7 +219,7 @@ void ChMPMContainer::Initialize() {
     }
 
     printf("Compute_Particle_Volumes\n");
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         real particle_density = 0;
@@ -227,13 +233,12 @@ void ChMPMContainer::Initialize() {
     }
 }
 void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
-    const int num_particles = data_manager->num_fluid_bodies;
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
     const real dt = data_manager->settings.step_size;
     printf("Apply Hessian A\n");
 
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < grid_size; i++) {
         result_array[i * 3 + 0] = (v_array[i * 3 + 0] - grid_vel_old[i * 3 + 0]) * grid_mass[i] / dt;
         result_array[i * 3 + 1] = (v_array[i * 3 + 1] - grid_vel_old[i * 3 + 1]) * grid_mass[i] / dt;
@@ -396,7 +401,7 @@ void ChMPMContainer::PostSolve() {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
 
     printf("Update_Deformation_Gradient\n");
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         Mat33 velocity_gradient(0);
@@ -429,10 +434,10 @@ void ChMPMContainer::UpdateRhs() {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
     const real dt = data_manager->settings.step_size;
 
-// Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
-// Not in the original paper like this but using it for testing
+    // Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
+    // Not in the original paper like this but using it for testing
 
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         Fe_hat[p] = Mat33(1.0);
@@ -448,7 +453,7 @@ void ChMPMContainer::UpdateRhs() {
         Fe_hat[p] = Fe_hat_t * Fe[p];
     }
 
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < num_mpm_markers; i++) {
         real3 h_gravity = data_manager->settings.step_size * grid_mass[i] * data_manager->settings.gravity;
         data_manager->host_data.hf[body_offset + i * 3 + 0] = h_gravity.x;
