@@ -6,7 +6,7 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
-#include "chrono_parallel/math/mat33.h"               // for quaternion, real4
+#include "chrono_parallel/math/mat33.h"  // for quaternion, real4
 
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChElementTetra_4.h"
@@ -258,7 +258,7 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
             // Offset the element index by the current number of nodes at the start
             node->SetIndex(i + current_nodes);
 
-            //printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x, node->GetPos().y, node->GetPos().z);
+            // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x, node->GetPos().y, node->GetPos().z);
         }
     }
     ChFEAContainer* container = (ChFEAContainer*)data_manager->fea_container;
@@ -563,7 +563,8 @@ void ChSystemParallel::Setup() {
     // Calculate the total number of degrees of freedom (6 per rigid body and 1
     // for each shaft element).
     data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts +
-                            data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3;
+                            data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3 +
+                            data_manager->num_mpm_nodes * 3;
 
     // Set variables that are stored in the ChSystem class
     nbodies = data_manager->num_rigid_bodies;
