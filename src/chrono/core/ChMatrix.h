@@ -1054,6 +1054,7 @@ class ChMatrix {
                                int inscol) {
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
+#pragma omp atomic
                 Element(i + insrow, j + inscol) += (Real)matra->Element(i + cliprow, j + clipcol);
     }
 

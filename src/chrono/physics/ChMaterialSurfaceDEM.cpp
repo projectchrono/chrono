@@ -60,8 +60,8 @@ ChCompositeMaterialDEM ChMaterialSurfaceDEM::CompositeMaterial(const ChSharedPtr
 
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +
                   (1 - mat2->poisson_ratio * mat2->poisson_ratio) / mat2->young_modulus;
-    float inv_G = 2 * (2 + mat1->poisson_ratio) * (1 - mat1->poisson_ratio) / mat1->young_modulus +
-                  2 * (2 + mat2->poisson_ratio) * (1 - mat2->poisson_ratio) / mat2->young_modulus;
+    float inv_G = 2 * (2 - mat1->poisson_ratio) * (1 + mat1->poisson_ratio) / mat1->young_modulus +
+                  2 * (2 - mat2->poisson_ratio) * (1 + mat2->poisson_ratio) / mat2->young_modulus;
 
     mat.E_eff = 1 / inv_E;
     mat.G_eff = 1 / inv_G;
