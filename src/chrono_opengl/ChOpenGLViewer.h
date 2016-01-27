@@ -58,6 +58,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   void RenderGrid();
   void RenderFluid();
   void RenderFEA();
+  void RenderMPM();
   void RenderPlots();
   void HandleInput(unsigned char key, int x, int y);
 
@@ -85,6 +86,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   ChOpenGLCloud fluid;
   ChOpenGLWires grid;
 
+  ChOpenGLCloud mpm;
+
   ChOpenGLCloud fea_nodes;
   ChOpenGLWires fea_elements;
 
@@ -94,6 +97,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
   std::vector<glm::vec3> cloud_data;
   std::vector<glm::vec3> fluid_data;
+  std::vector<glm::vec3> mpm_data;
   std::vector<glm::vec3> fea_node_data;
   std::vector<glm::vec3> fea_element_data;
   std::vector<glm::vec3> grid_data;
