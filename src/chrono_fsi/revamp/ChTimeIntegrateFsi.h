@@ -23,18 +23,26 @@ namespace fsi {
 class CH_FSI_API ChTimeIntegrateFsi : public ChFsiGeneral{
 public:
 	//TODO: Default constructor
-	ChTimeIntegrateFsi(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects);
+	ChTimeIntegrateFsi(
+		ChFsiDataManager* otherFsiData,
+		SimParams* otherParamsH, 
+		NumberOfObjects* otherNumObjects);
+
 	~ChTimeIntegrateFsi(); //TODO
 
-	void IntegrateSPH();
-	void ApplyBoundarySPH_Markers();
-
+	void IntegrateSPH(
+		SphMarkerDataD * sphMarkersD2,
+		SphMarkerDataD * sphMarkersD1,
+		FsiBodiesDataD * fsiBodiesD1,
+		Real dT);
 
 protected:
-	FsiDataContainer* fsiData;
+	ChFsiDataManager* fsiData;
 	ChFsiForceParallel* forceSystem;
 
-	void UpdateFluid(Real dT);
+
+	void UpdateFluid(SphMarkerDataD * sphMarkersD, Real dT);
+	void ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD);
 
 }
 

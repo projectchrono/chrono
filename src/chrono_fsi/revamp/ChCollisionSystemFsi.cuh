@@ -23,19 +23,22 @@ namespace fsi {
 class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 	public:
 		// ChCollisionSystemFsi();
-		ChCollisionSystemFsi(FsiDataContainer* otherFsiData);
+		ChCollisionSystemFsi(
+			SphMarkerDataD * otherSortedSphMarkersD;
+			ProximityDataD * otherMarkersProximityD, 
+			SimParams* otherParamsH, 
+			NumberOfObjects* otherNumObjects);
 		~ChCollisionSystemFsi();
-
-		void setParameters();
-
 /**
 		* @brief Encapsulate calcHash and reaorderDataAndFindCellStart;
 		* @details
 */
-		void ArrangeData();
+		void ArrangeData(SphMarkerDataD * otherSphMarkersD);
 
 	private:
-		FsiDataContainer* fsiData;
+		SphMarkerDataD * sphMarkersD;
+		SphMarkerDataD * sortedSphMarkersD;
+		ProximityDataD * markersProximityD;
 				/**
  * @brief calcHash - calcHashD
  *

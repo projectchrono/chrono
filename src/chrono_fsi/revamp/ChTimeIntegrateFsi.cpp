@@ -215,20 +215,37 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-ChTimeIntegrateFsi::ChTimeIntegrateFsi(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects) 
+
+ChTimeIntegrateFsi::ChTimeIntegrateFsi(
+			ChFsiDataManager* otherFsiData,
+			SimParams* otherParamsH, 
+			NumberOfObjects* otherNumObjects)
 : fsiData(otherFsiData), paramsH(otherParamsH), numObjects(otherNumObjects) {
-	forceSystem = new ChFsiForceParallel(otherFsiData, otherParamsH, otherNumObjects);
+	forceSystem = new ChFsiForceParallel(
+		fsiData->sortedSphMarkersD,
+		fsiData->markersProximityD,
+		fsiData->fsiGeneralData,
+		paramsH,
+		numObjects);
+
+
 	this->setParameters(otherParamsH, otherNumObjects);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChTimeIntegrateFsi::IntegrateSPH() {
-	forceSystem->ForceSPH();
-	this->UpdateFluid();
-	this->ApplyBoundarySPH_Markers();
+void ChTimeIntegrateFsi::IntegrateSPH(
+		SphMarkerDataD * sphMarkersD2,
+		SphMarkerDataD * sphMarkersD1,
+		FsiBodiesDataD * fsiBodiesD1,
+		Real dT) {
+	forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD1);
+	this->UpdateFluid(sphMarkersD2, Real dT);
+	this->ApplyBoundarySPH_Markers(sphMarkersD2);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateFluidD
-void ChTimeIntegrateFsi::UpdateFluid(Real dT) {
+void ChTimeIntegrateFsi::UpdateFluid(
+	SphMarkerDataD * sphMarkersD,
+	Real dT) {
 
 //	int4 referencePortion = referenceArray[0];
 //	if (referencePortion.z != -1) {
@@ -236,7 +253,7 @@ void ChTimeIntegrateFsi::UpdateFluid(Real dT) {
 //		return;
 //	}
 //	int2 updatePortion = mI2(referencePortion);
-	int2 updatePortion = mI2(0, fsiData->referenceArray[referenceArray.size() - 1].y);
+	int2 updatePortion = mI2(0, fsiData->fsiGeneralData.referenceArray[fsiData->fsiGeneralData.referenceArray.size() - 1].y);
 	// int2 updatePortion = mI2(referenceArray[0].x, referenceArray[0].y);
 
 	bool *isErrorH, *isErrorD;
@@ -248,9 +265,9 @@ void ChTimeIntegrateFsi::UpdateFluid(Real dT) {
 	uint nBlock_UpdateFluid, nThreads;
 	computeGridSize(updatePortion.y - updatePortion.x, 128, nBlock_UpdateFluid,
 			nThreads);
-	UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(fsiData->posRadD),
-			mR3CAST(fsiData->velMasD), mR3CAST(fsiData->vel_XSPH_D), mR4CAST(fsiData->rhoPresMuD),
-			mR4CAST(fsiData->derivVelRhoD), updatePortion, dT, isErrorD);
+	UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(mR3CAST(sphMarkersD->posRadD),
+			mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiData->fsiGeneralData.vel_XSPH_D), mR4CAST(sphMarkersD->rhoPresMuD),
+			mR4CAST(fsiData->fsiGeneralData.derivVelRhoD), updatePortion, dT, isErrorD);
 	cudaThreadSynchronize();
 	cudaCheckError();
 	//------------------------
@@ -267,22 +284,22 @@ void ChTimeIntegrateFsi::UpdateFluid(Real dT) {
  * @details
  * 		See SDKCollisionSystem.cuh for more info
  */
-void ChTimeIntegrateFsi::ApplyBoundarySPH_Markers() {
+void ChTimeIntegrateFsi::ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD) {
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(paramsH.numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
 	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-			mR3CAST(fsiData->posRadD), mR4CAST(fsiData->rhoPresMuD));
+			mR3CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
 	// these are useful anyway for out of bound particles
 	ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-			mR3CAST(fsiData->posRadD), mR4CAST(fsiData->rhoPresMuD));
+			mR3CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
 	cudaThreadSynchronize();
 	cudaCheckError()
 	;
 	ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-			mR3CAST(fsiData->posRadD), mR4CAST(fsiData->rhoPresMuD));
+			mR3CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
 	cudaThreadSynchronize();
 	cudaCheckError();
 

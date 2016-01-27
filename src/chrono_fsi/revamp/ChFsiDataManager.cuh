@@ -19,15 +19,56 @@
 #define CH_FSI_DATAMANAGER_H_
 
 namespace fsi {
-	struct FsiDataContainer {
+	struct SphMarkerDataD {
+		thrust::device_vector<Real3> posRadD;
+		thrust::device_vector<Real3> velMasD;
+		thrust::device_vector<Real4> rhoPresMuD;
+	}
 
-		// host
-		thrust::host_vector<::int4> referenceArray;
+	struct SphMarkerDataH {
 		thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
 		thrust::host_vector<Real3> velMasH;
 		thrust::host_vector<Real4> rhoPresMuH;
-		thrust::host_vector<uint> bodyIndex;
+	}
 
+	struct FsiBodiesDataD {
+		thrust::device_vector<Real3> posRigid_fsiBodies_D;
+		thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
+		thrust::device_vector<Real3> accRigid_fsiBodies_D;
+		thrust::device_vector<Real4> q_fsiBodies_D;
+		thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
+		thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
+	}
+
+	// dummy fsi bodies
+	struct FsiBodiesDataH {
+		thrust::host_vector<Real3> posRigid_fsiBodies_dummyH;
+		thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH;
+		thrust::host_vector<Real3> accRigid_fsiBodies_dummyH;
+		thrust::host_vector<Real4> q_fsiBodies_dummyH;
+		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_dummyH;
+		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_dummyH;
+	}
+
+	struct ProximityDataD {
+		thrust::device_vector<uint> gridMarkerHashD;//(numAllMarkers);
+		thrust::device_vector<uint> gridMarkerIndexD;//(numAllMarkers);
+		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
+		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
+		thrust::device_vector<uint> mapOriginalToSorted;
+	}
+
+// make them classes
+	struct FsiGeneralData {
+
+		// ----------------
+		//  host
+		// ----------------
+		// fluid
+		thrust::host_vector<::int4> referenceArray;
+		thrust::host_vector<uint> bodyIndexH;
+
+		// chrono backup
 		thrust::host_vector<Real3> pos_ChSystemBackupH;
 		thrust::host_vector<Real3> vel_ChSystemBackupH;
 		thrust::host_vector<Real3> acc_ChSystemBackupH;
@@ -35,51 +76,43 @@ namespace fsi {
 		thrust::host_vector<Real3> omegaVelGRF_ChSystemBackupH;
 		thrust::host_vector<Real3> omegaAccGRF_ChSystemBackupH;
 
+		// map fsi to chrono bodies
 		std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
 
-		thrust::host_vector<Real3> posRigid_fsiBodies_dummyH;
-		thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH;
-		thrust::host_vector<Real3> accRigid_fsiBodies_dummyH;
-		thrust::host_vector<Real4> q_fsiBodies_dummyH;
-		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_dummyH;
-		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_dummyH;
-
-		// device
-		thrust::device_vector<Real3> posRadD;
-		thrust::device_vector<Real3> velMasD;
-		thrust::device_vector<Real4> rhoPresMuD;
+		// ----------------
+		//  device
+		// ----------------
+		// fluid
 		thrust::device_vector<uint> bodyIndexD;
 		thrust::device_vector<Real4> derivVelRhoD;
-
-		thrust::device_vector<Real3> sortedPosRadD;
-		thrust::device_vector<Real3> sortedVelMasD;
-		thrust::device_vector<Real4> sortedRhoPreMuD;
-		thrust::device_vector<uint> mapOriginalToSorted;
 		thrust::device_vector<Real3> vel_XSPH_D;
 
-		thrust::device_vector<uint> gridMarkerHashD;//(numAllMarkers);
-		thrust::device_vector<uint> gridMarkerIndexD;//(numAllMarkers);
-		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
-		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
+		// BCE
+		thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;
 
-		thrust::device_vector<Real3> posRigid_fsiBodies_D;
-		thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
-		thrust::device_vector<Real3> accRigid_fsiBodies_D;
-		thrust::device_vector<Real4> q_fsiBodies_D;
-		thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
-		thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
-
-		thrust::device_vector<Real3> posRigid_fsiBodies_D2;
-		thrust::device_vector<Real4> velMassRigid_fsiBodies_D2;
-		thrust::device_vector<Real3> accRigid_fsiBodies_D2;
-
-		thrust::device_vector<Real4> q_fsiBodies_D2;
-		thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D2;
-		thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D2;
-
+		// fsi bodies
 		thrust::device_vector<Real3> rigid_FSI_ForcesD;
 		thrust::device_vector<Real3> rigid_FSI_TorquesD;
 	};
+
+class CH_FSI_API ChFsiDataManager {
+public:
+	ChFsiDataManager();
+	~ChFsiDataManager();
+
+	SphMarkerDataD sphMarkersD1;
+	SphMarkerDataD sphMarkersD2;
+	SphMarkerDataD sortedSphMarkersD;
+
+	FsiBodiesDataD fsiBodiesD1;
+	FsiBodiesDataD fsiBodiesD2;
+
+	FsiGeneralData fsiGeneralData;
+
+	ProximityDataD markersProximityD;
+private:
+}
+
 }
 
 

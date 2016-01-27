@@ -22,7 +22,12 @@ namespace fsi {
 
 class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 	public:
-		ChFsiForceParallel(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects);
+		ChFsiForceParallel(
+			SphMarkerDataD * otherSortedSphMarkersD,
+			ProximityDataD * otherMarkersProximityD,
+			FsiGeneralData * otherFsiGeneralData,
+			SimParams* otherParamsH, 
+			NumberOfObjects* otherNumObjects);
 		~ChFsiForceParallel();
 
 
@@ -36,22 +41,15 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
  * @brief Calculates the force on each particles. See collideSphereSphere.cuh for more info.
  * @details See collideSphereSphere.cuh for more info
  */
-		void ForceSPH();
-
-		/**
- * @brief Modify BCE velocities for boundary implementation
- * @details 
- */
-		void ModifyBceVelocity();
-
-		void CalculateXSPH_velocity();
-
-		void CollideWrapper();
-
-		void DensityReinitialization();
-
+		void ForceSPH(
+		SphMarkerDataD * otherSphMarkersD,
+		FsiBodiesDataD * otherFsiBodiesD);
 	private:
 
+	void ModifyBceVelocity();
+	void CalculateXSPH_velocity();
+	void CollideWrapper();
+	void DensityReinitialization();
 // TODO : make these four dudes static in ChCollisionSystemFsi
 	void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,
@@ -70,7 +68,13 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 
 
 		ChCollisionSystemFsi* fsiCollisionSystem;
-		FsiDataContainer* fsiData;
+
+		SphMarkerDataD * sphMarkersD;
+		SphMarkerDataD * sortedSphMarkersD;
+		ProximityDataD * markersProximityD;
+		FsiBodiesDataD * fsiBodiesD;
+		FsiGeneralData * fsiGeneralData;
+
 
 
 		thrust::device_vector<Real3> velMas_ModifiedBCE;//(numRigidAndBoundaryMarkers);

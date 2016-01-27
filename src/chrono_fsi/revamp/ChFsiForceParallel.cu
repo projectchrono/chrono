@@ -305,10 +305,20 @@ void ChFsiForceParallel::CopySortedToOriginal_NonInvasive_R4(thrust::device_vect
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceParallel::ChFsiForceParallel(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects)
-: fsiData(otherFsiData), paramsH(otherParamsH), numObjects(otherNumObjects) {
-	fsiCollisionSystem = new ChCollisionSystemFsi(otherFsiData, otherParamsH, otherNumObjects);
-	this->setParameters(otherParamsH, otherNumObjects);
+void ChFsiForceParallel::ChFsiForceParallel(
+	SphMarkerDataD * otherSortedSphMarkersD,
+	ProximityDataD * otherMarkersProximityD,
+	FsiGeneralData * otherFsiGeneralData,
+	SimParams* otherParamsH, 
+	NumberOfObjects* otherNumObjects)
+: sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), 
+paramsH(otherParamsH), numObjects(otherNumObjects) {
+
+	fsiCollisionSystem = new ChCollisionSystemFsi(sortedSphMarkersD, markersProximityD, paramsH, numObjects);
+	this->setParameters(paramsH, numObjects);
+
+	sphMarkersD = NULL;
+	fsiBodiesD = NULL;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -338,27 +348,27 @@ void ChFsiForceParallel::CalcBceAcceleration(
 
 void ChFsiForceParallel::ModifyBceVelocity() {
 	// modify BCE velocity and pressure
-	int numRigidAndBoundaryMarkers = fsiData->referenceArray[2 + numObjects.numRigidBodies - 1].y - fsiData->referenceArray[0].y;
+	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjects.numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
 	if ((numObjects.numBoundaryMarkers + numObjects.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
 		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly. Thrown from ModifyBceVelocity!\n");
 	}
 	if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers && rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
 		throw std::runtime_error ("Error! size error velMas_ModifiedBCE and rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
 	}
-	int2 updatePortion = mI2(fsiData->referenceArray[0].y, fsiData->referenceArray[2 + numObjects.numRigidBodies - 1].y);
+	int2 updatePortion = mI2(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[2 + numObjects.numRigidBodies - 1].y);
 	if (paramsH.bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
 		if (numObjects.numRigid_SphMarkers > 0) {
-			CalcBceAcceleration(bceAcc, fsiData->q_fsiBodies_D, fsiData->accRigid_fsiBodies_D, fsiData->omegaVelLRF_fsiBodies_D,
-					fsiData->omegaAccLRF_fsiBodies_D, fsiData->rigidSPH_MeshPos_LRF_D, fsiData->rigidIdentifierD, numObjects.numRigid_SphMarkers);
+			CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D, fsiBodiesD->omegaVelLRF_fsiBodies_D,
+					fsiBodiesD->omegaAccLRF_fsiBodies_D, fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD, numObjects.numRigid_SphMarkers);
 		}
 		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
-				fsiData->sortedPosRadD, fsiData->sortedVelMasD, fsiData->sortedRhoPreMuD, fsiData->cellStartD, fsiData->cellEndD, 
-				fsiData->mapOriginalToSorted, bceAcc, updatePortion);
+				sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, rhoPresMuD->cellStartD, rhoPresMuD->cellEndD, 
+				rhoPresMuD->mapOriginalToSorted, bceAcc, updatePortion);
 		bceAcc.clear();
 	} else {
-		thrust::copy(fsiData->velMasD.begin() + updatePortion.x, fsiData->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
-		thrust::copy(fsiData->rhoPresMuD.begin() + updatePortion.x, fsiData->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
+		thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, sphMarkersD->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
+		thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x, sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
 	}
 
 }
@@ -405,8 +415,8 @@ void ChFsiForceParallel::CalculateXSPH_velocity() {
 	if (vel_XSPH_Sorted_D.size() != numAllMarkers) {
 		throw std::runtime_error ("Error! size error vel_XSPH_Sorted_D Thrown from CalculateXSPH_velocity!\n");
 	}
-	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, fsiData->sortedPosRadD, fsiData->sortedVelMasD,
-			fsiData->sortedRhoPreMuD, fsiData->gridMarkerIndexD, fsiData->cellStartD, fsiData->cellEndD,
+	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD,
+			sortedSphMarkersD->rhoPresMuD, rhoPresMuD->gridMarkerIndexD, rhoPresMuD->cellStartD, rhoPresMuD->cellEndD,
 			paramsH.numAllMarkers, paramsH.m_numGridCells);
 
 	/* Collide */
@@ -422,7 +432,7 @@ void ChFsiForceParallel::CalculateXSPH_velocity() {
  * @details
  * 		See SDKCollisionSystem.cuh for informaton on collide
  */
-void cChFsiForceParallel::ollide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
+void ChFsiForceParallel::collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
@@ -476,13 +486,13 @@ void ChFsiForceParallel::CollideWrapper() {
 	thrust::device_vector<Real4> m_dSortedDerivVelRho_fsi_D(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
 	thrust::fill(m_dSortedDerivVelRho_fsi_D.begin(), m_dSortedDerivVelRho_fsi_D.end(), mR4(0));
 
-	collide(m_dSortedDerivVelRho_fsi_D, fsiData->sortedPosRadD, fsiData->sortedVelMasD, vel_XSPH_Sorted_D,
-			fsiData->sortedRhoPreMuD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, fsiData->gridMarkerIndexD, 
-			fsiData->cellStartD, fsiData->cellEndD,
+	collide(m_dSortedDerivVelRho_fsi_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, vel_XSPH_Sorted_D,
+			sortedSphMarkersD->rhoPresMuD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, rhoPresMuD->gridMarkerIndexD, 
+			rhoPresMuD->cellStartD, rhoPresMuD->cellEndD,
 			paramsH.numAllMarkers, paramsH.m_numGridCells);
 
-	CopySortedToOriginal_Invasive_R3(fsiData->vel_XSPH_D, vel_XSPH_Sorted_D, fsiData->gridMarkerIndexD);
-	CopySortedToOriginal_Invasive_R4(fsiData->derivVelRhoD, m_dSortedDerivVelRho_fsi_D, fsiData->gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, rhoPresMuD->gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD, m_dSortedDerivVelRho_fsi_D, rhoPresMuD->gridMarkerIndexD);
 
 	m_dSortedDerivVelRho_fsi_D.clear();
 	// vel_XSPH_Sorted_D.clear();
@@ -494,15 +504,20 @@ void ChFsiForceParallel::AddGravityToFluid() {
 	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
 	thrust::device_vector<Real4> bodyForceD(numAllMarkers);
 	thrust::fill(bodyForceD.begin(), bodyForceD.end(), mR4(totalFluidBodyForce3));
-	thrust::transform(fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x, fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].y,
-			bodyForceD.begin(), fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x, thrust::plus<Real4>());
+	thrust::transform(fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x, fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].y,
+			bodyForceD.begin(), fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x, thrust::plus<Real4>());
 	bodyForceD.clear();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceParallel::ForceSPH() {
+void ChFsiForceParallel::ForceSPH(
+		SphMarkerDataD * otherSphMarkersD,
+		FsiBodiesDataD * otherFsiBodiesD) {
 	// Arman: Change this function by getting in the arrays of the current stage: useful for RK2. array pointers need to be private members
-	fsiCollisionSystem->ArrangeData();
+	sphMarkersD = otherSphMarkersD;
+	fsiBodiesD = otherFsiBodiesD;
+
+	fsiCollisionSystem->ArrangeData(sphMarkersD);
 	ModifyBceVelocity();
 	CalculateXSPH_velocity();
 	CollideWrapper();
