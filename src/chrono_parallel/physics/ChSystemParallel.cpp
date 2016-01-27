@@ -143,6 +143,7 @@ int ChSystemParallel::Integrate_Y() {
 
     data_manager->node_container->UpdatePosition(ChTime);
     data_manager->fea_container->UpdatePosition(ChTime);
+    data_manager->mpm_container->UpdatePosition(ChTime);
     data_manager->system_timer.stop("update");
 
     //=============================================================================================
@@ -421,6 +422,7 @@ void ChSystemParallel::UpdateShafts() {
 void ChSystemParallel::Update3DOFBodies() {
     data_manager->node_container->Update(ChTime);
     data_manager->fea_container->Update(ChTime);
+    data_manager->mpm_container->Update(ChTime);
 }
 
 //

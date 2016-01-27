@@ -546,12 +546,12 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_3dof_3dof;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_3dof_3dof;
     custom_vector<int>& particle_indices = data_manager->host_data.particle_indices_3dof;
-    //custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping_3dof;
+    // custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping_3dof;
 
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
     contact_counts.resize(num_fluid_bodies);
     particle_indices.resize(num_fluid_bodies);
-    //reverse_mapping.resize(num_fluid_bodies);
+    // reverse_mapping.resize(num_fluid_bodies);
     ff_bin_ids.resize(num_fluid_bodies);
 
     sorted_pos_fluid.resize(num_fluid_bodies);
@@ -631,7 +631,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
         data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel_fluid[index].y;
         data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel_fluid[index].z;
 
-        //reverse_mapping[index] = i;
+        // reverse_mapping[index] = i;
     }
 
 #pragma omp parallel for
@@ -824,6 +824,26 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
     }
     data_manager->num_rigid_node_contacts = Thrust_Total(contact_counts);
     LOG(TRACE) << "stop DispatchRigidNode: " << data_manager->num_rigid_node_contacts;
+}
+void ChCNarrowphaseDispatch::DispatchMPM() {
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+
+    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
+
+    bbox res(pos_marker[0], pos_marker[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
+
+    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + data_manager->mpm_container->kernel_radius * 12)),
+                               (Ceil(res.second.y), (res.second.y + data_manager->mpm_container->kernel_radius * 12)),
+                               (Ceil(res.second.z), (res.second.z + data_manager->mpm_container->kernel_radius * 12)));
+
+    min_bounding_point = real3((Floor(res.first.x), (res.first.x - data_manager->mpm_container->kernel_radius * 12)),
+                               (Floor(res.first.y), (res.first.y - data_manager->mpm_container->kernel_radius * 12)),
+                               (Floor(res.first.z), (res.first.z - data_manager->mpm_container->kernel_radius * 12)));
 }
 
 }  // end namespace collision

@@ -24,6 +24,7 @@ ChParallelDataManager::ChParallelDataManager()
       num_mpm_nodes(0) {
     node_container = new Ch3DOFContainer();
     fea_container = new Ch3DOFContainer();
+    mpm_container = new Ch3DOFContainer();
 }
 
 ChParallelDataManager::~ChParallelDataManager() {}
@@ -129,4 +130,9 @@ void ChParallelDataManager::AddFEAContainer(ChFEAContainer* container) {
     container->AddRef();
     delete fea_container;
     fea_container = container;
+}
+void ChParallelDataManager::AddMPMContainer(ChMPMContainer* container) {
+    container->AddRef();
+    delete mpm_container;
+    mpm_container = container;
 }

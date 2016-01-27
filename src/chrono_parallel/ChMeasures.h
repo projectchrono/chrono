@@ -47,6 +47,10 @@ class collision_measures {
         node_min_bounding_point = real3(0);
         node_max_bounding_point = real3(0);
         node_bins_per_axis = int3(0);
+
+        mpm_min_bounding_point = real3(0);
+        mpm_max_bounding_point = real3(0);
+        mpm_bins_per_axis = int3(0);
     }
     real3 min_bounding_point;          // The minimal global bounding point
     real3 max_bounding_point;          // The maximum global bounding point
@@ -65,6 +69,12 @@ class collision_measures {
     int3 node_bins_per_axis;
     real3 node_min_bounding_point;
     real3 node_max_bounding_point;
+
+    // MPM Collision info
+
+    real3 mpm_min_bounding_point;
+    real3 mpm_max_bounding_point;
+    int3 mpm_bins_per_axis;
 };
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.

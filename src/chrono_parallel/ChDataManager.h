@@ -262,7 +262,12 @@ struct host_container {
     custom_vector<real3> vel_3dof;
     custom_vector<real3> sorted_vel_3dof;
 
+    //Information for mpm
+    custom_vector<real3> pos_marker_mpm;
+    custom_vector<real3> vel_marker_mpm;
     custom_vector<real3> vel_node_mpm;
+    //custom_vector<real3> sorted_pos_marker_mpm;
+    //custom_vector<real3> sorted_vel_marker_mpm;
 
     // Information for FEM nodes
     custom_vector<real3> pos_node_fea;
@@ -359,6 +364,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     ~ChParallelDataManager();
     void Add3DOFContainer(Ch3DOFContainer* container);
     void AddFEAContainer(ChFEAContainer* container);
+    void AddMPMContainer(ChMPMContainer* container);
     // Structure that contains the data on the host, the naming convention is
     // from when the code supported the GPU (host vs device)
     host_container host_data;
@@ -369,6 +375,7 @@ class CH_PARALLEL_API ChParallelDataManager {
 
     Ch3DOFContainer* node_container;
     Ch3DOFContainer* fea_container;
+    Ch3DOFContainer* mpm_container;
 
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure

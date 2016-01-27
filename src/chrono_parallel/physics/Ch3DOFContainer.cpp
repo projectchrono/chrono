@@ -63,6 +63,10 @@ void Ch3DOFContainer::Setup(int start_constraint) {
         num_unilaterals = data_manager->num_unilaterals;
         num_bilaterals = data_manager->num_bilaterals;
         num_shafts = data_manager->num_shafts;
+        num_fea_tets = data_manager->num_fea_tets;
+        num_fea_nodes = data_manager->num_fea_nodes;
+        num_mpm_markers = data_manager->num_mpm_markers;
+        num_mpm_nodes = data_manager->num_mpm_nodes;
     }
 }
 }  // END_OF_NAMESPACE____

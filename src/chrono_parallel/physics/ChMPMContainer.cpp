@@ -1,7 +1,5 @@
 
-#include <stdlib.h>
 #include <algorithm>
-#include <math.h>
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include <chrono_parallel/physics/Ch3DOFContainer.h>
 #include "chrono_parallel/lcp/MPMUtils.h"
@@ -10,9 +8,7 @@
 
 #include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
 #include "chrono_parallel/math/real.h"         // for real
-#include "chrono_parallel/math/real2.h"        // for real2
 #include "chrono_parallel/math/real3.h"        // for real3
-#include "chrono_parallel/math/real4.h"        // for quaternion, real4
 #include "chrono_parallel/math/mat33.h"        // for quaternion, real4
 
 namespace chrono {
@@ -27,7 +23,7 @@ using namespace geometry;
 
 ChMPMContainer::ChMPMContainer(ChSystemParallelDVI* physics_system) {
     data_manager = physics_system->data_manager;
-    data_manager->Add3DOFContainer(this);
+    data_manager->AddMPMContainer(this);
 
     max_iterations = 10;
     real mass = 1;
@@ -42,87 +38,102 @@ ChMPMContainer::~ChMPMContainer() {}
 
 void ChMPMContainer::Setup(int start_constraint) {
     Ch3DOFContainer::Setup(start_constraint);
-}
+    body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + num_fea_nodes * 3;
 
-void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
-    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
+    min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
 
-    pos_fluid.insert(pos_fluid.end(), positions.begin(), positions.end());
-    vel_fluid.insert(vel_fluid.end(), velocities.begin(), velocities.end());
-    // In case the number of velocities provided were not enough, resize to the number of fluid bodies
-    vel_fluid.resize(pos_fluid.size());
-    data_manager->num_fluid_bodies = pos_fluid.size();
-}
-void ChMPMContainer::Update(double ChTime) {
-    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
-
-    bbox res(pos_fluid[0], pos_fluid[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
-
-    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + kernel_radius * 12)),
-                               (Ceil(res.second.y), (res.second.y + kernel_radius * 12)),
-                               (Ceil(res.second.z), (res.second.z + kernel_radius * 12)));
-
-    min_bounding_point = real3((Floor(res.first.x), (res.first.x - kernel_radius * 12)),
-                               (Floor(res.first.y), (res.first.y - kernel_radius * 12)),
-                               (Floor(res.first.z), (res.first.z - kernel_radius * 12)));
     real3 diag = max_bounding_point - min_bounding_point;
-    bins_per_axis = int3(diag / (kernel_radius * 2));
-    bin_edge = kernel_radius * 2 + collision_envelope;
+    bin_edge = kernel_radius * 2;
+    bins_per_axis = int3(diag / bin_edge);
     inv_bin_edge = real(1.) / bin_edge;
-
     grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("UPDATE [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge,
-           num_fluid_bodies);
+    printf("SETUP [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge,
+           num_mpm_markers);
+}
 
-    real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
-    for (int i = 0; i < num_fluid_bodies; i++) {
-        // This was moved to after fluid collision detection
-        // real3 vel = vel_fluid[i];
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel.x;
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel.y;
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel.z;
+void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
 
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = h_gravity.x;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = h_gravity.y;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = h_gravity.z;
+    pos_marker.insert(pos_marker.end(), positions.begin(), positions.end());
+    vel_marker.insert(vel_marker.end(), velocities.begin(), velocities.end());
+    // In case the number of velocities provided were not enough, resize to the number of fluid bodies
+    vel_marker.resize(pos_marker.size());
+    data_manager->num_mpm_markers = pos_marker.size();
+
+    printf("Initialize_Deformation_Gradients\n");
+
+    delta_F.resize(data_manager->num_mpm_markers);
+    Fe.resize(data_manager->num_mpm_markers);
+    Fe_hat.resize(data_manager->num_mpm_markers);
+    Fp.resize(data_manager->num_mpm_markers);
+    volume.resize(num_mpm_markers);
+
+    std::fill(Fp.begin(), Fp.end(), Mat33(1));
+    std::fill(Fe.begin(), Fe.end(), Mat33(1));
+}
+void ChMPMContainer::Update(double ChTime) {
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+
+    grid_mass.resize(grid_size);
+    grid_vel_old.resize(grid_size * 3);
+
+    grid_mass = 0;
+
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        const real3 vi = vel_marker[p];
+
+        LOOPOVERNODES(                                                            //
+            real weight = N(xi - current_node_location, inv_bin_edge) * mass;     //
+            grid_mass[current_node] += weight;                                    //
+            data_manager->host_data.v[body_offset + i * 3 + 0] += weight * vi.x;  //
+            data_manager->host_data.v[body_offset + i * 3 + 1] += weight * vi.y;  //
+            data_manager->host_data.v[body_offset + i * 3 + 2] += weight * vi.z;  //
+            )
     }
+// normalize weights for the velocity (to conserve momentum)
+//#pragma omp parallel for
+    for (int i = 0; i < grid_size; i++) {
+        if (grid_mass[i] > C_EPSILON) {
+            data_manager->host_data.v[body_offset + i * 3 + 0] /= grid_mass[i];
+            data_manager->host_data.v[body_offset + i * 3 + 1] /= grid_mass[i];
+            data_manager->host_data.v[body_offset + i * 3 + 2] /= grid_mass[i];
+        }
+        grid_vel_old[i * 3 + 0] = data_manager->host_data.v[body_offset + i * 3 + 0];
+        grid_vel_old[i * 3 + 1] = data_manager->host_data.v[body_offset + i * 3 + 1];
+        grid_vel_old[i * 3 + 2] = data_manager->host_data.v[body_offset + i * 3 + 2];
+    }
+
+    UpdateRhs();
+
+    // update the position of the markers based on the nodal velocities
 }
 
 void ChMPMContainer::UpdatePosition(double ChTime) {
-    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
-
-    const real dt = data_manager->settings.step_size;
-
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+    DynamicVector<real>& v = data_manager->host_data.v;
     printf("Update_Particle_Velocities\n");
-#pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        int original_index = data_manager->host_data.particle_indices_3dof[p];
-        const real3 xi = sorted_pos[p];
-        real3 V_flip;
-        V_flip.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0];
-        V_flip.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1];
-        V_flip.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2];
+//#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        real3 V_flip = vel_marker[p];
 
         real3 V_pic = real3(0.0);
-        LOOPOVERNODES(                                                                                   //
-            real weight = N(xi - current_node_location, inv_bin_edge);                                   //
-            V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                          //
-            V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                          //
-            V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                          //
-            V_flip.x += (grid_vel[current_node * 3 + 0] - grid_vel_old[current_node * 3 + 0]) * weight;  //
-            V_flip.y += (grid_vel[current_node * 3 + 1] - grid_vel_old[current_node * 3 + 1]) * weight;  //
-            V_flip.z += (grid_vel[current_node * 3 + 2] - grid_vel_old[current_node * 3 + 2]) * weight;  //
+        LOOPOVERNODES(                                                                                          //
+            real weight = N(xi - current_node_location, inv_bin_edge);                                          //
+            V_pic.x += v[body_offset + current_node * 3 + 0] * weight;                                          //
+            V_pic.y += v[body_offset + current_node * 3 + 1] * weight;                                          //
+            V_pic.z += v[body_offset + current_node * 3 + 2] * weight;                                          //
+            V_flip.x += (v[body_offset + current_node * 3 + 0] - grid_vel_old[current_node * 3 + 0]) * weight;  //
+            V_flip.y += (v[body_offset + current_node * 3 + 1] - grid_vel_old[current_node * 3 + 1]) * weight;  //
+            V_flip.z += (v[body_offset + current_node * 3 + 2] - grid_vel_old[current_node * 3 + 2]) * weight;  //
             )
 
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
@@ -131,19 +142,8 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
         if (speed > max_velocity) {
             new_vel = new_vel * max_velocity / speed;
         }
-        vel_fluid[original_index] = new_vel;
-        pos_fluid[original_index] += new_vel * data_manager->settings.step_size;
-
-        // printf("v [%f %f %f] [%f %f %f]\n", V_pic.x, V_pic.y, V_pic.z, V_flip.x, V_flip.y, V_flip.z);
-    }
-
-    for (int i = 0; i < num_fluid_bodies; i++) {
-        real3 vel;
-        int original_index = data_manager->host_data.particle_indices_3dof[i];
-        // these are sorted so we have to unsort them
-        vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0];
-        vel.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1];
-        vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2];
+        vel_marker[p] = new_vel;
+        pos_marker[p] += new_vel * data_manager->settings.step_size;
     }
 }
 
@@ -156,8 +156,8 @@ int ChMPMContainer::GetNumNonZeros() {
 
 void ChMPMContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-    real inv_mass = 1.0 / mass;
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < num_mpm_nodes; i++) {
+        real inv_mass = 1.0 / grid_mass[i];
         M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
         M_inv.finalize(offset + i * 3 + 0);
         M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_mass);
@@ -168,7 +168,8 @@ void ChMPMContainer::ComputeInvMass(int offset) {
 }
 void ChMPMContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < num_mpm_nodes; i++) {
+        real mass = grid_mass[i];
         M.append(offset + i * 3 + 0, offset + i * 3 + 0, mass);
         M.finalize(offset + i * 3 + 0);
         M.append(offset + i * 3 + 1, offset + i * 3 + 1, mass);
@@ -179,65 +180,42 @@ void ChMPMContainer::ComputeMass(int offset) {
 }
 
 void ChMPMContainer::Initialize() {
+    Setup(0);
     const real dt = data_manager->settings.step_size;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
-    const int num_particles = data_manager->num_fluid_bodies;
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
 
-    bbox res(sorted_pos[0], sorted_pos[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(sorted_pos.begin(), sorted_pos.end(), unary_op, res, binary_op);
+    min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
 
-    max_bounding_point = real3(Max((res.second.x), (res.second.x + kernel_radius * 12)),
-                               Max((res.second.y), (res.second.y + kernel_radius * 12)),
-                               Max((res.second.z), (res.second.z + kernel_radius * 12)));
-
-    min_bounding_point = real3(Min((res.first.x), (res.first.x - kernel_radius * 12)),
-                               Min((res.first.y), (res.first.y - kernel_radius * 12)),
-                               Min((res.first.z), (res.first.z - kernel_radius * 12)));
     real3 diag = max_bounding_point - min_bounding_point;
-    bins_per_axis = int3(diag / (kernel_radius * 2));
-    bin_edge = kernel_radius * 2 + collision_envelope;
+    bin_edge = kernel_radius * 2;
+    bins_per_axis = int3(diag / bin_edge);
     inv_bin_edge = real(1.) / bin_edge;
-
     grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
-    grid_mass.resize(grid_size);
-    grid_vel.resize(grid_size * 3);
-    grid_vel_old.resize(grid_size * 3);
-    grid_forces.resize(grid_size);
-
-    volume.resize(num_particles);
-    rhs.resize(grid_size * 3);
-
-    delta_F.resize(num_particles);
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("Rasterize [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
-           bin_edge, num_particles);
-    // clear initial vectors
-    grid_vel = 0;
-    grid_mass = 0;
+    printf("Initialize [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge,
+           num_mpm_markers);
 
-    for (int p = 0; p < num_particles; p++) {
-        int original_index = data_manager->host_data.particle_indices_3dof[p];
-        const real3 xi = sorted_pos[p];
-        const real3 vi = sorted_vel[p];
+    volume.resize(num_mpm_markers);
+    grid_mass.resize(grid_size);
+
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        const real3 vi = vel_marker[p];
 
         LOOPOVERNODES(                                                                //
             real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
             grid_mass[current_node] += weight;                                        //
-            grid_vel[current_node * 3 + 0] += weight * vi.x;                          //
-            grid_vel[current_node * 3 + 1] += weight * vi.y;                          //
-            grid_vel[current_node * 3 + 2] += weight * vi.z;                          //
             )
     }
 
     printf("Compute_Particle_Volumes\n");
-    for (int p = 0; p < num_particles; p++) {
-        const real3 xi = sorted_pos[p];
-        const real3 vi = sorted_vel[p];
+//#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
         real particle_density = 0;
 
         LOOPOVERNODES(                                                  //
@@ -247,52 +225,6 @@ void ChMPMContainer::Initialize() {
         particle_density /= (bin_edge * bin_edge * bin_edge);
         volume[p] = mass / particle_density;
     }
-    printf("Initialize_Deformation_Gradients\n");
-    //
-    Fe.resize(num_particles);
-    std::fill(Fe.begin(), Fe.end(), Mat33(1));
-
-    Fe_hat.resize(num_particles);
-    Fp.resize(num_particles);
-    std::fill(Fp.begin(), Fp.end(), Mat33(1));
-
-    // Initialize_Bodies
-}
-void ChMPMContainer::IsInside() {
-    grid_inside.resize(grid_size);
-    std::fill(grid_inside.begin(), grid_inside.end(), false);
-    uint num_shapes = data_manager->num_rigid_shapes;
-#if 0
-    for (int i = 0; i < grid_size; i++) {
-        if (grid_mass[i] <= 0) {
-            continue;
-        }
-
-        real3 location = grid_loc[i];
-        for (int shape_id_a = 0; shape_id_a < num_shapes; shape_id_a++) {
-            ConvexShape shapeA(data_manager->host_data.typ_rigid[shape_id_a],          //
-                               data_manager->host_data.obj_data_A_global[shape_id_a],  //
-                               data_manager->host_data.obj_data_B_global[shape_id_a],  //
-                               data_manager->host_data.obj_data_C_global[shape_id_a],  //
-                               data_manager->host_data.obj_data_R_global[shape_id_a],  //
-                               data_manager->host_data.convex_data.data());            //
-
-            ConvexShape shapeB(SPHERE, location,                             //
-                               real3(kernel_radius, 0, 0),                   //
-                               real3(0),                                     //
-                               quaternion(1, 0, 0, 0),                       //
-                               data_manager->host_data.convex_data.data());  //
-
-            real3 ptA, ptB, norm;
-            real depth;
-
-            if (MPRCollision(shapeA, shapeB, data_manager->settings.collision.collision_envelope, norm, ptA, ptB,
-                             depth)) {
-                grid_inside[i] = true;
-            }
-        }
-    }
-#endif
 }
 void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
     const int num_particles = data_manager->num_fluid_bodies;
@@ -301,7 +233,7 @@ void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>&
     const real dt = data_manager->settings.step_size;
     printf("Apply Hessian A\n");
 
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < grid_size; i++) {
         result_array[i * 3 + 0] = (v_array[i * 3 + 0] - grid_vel_old[i * 3 + 0]) * grid_mass[i] / dt;
         result_array[i * 3 + 1] = (v_array[i * 3 + 1] - grid_vel_old[i * 3 + 1]) * grid_mass[i] / dt;
@@ -309,9 +241,6 @@ void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>&
     }
 }
 
-real ChMPMContainer::ComputeTotalEnergy(DynamicVector<real>& x) {
-    return 0;
-}
 real ChMPMContainer::Convergence_Norm(const DynamicVector<real>& r) {
     real result = (real)0.;
     for (int i = 0; i < r.size(); i += 3) {
@@ -459,94 +388,22 @@ void ChMPMContainer::Solve(const DynamicVector<real>& r, DynamicVector<real>& ga
 
     gamma = ml_candidate;
 }
-void ChMPMContainer::PreSolve() {
-    const real dt = data_manager->settings.step_size;
-    const real3 gravity = data_manager->settings.gravity;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
-    const int num_particles = data_manager->num_fluid_bodies;
-
-    printf("START MPM STEP\n");
-
-    grid_mass.resize(grid_size);
-    grid_vel.resize(grid_size * 3);
-    grid_vel_old.resize(grid_size * 3);
-    grid_forces.resize(grid_size);
-    grid_loc.resize(grid_size);
-
-    volume.resize(num_particles);
-    rhs.resize(grid_size * 3);
-
-    delta_F.resize(num_particles);
-
-    Fe.resize(num_particles);
-    std::fill(Fe.begin(), Fe.end(), Mat33(1));
-
-    Fe_hat.resize(num_particles);
-    Fp.resize(num_particles);
-    std::fill(Fp.begin(), Fp.end(), Mat33(1));
-
-    // clear initial vectors
-    grid_vel = 0;
-    grid_mass = 0;
-
-    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
-    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-
-    printf("Rasterize [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
-           bin_edge, num_particles);
-    for (int p = 0; p < num_particles; p++) {
-        const real3 xi = sorted_pos[p];
-        const real3 vi = sorted_vel[p];
-        //        real3 vi;
-        //        vi.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0];
-        //        vi.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1];
-        //        vi.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2];
-
-        LOOPOVERNODES(                                                         //
-            real weight = N(xi - current_node_location, inv_bin_edge) * mass;  //
-            grid_mass[current_node] += weight;                                 //
-            grid_vel[current_node * 3 + 0] += weight * vi.x;                   //
-            grid_vel[current_node * 3 + 1] += weight * vi.y;                   //
-            grid_vel[current_node * 3 + 2] += weight * vi.z;                   //
-            grid_loc[current_node] = current_node_location;                    // This is not efficient
-            )
-    }
-
-// normalize weights for the velocity (to conserve momentum)
-#pragma omp parallel for
-    for (int i = 0; i < grid_size; i++) {
-        if (grid_mass[i] > C_EPSILON) {
-            grid_vel[i * 3 + 0] /= grid_mass[i];
-            grid_vel[i * 3 + 1] /= grid_mass[i];
-            grid_vel[i * 3 + 2] /= grid_mass[i];
-        }
-    }
-    // Save_Grid_Velocities
-    grid_vel_old = grid_vel;
-
-    printf("Compute_Grid_Forces\n");
-    std::fill(grid_forces.begin(), grid_forces.end(), real3(0));
-
-    printf("Semi_Implicit_Update\n");
-
-    printf("Solve\n");
-    Solve(rhs, grid_vel);
-}
+void ChMPMContainer::PreSolve() {}
 void ChMPMContainer::PostSolve() {
     const real dt = data_manager->settings.step_size;
     const real3 gravity = data_manager->settings.gravity;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
-    const int num_particles = data_manager->num_fluid_bodies;
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
 
     printf("Update_Deformation_Gradient\n");
-#pragma omp parallel for
-    for (int p = 0; p < num_particles; p++) {
-        const real3 xi = sorted_pos[p];
+//#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
         Mat33 velocity_gradient(0);
         LOOPOVERNODES(  //
-            real3 g_vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
+            real3 g_vel(data_manager->host_data.v[body_offset + current_node * 3 + 0],
+                        data_manager->host_data.v[body_offset + current_node * 3 + 1],
+                        data_manager->host_data.v[body_offset + current_node * 3 + 2]);
             velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));)
 
         Mat33 Fe_tmp = (Mat33(1.0) + dt * velocity_gradient) * Fe[p];
@@ -568,33 +425,40 @@ void ChMPMContainer::PostSolve() {
 
 void ChMPMContainer::UpdateRhs() {
     printf("Compute RHS\n");
-    // Kinetic Energy of grid nodes
-    const int num_particles = data_manager->num_fluid_bodies;
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
     const real dt = data_manager->settings.step_size;
-    const real3 gravity = data_manager->settings.gravity;
 
 // Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
 // Not in the original paper like this but using it for testing
 
-#pragma omp parallel for
-    for (int p = 0; p < num_particles; p++) {
-        const real3 xi = sorted_pos[p];
+//#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
         Fe_hat[p] = Mat33(1.0);
         Mat33 Fe_hat_t(1);
         LOOPOVERNODES(  //
-            real3 vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
+            real3 vel(data_manager->host_data.v[body_offset + current_node * 3 + 0],
+                      data_manager->host_data.v[body_offset + current_node * 3 + 1],
+                      data_manager->host_data.v[body_offset + current_node * 3 + 2]);
+
             real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
             Fe_hat_t += OuterProduct(dt * vel, kern);                   //
             )
         Fe_hat[p] = Fe_hat_t * Fe[p];
     }
 
+//#pragma omp parallel for
+    for (int i = 0; i < num_mpm_markers; i++) {
+        real3 h_gravity = data_manager->settings.step_size * grid_mass[i] * data_manager->settings.gravity;
+        data_manager->host_data.hf[body_offset + i * 3 + 0] = h_gravity.x;
+        data_manager->host_data.hf[body_offset + i * 3 + 1] = h_gravity.y;
+        data_manager->host_data.hf[body_offset + i * 3 + 2] = h_gravity.z;
+    }
+
     // Compute derivative of the potential energy wrt x
-    rhs = 0;
-    for (int p = 0; p < num_particles; p++) {
-        const real3 xi = sorted_pos[p];
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
 
         Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
 
@@ -605,22 +469,12 @@ void ChMPMContainer::UpdateRhs() {
 
         LOOPOVERNODES(  //
             real3 impulse = (vPEDFepT * dN(xi - current_node_location, inv_bin_edge));
-            rhs[current_node * 3 + 0] += impulse.x;  //
-            rhs[current_node * 3 + 1] += impulse.y;  //
-            rhs[current_node * 3 + 2] += impulse.z;  //
+            data_manager->host_data.hf[body_offset + current_node * 3 + 0] += impulse.x;  //
+            data_manager->host_data.hf[body_offset + current_node * 3 + 1] += impulse.y;  //
+            data_manager->host_data.hf[body_offset + current_node * 3 + 2] += impulse.z;  //
             )
     }
-
-    // Add gravity impulse
-    //#pragma omp parallel for
-    //    for (int i = 0; i < grid_size; i++) {
-    //        rhs[i * 3 + 0] += dt * grid_mass[i] * gravity.x;
-    //        rhs[i * 3 + 1] += dt * grid_mass[i] * gravity.y;
-    //        rhs[i * 3 + 2] += dt * grid_mass[i] * gravity.z;
-    //    }
 }
-
-void ChMPMContainer::ComputeInternalForces() {}
 
 }  // END_OF_NAMESPACE____
 
@@ -715,7 +569,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    const real dt = data_manager->settings.step_size;
 //
 //    printf("Update_Particle_Velocities\n");
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int p = 0; p < num_fluid_bodies; p++) {
 //        int original_index = data_manager->host_data.particle_indices_3dof[p];
 //        const real3 xi = sorted_pos[p];
@@ -912,7 +766,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //
 //    printf("Apply Hessian A\n");
 //
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int p = 0; p < num_particles; p++) {
 //        const real3 xi = sorted_pos[p];
 //        Mat33 delta_F_t(0);
@@ -926,7 +780,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    }
 //
 //    printf("Apply Hessian B\n");
-//    //#pragma omp parallel for
+//    ////#pragma omp parallel for
 //    for (int p = 0; p < num_particles; p++) {
 //        const real3 xi = sorted_pos[p];
 //        real plastic_determinant = Determinant(Fp[p]);
@@ -967,7 +821,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //            }
 //        }
 //    }
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int i = 0; i < grid_size; i++) {
 //        if (grid_inside[i] == false) {
 //            result_array[i * 3 + 0] = grid_mass[i] * v_array[i * 3 + 0] + dt * dt * result_array[i * 3 + 0];
@@ -1020,7 +874,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    //// Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
 //    //// Not in the original paper like this but using it for testing
 //    //#if 1
-//    //#pragma omp parallel for
+//    ////#pragma omp parallel for
 //    //    for (int p = 0; p < num_particles; p++) {
 //    //        const real3 xi = sorted_pos[p];
 //    //        Fe_hat[p] = Mat33(1.0);
@@ -1205,7 +1059,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    IsInside();
 //
 //// normalize weights for the velocity (to conserve momentum)
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int i = 0; i < grid_size; i++) {
 //        if (grid_mass[i] > C_EPSILON) {
 //            grid_vel[i * 3 + 0] /= grid_mass[i];
@@ -1217,7 +1071,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    grid_vel_old = grid_vel;
 //
 //    printf("Compute_Elastic_Deformation_Gradient_Hat\n");
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int p = 0; p < num_particles; p++) {
 //        const real3 xi = sorted_pos[p];
 //        Fe_hat[p] = Mat33(1.0);
@@ -1250,13 +1104,13 @@ void ChMPMContainer::ComputeInternalForces() {}
 //
 //    printf("Add_Body_Forces [%f %f %f]\n", gravity.x, gravity.y, gravity.z);
 //
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int i = 0; i < grid_size; i++) {
 //        grid_forces[i] += grid_mass[i] * gravity;
 //    }
 //
 //    printf("Update_Grid_Velocities\n");
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int i = 0; i < grid_size; i++) {
 //        if (grid_mass[i] >= C_EPSILON) {
 //            real3 forces = grid_forces[i];
@@ -1270,7 +1124,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    printf("Semi_Implicit_Update\n");
 //
 //    printf("Compute RHS\n");
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int i = 0; i < grid_size; i++) {
 //        if (grid_inside[i] == false) {
 //            rhs[i * 3 + 0] = grid_mass[i] * grid_vel[i * 3 + 0];
@@ -1294,7 +1148,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    const int num_particles = data_manager->num_fluid_bodies;
 //
 //    printf("Update_Deformation_Gradient\n");
-//#pragma omp parallel for
+////#pragma omp parallel for
 //    for (int p = 0; p < num_particles; p++) {
 //        const real3 xi = sorted_pos[p];
 //        Mat33 velocity_gradient(0);
@@ -1339,7 +1193,7 @@ void ChMPMContainer::ComputeInternalForces() {}
 //    //// Fe_hat depends on the velocity of the grid node, if that is changing we can also update the Fe_hat quantity
 //    //// Not in the original paper like this but using it for testing
 //    //#if 1
-//    //#pragma omp parallel for
+//    ////#pragma omp parallel for
 //    //    for (int p = 0; p < num_particles; p++) {
 //    //        const real3 xi = sorted_pos[p];
 //    //        Fe_hat[p] = Mat33(1.0);

@@ -104,6 +104,10 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_unilaterals;
     uint num_bilaterals;
     uint num_shafts;
+    uint num_fea_tets;
+    uint num_fea_nodes;
+    uint num_mpm_markers;
+    uint num_mpm_nodes;
 };
 
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
@@ -161,7 +165,6 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void UpdatePosition(double ChTime);
     void Setup(int start_constraint);
     void Initialize();
-    void IsInside();
     real Convergence_Norm(const DynamicVector<real>& r);
     void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
     real DotProduct(const DynamicVector<real>& a, const DynamicVector<real>& b);
@@ -178,16 +181,10 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void PostSolve();
     int GetNumConstraints();
     int GetNumNonZeros();
-    real ComputeTotalEnergy(DynamicVector<real>& x);
-    void ComputeInternalForces();
 
     DynamicVector<real> grid_mass;
-    DynamicVector<real> grid_vel;
     DynamicVector<real> grid_vel_old;
-    custom_vector<bool> grid_inside;
-    custom_vector<real3> grid_forces;
-    custom_vector<real3> grid_loc;
-    DynamicVector<real> volume, rhs;
+    DynamicVector<real> volume;
     custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
 
     DynamicVector<real> r, p, Ap, q, s;
@@ -201,15 +198,13 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real alpha;
     real max_iterations;
 
-
     real3 min_bounding_point;
     real3 max_bounding_point;
     int3 bins_per_axis;
     real bin_edge;
     real inv_bin_edge;
     uint grid_size;
-
-
+    uint body_offset;
 };
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:

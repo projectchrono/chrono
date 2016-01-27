@@ -47,6 +47,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     bilateral.Setup(data_manager);
     data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals);
     data_manager->fea_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
+    data_manager->mpm_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof + num_tet_constraints);
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
@@ -58,6 +59,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     solver->bilateral = &bilateral;
     solver->three_dof = data_manager->node_container;
     solver->fem = data_manager->fea_container;
+    solver->mpm = data_manager->mpm_container;
     solver->Setup(data_manager);
 
     ComputeD();
@@ -67,6 +69,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     ComputeN();
     data_manager->node_container->PreSolve();
     data_manager->fea_container->PreSolve();
+    data_manager->mpm_container->PreSolve();
 
     data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
@@ -138,6 +141,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
     data_manager->node_container->PostSolve();
     data_manager->fea_container->PostSolve();
+    data_manager->mpm_container->PostSolve();
 
     ComputeImpulses();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
@@ -181,12 +185,15 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint num_fem = data_manager->fea_container->GetNumConstraints();
     uint nnz_fem = data_manager->fea_container->GetNumNonZeros();
 
+    uint num_mpm = data_manager->mpm_container->GetNumConstraints();
+    uint nnz_mpm = data_manager->mpm_container->GetNumNonZeros();
+
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-    int nnz_total = nnz_bilaterals + nnz_fluid_fluid + nnz_fem;
-    int num_rows = num_bilaterals + num_fluid_fluid + num_fem;
+    int nnz_total = nnz_bilaterals + nnz_fluid_fluid + nnz_fem + nnz_mpm;
+    int num_rows = num_bilaterals + num_fluid_fluid + num_fem + num_mpm;
 
     switch (data_manager->settings.solver.solver_mode) {
         case NORMAL:
@@ -212,11 +219,13 @@ void ChLcpSolverParallelDVI::ComputeD() {
     bilateral.GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
     data_manager->fea_container->GenerateSparsity();
+    data_manager->mpm_container->GenerateSparsity();
 
     rigid_rigid.Build_D();
     bilateral.Build_D();
     data_manager->node_container->Build_D();
     data_manager->fea_container->Build_D();
+    data_manager->mpm_container->Build_D();
 
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
 
@@ -243,6 +252,7 @@ void ChLcpSolverParallelDVI::ComputeE() {
 
     data_manager->fea_container->Build_E();
     data_manager->node_container->Build_E();
+    data_manager->mpm_container->Build_E();
 
     data_manager->system_timer.stop("ChLcpSolverParallel_E");
 }
@@ -270,6 +280,8 @@ void ChLcpSolverParallelDVI::ComputeR() {
     bilateral.Build_b();
     data_manager->node_container->Build_b();
     data_manager->fea_container->Build_b();
+    data_manager->mpm_container->Build_b();
+
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR() " << b.size() << " " << D_T.rows() << " " << D_T.columns() << " "
               << M_invk.size();
     R = -b - D_T * M_invk;
