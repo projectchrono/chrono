@@ -8,12 +8,12 @@
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 #include "chrono_parallel/math/svd.h"
 
-#include "chrono_parallel/math/other_types.h"         // for uint, int2, int3
-#include "chrono_parallel/math/real.h"                // for real
-#include "chrono_parallel/math/real2.h"               // for real2
-#include "chrono_parallel/math/real3.h"               // for real3
-#include "chrono_parallel/math/real4.h"               // for quaternion, real4
-#include "chrono_parallel/math/mat33.h"               // for quaternion, real4
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/real.h"         // for real
+#include "chrono_parallel/math/real2.h"        // for real2
+#include "chrono_parallel/math/real3.h"        // for real3
+#include "chrono_parallel/math/real4.h"        // for quaternion, real4
+#include "chrono_parallel/math/mat33.h"        // for quaternion, real4
 
 namespace chrono {
 
@@ -55,7 +55,8 @@ int ChFEAContainer::GetNumConstraints() {
 }
 int ChFEAContainer::GetNumNonZeros() {
     // 12*3 entries in the elastic, 12*3 entries in the shear, 12 entries in volume
-    int nnz = data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 1;
+    int nnz =
+        data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 1;
     // 6 entries for rigid body side, 3 for node
     nnz += 9 * 3 * data_manager->num_rigid_node_contacts;
     return nnz;
@@ -357,14 +358,14 @@ void ChFEAContainer::Build_D() {
         real3 r3 = 1. / 6. * Cross(c1, c2);
         real3 r0 = -r1 - r2 - r3;
 
-        real vf = 0;  //(0.5 / (6.0 * volSqrt));
+        real vf = (0.5 / (volSqrt));
         // This helps to scale jacboian so boundaries aren't ignored
         real cf = 2 * volSqrt;
         // diagonal elements of strain matrix
-        Mat33 A1 = cf * Mat33(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
-        Mat33 A2 = cf * Mat33(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
-        Mat33 A3 = cf * Mat33(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
-        Mat33 A4 = cf * Mat33(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
+        Mat33 A1 = cf * Mat33(y[0]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
+        Mat33 A2 = cf * Mat33(y[1]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
+        Mat33 A3 = cf * Mat33(y[2]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
+        Mat33 A4 = cf * Mat33(y[3]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
 
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
@@ -386,13 +387,13 @@ void ChFEAContainer::Build_D() {
         /////==================================================================================================================================
         // Off diagonal strain elements
         Mat33 B1 =
-            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
         Mat33 B2 =
-            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
         Mat33 B3 =
-            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
         Mat33 B4 =
-            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
 
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
@@ -495,7 +496,7 @@ void ChFEAContainer::Build_b() {
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
                                                     // Mat33 strain = S - Mat33(1);
         real volSqrt = Sqrt(vol);
-        real cf = 1;
+        real cf = 1;//volSqrt;
 
         b_sub[i * 7 + 0] = cf * strain[0];
         b_sub[i * 7 + 1] = cf * strain[5];
