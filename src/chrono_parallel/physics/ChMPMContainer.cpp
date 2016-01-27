@@ -39,6 +39,8 @@ ChMPMContainer::~ChMPMContainer() {}
 void ChMPMContainer::Setup(int start_constraint) {
     Ch3DOFContainer::Setup(start_constraint);
     body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + num_fea_nodes * 3;
+    min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
 }
 
 void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
@@ -79,15 +81,17 @@ void ChMPMContainer::ComputeDOF() {
                                (Floor(res.first.y), (res.first.y - kernel_radius * 12)),
                                (Floor(res.first.z), (res.first.z - kernel_radius * 12)));
 
-    min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-    max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
     bins_per_axis = int3(diag / bin_edge);
     inv_bin_edge = real(1.) / bin_edge;
     grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
     data_manager->num_mpm_nodes = grid_size;
+
+    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
+    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
+    printf("Compute DOF [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
+           bin_edge, num_mpm_markers);
 }
 
 void ChMPMContainer::Update(double ChTime) {
@@ -95,11 +99,6 @@ void ChMPMContainer::Update(double ChTime) {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
 
     Setup(0);
-
-    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
-    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("SETUP [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z, bin_edge,
-           num_mpm_markers);
 
     grid_mass.resize(grid_size);
     grid_vel_old.resize(grid_size * 3);
@@ -112,7 +111,6 @@ void ChMPMContainer::Update(double ChTime) {
         data_manager->host_data.v[body_offset + i * 3 + 2] = 0;
     }
     std::cout << "SIZE " << (data_manager->host_data.v.size()) << std::endl;
-
 
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
