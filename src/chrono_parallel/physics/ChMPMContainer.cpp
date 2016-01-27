@@ -106,6 +106,10 @@ void ChMPMContainer::Update(double ChTime) {
     grid_mass = 0;
 
     for (int i = 0; i < grid_size; i++) {
+        grid_vel_old[i * 3 + 0] = data_manager->host_data.v[body_offset + i * 3 + 0];
+        grid_vel_old[i * 3 + 1] = data_manager->host_data.v[body_offset + i * 3 + 1];
+        grid_vel_old[i * 3 + 2] = data_manager->host_data.v[body_offset + i * 3 + 2];
+
         data_manager->host_data.v[body_offset + i * 3 + 0] = 0;
         data_manager->host_data.v[body_offset + i * 3 + 1] = 0;
         data_manager->host_data.v[body_offset + i * 3 + 2] = 0;
@@ -132,12 +136,9 @@ void ChMPMContainer::Update(double ChTime) {
             data_manager->host_data.v[body_offset + i * 3 + 1] /= grid_mass[i];
             data_manager->host_data.v[body_offset + i * 3 + 2] /= grid_mass[i];
         }
-        grid_vel_old[i * 3 + 0] = data_manager->host_data.v[body_offset + i * 3 + 0];
-        grid_vel_old[i * 3 + 1] = data_manager->host_data.v[body_offset + i * 3 + 1];
-        grid_vel_old[i * 3 + 2] = data_manager->host_data.v[body_offset + i * 3 + 2];
     }
 
-    //     /UpdateRhs();
+    UpdateRhs();
 
     // update the position of the markers based on the nodal velocities
 }
@@ -226,7 +227,9 @@ void ChMPMContainer::Initialize() {
         LOOPOVERNODES(                                                                //
             real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
             grid_mass[current_node] += weight;                                        //
-            )
+            data_manager->host_data.v[body_offset + i * 3 + 0] = 0;
+            data_manager->host_data.v[body_offset + i * 3 + 1] = 0;
+            data_manager->host_data.v[body_offset + i * 3 + 2] = 0;)
     }
 
     printf("Compute_Particle_Volumes\n");
@@ -243,167 +246,7 @@ void ChMPMContainer::Initialize() {
         volume[p] = mass / particle_density;
     }
 }
-void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
-    custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel = data_manager->host_data.sorted_vel_3dof;
-    const real dt = data_manager->settings.step_size;
-    printf("Apply Hessian A\n");
 
-    //#pragma omp parallel for
-    for (int i = 0; i < grid_size; i++) {
-        result_array[i * 3 + 0] = (v_array[i * 3 + 0] - grid_vel_old[i * 3 + 0]) * grid_mass[i] / dt;
-        result_array[i * 3 + 1] = (v_array[i * 3 + 1] - grid_vel_old[i * 3 + 1]) * grid_mass[i] / dt;
-        result_array[i * 3 + 2] = (v_array[i * 3 + 2] - grid_vel_old[i * 3 + 2]) * grid_mass[i] / dt;
-    }
-}
-
-real ChMPMContainer::Convergence_Norm(const DynamicVector<real>& r) {
-    real result = (real)0.;
-    for (int i = 0; i < r.size(); i += 3) {
-        real3 v(r[i + 0], r[i + 1], r[i + 2]);
-        real mag = Length(v);
-        result = Max(result, mag);
-    }
-    return result;
-}
-void ChMPMContainer::Solve(const DynamicVector<real>& r, DynamicVector<real>& gamma) {
-    UpdateRhs();
-
-    real lastgoodres;
-    real objective_value;
-    uint size = grid_size * 3;
-    DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
-    DynamicVector<real> mD, invmD;
-
-    temp.resize(size);
-    ml.resize(size);
-    mg.resize(size);
-    mg_p.resize(size);
-    ml_candidate.resize(size);
-    ms.resize(size);
-    my.resize(size);
-    mdir.resize(size);
-    ml_p.resize(size);
-
-    temp = 0;
-    ml = 0;
-    mg = 0;
-    mg_p = 0;
-    ml_candidate = 0;
-    ms = 0;
-    my = 0;
-    mdir = 0;
-    ml_p = 0;
-
-    // Tuning of the spectral gradient search
-    real a_min = 1e-13;
-    real a_max = 1e13;
-    real sigma_min = 0.1;
-    real sigma_max = 0.9;
-
-    real alpha = 0.0001;
-
-    real gmma = 1e-4;
-    real gdiff = 1.0 / pow(size, 2.0);
-    bool do_preconditioning = false;
-    real neg_BB1_fallback = 0.11;
-    real neg_BB2_fallback = 0.12;
-    ml = gamma;
-    lastgoodres = 10e30;
-    real lastgoodfval = 10e30;
-    ml_candidate = ml;
-    Multiply(ml, temp);
-    mg = temp - r;
-    mg_p = mg;
-
-    real mf_p = 0;
-    real mf = 1e29;
-    int n_armijo = 10;
-    int max_armijo_backtrace = 3;
-    std::vector<real> f_hist;
-
-    for (int current_iteration = 0; current_iteration < max_iterations; current_iteration++) {
-        temp = (ml - alpha * mg);
-        mdir = temp - ml;
-
-        real dTg = (mdir, mg);
-        real lambda = 1.0;
-        int n_backtracks = 0;
-        bool armijo_repeat = true;
-        // t2.stop();
-        // t3.start();
-        while (armijo_repeat) {
-            ml_p = ml + lambda * mdir;
-
-            Multiply(ml_p, temp);
-            mg_p = temp - r;
-            mf_p = (ml_p, 0.5 * temp - r);
-
-            f_hist.push_back(mf_p);
-
-            real max_compare = 10e29;
-            for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
-                real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
-                if (compare > max_compare)
-                    max_compare = compare;
-            }
-            if (mf_p > max_compare) {
-                armijo_repeat = true;
-                if (current_iteration > 0)
-                    mf = f_hist[current_iteration - 1];
-                real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
-                lambda = Max(sigma_min * lambda, Min(sigma_max * lambda, lambdanew));
-                printf("Repeat Armijo, new lambda = %f \n", lambda);
-            } else {
-                armijo_repeat = false;
-            }
-            n_backtracks = n_backtracks + 1;
-            if (n_backtracks > max_armijo_backtrace)
-                armijo_repeat = false;
-        }
-
-        ms = ml_p - ml;
-        my = mg_p - mg;
-        ml = ml_p;
-        mg = mg_p;
-
-        if (current_iteration % 2 == 0) {
-            real sDs = (ms, ms);
-            real sy = (ms, my);
-            if (sy <= 0) {
-                alpha = neg_BB1_fallback;
-            } else {
-                alpha = Min(a_max, Max(a_min, sDs / sy));
-            }
-        } else {
-            real sy = (ms, my);
-            real yDy = (my, my);
-            if (sy <= 0) {
-                alpha = neg_BB2_fallback;
-            } else {
-                alpha = Min(a_max, Max(a_min, sy / yDy));
-            }
-        }
-        temp = ml - gdiff * mg;
-        temp = (ml - temp) / (-gdiff);
-
-        real g_proj_norm = Sqrt((temp, temp));
-
-        printf("g_proj_norm %f\n", g_proj_norm);
-        if (g_proj_norm < lastgoodres) {
-            lastgoodres = g_proj_norm;
-            objective_value = mf_p;
-            ml_candidate = ml;
-        }
-
-        if (lastgoodres < 1e-4) {
-            break;
-        }
-        // UpdateRhs();
-    }
-
-    gamma = ml_candidate;
-}
 void ChMPMContainer::PreSolve() {}
 void ChMPMContainer::PostSolve() {
     const real dt = data_manager->settings.step_size;
@@ -467,29 +310,29 @@ void ChMPMContainer::UpdateRhs() {
     //#pragma omp parallel for
     for (int i = 0; i < num_mpm_markers; i++) {
         real3 h_gravity = data_manager->settings.step_size * grid_mass[i] * data_manager->settings.gravity;
-        data_manager->host_data.hf[body_offset + i * 3 + 0] = h_gravity.x;
-        data_manager->host_data.hf[body_offset + i * 3 + 1] = h_gravity.y;
-        data_manager->host_data.hf[body_offset + i * 3 + 2] = h_gravity.z;
+        data_manager->host_data.hf[body_offset + i * 3 + 0] = 0;  // h_gravity.x;
+        data_manager->host_data.hf[body_offset + i * 3 + 1] = 0;  // h_gravity.y;
+        data_manager->host_data.hf[body_offset + i * 3 + 2] = 0;  // h_gravity.z;
     }
-
-    // Compute derivative of the potential energy wrt x
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-
-        Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
-
-        real JE = Determinant(Fe[p]);
-        real JP = Determinant(Fp[p]);
-        real denom = 1.0 / (JE * JP);
-        Mat33 vPEDFepT = -volume[p] * MultTranspose(PED, Fe[p]) * denom;
-
-        LOOPOVERNODES(  //
-            real3 impulse = (vPEDFepT * dN(xi - current_node_location, inv_bin_edge));
-            data_manager->host_data.hf[body_offset + current_node * 3 + 0] += impulse.x;  //
-            data_manager->host_data.hf[body_offset + current_node * 3 + 1] += impulse.y;  //
-            data_manager->host_data.hf[body_offset + current_node * 3 + 2] += impulse.z;  //
-            )
-    }
+    //
+    //    // Compute derivative of the potential energy wrt x
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //
+    //        Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
+    //
+    //        real JE = Determinant(Fe[p]);
+    //        real JP = Determinant(Fp[p]);
+    //        real denom = 1.0 / (JE * JP);
+    //        Mat33 vPEDFepT = -volume[p] * MultTranspose(PED, Fe[p]) * denom;
+    //
+    //        LOOPOVERNODES(  //
+    //            real3 impulse = (vPEDFepT * dN(xi - current_node_location, inv_bin_edge));
+    //            data_manager->host_data.hf[body_offset + current_node * 3 + 0] += impulse.x;  //
+    //            data_manager->host_data.hf[body_offset + current_node * 3 + 1] += impulse.y;  //
+    //            data_manager->host_data.hf[body_offset + current_node * 3 + 2] += impulse.z;  //
+    //            )
+    //    }
 }
 
 }  // END_OF_NAMESPACE____

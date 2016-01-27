@@ -167,10 +167,6 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void UpdatePosition(double ChTime);
     void Setup(int start_constraint);
     void Initialize();
-    real Convergence_Norm(const DynamicVector<real>& r);
-    void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
-    real DotProduct(const DynamicVector<real>& a, const DynamicVector<real>& b);
-    void Solve(const DynamicVector<real>& b, DynamicVector<real>& x);
     void PreSolve();
     void Build_D() {}
     void Build_b() {}
