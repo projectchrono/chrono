@@ -221,12 +221,12 @@ void function_CalcContactForces(
 
             shear_disp[ctSaveId] += delta_t;
             shear_disp[ctSaveId] -=
-                dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+                Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
             delta_t = shear_disp[ctSaveId];
         } else {
             shear_disp[ctSaveId] -= delta_t;
             shear_disp[ctSaveId] -=
-                dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+                Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
             delta_t = -shear_disp[ctSaveId];
 
         }
