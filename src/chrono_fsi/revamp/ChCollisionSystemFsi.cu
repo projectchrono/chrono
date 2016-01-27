@@ -152,6 +152,13 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD, // output: cell s
 	}
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------
+
+ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects)
+: fsiData(otherFsiData), paramsH(otherParamsH), numObjects(otherNumObjects) {
+	this->setParameters(otherParamsH, otherNumObjects);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 
 void ChCollisionSystemFsi::calcHash() {
 	if (!(fsiData->gridMarkerHashD.size() == paramsH.numAllMarkers &&

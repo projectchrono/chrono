@@ -28,3 +28,16 @@ ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks,
 	numThreads = min(blockSize, n2);
 	numBlocks = iDivUp(n2, numThreads);
 }
+
+/**
+ * @brief [brief description]
+ * @details [long description]
+ *
+ * @param hostParams [description]
+ * @param numObjects [description]
+ */
+void ChFsiGeneral::setParameters(SimParams* hostParams, NumberOfObjects* numObjects) {
+	// copy parameters to constant memory
+	cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams));
+	cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects));
+}

@@ -269,7 +269,7 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // use invasive to avoid one extra copy. However, keep in mind that sorted is changed.
-void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
+void ChFsiForceParallel::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,
 		const thrust::device_vector<uint>& gridMarkerIndex) {
 	thrust::device_vector<uint> dummyMarkerIndex = gridMarkerIndex;
@@ -279,7 +279,7 @@ void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 	thrust::copy(sorted.begin(), sorted.end(), original.begin());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
+void ChFsiForceParallel::CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,
 		const thrust::device_vector<uint>& gridMarkerIndex) {
 	thrust::device_vector<Real3> dummySorted = sorted;
@@ -287,7 +287,7 @@ void CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // use invasive to avoid one extra copy. However, keep in mind that sorted is changed.
-void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
+void ChFsiForceParallel::CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
 		thrust::device_vector<Real4>& sorted,
 		const thrust::device_vector<uint>& gridMarkerIndex) {
 	thrust::device_vector<uint> dummyMarkerIndex = gridMarkerIndex;
@@ -297,7 +297,7 @@ void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
 	thrust::copy(sorted.begin(), sorted.end(), original.begin());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
+void ChFsiForceParallel::CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
 		thrust::device_vector<Real4>& sorted,
 		const thrust::device_vector<uint>& gridMarkerIndex) {
 	thrust::device_vector<Real4> dummySorted = sorted;
@@ -305,6 +305,13 @@ void CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
+void ChFsiForceParallel::ChFsiForceParallel(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects)
+: fsiData(otherFsiData), paramsH(otherParamsH), numObjects(otherNumObjects) {
+	fsiCollisionSystem = new ChCollisionSystemFsi(otherFsiData, otherParamsH, otherNumObjects);
+	this->setParameters(otherParamsH, otherNumObjects);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiForceParallel::CalcBceAcceleration(
 		thrust::device_vector<Real3>& bceAcc,
@@ -415,7 +422,7 @@ void ChFsiForceParallel::CalculateXSPH_velocity() {
  * @details
  * 		See SDKCollisionSystem.cuh for informaton on collide
  */
-void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
+void cChFsiForceParallel::ollide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<Real3>& sortedVelMas,
 		thrust::device_vector<Real3>& vel_XSPH_Sorted_D,

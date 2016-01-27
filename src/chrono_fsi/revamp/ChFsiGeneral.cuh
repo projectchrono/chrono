@@ -292,9 +292,18 @@ public:
  * @param numThreads Output: number of threads per block
  */
 	void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads);
+	void setParameters(SimParams* hostParams, NumberOfObjects* numObjects);
+
+protected:
+	uint iDivUp(uint a, uint b);
+
+	SimParams* paramsH;
+	NumberOfObjects* numObjects;
+	__constant__ SimParams paramsD;
+	__constant__ NumberOfObjects numObjectsD;
+
 
 private:
-	uint iDivUp(uint a, uint b);
 
 
 

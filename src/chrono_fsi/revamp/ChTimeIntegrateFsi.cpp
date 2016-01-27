@@ -187,7 +187,7 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 		velMasD[index] = updatedVelocity;
 
 	}
-	// 3*** let's tweak a little bit :)
+	// 3*** let's tweak a littlChTimeIntegrateFsi();e bit :)
 	if (!(isfinite(derivVelRho.w))) {
 		if (paramsD.enableAggressiveTweak) {
 			derivVelRho.w = 0;
@@ -212,6 +212,19 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 		return;
 	}
 	rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+ChTimeIntegrateFsi::ChTimeIntegrateFsi(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects) 
+: fsiData(otherFsiData), paramsH(otherParamsH), numObjects(otherNumObjects) {
+	forceSystem = new ChFsiForceParallel(otherFsiData, otherParamsH, otherNumObjects);
+	this->setParameters(otherParamsH, otherNumObjects);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChTimeIntegrateFsi::IntegrateSPH() {
+	forceSystem->ForceSPH();
+	this->UpdateFluid();
+	this->ApplyBoundarySPH_Markers();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateFluidD
@@ -271,8 +284,7 @@ void ChTimeIntegrateFsi::ApplyBoundarySPH_Markers() {
 	ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
 			mR3CAST(fsiData->posRadD), mR4CAST(fsiData->rhoPresMuD));
 	cudaThreadSynchronize();
-	cudaCheckError()
-	;
+	cudaCheckError();
 
 	//	SetOutputPressureToZero_X<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR3CAST(posRadD), mR4CAST(rhoPresMuD));
 	//    cudaThreadSynchronize();

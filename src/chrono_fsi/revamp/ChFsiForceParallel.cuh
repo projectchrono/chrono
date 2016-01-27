@@ -22,7 +22,11 @@ namespace fsi {
 
 class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 	public:
-		// ChFsiForceParallel();
+		ChFsiForceParallel(FsiDataContainer* otherFsiData, SimParams* otherParamsH, NumberOfObjects* otherNumObjects);
+		~ChFsiForceParallel();
+
+
+
 		ChFsiForceParallel(FsiDataContainer* otherFsiData) : fsiData(otherFsiData) {
 			fsiCollisionSystem = new ChCollisionSystemFsi(fsiData);
 		};
@@ -47,6 +51,24 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 		void DensityReinitialization();
 
 	private:
+
+// TODO : make these four dudes static in ChCollisionSystemFsi
+	void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
+		thrust::device_vector<Real3>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex);
+	void CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
+		thrust::device_vector<Real3>& sorted,
+		const thrust::device_vector<uint>& gridMarkerIndex);
+	void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
+			thrust::device_vector<Real4>& sorted,
+			const thrust::device_vector<uint>& gridMarkerIndex);
+	void CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
+			thrust::device_vector<Real4>& sorted,
+			const thrust::device_vector<uint>& gridMarkerIndex);
+///////////////////////////////////////////////////////////////////
+
+
+
 		ChCollisionSystemFsi* fsiCollisionSystem;
 		FsiDataContainer* fsiData;
 

@@ -23,7 +23,7 @@ namespace fsi {
 class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 	public:
 		// ChCollisionSystemFsi();
-		ChCollisionSystemFsi(FsiDataContainer* otherFsiData) : fsiData(otherFsiData) {};
+		ChCollisionSystemFsi(FsiDataContainer* otherFsiData);
 		~ChCollisionSystemFsi();
 
 		void setParameters();
