@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     fea_container->material_density = 1200;
     fea_container->contact_mu = 1;
     fea_container->contact_cohesion = 0;
-    fea_container->youngs_modulus = 5e1;//2e8;
+    fea_container->youngs_modulus = 5e5;//2e8;
     fea_container->poisson_ratio = .2;
     fea_container->contact_recovery_speed = 10000000;
     my_system.GetSettings()->solver.solver_mode = SLIDING;
