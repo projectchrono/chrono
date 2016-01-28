@@ -143,7 +143,7 @@ void DoStepDynamics_FSI(chrono::ChSystemParallelDVI& mphysicalSystem,
 	// ** initialize host mid step data
 	thrust::copy(posRadD.begin(), posRadD.end(), posRadD2.begin());
 	thrust::copy(velMasD.begin(), velMasD.end(), velMasD2.begin());
-	thrust::copy(rhoPresMuD2.begin(), rhoPresMuD2.end(), rhoPresMuD.begin());
+	thrust::copy(rhoPresMuD.begin(), rhoPresMuD.end(), rhoPresMuD2.begin());
 
 	FillMyThrust4(derivVelRhoD, mR4(0));
 
