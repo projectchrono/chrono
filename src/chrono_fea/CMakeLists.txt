@@ -44,6 +44,8 @@ SET(ChronoEngine_FEA_SOURCES
 	ChContactSurfaceMesh.cpp
 	ChMeshSurface.cpp
 	ChLoadContactSurfaceMesh.cpp
+    utils/ChImport.cpp
+
 )
 
 SET(ChronoEngine_FEA_HEADERS

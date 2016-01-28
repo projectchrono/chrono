@@ -18,6 +18,7 @@
 
 #include "physics/ChIndexedNodes.h"
 #include "physics/ChContinuumMaterial.h"
+#include "chrono_fea/ChElementShellANCF.h"
 #include "physics/ChMaterialSurface.h"
 #include "ChNodeFEAbase.h"
 #include "ChElementBase.h"
@@ -167,6 +168,18 @@ class ChApiFea ChMesh : public ChIndexedNodes {
                             ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
                             ChMatrix33<> rot_transform = ChMatrix33<>(1),   ///< optional rotation/scaling of imported mesh
                             bool discard_unused_nodes = true);              ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
+    /// Load ANCF Shell, if any, saved in a .mesh file.
+    void LoadANCFShellFromGMFFile(
+        const char* filename,
+        ChSharedPtr<ChMaterialShellANCF> my_material,
+        std::vector<int>& BC_nodes,
+        ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
+        double scaleFactor = 1,
+        bool printBC = false,      ////Optional Prints boundary nodes
+        bool printNodes = false,   ////Optional Prints imported nodes
+        bool printElements = false); ////Optional Prints imported elements
+
 
     //
     // STATE FUNCTIONS
