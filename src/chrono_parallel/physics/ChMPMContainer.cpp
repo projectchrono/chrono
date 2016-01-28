@@ -185,25 +185,29 @@ int ChMPMContainer::GetNumNonZeros() {
 void ChMPMContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     for (int i = 0; i < num_mpm_nodes; i++) {
-        real inv_mass = 1.0 / grid_mass[i];
-        M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
-        M_inv.finalize(offset + i * 3 + 0);
-        M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_mass);
-        M_inv.finalize(offset + i * 3 + 1);
-        M_inv.append(offset + i * 3 + 2, offset + i * 3 + 2, inv_mass);
-        M_inv.finalize(offset + i * 3 + 2);
+        if (grid_mass[i] != 0) {
+            real inv_mass = 1.0 / grid_mass[i];
+            M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
+            M_inv.finalize(offset + i * 3 + 0);
+            M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_mass);
+            M_inv.finalize(offset + i * 3 + 1);
+            M_inv.append(offset + i * 3 + 2, offset + i * 3 + 2, inv_mass);
+            M_inv.finalize(offset + i * 3 + 2);
+        }
     }
 }
 void ChMPMContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
     for (int i = 0; i < num_mpm_nodes; i++) {
-        real mass = grid_mass[i];
-        M.append(offset + i * 3 + 0, offset + i * 3 + 0, mass);
-        M.finalize(offset + i * 3 + 0);
-        M.append(offset + i * 3 + 1, offset + i * 3 + 1, mass);
-        M.finalize(offset + i * 3 + 1);
-        M.append(offset + i * 3 + 2, offset + i * 3 + 2, mass);
-        M.finalize(offset + i * 3 + 2);
+        if (grid_mass[i] != 0) {
+            real mass = grid_mass[i];
+            M.append(offset + i * 3 + 0, offset + i * 3 + 0, mass);
+            M.finalize(offset + i * 3 + 0);
+            M.append(offset + i * 3 + 1, offset + i * 3 + 1, mass);
+            M.finalize(offset + i * 3 + 1);
+            M.append(offset + i * 3 + 2, offset + i * 3 + 2, mass);
+            M.finalize(offset + i * 3 + 2);
+        }
     }
 }
 
