@@ -30,7 +30,7 @@ using namespace chrono::fea;
 ChFEAContainer* fea_container;
 
 real time_step = 0.001;
-
+real time_end = 10;
 void AddContainer(ChSystemParallelDVI* sys) {
     // IDs for the two bodies
     int binId = -200;
