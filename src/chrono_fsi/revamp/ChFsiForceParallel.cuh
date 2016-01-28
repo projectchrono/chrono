@@ -49,7 +49,7 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 	void ModifyBceVelocity();
 	void CalculateXSPH_velocity();
 	void CollideWrapper();
-	void DensityReinitialization();
+	void DensityReinitialization(); // Arman : TODO
 // TODO : make these four dudes static in ChCollisionSystemFsi
 	void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,

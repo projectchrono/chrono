@@ -30,17 +30,16 @@ public:
 
 	~ChTimeIntegrateFsi(); //TODO
 
-	void IntegrateSPH(
-		SphMarkerDataD * sphMarkersD2,
-		SphMarkerDataD * sphMarkersD1,
-		FsiBodiesDataD * fsiBodiesD1,
-		Real dT);
-
 protected:
 	ChFsiDataManager* fsiData;
 	ChFsiForceParallel* forceSystem;
 
 
+	void IntegrateSPH(
+		SphMarkerDataD * sphMarkersD2,
+		SphMarkerDataD * sphMarkersD1,
+		FsiBodiesDataD * fsiBodiesD1,
+		Real dT);
 	void UpdateFluid(SphMarkerDataD * sphMarkersD, Real dT);
 	void ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD);
 

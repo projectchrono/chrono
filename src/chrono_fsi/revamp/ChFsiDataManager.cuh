@@ -42,12 +42,12 @@ namespace fsi {
 
 	// dummy fsi bodies
 	struct FsiBodiesDataH {
-		thrust::host_vector<Real3> posRigid_fsiBodies_dummyH;
-		thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH;
-		thrust::host_vector<Real3> accRigid_fsiBodies_dummyH;
-		thrust::host_vector<Real4> q_fsiBodies_dummyH;
-		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_dummyH;
-		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_dummyH;
+		thrust::host_vector<Real3> posRigid_fsiBodies_H;
+		thrust::host_vector<Real4> velMassRigid_fsiBodies_H;
+		thrust::host_vector<Real3> accRigid_fsiBodies_H;
+		thrust::host_vector<Real4> q_fsiBodies_H;
+		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;
+		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;
 	}
 
 	struct ProximityDataD {
@@ -56,6 +56,15 @@ namespace fsi {
 		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
 		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
 		thrust::device_vector<uint> mapOriginalToSorted;
+	}
+
+	struct ChronoBodiesDataH {
+		thrust::host_vector<Real3> pos_ChSystemH;
+		thrust::host_vector<Real3> vel_ChSystemH;
+		thrust::host_vector<Real3> acc_ChSystemH;
+		thrust::host_vector<Real4> quat_ChSystemH;
+		thrust::host_vector<Real3> omegaVelGRF_ChSystemH;
+		thrust::host_vector<Real3> omegaAccGRF_ChSystemH;
 	}
 
 // make them classes
@@ -69,15 +78,10 @@ namespace fsi {
 		thrust::host_vector<uint> bodyIndexH;
 
 		// chrono backup
-		thrust::host_vector<Real3> pos_ChSystemBackupH;
-		thrust::host_vector<Real3> vel_ChSystemBackupH;
-		thrust::host_vector<Real3> acc_ChSystemBackupH;
-		thrust::host_vector<Real4> quat_ChSystemBackupH;
-		thrust::host_vector<Real3> omegaVelGRF_ChSystemBackupH;
-		thrust::host_vector<Real3> omegaAccGRF_ChSystemBackupH;
+
 
 		// map fsi to chrono bodies
-		std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
+		std::vector<ChSharedPtr<ChBody> > fsiBodeisIndex;
 
 		// ----------------
 		//  device
@@ -103,9 +107,12 @@ public:
 	SphMarkerDataD sphMarkersD1;
 	SphMarkerDataD sphMarkersD2;
 	SphMarkerDataD sortedSphMarkersD;
+	SphMarkerDataH sphMarkersH;
 
 	FsiBodiesDataD fsiBodiesD1;
 	FsiBodiesDataD fsiBodiesD2;
+	FsiBodiesDataH fsiBodiesH;
+	ChronoBodiesDataH chronoRigidBackup;
 
 	FsiGeneralData fsiGeneralData;
 
