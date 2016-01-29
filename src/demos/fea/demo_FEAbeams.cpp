@@ -34,7 +34,7 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_matlab/ChMatlabEngine.h"
+//#include "chrono_matlab/ChMatlabEngine.h"
 #include "chrono_matlab/ChLcpMatlabSolver.h"
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -263,16 +263,16 @@ int main(int argc, char* argv[])
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 	
-
-	// TEST: The Matlab external linear solver, for max precision in benchmarks
-ChMatlabEngine matlab_engine;
-ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
-ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-my_system.ChangeLcpSolverStab (matlab_solver_stab);
-my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
-application.GetSystem()->Update();
-application.SetPaused(true);
-
+    /*
+	    // TEST: The Matlab external linear solver, for max precision in benchmarks
+    ChMatlabEngine matlab_engine;
+    ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
+    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+    my_system.ChangeLcpSolverStab (matlab_solver_stab);
+    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    application.GetSystem()->Update();
+    application.SetPaused(true);
+    */
 
 	
 	// Change type of integrator: 
