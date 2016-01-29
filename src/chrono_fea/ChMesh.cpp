@@ -722,8 +722,8 @@ void ChMesh::IntLoadResidual_F(
   }
 
   // internal forces
-  for (unsigned int ie = 0; ie < this->velements.size(); ie++)
-  {
+#pragma omp parallel for
+    for (int ie = 0; ie < this->velements.size(); ie++) {
     this->velements[ie]->EleIntLoadResidual_F(R, c);
   }
 
