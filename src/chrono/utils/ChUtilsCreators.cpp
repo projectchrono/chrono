@@ -384,6 +384,39 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
 
 // -----------------------------------------------------------------------------
 
+void AddTriangle(ChBody* body,
+                  const ChVector<>& vertA,
+                  const ChVector<>& vertB,
+                  const ChVector<>& vertC,
+                  const std::string& name,
+                  const ChVector<>& pos,
+                  const ChQuaternion<>& rot,
+                  bool visualization) {
+  geometry::ChTriangleMeshConnected trimesh;
+  trimesh.m_vertices.clear();
+  trimesh.m_face_v_indices.clear();
+  trimesh.m_vertices.push_back(vertA);
+  trimesh.m_vertices.push_back(vertB);
+  trimesh.m_vertices.push_back(vertC);
+  trimesh.m_face_v_indices.push_back(ChVector<int>(0,1,2));
+
+  for (int i = 0; i < trimesh.m_vertices.size(); i++)
+    trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+
+  body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+
+  if (visualization) {
+    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(name);
+    trimesh_shape->Pos = ChVector<>(0, 0, 0);
+    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+    body->GetAssets().push_back(trimesh_shape);
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 void AddRoundedBoxGeometry(ChBody* body,
                            const ChVector<>& size,
                            double srad,

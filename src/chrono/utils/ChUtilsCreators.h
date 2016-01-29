@@ -148,6 +148,16 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              double total_mass);
 
 ChApi
+void AddTriangle(ChBody* body,
+                             const ChVector<>& vertA,
+                             const ChVector<>& vertB,
+                             const ChVector<>& vertC,
+                             const std::string& name,
+                             const ChVector<>& pos = ChVector<>(0, 0, 0),
+                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                             bool visualization = true);
+
+ChApi
 void AddRoundedBoxGeometry(ChBody* body,
                            const ChVector<>& size,
                            double srad,
