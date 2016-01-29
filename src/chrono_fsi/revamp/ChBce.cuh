@@ -12,25 +12,34 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Class for performing time integration in fsi system.//
+// Base class for processing bce forces in fsi system.//
 // =============================================================================
 
-#ifndef CH_FSIDYNAMICS_H_
-#define CH_FSIDYNAMICS_H_
+#ifndef CH_BCE_CUH_
+#define CH_BCE_CUH_
 
 namespace fsi {
 
-class CH_FSI_API ChFsiDynamics : public ChFsiGeneral{
-
+class CH_FSI_API ChBce : public ChFsiGeneral{
 public:
-	ChFsiDynamics();
-	~ChFsiDynamics();
+	ChBce::ChBce(SimParams* otherParamsH, 
+			NumberOfObjects* otherNumObjects);
+	~ChBce();
+
+	void UpdateRigidMarkersPositionVelocity(
+		SphMarkerDataD* sphMarkersD,
+		FsiBodiesDataD* fsiBodiesD);
+
+	void Rigid_Forces_Torques(
+		SphMarkerDataD* sphMarkersD,
+		FsiBodiesDataD* fsiBodiesD);
 
 private:
-	ChFsiDataManager* fsiData;
-	ChFluidDynamics* ChFluidDynamics;
-	ChFsiInterface* ChFsiInterface;
-	ChBce* bceWorker;
+
+	FsiGeneralData* fsiGeneralData;
+	thrust::device_vector<Real4> totalSurfaceInteractionRigid4;
+	thrust::device_vector<Real3> torqueMarkersD;
+	thrust::device_vector<int> dummyIdentify;
+
 };
 }
-#endif

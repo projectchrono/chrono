@@ -77,9 +77,6 @@ namespace fsi {
 		thrust::host_vector<::int4> referenceArray;
 		thrust::host_vector<uint> bodyIndexH;
 
-		// chrono backup
-
-
 		// map fsi to chrono bodies
 		std::vector<ChSharedPtr<ChBody> > fsiBodeisIndex;
 
@@ -93,6 +90,7 @@ namespace fsi {
 
 		// BCE
 		thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;
+		thrust::device_vector<uint> rigidIdentifierD;
 
 		// fsi bodies
 		thrust::device_vector<Real3> rigid_FSI_ForcesD;

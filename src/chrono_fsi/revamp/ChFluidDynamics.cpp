@@ -221,6 +221,7 @@ ChFluidDynamics::ChFluidDynamics(
 			SimParams* otherParamsH, 
 			NumberOfObjects* otherNumObjects)
 : fsiData(otherFsiData), paramsH(otherParamsH), numObjects(otherNumObjects) {
+	this->setParameters(paramsH, numObjects);
 	forceSystem = new ChFsiForceParallel(
 		fsiData->sortedSphMarkersD,
 		fsiData->markersProximityD,

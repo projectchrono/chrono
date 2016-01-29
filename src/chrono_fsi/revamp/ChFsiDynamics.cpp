@@ -23,6 +23,7 @@ void ChFsiDynamics::CopyDeviceDataToHalfStep(){
 }
 
 void ChFsiDynamics::DoStepDynamics_FSI(){
+
 	ChFsiInterface->Copy_ChSystem_to_External();
 	this->CopyDeviceDataToHalfStep();
 	ChDeviceUtils::FillMyThrust4(fsiData->FsiGeneralData.derivVelRhoD);
@@ -32,5 +33,43 @@ void ChFsiDynamics::DoStepDynamics_FSI(){
 		fsiData->fsiBodiesD1,
 		0.5 * paramsH.dT);
 
-	// left off here
+	bceWorker->Rigid_Forces_Torques(fsiData->sphMarkersD1, fsiData->fsiBodiesD1);
+	ChFsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
+	mTime += 0.5 * paramsH.dT;
+
+
+	// TODO
+		DoStepChronoSystem(mphysicalSystem, mVehicle, 0.5 * paramsH.dT, mTime,
+				time_hold_vehicle, haveVehicle); // Keep only this if you are just interested in the rigid sys
+	//
+	ChFsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(fsiData->fsiBodiesD2);
+	bceWorker->UpdateRigidMarkersPositionVelocity(fsiData->sphMarkersD2, fsiData->fsiBodiesD2);
+
+
+
+	ChFluidDynamics->IntegrateSPH(
+		fsiData->sphMarkersD1,
+		fsiData->sphMarkersD2,
+		fsiData->fsiBodiesD2,
+		paramsH.dT);
+	bceWorker->Rigid_Forces_Torques(fsiData->sphMarkersD2, fsiData->fsiBodiesD2);
+	ChFsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
+	mTime -= 0.5 * paramsH.dT;
+	ChFsiInterface->Copy_External_To_ChSystem();
+	mTime += paramsH.dT;
+
+	// TODO
+		DoStepChronoSystem(mphysicalSystem, mVehicle, 1.0 * paramsH.dT, mTime,
+			time_hold_vehicle, haveVehicle);
+	//
+	ChFsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(fsiData->fsiBodiesD1);
+	bceWorker->UpdateRigidMarkersPositionVelocity(fsiData->sphMarkersD1, fsiData->fsiBodiesD1);
+
+
+	// TODO
+	if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
+		DensityReinitialization(posRadD, velMasD, rhoPresMuD,
+				numObjects.numAllMarkers, paramsH.gridSize);
+	}
+
 }

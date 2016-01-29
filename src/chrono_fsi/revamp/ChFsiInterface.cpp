@@ -139,7 +139,7 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
 }
 //------------------------------------------------------------------------------------
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
-void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem() {
+void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsiBodiesD) {
 	int num_fsiBodies_Rigids = fsiBodeisIndex->size();
 	if (posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids
 			|| posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
