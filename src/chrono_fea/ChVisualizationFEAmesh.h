@@ -102,6 +102,7 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     bool undeformed_reference;
 
     int beam_resolution;
+    int beam_resolution_section;
     int shell_resolution;
 
     ChColor meshcolor;
@@ -151,9 +152,14 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     void SetSymbolsThickness(double mthick) { this->symbols_thickness = mthick; }
     double GetSymbolsThickness() { return this->symbols_thickness; }
 
-    /// Set the resolution of beam triangulated drawing
+    /// Set the resolution of beam triangulated drawing, along direction of beam
     void SetBeamResolution(int mres) { this->beam_resolution = mres; }
     int GetBeamResolution() { return this->beam_resolution; }
+
+    /// Set the resolution of beam triangulated drawing, along the section 
+    /// (i.e. for circular section= number of points along the circle)
+    void SetBeamResolutionSection(int mres) { this->beam_resolution_section = mres; }
+    int GetBeamResolutionSection() { return this->beam_resolution_section; }
 
     /// Set the resolution of shell triangulated drawing
     void SetShellResolution(int mres) { this->shell_resolution = mres; }

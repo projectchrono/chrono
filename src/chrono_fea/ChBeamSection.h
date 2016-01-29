@@ -33,11 +33,13 @@ public:
 
     double y_drawsize;
     double z_drawsize;
+    bool is_circular;
 
     ChBeamSection()
                 {
                     this->y_drawsize = 0.01;
                     this->z_drawsize = 0.01;
+                    this->is_circular = 0;
                 }
 
     virtual ~ChBeamSection() {}
@@ -55,6 +57,19 @@ public:
     double GetDrawThicknessY() {return this->y_drawsize;}
     double GetDrawThicknessZ() {return this->z_drawsize;}
 
+                /// Tells if the section must be drawn as a circular 
+                /// section instead than default rectangular
+    bool IsCircular() {return is_circular;}
+                /// Set if the section must be drawn as a circular 
+                /// section instead than default rectangular
+    void SetCircular(bool ic) {is_circular = ic;}
+
+                /// Sets the radius of the beam if in 'circular section' draw mode,
+                /// only for drawing/rendering purposes (this radius value do NOT
+                /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection() 
+                ////instead if you want to affect also the inertias of the beam section).
+    void   SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad;}
+    double GetDrawCircularRadius() {return this->y_drawsize;}
 };
 
 
@@ -138,6 +153,7 @@ public:
                     this->Ks_y = 10.0*(1.0+poisson) / (12.0+ 11.0*poisson); 
                     this->Ks_z = this->Ks_y;
 
+                    this->is_circular = false;
                     this->y_drawsize = width_y;
                     this->z_drawsize = width_z;
                 }
@@ -160,8 +176,8 @@ public:
                     this->Ks_y = 6.0*(1.0+poisson) / (7.0+ 6.0*poisson); 
                     this->Ks_z = this->Ks_y;
 
-                    this->y_drawsize = diameter;
-                    this->z_drawsize = diameter;
+                    this->is_circular = true;
+                    this->SetDrawCircularRadius(diameter/2);
                 }
 
                 /// Set the density of the beam (kg/m^3)
@@ -285,8 +301,8 @@ public:
                     this->Area = CH_C_PI * pow((0.5*diameter),2);
                     this->I = (CH_C_PI/4.0)* pow((0.5*diameter),4);
 
-                    this->y_drawsize = diameter;
-                    this->z_drawsize = diameter;
+                    this->is_circular = true;
+                    this->SetDrawCircularRadius(diameter/2);
                 }
 
                 /// Set the density of the beam (kg/m^3)
