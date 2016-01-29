@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Class for performing time integration in fsi system.//
+// Class for performing time integration in fluid system.//
 // =============================================================================
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -216,7 +216,7 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-ChTimeIntegrateFsi::ChTimeIntegrateFsi(
+ChFluidDynamics::ChFluidDynamics(
 			ChFsiDataManager* otherFsiData,
 			SimParams* otherParamsH, 
 			NumberOfObjects* otherNumObjects)
@@ -232,7 +232,7 @@ ChTimeIntegrateFsi::ChTimeIntegrateFsi(
 	this->setParameters(otherParamsH, otherNumObjects);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChTimeIntegrateFsi::IntegrateSPH(
+void ChFluidDynamics::IntegrateSPH(
 		SphMarkerDataD * sphMarkersD2,
 		SphMarkerDataD * sphMarkersD1,
 		FsiBodiesDataD * fsiBodiesD1,
@@ -243,7 +243,7 @@ void ChTimeIntegrateFsi::IntegrateSPH(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the fluid particles by calling UpdateFluidD
-void ChTimeIntegrateFsi::UpdateFluid(
+void ChFluidDynamics::UpdateFluid(
 	SphMarkerDataD * sphMarkersD,
 	Real dT) {
 
@@ -284,7 +284,7 @@ void ChTimeIntegrateFsi::UpdateFluid(
  * @details
  * 		See SDKCollisionSystem.cuh for more info
  */
-void ChTimeIntegrateFsi::ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD) {
+void ChFluidDynamics::ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD) {
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(paramsH.numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
 	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(

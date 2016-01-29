@@ -12,34 +12,36 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Class for performing time integration in fsi system.//
+// Class for performing time integration in fluid system.//
 // =============================================================================
 
-#ifndef CH_TIMEINTEGRATE_FSI_H_
-#define CH_TIMEINTEGRATE_FSI_H_
+#ifndef CH_FLUIDDYNAMICS_H_
+#define CH_FLUIDDYNAMICS_H_
 
 namespace fsi {
 
-class CH_FSI_API ChTimeIntegrateFsi : public ChFsiGeneral{
+class CH_FSI_API ChFluidDynamics : public ChFsiGeneral{
 public:
 	//TODO: Default constructor
-	ChTimeIntegrateFsi(
+	ChFluidDynamics(
 		ChFsiDataManager* otherFsiData,
 		SimParams* otherParamsH, 
 		NumberOfObjects* otherNumObjects);
 
-	~ChTimeIntegrateFsi(); //TODO
+	~ChFluidDynamics(); //TODO
+	
+	void IntegrateSPH(
+	SphMarkerDataD * sphMarkersD2,
+	SphMarkerDataD * sphMarkersD1,
+	FsiBodiesDataD * fsiBodiesD1,
+	Real dT);
 
 protected:
 	ChFsiDataManager* fsiData;
 	ChFsiForceParallel* forceSystem;
+	ChFsiInterface*	fsiChronoInterface;
 
 
-	void IntegrateSPH(
-		SphMarkerDataD * sphMarkersD2,
-		SphMarkerDataD * sphMarkersD1,
-		FsiBodiesDataD * fsiBodiesD1,
-		Real dT);
 	void UpdateFluid(SphMarkerDataD * sphMarkersD, Real dT);
 	void ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD);
 

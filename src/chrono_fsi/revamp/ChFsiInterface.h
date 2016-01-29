@@ -21,7 +21,13 @@ namespace fsi {
 
 class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 	public:
-		ChFsiInterface();
+		ChFsiInterface(
+			FsiBodiesDataH * othere_fsiBodiesH,
+			ChronoBodiesDataH * othere_chronoRigidBackup,
+			chrono::ChSystemParallelDVI * othere_mphysicalSystem,
+			std::vector<chrono::ChSharedPtr<chrono::ChBody> > * othere_fsiBodeisIndex,
+			thrust::device_vector<Real3> * othere_rigid_FSI_ForcesD,
+			thrust::device_vector<Real3> * othere_rigid_FSI_TorquesD);
 		~ChFsiInterface(); // TODO
 
 		void Add_Rigid_ForceTorques_To_ChSystem();
