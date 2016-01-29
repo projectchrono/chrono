@@ -48,6 +48,7 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
 	smooth_faces = false;
 
     beam_resolution = 8;
+    beam_resolution_section = 10;
     shell_resolution = 3;
 
 	meshcolor = ChColor(1,1,1,0);
@@ -284,10 +285,28 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
 		    // ELEMENT IS A BEAM
             if (this->FEMmesh->GetElement(iel).IsType<ChElementBeam>()) {
-			    n_verts +=4*beam_resolution;
-			    n_vcols +=4*beam_resolution;
-			    n_vnorms +=8*beam_resolution;
-			    n_triangles +=8*(beam_resolution-1); // n. triangle faces
+                bool m_circular = false;
+                // downcasting 
+                if (ChSharedPtr<ChElementBeamEuler> mybeameuler =  this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementBeamEuler>() ) {
+                    if (mybeameuler->GetSection()->IsCircular()) 
+                        m_circular = true;
+                }
+                if (ChSharedPtr<ChElementBeamANCF> mybeamancf =  this->FEMmesh->GetElement(iel).DynamicCastTo<ChElementBeamANCF>() ) {
+                    if (mybeamancf->GetSection()->IsCircular()) 
+                        m_circular = true;
+                }
+                if (m_circular) {
+                    n_verts +=beam_resolution_section*beam_resolution;
+                    n_vcols +=beam_resolution_section*beam_resolution;
+			        n_vnorms +=beam_resolution_section*beam_resolution;
+			        n_triangles +=2*beam_resolution_section*(beam_resolution-1); // n. triangle faces
+                } 
+                else { // rectangular
+			        n_verts +=4*beam_resolution;
+			        n_vcols +=4*beam_resolution;
+			        n_vnorms +=8*beam_resolution;
+			        n_triangles +=8*(beam_resolution-1); // n. triangle faces
+                }
 		    }
 
             // ELEMENT IS A SHELL
@@ -373,6 +392,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 	//
 	// C - update mesh buffers 
 	//
+
+    bool need_automatic_smoothing = this->smooth_faces;
 
 	unsigned int i_verts = 0;
 	unsigned int i_vcols = 0;
@@ -630,18 +651,24 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
 			    double y_thick = 0.01; // line thickness default value
 			    double z_thick = 0.01; 
+                bool m_circular = false;
+                double m_rad = 0;
 
 			    ChSharedPtr<ChElementBeamEuler> mybeameuler ( mybeam.DynamicCastTo<ChElementBeamEuler>() );
-                    if (!mybeameuler.IsNull()) {
-				    // if the beam has a section info, use section specific thickness for drawing
-				    y_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessY();
-				    z_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessZ();
+                if (!mybeameuler.IsNull()) {
+				        // if the beam has a section info, use section specific thickness for drawing
+				        y_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessY();
+				        z_thick = 0.5*mybeameuler->GetSection()->GetDrawThicknessZ();
+                        m_circular = mybeameuler->GetSection()->IsCircular();
+                        m_rad = mybeameuler->GetSection()->GetDrawCircularRadius();
 			    }
 			    ChSharedPtr<ChElementBeamANCF> mybeamancf ( mybeam.DynamicCastTo<ChElementBeamANCF>() );
-                    if (!mybeamancf.IsNull()) {
-				    // if the beam has a section info, use section specific thickness for drawing
-				    y_thick = 0.5*mybeamancf->GetSection()->GetDrawThicknessY();
-				    z_thick = 0.5*mybeamancf->GetSection()->GetDrawThicknessZ();
+                if (!mybeamancf.IsNull()) {
+				        // if the beam has a section info, use section specific thickness for drawing
+				        y_thick = 0.5*mybeamancf->GetSection()->GetDrawThicknessY();
+				        z_thick = 0.5*mybeamancf->GetSection()->GetDrawThicknessZ();
+                        m_circular = mybeamancf->GetSection()->IsCircular();
+                        m_rad = mybeamancf->GetSection()->GetDrawCircularRadius();
 			    }
 
 			    unsigned int ivert_el = i_verts;
@@ -651,7 +678,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 			    ChMatrixDynamic<> displ(mybeam->GetNdofs(),1);
 			    mybeam->GetStateBlock(displ); // for field of corotated element, u_displ will be always 0 at ends
 
-                    for (int in = 0; in < beam_resolution; ++in) {
+                for (int in = 0; in < beam_resolution; ++in) {
 				    double eta = -1.0+(2.0*in/(beam_resolution-1));
 				
 				    ChVector<> P;
@@ -697,59 +724,106 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                                 break;
 				    }
 				    ChVector<float> mcol = ComputeFalseColor(sresult);
+                   
+                    if (m_circular) {
 
-                        trianglemesh.getCoordsVertices()[i_verts] =
-                            P + msectionrot.Rotate(ChVector<>(0, -y_thick, -z_thick));
-				    ++i_verts;
-                        trianglemesh.getCoordsVertices()[i_verts] =
-                            P + msectionrot.Rotate(ChVector<>(0, y_thick, -z_thick));
-				    ++i_verts;
-				    trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0, y_thick, z_thick) ) ; 
-				    ++i_verts;
-                        trianglemesh.getCoordsVertices()[i_verts] =
-                            P + msectionrot.Rotate(ChVector<>(0, -y_thick, z_thick));
-				    ++i_verts;
+                        // prepare a circular section
+                        std::vector<ChVector<>> msection_pts(beam_resolution_section);
+                        for (int is= 0; is< msection_pts.size(); ++is) {
+                            double sangle = CH_C_2PI * ((double)is/(double)msection_pts.size());
+                            msection_pts[is] =  ChVector<>(0, cos(sangle)*m_rad, sin(sangle)*m_rad);
+                        }
 
-				    trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
-				    ++i_vcols;
-				    trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
-				    ++i_vcols;
-				    trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
-				    ++i_vcols;
-				    trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
-				    ++i_vcols;
+                        for (int is= 0; is< msection_pts.size(); ++is) {
+                            ChVector<> Rw =  msectionrot.Rotate( msection_pts[is] );
+                            trianglemesh.getCoordsVertices()[i_verts] = P + Rw;
+                            ++i_verts;
+                            trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
+				            ++i_vcols;
+                            trianglemesh.getCoordsNormals()[i_vnorms] =  msectionrot.Rotate( Rw.GetNormalized() ); 
+                            ++i_vnorms; 
+                        }
+                        // no need to compute normals later with TriangleNormalsCompute
+                        need_automatic_smoothing = false;
 
                         if (in > 0) {
-					    ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
-					    ChVector<int> islice_offset((in-1)*4,(in-1)*4,(in-1)*4);
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(4, 0, 1) + islice_offset + ivert_offset;
-					    ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(4, 1, 5) + islice_offset + ivert_offset;
-					    ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(5, 1, 2) + islice_offset + ivert_offset;
-					    ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(5, 2, 6) + islice_offset + ivert_offset;
-					    ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(6, 2, 3) + islice_offset + ivert_offset;
-					    ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(6, 3, 7) + islice_offset + ivert_offset;
-					    ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(7, 3, 0) + islice_offset + ivert_offset;
-					    ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
-                                ChVector<int>(7, 0, 4) + islice_offset + ivert_offset;
-					    ++i_triindex;
+                            ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+					        ChVector<int> islice_offset((in-1)*msection_pts.size(),(in-1)*msection_pts.size(),(in-1)*msection_pts.size());
+                            for (int is= 0; is< msection_pts.size(); ++is) {
+                                int ipa  = is;
+                                int ipb  = (is+1) % msection_pts.size();
+                                int ipaa = ipa+msection_pts.size();
+                                int ipbb = ipb+msection_pts.size();
+
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
+                                trianglemesh.getIndicesNormals()[i_triindex] =
+                                    ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
+					            ++i_triindex;
+
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(ipa, ipb,  ipbb) + islice_offset + ivert_offset;
+                                trianglemesh.getIndicesNormals()[i_triindex] =
+                                    ChVector<int>(ipa, ipb,  ipbb) + islice_offset + ivert_offset;
+					            ++i_triindex;
+                            }
+                        } 
+                    }
+                    // if rectangle shape...
+                    else {         
+                        trianglemesh.getCoordsVertices()[i_verts] =
+                                P + msectionrot.Rotate(ChVector<>(0, -y_thick, -z_thick));
+				        ++i_verts;
+                        trianglemesh.getCoordsVertices()[i_verts] =
+                                P + msectionrot.Rotate(ChVector<>(0, y_thick, -z_thick));
+				        ++i_verts;
+				        trianglemesh.getCoordsVertices()[i_verts] = P + msectionrot.Rotate(ChVector<>(0, y_thick, z_thick) ) ; 
+				        ++i_verts;
+                        trianglemesh.getCoordsVertices()[i_verts] =
+                                P + msectionrot.Rotate(ChVector<>(0, -y_thick, z_thick));
+				        ++i_verts;
+
+				        trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
+				        ++i_vcols;
+				        trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
+				        ++i_vcols;
+				        trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
+				        ++i_vcols;
+				        trianglemesh.getCoordsColors()[i_vcols] =  mcol; 
+				        ++i_vcols;
+
+                        if (in > 0) {
+					        ChVector<int> ivert_offset(ivert_el,ivert_el,ivert_el);
+					        ChVector<int> islice_offset((in-1)*4,(in-1)*4,(in-1)*4);
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(4, 0, 1) + islice_offset + ivert_offset;
+					        ++i_triindex;
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(4, 1, 5) + islice_offset + ivert_offset;
+					        ++i_triindex;
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(5, 1, 2) + islice_offset + ivert_offset;
+					        ++i_triindex;
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(5, 2, 6) + islice_offset + ivert_offset;
+					        ++i_triindex;
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(6, 2, 3) + islice_offset + ivert_offset;
+					        ++i_triindex;
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(6, 3, 7) + islice_offset + ivert_offset;
+					        ++i_triindex;
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(7, 3, 0) + islice_offset + ivert_offset;
+					        ++i_triindex;
+                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(7, 0, 4) + islice_offset + ivert_offset;
+					        ++i_triindex;
+
                             if (this->smooth_faces) {
                                 ChVector<int> islice_normoffset((in - 1) * 8, (in - 1) * 8,
                                                                 (in - 1) * 8);  //***TO DO*** fix errors in normals
-						    ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
+						        ChVector<int> inorm_offset = ChVector<int> (inorm_el,inorm_el,inorm_el);
                                 trianglemesh.getIndicesNormals()[i_triindex - 8] =
                                     ChVector<int>(8, 0, 1) + islice_normoffset + inorm_offset;
                                 trianglemesh.getIndicesNormals()[i_triindex - 7] =
@@ -766,10 +840,12 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                                     ChVector<int>(11 + 4, 3 + 4, 0 + 4) + islice_normoffset + inorm_offset;
                                 trianglemesh.getIndicesNormals()[i_triindex - 1] =
                                     ChVector<int>(11 + 4, 0 + 4, 8 + 4) + islice_normoffset + inorm_offset;
-						    i_vnorms +=8;
-					    }				
-				    }
-			    }		
+						        i_vnorms +=8;
+                            }				
+                        } 
+
+                    } // end if rectangle
+                } // end sections loop	
 		    }
 
             // ------------ELEMENT IS A SHELL?
@@ -875,9 +951,12 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 			        ChVector<> p0 = node0->GetPos();
 			        ChVector<> p1 = node1->GetPos();
 			        ChVector<> p2 = node2->GetPos();
-    p0.x +=1;
-    p1.x +=1;
-    p2.x +=1;
+
+                    // debug: offset 1 m to show it better..
+                    //    p0.x +=1;
+                    //    p1.x +=1;
+                    //    p2.x +=1;
+
 			        trianglemesh.getCoordsVertices()[i_verts] = p0; 
 			        ++i_verts;
 			        trianglemesh.getCoordsVertices()[i_verts] = p1; 
@@ -973,7 +1052,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
 
 
-	if (this->smooth_faces)
+	if (need_automatic_smoothing)
 	{
 		for (unsigned int itri = 0; itri < trianglemesh.getIndicesVertexes().size(); ++itri)
             TriangleNormalsCompute(trianglemesh.getIndicesNormals()[itri], trianglemesh.getIndicesVertexes()[itri],
