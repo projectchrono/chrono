@@ -35,7 +35,7 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 //#include "chrono_matlab/ChMatlabEngine.h"
-#include "chrono_matlab/ChLcpMatlabSolver.h"
+//#include "chrono_matlab/ChLcpMatlabSolver.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...

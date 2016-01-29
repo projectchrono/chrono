@@ -29,7 +29,7 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 //#include "chrono_matlab/ChMatlabEngine.h"
-#include "chrono_matlab/ChLcpMatlabSolver.h"
+//#include "chrono_matlab/ChLcpMatlabSolver.h"
 
 #include "chrono_mkl/ChLcpMklSolver.h"
 
