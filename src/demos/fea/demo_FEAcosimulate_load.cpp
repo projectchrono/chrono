@@ -28,6 +28,7 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -164,12 +165,12 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial, node_sets, tire_center, tire_alignment);
+        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
+                                         node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
     }
-
 
     // Create the contact surface(s). 
     // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh:

@@ -141,33 +141,6 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Tell if this mesh will add automatically a gravity load to all contained elements 
     bool GetAutomaticGravity() {return automatic_gravity_load;} 
 
-    /// Load tetahedrons from .node and .ele files as saved by TetGen.
-    /// The file format for .node (with point# starting from 1) is:
-    ///   [# of points] [dimension (only 3)] [# of attributes (only 0)] [markers (only 0)]
-    ///   [node #] [x] [y] [z]
-    ///   [node #] [x] [y] [z]   etc.
-    /// The file format for .ele (with tet# starting from 1) is:
-    ///   [# of tetahedrons] [dimension (only 4 supported)] [# of attributes (only 0)]
-    ///   [tet #] [node #] [node #] [node #] [node #]
-    ///   [tet #] [node #] [node #] [node #] [node #]   etc.
-    /// If you pass a material inherited by ChContinuumElastic, nodes with 3D motion are used, and corotational
-    /// elements.
-    /// If you pass a material inherited by ChContinuumPoisson3D, nodes with scalar field are used (ex. thermal,
-    /// electrostatics, etc)
-    void LoadFromTetGenFile(const char* filename_node,                      ///< name of the .node file
-                            const char* filename_ele,                       ///< name of the .ele  file
-                            ChSharedPtr<ChContinuumMaterial> my_material,   ///< material for the created tetahedrons
-                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
-                            ChMatrix33<> rot_transform = ChMatrix33<>(1));  ///< optional rotation/scaling of imported mesh
-
-    /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
-    void LoadFromAbaqusFile(const char* filename,
-                            ChSharedPtr<ChContinuumMaterial> my_material,
-                            std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes 
-                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
-                            ChMatrix33<> rot_transform = ChMatrix33<>(1),   ///< optional rotation/scaling of imported mesh
-                            bool discard_unused_nodes = true);              ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
-
     //
     // STATE FUNCTIONS
     //
