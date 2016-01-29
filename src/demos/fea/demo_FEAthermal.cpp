@@ -29,7 +29,7 @@
 #include "chrono_fea/ChContinuumElectrostatics.h"
 #include "chrono_fea/ChNodeFEAxyzP.h"
 #include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChMEshFileLoader.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
