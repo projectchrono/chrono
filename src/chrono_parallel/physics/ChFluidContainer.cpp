@@ -7,12 +7,12 @@
 #include "chrono_parallel/constraints/ChConstraintFluidFluidUtils.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 
-#include "chrono_parallel/math/other_types.h"         // for uint, int2, int3
-#include "chrono_parallel/math/real.h"                // for real
-#include "chrono_parallel/math/real2.h"               // for real2
-#include "chrono_parallel/math/real3.h"               // for real3
-#include "chrono_parallel/math/real4.h"               // for quaternion, real4
-#include "chrono_parallel/math/mat33.h"               // for quaternion, real4
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/real.h"         // for real
+#include "chrono_parallel/math/real2.h"        // for real2
+#include "chrono_parallel/math/real3.h"        // for real3
+#include "chrono_parallel/math/real4.h"        // for quaternion, real4
+#include "chrono_parallel/math/mat33.h"        // for quaternion, real4
 
 namespace chrono {
 
@@ -358,7 +358,7 @@ void ChFluidContainer::Build_D() {
                     real density_a = density[body_a];
                     real density_b = density[body_b];
                     real part_a = (8.0 / (density_a + density_b));
-                    real part_b = visca + viscb;  //(visca / density_a + viscb / density_b);  // /
+                    real part_b = (visca / density_a + viscb / density_b);
                     real part_c = 1.0 / (h * ((dist * dist / (H2)) + eta_2));
                     real scalar = -mass_2 * part_a * part_b * part_c;
 
@@ -637,9 +637,10 @@ void ChFluidContainer::CalculateContactForces() {
     SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
     SubVectorType gamma_t = subvector(gamma, start_boundary + _num_rf_c_, 2 * _num_rf_c_);
 
-    contact_forces =
-        submatrix(data_manager->host_data.D, 0, start_boundary, _num_dof_, _num_rf_c_) * gamma_n / data_manager->settings.step_size +
-        submatrix(data_manager->host_data.D, 0, start_boundary + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) * gamma_t / data_manager->settings.step_size;
+    contact_forces = submatrix(data_manager->host_data.D, 0, start_boundary, _num_dof_, _num_rf_c_) * gamma_n /
+                         data_manager->settings.step_size +
+                     submatrix(data_manager->host_data.D, 0, start_boundary + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) *
+                         gamma_t / data_manager->settings.step_size;
 
     // contact_forces
 }
