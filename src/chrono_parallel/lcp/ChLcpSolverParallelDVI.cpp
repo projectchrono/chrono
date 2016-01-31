@@ -28,12 +28,13 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
     uint num_tet_constraints = data_manager->fea_container->GetNumConstraints();
+    uint num_mpm_constraints = data_manager->mpm_container->GetNumConstraints();
 
     // Get the number of 3dof constraints, from the 3dof container in use right now
 
     // This is the total number of constraints
-    data_manager->num_constraints =
-        data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof + num_tet_constraints;
+    data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof +
+                                    num_tet_constraints + num_mpm_constraints;
 
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
@@ -47,7 +48,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     bilateral.Setup(data_manager);
     data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals);
     data_manager->fea_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
-    data_manager->mpm_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof + num_tet_constraints);
+    data_manager->mpm_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof +
+                                       num_tet_constraints);
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;

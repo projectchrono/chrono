@@ -53,7 +53,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void Build_b() {}
     virtual void Build_E() {}
     virtual void PreSolve() {}
-    virtual void ComputeDOF(){}
+    virtual void ComputeDOF() {}
 
     // During Solve
     virtual void Project(real* gamma) {}
@@ -168,12 +168,12 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void Setup(int start_constraint);
     void Initialize();
     void PreSolve();
-    void Build_D() {}
-    void Build_b() {}
-    void Build_E() {}
+    void Build_D();
+    void Build_b();
+    void Build_E();
     void UpdateRhs();
     void Project(real* gamma) {}
-    void GenerateSparsity() {}
+    void GenerateSparsity();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     void PostSolve();
@@ -183,10 +183,10 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     DynamicVector<real> grid_mass;
     DynamicVector<real> grid_vel_old;
     DynamicVector<real> volume;
-    custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
-
-    DynamicVector<real> r, p, Ap, q, s;
-
+    custom_vector<Mat33> Fe, Fe_hat, Fp;
+    custom_vector<Mat33> Fe_node, Fp_node;
+    uint start_node;
+    uint num_mpm_constraints;
     real mass;
     real mu;
     real hardening_coefficient;
@@ -201,7 +201,6 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     int3 bins_per_axis;
     real bin_edge;
     real inv_bin_edge;
-    uint grid_size;
     uint body_offset;
 };
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
