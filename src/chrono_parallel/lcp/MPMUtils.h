@@ -115,7 +115,7 @@ Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, rea
     // Paper: Equation 2
     real current_mu = mu * exp(hardening_coefficient * (real(1.) - JP));
     real current_lambda = lambda * exp(hardening_coefficient * (real(1.) - JP));
-   // printf("CONST: %f %f %f %f %f\n", mu, lambda, hardening_coefficient, JP, JE);
+    // printf("CONST: %f %f %f %f %f\n", mu, lambda, hardening_coefficient, JP, JE);
     Mat33 UE, VE;
     real3 EE;
     SVD(FE, UE, EE, VE);
@@ -159,5 +159,51 @@ Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
 
     Mat33 dR = R * rx;
     return dR;
+}
+
+void SplitPotential_Energy_Derivative(const Mat33& FE,
+                                      const Mat33& FP,
+                                      real mu,
+                                      real lambda,
+                                      real hardening_coefficient,
+                                      Mat33& Deviatoric,
+                                      Mat33& Dilational) {
+    real JP = Determinant(FP);
+    real JE = Determinant(FE);
+    // Paper: Equation 2
+    real current_mu = mu * exp(hardening_coefficient * (real(1.) - JP));
+    real current_lambda = lambda * exp(hardening_coefficient * (real(1.) - JP));
+    // printf("CONST: %f %f %f %f %f\n", mu, lambda, hardening_coefficient, JP, JE);
+    Mat33 UE, VE;
+    real3 EE;
+    SVD(FE, UE, EE, VE);
+    // Perform a polar decomposition, FE=RE*SE, RE is the Unitary part
+    Mat33 RE = MultTranspose(UE, VE);
+
+    Deviatoric = real(2.) * current_mu * (FE - RE);
+    Dilational = current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
+}
+
+void SplitPotential_Energy(const Mat33& FE,
+                           const Mat33& FP,
+                           real mu,
+                           real lambda,
+                           real hardening_coefficient,
+                           real& Deviatoric,
+                           real& Dilational) {
+    real JP = Determinant(FP);
+    real JE = Determinant(FE);
+    // Paper: Equation 2
+    real current_mu = mu * exp(hardening_coefficient * (real(1.) - JP));
+    real current_lambda = lambda * exp(hardening_coefficient * (real(1.) - JP));
+    // printf("CONST: %f %f %f %f %f\n", mu, lambda, hardening_coefficient, JP, JE);
+    Mat33 UE, VE;
+    real3 EE;
+    SVD(FE, UE, EE, VE);
+    // Perform a polar decomposition, FE=RE*SE, RE is the Unitary part
+    Mat33 RE = MultTranspose(UE, VE);
+
+    Deviatoric = current_mu * Trace(Transpose(FE - RE) * (FE - RE));
+    Dilational = current_lambda / 2.0 * (JE - real(1.));
 }
 }

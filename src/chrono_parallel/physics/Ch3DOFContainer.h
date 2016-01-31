@@ -183,7 +183,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     DynamicVector<real> grid_mass;
     DynamicVector<real> grid_vel_old;
     DynamicVector<real> volume;
-    custom_vector<Mat33> Fe, Fe_hat, Fp;
+    custom_vector<Mat33> Fe, Fe_hat, Fp, delta_F;
     custom_vector<Mat33> Fe_node, Fp_node;
     uint start_node;
     uint num_mpm_constraints;

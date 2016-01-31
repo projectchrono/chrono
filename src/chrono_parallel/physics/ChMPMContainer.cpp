@@ -58,6 +58,7 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     Fe.resize(data_manager->num_mpm_markers);
     Fe_hat.resize(data_manager->num_mpm_markers);
     Fp.resize(data_manager->num_mpm_markers);
+    delta_F.resize(data_manager->num_mpm_markers);
     volume.resize(data_manager->num_mpm_markers);
 
     std::fill(Fp.begin(), Fp.end(), Mat33(1));
@@ -305,17 +306,33 @@ void ChMPMContainer::Build_D() {
         const real3 xi = pos_marker[p];
         Fe_hat[p] = Mat33(1.0);
         Mat33 Fe_hat_t(1);
+        delta_F[p] = Mat33(0);
         LOOPOVERNODES(  //
             real3 vel(data_manager->host_data.v[body_offset + current_node * 3 + 0],
                       data_manager->host_data.v[body_offset + current_node * 3 + 1],
                       data_manager->host_data.v[body_offset + current_node * 3 + 2]);
-            real3 kern = dN(xi - current_node_location, inv_bin_edge);                     //
-            Fe_hat_t += OuterProduct(dt * vel, kern);                                      //
-            Fe_node[current_node] *= OuterProduct(dt * vel, kern) * Fe[p];                 //
-            Fp_node[current_node] *= N(xi - current_node_location, inv_bin_edge) * Fp[p];  //
+            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
+            delta_F[p] += OuterProduct(vel, kern) * Fe[p];
+            // Fe_node[current_node] *= OuterProduct(dt * vel, kern) * Fe[p];                 //
+            // Fp_node[current_node] *= N(xi - current_node_location, inv_bin_edge) * Fp[p];  //
             )
         Fe_hat[p] = Fe_hat_t * Fe[p];
     }
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //        delta_F[p] = Mat33(0);
+    //        LOOPOVERNODES(  //
+    //            real3 vel(data_manager->host_data.v[body_offset + current_node * 3 + 0],
+    //                      data_manager->host_data.v[body_offset + current_node * 3 + 1],
+    //                      data_manager->host_data.v[body_offset + current_node * 3 + 2]);
+    //            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+    //            delta_F[p] += OuterProduct(vel, kern) * Fe[p];              //
+    //            // Fe_node[current_node] += N(xi - current_node_location, inv_bin_edge) * Fe[p];  //
+    //            // Fp_node[current_node] += N(xi - current_node_location, inv_bin_edge) * Fp[p];  //
+    //            )
+    //    }
+
     custom_vector<Mat33> AA(num_mpm_nodes);
     custom_vector<Mat33> BB(num_mpm_nodes);
 
@@ -328,35 +345,23 @@ void ChMPMContainer::Build_D() {
         LOOPOVERNODES(
 
             real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
-            Mat33 F = Fe_hat[p]; Mat33 Ftr = Transpose(Fe_hat[p]); Mat33 A1(1); Mat33 B1(1);
+            Mat33 F = Fe_hat[p];                                        //
+            Mat33 Ftr = Transpose(Fe_hat[p]);                           //
+            Mat33 A1(0); Mat33 B1(0);                                   //
 
-            A1[0] = Ftr[0] * kern.x;  //
-            A1[1] = Ftr[1] * kern.y;  //
-            A1[2] = Ftr[2] * kern.z;  //
-            // 3
+            real3 c1 = F.row(0) * kern.x;  //* delta_F[p].row(0);  //
+            real3 c2 = F.row(1) * kern.y;  //* delta_F[p].row(1);  //
+            real3 c3 = F.row(3) * kern.z;  //* delta_F[p].row(3);  //
+            A1 = Mat33(c1, c2, c3);
 
-            A1[4] = Ftr[4] * kern.x;  //
-            A1[5] = Ftr[5] * kern.y;  //
-            A1[6] = Ftr[6] * kern.z;  //
-            // 7
-            A1[8] = Ftr[8] * kern.x;    //
-            A1[9] = Ftr[9] * kern.y;    //
-            A1[10] = Ftr[10] * kern.z;  //
+            real3 d1 = .5 * SkewSymmetricAlt(F.row(0)) * delta_F[p].row(0);
+            real3 d2 = .5 * SkewSymmetricAlt(F.row(1)) * delta_F[p].row(1);
+            real3 d3 = .5 * SkewSymmetricAlt(F.row(2)) * delta_F[p].row(2);
 
-            B1[0] = F[0] * kern.y + F[4] * kern.x;  //
-            B1[1] = F[4] * kern.z + F[8] * kern.y;  //
-            B1[2] = F[0] * kern.z + F[8] * kern.x;  //
-
-            B1[4] = F[1] * kern.y + F[5] * kern.x;  //
-            B1[5] = F[5] * kern.z + F[9] * kern.y;  //
-            B1[6] = F[1] * kern.z + F[9] * kern.x;  //
-
-            B1[8] = F[2] * kern.y + F[6] * kern.x;    //
-            B1[9] = F[6] * kern.z + F[10] * kern.y;   //
-            B1[10] = F[2] * kern.z + F[10] * kern.x;  //
-
-            AA[current_node] += N(xi - current_node_location, inv_bin_edge) * A1;
-            BB[current_node] += N(xi - current_node_location, inv_bin_edge) * B1;);
+            B1 = Mat33(d1, d2, d3);              //
+            AA[current_node] += N(xi - current_node_location, inv_bin_edge) * A1;  //
+                                                 // BB[current_node] += volume[p] * B1;
+            );
     }
 
     LOG(INFO) << "ChMPMContainer::Compute Jacobian";
@@ -371,61 +376,18 @@ void ChMPMContainer::Build_D() {
         Mat33 A1, B1;
         A1 = AA[i];
         B1 = BB[i];
-        //        A1[0] = Ftr[0] * kern.x;
-        //        A1[1] = Ftr[1] * kern.y;
-        //        A1[2] = Ftr[2] * kern.z;
-        //        // 3
-        //
-        //        A1[4] = Ftr[4] * kern.x;
-        //        A1[5] = Ftr[5] * kern.y;
-        //        A1[6] = Ftr[6] * kern.z;
-        //        // 7
-        //        A1[8] = Ftr[8] * kern.x;
-        //        A1[9] = Ftr[9] * kern.y;
-        //        A1[10] = Ftr[10] * kern.z;
-        //
-        //        B1[0] = F[0] * kern.y + F[4] * kern.x;
-        //        B1[1] = F[4] * kern.z + F[8] * kern.y;
-        //        B1[2] = F[0] * kern.z + F[8] * kern.x;
-        //
-        //        B1[4] = F[1] * kern.y + F[5] * kern.x;
-        //        B1[5] = F[5] * kern.z + F[9] * kern.y;
-        //        B1[6] = F[1] * kern.z + F[9] * kern.x;
-        //
-        //        B1[8] = F[2] * kern.y + F[6] * kern.x;
-        //        B1[9] = F[6] * kern.z + F[10] * kern.y;
-        //        B1[10] = F[2] * kern.z + F[10] * kern.x;
 
-        //        Mat33 A1 = AA[i];  // Transpose(F) * Mat33(kern);
-        //
-        //        real3 row1 = F.row(0);
-        //        real3 row2 = F.row(1);
-        //        real3 row3 = F.row(2);
-        //        //
-        //        real3 C1 = Mat33(row1.y, 0, row1.z, row1.x, row1.z, 0, 0, row1.y, row1.x) * kern;
-        //        real3 C2 = Mat33(row2.y, 0, row2.z, row2.x, row2.z, 0, 0, row2.y, row2.x) * kern;
-        //        real3 C3 = Mat33(row3.y, 0, row3.z, row3.x, row3.z, 0, 0, row3.y, row3.x) * kern;
-        //
-        //        //        Mat33 Ftr = Transpose(F);
-        //        //
-        //        //        Mat33 small_strain = .5 * (F + Ftr) - Mat33(1);
-        //        //        Mat33 dir_deriv = Ftr*small_strain*F;
+        //        real3 c = F.row(0) * F.row(0) + F.row(1)*F.row(1) + F.row(3)*F.row(3);
+
         //
         SetRow3Check(D_T, start_node + i * 6 + 0, body_offset + i * 3, A1.row(0));
         SetRow3Check(D_T, start_node + i * 6 + 1, body_offset + i * 3, A1.row(1));
         SetRow3Check(D_T, start_node + i * 6 + 2, body_offset + i * 3, A1.row(2));
-        //
-        //        // printf("GVV [%.20f %.20f %.20f] \n", kern.x, kern.y, kern.z);
-        //
-        Print(A1, "A1:");
-        //
-        //        /////==================================================================================================================================
-        //
-        //        //        C1 = SkewSymmetricAlt(F.row(0)) * kern;
-        //        //        C2 = SkewSymmetricAlt(F.row(1)) * kern;
-        //        //        C3 = SkewSymmetricAlt(F.row(2)) * kern;
-        //
-        //        Mat33 B1 = BB[i];  // Mat33(C1, C2, C3);
+
+        // ePrint(A1, "A1:");
+
+        /////==================================================================================================================================
+
         SetRow3Check(D_T, start_node + i * 6 + 3, body_offset + i * 3, B1.row(0));
         SetRow3Check(D_T, start_node + i * 6 + 4, body_offset + i * 3, B1.row(1));
         SetRow3Check(D_T, start_node + i * 6 + 5, body_offset + i * 3, B1.row(2));
@@ -436,24 +398,24 @@ void ChMPMContainer::Build_b() {
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_node, num_mpm_constraints);
     b_sub = 0;
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
-//    for (int p = 0; p < num_mpm_markers; p++) {
-//        const real3 xi = pos_marker[p];
-//        Mat33 Fe_hat_t(1);
-//        LOOPOVERNODES(
-//
-//            Mat33 F = Fe_hat[p]; Mat33 Ftr = Transpose(Fe_hat[p]);
-//            Mat33 strain = N(xi - current_node_location, inv_bin_edge) * 0.5 * (Ftr * F - Mat33(1));
-//
-//            b_sub[current_node * 6 + 0] += strain[0];   //
-//            b_sub[current_node * 6 + 1] += strain[5];   //
-//            b_sub[current_node * 6 + 2] += strain[10];  //
-//
-//            b_sub[current_node * 6 + 3] += strain[9];  //
-//            b_sub[current_node * 6 + 4] += strain[8];  //
-//            b_sub[current_node * 6 + 5] += strain[4];  //
-//
-//            );
-//    }
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //        Mat33 Fe_hat_t(1);
+    //        LOOPOVERNODES(
+    //
+    //            Mat33 F = Fe_hat[p]; Mat33 Ftr = Transpose(Fe_hat[p]);
+    //            Mat33 strain = N(xi - current_node_location, inv_bin_edge) * 0.5 * (Ftr * F - Mat33(1));
+    //
+    //            b_sub[current_node * 6 + 0] += strain[0];   //
+    //            b_sub[current_node * 6 + 1] += strain[5];   //
+    //            b_sub[current_node * 6 + 2] += strain[10];  //
+    //
+    //            b_sub[current_node * 6 + 3] += strain[9];  //
+    //            b_sub[current_node * 6 + 4] += strain[8];  //
+    //            b_sub[current_node * 6 + 5] += strain[4];  //
+    //
+    //            );
+    //    }
     //
     //#pragma omp parallel for
     //    for (int i = 0; i < num_mpm_nodes; i++) {
@@ -494,36 +456,63 @@ void ChMPMContainer::Build_E() {
     LOG(INFO) << "ChMPMContainer::Build_E";
     SubVectorType E_sub = blaze::subvector(data_manager->host_data.E, start_node, num_mpm_constraints);
 
-#pragma omp parallel for
-    for (int i = 0; i < num_mpm_nodes; i++) {
-        if (grid_mass[i] < C_EPSILON) {
-            E_sub[i * 6 + 0] = 0;
-            E_sub[i * 6 + 1] = 0;
-            E_sub[i * 6 + 2] = 0;
+    E_sub = 0;
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
 
-            E_sub[i * 6 + 3] = 0;
-            E_sub[i * 6 + 4] = 0;
-            E_sub[i * 6 + 5] = 0;
-            continue;
-        }
-        real JP = Determinant(Fp_node[i]);
-        real JE = Determinant(Fe_node[i]);
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        Mat33 Fe_hat_t(1);
+        LOOPOVERNODES(real JP = Determinant(Fe_hat[p]);  //
+                      real JE = Determinant(Fp[p]);      //
 
-        real mu_new = mu * Exp(hardening_coefficient * (real(1.) - JP));
-        real lambda_new = lambda * Exp(hardening_coefficient * (real(1.) - JP));
-        real muInv = 1. / mu_new;
-        real omn = lambda_new + 2 * mu_new;
-        Mat33 E = Mat33(omn, lambda_new, lambda_new, lambda_new, omn, lambda_new, lambda_new, lambda_new, omn);
-        E = Inverse(E);
+                      real mu_new = mu * Exp(hardening_coefficient * (real(1.) - JP));
+                      real lambda_new = lambda * Exp(hardening_coefficient * (real(1.) - JP));  //
+                      real muInv = 1. / mu_new; real omn = lambda_new + 2 * mu_new;             //
+                      Mat33 E =
+                          Mat33(omn, lambda_new, lambda_new, lambda_new, omn, lambda_new, lambda_new, lambda_new, omn);
+                      E = N(xi - current_node_location, inv_bin_edge) * Inverse(E);
 
-        E_sub[i * 6 + 0] = 0;//E[0];   // diag_stretch;
-        E_sub[i * 6 + 1] = 0;//E[5];   // diag_stretch;
-        E_sub[i * 6 + 2] = 0;//E[10];  // diag_stretch;
+                      E_sub[current_node * 6 + 0] += E[0];   //
+                      E_sub[current_node * 6 + 1] += E[5];   //
+                      E_sub[current_node * 6 + 2] += E[10];  //
 
-        E_sub[i * 6 + 3] = 0;//muInv;  // diag_strain;
-        E_sub[i * 6 + 4] = 0;//muInv;  // diag_strain;
-        E_sub[i * 6 + 5] = 0;//muInv;  // diag_strain;
+                      E_sub[current_node * 6 + 3] += E[9];  //
+                      E_sub[current_node * 6 + 4] += E[8];  //
+                      E_sub[current_node * 6 + 5] += E[4];  //
+
+                      );
     }
+
+    //#pragma omp parallel for
+    //    for (int i = 0; i < num_mpm_nodes; i++) {
+    //        if (grid_mass[i] < C_EPSILON) {
+    //            E_sub[i * 6 + 0] = 0;
+    //            E_sub[i * 6 + 1] = 0;
+    //            E_sub[i * 6 + 2] = 0;
+    //
+    //            E_sub[i * 6 + 3] = 0;
+    //            E_sub[i * 6 + 4] = 0;
+    //            E_sub[i * 6 + 5] = 0;
+    //            continue;
+    //        }
+    //        real JP = Determinant(Fp_node[i]);
+    //        real JE = Determinant(Fe_node[i]);
+    //
+    //        real mu_new = mu * Exp(hardening_coefficient * (real(1.) - JP));
+    //        real lambda_new = lambda * Exp(hardening_coefficient * (real(1.) - JP));
+    //        real muInv = 1. / mu_new;
+    //        real omn = lambda_new + 2 * mu_new;
+    //        Mat33 E = Mat33(omn, lambda_new, lambda_new, lambda_new, omn, lambda_new, lambda_new, lambda_new, omn);
+    //        E = Inverse(E);
+    //
+    //        E_sub[i * 6 + 0] = 0;  // E[0];   // diag_stretch;
+    //        E_sub[i * 6 + 1] = 0;  // E[5];   // diag_stretch;
+    //        E_sub[i * 6 + 2] = 0;  // E[10];  // diag_stretch;
+    //
+    //        E_sub[i * 6 + 3] = 0;  // muInv;  // diag_strain;
+    //        E_sub[i * 6 + 4] = 0;  // muInv;  // diag_strain;
+    //        E_sub[i * 6 + 5] = 0;  // muInv;  // diag_strain;
+    //    }
 }
 void ChMPMContainer::GenerateSparsity() {
     LOG(INFO) << "ChMPMContainer::GenerateSparsity";
