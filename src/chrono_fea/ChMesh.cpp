@@ -414,7 +414,8 @@ void ChMesh::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)
 
 void ChMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 {
-  for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+#pragma omp parallel for 
+  for (int ie = 0; ie < this->velements.size(); ie++)
     this->velements[ie]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
 }
 
