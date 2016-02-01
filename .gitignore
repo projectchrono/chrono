@@ -80,3 +80,8 @@ nosetests.xml
 ## Simulink Code Generation
 slprj/
 
+##---------------------------------------------------
+## Website
+##---------------------------------------------------
+_site
+.sass-cache

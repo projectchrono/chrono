@@ -1,0 +1,35 @@
+main:
+    - title: Documentation
+      url: ''
+      sub:
+       -
+         title: Overview
+         url: '#'
+       -
+         title: Reference (Doxygen)
+         url: '#'
+       -
+         title: User Manual
+         url: '#'
+    - title: Download
+      url: '/download'
+    - title: Tutorials
+      url: '/tutorials'
+      sub:
+       -
+         title: Install Guide
+         url: '#'
+       -
+         title: Example Models
+         url: '#'
+
+    - title: News
+      url: '/news/'
+    - title: Forum
+      url: '/forum'
+    - title: About
+      url: '/about/'
+
+right:
+    - title: Old Website
+      url: 'http://projectchrono.org'

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+{% include head.html %}
+
+<body>
+
+  {% include header.html %}
+  <div class="jumbotron">
+   <div class="container">
+    <div class="row">
+     <div class="text-center"> 
+      <!--<p><img src="/images/project_chrono_logo.png" alt="project_chrono_logo" height="150"></p>-->
+      <h1>
+        {% include module.html first="PROJECT" second="CHRONO" %}
+      </h1>
+    </div>
+  </div>
+  <div class="row">
+   <div class="text-center"> 
+     <p>
+      <a href="/download"<button type="button" class="btn btn-primary btn-lg"> <i class="fa fa-download fa-1x"></i> Download </button></a>
+      <a href="https://github.com/projectchrono/chrono"<button type="button" class="btn btn-default btn-lg"> <i class="fa fa-github-square fa-1x"></i> View on Github </button></a>
+    </p>
+  </div> 
+</div>
+<div class="row">
+  <div class="text-center"> 
+  <a href="#">GET STARTED</a>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div class="container">
+  {{ content }}
+</div>
+{% include footer.html %}
+
+</body>
+
+</html>
