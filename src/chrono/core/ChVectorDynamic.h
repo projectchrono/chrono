@@ -99,7 +99,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
     virtual ~ChVectorDynamic() { delete[] this->address; }
 
     /// Return the length of the vector
-    int GetLength() const { return rows; }
+    int GetLength() const { return this->rows; }
     
     //
     // OPERATORS
