@@ -284,7 +284,10 @@ int main(int argc, char* argv[])
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(6);
 		mystepper->SetTolerance(1e-12);
+        mystepper->SetVerbose(true);
+        mystepper->SetStepControl(false);
 	}
+
 	my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED); 
 
 	application.SetTimestep(0.001);
@@ -292,7 +295,7 @@ int main(int argc, char* argv[])
 
 
 
-
+    
 
 
 
@@ -344,7 +347,7 @@ int main(int argc, char* argv[])
 		application.EndScene();
 	}
 
-
+    
 	return 0;
 }
 
