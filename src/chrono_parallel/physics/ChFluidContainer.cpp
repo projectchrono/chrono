@@ -517,6 +517,53 @@ void ChFluidContainer::Project(real* gamma) {
         }
     }
 }
+void ChFluidContainer::ProjectInternal(real* gamma) {
+    // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
+    real mu = data_manager->node_container->contact_mu;
+    real coh = data_manager->node_container->contact_cohesion;
+
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+
+    //#pragma omp parallel for
+    int index = 0;
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        for (int i = 0; i < contact_counts[p]; ++i) {
+            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  // rigid is stored in the first index
+            int fluid = p;                                                  // fluid body is in second index
+            real rigid_fric = data_manager->host_data.fric_data[rigid].x;
+            real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
+            real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+
+            real3 gam;
+            gam.x = gamma[index];
+            gam.y = gamma[num_rigid_fluid_contacts + index * 2 + 0];
+            gam.z = gamma[num_rigid_fluid_contacts + index * 2 + 1];
+
+            gam.x += cohesion;
+
+            real mu = friction;
+            if (mu == 0) {
+                gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
+                gam.y = gam.z = 0;
+
+                gamma[index] = gam.x;
+                gamma[num_rigid_fluid_contacts + index * 2 + 0] = gam.y;
+                gamma[num_rigid_fluid_contacts + index * 2 + 1] = gam.z;
+                index++;
+                continue;
+            }
+
+            if (Cone_generalized_rf(gam.x, gam.y, gam.z, mu)) {
+            }
+
+            gamma[index] = gam.x - cohesion;
+            gamma[num_rigid_fluid_contacts + index * 2 + 0] = gam.y;
+            gamma[num_rigid_fluid_contacts + index * 2 + 1] = gam.z;
+            index++;
+        }
+    }
+}
 void ChFluidContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
@@ -659,6 +706,163 @@ real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 
+void ChFluidContainer::PreSolve() {
+    LOG(INFO) << "ChConstraintFluidFluid::PreSolve";
+    real& lastgoodres = data_manager->measures.solver.residual;
+    real& objective_value = data_manager->measures.solver.objective_value;
+
+    int size = GetNumConstraints();
+
+    SubVectorType r = blaze::subvector(data_manager->host_data.R_full, start_boundary, size);
+    SubVectorType E = blaze::subvector(data_manager->host_data.E, start_boundary, size);
+    SubVectorType gamma = blaze::subvector(data_manager->host_data.gamma, start_boundary, size);
+
+    const SubMatrixType& D_T =
+        submatrix(_D_T_, start_boundary, 0, size, _num_rigid_dof_ + _num_shaft_dof_ + _num_fluid_dof_);
+
+    const SubMatrixType& MinvD =
+        submatrix(_M_invD_, 0, start_boundary, _num_rigid_dof_ + _num_shaft_dof_ + _num_fluid_dof_, size);
+
+    //CompressedMatrix<real> Nshur = D_T * MinvD;
+    LOG(INFO) << "ChConstraintFluidFluid::Done Shur";
+    // ChTimer<> t1, t2, t3, t4;
+    // t1.start();
+
+    DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
+    DynamicVector<real> mD, invmD;
+    std::vector<real> f_hist;
+
+    temp.resize(size);
+    ml.resize(size);
+    mg.resize(size);
+    mg_p.resize(size);
+    ml_candidate.resize(size);
+    ms.resize(size);
+    my.resize(size);
+    mdir.resize(size);
+    ml_p.resize(size);
+
+    temp = 0;
+    ml = 0;
+    mg = 0;
+    mg_p = 0;
+    ml_candidate = 0;
+    ms = 0;
+    my = 0;
+    mdir = 0;
+    ml_p = 0;
+
+    // Tuning of the spectral gradient search
+    real a_min = 1e-13;
+    real a_max = 1e13;
+    real sigma_min = 0.1;
+    real sigma_max = 0.9;
+
+    real alpha = 0.0001;
+
+    real gmma = 1e-4;
+    real gdiff = 1.0 / Pow(size, 2.0);
+    bool do_preconditioning = false;
+    real neg_BB1_fallback = 0.11;
+    real neg_BB2_fallback = 0.12;
+    ml = gamma;
+    lastgoodres = 10e30;
+    real lastgoodfval = 10e30;
+    ml_candidate = ml;
+    temp = D_T * MinvD * ml + E * ml;
+
+    mg = temp - r;
+    mg_p = mg;
+
+    real mf_p = 0;
+    real mf = 1e29;
+    int n_armijo = 10;
+    int max_armijo_backtrace = 3;
+
+    for (int current_iteration = 0; current_iteration < max_iterations; current_iteration++) {
+        // t2.start();
+        temp = (ml - alpha * mg);
+        ProjectInternal(temp.data());
+        mdir = temp - ml;
+
+        real dTg = (mdir, mg);
+        real lambda = 1.0;
+        int n_backtracks = 0;
+        bool armijo_repeat = true;
+
+        while (armijo_repeat) {
+            ml_p = ml + lambda * mdir;
+
+            temp = D_T * MinvD * ml_p + E * ml_p;
+            mg_p = temp - r;
+            mf_p = (ml_p, 0.5 * temp - r);
+
+            f_hist.push_back(mf_p);
+
+            real max_compare = 10e29;
+            for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
+                real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
+                if (compare > max_compare)
+                    max_compare = compare;
+            }
+            if (mf_p > max_compare) {
+                armijo_repeat = true;
+                if (current_iteration > 0)
+                    mf = f_hist[current_iteration - 1];
+                real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
+                lambda = Max(sigma_min * lambda, Min(sigma_max * lambda, lambdanew));
+                printf("Repeat Armijo, new lambda = %f \n", lambda);
+            } else {
+                armijo_repeat = false;
+            }
+            n_backtracks = n_backtracks + 1;
+            if (n_backtracks > max_armijo_backtrace)
+                armijo_repeat = false;
+        }
+        // t3.stop();
+        // t4.start();
+        ms = ml_p - ml;
+        my = mg_p - mg;
+        ml = ml_p;
+        mg = mg_p;
+
+        if (current_iteration % 2 == 0) {
+            real sDs = (ms, ms);
+            real sy = (ms, my);
+            if (sy <= 0) {
+                alpha = neg_BB1_fallback;
+            } else {
+                alpha = Min(a_max, Max(a_min, sDs / sy));
+            }
+        } else {
+            real sy = (ms, my);
+            real yDy = (my, my);
+            if (sy <= 0) {
+                alpha = neg_BB2_fallback;
+            } else {
+                alpha = Min(a_max, Max(a_min, sy / yDy));
+            }
+        }
+        temp = ml - gdiff * mg;
+        ProjectInternal(temp.data());
+        temp = (ml - temp) / (-gdiff);
+
+        real g_proj_norm = Sqrt((temp, temp));
+        if (g_proj_norm < lastgoodres) {
+            lastgoodres = g_proj_norm;
+            objective_value = mf_p;
+            ml_candidate = ml;
+        }
+
+        if (lastgoodres < data_manager->settings.solver.tol_speed) {
+            break;
+        }
+
+        // t4.stop();
+    }
+    LOG(INFO) << "ChConstraintFluidFluid::Done PreSolve";
+    gamma = ml_candidate;
+}
 }  // END_OF_NAMESPACE____
 
 /////////////////////

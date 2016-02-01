@@ -35,6 +35,7 @@ Ch3DOFContainer::Ch3DOFContainer() {
     num_fea_nodes = 0;
     num_mpm_markers = 0;
     num_mpm_nodes = 0;
+    max_iterations = 0;
 }
 
 Ch3DOFContainer::~Ch3DOFContainer() {}

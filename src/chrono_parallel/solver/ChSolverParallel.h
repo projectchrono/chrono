@@ -71,6 +71,7 @@ class CH_PARALLEL_API ChSolverParallel {
 
     // Call this function with an associated solver type to solve the system
     virtual void Solve() = 0;
+    virtual void InnerSolve();
 
     // Perform velocity stabilization on bilateral constraints
     uint SolveStab(const uint max_iter,          // Maximum number of iterations
@@ -104,7 +105,7 @@ class CH_PARALLEL_API ChSolverParallel {
     // Set the maximum number of iterations for all solvers
     void SetMaxIterations(const int max_iteration_value) { max_iteration = max_iteration_value; }
 
-    real LargestEigenValue(DynamicVector<real>& temp,real lambda = 0);
+    real LargestEigenValue(DynamicVector<real>& temp, real lambda = 0);
 
     // The maximum number of iterations that the solver will perform
     // This is local to a solver because it can be changed depending on what is

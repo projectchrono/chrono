@@ -54,6 +54,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void Build_E() {}
     virtual void PreSolve() {}
     virtual void ComputeDOF() {}
+    // Does one iteration of a solve
+    virtual void InnerSolve() {}
 
     // During Solve
     virtual void Project(real* gamma) {}
@@ -91,6 +93,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     uint start_boundary;
     uint start_density;
     uint start_viscous;
+    int max_iterations;
 
     // Store boundary forces here for rigid bodies
     DynamicVector<real> contact_forces;
@@ -122,13 +125,14 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     int GetNumNonZeros();
     void Setup(int start_constraint);
     void Initialize();
-    void PreSolve() {}
+    void PreSolve();
     void Density_Fluid();
     void Normalize_Density_Fluid();
     void Build_D();
     void Build_b();
     void Build_E();
     void Project(real* gamma);
+    void ProjectInternal(real* gamma);
     void GenerateSparsity();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
@@ -201,7 +205,6 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real theta_s;
     real theta_c;
     real alpha;
-    real max_iterations;
 
     real3 min_bounding_point;
     real3 max_bounding_point;

@@ -287,3 +287,7 @@ real ChSolverParallel::LargestEigenValue(DynamicVector<real>& temp, real lambda)
     }
     return lambda;
 }
+
+void ChSolverParallel::InnerSolve() {
+    data_manager->mpm_container->InnerSolve();
+}
