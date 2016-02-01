@@ -70,7 +70,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(.5, .5, 0.05);
+    ChVector<> hdim(.15, .15, 0.05);
 
     bin->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, -hdim.z));
@@ -88,7 +88,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container = new ChMPMContainer(sys);
 
-    real youngs_modulus = 1.4e8;
+    real youngs_modulus = 1.4e2;
     real poissons_ratio = 0.2;
 
     mpm_container->theta_c = 2.5e-2;
@@ -98,50 +98,54 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->alpha = .95;
     mpm_container->hardening_coefficient = 10.0;
 
-    real initial_density = 1000;
-    mpm_container->mass = .004;
+    real initial_density = 4e2;
+    mpm_container->mass = .001;
     mpm_container->max_iterations = 20;
-    mpm_container->kernel_radius = .005;
+    mpm_container->kernel_radius = .01;
     mpm_container->contact_recovery_speed = 10000;
 
-    real radius = mpm_container->kernel_radius * 10;  //*5
+    real radius = mpm_container->kernel_radius * 8;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
-    real3 origin(0, 0, .2);
+    real3 origin(0, 0, .1);
     real vol;
 
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
+
 #if 1
-    double dist = mpm_container->kernel_radius * .9;
-    utils::HCPSampler<> sampler(dist);
-    utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(-.1, 0, 0), radius);
+    double dist = mpm_container->kernel_radius;
+    vol = dist * dist * dist;
+    mpm_container->mass = initial_density * vol;
+
+    utils::PDSampler<> sampler(dist);
+    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(-.2, radius, 0), ChVector<>(15,4,.3));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(-3, 0, 0);
+        vel_fluid[i] = real3(6, 0, 0);
     }
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
-    points = sampler.SampleSphere(ChVector<>(.1, 0, 0), radius);
-
-    pos_fluid.resize(points.size());
-    vel_fluid.resize(points.size());
-    for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(-3, 0, 0);
-    }
-    mpm_container->AddNodes(pos_fluid, vel_fluid);
+//    points = sampler.SampleBox(ChVector<>(.2, 0, 0), ChVector<>(radius,radius,radius));
+//
+//    pos_fluid.resize(points.size());
+//    vel_fluid.resize(points.size());
+//    for (int i = 0; i < points.size(); i++) {
+//        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+//        vel_fluid[i] = real3(-6, 0, 0);
+//    }
+//    mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
-    std::ifstream ifile("snowMPMinit.dat");
+    std::ifstream ifile("state_0.029.dat");
     while (ifile.fail() == false) {
         real m;
         real3 p, v;
-        ifile >> m;
+        // ifile >> m;
         if (ifile.fail() == false) {
             ifile >> p.x >> p.y >> p.z;
             ifile >> v.x >> v.y >> v.z;
@@ -156,8 +160,8 @@ void AddFluid(ChSystemParallelDVI* sys) {
     //
     //    pos_fluid.push_back(real3(.5, .8, .5));
     //    vel_fluid.push_back(real3(0, -2, 0));
-    fluid_container->UpdatePosition(0);
-    fluid_container->AddFluid(pos_fluid, vel_fluid);
+    // mpm_container->UpdatePosition(0);
+    mpm_container->AddNodes(pos_fluid, vel_fluid);
 #endif
 }
 // -----------------------------------------------------------------------------
@@ -199,7 +203,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.max_iteration_sliding = 40;
     msystem.GetSettings()->solver.max_iteration_spinning = 0;
     msystem.GetSettings()->solver.max_iteration_bilateral = 0;
-    msystem.GetSettings()->solver.tolerance = tolerance;
+    msystem.GetSettings()->solver.tolerance = 1e-2;
     msystem.GetSettings()->solver.alpha = 0;
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->collision.use_two_level = false;
