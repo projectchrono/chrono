@@ -624,9 +624,9 @@ void ChMPMContainer::UpdateRhs() {
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
             real3 force = (vPEDFepT * d_weight) / (JE * JP);
 
-            rhs[i * 3 + 0] -= force.x;  //
-            rhs[i * 3 + 1] -= force.y;  //
-            rhs[i * 3 + 2] -= force.z;  //
+            rhs[current_node * 3 + 0] -= force.x;  //
+            rhs[current_node * 3 + 1] -= force.y;  //
+            rhs[current_node * 3 + 2] -= force.z;  //
 
             )
     }
