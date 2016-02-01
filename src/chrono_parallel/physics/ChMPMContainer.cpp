@@ -177,26 +177,26 @@ void ChMPMContainer::Update(double ChTime) {
         Fe_hat[p] = Fe_hat_t * Fe[p];
     }
 
-    printf("Compute_Grid_Forces\n");
+    //    printf("Compute_Grid_Forces\n");
 
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-
-        Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
-
-        Mat33 vPEDFepT = volume[p] * MultTranspose(PED, Fe[p]);
-        real JE = Determinant(Fe[p]);                                       //
-        real JP = Determinant(Fp[p]);                                       //
-        LOOPOVERNODES(                                                      //
-            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
-            real3 force = (vPEDFepT * d_weight) / (JE * JP);
-
-            data_manager->host_data.hf[body_offset + i * 3 + 0] -= force.x;
-            data_manager->host_data.hf[body_offset + i * 3 + 1] -= force.y;
-            data_manager->host_data.hf[body_offset + i * 3 + 2] -= force.z;
-
-            )
-    }
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //
+    //        Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
+    //
+    //        Mat33 vPEDFepT = volume[p] * MultTranspose(PED, Fe[p]);
+    //        real JE = Determinant(Fe[p]);                                       //
+    //        real JP = Determinant(Fp[p]);                                       //
+    //        LOOPOVERNODES(                                                      //
+    //            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
+    //            real3 force = (vPEDFepT * d_weight) / (JE * JP);
+    //
+    //            data_manager->host_data.hf[body_offset + i * 3 + 0] -= force.x;
+    //            data_manager->host_data.hf[body_offset + i * 3 + 1] -= force.y;
+    //            data_manager->host_data.hf[body_offset + i * 3 + 2] -= force.z;
+    //
+    //            )
+    //    }
 
     // update the position of the markers based on the nodal velocities
 }
@@ -357,28 +357,13 @@ void ChMPMContainer::GenerateSparsity() {
 void ChMPMContainer::PreSolve() {
     SubVectorType grid_vel = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
 
-    // printf("Add_Body_Forces [%f %f %f]\n", gravity.x, gravity.y, gravity.z);
-
-    //#pragma omp parallel for
-    //    for (int i = 0; i < grid_size; i++) {
-    //        grid_forces[i] += grid_mass[i] * gravity;
-    //    }
-
-    //    printf("Update_Grid_Velocities\n");
-    //#pragma omp parallel for
-    //    for (int i = 0; i < num_mpm_nodes; i++) {
-    //        if (grid_mass[i] >= C_EPSILON) {
-    //            real3 forces = grid_forces[i];
-    //
-    //            data_manager->host_data.v[body_offset + i * 3 + 0] += dt * forces.x / grid_mass[i];
-    //            data_manager->host_data.v[body_offset + i * 3 + 1] += dt * forces.y / grid_mass[i];
-    //            data_manager->host_data.v[body_offset + i * 3 + 2] += dt * forces.z / grid_mass[i];
-    //        }
-    //    }
-
     UpdateRhs();
 
-    Solve(rhs, grid_vel);
+    DynamicVector<real> delta_v(num_mpm_nodes * 3);
+    delta_v = 0;
+    Solve(rhs, delta_v);
+
+    grid_vel += delta_v;
 }
 void ChMPMContainer::PostSolve() {
     const real dt = data_manager->settings.step_size;
@@ -419,69 +404,76 @@ void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>&
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
     const real dt = data_manager->settings.step_size;
 
-    printf("Apply Hessian A\n");
-
+    printf("Apply Hessian\n");
 #pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
-        Mat33 delta_F_t(0);
-        delta_F[p] = Mat33(0);
-        LOOPOVERNODES(                                                                                              //
-            real3 v0(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);  //
-            real3 v1 = dN(xi - current_node_location, inv_bin_edge);                                                //
-            delta_F[p] += OuterProduct(v0, v1) * Fe[p];                                                             //
-            )
-    }
 
-    printf("Apply Hessian B\n");
-#pragma omp parallel for
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
+        Mat33 delta_F(0);
+        {
+            LOOPOVERNODES(  //
+
+                real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
+                real3 vold(grid_vel_old[current_node * 3 + 0], grid_vel_old[current_node * 3 + 1],
+                           grid_vel_old[current_node * 3 + 2]);
+                real3 v0 = vold + vnew;                                   //
+                real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
+                delta_F += OuterProduct(v0, v1);                          //
+                )
+        }
+        delta_F = delta_F * Fe[p];
+
         real plastic_determinant = Determinant(Fp[p]);
         real J = Determinant(Fe_hat[p]);
         real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
         real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
         Mat33 Fe_hat_inv_transpose = InverseTranspose(Fe_hat[p]);
 
-        real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F[p]);
-        Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F[p]) * Fe_hat_inv_transpose;
+        real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
+        Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
         Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
-        Mat33 RD = Rotational_Derivative(Fe_hat[p], delta_F[p]);
+        Mat33 RD = Rotational_Derivative(Fe_hat[p], delta_F);
 
         Mat33 volume_Ap_Fe_transpose =
-            volume[p] * (2 * current_mu * (delta_F[p] - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
+            volume[p] * (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
                          (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
             Transpose(Fe[p]);
+        {
+            const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
+            const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
+            const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
 
-        const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
-        const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
-        const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
-
-        for (int i = cx - 2; i <= cx + 2; ++i) {
-            for (int j = cy - 2; j <= cy + 2; ++j) {
-                for (int k = cz - 2; k <= cz + 2; ++k) {
-                    const int current_node = GridHash(i, j, k, bins_per_axis);
-                    real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
-                    real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
+            for (int i = cx - 2; i <= cx + 2; ++i) {
+                for (int j = cy - 2; j <= cy + 2; ++j) {
+                    for (int k = cz - 2; k <= cz + 2; ++k) {
+                        const int current_node = GridHash(i, j, k, bins_per_axis);
+                        real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
+                        real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
 #pragma omp atomic
-                    result_array[current_node * 3 + 0] += res.x;  //
+                        result_array[current_node * 3 + 0] += res.x;  //
 #pragma omp atomic
-                    result_array[current_node * 3 + 1] += res.y;  //
+                        result_array[current_node * 3 + 1] += res.y;  //
 #pragma omp atomic
-                    result_array[current_node * 3 + 2] += res.z;  //
+                        result_array[current_node * 3 + 2] += res.z;  //
+                    }
                 }
             }
         }
     }
 #pragma omp parallel for
     for (int i = 0; i < num_mpm_nodes; i++) {
-        result_array[i * 3 + 0] = grid_mass[i] * v_array[i * 3 + 0] + dt * dt * result_array[i * 3 + 0];
-        result_array[i * 3 + 1] = grid_mass[i] * v_array[i * 3 + 1] + dt * dt * result_array[i * 3 + 1];
-        result_array[i * 3 + 2] = grid_mass[i] * v_array[i * 3 + 2] + dt * dt * result_array[i * 3 + 2];
+        if (grid_mass[i] > C_EPSILON) {
+            result_array[i * 3 + 0] =
+                grid_mass[i] * (v_array[i * 3 + 0] + grid_vel_old[i * 3 + 0]) + result_array[i * 3 + 0];
+            result_array[i * 3 + 1] =
+                grid_mass[i] * (v_array[i * 3 + 1] + grid_vel_old[i * 3 + 1]) + result_array[i * 3 + 1];
+            result_array[i * 3 + 2] =
+                grid_mass[i] * (v_array[i * 3 + 2] + grid_vel_old[i * 3 + 2]) + result_array[i * 3 + 2];
+        }
     }
 }
 
-void ChMPMContainer::Solve(const DynamicVector<real>& s, SubVectorType& gamma) {
+void ChMPMContainer::Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma) {
     real lastgoodres;
     real objective_value;
     uint size = num_mpm_nodes * 3;
@@ -607,7 +599,7 @@ void ChMPMContainer::Solve(const DynamicVector<real>& s, SubVectorType& gamma) {
             ml_candidate = ml;
         }
 
-        if (lastgoodres < 1e-4) {
+        if (lastgoodres < data_manager->settings.solver.tolerance) {
             break;
         }
     }
@@ -616,11 +608,34 @@ void ChMPMContainer::Solve(const DynamicVector<real>& s, SubVectorType& gamma) {
 }
 
 void ChMPMContainer::UpdateRhs() {
-    for (int i = 0; i < num_mpm_nodes; i++) {
-        rhs[i * 3 + 0] = grid_mass[i] * data_manager->host_data.v[body_offset + i * 3 + 0];
-        rhs[i * 3 + 1] = grid_mass[i] * data_manager->host_data.v[body_offset + i * 3 + 1];
-        rhs[i * 3 + 2] = grid_mass[i] * data_manager->host_data.v[body_offset + i * 3 + 2];
+    rhs = 0;
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+    const real dt = data_manager->settings.step_size;
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+
+        Mat33 PED = Potential_Energy_Derivative(Fe_hat[p], Fp[p], mu, lambda, hardening_coefficient);
+
+        Mat33 vPEDFepT = volume[p] * MultTranspose(PED, Fe[p]);
+        real JE = Determinant(Fe[p]);                                       //
+        real JP = Determinant(Fp[p]);                                       //
+        LOOPOVERNODES(                                                      //
+            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
+            real3 force = (vPEDFepT * d_weight) / (JE * JP);
+
+            rhs[i * 3 + 0] -= force.x;  //
+            rhs[i * 3 + 1] -= force.y;  //
+            rhs[i * 3 + 2] -= force.z;  //
+
+            )
     }
+
+    //    for (int i = 0; i < num_mpm_nodes; i++) {
+    //        rhs[i * 3 + 0] = grid_mass[i] * data_manager->host_data.v[body_offset + i * 3 + 0];
+    //        rhs[i * 3 + 1] = grid_mass[i] * data_manager->host_data.v[body_offset + i * 3 + 1];
+    //        rhs[i * 3 + 2] = grid_mass[i] * data_manager->host_data.v[body_offset + i * 3 + 2];
+    //    }
 }
 
 }  // END_OF_NAMESPACE____

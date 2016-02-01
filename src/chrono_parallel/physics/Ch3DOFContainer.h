@@ -181,7 +181,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void Build_b();
     void Build_E();
     void UpdateRhs();
-    void Solve(const DynamicVector<real>& s, SubVectorType& gamma);
+    void Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma);
     void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
     void Project(real* gamma) {}
     void GenerateSparsity();
