@@ -707,6 +707,9 @@ real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
 }
 
 void ChFluidContainer::PreSolve() {
+    if (max_iterations == 0) {
+        return;
+    }
     LOG(INFO) << "ChConstraintFluidFluid::PreSolve";
     real& lastgoodres = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
@@ -717,20 +720,19 @@ void ChFluidContainer::PreSolve() {
     SubVectorType E = blaze::subvector(data_manager->host_data.E, start_boundary, size);
     SubVectorType gamma = blaze::subvector(data_manager->host_data.gamma, start_boundary, size);
 
-    const SubMatrixType& D_T =
+    const SubMatrixType& D_TS =
         submatrix(_D_T_, start_boundary, 0, size, _num_rigid_dof_ + _num_shaft_dof_ + _num_fluid_dof_);
 
-    const SubMatrixType& MinvD =
+    const SubMatrixType& MinvDS =
         submatrix(_M_invD_, 0, start_boundary, _num_rigid_dof_ + _num_shaft_dof_ + _num_fluid_dof_, size);
 
-    //CompressedMatrix<real> Nshur = D_T * MinvD;
+    PMinvD = MinvDS;
+    PD_T = D_TS;
+
+    // CompressedMatrix<real> Nshur = D_T * MinvD;
     LOG(INFO) << "ChConstraintFluidFluid::Done Shur";
     // ChTimer<> t1, t2, t3, t4;
     // t1.start();
-
-    DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
-    DynamicVector<real> mD, invmD;
-    std::vector<real> f_hist;
 
     temp.resize(size);
     ml.resize(size);
@@ -741,6 +743,7 @@ void ChFluidContainer::PreSolve() {
     my.resize(size);
     mdir.resize(size);
     ml_p.resize(size);
+    f_hist.clear();
 
     temp = 0;
     ml = 0;
@@ -769,7 +772,7 @@ void ChFluidContainer::PreSolve() {
     lastgoodres = 10e30;
     real lastgoodfval = 10e30;
     ml_candidate = ml;
-    temp = D_T * MinvD * ml + E * ml;
+    temp = PD_T * PMinvD * ml + E * ml;
 
     mg = temp - r;
     mg_p = mg;
@@ -793,7 +796,7 @@ void ChFluidContainer::PreSolve() {
         while (armijo_repeat) {
             ml_p = ml + lambda * mdir;
 
-            temp = D_T * MinvD * ml_p + E * ml_p;
+            temp = PD_T * PMinvD * ml_p + E * ml_p;
             mg_p = temp - r;
             mf_p = (ml_p, 0.5 * temp - r);
 

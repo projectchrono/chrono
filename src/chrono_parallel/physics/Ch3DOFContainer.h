@@ -159,6 +159,11 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
 
   private:
     uint body_offset;
+
+    DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
+    DynamicVector<real> mD, invmD;
+    std::vector<real> f_hist;
+    CompressedMatrix<real> PMinvD, PD_T;
 };
 
 class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
