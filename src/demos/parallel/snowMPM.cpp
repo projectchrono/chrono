@@ -118,7 +118,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     vol = dist * dist * dist;
     mpm_container->mass = initial_density * vol;
 
-    utils::PDSampler<> sampler(dist);
+    utils::GridSampler<> sampler(dist);
     utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(-.2, radius, 0), ChVector<>(15,4,.3));
 
     pos_fluid.resize(points.size());
