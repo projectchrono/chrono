@@ -1,6 +1,5 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
-#include "chrono_parallel/solver/ChSolverMinRes.h"
 #include "physics/ChBody.h"
 
 using namespace chrono;

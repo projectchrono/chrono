@@ -1,5 +1,4 @@
-#include "chrono_parallel/solver/ChSolverBB.h"
-#include <blaze/math/CompressedVector.h>
+#include "chrono_parallel/solver/ChSolverParallel.h"
 using namespace chrono;
 
 ChSolverBB::ChSolverBB() : ChSolverParallel() {}

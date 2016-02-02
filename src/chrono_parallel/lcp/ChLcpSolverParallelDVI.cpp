@@ -1,10 +1,6 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
-#include "chrono_parallel/solver/ChSolverAPGD.h"
-#include "chrono_parallel/solver/ChSolverAPGDREF.h"
-#include "chrono_parallel/solver/ChSolverBB.h"
-#include "chrono_parallel/solver/ChSolverSPGQP.h"
 using namespace chrono;
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
@@ -69,7 +65,6 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     ComputeD();
     ComputeE();
     ComputeR();
-
     ComputeN();
     data_manager->node_container->PreSolve();
     data_manager->fea_container->PreSolve();
@@ -77,12 +72,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
-    //  if (data_manager->settings.solver.max_iteration_bilateral > 0) {
-    //    solver->SetMaxIterations(data_manager->settings.solver.max_iteration_bilateral);
-    //    data_manager->settings.solver.local_solver_mode = BILATERAL;
-    //    SetR();
-    //    solver->Solve();
-    //  }
+
 
     ShurProductFull.Setup(data_manager);
     ShurProductBilateral.Setup(data_manager);

@@ -1,4 +1,4 @@
-#include "chrono_parallel/solver/ChShurProduct.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
 
 using namespace chrono;
 ChShurProduct::ChShurProduct() {

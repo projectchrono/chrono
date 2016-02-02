@@ -180,9 +180,6 @@ SET(ChronoEngine_Parallel_SOLVER
     #solver/ChSolverPGS.h
     #solver/ChSolverGD.h
     #solver/ChSolverSD.h
-    solver/ChSolverAPGD.h
-    solver/ChSolverAPGDREF.h
-    #solver/ChSolverMinRes.h
     #solver/ChSolverBiCG.h
     #solver/ChSolverBiCGStab.h
     #solver/ChSolverPDIP.h
@@ -196,15 +193,12 @@ SET(ChronoEngine_Parallel_SOLVER
     #solver/ChSolverFN.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverAPGDREF.cpp
-    #solver/ChSolverMinRes.cpp
+    solver/ChSolverMinRes.cpp
     #solver/ChSolverBiCG.cpp
     #solver/ChSolverBiCGStab.cpp
     #solver/ChSolverPDIP.cpp
-    solver/ChSolverBB.h
     solver/ChSolverBB.cpp
-    solver/ChSolverSPGQP.h
     solver/ChSolverSPGQP.cpp
-    solver/ChShurProduct.h
     solver/ChShurProduct.cpp
     )
 
@@ -388,6 +382,16 @@ ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_MATH}
             )
 
+find_program(iwyu_path NAMES include-what-you-use iwyu)
+if(NOT iwyu_path)
+  message(FATAL_ERROR "Could not find the program include-what-you-use")
+endif()
+
+set(iwyu_path_and_options
+    ${iwyu_path}
+    -Xiwyu
+    --check_also)
+
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET_TARGET_PROPERTIES( ChronoEngine_parallel PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES)
@@ -397,7 +401,9 @@ ENDIF()
 SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL")
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL"
+                      #CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
+                      )
 
 TARGET_LINK_LIBRARIES(ChronoEngine_parallel ChronoEngine ChronoEngine_fea ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
 

@@ -13,10 +13,8 @@ ChSolverParallel::ChSolverParallel() {
 void ChSolverParallel::Project(real* gamma) {
     data_manager->system_timer.start("ChSolverParallel_Project");
     rigid_rigid->Project(gamma);
-
     three_dof->Project(gamma);
     fem->Project(gamma);
-
     data_manager->system_timer.stop("ChSolverParallel_Project");
 }
 
