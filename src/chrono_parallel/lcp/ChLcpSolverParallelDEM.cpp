@@ -185,9 +185,8 @@ void function_CalcContactForces(
         // Check if contact history already exists.
         // If not, initialize new contact history.
         for (i = 0; i < max_shear; i++) {
-        	int ctIdUnrolled= max_shear * shear_body1 + i;
-            if (shear_neigh[ctIdUnrolled].x == shear_body2 &&
-                shear_neigh[ctIdUnrolled].y == shear_shape1 &&
+            int ctIdUnrolled = max_shear * shear_body1 + i;
+            if (shear_neigh[ctIdUnrolled].x == shear_body2 && shear_neigh[ctIdUnrolled].y == shear_shape1 &&
                 shear_neigh[ctIdUnrolled].z == shear_shape2) {
                 contact_id = i;
                 newcontact = false;
@@ -196,7 +195,7 @@ void function_CalcContactForces(
         }
         if (newcontact == true) {
             for (i = 0; i < max_shear; i++) {
-            	int ctIdUnrolled= max_shear * shear_body1 + i;
+                int ctIdUnrolled = max_shear * shear_body1 + i;
                 if (shear_neigh[ctIdUnrolled].x == -1) {
                     contact_id = i;
                     shear_neigh[ctIdUnrolled].x = shear_body2;
@@ -218,17 +217,13 @@ void function_CalcContactForces(
         // and project it onto the <current> contact plane.
 
         if (shear_body1 == body1) {
-
             shear_disp[ctSaveId] += delta_t;
-            shear_disp[ctSaveId] -=
-                Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+            shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
             delta_t = shear_disp[ctSaveId];
         } else {
             shear_disp[ctSaveId] -= delta_t;
-            shear_disp[ctSaveId] -=
-                Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+            shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
             delta_t = -shear_disp[ctSaveId];
-
         }
     }
 
@@ -617,6 +612,8 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
 
         data_manager->system_timer.stop("ChLcpSolverParallel_Setup");
 
+        ShurProductBilateral.Setup(data_manager);
+        bilateral_solver->Setup(data_manager);
         // Solve for the Lagrange multipliers associated with bilateral constraints.
         PerformStabilization();
     }

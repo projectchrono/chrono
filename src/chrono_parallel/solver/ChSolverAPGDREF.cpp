@@ -151,7 +151,12 @@ uint ChSolverAPGDREF::Solve(ChShurProduct& ShurProduct,
         // (23) if r < Tau
         if (verbose)
             std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
-        objective_value = GetObjective(gammaNew, r);
+
+        DynamicVector<real> Nl(gammaNew.size());
+        ShurProduct(gammaNew, Nl);         // 1)  g_tmp = N*l_candidate
+        Nl = 0.5 * Nl - r;                 // 2) 0.5*N*l_candidate-b_shur
+        objective_value = (gammaNew, Nl);  // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_shur)
+
         AtIterationEnd(residual, objective_value);
         if (residual < data_manager->settings.solver.tol_speed) {
             // (24) break

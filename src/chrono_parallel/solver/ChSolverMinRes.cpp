@@ -2,11 +2,11 @@
 
 using namespace chrono;
 
-uint ChSolverMinRes::SolveMinRes(ChShurProduct& ShurProduct,
-                                 const uint max_iter,
-                                 const uint size,
-                                 DynamicVector<real>& mb,
-                                 DynamicVector<real>& x) {
+uint ChSolverMinRes::Solve(ChShurProduct& ShurProduct,
+                           const uint max_iter,
+                           const uint size,
+                           const DynamicVector<real>& mb,
+                           DynamicVector<real>& x) {
     if (size == 0) {
         return 0;
     }
@@ -42,7 +42,7 @@ uint ChSolverMinRes::SolveMinRes(ChShurProduct& ShurProduct,
         //// Lanczos
         v_old = v;
         v = 1.0 / beta * v_hat;
-        ShurBilaterals(v, Av);
+        ShurProduct(v, Av);
         alpha = (v, Av);
         v_hat = Av - alpha * v - beta * v_old;
         beta_old = beta;

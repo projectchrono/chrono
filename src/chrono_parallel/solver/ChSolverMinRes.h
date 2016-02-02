@@ -20,7 +20,6 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
-
 class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
   public:
     ChSolverMinRes() : ChSolverParallel() {}
@@ -28,10 +27,10 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
 
     // Solve using the minimal residual method
     uint Solve(ChShurProduct& ShurProduct,
-               const uint max_iter,     // Maximum number of iterations
-               const uint size,         // Number of unknowns
-               DynamicVector<real>& b,  // Rhs vector
-               DynamicVector<real>& x   // The vector of unknowns
+               const uint max_iter,           // Maximum number of iterations
+               const uint size,               // Number of unknowns
+               const DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x         // The vector of unknowns
                );
 
     DynamicVector<real> v, v_hat, w, w_old, xMR, v_old, Av, w_oold;

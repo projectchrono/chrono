@@ -1,6 +1,8 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
+#include "chrono_parallel/solver/ChSolverMinRes.h"
 #include "physics/ChBody.h"
+
 using namespace chrono;
 
 ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
@@ -9,7 +11,7 @@ ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manag
     warm_start = false;
     residual = 0;
     solver = new ChSolverAPGD();
-    // bilateral_solver = new ChSolverMinRes();
+    bilateral_solver = new ChSolverMinRes();
 }
 
 ChLcpSolverParallel::~ChLcpSolverParallel() {
@@ -192,17 +194,17 @@ void ChLcpSolverParallel::PerformStabilization() {
         return;
     }
 
-    ConstSubVectorType R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
-    SubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+    const DynamicVector<real> R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
+    DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
     data_manager->system_timer.start("ChLcpSolverParallel_Stab");
 
-//    data_manager->measures.solver.total_iteration +=
-//        bilateral_solver->Solve(ShurProductBilateral,
-//                                data_manager->settings.solver.max_iteration_bilateral,  //
-//                                num_bilaterals,                                         //
-//                                R_b,                                                    //
-//                                gamma_b);                                               //
-
+    data_manager->measures.solver.total_iteration +=
+        bilateral_solver->Solve(ShurProductBilateral,
+                                data_manager->settings.solver.max_iteration_bilateral,  //
+                                num_bilaterals,                                         //
+                                R_b,                                                    //
+                                gamma_b);                                               //
+    blaze::subvector(gamma, num_unilaterals, num_bilaterals) = gamma_b;
     data_manager->system_timer.stop("ChLcpSolverParallel_Stab");
 }

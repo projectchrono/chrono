@@ -91,7 +91,9 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
 
 void ChShurProductBilateral::Setup(ChParallelDataManager* data_container_) {
     ChShurProduct::Setup(data_container_);
-
+    if (data_manager->num_bilaterals == 0) {
+        return;
+    }
     NshurB = _DBT_ * _MINVDB_;
 }
 

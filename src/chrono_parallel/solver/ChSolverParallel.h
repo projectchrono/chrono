@@ -56,8 +56,6 @@ class CH_PARALLEL_API ChSolverParallel {
                        ) = 0;
     virtual void InnerSolve();
 
-    real GetObjective(const DynamicVector<real>& x, const DynamicVector<real>& b) {}
-
     void AtIterationEnd(real maxd, real maxdeltalambda) {
         data_manager->measures.solver.maxd_hist.push_back(maxd);
         data_manager->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);

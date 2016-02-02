@@ -53,6 +53,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
+    bilateral_solver->current_iteration = 0;
     data_manager->measures.solver.total_iteration = 0;
     data_manager->measures.solver.maxd_hist.clear();
     data_manager->measures.solver.maxdeltalambda_hist.clear();
@@ -63,6 +64,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     solver->fem = data_manager->fea_container;
     solver->mpm = data_manager->mpm_container;
     solver->Setup(data_manager);
+    bilateral_solver->Setup(data_manager);
 
     ComputeD();
     ComputeE();
