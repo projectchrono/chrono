@@ -30,6 +30,7 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
+#include "chrono_parallel/math/mat33.h"
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
@@ -44,7 +45,6 @@ class ChBody;
 class ChLcpSystemDescriptor;
 class ChLink;
 class ChPhysicsItem;
-class Mat33;
 class real2;
 class real3;
 class real4;
@@ -264,12 +264,18 @@ struct host_container {
     custom_vector<real3> vel_3dof;
     custom_vector<real3> sorted_vel_3dof;
 
-    //Information for mpm
+    // Information for mpm
     custom_vector<real3> pos_marker_mpm;
     custom_vector<real3> vel_marker_mpm;
     custom_vector<real3> vel_node_mpm;
-    //custom_vector<real3> sorted_pos_marker_mpm;
-    //custom_vector<real3> sorted_vel_marker_mpm;
+
+    custom_vector<real> node_mass;
+    custom_vector<real> old_vel_node_mpm;
+    custom_vector<real> marker_volume;
+    custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
+
+    // custom_vector<real3> sorted_pos_marker_mpm;
+    // custom_vector<real3> sorted_vel_marker_mpm;
 
     // Information for FEM nodes
     custom_vector<real3> pos_node_fea;
