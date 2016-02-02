@@ -26,6 +26,7 @@
 #include "chrono_fea/ChElementHexa_8.h"
 #include "chrono_fea/ChElementHexa_20.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
@@ -76,18 +77,15 @@ int main(int argc, char* argv[]) {
     // Load a .node file and a .ele  file from disk, defining a complicate tetahedron mesh.
     // This is much easier than creating all nodes and elements via C++ programming.
     // You can generate these files using the TetGen tool.
-    try
-    {
-    my_mesh->LoadFromTetGenFile(GetChronoDataFile("fea/beam.node").c_str(),
-                                GetChronoDataFile("fea/beam.ele").c_str(),
-                                mmaterial);
-    }
-    catch (ChException myerr) {
-            GetLog() << myerr.what();
-            return 0;
+    try {
+        ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
+                                         GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
+    } catch (ChException myerr) {
+        GetLog() << myerr.what();
+        return 0;
     }
 
-                // Apply a force to a node
+    // Apply a force to a node
     ChSharedPtr<ChNodeFEAxyz> mnodelast = (my_mesh->GetNode(my_mesh->GetNnodes()-1)).DynamicCastTo<ChNodeFEAxyz>();
     mnodelast->SetForce( ChVector<>(50,0,50));
 

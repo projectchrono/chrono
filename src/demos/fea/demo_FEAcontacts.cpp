@@ -24,6 +24,7 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
@@ -195,11 +196,8 @@ int main(int argc, char* argv[]) {
             ChCoordsys<> cydisp(ChVector<>(-0.3 ,0.1+i*0.1, -0.3));
             ChCoordsys<> ctot = cdown >> crot >> cydisp;
             ChMatrix33<> mrot(ctot.rot);
-            my_mesh->LoadFromTetGenFile(GetChronoDataFile("fea/beam.node").c_str(),
-                                        GetChronoDataFile("fea/beam.ele").c_str(),
-                                        mmaterial,
-                                        ctot.pos,
-                                        mrot);
+            ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
+                                             GetChronoDataFile("fea/beam.ele").c_str(), mmaterial, ctot.pos, mrot);
             }
             catch (ChException myerr) {
                     GetLog() << myerr.what();

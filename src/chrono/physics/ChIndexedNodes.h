@@ -55,7 +55,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     ChIndexedNodes();
 
     /// Destructor
-    ~ChIndexedNodes();
+    virtual ~ChIndexedNodes();
 
     //
     // FUNCTIONS

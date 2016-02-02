@@ -28,6 +28,7 @@
 #include "chrono_fea/ChContinuumElectrostatics.h"
 #include "chrono_fea/ChNodeFEAxyzP.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
@@ -80,7 +81,8 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial, node_sets);
+        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial,
+                                         node_sets);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;

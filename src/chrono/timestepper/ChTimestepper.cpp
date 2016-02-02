@@ -827,7 +827,11 @@ void ChTimestepperHHT::Advance(const double dt) {
 
     // If we had a streak of successful steps, consider a stepsize increase.
     // Note that we never attempt a step larger than the specified dt value.
-    if (num_successful_steps >= req_successful_steps) {
+    // If step size control is disabled, always use h = dt.
+    if (!step_control) {
+        h = dt;
+        num_successful_steps = 0;
+    } else if (num_successful_steps >= req_successful_steps) {
         double new_h = ChMin(h * step_increase_factor, dt);
         if (new_h > h) {
             h = new_h;
@@ -854,8 +858,8 @@ void ChTimestepperHHT::Advance(const double dt) {
                 break;
         }
 
-        if (converged) {
-            // NR converged.
+        if (converged || !step_control) {
+            // NR converged (or step size control disabled):
             // - if the number of iterations was low enough, increase the count of successive
             //   successful steps (for possible step increase)
             // - if needed, adjust stepsize to reach exactly tfinal
@@ -866,9 +870,13 @@ void ChTimestepperHHT::Advance(const double dt) {
             else
                 num_successful_steps = 0;
 
-            if (verbose)
-                GetLog() << " HHT NR converged (" << num_successful_steps << ")\n";
-
+            if (verbose) {
+                if (converged)
+                    GetLog() << " HHT NR converged (" << num_successful_steps << ").";
+                else
+                    GetLog() << " HHT NR terminated.";
+                GetLog() << "  T = " << T + h << "  h = " << h << "\n";
+            }
 
             if (std::abs(T + h - tfinal) < 1e-6)
                 h = tfinal - T;
@@ -914,10 +922,13 @@ void ChTimestepperHHT::Advance(const double dt) {
 // Prepare attempting a step of size h (assuming a converged state at the current time t):
 // - Initialize residual vector with terms at current time
 // - Obtain a prediction at T+h for NR using extrapolation from solution at current time.
+// - For ACCELERATION mode, if not using step size control, start with zero acceleration
+//   guess (previous step not guaranteed to have converged)
 void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_factor) {
     switch (mode) {
         case ACCELERATION:
-            Anew = A;
+            if (step_control)
+                Anew = A;
             Vnew = V + Anew * h;
             Xnew = X + Vnew * h + Anew * h * h;
             integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
@@ -927,7 +938,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
             Xnew = X;
             Vnew = V * (-(gamma / beta - 1.0)) - A * h * (gamma / (2.0 * beta) - 1.0);
             Anew = V * (-1.0 / (beta * h)) - A * (1.0 / (2.0 * beta) - 1.0);
-            integrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);       // -alpha/(1.0+alpha) * f_old
+            integrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * f_old
             integrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * Cq'*l_old
             break;
     }
@@ -1028,7 +1039,8 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
 
             if (verbose) {
                 GetLog() << " HHT iteration=" << num_it << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
-                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  tol=" << GetTolerance() << "\n";
+                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.GetLength()
+                         << "  M = " << Qc.GetLength() << "  tol=" << GetTolerance() << "\n";
             }
 
             if ((R.NormTwo() < GetTolerance() && Qc.NormTwo() < GetTolerance()) ||
