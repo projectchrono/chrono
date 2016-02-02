@@ -3,7 +3,10 @@
 
 using namespace chrono;
 
-real ChSolverAPGDREF::Res4(DynamicVector<real>& gamma, const DynamicVector<real>& r, DynamicVector<real>& tmp) {
+real ChSolverAPGDREF::Res4(ChShurProduct& ShurProduct,
+                           DynamicVector<real>& gamma,
+                           const DynamicVector<real>& r,
+                           DynamicVector<real>& tmp) {
     real gdiff = 1.0 / pow(data_manager->num_constraints, 2.0);
     ShurProduct(gamma, tmp);
     tmp = tmp - r;
@@ -14,10 +17,14 @@ real ChSolverAPGDREF::Res4(DynamicVector<real>& gamma, const DynamicVector<real>
     return Sqrt((double)(tmp, tmp));
 }
 
-uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
-                                   const uint size,
-                                   const DynamicVector<real>& r,
-                                   DynamicVector<real>& gamma) {
+uint ChSolverAPGDREF::Solve(ChShurProduct& ShurProduct,
+                            const uint max_iter,
+                            const uint size,
+                            const DynamicVector<real>& r,
+                            DynamicVector<real>& gamma) {
+    if (size == 0) {
+        return 0;
+    }
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
@@ -128,7 +135,7 @@ uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
         yNew = gammaNew + Beta * (gammaNew - gamma);
 
         // (18) r = r(gamma_(k+1))
-        real res = Res4(gammaNew, r, tmp);
+        real res = Res4(ShurProduct, gammaNew, r, tmp);
 
         // (19) if r < epsilon_min
         if (res < residual) {

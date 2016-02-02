@@ -9,10 +9,12 @@ ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manag
     warm_start = false;
     residual = 0;
     solver = new ChSolverAPGD();
+    // bilateral_solver = new ChSolverMinRes();
 }
 
 ChLcpSolverParallel::~ChLcpSolverParallel() {
     delete solver;
+    delete bilateral_solver;
 }
 
 void ChLcpSolverParallel::ComputeInvMassMatrix() {
@@ -194,6 +196,13 @@ void ChLcpSolverParallel::PerformStabilization() {
     SubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
     data_manager->system_timer.start("ChLcpSolverParallel_Stab");
-    solver->SolveStab(data_manager->settings.solver.max_iteration_bilateral, num_bilaterals, R_b, gamma_b);
+
+//    data_manager->measures.solver.total_iteration +=
+//        bilateral_solver->Solve(ShurProductBilateral,
+//                                data_manager->settings.solver.max_iteration_bilateral,  //
+//                                num_bilaterals,                                         //
+//                                R_b,                                                    //
+//                                gamma_b);                                               //
+
     data_manager->system_timer.stop("ChLcpSolverParallel_Stab");
 }

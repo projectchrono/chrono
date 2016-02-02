@@ -25,10 +25,15 @@ void ChSolverSPGQP::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
+uint ChSolverSPGQP::Solve(ChShurProduct& ShurProduct,
+                               const uint max_iter,
                                const uint size,
                                const DynamicVector<real>& r,
                                DynamicVector<real>& gamma) {
+    if (size == 0) {
+        return 0;
+    }
+
     real& lastgoodres = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
     real sigma_min = 0.1;
@@ -54,8 +59,9 @@ uint ChSolverSPGQP::SolveSPGQP(const uint max_iter,
         } else {
             alpha = 0.0001;
         }
-    } else if (data_manager->settings.solver.use_power_iteration){
-        data_manager->measures.solver.lambda_max = LargestEigenValue(temp, data_manager->measures.solver.lambda_max);
+    } else if (data_manager->settings.solver.use_power_iteration) {
+        data_manager->measures.solver.lambda_max =
+            LargestEigenValue(ShurProduct, temp, data_manager->measures.solver.lambda_max);
         alpha = 1.95 / data_manager->measures.solver.lambda_max;
     }
     x = gamma;

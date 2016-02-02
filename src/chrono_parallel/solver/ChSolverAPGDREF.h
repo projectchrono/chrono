@@ -26,25 +26,19 @@ class CH_PARALLEL_API ChSolverAPGDREF : public ChSolverParallel {
     ChSolverAPGDREF() : ChSolverParallel() {}
     ~ChSolverAPGDREF() {}
 
-    void Solve() {
-        if (data_manager->num_constraints == 0) {
-            return;
-        }
-        data_manager->system_timer.start("ChSolverParallel_Solve");
-        data_manager->measures.solver.total_iteration += SolveAPGDREF(
-            max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
-        data_manager->system_timer.stop("ChSolverParallel_Solve");
-    }
-
     // Solve using the APGD method
-    uint SolveAPGDREF(const uint max_iter,           // Maximum number of iterations
-                      const uint size,               // Number of unknowns
-                      const DynamicVector<real>& r,  // Rhs vector
-                      DynamicVector<real>& gamma     // The vector of unknowns
-                      );
+    uint Solve(ChShurProduct& ShurProduct,
+               const uint max_iter,           // Maximum number of iterations
+               const uint size,               // Number of unknowns
+               const DynamicVector<real>& r,  // Rhs vector
+               DynamicVector<real>& gamma     // The vector of unknowns
+               );
 
     // Compute the residual for the solver
-    real Res4(DynamicVector<real>& gamma, const DynamicVector<real>& r, DynamicVector<real>& tmp);
+    real Res4(ChShurProduct& ShurProduct,
+              DynamicVector<real>& gamma,
+              const DynamicVector<real>& r,
+              DynamicVector<real>& tmp);
 
     // APGD specific vectors
     DynamicVector<real> gamma_hat;

@@ -82,34 +82,49 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     //    solver->Solve();
     //  }
 
+    ShurProductFull.Setup(data_manager);
+    ShurProductBilateral.Setup(data_manager);
+
     PerformStabilization();
 
     if (data_manager->settings.solver.solver_mode == NORMAL || data_manager->settings.solver.solver_mode == SLIDING ||
         data_manager->settings.solver.solver_mode == SPINNING) {
         if (data_manager->settings.solver.max_iteration_normal > 0) {
-            solver->SetMaxIterations(data_manager->settings.solver.max_iteration_normal);
             data_manager->settings.solver.local_solver_mode = NORMAL;
             SetR();
             LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Normal";
-            solver->Solve();
+            data_manager->measures.solver.total_iteration +=
+                solver->Solve(ShurProductFull,
+                              data_manager->settings.solver.max_iteration_normal,  //
+                              data_manager->num_constraints,                       //
+                              data_manager->host_data.R,                           //
+                              data_manager->host_data.gamma);                      //
         }
     }
     if (data_manager->settings.solver.solver_mode == SLIDING || data_manager->settings.solver.solver_mode == SPINNING) {
         if (data_manager->settings.solver.max_iteration_sliding > 0) {
-            solver->SetMaxIterations(data_manager->settings.solver.max_iteration_sliding);
             data_manager->settings.solver.local_solver_mode = SLIDING;
             SetR();
             LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Sliding";
-            solver->Solve();
+            data_manager->measures.solver.total_iteration +=
+                solver->Solve(ShurProductFull,                                      //
+                              data_manager->settings.solver.max_iteration_sliding,  //
+                              data_manager->num_constraints,                        //
+                              data_manager->host_data.R,                            //
+                              data_manager->host_data.gamma);                       //
         }
     }
     if (data_manager->settings.solver.solver_mode == SPINNING) {
         if (data_manager->settings.solver.max_iteration_spinning > 0) {
-            solver->SetMaxIterations(data_manager->settings.solver.max_iteration_spinning);
             data_manager->settings.solver.local_solver_mode = SPINNING;
             SetR();
             LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Spinning";
-            solver->Solve();
+            data_manager->measures.solver.total_iteration +=
+                solver->Solve(ShurProductFull,
+                              data_manager->settings.solver.max_iteration_spinning,  //
+                              data_manager->num_constraints,                         //
+                              data_manager->host_data.R,                             //
+                              data_manager->host_data.gamma);                        //
         }
     }
 

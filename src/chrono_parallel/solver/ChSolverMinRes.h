@@ -26,23 +26,14 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
     ChSolverMinRes() : ChSolverParallel() {}
     ~ChSolverMinRes() {}
 
-    void Solve() {
-        if (data_manager->num_constraints == 0) {
-            return;
-        }
-        data_manager->system_timer.start("ChSolverParallel_Solve");
-        data_manager->measures.solver.total_iteration += SolveMinRes(
-            max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
-        data_manager->system_timer.stop("ChSolverParallel_Solve");
-    }
-
     // Solve using the minimal residual method
-    uint SolveMinRes(const uint max_iter,     // Maximum number of iterations
-                     const uint size,         // Number of unknowns
-                     DynamicVector<real>& b,  // Rhs vector
-                     DynamicVector<real>& x   // The vector of unknowns
-                     );
+    uint Solve(ChShurProduct& ShurProduct,
+               const uint max_iter,     // Maximum number of iterations
+               const uint size,         // Number of unknowns
+               DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x   // The vector of unknowns
+               );
 
-    DynamicVector<real> mr, mp, mz, mNMr, mNp, mMNp, mtmp, mz_old, mNMr_old;
+    DynamicVector<real> v, v_hat, w, w_old, xMR, v_old, Av, w_oold;
 };
 }

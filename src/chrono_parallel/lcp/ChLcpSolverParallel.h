@@ -29,6 +29,7 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChSolverAPGD.h"
+#include "chrono_parallel/solver/ChShurProduct.h"
 namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
@@ -52,12 +53,14 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
     real GetResidual() { return residual; }
     ChParallelDataManager* data_manager;
     ChSolverParallel* solver;
+    ChSolverParallel* bilateral_solver;
 
   protected:
     ChLcpSolverParallel(ChParallelDataManager* dc);
 
     real residual;
     ChConstraintBilateral bilateral;
+    ChShurProductBilateral ShurProductBilateral;
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
@@ -84,6 +87,7 @@ class CH_PARALLEL_API ChLcpSolverParallelDVI : public ChLcpSolverParallel {
 
   private:
     ChConstraintRigidRigid rigid_rigid;
+    ChShurProduct ShurProductFull;
 };
 
 class CH_PARALLEL_API ChLcpSolverParallelDEM : public ChLcpSolverParallel {
