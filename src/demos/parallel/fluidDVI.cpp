@@ -121,7 +121,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     fluid_container->mass = fluid_container->rho * vol;
     std::cout << "fluid_mass: " << fluid_container->mass << std::endl;
     fluid_container->UpdatePosition(0);
-    fluid_container->AddFluid(pos_fluid, vel_fluid);
+    fluid_container->AddBodies(pos_fluid, vel_fluid);
 }
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
