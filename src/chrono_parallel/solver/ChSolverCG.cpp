@@ -1,8 +1,13 @@
-#include "chrono_parallel/solver/ChSolverCG.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
 
 using namespace chrono;
 
-uint ChSolverCG::SolveCG(const uint max_iter, const uint size, DynamicVector<real>& mb, DynamicVector<real>& ml) {
+uint ChSolverCG::Solve(ChShurProduct& ShurProduct,
+                       ChProjectConstraints& Project,
+                       const uint max_iter,
+                       const uint size,
+                       const DynamicVector<real>& mb,
+                       DynamicVector<real>& ml) {
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
@@ -36,7 +41,7 @@ uint ChSolverCG::SolveCG(const uint max_iter, const uint size, DynamicVector<rea
         p = rsnew / rsold * p + r;
         rsold = rsnew;
 
-        objective_value = GetObjective(ml, mb);
+        objective_value = 0;//GetObjective(ml, mb);
         AtIterationEnd(residual, objective_value);
     }
     Project(ml.data());

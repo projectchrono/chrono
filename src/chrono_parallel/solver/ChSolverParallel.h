@@ -27,7 +27,7 @@ namespace chrono {
 
 class CH_PARALLEL_API ChProjectConstraints {
   public:
-    ChProjectConstraints(){}
+    ChProjectConstraints() {}
     virtual ~ChProjectConstraints() {}
 
     virtual void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
@@ -40,7 +40,7 @@ class CH_PARALLEL_API ChProjectConstraints {
 };
 class CH_PARALLEL_API ChProjectNone : public ChProjectConstraints {
   public:
-    ChProjectNone(){}
+    ChProjectNone() {}
     virtual ~ChProjectNone() {}
 
     // Project the Lagrange multipliers
@@ -229,5 +229,22 @@ class CH_PARALLEL_API ChSolverSPGQP : public ChSolverParallel {
     real alpha, f_max, xi, beta_bar, beta_tilde, beta_k, gam;
     DynamicVector<real> g, d_k, x, temp, Ad_k, g_alpha, x_candidate;
     std::vector<real> f_hist;
+};
+
+class CH_PARALLEL_API ChSolverCG : public ChSolverParallel {
+  public:
+    ChSolverCG() : ChSolverParallel() {}
+    ~ChSolverCG() {}
+
+    // Solve using the conjugate gradient method
+    uint Solve(ChShurProduct& ShurProduct,
+               ChProjectConstraints& Project,
+               const uint max_iter,     // Maximum number of iterations
+               const uint size,         // Number of unknowns
+               const DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x   // The vector of unknowns
+               );
+
+    DynamicVector<real> r, p, Ap;
 };
 }
