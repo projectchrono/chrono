@@ -2,49 +2,70 @@
 
 using namespace chrono;
 
+real Convergence_Norm(const DynamicVector<real>& r) {
+    real result = (real)0.;
+    for (int i = 0; i < r.size(); i += 3) {
+        real3 v(r[i + 0], r[i + 1], r[i + 2]);
+        real mag = Length(v);
+        result = Max(result, mag);
+    }
+    return result;
+}
 uint ChSolverCG::Solve(ChShurProduct& ShurProduct,
                        ChProjectConstraints& Project,
                        const uint max_iter,
                        const uint size,
-                       const DynamicVector<real>& mb,
-                       DynamicVector<real>& ml) {
+                       const DynamicVector<real>& b,
+                       DynamicVector<real>& x) {
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
-    r.resize(size), Ap.resize(size);
+    r.resize(b.size());
+    q.resize(b.size());
+    s.resize(b.size());
 
-    real rsold, alpha, rsnew = 0, normb = Sqrt((mb, mb));
-    if (normb == 0.0) {
-        normb = 1;
-    }
-    ShurProduct(ml, r);  // r = data_manager->host_data.D_T *
-                         // (data_manager->host_data.M_invD * ml);
-    p = r = mb - r;
-    rsold = (r, r);
-    normb = 1.0 / normb;
-    if (Sqrt(rsold) * normb <= data_manager->settings.solver.tolerance) {
-        return 0;
-    }
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-        ShurProduct(p, Ap);  // Ap = data_manager->host_data.D_T *
-                             // (data_manager->host_data.M_invD * p);
-        alpha = rsold / (p, Ap);
-        rsnew = 0;
-        ml = alpha * p + ml;
-        r = -alpha * Ap + r;
-        rsnew = (r, r);
+    real rho_old = FLT_MAX;
+    real convergence_norm = 0;
+    real tolerance = 1e-4;  // Max(1e-4 * Convergence_Norm(b), 1e-6);
+    int min_iterations = 0;
 
-        residual = Sqrt(rsnew) * normb;
-        if (residual < data_manager->settings.solver.tolerance) {
+    int iterations;
+    int restart_iterations = 100;
+    for (iterations = 0;; iterations++) {
+        bool restart = !iterations || (restart_iterations && iterations % restart_iterations == 0);
+        if (restart) {
+            printf("restarting cg\n");
+            r = b;
+            ShurProduct(x, q);
+            r -= q;
+            // Project(r.data());
+        }
+
+        convergence_norm = Convergence_Norm(r);
+        printf("%f\n", convergence_norm);
+
+        if (convergence_norm <= tolerance && (iterations >= min_iterations || convergence_norm < C_EPSILON)) {
+            printf("cg iterations %d\n", iterations);
             break;
         }
-        p = rsnew / rsold * p + r;
-        rsold = rsnew;
+        if (iterations == max_iter) {
+            break;
+        }
 
-        objective_value = 0;//GetObjective(ml, mb);
-        AtIterationEnd(residual, objective_value);
+        real rho = (r, r);
+        if (restart) {
+            s = r;
+        } else {
+            s = rho / rho_old * s + r;
+        }
+        ShurProduct(s, q);
+        // Project(r.data());
+        real s_dot_q = (s, q);
+        real alpha = s_dot_q ? rho / s_dot_q : (real)FLT_MAX;
+        x = alpha * s + x;
+        r = -alpha * q + r;
+        rho_old = rho;
     }
-    Project(ml.data());
 
     return current_iteration;
 }

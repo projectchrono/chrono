@@ -245,6 +245,6 @@ class CH_PARALLEL_API ChSolverCG : public ChSolverParallel {
                DynamicVector<real>& x   // The vector of unknowns
                );
 
-    DynamicVector<real> r, p, Ap;
+    DynamicVector<real> r, q, s;
 };
 }
