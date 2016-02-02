@@ -1,9 +1,9 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
-
 using namespace chrono;
 
 real ChSolverAPGDREF::Res4(ChShurProduct& ShurProduct,
+                           ChProjectConstraints& Project,
                            DynamicVector<real>& gamma,
                            const DynamicVector<real>& r,
                            DynamicVector<real>& tmp) {
@@ -18,6 +18,7 @@ real ChSolverAPGDREF::Res4(ChShurProduct& ShurProduct,
 }
 
 uint ChSolverAPGDREF::Solve(ChShurProduct& ShurProduct,
+                            ChProjectConstraints& Project,
                             const uint max_iter,
                             const uint size,
                             const DynamicVector<real>& r,
@@ -135,7 +136,7 @@ uint ChSolverAPGDREF::Solve(ChShurProduct& ShurProduct,
         yNew = gammaNew + Beta * (gammaNew - gamma);
 
         // (18) r = r(gamma_(k+1))
-        real res = Res4(ShurProduct, gammaNew, r, tmp);
+        real res = Res4(ShurProduct, Project, gammaNew, r, tmp);
 
         // (19) if r < epsilon_min
         if (res < residual) {

@@ -38,6 +38,7 @@ void ChSolverAPGD::UpdateR() {
 }
 
 uint ChSolverAPGD::Solve(ChShurProduct& ShurProduct,
+                         ChProjectConstraints& Project,
                          const uint max_iter,
                          const uint size,
                          const DynamicVector<real>& r,

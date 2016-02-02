@@ -11,6 +11,8 @@ ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manag
     residual = 0;
     solver = new ChSolverAPGD();
     bilateral_solver = new ChSolverMinRes();
+    data_manager->rigid_rigid = new ChConstraintRigidRigid();
+    data_manager->bilateral = new ChConstraintBilateral();
 }
 
 ChLcpSolverParallel::~ChLcpSolverParallel() {
@@ -199,7 +201,8 @@ void ChLcpSolverParallel::PerformStabilization() {
     data_manager->system_timer.start("ChLcpSolverParallel_Stab");
 
     data_manager->measures.solver.total_iteration +=
-        bilateral_solver->Solve(ShurProductBilateral,
+        bilateral_solver->Solve(ShurProductBilateral,                                   //
+                                ProjectNone,                                            //
                                 data_manager->settings.solver.max_iteration_bilateral,  //
                                 num_bilaterals,                                         //
                                 R_b,                                                    //

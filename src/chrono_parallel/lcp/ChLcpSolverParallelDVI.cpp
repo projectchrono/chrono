@@ -12,13 +12,13 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep";
     // Compute the offsets and number of constrains depending on the solver mode
     if (data_manager->settings.solver.solver_mode == NORMAL) {
-        rigid_rigid.offset = 1;
+        data_manager->rigid_rigid->offset = 1;
         data_manager->num_unilaterals = 1 * data_manager->num_rigid_contacts;
     } else if (data_manager->settings.solver.solver_mode == SLIDING) {
-        rigid_rigid.offset = 3;
+        data_manager->rigid_rigid->offset = 3;
         data_manager->num_unilaterals = 3 * data_manager->num_rigid_contacts;
     } else if (data_manager->settings.solver.solver_mode == SPINNING) {
-        rigid_rigid.offset = 6;
+        data_manager->rigid_rigid->offset = 6;
         data_manager->num_unilaterals = 6 * data_manager->num_rigid_contacts;
     }
 
@@ -40,8 +40,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->host_data.gamma.reset();
 
     // Perform any setup tasks for all constraint types
-    rigid_rigid.Setup(data_manager);
-    bilateral.Setup(data_manager);
+    data_manager->rigid_rigid->Setup(data_manager);
+    data_manager->bilateral->Setup(data_manager);
     data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals);
     data_manager->fea_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
     data_manager->mpm_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof +
@@ -54,11 +54,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->measures.solver.maxd_hist.clear();
     data_manager->measures.solver.maxdeltalambda_hist.clear();
     // Set pointers to constraint objects and perform setup actions for solver
-    solver->rigid_rigid = &rigid_rigid;
-    solver->bilateral = &bilateral;
-    solver->three_dof = data_manager->node_container;
-    solver->fem = data_manager->fea_container;
-    solver->mpm = data_manager->mpm_container;
+
     solver->Setup(data_manager);
     bilateral_solver->Setup(data_manager);
 
@@ -72,10 +68,9 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
-
-
     ShurProductFull.Setup(data_manager);
     ShurProductBilateral.Setup(data_manager);
+    ProjectFull.Setup(data_manager);
 
     PerformStabilization();
 
@@ -86,7 +81,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
             SetR();
             LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Normal";
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,
+                solver->Solve(ShurProductFull,                                     //
+                              ProjectFull,                                         //
                               data_manager->settings.solver.max_iteration_normal,  //
                               data_manager->num_constraints,                       //
                               data_manager->host_data.R,                           //
@@ -100,6 +96,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
             LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Sliding";
             data_manager->measures.solver.total_iteration +=
                 solver->Solve(ShurProductFull,                                      //
+                              ProjectFull,                                          //
                               data_manager->settings.solver.max_iteration_sliding,  //
                               data_manager->num_constraints,                        //
                               data_manager->host_data.R,                            //
@@ -112,7 +109,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
             SetR();
             LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep - Solve Spinning";
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,
+                solver->Solve(ShurProductFull,                                       //
+                              ProjectFull,                                           //
                               data_manager->settings.solver.max_iteration_spinning,  //
                               data_manager->num_constraints,                         //
                               data_manager->host_data.R,                             //
@@ -224,14 +222,14 @@ void ChLcpSolverParallelDVI::ComputeD() {
     // CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
     // CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
 
-    rigid_rigid.GenerateSparsity();
-    bilateral.GenerateSparsity();
+    data_manager->rigid_rigid->GenerateSparsity();
+    data_manager->bilateral->GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
     data_manager->fea_container->GenerateSparsity();
     data_manager->mpm_container->GenerateSparsity();
 
-    rigid_rigid.Build_D();
-    bilateral.Build_D();
+    data_manager->rigid_rigid->Build_D();
+    data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
     data_manager->fea_container->Build_D();
     data_manager->mpm_container->Build_D();
@@ -256,8 +254,8 @@ void ChLcpSolverParallelDVI::ComputeE() {
     data_manager->host_data.E.resize(data_manager->num_constraints);
     reset(data_manager->host_data.E);
 
-    rigid_rigid.Build_E();
-    bilateral.Build_E();
+    data_manager->rigid_rigid->Build_E();
+    data_manager->bilateral->Build_E();
 
     data_manager->fea_container->Build_E();
     data_manager->node_container->Build_E();
@@ -285,8 +283,8 @@ void ChLcpSolverParallelDVI::ComputeR() {
     R.resize(data_manager->num_constraints);
     reset(R);
 
-    rigid_rigid.Build_b();
-    bilateral.Build_b();
+    data_manager->rigid_rigid->Build_b();
+    data_manager->bilateral->Build_b();
     data_manager->node_container->Build_b();
     data_manager->fea_container->Build_b();
     data_manager->mpm_container->Build_b();

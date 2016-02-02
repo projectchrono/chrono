@@ -531,8 +531,8 @@ void ChLcpSolverParallelDEM::ComputeD() {
     D_T.reserve(nnz_bilaterals);
     D_T.resize(num_constraints, num_dof, false);
 
-    bilateral.GenerateSparsity();
-    bilateral.Build_D();
+    data_manager->bilateral->GenerateSparsity();
+    data_manager->bilateral->Build_D();
 
     data_manager->host_data.D = trans(D_T);
     data_manager->host_data.M_invD = data_manager->host_data.M_inv * data_manager->host_data.D;
@@ -546,7 +546,7 @@ void ChLcpSolverParallelDEM::ComputeE() {
     data_manager->host_data.E.resize(data_manager->num_constraints);
     reset(data_manager->host_data.E);
 
-    bilateral.Build_E();
+    data_manager->bilateral->Build_E();
 }
 
 void ChLcpSolverParallelDEM::ComputeR() {
@@ -556,7 +556,7 @@ void ChLcpSolverParallelDEM::ComputeR() {
 
     data_manager->host_data.b.resize(data_manager->num_constraints);
     reset(data_manager->host_data.b);
-    bilateral.Build_b();
+    data_manager->bilateral->Build_b();
 
     data_manager->host_data.R_full =
         -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
@@ -591,14 +591,13 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
     if (data_manager->num_constraints != 0) {
         data_manager->system_timer.start("ChLcpSolverParallel_Setup");
 
-        bilateral.Setup(data_manager);
+        data_manager->bilateral->Setup(data_manager);
 
         solver->current_iteration = 0;
         data_manager->measures.solver.total_iteration = 0;
         data_manager->measures.solver.maxd_hist.clear();            ////
         data_manager->measures.solver.maxdeltalambda_hist.clear();  ////  currently not used
 
-        solver->bilateral = &bilateral;
         solver->Setup(data_manager);
 
         // Set the initial guess for the iterative solver to zero.
@@ -613,6 +612,7 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
         data_manager->system_timer.stop("ChLcpSolverParallel_Setup");
 
         ShurProductBilateral.Setup(data_manager);
+
         bilateral_solver->Setup(data_manager);
         // Solve for the Lagrange multipliers associated with bilateral constraints.
         PerformStabilization();

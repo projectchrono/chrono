@@ -2,6 +2,14 @@
 
 using namespace chrono;
 
+void ChProjectConstraints::operator()(real* data) {
+    data_manager->system_timer.start("ChSolverParallel_Project");
+    data_manager->rigid_rigid->Project(data);
+    data_manager->node_container->Project(data);
+    data_manager->fea_container->Project(data);
+    data_manager->system_timer.stop("ChSolverParallel_Project");
+}
+
 ChSolverParallel::ChSolverParallel() {
     current_iteration = 0;
     rigid_rigid = NULL;
@@ -10,19 +18,6 @@ ChSolverParallel::ChSolverParallel() {
     bilateral = NULL;
 }
 
-void ChSolverParallel::Project(real* gamma) {
-    data_manager->system_timer.start("ChSolverParallel_Project");
-    rigid_rigid->Project(gamma);
-    three_dof->Project(gamma);
-    fem->Project(gamma);
-    data_manager->system_timer.stop("ChSolverParallel_Project");
-}
-
-void ChSolverParallel::Project_Single(int index, real* gamma) {
-    data_manager->system_timer.start("ChSolverParallel_Project");
-    rigid_rigid->Project_Single(index, gamma);
-    data_manager->system_timer.stop("ChSolverParallel_Project");
-}
 //=================================================================================================================================
 
 void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,

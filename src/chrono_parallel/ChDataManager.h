@@ -53,6 +53,8 @@ class Ch3DOFContainer;
 class ChFEAContainer;
 class ChFluidContainer;
 class ChMPMContainer;
+class ChConstraintRigidRigid;
+class ChConstraintBilateral;
 
 template <typename TT>
 class ChSharedPtr;
@@ -376,6 +378,9 @@ class CH_PARALLEL_API ChParallelDataManager {
     Ch3DOFContainer* node_container;
     Ch3DOFContainer* fea_container;
     Ch3DOFContainer* mpm_container;
+
+    ChConstraintRigidRigid* rigid_rigid;
+    ChConstraintBilateral* bilateral;
 
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure
