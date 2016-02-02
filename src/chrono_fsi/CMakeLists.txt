@@ -54,33 +54,40 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 # LIST THE FILES THAT MAKE THE FSI FLUID-SOLID INTERACTION LIBRARY
 
 SET(ChronoEngine_FSI_SOURCES
-checkPointReduced.cpp 
 ChFsiModelData.cpp
-collideSphereSphere.cu
 CreateBCE.cpp
-FSI_Integrate.cpp
 InitializeSphMarkers.cpp
 printToFile.cu
-SDKCollisionSystem.cu 
-SphInterface.cpp 
 VehicleExtraProperties.cpp
+revamp/ChFsiDynamics.cpp
+revamp/ChBce.cu
+revamp/ChFluidDynamics.cu
+revamp/ChFsiForceParallel.cu
+revamp/ChFsiInterface.cpp
+revamp/ChFsiGeneral.cu
+revamp/ChDeviceUtils.cu
+revamp/ChFsiDataManager.cu
 )
 
 SET(ChronoEngine_FSI_HEADERS
-checkPointReduced.h
 ChFsiModelData.h
-collideSphereSphere.cuh
 CreateBCE.h
-custom_cutil_math.h
 demo_utils.h
-FSI_Integrate.h
 InitializeSphMarkers.h
 MyStructs.cuh
 printToFile.cu
-SDKCollisionSystem.cuh
 SPHCudaUtils.h
-SphInterface.h
 VehicleExtraProperties.h
+revamp/ChFsiDynamics.h
+revamp/ChBce.h
+revamp/ChFluidDynamics.cuh
+revamp/ChFsiForceParallel.cuh
+revamp/ChFsiInterface.h
+revamp/ChFsiGeneral.cuh
+revamp/ChDeviceUtils.cuh
+revamp/ChFsiDataManager.cuh
+revamp/custom_cutil_math.h
+revamp/ChApiFsi.h
 )
 
 SOURCE_GROUP("" FILES 

@@ -31,6 +31,9 @@ private:
 	ChFluidDynamics* ChFluidDynamics;
 	ChFsiInterface* ChFsiInterface;
 	ChBce* bceWorker;
+
+	chrono::ChSystemParallelDVI * mphysicalSystem;
+	chrono::vehicle::ChWheeledVehicleAssembly* mVehicle;
 };
 }
 #endif

@@ -21,6 +21,37 @@ void ChFsiDynamics::CopyDeviceDataToHalfStep(){
 	thrust::copy(fsiData->sphMarkersD1.velMasD.begin(), fsiData->sphMarkersD1.velMasD.end(), fsiData->sphMarkersD2.velMasD.begin());
 	thrust::copy(fsiData->sphMarkersD1.rhoPresMuD.begin(), fsiData->sphMarkersD1.rhoPresMuD.end(), fsiData->sphMarkersD2.rhoPresMuD.begin());
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+// Arman : split this later. move vehicle stuff out of this class.
+int DoStepChronoSystem(Real dT,
+		double mTime, double time_hold_vehicle, bool haveVehicle) {
+	if (haveVehicle) {
+		// Release the vehicle chassis at the end of the hold time.
+
+		if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed()
+				&& mTime > time_hold_vehicle) {
+			mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
+			for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles();
+					i++) {
+				mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
+			}
+		}
+
+		// Update vehicle
+		mVehicle->Update(mTime);
+	}
+
+#ifdef CHRONO_OPENGL
+	if (gl_window.Active()) {
+		gl_window.DoStepDynamics(dT);
+		gl_window.Render();
+	}
+#else
+	mphysicalSystem->DoStepDynamics(dT);
+#endif
+	return 1;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiDynamics::DoStepDynamics_FSI(){
 
