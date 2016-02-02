@@ -124,17 +124,9 @@ Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, rea
     // Tech report middle of Page 2
     return real(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
 }
-
-Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
-    Mat33 U, V, R, S, W, A;
-    real3 E, b;
-    SVD(F, U, E, V);
-    // Perform polar decomposition F = R*S
-    R = MultTranspose(U, V);
-    S = V * MultTranspose(Mat33(E), V);
-    // See tech report end of page 2
-    W = TransposeMult(R, dF);
-
+Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
+    Mat33 A;
+    real3 b;
     // setup 3x3 system
     // Multiply out (R^TdR)*S + S*(R^TdR) and because it is skew symmetric we will only have three unknowns
     A[0] = S[8];
@@ -159,6 +151,18 @@ Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
 
     Mat33 dR = R * rx;
     return dR;
+}
+Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
+    Mat33 U, V, R, S, W;
+    real3 E;
+    SVD(F, U, E, V);
+    // Perform polar decomposition F = R*S
+    R = MultTranspose(U, V);
+    S = V * MultTranspose(Mat33(E), V);
+    // See tech report end of page 2
+    W = TransposeMult(R, dF);
+
+    return Solve_dR(R, S, W);
 }
 
 void SplitPotential_Energy_Derivative(const Mat33& FE,

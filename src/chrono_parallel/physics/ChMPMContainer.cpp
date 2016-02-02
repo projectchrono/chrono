@@ -25,7 +25,7 @@ using namespace geometry;
 //
 class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
   public:
-    ChShurProductMPM(){}
+    ChShurProductMPM() {}
     virtual ~ChShurProductMPM() {}
     void Setup(ChParallelDataManager data_container_) {}
     void Setup(ChMPMContainer* mpm_container, ChParallelDataManager* manager) {
@@ -54,7 +54,7 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
 
             Mat33 delta_F(0);
             {
-                LOOPOVERNODES(  //
+                LOOPONERING(  //
 
                     real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1],
                                v_array[current_node * 3 + 2]);
@@ -68,16 +68,35 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
             }
             delta_F = delta_F * data_manager->host_data.marker_Fe[p];
 
-            real plastic_determinant = Determinant(data_manager->host_data.marker_Fp[p]);
-            real J = Determinant(data_manager->host_data.marker_Fe_hat[p]);
-            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-            real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-            Mat33 Fe_hat_inv_transpose = InverseTranspose(data_manager->host_data.marker_Fe_hat[p]);
+            // real plastic_determinant = container->det_marker_Fp[p];
+            Mat33 R = container->SVD_Fe_hat_R[p];
+            Mat33 S = container->SVD_Fe_hat_S[p];
+
+            real plastic_determinant = Determinant(data_manager->host_data.marker_Fp[p]);             // Constant
+            real J = Determinant(data_manager->host_data.marker_Fe_hat[p]);                           // Constant
+            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));          // Constant
+            real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));  // Constant
+
+            Mat33 Fe_hat_inv_transpose;
+            if (J > 0.0) {
+                Fe_hat_inv_transpose = AdjointTranspose(data_manager->host_data.marker_Fe_hat[p]) * real(1.0 / J);
+            } else {
+                Fe_hat_inv_transpose = Mat33(0);
+            }
+
+            // Mat33 Fe_hat_inv_transpose = InverseTranspose(data_manager->host_data.marker_Fe_hat[p]);  // Constant
+            // Mat33 U, V;
+            // real3 E;
+            // SVD(data_manager->host_data.marker_Fe_hat[p], U, E, V);  // Constant
+            // Mat33 R = MultTranspose(U, V);                           // Constant
+            // Mat33 S = V * MultTranspose(Mat33(E), V);                // Constant
 
             real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
-            Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
+            Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * TransposeMult(delta_F, Fe_hat_inv_transpose);
             Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
-            Mat33 RD = Rotational_Derivative(data_manager->host_data.marker_Fe_hat[p], delta_F);
+
+            Mat33 W = TransposeMult(R, delta_F);
+            Mat33 RD = Solve_dR(R, S, W);
 
             Mat33 volume_Ap_Fe_transpose =
                 data_manager->host_data.marker_volume[p] *
@@ -89,9 +108,9 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
                 const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
                 const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
 
-                for (int i = cx - 2; i <= cx + 2; ++i) {
-                    for (int j = cy - 2; j <= cy + 2; ++j) {
-                        for (int k = cz - 2; k <= cz + 2; ++k) {
+                for (int i = cx - 1; i <= cx + 1; ++i) {
+                    for (int j = cy - 1; j <= cy + 1; ++j) {
+                        for (int k = cz - 1; k <= cz + 1; ++k) {
                             const int current_node = GridHash(i, j, k, bins_per_axis);
                             real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
                             real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
@@ -200,7 +219,7 @@ void ChMPMContainer::ComputeDOF() {
     uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
     data_manager->num_mpm_nodes = grid_size;
     num_mpm_nodes = grid_size;
-    num_mpm_constraints = num_mpm_nodes * 6;
+    num_mpm_constraints = 0;  // num_mpm_nodes * 6;
 
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
@@ -241,7 +260,7 @@ void ChMPMContainer::Update(double ChTime) {
         const real3 xi = pos_marker[p];
         const real3 vi = vel_marker[p];
         // printf("marker_vel: [%.20f %.20f %.20f] \n", vi.x, vi.y, vi.z);
-        LOOPOVERNODES(                                                                       //
+        LOOPONERING(                                                                         //
             real weight = N(xi - current_node_location, inv_bin_edge) * mass;                //
             data_manager->host_data.node_mass[current_node] += weight;                       //
             data_manager->host_data.v[body_offset + current_node * 3 + 0] += weight * vi.x;  //
@@ -270,20 +289,27 @@ void ChMPMContainer::Update(double ChTime) {
             //                   data_manager->host_data.node_mass[i]);
         }
     }
-
+    SVD_Fe_hat_R.resize(num_mpm_markers);
+    SVD_Fe_hat_S.resize(num_mpm_markers);
     printf("Compute_Elastic_Deformation_Gradient_Hat\n");
 #pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         data_manager->host_data.marker_Fe_hat[p] = Mat33(1.0);
         Mat33 Fe_hat_t(1);
-        LOOPOVERNODES(  //
+        LOOPONERING(  //
             real3 vel(data_manager->host_data.v[body_offset + i * 3 + 0],
                       data_manager->host_data.v[body_offset + i * 3 + 1],
                       data_manager->host_data.v[body_offset + i * 3 + 2]);
             real3 kern = dN(xi - current_node_location, inv_bin_edge); Fe_hat_t += OuterProduct(dt * vel, kern);  //
             )
-        data_manager->host_data.marker_Fe_hat[p] = Fe_hat_t * data_manager->host_data.marker_Fe[p];
+        Mat33 Fe_hat = Fe_hat_t * data_manager->host_data.marker_Fe[p];
+        data_manager->host_data.marker_Fe_hat[p] = Fe_hat;
+        Mat33 U, V;
+        real3 E;
+        SVD(Fe_hat, U, E, V);
+        SVD_Fe_hat_R[p] = MultTranspose(U, V);
+        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
     }
 
     //    printf("Compute_Grid_Forces\n");
@@ -298,7 +324,7 @@ void ChMPMContainer::Update(double ChTime) {
     //        data_manager->host_data.marker_Fe[p]);
     //        real JE = Determinant(data_manager->host_data.marker_Fe[p]);                                       //
     //        real JP = Determinant(data_manager->host_data.marker_Fp[p]);                                       //
-    //        LOOPOVERNODES(                                                      //
+    //        LOOPONERING(                                                      //
     //            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
     //            real3 force = (vPEDFepT * d_weight) / (JE * JP);
     //
@@ -323,7 +349,7 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
         real3 V_flip = vel_marker[p];
 
         real3 V_pic = real3(0.0);
-        LOOPOVERNODES(                                                  //
+        LOOPONERING(                                                    //
             real weight = N(xi - current_node_location, inv_bin_edge);  //
             V_pic.x += v[body_offset + current_node * 3 + 0] * weight;  //
             V_pic.y += v[body_offset + current_node * 3 + 1] * weight;  //
@@ -406,7 +432,7 @@ void ChMPMContainer::Initialize() {
         const real3 xi = pos_marker[p];
         const real3 vi = vel_marker[p];
 
-        LOOPOVERNODES(                                                                //
+        LOOPONERING(                                                                  //
             real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
             data_manager->host_data.node_mass[current_node] += weight;                //
             )
@@ -418,7 +444,7 @@ void ChMPMContainer::Initialize() {
         const real3 xi = pos_marker[p];
         real particle_density = 0;
 
-        LOOPOVERNODES(                                                                     //
+        LOOPONERING(                                                                       //
             real weight = N(xi - current_node_location, inv_bin_edge);                     //
             particle_density += data_manager->host_data.node_mass[current_node] * weight;  //
             )
@@ -493,7 +519,7 @@ void ChMPMContainer::PostSolve() {
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         Mat33 velocity_gradient(0);
-        LOOPOVERNODES(  //
+        LOOPONERING(  //
             real3 g_vel(data_manager->host_data.v[body_offset + current_node * 3 + 0],
                         data_manager->host_data.v[body_offset + current_node * 3 + 1],
                         data_manager->host_data.v[body_offset + current_node * 3 + 2]);
@@ -513,82 +539,6 @@ void ChMPMContainer::PostSolve() {
         data_manager->host_data.marker_Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         data_manager->host_data.marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
-    }
-}
-
-void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
-    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
-    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
-    const real dt = data_manager->settings.step_size;
-
-    printf("Apply Hessian\n");
-#pragma omp parallel for
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-
-        Mat33 delta_F(0);
-        {
-            LOOPOVERNODES(  //
-
-                real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
-                real3 vold(data_manager->host_data.old_vel_node_mpm[current_node * 3 + 0],
-                           data_manager->host_data.old_vel_node_mpm[current_node * 3 + 1],
-                           data_manager->host_data.old_vel_node_mpm[current_node * 3 + 2]);
-                real3 v0 = vnew + vold;                                   //
-                real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
-                delta_F += OuterProduct(v0, v1);                          //
-                )
-        }
-        delta_F = delta_F * data_manager->host_data.marker_Fe[p];
-
-        real plastic_determinant = Determinant(data_manager->host_data.marker_Fp[p]);
-        real J = Determinant(data_manager->host_data.marker_Fe_hat[p]);
-        real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-        real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-        Mat33 Fe_hat_inv_transpose = InverseTranspose(data_manager->host_data.marker_Fe_hat[p]);
-
-        real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
-        Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
-        Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
-        Mat33 RD = Rotational_Derivative(data_manager->host_data.marker_Fe_hat[p], delta_F);
-
-        Mat33 volume_Ap_Fe_transpose =
-            data_manager->host_data.marker_volume[p] *
-            (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
-             (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
-            Transpose(data_manager->host_data.marker_Fe[p]);
-        {
-            const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
-            const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
-            const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
-
-            for (int i = cx - 2; i <= cx + 2; ++i) {
-                for (int j = cy - 2; j <= cy + 2; ++j) {
-                    for (int k = cz - 2; k <= cz + 2; ++k) {
-                        const int current_node = GridHash(i, j, k, bins_per_axis);
-                        real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
-                        real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
-#pragma omp atomic
-                        result_array[current_node * 3 + 0] += res.x;  //
-#pragma omp atomic
-                        result_array[current_node * 3 + 1] += res.y;  //
-#pragma omp atomic
-                        result_array[current_node * 3 + 2] += res.z;  //
-                    }
-                }
-            }
-        }
-    }
-#pragma omp parallel for
-    for (int i = 0; i < num_mpm_nodes; i++) {
-        if (data_manager->host_data.node_mass[i] > C_EPSILON) {
-            result_array[i * 3 + 0] =
-                data_manager->host_data.node_mass[i] * (v_array[i * 3 + 0]) + result_array[i * 3 + 0];
-            result_array[i * 3 + 1] =
-                data_manager->host_data.node_mass[i] * (v_array[i * 3 + 1]) + result_array[i * 3 + 1];
-            result_array[i * 3 + 2] =
-                data_manager->host_data.node_mass[i] * (v_array[i * 3 + 2]) + result_array[i * 3 + 2];
-        }
     }
 }
 
@@ -615,7 +565,7 @@ void ChMPMContainer::UpdateRhs() {
             data_manager->host_data.marker_volume[p] * MultTranspose(PED, data_manager->host_data.marker_Fe[p]);
         real JE = Determinant(data_manager->host_data.marker_Fe[p]);        //
         real JP = Determinant(data_manager->host_data.marker_Fp[p]);        //
-        LOOPOVERNODES(                                                      //
+        LOOPONERING(                                                        //
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
             real3 force = (vPEDFepT * d_weight) / (JE * JP);
 

@@ -183,7 +183,6 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void Build_E();
     void UpdateRhs();
     void Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma);
-    void Multiply(DynamicVector<real>& v_array, DynamicVector<real>& result_array);
     void Project(real* gamma) {}
     void GenerateSparsity();
     void ComputeInvMass(int offset);
@@ -194,8 +193,9 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
 
     DynamicVector<real> rhs;
 
-    DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
-    DynamicVector<real> mD, invmD;
+    custom_vector<real> det_marker_Fp;
+    custom_vector<Mat33> SVD_Fe_hat_R;
+    custom_vector<Mat33> SVD_Fe_hat_S;
 
     uint start_node;
     uint num_mpm_constraints;
