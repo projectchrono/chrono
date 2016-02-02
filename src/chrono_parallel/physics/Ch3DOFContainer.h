@@ -91,9 +91,6 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real max_velocity;  // limit on the maximum speed the fluid can move at
     uint start_row;
 
-    uint start_boundary;
-    uint start_density;
-    uint start_viscous;
     int max_iterations;
 
     // Store boundary forces here for rigid bodies
@@ -145,6 +142,10 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     custom_vector<real> shear_trace;
     custom_vector<real> density;
 
+    uint start_boundary;
+    uint start_density;
+    uint start_viscous;
+
     real compliance;
     real epsilon;  // Regularization parameter
     real tau;      // Constraint relaxation time
@@ -160,11 +161,6 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
 
   private:
     uint body_offset;
-
-    DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
-    DynamicVector<real> mD, invmD;
-    std::vector<real> f_hist;
-    CompressedMatrix<real> PMinvD, PD_T;
 };
 
 class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
