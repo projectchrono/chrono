@@ -28,7 +28,7 @@ SET(CHRONO_INCLUDE_DIRS
 	"${CUDA_TOOLKIT_ROOT_DIR}/include"
     	"${CUDA_SDK_ROOT_DIR}/common/inc")
 
-SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
+#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
 ENDIF()
 # ----------------------------------------------------------------------------
