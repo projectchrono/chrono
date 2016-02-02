@@ -4,7 +4,7 @@
 // Copyright (c) 2014 projectchrono.org
 // All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be found
+// Use of mesh source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
@@ -19,7 +19,7 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
-#include <functional> 
+#include <functional>
 
 #include "chrono/core/ChMath.h"
 #include "chrono/physics/ChObject.h"
@@ -29,12 +29,11 @@
 #include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChElementTetra_4.h"
-
+#include "chrono_fea/ChElementShellANCF.h"
 
 using namespace std;
 
-
-namespace chrono  {
+namespace chrono {
 namespace fea {
 
 void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
@@ -53,13 +52,13 @@ void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
         bool parse_nodes = false;
 
         fstream fin(filename_node);
-		if (!fin.good())
-			throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
+        if (!fin.good())
+            throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
 
-		int nnodes = 0;
-		int ndims = 0;
-		int nattrs = 0;
-		int nboundarymark = 0;
+        int nnodes = 0;
+        int ndims = 0;
+        int nattrs = 0;
+        int nboundarymark = 0;
 
         string line;
         while (getline(fin, line)) {
@@ -86,9 +85,9 @@ void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
             }
 
             int idnode = 0;
-			double x = -10e30;
-			double y = -10e30;
-			double z = -10e30;
+            double x = -10e30;
+            double y = -10e30;
+            double z = -10e30;
 
             if (parse_nodes) {
                 stringstream(line) >> idnode >> x >> y >> z;
@@ -118,55 +117,54 @@ void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
 
         }  // end while
 
-    } // end .node file
+    }  // end .node file
 
-	// Load .ele TetGen file
-	{
-		bool parse_header = true;
-		bool parse_tet  = false;
+    // Load .ele TetGen file
+    {
+        bool parse_header = true;
+        bool parse_tet = false;
 
-		fstream fin(filename_ele);
-		if (!fin.good())
-			throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
+        fstream fin(filename_ele);
+        if (!fin.good())
+            throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
 
-		int ntets, nnodespertet, nattrs = 0;
+        int ntets, nnodespertet, nattrs = 0;
 
-		string line;
-		while(getline(fin, line)) 
-		{
-			//trims white space from the beginning of the string
-			line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace)))); 
+        string line;
+        while (getline(fin, line)) {
+            // trims white space from the beginning of the string
+            line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
 
-			if(line[0] == '#') continue; // skip comment
-			if(line[0] == 0) continue; // skip empty lines
+            if (line[0] == '#')
+                continue;  // skip comment
+            if (line[0] == 0)
+                continue;  // skip empty lines
 
-			if (parse_header)
-			{
-				stringstream(line) >> ntets >> nnodespertet >> nattrs;
-				if (nnodespertet != 4)
-					throw ChException("ERROR in TetGen .ele file. Only 4 -nodes per tes supported: \n"+ line+"\n");
-				if (nattrs != 0)
-					throw ChException("ERROR in TetGen .ele file. Only tets with 0 attrs supported: \n"+ line+"\n");
-				parse_header = false;
-				parse_tet = true;
-				continue;
-			}
+            if (parse_header) {
+                stringstream(line) >> ntets >> nnodespertet >> nattrs;
+                if (nnodespertet != 4)
+                    throw ChException("ERROR in TetGen .ele file. Only 4 -nodes per tes supported: \n" + line + "\n");
+                if (nattrs != 0)
+                    throw ChException("ERROR in TetGen .ele file. Only tets with 0 attrs supported: \n" + line + "\n");
+                parse_header = false;
+                parse_tet = true;
+                continue;
+            }
 
-			int idtet = 0;
-			int n1,n2,n3,n4;
+            int idtet = 0;
+            int n1, n2, n3, n4;
 
-			if (parse_tet)
-			{
-				stringstream(line) >> idtet >> n1 >> n2 >> n3 >> n4;
-				if (idtet <= 0 || idtet > ntets)
-					throw ChException("ERROR in TetGen .node file. Tetahedron ID not in range: \n"+ line+"\n");
-				if (n1 > totnodes)
-					throw ChException("ERROR in TetGen .node file, ID of 1st node is out of range: \n"+ line+"\n");
-				if (n2 > totnodes)
-					throw ChException("ERROR in TetGen .node file, ID of 2nd node is out of range: \n"+ line+"\n");
-				if (n3 > totnodes)
-					throw ChException("ERROR in TetGen .node file, ID of 3rd node is out of range: \n"+ line+"\n");
-				if (n4 > totnodes)
+            if (parse_tet) {
+                stringstream(line) >> idtet >> n1 >> n2 >> n3 >> n4;
+                if (idtet <= 0 || idtet > ntets)
+                    throw ChException("ERROR in TetGen .node file. Tetahedron ID not in range: \n" + line + "\n");
+                if (n1 > totnodes)
+                    throw ChException("ERROR in TetGen .node file, ID of 1st node is out of range: \n" + line + "\n");
+                if (n2 > totnodes)
+                    throw ChException("ERROR in TetGen .node file, ID of 2nd node is out of range: \n" + line + "\n");
+                if (n3 > totnodes)
+                    throw ChException("ERROR in TetGen .node file, ID of 3rd node is out of range: \n" + line + "\n");
+                if (n4 > totnodes)
                     throw ChException("ERROR in TetGen .node file, ID of 4th node is out of range: \n" + line + "\n");
 
                 if (my_material.IsType<ChContinuumElastic>()) {
@@ -191,25 +189,25 @@ void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
 
         }  // end while
 
-    } // end .ele file
+    }  // end .ele file
 }
 
 void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
                                       const char* filename,
                                       ChSharedPtr<ChContinuumMaterial> my_material,
-                                      std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets,
+                                      std::vector<std::vector<ChSharedPtr<ChNodeFEAbase>>>& node_sets,
                                       ChVector<> pos_transform,
                                       ChMatrix33<> rot_transform,
                                       bool discard_unused_nodes) {
     node_sets.resize(0);
 
-    std::vector< ChSharedPtr<ChNodeFEAbase> > parsed_nodes;
-    std::vector< bool > parsed_nodes_used;
+    std::vector<ChSharedPtr<ChNodeFEAbase>> parsed_nodes;
+    std::vector<bool> parsed_nodes_used;
 
-	int totnodes = 0;
-	unsigned int nodes_offset = mesh->GetNnodes();
-	int added_nodes = 0;
-	int added_elements = 0;
+    int totnodes = 0;
+    unsigned int nodes_offset = mesh->GetNnodes();
+    int added_nodes = 0;
+    int added_elements = 0;
 
     enum eChAbaqusParserSection {
         E_PARSE_UNKNOWN = 0,
@@ -219,12 +217,12 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
     } e_parse_section = E_PARSE_UNKNOWN;
 
     fstream fin(filename);
-	if (!fin.good())
-		throw ChException("ERROR opening Abaqus .inp file: " + std::string(filename) + "\n");
+    if (!fin.good())
+        throw ChException("ERROR opening Abaqus .inp file: " + std::string(filename) + "\n");
 
-	int nnodes = 0;
-	int ndims =  0;
-	int nattrs = 0;
+    int nnodes = 0;
+    int ndims = 0;
+    int nattrs = 0;
 
     string line;
     while (getline(fin, line)) {
@@ -271,7 +269,7 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
                     string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
                     GetLog() << "Parsing: nodeset: " << s_node_set << "\n";
 
-                    std::vector<ChSharedPtr<ChNodeFEAbase> > empty_set;
+                    std::vector<ChSharedPtr<ChNodeFEAbase>> empty_set;
                     node_sets.push_back(empty_set);
                 }
                 e_parse_section = E_PARSE_NODESET;
@@ -409,6 +407,246 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
     }
 }
 
-} // end namespace fea
-} // end namespace chrono
+void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
+                                            const char* filename,
+                                            ChSharedPtr<ChMaterialShellANCF> my_material,
+                                            std::vector<int>& BC_nodes,
+                                            ChVector<> pos_transform,
+                                            ChMatrix33<> rot_transform,
+                                            double scaleFactor,
+                                            bool printBC,
+                                            bool printNodes,
+                                            bool printElements) {
+    int added_nodes = 0;
+    int added_elements = 0;
+    double dx, dy;
+    int nodes_offset = mesh->GetNnodes();
+    ChMatrixDynamic<double> nodesXYZ(1, 4);
+    ChMatrixDynamic<int> NumBEdges(1, 3);  // To store boundary nodes
+    ChMatrixNM<double, 1, 6> BoundingBox;  // (xmin xmax ymin ymax zmin zmax) bounding box of the mesh
+    std::vector<ChVector<>> Normals;       // To store the normal vectors
+    std::vector<int> num_Normals;
+    ChVector<double> pos1, pos2, pos3, pos4;              // Position of nodes in each element
+    ChVector<double> vec1, vec2, vec3;                    // intermediate vectors for calculation of normals
+    std::vector<ChSharedPtr<ChNodeFEAxyzD>> nodesVector;  // To store intermediate nodes
+    std::vector<std::vector<int>> elementsVector;         // nodes of each element
+    std::vector<std::vector<double>> elementsdxdy;        // dx, dy of elements
 
+    int TotalNumNodes, TotalNumElements, TottalNumBEdges;
+    BoundingBox.FillElem(0);
+
+    std::fstream fin(filename);
+    if (!fin.good())
+        throw ChException("ERROR opening Mesh file: " + std::string(filename) + "\n");
+
+    std::string line;
+    while (getline(fin, line)) {
+        // trims white space from the beginning of the string
+        line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+
+        if (line[0] == 0)
+            continue;  // skip empty linesnodes_offset
+        if (line.find("Vertices") == 0) {
+            getline(fin, line);
+            TotalNumNodes = atoi(line.c_str());
+            printf("Found  %d nodes\n", TotalNumNodes);
+            GetLog() << "Parsing information from \"Vertices\" \n";
+            cout << "Reading nodal information ..." << endl;
+            getline(fin, line);
+            Normals.resize(TotalNumNodes);
+            num_Normals.resize(TotalNumNodes);
+            for (int inode = 0; inode < TotalNumNodes; inode++) {
+                double loc_x, loc_y, loc_z;
+                double dir_x, dir_y, dir_z;
+                unsigned int tokenvals[20];
+
+                int ntoken = 0;
+                string token;
+                std::istringstream ss(line);
+                while (std::getline(ss, token, ' ') && ntoken < 20) {
+                    std::istringstream stoken(token);
+                    stoken >> nodesXYZ(0, ntoken);
+                    nodesXYZ(0, ntoken) *= scaleFactor;
+                    ++ntoken;
+                }
+
+                loc_x = nodesXYZ(0, 0);
+                loc_y = nodesXYZ(0, 1);
+                loc_z = nodesXYZ(0, 2);
+                dir_x = 1.0;
+                dir_y = 1.0;
+                dir_z = 1.0;
+
+                ChVector<> node_position(loc_x, loc_y, loc_z);
+                node_position = rot_transform * node_position;  // rotate/scale, if needed
+                node_position = pos_transform + node_position;  // move, if needed
+                ChSharedPtr<ChNodeFEAxyzD> node(new ChNodeFEAxyzD(node_position, ChVector<>(dir_x, dir_y, dir_z)));
+                nodesVector.push_back(node);
+
+                if (loc_x < BoundingBox(0, 0) || added_nodes == 0)
+                    BoundingBox(0, 0) = loc_x;
+                if (loc_x > BoundingBox(0, 1) || added_nodes == 0)
+                    BoundingBox(0, 1) = loc_x;
+                if (loc_y < BoundingBox(0, 2) || added_nodes == 0)
+                    BoundingBox(0, 2) = loc_y;
+                if (loc_y > BoundingBox(0, 3) || added_nodes == 0)
+                    BoundingBox(0, 3) = loc_y;
+
+                if (loc_z < BoundingBox(0, 4) || added_nodes == 0)
+                    BoundingBox(0, 4) = loc_z;
+                if (loc_z > BoundingBox(0, 5) || added_nodes == 0)
+                    BoundingBox(0, 5) = loc_z;
+                ++added_nodes;
+
+                if (ntoken != 4)
+                    throw ChException("ERROR in .mesh file, Quadrilaterals require 4 node IDs, see line:\n" + line +
+                                      "\n");
+
+                getline(fin, line);
+            }
+        }
+
+        // Reading the Boundary nodes ...
+        if (line.find("Edges") == 0) {
+            getline(fin, line);
+            TottalNumBEdges = atoi(line.c_str());
+            printf("Found %d Edges.\n", TottalNumBEdges);
+            GetLog() << "Parsing edges from \"Edges\" \n";
+            getline(fin, line);
+
+            for (int edge = 0; edge < TottalNumBEdges; edge++) {
+                unsigned int tokenvals[20];
+                int ntoken = 0;
+                string token;
+                std::istringstream ss(line);
+                while (std::getline(ss, token, ' ') && ntoken < 20) {
+                    std::istringstream stoken(token);
+                    stoken >> NumBEdges(0, ntoken);
+                    ++ntoken;
+                }
+
+                BC_nodes.push_back(NumBEdges(0, 0) - 1);
+
+                if (ntoken != 3)
+                    throw ChException("ERROR in .mesh file, Edges require 3 node IDs, see line:\n" + line + "\n");
+                if (printBC) {
+                    cout << edge << " ";
+                    for (int i = 0; i < 2; i++)
+                        cout << NumBEdges(0, i) << " ";
+                    cout << endl;
+                }
+                getline(fin, line);
+            }
+        }
+
+        //
+        /////////////////
+        if (line.find("Quadrilaterals") == 0) {
+            getline(fin, line);
+            TotalNumElements = atoi(line.c_str());
+            printf("Found %d elements.\n", TotalNumElements);
+            GetLog() << "Parsing nodeset from \"Quadrilaterals\" \n";
+            getline(fin, line);
+            cout << "Reading elemental information ..." << endl;
+
+            for (int ele = 0; ele < TotalNumElements; ele++) {
+                unsigned int tokenvals[20];
+                int ntoken = 0;
+                string token;
+                std::istringstream ss(line);
+                elementsVector.resize(ele + 1);
+                elementsVector[ele].resize(4);
+                elementsdxdy.resize(ele + 1);
+                elementsdxdy[ele].resize(2);
+                while (std::getline(ss, token, ' ') && ntoken < 20) {
+                    std::istringstream stoken(token);
+                    stoken >> elementsVector[ele][ntoken];
+                    ++ntoken;
+                }
+
+                // Calculating the true surface normals based on the nodal information
+                pos1 = nodesVector[elementsVector[ele][0] - 1]->GetPos();
+                pos2 = nodesVector[elementsVector[ele][1] - 1]->GetPos();
+                pos4 = nodesVector[elementsVector[ele][2] - 1]->GetPos();
+                pos3 = nodesVector[elementsVector[ele][3] - 1]->GetPos();
+
+                // For the first node
+                vec1 = (pos1 - pos2);
+                vec2 = (pos1 - pos3);
+                Normals[elementsVector[ele][0] - 1] += vec1 % vec2;
+                num_Normals[elementsVector[ele][0] - 1]++;
+                // For the second node
+                vec1 = (pos2 - pos4);
+                vec2 = (pos2 - pos1);
+                Normals[elementsVector[ele][1] - 1] += vec1 % vec2;
+                num_Normals[elementsVector[ele][1] - 1]++;
+                // For the third node
+                vec1 = (pos3 - pos1);
+                vec2 = (pos3 - pos4);
+                Normals[elementsVector[ele][2] - 1] += vec1 % vec2;
+                num_Normals[elementsVector[ele][2] - 1]++;
+                // For the forth node
+                vec1 = (pos4 - pos3);
+                vec2 = (pos4 - pos2);
+                Normals[elementsVector[ele][3] - 1] += vec1 % vec2;
+                num_Normals[elementsVector[ele][3] - 1]++;
+
+                vec1 = pos1 - pos2;
+                vec2 = pos3 - pos4;
+                dx = (vec1.Length() + vec2.Length()) / 2;
+                vec1 = pos1 - pos3;
+                vec2 = pos2 - pos4;
+                dy = (vec1.Length() + vec2.Length()) / 2;
+
+                // Set element dimensions
+                elementsdxdy[ele][0] = dx;
+                elementsdxdy[ele][1] = dy;
+                ++added_elements;
+                if (ntoken != 5)
+                    throw ChException("ERROR in .mesh file, Quadrilaterals require 4 node IDs, see line:\n" + line +
+                                      "\n");
+                getline(fin, line);
+            }
+        }
+    }
+
+    printf("Mesh Bounding box is x [%f %f %f %f %f %f]\n", BoundingBox(0, 0), BoundingBox(0, 1), BoundingBox(0, 2),
+           BoundingBox(0, 3), BoundingBox(0, 4), BoundingBox(0, 5));
+
+    GetLog() << "-----------------------------------------------------------\n\n";
+    //
+    for (int inode = 0; inode < 0 + TotalNumNodes; inode++) {
+        ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);
+        node_normal.Normalize();
+        ChVector<> node_position = nodesVector[inode]->GetPos();
+        ChSharedPtr<ChNodeFEAxyzD> node(new ChNodeFEAxyzD(node_position, node_normal));
+        node->SetMass(0);
+        // Add node to mesh
+        mesh->AddNode(node);
+        if (printNodes) {
+            GetLog() << node->GetPos().x << "  " << node->GetPos().y << "  " << node->GetPos().z << "\n";
+        }
+    }
+    GetLog() << "-----------------------------------------------------------\n";
+    for (int ielem = 0; ielem < 0 + TotalNumElements; ielem++) {
+        ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
+        element->SetNodes(mesh->GetNode(nodes_offset + elementsVector[ielem][0] - 1).DynamicCastTo<ChNodeFEAxyzD>(),
+                          mesh->GetNode(nodes_offset + elementsVector[ielem][1] - 1).DynamicCastTo<ChNodeFEAxyzD>(),
+                          mesh->GetNode(nodes_offset + elementsVector[ielem][3] - 1).DynamicCastTo<ChNodeFEAxyzD>(),
+                          mesh->GetNode(nodes_offset + elementsVector[ielem][2] - 1).DynamicCastTo<ChNodeFEAxyzD>());
+        dx = elementsdxdy[ielem][0];
+        dy = elementsdxdy[ielem][1];
+        element->SetDimensions(dx, dy);
+        // Add element to mesh
+        mesh->AddElement(element);
+        if (printElements) {
+            cout << ielem << " ";
+            for (int i = 0; i < 4; i++)
+                cout << elementsVector[ielem][i] << " ";
+            cout << endl;
+        }
+    }
+}
+
+}  // end namespace fea
+}  // end namespace chrono
