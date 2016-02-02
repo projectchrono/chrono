@@ -12,21 +12,27 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Class for performing time integration in fsi system.//
+// Class for performing handling fsi system.
 // =============================================================================
 
-#ifndef CH_FSIDYNAMICS_H_
-#define CH_FSIDYNAMICS_H_
+#ifndef CH_SYSTEMFSI_H_
+#define CH_SYSTEMFSI_H_
 
 namespace fsi {
 
-class CH_FSI_API ChFsiDynamics : public ChFsiGeneral{
+class CH_FSI_API ChSystemFsi : public ChFsiGeneral{
 
 public:
-	ChFsiDynamics();
-	~ChFsiDynamics();
+	ChSystemFsi();
+	~ChSystemFsi();
+
+	DoStepDynamics_FSI();
+	CopyDeviceDataToHalfStep();
 
 private:
+	DoStepChronoSystem(Real dT,
+		double mTime, double time_hold_vehicle, bool haveVehicle);
+
 	ChFsiDataManager* fsiData;
 	ChFluidDynamics* ChFluidDynamics;
 	ChFsiInterface* ChFsiInterface;

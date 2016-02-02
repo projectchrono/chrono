@@ -12,10 +12,10 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Class for performing time integration in fsi system.//
+// Class for performing handling fsi system.
 // =============================================================================
 
-void ChFsiDynamics::CopyDeviceDataToHalfStep(){
+void ChSystemFsi::CopyDeviceDataToHalfStep(){
 	
 	thrust::copy(fsiData->sphMarkersD1.posRadD.begin(), fsiData->sphMarkersD1.posRadD.end(), fsiData->sphMarkersD2.posRadD.begin());
 	thrust::copy(fsiData->sphMarkersD1.velMasD.begin(), fsiData->sphMarkersD1.velMasD.end(), fsiData->sphMarkersD2.velMasD.begin());
@@ -23,7 +23,7 @@ void ChFsiDynamics::CopyDeviceDataToHalfStep(){
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // Arman : split this later. move vehicle stuff out of this class.
-int DoStepChronoSystem(Real dT,
+int ChSystemFsi::DoStepChronoSystem(Real dT,
 		double mTime, double time_hold_vehicle, bool haveVehicle) {
 	if (haveVehicle) {
 		// Release the vehicle chassis at the end of the hold time.
@@ -53,7 +53,7 @@ int DoStepChronoSystem(Real dT,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiDynamics::DoStepDynamics_FSI(){
+void ChSystemFsi::DoStepDynamics_FSI(){
 
 	ChFsiInterface->Copy_ChSystem_to_External();
 	this->CopyDeviceDataToHalfStep();
