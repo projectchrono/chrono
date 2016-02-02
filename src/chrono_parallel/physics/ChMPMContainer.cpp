@@ -6,6 +6,7 @@
 #include <chrono_parallel/collision/ChCBroadphaseUtils.h>
 #include <thrust/transform_reduce.h>
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
 
 #include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
 #include "chrono_parallel/math/real.h"         // for real
@@ -22,101 +23,112 @@ using namespace geometry;
 
 /// CLASS FOR A 3DOF FLUID NODE
 //
-// class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
-//  public:
-//    ChShurProductMPM();
-//    virtual ~ChShurProductMPM() {}
-//
-//    virtual void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
-//
-//    // Perform the Multiplication
-//    void operator()(const DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
-//        custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
-//        custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
-//        uint num_mpm_markers = data_manager->num_mpm_markers;
-//        uint num_mpm_nodes = data_manager->num_mpm_nodes;
-//        const real dt = data_manager->settings.step_size;
-//
-//#pragma omp parallel for
-//        for (int p = 0; p < num_mpm_markers; p++) {
-//            const real3 xi = pos_marker[p];
-//
-//            Mat33 delta_F(0);
-//            {
-//                LOOPOVERNODES(  //
-//
-//                    real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1],
-//                               v_array[current_node * 3 + 2]);
-//                    real3 vold(data_manager->host_data.old_vel_node_mpm[current_node * 3 + 0],
-//                    data_manager->host_data.old_vel_node_mpm[current_node * 3 + 1],
-//                               data_manager->host_data.old_vel_node_mpm[current_node * 3 + 2]);
-//                    real3 v0 = vold + vnew;                                   //
-//                    real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
-//                    delta_F += OuterProduct(v0, v1);                          //
-//                    )
-//            }
-//            delta_F = delta_F * data_manager->host_data.marker_Fe[p];
-//
-//            real plastic_determinant = Determinant(data_manager->host_data.marker_Fp[p]);
-//            real J = Determinant(data_manager->host_data.marker_Fe_hat[p]);
-//            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-//            real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-//            Mat33 Fe_hat_inv_transpose = InverseTranspose(data_manager->host_data.marker_Fe_hat[p]);
-//
-//            real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
-//            Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
-//            Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
-//            Mat33 RD = Rotational_Derivative(data_manager->host_data.marker_Fe_hat[p], delta_F);
-//
-//            Mat33 volume_Ap_Fe_transpose =
-//                data_manager->host_data.marker_volume[p] * (2 * current_mu * (delta_F - RD) + (current_lambda * J *
-//                dJ) * Fe_hat_inv_transpose +
-//                             (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
-//                Transpose(data_manager->host_data.marker_Fe[p]);
-//            {
-//                const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
-//                const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
-//                const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
-//
-//                for (int i = cx - 2; i <= cx + 2; ++i) {
-//                    for (int j = cy - 2; j <= cy + 2; ++j) {
-//                        for (int k = cz - 2; k <= cz + 2; ++k) {
-//                            const int current_node = GridHash(i, j, k, bins_per_axis);
-//                            real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
-//                            real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
-//#pragma omp atomic
-//                            result_array[current_node * 3 + 0] += res.x;  //
-//#pragma omp atomic
-//                            result_array[current_node * 3 + 1] += res.y;  //
-//#pragma omp atomic
-//                            result_array[current_node * 3 + 2] += res.z;  //
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//#pragma omp parallel for
-//        for (int i = 0; i < num_mpm_nodes; i++) {
-//            if (data_manager->host_data.node_mass[i] > C_EPSILON) {
-//                result_array[i * 3 + 0] =
-//                    data_manager->host_data.node_mass[i] * (v_array[i * 3 + 0] +
-//                    data_manager->host_data.old_vel_node_mpm[i * 3 + 0]) +
-//                    result_array[i * 3 + 0];
-//                result_array[i * 3 + 1] =
-//                    data_manager->host_data.node_mass[i] * (v_array[i * 3 + 1] +
-//                    data_manager->host_data.old_vel_node_mpm[i * 3 + 1]) +
-//                    result_array[i * 3 + 1];
-//                result_array[i * 3 + 2] =
-//                    data_manager->host_data.node_mass[i] * (v_array[i * 3 + 2] +
-//                    data_manager->host_data.old_vel_node_mpm[i * 3 + 2]) +
-//                    result_array[i * 3 + 2];
-//            }
-//        }
-//    }
-//
-//    // Pointer to the system's data manager
-//    ChParallelDataManager* data_manager;
-//};
+class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
+  public:
+    ChShurProductMPM(){}
+    virtual ~ChShurProductMPM() {}
+    void Setup(ChParallelDataManager data_container_) {}
+    void Setup(ChMPMContainer* mpm_container, ChParallelDataManager* manager) {
+        data_manager = manager;
+        container = mpm_container;
+    }
+
+    // Perform the Multiplication
+    void operator()(const DynamicVector<real>& v_array, DynamicVector<real>& result_array) {
+        custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+        custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+        uint num_mpm_markers = data_manager->num_mpm_markers;
+        uint num_mpm_nodes = data_manager->num_mpm_nodes;
+        const real dt = data_manager->settings.step_size;
+        real hardening_coefficient = container->hardening_coefficient;
+        real mu = container->mu;
+        real lambda = container->lambda;
+        real inv_bin_edge = container->inv_bin_edge;
+        real bin_edge = container->bin_edge;
+        int3 bins_per_axis = container->bins_per_axis;
+        real3 min_bounding_point = container->min_bounding_point;
+
+#pragma omp parallel for
+        for (int p = 0; p < num_mpm_markers; p++) {
+            const real3 xi = pos_marker[p];
+
+            Mat33 delta_F(0);
+            {
+                LOOPOVERNODES(  //
+
+                    real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1],
+                               v_array[current_node * 3 + 2]);
+                    real3 vold(data_manager->host_data.old_vel_node_mpm[current_node * 3 + 0],
+                               data_manager->host_data.old_vel_node_mpm[current_node * 3 + 1],
+                               data_manager->host_data.old_vel_node_mpm[current_node * 3 + 2]);
+                    real3 v0 = vold + vnew;                                   //
+                    real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
+                    delta_F += OuterProduct(v0, v1);                          //
+                    )
+            }
+            delta_F = delta_F * data_manager->host_data.marker_Fe[p];
+
+            real plastic_determinant = Determinant(data_manager->host_data.marker_Fp[p]);
+            real J = Determinant(data_manager->host_data.marker_Fe_hat[p]);
+            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+            real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+            Mat33 Fe_hat_inv_transpose = InverseTranspose(data_manager->host_data.marker_Fe_hat[p]);
+
+            real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
+            Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
+            Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
+            Mat33 RD = Rotational_Derivative(data_manager->host_data.marker_Fe_hat[p], delta_F);
+
+            Mat33 volume_Ap_Fe_transpose =
+                data_manager->host_data.marker_volume[p] *
+                (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
+                 (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
+                Transpose(data_manager->host_data.marker_Fe[p]);
+            {
+                const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
+                const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
+                const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
+
+                for (int i = cx - 2; i <= cx + 2; ++i) {
+                    for (int j = cy - 2; j <= cy + 2; ++j) {
+                        for (int k = cz - 2; k <= cz + 2; ++k) {
+                            const int current_node = GridHash(i, j, k, bins_per_axis);
+                            real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point);
+                            real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);  //
+#pragma omp atomic
+                            result_array[current_node * 3 + 0] += res.x;  //
+#pragma omp atomic
+                            result_array[current_node * 3 + 1] += res.y;  //
+#pragma omp atomic
+                            result_array[current_node * 3 + 2] += res.z;  //
+                        }
+                    }
+                }
+            }
+        }
+#pragma omp parallel for
+        for (int i = 0; i < num_mpm_nodes; i++) {
+            if (data_manager->host_data.node_mass[i] > C_EPSILON) {
+                result_array[i * 3 + 0] =
+                    data_manager->host_data.node_mass[i] *
+                        (v_array[i * 3 + 0] + data_manager->host_data.old_vel_node_mpm[i * 3 + 0]) +
+                    result_array[i * 3 + 0];
+                result_array[i * 3 + 1] =
+                    data_manager->host_data.node_mass[i] *
+                        (v_array[i * 3 + 1] + data_manager->host_data.old_vel_node_mpm[i * 3 + 1]) +
+                    result_array[i * 3 + 1];
+                result_array[i * 3 + 2] =
+                    data_manager->host_data.node_mass[i] *
+                        (v_array[i * 3 + 2] + data_manager->host_data.old_vel_node_mpm[i * 3 + 2]) +
+                    result_array[i * 3 + 2];
+            }
+        }
+    }
+
+    // Pointer to the system's data manager
+    ChParallelDataManager* data_manager;
+    ChMPMContainer* container;
+};
 
 ChMPMContainer::ChMPMContainer(ChSystemParallelDVI* physics_system) {
     data_manager = physics_system->data_manager;
@@ -130,6 +142,8 @@ ChMPMContainer::ChMPMContainer(ChSystemParallelDVI* physics_system) {
     real theta_s = 1;
     real theta_c = 1;
     real alpha = 1;
+    solver = new ChSolverBB();
+    solver->Setup(data_manager);
 }
 ChMPMContainer::~ChMPMContainer() {}
 
@@ -578,138 +592,11 @@ void ChMPMContainer::Multiply(DynamicVector<real>& v_array, DynamicVector<real>&
     }
 }
 
-void ChMPMContainer::Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma) {
-    real lastgoodres;
-    real objective_value;
-    uint size = num_mpm_nodes * 3;
-
-    temp.resize(size);
-    ml.resize(size);
-    mg.resize(size);
-    mg_p.resize(size);
-    ml_candidate.resize(size);
-    ms.resize(size);
-    my.resize(size);
-    mdir.resize(size);
-    ml_p.resize(size);
-
-    temp = 0;
-    ml = 0;
-    mg = 0;
-    mg_p = 0;
-    ml_candidate = 0;
-    ms = 0;
-    my = 0;
-    mdir = 0;
-    ml_p = 0;
-
-    // Tuning of the spectral gradient search
-    real a_min = 1e-13;
-    real a_max = 1e13;
-    real sigma_min = 0.1;
-    real sigma_max = 0.9;
-
-    real alpha = 0.0001;
-
-    real gmma = 1e-4;
-    real gdiff = 1.0 / pow(size, 2.0);
-    bool do_preconditioning = false;
-    real neg_BB1_fallback = 0.11;
-    real neg_BB2_fallback = 0.12;
-    ml = gamma;
-    lastgoodres = 10e30;
-    real lastgoodfval = 10e30;
-    ml_candidate = ml;
-    Multiply(ml, temp);
-    mg = temp - rhs;
-    mg_p = mg;
-
-    real mf_p = 0;
-    real mf = 1e29;
-    int n_armijo = 10;
-    int max_armijo_backtrace = 3;
-    std::vector<real> f_hist;
-
-    for (int current_iteration = 0; current_iteration < max_iterations; current_iteration++) {
-        temp = (ml - alpha * mg);
-        mdir = temp - ml;
-
-        real dTg = (mdir, mg);
-        real lambda = 1.0;
-        int n_backtracks = 0;
-        bool armijo_repeat = true;
-        // t2.stop();
-        // t3.start();
-        while (armijo_repeat) {
-            ml_p = ml + lambda * mdir;
-
-            Multiply(ml_p, temp);
-            mg_p = temp - rhs;
-            mf_p = (ml_p, 0.5 * temp - rhs);
-
-            f_hist.push_back(mf_p);
-
-            real max_compare = 10e29;
-            for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
-                real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
-                if (compare > max_compare)
-                    max_compare = compare;
-            }
-            if (mf_p > max_compare) {
-                armijo_repeat = true;
-                if (current_iteration > 0)
-                    mf = f_hist[current_iteration - 1];
-                real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
-                lambda = Max(sigma_min * lambda, Min(sigma_max * lambda, lambdanew));
-                printf("Repeat Armijo, new lambda = %f \n", lambda);
-            } else {
-                armijo_repeat = false;
-            }
-            n_backtracks = n_backtracks + 1;
-            if (n_backtracks > max_armijo_backtrace)
-                armijo_repeat = false;
-        }
-
-        ms = ml_p - ml;
-        my = mg_p - mg;
-        ml = ml_p;
-        mg = mg_p;
-
-        if (current_iteration % 2 == 0) {
-            real sDs = (ms, ms);
-            real sy = (ms, my);
-            if (sy <= 0) {
-                alpha = neg_BB1_fallback;
-            } else {
-                alpha = Min(a_max, Max(a_min, sDs / sy));
-            }
-        } else {
-            real sy = (ms, my);
-            real yDy = (my, my);
-            if (sy <= 0) {
-                alpha = neg_BB2_fallback;
-            } else {
-                alpha = Min(a_max, Max(a_min, sy / yDy));
-            }
-        }
-        temp = ml - gdiff * mg;
-        temp = (ml - temp) / (-gdiff);
-
-        real g_proj_norm = Sqrt((temp, temp));
-
-        printf("g_proj_norm %f\n", g_proj_norm);
-        if (g_proj_norm < lastgoodres) {
-            lastgoodres = g_proj_norm;
-            objective_value = mf_p;
-            ml_candidate = ml;
-        }
-
-        if (lastgoodres < data_manager->settings.solver.tolerance) {
-            break;
-        }
-    }
-
-    gamma = ml_candidate;
+void ChMPMContainer::Solve(const DynamicVector<real>& rhs, DynamicVector<real>& delta_v) {
+    ChShurProductMPM Multiply;
+    Multiply.Setup(this, data_manager);
+    ChProjectNone ProjectNone;
+    solver->Solve(Multiply, ProjectNone, max_iterations, num_mpm_nodes * 3, rhs, delta_v);
 }
 
 void ChMPMContainer::UpdateRhs() {

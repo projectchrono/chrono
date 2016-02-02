@@ -32,6 +32,7 @@ namespace chrono {
 class ChSystemParallelDVI;
 class ChSystemParallelMPM;
 class ChParallelDataManager;
+class ChSolverParallel;
 
 class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
@@ -212,6 +213,8 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real bin_edge;
     real inv_bin_edge;
     uint body_offset;
+
+    ChSolverParallel* solver;
 };
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
