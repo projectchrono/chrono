@@ -41,7 +41,7 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
 }
 ChFluidContainer::~ChFluidContainer() {}
 
-void ChFluidContainer::AddFluid(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
+void ChFluidContainer::AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
 
@@ -675,7 +675,7 @@ void ChFluidContainer::PostSolve() {
 }
 
 void ChFluidContainer::CalculateContactForces() {
-    uint num_contacts = data_manager->num_fluid_contacts;
+    uint num_contacts = data_manager->num_rigid_fluid_contacts;
     if (num_contacts <= 0) {
         return;
     }
@@ -693,14 +693,14 @@ void ChFluidContainer::CalculateContactForces() {
 }
 
 real3 ChFluidContainer::GetBodyContactForce(uint body_id) {
-    if (data_manager->num_fluid_contacts <= 0) {
+    if (data_manager->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 0], contact_forces[body_id * 6 + 1], contact_forces[body_id * 6 + 2]);
 }
 
 real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
-    if (data_manager->num_fluid_contacts <= 0) {
+    if (data_manager->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
