@@ -116,7 +116,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
   public:
     ChFluidContainer(ChSystemParallelDVI* system);
     ~ChFluidContainer();
-    void AddFluid(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
     int GetNumConstraints();
@@ -241,5 +241,40 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint num_tet_constraints;  // Strain constraints + volume constraint
     uint start_tet;
     uint start_boundary;
+};
+
+class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
+  public:
+    Ch3DOFRigidContainer(ChSystemParallelDVI* system);
+    ~Ch3DOFRigidContainer();
+    void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    void Update(double ChTime);
+    void UpdatePosition(double ChTime);
+    int GetNumConstraints();
+    int GetNumNonZeros();
+    void Setup(int start_constraint);
+    void Initialize();
+    void PreSolve();
+    void Build_D();
+    void Build_b();
+    void Build_E();
+    void Project(real* gamma);
+    void GenerateSparsity();
+    void ComputeInvMass(int offset);
+    void ComputeMass(int offset);
+    void PostSolve();
+    void CalculateContactForces();
+    real3 GetBodyContactForce(uint body_id);
+    real3 GetBodyContactTorque(uint body_id);
+    uint start_boundary;
+    uint start_contact;
+    real compliance;
+    real mu;
+    real cohesion;
+    real mass;
+    uint num_rigid_contacts; //number of rigid contacts without duplicates or self contacts
+
+  private:
+    uint body_offset;
 };
 }

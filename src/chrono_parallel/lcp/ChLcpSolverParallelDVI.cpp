@@ -32,6 +32,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof +
                                     num_tet_constraints + num_mpm_constraints;
 
+    LOG(INFO) << "num_constraints: " << data_manager->num_constraints;
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
     // ComputeMassMatrix();
