@@ -218,6 +218,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     ~ChFEAContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void AddElements(const std::vector<uint4>& indices);
+    void AddConstraint(const uint node, ChSharedBodyPtr& body);
     // Compute initial shape matrix
     void Initialize();
     void Setup(int start_constraint);
@@ -241,6 +242,16 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint num_tet_constraints;  // Strain constraints + volume constraint
     uint start_tet;
     uint start_boundary;
+    uint start_rigid;
+
+    // Id of the rigid body and node number
+    custom_vector<int2> constraint_bodies;
+
+    // The point where the constraint is enforced in the local coords of the rigid body
+    custom_vector<real3> constraint_position;
+    custom_vector<quaternion> constraint_rotation;
+
+    uint num_rigid_constraints;
 };
 
 class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
@@ -272,7 +283,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real mu;
     real cohesion;
     real mass;
-    uint num_rigid_contacts; //number of rigid contacts without duplicates or self contacts
+    uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
 
   private:
     uint body_offset;

@@ -28,6 +28,7 @@ using namespace geometry;
 ChFEAContainer::ChFEAContainer(ChSystemParallelDVI* system) {
     data_manager = system->data_manager;
     data_manager->AddFEAContainer(this);
+    num_rigid_constraints = 0;
 }
 
 ChFEAContainer::~ChFEAContainer() {}
@@ -47,10 +48,28 @@ void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
     tet_indices.insert(tet_indices.end(), indices.begin(), indices.end());
     data_manager->num_fea_tets = tet_indices.size();
 }
+
+void ChFEAContainer::AddConstraint(const uint node, ChSharedBodyPtr& body) {
+    // Creates constraints between a 3dof node and a 6dof rigid body
+    // point is the nodal point
+    int body_a = body->GetId();
+    int body_b = node;
+   // printf("Add Rigid fea: %d %d %d\n", num_rigid_constraints, body_a, body_b);
+    custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+    custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
+    custom_vector<real3>& pos_node_fea = data_manager->host_data.pos_rigid;
+
+    constraint_position.push_back(TransformParentToLocal(pos_rigid[body_a], rot_rigid[body_a], pos_node_fea[body_b]));
+    constraint_bodies.push_back(_make_int2(body_a, body_b));
+
+    num_rigid_constraints++;
+}
+
 int ChFEAContainer::GetNumConstraints() {
     // 6 rows in the tetrahedral jacobian 1 row for volume constraint
     int num_constraints = data_manager->num_fea_tets * (6 + 1);
     num_constraints += data_manager->num_rigid_node_contacts * 3;
+    num_constraints += num_rigid_constraints * 3;
     return num_constraints;
 }
 int ChFEAContainer::GetNumNonZeros() {
@@ -58,14 +77,17 @@ int ChFEAContainer::GetNumNonZeros() {
     int nnz =
         data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 1;
     // 6 entries for rigid body side, 3 for node
-    nnz += 9 * 3 * data_manager->num_rigid_node_contacts;
+    nnz += 9 * 3 * data_manager->num_rigid_node_contacts;  // contacts
+    nnz += 9 * 3 * num_rigid_constraints;                  // fixed joints
     return nnz;
 }
 
 void ChFEAContainer::Setup(int start_constraint) {
     start_tet = start_constraint;
     num_tet_constraints = data_manager->num_fea_tets * (6 + 1);
+
     start_boundary = start_constraint + num_tet_constraints;
+    start_rigid = start_boundary + data_manager->num_rigid_node_contacts * 3;
 }
 
 void ChFEAContainer::ComputeInvMass(int offset) {
@@ -458,6 +480,33 @@ void ChFEAContainer::Build_D() {
             }
         }
     }
+
+    if (num_rigid_constraints > 0) {
+        for (int index = 0; index < num_rigid_constraints; index++) {
+            int2 body_id = constraint_bodies[index];
+
+            int body_a = body_id.x;
+            int node_b = body_id.y;
+
+            Mat33 Aro(quaternion(1, 0, 0, 0));
+            Mat33 Aow(rot_rigid[body_a]);
+            Mat33 Arw = Aow * Aro;
+
+            Mat33 Jxn = Transpose(Arw);   // Jacobian for node
+            Mat33 Jxb = -Transpose(Arw);  // Jacobian for body
+            real3 temp = Transpose(Aow) * (pos_node[node_b] - pos_rigid[body_a]);
+            Mat33 atilde = SkewSymmetric(temp);
+            Mat33 Jrb = Transpose(Aro) * atilde;  // Jacobian for body
+
+            SetRow6Check(D_T, start_rigid + index * 3 + 0, body_a * 6, Jxb.row(0), Jrb.row(0));
+            SetRow6Check(D_T, start_rigid + index * 3 + 1, body_a * 6, Jxb.row(1), Jrb.row(1));
+            SetRow6Check(D_T, start_rigid + index * 3 + 2, body_a * 6, Jxb.row(2), Jrb.row(2));
+
+            SetRow3Check(D_T, start_rigid + index * 3 + 0, b_off + node_b * 3, Jxn.row(0));
+            SetRow3Check(D_T, start_rigid + index * 3 + 1, b_off + node_b * 3, Jxn.row(1));
+            SetRow3Check(D_T, start_rigid + index * 3 + 2, b_off + node_b * 3, Jxn.row(2));
+        }
+    }
 }
 void ChFEAContainer::Build_b() {
     LOG(INFO) << "ChConstraintTet::Build_b";
@@ -465,6 +514,8 @@ void ChFEAContainer::Build_b() {
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+    custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 
 #pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
@@ -496,7 +547,7 @@ void ChFEAContainer::Build_b() {
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
                                                     // Mat33 strain = S - Mat33(1);
         real volSqrt = Sqrt(vol);
-        real cf = 1;//volSqrt;
+        real cf = 1;  // volSqrt;
 
         b_sub[i * 7 + 0] = cf * strain[0];
         b_sub[i * 7 + 1] = cf * strain[5];
@@ -540,6 +591,24 @@ void ChFEAContainer::Build_b() {
             }
         }
     }
+
+    if (num_rigid_constraints > 0) {
+        for (int index = 0; index < num_rigid_constraints; index++) {
+            int2 body_id = constraint_bodies[index];
+
+            int body_a = body_id.x;
+            int node_b = body_id.y;
+
+            Mat33 Arw(quaternion(1, 0, 0, 0) * rot_rigid[body_a]);
+            real3 res =
+                Transpose(Arw) * (pos_node[node_b] - TransformLocalToParent(pos_rigid[body_a], rot_rigid[body_a],
+                                                                            constraint_position[index]));
+
+            data_manager->host_data.b[start_rigid + index * 3 + 0] = res.x;
+            data_manager->host_data.b[start_rigid + index * 3 + 1] = res.y;
+            data_manager->host_data.b[start_rigid + index * 3 + 2] = res.z;
+        }
+    }
 }
 void ChFEAContainer::Build_E() {
     uint num_tets = data_manager->num_fea_tets;
@@ -577,6 +646,9 @@ void ChFEAContainer::Build_E() {
         //        3],
         //               E_sub[i * 7 + 4], E_sub[i * 7 + 5], E_sub[i * 7 + 6]);
     }
+
+    SubVectorType E_rigid = blaze::subvector(data_manager->host_data.E, start_rigid, num_rigid_constraints);
+    E_rigid = 0;
 }
 
 template <typename T>
@@ -637,36 +709,58 @@ void ChFEAContainer::GenerateSparsity() {
         AppendRow12(D_T, start_tet + i * 7 + 6, body_offset, tet_ind, 0);
         D_T.finalize(start_tet + i * 7 + 6);
     }
+    if (data_manager->num_rigid_node_contacts) {
+        int index_n = 0;
+        int index_t = 0;
+        int num_nodes = data_manager->num_fea_nodes;
+        custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
+        for (int p = 0; p < num_nodes; p++) {
+            for (int i = 0; i < contact_counts[p]; i++) {
+                int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
+                int node = p;
+                AppendRow6(D_T, start_boundary + index_n + 0, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary + index_n + 0, body_offset + node * 3, 0);
+                D_T.finalize(start_boundary + index_n + 0);
+                index_n++;
+            }
+        }
+        for (int p = 0; p < num_nodes; p++) {
+            for (int i = 0; i < contact_counts[p]; i++) {
+                int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
+                int node = p;
 
-    int index_n = 0;
-    int index_t = 0;
-    int num_nodes = data_manager->num_fea_nodes;
-    custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
-    for (int p = 0; p < num_nodes; p++) {
-        for (int i = 0; i < contact_counts[p]; i++) {
-            int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
-            int node = p;
-            AppendRow6(D_T, start_boundary + index_n + 0, rigid * 6, 0);
-            AppendRow3(D_T, start_boundary + index_n + 0, body_offset + node * 3, 0);
-            D_T.finalize(start_boundary + index_n + 0);
-            index_n++;
+                AppendRow6(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 0, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 0, body_offset + node * 3, 0);
+                D_T.finalize(start_boundary + num_rigid_node_contacts + index_t * 2 + 0);
+
+                AppendRow6(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 1, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 1, body_offset + node * 3, 0);
+
+                D_T.finalize(start_boundary + num_rigid_node_contacts + index_t * 2 + 1);
+                index_t++;
+            }
         }
     }
-    for (int p = 0; p < num_nodes; p++) {
-        for (int i = 0; i < contact_counts[p]; i++) {
-            int rigid = neighbor_rigid_node[p * max_rigid_neighbors + i];
-            int node = p;
 
-            AppendRow6(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 0, rigid * 6, 0);
-            AppendRow3(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 0, body_offset + node * 3, 0);
-            D_T.finalize(start_boundary + num_rigid_node_contacts + index_t * 2 + 0);
+    if (num_rigid_constraints) {
+        for (int index = 0; index < num_rigid_constraints; index++) {
+            int2 body_id = constraint_bodies[index];
+            int body_a = body_id.x;
+            int node_b = body_id.y;
+            //printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 0, body_a * 6, body_offset + node_b * 3);
 
-            AppendRow6(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 1, rigid * 6, 0);
-            AppendRow3(D_T, start_boundary + num_rigid_node_contacts + index_t * 2 + 1, body_offset + node * 3, 0);
-
-            D_T.finalize(start_boundary + num_rigid_node_contacts + index_t * 2 + 1);
-            index_t++;
+            AppendRow6(D_T, start_rigid + index * 3 + 0, body_a * 6, 0);
+            AppendRow3(D_T, start_rigid + index * 3 + 0, body_offset + node_b * 3, 0);
+            D_T.finalize(start_rigid + index * 3 + 0);
+            //printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 1, body_a * 6, body_offset + node_b * 3);
+            AppendRow6(D_T, start_rigid + index * 3 + 1, body_a * 6, 0);
+            AppendRow3(D_T, start_rigid + index * 3 + 1, body_offset + node_b * 3, 0);
+            D_T.finalize(start_rigid + index * 3 + 1);
+            //printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 2, body_a * 6, body_offset + node_b * 3);
+            AppendRow6(D_T, start_rigid + index * 3 + 2, body_a * 6, 0);
+            AppendRow3(D_T, start_rigid + index * 3 + 2, body_offset + node_b * 3, 0);
+            D_T.finalize(start_rigid + index * 3 + 2);
         }
     }
 }
