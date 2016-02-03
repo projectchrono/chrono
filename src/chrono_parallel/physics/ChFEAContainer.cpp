@@ -54,12 +54,13 @@ void ChFEAContainer::AddConstraint(const uint node, ChSharedBodyPtr& body) {
     // point is the nodal point
     int body_a = body->GetId();
     int body_b = node;
-   // printf("Add Rigid fea: %d %d %d\n", num_rigid_constraints, body_a, body_b);
-    custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
-    custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
-    custom_vector<real3>& pos_node_fea = data_manager->host_data.pos_rigid;
 
-    constraint_position.push_back(TransformParentToLocal(pos_rigid[body_a], rot_rigid[body_a], pos_node_fea[body_b]));
+    custom_vector<real3>& pos_node_fea = data_manager->host_data.pos_node_fea;
+
+    real3 pos_rigid = real3(body->GetPos().x, body->GetPos().y, body->GetPos().z);
+    quaternion rot_rigid = quaternion(body->GetRot().e0, body->GetRot().e1, body->GetRot().e2, body->GetRot().e3);
+
+    constraint_position.push_back(TransformParentToLocal(pos_rigid, rot_rigid, pos_node_fea[body_b]));
     constraint_bodies.push_back(_make_int2(body_a, body_b));
 
     num_rigid_constraints++;
