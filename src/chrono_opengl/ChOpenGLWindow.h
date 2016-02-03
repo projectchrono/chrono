@@ -19,8 +19,20 @@
 #include "chrono_opengl/core/ChApiOpenGL.h"
 #include "chrono_opengl/ChOpenGLViewer.h"
 
+/**
+    @defgroup opengl Chrono::OpenGL
+    @brief Runtime visualization with OpenGL
+*/
+
 namespace chrono {
+
+/// Namespace with classes for the Chrono::OpenGL module.
 namespace opengl {
+
+/// @addtogroup opengl
+/// @{
+
+/// Manager for the OpenGL context and window.
 class CH_OPENGL_API ChOpenGLWindow {
  public:
   // Get the unique instance for the OpenGL window
@@ -114,6 +126,9 @@ class CH_OPENGL_API ChOpenGLWindow {
   GLFWwindow* window;
   int poll_frame;
 };
+
+/// @} opengl
+
 }
 }
 #endif  // END of CHOPENGLWINDOW_H

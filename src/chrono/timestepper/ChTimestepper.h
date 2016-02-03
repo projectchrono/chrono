@@ -197,7 +197,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChImplicitIterativeTimestepper, ChImplicitTimestepper);
 
-  private:
+  protected:
     int maxiters;
     double tolerance;
 
@@ -534,18 +534,42 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     bool scaling;
     int num_it;
     ChStateDelta Da;
+    ChStateDelta Dx;
     ChVectorDynamic<> Dl;
     ChState Xnew;
     ChStateDelta Vnew;
     ChStateDelta Anew;
+    ChVectorDynamic<> Lnew;
     ChVectorDynamic<> R;
     ChVectorDynamic<> Rold;
     ChVectorDynamic<> Qc;
 
+    bool step_control;            // step size control enabled?
+
+    int maxiters_success;         // maximum number of NR iterations to declare a step successful
+    int req_successful_steps;     // required number of successive successful steps for a stepsize increase
+    double step_increase_factor;  // factor used in increasing stepsize (>1)
+    double step_decrease_factor;  // factor used in decreasing stepsize (<1)
+    double h_min;                 // minimum allowable stepsize
+
+    double h;                  // internal stepsize
+    int num_successful_steps;  // number of successful steps 
+
   public:
     /// Constructors (default empty)
-    ChTimestepperHHT(ChIntegrableIIorder* mintegrable =0)
-        : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(), mode(ACCELERATION), scaling(false) {
+    ChTimestepperHHT(ChIntegrableIIorder* mintegrable = 0)
+        : ChTimestepperIIorder(mintegrable),
+          ChImplicitIterativeTimestepper(),
+          mode(ACCELERATION),
+          scaling(false),
+          step_control(true),
+          maxiters_success(3),
+          req_successful_steps(5),
+          step_increase_factor(2),
+          step_decrease_factor(0.5),
+          h_min(1e-10),
+          h(1e6),
+          num_successful_steps(0) {
         SetAlpha(-0.2);  // default: some dissipation
     };
 
@@ -572,7 +596,30 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Turn scaling on/off.
     void SetScaling(bool mscaling) { scaling = mscaling; }
 
-    /// Return the number of iterations at last step.
+    /// Turn step size control on/off.
+    void SetStepControl(bool val) { step_control = val; }
+
+    /// Set the minimum step size.
+    /// An exception is thrown if the internal step size decreases below this limit.
+    void SetMinStepSize(double min_step) { h_min = min_step; }
+
+    /// Set the maximum allowable number of iterations for counting a step towards a stepsize increase.
+    void SetMaxItersSuccess(int iters) { maxiters_success = iters; }
+
+    /// Set the minimum number of (internal) steps that require at most maxiters_success
+    /// before considering a stepsize increase.
+    void SetRequiredSuccessfulSteps(int num_steps) { req_successful_steps = num_steps; }
+
+    /// Set the multiplicative factor for a stepsize increase.
+    /// Must be a value larger than 1.
+    void SetStepIncreaseFactor(double factor) { step_increase_factor = factor; }
+    
+    /// Set the multiplicative factor for a stepsize decrease.
+    /// Must be a value smaller than 1.
+    void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
+
+    /// Return the number of iterations over the last step.
+    /// Note that this is a cummulative iteration count, over all internal steps.
     int GetNumIterations() const { return num_it; }
 
     /// Perform an integration timestep.
@@ -614,6 +661,11 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         HHT_Mode_mapper modemapper;
         marchive >> CHNVP(modemapper(mode),"mode");
     }
+
+  private:
+      void Prepare(ChIntegrableIIorder* integrable, double scaling_factor);
+      void Increment(ChIntegrableIIorder* integrable, double scaling_factor);
+      bool CheckConvergence(double scaling_factor);
 };
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems

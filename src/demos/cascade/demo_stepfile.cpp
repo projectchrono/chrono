@@ -38,6 +38,7 @@
 
 // Use the namespace of Chrono
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irlicht
 using namespace irr;

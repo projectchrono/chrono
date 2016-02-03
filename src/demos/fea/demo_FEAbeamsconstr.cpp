@@ -28,8 +28,8 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_matlab/ChMatlabEngine.h"
-#include "chrono_matlab/ChLcpMatlabSolver.h"
+//#include "chrono_matlab/ChMatlabEngine.h"
+//#include "chrono_matlab/ChLcpMatlabSolver.h"
 
 #include "chrono_mkl/ChLcpMklSolver.h"
 
@@ -37,7 +37,8 @@
 // of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
-using namespace fea;
+using namespace chrono::fea;
+using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
@@ -315,6 +316,10 @@ int main(int argc, char* argv[]) {
         
         // Use the following for less numerical damping, 2nd order accuracy (but slower)
         //my_system.SetIntegrationType(ChSystem::INT_HHT);
+        if (ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>()) {
+            mystepper->SetVerbose(true);
+            mystepper->SetStepControl(false);
+        }
 
         // Output data
         chrono::ChStreamOutAsciiFile file_out1("benchmark_CE_buckling_mid.dat");

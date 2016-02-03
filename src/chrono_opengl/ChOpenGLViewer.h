@@ -36,8 +36,12 @@
 namespace chrono {
 namespace opengl {
 
+/// @addtogroup opengl
+/// @{
+
 enum RenderMode { POINTS, WIREFRAME, SOLID };
 
+/// OpenGL viewer, this class draws the system to the screen and handles input.
 class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
  public:
   ChOpenGLViewer(ChSystem* system);
@@ -107,6 +111,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   std::map<std::string, ChOpenGLMesh> obj_files;
   std::map<std::string, std::vector<glm::mat4> > model_obj;
 };
+
+/// @} opengl
+
 }
 }
 

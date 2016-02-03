@@ -25,6 +25,7 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
@@ -75,16 +76,16 @@ int main(int argc, char* argv[]) {
     // about friction etc.
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetKn(2e6);
-    mysurfmaterial->SetKt(2e6);
-    mysurfmaterial->SetGn(4200);
-    mysurfmaterial->SetGt(4200);
+    mysurfmaterial->SetYoungModulus(10e4);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
+    mysurfmaterial->SetAdhesion(0);
 
     ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial2 (new ChMaterialSurfaceDEM);
-    mysurfmaterial2->SetKn(12e6);
-    mysurfmaterial2->SetKt(12e6);
-    mysurfmaterial2->SetGn(16000);
-    mysurfmaterial2->SetGt(16000);
+    mysurfmaterial->SetYoungModulus(30e4);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.2f);
+    mysurfmaterial->SetAdhesion(0);
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
@@ -170,13 +171,12 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     try {
-        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial, node_sets, tire_center, tire_alignment);
+        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
+                                         node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
     }
-
-
 
     // Create the contact surface(s). 
     // In this case it is a ChContactSurfaceNodeCloud, so just pass 

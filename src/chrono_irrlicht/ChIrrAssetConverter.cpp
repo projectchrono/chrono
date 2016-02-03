@@ -214,6 +214,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             if (genericMesh) {
                 ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(myobj, mnode);
                 ISceneNode* mchildnode = scenemanager->addAnimatedMeshSceneNode(genericMesh, mproxynode);
+                mproxynode->drop();
 
                 // mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
 
@@ -237,6 +238,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
             mproxynode->Update();  // force syncing of triangle positions & face indexes
+            mproxynode->drop();
 
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mytrimesh->IsWireframe());
             mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull());
@@ -254,6 +256,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
             mproxynode->Update();  // force syncing of triangle positions & face indexes
+            mproxynode->drop();
 
             // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
@@ -270,6 +273,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
             newmesh->drop();
             mproxynode->Update();  // force syncing of triangle positions & face indexes
+            mproxynode->drop();
 
             // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
@@ -278,6 +282,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ChSharedPtr<ChSphereShape> mysphere(k_asset.DynamicCastTo<ChSphereShape>());
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mysphere, mnode);
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh, mproxynode);
+            mproxynode->drop();
 
             // Calculate transform from node to geometry
             // (concatenate node - asset and asset - geometry)
@@ -293,6 +298,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ChSharedPtr<ChCylinderShape> mycylinder(k_asset.DynamicCastTo<ChCylinderShape>());
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycylinder, mnode);
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cylinderMesh, mproxynode);
+            mproxynode->drop();
 
             double rad = mycylinder->GetCylinderGeometry().rad;
             ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
@@ -322,6 +328,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ChSharedPtr<ChBoxShape> mybox(k_asset.DynamicCastTo<ChBoxShape>());
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybox, mnode);
             ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cubeMesh, mproxynode);
+            mproxynode->drop();
 
             // Calculate transform from node to geometry
             // (concatenate node - asset and asset - geometry)
@@ -347,6 +354,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycamera, mnode);
             RTSCamera* irrcamera =
                 new RTSCamera(mdevice, mproxynode, scenemanager, -1, -160.0f, 1.0f, 0.003f);
+            mproxynode->drop();
 
             irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
             irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
@@ -361,6 +369,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ChFrame<> subassetframe = mylevel->GetFrame();
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mylevel, mnode);
             ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mproxynode);
+            mproxynode->drop();
             // recurse level...
             _recursePopulateIrrlicht(subassetlist, subassetframe, subassetnode);
         }

@@ -21,22 +21,30 @@
 #include "physics/ChSystem.h"
 namespace chrono {
 namespace opengl {
+
+/// @addtogroup opengl
+/// @{
+
+/// Renders contact points as a point cloud
 class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
- public:
-  ChOpenGLContacts();
-  bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
-  void Draw(const glm::mat4& projection, const glm::mat4& view);
-  void TakeDown();
-  void Update(ChSystem* physics_system);
-  void SetPointSize(const float& pointsize) { contacts.SetPointSize(pointsize); }
+  public:
+    ChOpenGLContacts();
+    bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
+    void Draw(const glm::mat4& projection, const glm::mat4& view);
+    void TakeDown();
+    void Update(ChSystem* physics_system);
+    void SetPointSize(const float& pointsize) { contacts.SetPointSize(pointsize); }
 
- private:
-  void UpdateChrono(ChSystem* physics_system);
-  //void UpdateChronoParallel(ChSystemParallel* system);
+  private:
+    void UpdateChrono(ChSystem* physics_system);
+    // void UpdateChronoParallel(ChSystemParallel* system);
 
-  ChOpenGLCloud contacts;
-  std::vector<glm::vec3> contact_data;
+    ChOpenGLCloud contacts;
+    std::vector<glm::vec3> contact_data;
 };
+
+/// @} opengl
+
 }
 }
 #endif  // END of CHOPENGLCONTACTS_H

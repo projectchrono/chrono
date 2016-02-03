@@ -74,7 +74,10 @@ class ChApi ChShared {
     /// the creator, is using it. For example some pointer is pointing to
     /// it...
     /// In fact intrusive smart pointers automatically call this when copied.
-    void AddRef() { m_ref_counter++; }
+    void AddRef() { 
+#pragma omp atomic
+        m_ref_counter++; 
+    }
 
     /// Remove a reference to this object (tell that someone
     /// who was using it, now is not interested in it anymore).
@@ -83,6 +86,7 @@ class ChApi ChShared {
     /// deleted. Also the creator must call this, instead of delete().
     /// In fact intrusive smart pointers automatically call this.
     void RemoveRef() {
+#pragma omp atomic
         m_ref_counter--;
 
         if (m_ref_counter == 0)

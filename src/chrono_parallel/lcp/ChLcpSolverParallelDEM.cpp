@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Arman Pazouki
 // =============================================================================
 // Implementation of methods specific to the parallel DEM solver.
 //
@@ -127,7 +127,7 @@ void function_CalcContactForces(
         real nu1 = elastic_moduli[body1].y;
         real nu2 = elastic_moduli[body2].y;
         real inv_E = (1 - nu1 * nu1) / Y1 + (1 - nu2 * nu2) / Y2;
-        real inv_G = 2 * (2 + nu1) * (1 - nu1) / Y1 + 2 * (2 + nu2) * (1 - nu2) / Y2;
+        real inv_G = 2 * (2 - nu1) * (1 + nu1) / Y1 + 2 * (2 - nu2) * (1 + nu2) / Y2;
 
         E_eff = 1 / inv_E;
         G_eff = 1 / inv_G;
@@ -185,9 +185,10 @@ void function_CalcContactForces(
         // Check if contact history already exists.
         // If not, initialize new contact history.
         for (i = 0; i < max_shear; i++) {
-            if (shear_neigh[max_shear * shear_body1 + i].x == shear_body2 &&
-                shear_neigh[max_shear * shear_body1 + i].y == shear_shape1 &&
-                shear_neigh[max_shear * shear_body1 + i].z == shear_shape2) {
+        	int ctIdUnrolled= max_shear * shear_body1 + i;
+            if (shear_neigh[ctIdUnrolled].x == shear_body2 &&
+                shear_neigh[ctIdUnrolled].y == shear_shape1 &&
+                shear_neigh[ctIdUnrolled].z == shear_shape2) {
                 contact_id = i;
                 newcontact = false;
                 break;
@@ -195,35 +196,37 @@ void function_CalcContactForces(
         }
         if (newcontact == true) {
             for (i = 0; i < max_shear; i++) {
-                if (shear_neigh[max_shear * shear_body1 + i].x == -1) {
+            	int ctIdUnrolled= max_shear * shear_body1 + i;
+                if (shear_neigh[ctIdUnrolled].x == -1) {
                     contact_id = i;
-                    shear_neigh[max_shear * shear_body1 + i].x = shear_body2;
-                    shear_neigh[max_shear * shear_body1 + i].y = shear_shape1;
-                    shear_neigh[max_shear * shear_body1 + i].z = shear_shape2;
-                    shear_disp[max_shear * shear_body1 + i].x = 0;
-                    shear_disp[max_shear * shear_body1 + i].y = 0;
-                    shear_disp[max_shear * shear_body1 + i].z = 0;
+                    shear_neigh[ctIdUnrolled].x = shear_body2;
+                    shear_neigh[ctIdUnrolled].y = shear_shape1;
+                    shear_neigh[ctIdUnrolled].z = shear_shape2;
+                    shear_disp[ctIdUnrolled].x = 0;
+                    shear_disp[ctIdUnrolled].y = 0;
+                    shear_disp[ctIdUnrolled].z = 0;
                     break;
                 }
             }
         }
 
         // Record that these two bodies are really in contact at this time.
-        shear_touch[max_shear * shear_body1 + contact_id] = true;
+        int ctSaveId = max_shear * shear_body1 + contact_id;
+        shear_touch[ctSaveId] = true;
 
         // Increment stored contact history tangential (shear) displacement vector
         // and project it onto the <current> contact plane.
 
         if (shear_body1 == body1) {
-            shear_disp[max_shear * shear_body1 + contact_id] += delta_t;
-            shear_disp[max_shear * shear_body1 + contact_id] -=
-                dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index]) * normal[index];
-            delta_t = shear_disp[max_shear * shear_body1 + contact_id];
+            shear_disp[ctSaveId] += delta_t;
+            shear_disp[ctSaveId] -=
+                dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+            delta_t = shear_disp[ctSaveId];
         } else {
-            shear_disp[max_shear * shear_body1 + contact_id] -= delta_t;
-            shear_disp[max_shear * shear_body1 + contact_id] -=
-                dot(shear_disp[max_shear * shear_body1 + contact_id], normal[index]) * normal[index];
-            delta_t = -shear_disp[max_shear * shear_body1 + contact_id];
+            shear_disp[ctSaveId] -= delta_t;
+            shear_disp[ctSaveId] -=
+                dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+            delta_t = -shear_disp[ctSaveId];
         }
     }
 

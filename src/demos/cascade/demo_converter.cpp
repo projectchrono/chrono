@@ -91,6 +91,7 @@
 
 // Use the namespace of Chrono
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 // Use the main namespace of Irrlicht
 // (and prefer not to use 'using ...' also for others(irr::video, irr::gui, etc.), to avoid name pollution)

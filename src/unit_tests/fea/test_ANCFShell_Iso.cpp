@@ -188,15 +188,15 @@ int main(int argc, char* argv[]) {
     mkl_solver_stab->SetSparsityPatternLock(false);
     my_system.Update();*/
 
-    // INT_HHT or INT_EULER_IMPLICIT
+    // Setup integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().StaticCastTo<ChTimestepperHHT>();
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
     mystepper->SetTolerance(1e-06);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
+    mystepper->SetVerbose(true);
 
     utils::Data m_data;
     m_data.resize(2);

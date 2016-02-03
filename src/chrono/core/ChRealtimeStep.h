@@ -68,7 +68,8 @@ class ChRealtimeStepTimer : public ChTimer<double> {
                                  double min_step = CH_NANOTOL)  ///< lower limit for step
     {
         this->stop();
-        double mstep = (*this)();
+        double mstep = this->GetTimeSeconds();
+        this->reset();
         this->start();
 
         if (mstep < min_step)
