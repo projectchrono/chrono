@@ -924,6 +924,7 @@ void ChTimestepperHHT::Advance(const double dt) {
 // - Obtain a prediction at T+h for NR using extrapolation from solution at current time.
 // - For ACCELERATION mode, if not using step size control, start with zero acceleration
 //   guess (previous step not guaranteed to have converged)
+// - Set the error weight vectors (using solution at current time)
 void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_factor) {
     switch (mode) {
         case ACCELERATION:
@@ -933,6 +934,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
             Xnew = X + Vnew * h + Anew * h * h;
             integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
             integrable->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
+            CalcErrorWeights(A, reltol, abstolS, ewtS);
             break;
         case POSITION:
             Xnew = X;
@@ -940,10 +942,13 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
             Anew = V * (-1.0 / (beta * h)) - A * (1.0 / (2.0 * beta) - 1.0);
             integrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * f_old
             integrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * Cq'*l_old
+            CalcErrorWeights(X, reltol, abstolS, ewtS);
             break;
     }
 
     Lnew = L;
+
+    CalcErrorWeights(L, reltol, abstolL, ewtL);
 }
 
 // Calculate a new iterate of the new state at time T+h:
@@ -1037,10 +1042,19 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
             double Da_nrm = Da.NormTwo();
             double Dl_nrm = Dl.NormTwo();
 
+
+            double nrm_Da = Da.NormWRMS(ewtS);
+            double nrm_Dl = Dl.NormWRMS(ewtL);
+
+            double max_a = A.NormInf();
+            double max_l = L.NormInf();
+
             if (verbose) {
                 GetLog() << " HHT iteration=" << num_it << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
                          << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.GetLength()
                          << "  M = " << Qc.GetLength() << "\n";
+                GetLog() << "                   " << " |Da| = " << nrm_Da << " |Dl| = " << nrm_Dl << "\n";
+                GetLog() << "                   " << " |A|  = " << max_a << " |L} =  " << max_l << "\n";
             }
 
             if ((R.NormTwo() < abstolS && Qc.NormTwo() < abstolL) ||
@@ -1083,6 +1097,15 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
     }
 
     return converged;
+}
+
+// Calculate the error weight vector correspondiong to the specified solution vector x,
+// using the given relative and absolute tolerances.
+void ChTimestepperHHT::CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt) {
+    ewt.Reset(x.GetLength());
+    for (int i = 0; i < x.GetLength(); ++i) {
+        ewt.ElementN(i) = 1.0 / (rtol * std::abs(x.ElementN(i)) + atol);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

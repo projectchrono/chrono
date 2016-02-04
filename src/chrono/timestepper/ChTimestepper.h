@@ -579,7 +579,9 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double h;                  // internal stepsize
     int num_successful_steps;  // number of successful steps
 
-    bool test_residual;          // if true, include residual in convergence test
+    bool test_residual;      // if true, include residual in convergence test
+    ChVectorDynamic<> ewtS;  // vector of error weights (states)
+    ChVectorDynamic<> ewtL;  // vector of error weights (Lagrange multipliers)
 
   public:
     /// Constructors (default empty)
@@ -692,6 +694,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
       void Prepare(ChIntegrableIIorder* integrable, double scaling_factor);
       void Increment(ChIntegrableIIorder* integrable, double scaling_factor);
       bool CheckConvergence(double scaling_factor);
+      void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 };
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems
