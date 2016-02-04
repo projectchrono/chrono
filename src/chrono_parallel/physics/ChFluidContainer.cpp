@@ -645,7 +645,18 @@ void ChFluidContainer::GenerateSparsity() {
     }
 }
 
+void ChFluidContainer::PreSolve() {
+    if (gamma_old.size() > 0 && gamma_old.size() == num_fluid_bodies) {
+        blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies) = gamma_old * .9;
+    }
+}
+
 void ChFluidContainer::PostSolve() {
+    if (num_fluid_bodies > 0) {
+        gamma_old.resize(num_fluid_bodies);
+        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies);
+    }
+
     if (artificial_pressure == false) {
         return;
     }
@@ -709,11 +720,6 @@ real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 
-void ChFluidContainer::PreSolve() {
-    if (max_iterations == 0) {
-        return;
-    }
-}
 }  // END_OF_NAMESPACE____
 
 /////////////////////

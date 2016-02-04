@@ -808,7 +808,7 @@ void ChFEAContainer::PreSolve() {
 void ChFEAContainer::PostSolve() {
     if (data_manager->num_fea_tets * (6 + 1) > 0) {
         gamma_old.resize(data_manager->num_fea_tets * (6 + 1));
-        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, num_tet_constraints);
+        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1));
     }
 }
 }  // END_OF_NAMESPACE____
