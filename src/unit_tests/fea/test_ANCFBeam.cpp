@@ -25,6 +25,7 @@
 // successful verification, this number must be 2.
 // =============================================================================
 #include <cstdio>
+#include <cmath>
 
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/lcp/ChLcpIterativePMINRES.h"
@@ -205,12 +206,15 @@ int main(int argc, char* argv[]) {
         my_system.DoStepDynamics(0.0001);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking midpoint and tip Y displacement
-        double AbsVal = abs(hnodeancf3->GetPos().y - FileInputMat[it][4]);
-        double AbsVal2 = abs(hnodeancf5->GetPos().z - FileInputMat[it][6]);
-        AbsVal = ChMax(AbsVal, AbsVal2);
+        double AbsVal = std::abs(hnodeancf3->GetPos().y - FileInputMat[it][4]);
+        double AbsVal2 = std::abs(hnodeancf5->GetPos().z - FileInputMat[it][6]);
 
-        if (AbsVal > precision) {
+        if (ChMax(AbsVal, AbsVal2) > precision) {
             std::cout << "Unit test check failed \n";
+            std::cout << "  y position: " << hnodeancf3->GetPos().y << "  (reference: " << FileInputMat[it][4]
+                      << "  diff: " << AbsVal << ")\n";
+            std::cout << "  z position: " << hnodeancf5->GetPos().z << "  (reference: " << FileInputMat[it][6]
+                      << "  diff: " << AbsVal2 << ")\n";
             return 1;
         }
     }
