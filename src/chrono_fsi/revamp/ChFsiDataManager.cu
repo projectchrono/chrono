@@ -15,7 +15,9 @@
 // Base class for managing data in chrono_fsi, aka fluid system.//
 // =============================================================================
 
+ChFsiDataManager::ChFsiDataManager() {}
 
+ChFsiDataManager::~ChFsiDataManager() {}
 
 
 

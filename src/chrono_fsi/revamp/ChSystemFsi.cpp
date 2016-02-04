@@ -15,6 +15,15 @@
 // Class for performing handling fsi system.
 // =============================================================================
 
+ChSystemFsi::ChSystemFsi() {
+
+	ChFsiDataManager* fsiData = new ChFsiDataManager();
+	ChFluidDynamics* ChFluidDynamics;
+	ChFsiInterface* ChFsiInterface;
+	ChBce* bceWorker;
+
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::CopyDeviceDataToHalfStep(){
 	
 	thrust::copy(fsiData->sphMarkersD1.posRadD.begin(), fsiData->sphMarkersD1.posRadD.end(), fsiData->sphMarkersD2.posRadD.begin());
