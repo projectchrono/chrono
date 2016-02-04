@@ -29,6 +29,9 @@ ChFEAContainer::ChFEAContainer(ChSystemParallelDVI* system) {
     data_manager = system->data_manager;
     data_manager->AddFEAContainer(this);
     num_rigid_constraints = 0;
+    rigid_constraint_recovery_speed = 1;
+    family.x = 1;
+    family.y = 0x7FFF;
 }
 
 ChFEAContainer::~ChFEAContainer() {}
@@ -59,7 +62,8 @@ void ChFEAContainer::AddConstraint(const uint node, ChSharedBodyPtr& body) {
 
     real3 pos_rigid = real3(body->GetPos().x, body->GetPos().y, body->GetPos().z);
     quaternion rot_rigid = quaternion(body->GetRot().e0, body->GetRot().e1, body->GetRot().e2, body->GetRot().e3);
-
+//    printf("body ID: %d %d [%f %f %f] [%f %f %f]\n", body_b, body_a, pos_rigid.x, pos_rigid.y, pos_rigid.z,
+//           pos_node_fea[body_b].x, pos_node_fea[body_b].y, pos_node_fea[body_b].z);
     constraint_position.push_back(TransformParentToLocal(pos_rigid, rot_rigid, pos_node_fea[body_b]));
     constraint_bodies.push_back(_make_int2(body_a, body_b));
 
@@ -209,7 +213,7 @@ void ChFEAContainer::Initialize() {
         mass_node[tet_ind.z] += node_mass;
         mass_node[tet_ind.w] += node_mass;
 
-        // printf("Vol: %f Mass: %f \n", vol, tet_mass);
+         //printf("Vol: %f Mass: %f [%d %d %d %d]\n", vol, tet_mass, tet_ind.x,tet_ind.y,tet_ind.z,tet_ind.w);
 
         //        real3 y[4];
         //        y[1] = X0[i].row(0);
@@ -349,7 +353,7 @@ void ChFEAContainer::Build_D() {
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
-        real vol = (det) / 6.0;
+        real vol = Abs((det) / 6.0);
         real volSqrt = Sqrt(vol);
         Mat33 X = X0[i];
         Mat33 F = Ds * X;  // 4.27
@@ -383,12 +387,16 @@ void ChFEAContainer::Build_D() {
 
         real vf = (0.5 / (volSqrt));
         // This helps to scale jacboian so boundaries aren't ignored
-        real cf = 2 * volSqrt;
+        real cf = 2 * volSqrt;  // 2 * volSqrt;
         // diagonal elements of strain matrix
-        Mat33 A1 = cf * Mat33(y[0]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
-        Mat33 A2 = cf * Mat33(y[1]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
-        Mat33 A3 = cf * Mat33(y[2]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
-        Mat33 A4 = cf * Mat33(y[3]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
+        Mat33 A1 = cf * Mat33(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
+        Mat33 A2 = cf * Mat33(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
+        Mat33 A3 = cf * Mat33(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
+        Mat33 A4 = cf * Mat33(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
+                                            //        A1 = A1 * (1.0 / Determinant(A1));
+                                            //        A2 = A2 * (1.0 / Determinant(A2));
+                                            //        A3 = A3 * (1.0 / Determinant(A3));
+                                            //        A4 = A4 * (1.0 / Determinant(A4));
 
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
@@ -410,13 +418,18 @@ void ChFEAContainer::Build_D() {
         /////==================================================================================================================================
         // Off diagonal strain elements
         Mat33 B1 =
-            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
         Mat33 B2 =
-            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
         Mat33 B3 =
-            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
         Mat33 B4 =
-            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+
+        //        B1 = B1 * (1.0 / Determinant(B1));
+        //        B2 = B2 * (1.0 / Determinant(B2));
+        //        B3 = B3 * (1.0 / Determinant(B3));
+        //        B4 = B4 * (1.0 / Determinant(B4));
 
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
@@ -489,23 +502,37 @@ void ChFEAContainer::Build_D() {
             int body_a = body_id.x;
             int node_b = body_id.y;
 
-            Mat33 Aro(quaternion(1, 0, 0, 0));
-            Mat33 Aow(rot_rigid[body_a]);
-            Mat33 Arw = Aow * Aro;
-
-            Mat33 Jxn = Transpose(Arw);   // Jacobian for node
-            Mat33 Jxb = -Transpose(Arw);  // Jacobian for body
-            real3 temp = Transpose(Aow) * (pos_node[node_b] - pos_rigid[body_a]);
+            Mat33 Arw = Transpose(Mat33(rot_rigid[body_a]));
+            real3 temp = Arw * Normalize((pos_node[node_b] - pos_rigid[body_a]));
             Mat33 atilde = SkewSymmetric(temp);
-            Mat33 Jrb = Transpose(Aro) * atilde;  // Jacobian for body
+            Mat33 Jrb = Arw * atilde;  // Jacobian for body
 
-            SetRow6Check(D_T, start_rigid + index * 3 + 0, body_a * 6, Jxb.row(0), Jrb.row(0));
-            SetRow6Check(D_T, start_rigid + index * 3 + 1, body_a * 6, Jxb.row(1), Jrb.row(1));
-            SetRow6Check(D_T, start_rigid + index * 3 + 2, body_a * 6, Jxb.row(2), Jrb.row(2));
+            //======= Experimental jacobian weighting
+            //            real dJxn = Abs(Determinant(Jxn));
+            //            real dJxb = Abs(Determinant(Jxb));
+            //            real dJrb = Abs(Determinant(Jrb));
 
-            SetRow3Check(D_T, start_rigid + index * 3 + 0, b_off + node_b * 3, Jxn.row(0));
-            SetRow3Check(D_T, start_rigid + index * 3 + 1, b_off + node_b * 3, Jxn.row(1));
-            SetRow3Check(D_T, start_rigid + index * 3 + 2, b_off + node_b * 3, Jxn.row(2));
+            //            if (dJxn > 1) {
+            //                Jxn = Jxn * (1.0 / dJxn);
+            //            }
+            //            if (dJxb > 1) {
+            //                Jxb = Jxb * (1.0 / dJxb);
+            //            }
+            //            if (dJrb > 1) {
+            //                Jrb = Jrb * (1.0 / dJrb);
+            //            }
+            //
+            Arw = Arw * .05;
+            Jrb = Jrb * .05;
+            //            //=======
+
+            SetRow6Check(D_T, start_rigid + index * 3 + 0, body_a * 6, -Arw.row(0), Jrb.row(0));
+            SetRow6Check(D_T, start_rigid + index * 3 + 1, body_a * 6, -Arw.row(1), Jrb.row(1));
+            SetRow6Check(D_T, start_rigid + index * 3 + 2, body_a * 6, -Arw.row(2), Jrb.row(2));
+
+            SetRow3Check(D_T, start_rigid + index * 3 + 0, b_off + node_b * 3, Arw.row(0));
+            SetRow3Check(D_T, start_rigid + index * 3 + 1, b_off + node_b * 3, Arw.row(1));
+            SetRow3Check(D_T, start_rigid + index * 3 + 2, b_off + node_b * 3, Arw.row(2));
         }
     }
 }
@@ -517,7 +544,7 @@ void ChFEAContainer::Build_b() {
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
-
+    real step_size = data_manager->settings.step_size;
 #pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
@@ -533,7 +560,7 @@ void ChFEAContainer::Build_b() {
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
-        real vol = (det) / 6.0;
+        real vol = Abs((det) / 6.0);
 
         Mat33 X = X0[i];
         Mat33 F = Ds * X;
@@ -571,7 +598,7 @@ void ChFEAContainer::Build_b() {
     uint num_rigid_node_contacts = data_manager->num_rigid_node_contacts;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-    real step_size = data_manager->settings.step_size;
+
     if (num_rigid_node_contacts > 0) {
         custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
@@ -583,7 +610,7 @@ void ChFEAContainer::Build_b() {
                 real bi = 0;
                 real depth = data_manager->host_data.dpth_rigid_node[p * max_rigid_neighbors + i];
 
-                bi = std::max(real(1.0) / step_size * depth, -data_manager->fea_container->contact_recovery_speed);
+                bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
                 //
                 data_manager->host_data.b[start_boundary + index + 0] = bi;
                 data_manager->host_data.b[start_boundary + num_rigid_node_contacts + index * 2 + 0] = 0;
@@ -600,10 +627,16 @@ void ChFEAContainer::Build_b() {
             int body_a = body_id.x;
             int node_b = body_id.y;
 
-            Mat33 Arw(quaternion(1, 0, 0, 0) * rot_rigid[body_a]);
+            Mat33 Arw(rot_rigid[body_a]);
             real3 res =
                 Transpose(Arw) * (pos_node[node_b] - TransformLocalToParent(pos_rigid[body_a], rot_rigid[body_a],
                                                                             constraint_position[index]));
+
+            // res =
+            //    Clamp(res / step_size, real3(-rigid_constraint_recovery_speed),
+            //    real3(rigid_constraint_recovery_speed));
+
+            // printf("res: [%f %f %f] \n", res.x, res.y, res.z);
 
             data_manager->host_data.b[start_rigid + index * 3 + 0] = res.x;
             data_manager->host_data.b[start_rigid + index * 3 + 1] = res.y;
@@ -749,16 +782,16 @@ void ChFEAContainer::GenerateSparsity() {
             int2 body_id = constraint_bodies[index];
             int body_a = body_id.x;
             int node_b = body_id.y;
-            //printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 0, body_a * 6, body_offset + node_b * 3);
+            // printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 0, body_a * 6, body_offset + node_b * 3);
 
             AppendRow6(D_T, start_rigid + index * 3 + 0, body_a * 6, 0);
             AppendRow3(D_T, start_rigid + index * 3 + 0, body_offset + node_b * 3, 0);
             D_T.finalize(start_rigid + index * 3 + 0);
-            //printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 1, body_a * 6, body_offset + node_b * 3);
+            // printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 1, body_a * 6, body_offset + node_b * 3);
             AppendRow6(D_T, start_rigid + index * 3 + 1, body_a * 6, 0);
             AppendRow3(D_T, start_rigid + index * 3 + 1, body_offset + node_b * 3, 0);
             D_T.finalize(start_rigid + index * 3 + 1);
-            //printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 2, body_a * 6, body_offset + node_b * 3);
+            // printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 2, body_a * 6, body_offset + node_b * 3);
             AppendRow6(D_T, start_rigid + index * 3 + 2, body_a * 6, 0);
             AppendRow3(D_T, start_rigid + index * 3 + 2, body_offset + node_b * 3, 0);
             D_T.finalize(start_rigid + index * 3 + 2);

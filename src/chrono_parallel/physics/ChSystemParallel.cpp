@@ -259,7 +259,7 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
             positions[i] = real3(node->GetPos().x, node->GetPos().y, node->GetPos().z);
             velocities[i] = real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
             // Offset the element index by the current number of nodes at the start
-            node->SetIndex(i + current_nodes);
+            node->SetIndex(i);
 
             // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x, node->GetPos().y, node->GetPos().z);
         }
@@ -284,11 +284,18 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
 
             if (Determinant(Mat33(c1, c2, c3)) < 0) {
                 Swap(elem.x, elem.y);
+                // printf("swapped!\n");
             }
 
             // elem = Sort(elem);
 
             // printf("%d %d %d %d \n", elem.x, elem.y, elem.z, elem.w);
+            //Offset once we have swapped
+            elem.x += current_nodes;
+            elem.y += current_nodes;
+            elem.z += current_nodes;
+            elem.w += current_nodes;
+
             elements[i] = elem;
         }
     }
