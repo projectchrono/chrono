@@ -24,6 +24,7 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -48,39 +49,6 @@ using namespace chrono::irrlicht;
 using namespace chrono::collision;
 
 using namespace irr;
-
-
-// This function simulates the effect of an external program that 
-// gets a triangle mesh and outputs the forces acting on the nodes.
-// In a real cosimulation scenario, this procedure could even reside
-// on a different computing node and manage inputs/outputs via MPI or such.
-
-void PerformExternalCosimulation(   const std::vector<ChVector<>>& input_vert_pos,
-    const std::vector<ChVector<>>& input_vert_vel,
-    const std::vector<ChVector<int>>& input_triangles,
-    std::vector<ChVector<>>& vert_output_forces,
-    std::vector<int>& vert_output_indexes
-) {
-  vert_output_forces.clear();
-  vert_output_indexes.clear();
-  double ky = 10000; // upward stiffness
-  double ry = 20; // upward damping
-  // simple example: scan through all vertexes in the mesh, see if they sink below zero,
-  // apply a penalty upward spring force if so.
-  for (int iv = 0; iv < input_vert_pos.size(); ++iv) {
-    if (input_vert_pos[iv].y < 0) {
-      double yforce = - ky * input_vert_pos[iv].y - ry * input_vert_vel[iv].y;
-      if (yforce > 0) {
-        vert_output_forces.push_back(ChVector<>(0 ,yforce, 0));
-        vert_output_indexes.push_back(iv);
-      }
-    }
-  }
-  // note that:
-  // - we avoided adding forces to  vert_output_forces  when force was zero.
-  // - vert_output_forces has the same size of vert_output_indexes, maybe smaller than input_vert_pos
-}
-
 
 // Utility to draw some triangles that are affected by cosimulation.
 // Also plot forces as vectors.
@@ -108,29 +76,15 @@ void draw_affected_triangles(ChIrrApp& application, std::vector<ChVector<>>& ver
     }
 }
 
-void takeScreenshot(irr::IrrlichtDevice* device, int frameIndex)
-{
-  irr::video::IVideoDriver* const driver = device->getVideoDriver();
-
-  //get image from the last rendered frame
-  irr::video::IImage* const image = driver->createScreenShot();
-  if (image) //should always be true, but you never know. ;)
-  {
-    //construct a filename, consisting of local time and file extension
-    irr::c8 filename[64];
-    snprintf(filename, 64, "../screenshots/pic_%d.png", frameIndex);
-
-    //write screenshot to file
-    if (!driver->writeImageToFile(image, filename))
-      device->getLogger()->log(L"Failed to take screenshot.", irr::ELL_WARNING);
-
-    //Don't forget to drop image since we don't need it anymore.
-    image->drop();
-  }
-}
-
 int main(int argc, char* argv[]) {
-  bool saveData = false;
+  double time_step = 0.005;
+  int max_iteration = 30;
+  double tolerance = 1e-3;
+  double time_end = 2.0;
+
+  // Frequency for visualization output
+  bool saveData = true;
+  int out_fps = 60;
 
   // Global parameter for tire:
   double tire_rad = 0.8;
@@ -139,7 +93,6 @@ int main(int argc, char* argv[]) {
   ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y)); // create rotated 180� on y
 
   double tire_w0 = tire_vel_z0/tire_rad;
-
 
   // Create a Chrono::Engine physical system
   ChSystemDEM my_system;
@@ -156,8 +109,76 @@ int main(int argc, char* argv[]) {
   application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
       video::SColorf(0.8, 0.8, 1));
 #endif
-//
-// CREATE A RIGID BODY WITH A MESH
+  //
+  // CREATE A FINITE ELEMENT MESH
+  //
+
+  // Create the surface material, containing information
+  // about friction etc.
+
+  ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
+  mysurfmaterial->SetYoungModulus(10e4);
+  mysurfmaterial->SetFriction(0.3f);
+  mysurfmaterial->SetRestitution(0.2f);
+  mysurfmaterial->SetAdhesion(0);
+
+  // Create a mesh, that is a container for groups
+  // of FEA elements and their referenced nodes.
+  ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+  my_system.Add(my_mesh);
+
+  // Create a material, that must be assigned to each solid element in the mesh,
+  // and set its parameters
+  ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+  mmaterial->Set_E(0.003e9);  // rubber 0.01e9, steel 200e9
+  mmaterial->Set_v(0.4);
+  mmaterial->Set_RayleighDampingK(0.004);
+  mmaterial->Set_density(1000);
+
+  // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
+  // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
+  // This is much easier than creating all nodes and elements via C++ programming.
+  // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
+  std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+  try {
+      ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
+                                       node_sets, tire_center, tire_alignment);
+  } catch (ChException myerr) {
+      GetLog() << myerr.what();
+      return 0;
+  }
+
+  // Create the contact surface(s).
+  // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh:
+  ChSharedPtr<ChContactSurfaceMesh> mcontactsurf (new ChContactSurfaceMesh);
+  my_mesh->AddContactSurface(mcontactsurf);
+  mcontactsurf->AddFacesFromBoundary();
+  mcontactsurf->SetMaterialSurface(mysurfmaterial); // by the way it is not needed because contacts will be emulated by cosimulation
+
+  /// Create a mesh load for cosimulation, acting on the contact surface above
+  /// (forces on nodes will be computed by an external procedure)
+  ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+  my_system.Add(mloadcontainer);
+  ChSharedPtr<ChLoadContactSurfaceMesh> mrigidmeshload (new ChLoadContactSurfaceMesh(mcontactsurf));
+  mloadcontainer->Add(mrigidmeshload);
+
+  // ==Asset== attach a visualization of the FEM mesh.
+  // This will automatically update a triangle mesh (a ChTriangleMeshShape
+  // asset that is internally managed) by setting  proper
+  // coordinates and vertex colours as in the FEM elements.
+  ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+  mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+  mvisualizemesh->SetColorscaleMinMax(0.0, 10);
+  mvisualizemesh->SetSmoothFaces(true);
+  my_mesh->AddAsset(mvisualizemesh);
+
+  //
+  // END CREATE A FINITE ELEMENT MESH
+  //
+
+  /*
+  //
+  // CREATE A RIGID BODY WITH A MESH
   //
 
   // Create also a rigid body with a rigid mesh that will be used for the cosimulation,
@@ -189,7 +210,11 @@ int main(int argc, char* argv[]) {
   ChSharedPtr<ChLoadBodyMesh> mrigidmeshload(new ChLoadBodyMesh(mrigidbody, mrigidmesh->GetMesh()));
   mloadcontainer->Add(mrigidmeshload);
 
-
+  //
+  // END CREATE A RIGID BODY WITH A MESH
+  //
+   *
+  */
 
 #ifndef CHRONO_OPENGL
   // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
@@ -205,13 +230,9 @@ int main(int argc, char* argv[]) {
   // ==IMPORTANT!== Mark completion of system construction
   my_system.SetupInitial();
 
-
-
   //
   // THE SOFT-REAL-TIME CYCLE
   //
-
-
 
   // Change solver to embedded MINRES
   // NOTE! it is strongly advised that you compile the optional MKL module
@@ -221,25 +242,20 @@ int main(int argc, char* argv[]) {
   my_system.SetIterLCPmaxItersSpeed(40);
   my_system.SetTolForce(1e-10);
 
-
   // Change type of integrator:
   my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
-  double time_step = 0.005;
 #ifndef CHRONO_OPENGL
   application.SetTimestep(time_step);
 #endif
 
   // BEGIN PARALLEL SYSTEM INITIALIZATION
-
   ChSystemParallelDVI* systemG = new ChSystemParallelDVI();
 
   // Set gravitational acceleration
   systemG->Set_G_acc(my_system.Get_G_acc());
 
   // Set solver parameters
-  int max_iteration = 30;
-  double tolerance = 1e-3;
   systemG->GetSettings()->solver.solver_mode = SLIDING;
   systemG->GetSettings()->solver.max_iteration_normal = max_iteration / 3;
   systemG->GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
@@ -335,6 +351,7 @@ int main(int argc, char* argv[]) {
   // END PARALLEL SYSTEM INITIALIZATION
 
   // Begin time loop
+  int out_steps = (int) std::ceil((1.0 / time_step) / out_fps);
   int timeIndex = 0;
   double time = 0;
   int frameIndex = 0;
@@ -343,7 +360,7 @@ int main(int argc, char* argv[]) {
 #else
     while (application.GetDevice()->run()) {
 #endif
-      //while (time<3.0) {
+      //while (time<time_end) {
 
       // STEP 1: ADVANCE DYNAMICS OF GRANULAR SYSTEM
 #ifdef CHRONO_OPENGL
@@ -355,7 +372,7 @@ int main(int argc, char* argv[]) {
 #else
       systemG->DoStepDynamics(time_step);
 
-      if(timeIndex%2==0 && saveData) {
+      if(timeIndex%out_steps==0 && saveData) {
         char filename[100];
         sprintf(filename, "../POVRAY/data_%d.dat", frameIndex);
 
@@ -404,8 +421,8 @@ int main(int argc, char* argv[]) {
 
       application.DoStep();
 
-      if(timeIndex%2==0 && saveData) {
-        takeScreenshot(application.GetDevice(),frameIndex);
+      if(timeIndex%out_steps==0 && saveData) {
+        //takeScreenshot(application.GetDevice(),frameIndex);
         frameIndex++;
       }
 #endif

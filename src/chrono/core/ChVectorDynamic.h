@@ -98,6 +98,9 @@ class ChVectorDynamic : public ChMatrix<Real> {
     /// Delete allocated heap mem.
     virtual ~ChVectorDynamic() { delete[] this->address; }
 
+    /// Return the length of the vector
+    int GetLength() const { return this->rows; }
+    
     //
     // OPERATORS
     //

@@ -544,6 +544,8 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     ChVectorDynamic<> Rold;
     ChVectorDynamic<> Qc;
 
+    bool step_control;            // step size control enabled?
+
     int maxiters_success;         // maximum number of NR iterations to declare a step successful
     int req_successful_steps;     // required number of successive successful steps for a stepsize increase
     double step_increase_factor;  // factor used in increasing stepsize (>1)
@@ -560,6 +562,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
           ChImplicitIterativeTimestepper(),
           mode(ACCELERATION),
           scaling(false),
+          step_control(true),
           maxiters_success(3),
           req_successful_steps(5),
           step_increase_factor(2),
@@ -592,6 +595,9 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
 
     /// Turn scaling on/off.
     void SetScaling(bool mscaling) { scaling = mscaling; }
+
+    /// Turn step size control on/off.
+    void SetStepControl(bool val) { step_control = val; }
 
     /// Set the minimum step size.
     /// An exception is thrown if the internal step size decreases below this limit.
