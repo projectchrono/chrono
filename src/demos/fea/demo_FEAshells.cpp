@@ -199,7 +199,7 @@ application.SetPaused(true);
 	{
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(2);
-		mystepper->SetTolerance(1e-6);
+		mystepper->SetAbsTolerances(1e-6);
 	}
 	 
 

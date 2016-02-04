@@ -339,7 +339,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt  ///< timestep to advan
         if (verbose)
             GetLog() << " Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";
 
-        if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+        if ((R.NormInf() < abstolS) && (Qc.NormInf() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(
@@ -599,7 +599,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt  ///< timestep to advance
         if (verbose)
             GetLog() << " Trapezoidal iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 
-        if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+        if ((R.NormInf() < abstolS) && (Qc.NormInf() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(
@@ -1040,11 +1040,11 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
             if (verbose) {
                 GetLog() << " HHT iteration=" << num_it << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
                          << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.GetLength()
-                         << "  M = " << Qc.GetLength() << "  tol=" << GetTolerance() << "\n";
+                         << "  M = " << Qc.GetLength() << "\n";
             }
 
-            if ((R.NormTwo() < GetTolerance() && Qc.NormTwo() < GetTolerance()) ||
-                (Da.NormTwo() < GetTolerance() && Dl.NormTwo() < GetTolerance()))
+            if ((R.NormTwo() < abstolS && Qc.NormTwo() < abstolL) ||
+                (Da.NormTwo() < abstolS && Dl.NormTwo() < abstolL))
                 converged = true;
 
             break;
@@ -1072,11 +1072,10 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
                 Err_Dl = (Dl.NormTwo() / scaling_factor) / tmpL;  // relative tolerance test
 
             if (verbose) {
-                GetLog() << " HHT iteration=" << num_it << "  |Err_Dx|=" << Err_Dx << "  |Err_Dl|=" << Err_Dl
-                         << "  tol=" << GetTolerance() << "\n";
+                GetLog() << " HHT iteration=" << num_it << "  |Err_Dx|=" << Err_Dx << "  |Err_Dl|=" << Err_Dl << "\n";
             }
 
-            if (Err_Dx < GetTolerance() && Err_Dl < GetTolerance())
+            if (Err_Dx < abstolS && Err_Dl < abstolL)
                 converged = true;
 
             break;
@@ -1142,7 +1141,7 @@ void ChTimestepperNewmark::Advance(const double dt  ///< timestep to advance
         if (verbose)
             GetLog() << " Newmark iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 
-        if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+        if ((R.NormInf() < abstolS) && (Qc.NormInf() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(

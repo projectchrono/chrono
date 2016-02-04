@@ -199,21 +199,41 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
 
   protected:
     int maxiters;
-    double tolerance;
+    double reltol;   // relative tolerance
+    double abstolS;  // absolute tolerance (states)
+    double abstolL;  // absolute tolerance (Lagrange multipliers)
 
   public:
     /// Constructors
-    ChImplicitIterativeTimestepper() : maxiters(6), tolerance(1e-10) {}
+    ChImplicitIterativeTimestepper() : maxiters(6), reltol(1e-3), abstolS(1e-10), abstolL(1e-10) {}
 
     /// Set the max number of iterations using the Newton Raphson procedure
     void SetMaxiters(int miters) { maxiters = miters; }
     /// Get the max number of iterations using the Newton Raphson procedure
     double GetMaxiters() { return maxiters; }
 
-    /// Set the tolerance for terminating the Newton Raphson procedure
-    void SetTolerance(double mtol) { tolerance = mtol; }
-    /// Get the tolerance for terminating the Newton Raphson procedure
-    double GetTolerance() { return tolerance; }
+    /// Set the relative tolerance.
+    /// This tolerance is optionally used by derived classes in the Newton-Raphson
+    /// convergence test.
+    void SetRelTolerance(double rel_tol) { reltol = rel_tol; }
+
+    /// Set the absolute tolerances.
+    /// These tolerances are optionally used by derived classes in the Newton-Raphson
+    /// convergence test.  This version sets separate absolute tolerances for states
+    /// and Lagrange multipliers.
+    void SetAbsTolerances(double abs_tolS, double abs_tolL) {
+        abstolS = abs_tolS;
+        abstolL = abs_tolL;
+    }
+
+    /// Set the absolute tolerances.
+    /// These tolerances are optionally used by derived classes in the Newton-Raphson
+    /// convergence test.  This version sets equal absolute tolerances for states and
+    /// Lagrange multipliers.
+    void SetAbsTolerances(double abs_tol) {
+        abstolS = abs_tol;
+        abstolL = abs_tol;
+    }
 
     // SERIALIZATION
 
@@ -223,7 +243,9 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
         marchive.VersionWrite(1);
         // serialize all member data:
         marchive << CHNVP(maxiters);
-        marchive << CHNVP(tolerance);
+        marchive << CHNVP(reltol);
+        marchive << CHNVP(abstolS);
+        marchive << CHNVP(abstolL);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -232,7 +254,9 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
         int version = marchive.VersionRead();
         // stream in all member data:
         marchive >> CHNVP(maxiters);
-        marchive >> CHNVP(tolerance);
+        marchive >> CHNVP(reltol);
+        marchive >> CHNVP(abstolS);
+        marchive >> CHNVP(abstolL);
     }
 };
 
@@ -553,7 +577,9 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double h_min;                 // minimum allowable stepsize
 
     double h;                  // internal stepsize
-    int num_successful_steps;  // number of successful steps 
+    int num_successful_steps;  // number of successful steps
+
+    bool test_residual;          // if true, include residual in convergence test
 
   public:
     /// Constructors (default empty)

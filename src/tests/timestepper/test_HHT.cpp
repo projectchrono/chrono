@@ -290,7 +290,7 @@ void Oscillator() {
     // Create the HHT timestepper
     ChTimestepperHHT mystepper(&mintegrable);
     mystepper.SetAlpha(0);
-    mystepper.SetTolerance(1e-10);
+    mystepper.SetAbsTolerances(1e-10);
     mystepper.SetMaxiters(6);
     mystepper.SetMaxItersSuccess(3);
     mystepper.SetRequiredSuccessfulSteps(5);
@@ -323,7 +323,7 @@ void Pendulum() {
     // Create the HHT timestepper
     ChTimestepperHHT mystepper(&mintegrable);
     mystepper.SetAlpha(-0.2);
-    mystepper.SetTolerance(1e-6);
+    mystepper.SetAbsTolerances(1e-6);
     mystepper.SetMaxiters(10);
     mystepper.SetMaxItersSuccess(3);
     mystepper.SetRequiredSuccessfulSteps(5);
