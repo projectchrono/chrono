@@ -157,6 +157,9 @@ void ChFluidContainer::Setup(int start_constraint) {
 }
 
 void ChFluidContainer::Initialize() {
+    if (initialize_mass == false) {
+        return;
+    }
     density.resize(num_fluid_bodies);
 
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
