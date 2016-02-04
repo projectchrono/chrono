@@ -62,8 +62,8 @@ void ChFEAContainer::AddConstraint(const uint node, ChSharedBodyPtr& body) {
 
     real3 pos_rigid = real3(body->GetPos().x, body->GetPos().y, body->GetPos().z);
     quaternion rot_rigid = quaternion(body->GetRot().e0, body->GetRot().e1, body->GetRot().e2, body->GetRot().e3);
-//    printf("body ID: %d %d [%f %f %f] [%f %f %f]\n", body_b, body_a, pos_rigid.x, pos_rigid.y, pos_rigid.z,
-//           pos_node_fea[body_b].x, pos_node_fea[body_b].y, pos_node_fea[body_b].z);
+    //    printf("body ID: %d %d [%f %f %f] [%f %f %f]\n", body_b, body_a, pos_rigid.x, pos_rigid.y, pos_rigid.z,
+    //           pos_node_fea[body_b].x, pos_node_fea[body_b].y, pos_node_fea[body_b].z);
     constraint_position.push_back(TransformParentToLocal(pos_rigid, rot_rigid, pos_node_fea[body_b]));
     constraint_bodies.push_back(_make_int2(body_a, body_b));
 
@@ -213,7 +213,7 @@ void ChFEAContainer::Initialize() {
         mass_node[tet_ind.z] += node_mass;
         mass_node[tet_ind.w] += node_mass;
 
-         //printf("Vol: %f Mass: %f [%d %d %d %d]\n", vol, tet_mass, tet_ind.x,tet_ind.y,tet_ind.z,tet_ind.w);
+        // printf("Vol: %f Mass: %f [%d %d %d %d]\n", vol, tet_mass, tet_ind.x,tet_ind.y,tet_ind.z,tet_ind.w);
 
         //        real3 y[4];
         //        y[1] = X0[i].row(0);
@@ -796,6 +796,19 @@ void ChFEAContainer::GenerateSparsity() {
             AppendRow3(D_T, start_rigid + index * 3 + 2, body_offset + node_b * 3, 0);
             D_T.finalize(start_rigid + index * 3 + 2);
         }
+    }
+}
+
+void ChFEAContainer::PreSolve() {
+    if (gamma_old.size() > 0 && gamma_old.size() == data_manager->num_fea_tets * (6 + 1)) {
+        blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) =
+            gamma_old * .9;
+    }
+}
+void ChFEAContainer::PostSolve() {
+    if (data_manager->num_fea_tets * (6 + 1) > 0) {
+        gamma_old.resize(data_manager->num_fea_tets * (6 + 1));
+        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, num_tet_constraints);
     }
 }
 }  // END_OF_NAMESPACE____

@@ -96,6 +96,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
 
     // Store boundary forces here for rigid bodies
     DynamicVector<real> contact_forces;
+    DynamicVector<real> gamma_old;
 
     short2 family;
 
@@ -235,6 +236,9 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     void Build_b();
     void Build_E();
 
+    void PreSolve();
+    void PostSolve();
+
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     custom_vector<Mat33> X0;  // Inverse of intial shape matrix
@@ -247,8 +251,6 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint start_tet;
     uint start_boundary;
     uint start_rigid;
-
-
 
     // Id of the rigid body and node number
     custom_vector<int2> constraint_bodies;
