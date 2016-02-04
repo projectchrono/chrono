@@ -37,6 +37,8 @@
 //  ////
 // ====================================================================================
 
+#include <cmath>
+
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
@@ -396,7 +398,7 @@ int main(int argc, char* argv[]) {
 
         StoreData(my_system, csv, it, m_data, dot, tip, NodeFirst->pos, C12, C23);
         for (unsigned int iterind = 1; iterind < 16; iterind++) {
-            if (abs(m_data[iterind][it]) > precision) {
+            if (std::abs(m_data[iterind][it]) > precision) {
                 std::cout << "Unit test check failed \n";
                 return 1;
             }

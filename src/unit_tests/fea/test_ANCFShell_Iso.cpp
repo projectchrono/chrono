@@ -26,6 +26,9 @@
 // Gravity must be disabled; only a constant load of -50 N at a corner is used. Only
 // 10 time steps are checked by default. User can increase this value up to 4000.
 // =============================================================================
+
+#include <cmath>
+
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
@@ -215,7 +218,7 @@ int main(int argc, char* argv[]) {
         my_system.DoStepDynamics(time_step);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking tip Z displacement
-        double AbsVal = abs(nodetip->pos.z - FileInputMat[it][1]);
+        double AbsVal = std::abs(nodetip->pos.z - FileInputMat[it][1]);
         if (AbsVal > precision) {
             std::cout << "Unit test check failed \n";
             return 1;
