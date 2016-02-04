@@ -19,6 +19,8 @@
 #ifndef CH_UTILS_FEA
 #define CH_UTILS_FEA
 
+#include <cmath>
+
 #include "chrono/core/ChMatrixNM.h"
 
 namespace chrono {
@@ -41,8 +43,8 @@ bool LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be fa
     for (int I = 0; I < N; I++) {
         AAMAX = 0.0;
         for (int J = 0; J < N; J++) {
-            if ((abs(A(I, J))) > AAMAX) {
-                AAMAX = abs(A(I, J));
+            if ((std::abs(A(I, J))) > AAMAX) {
+                AAMAX = std::abs(A(I, J));
             }
         }
         if (AAMAX == 0.0) {
@@ -69,7 +71,7 @@ bool LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be fa
                 SUM -= A(I, K) * A(K, J);
             }
             A(I, J) = SUM;
-            if (DUM = VV(I) * abs(SUM) >= AAMAX) {
+            if (DUM = VV(I) * std::abs(SUM) >= AAMAX) {
                 IMAX = I;
                 AAMAX = DUM;
             }
