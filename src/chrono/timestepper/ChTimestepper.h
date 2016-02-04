@@ -205,7 +205,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
 
   public:
     /// Constructors
-    ChImplicitIterativeTimestepper() : maxiters(6), reltol(1e-3), abstolS(1e-10), abstolL(1e-10) {}
+    ChImplicitIterativeTimestepper() : maxiters(6), reltol(1e-4), abstolS(1e-10), abstolL(1e-10) {}
 
     /// Set the max number of iterations using the Newton Raphson procedure
     void SetMaxiters(int miters) { maxiters = miters; }
@@ -579,7 +579,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double h;                  // internal stepsize
     int num_successful_steps;  // number of successful steps
 
-    bool test_residual;      // if true, include residual in convergence test
     ChVectorDynamic<> ewtS;  // vector of error weights (states)
     ChVectorDynamic<> ewtL;  // vector of error weights (Lagrange multipliers)
 

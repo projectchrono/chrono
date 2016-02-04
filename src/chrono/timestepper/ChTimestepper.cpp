@@ -1034,31 +1034,23 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
 
     switch (mode) {
         case ACCELERATION: {
-            // Use an absolute tolerance test.
-            // Declare convergence when either the residual or the update is below tolerance:
-            //    |R| < atol  or  |D| < atol
+            // Declare convergence when either the residual is below the absolute tolerance or
+            // the WRMS update norm is less than 1 (relative + absolute tolerance test)
+            //    |R|_2 < atol
+            // or |D|_WRMS < 1
+            // Both states and Lagrange multipliers must converge.
             double R_nrm = R.NormTwo();
             double Qc_nrm = Qc.NormTwo();
-            double Da_nrm = Da.NormTwo();
-            double Dl_nrm = Dl.NormTwo();
-
-
-            double nrm_Da = Da.NormWRMS(ewtS);
-            double nrm_Dl = Dl.NormWRMS(ewtL);
-
-            double max_a = A.NormInf();
-            double max_l = L.NormInf();
+            double Da_nrm = Da.NormWRMS(ewtS);
+            double Dl_nrm = Dl.NormWRMS(ewtL);
 
             if (verbose) {
                 GetLog() << " HHT iteration=" << num_it << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
                          << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.GetLength()
                          << "  M = " << Qc.GetLength() << "\n";
-                GetLog() << "                   " << " |Da| = " << nrm_Da << " |Dl| = " << nrm_Dl << "\n";
-                GetLog() << "                   " << " |A|  = " << max_a << " |L} =  " << max_l << "\n";
             }
 
-            if ((R.NormTwo() < abstolS && Qc.NormTwo() < abstolL) ||
-                (Da.NormTwo() < abstolS && Dl.NormTwo() < abstolL))
+            if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Da_nrm < 1 && Dl_nrm < 1))
                 converged = true;
 
             break;
