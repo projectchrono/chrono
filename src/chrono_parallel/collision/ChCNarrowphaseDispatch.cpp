@@ -761,6 +761,7 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
     neighbor_rigid_node.resize(num_nodes * max_rigid_neighbors);
     contact_counts.resize(num_nodes);
 
+    const custom_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
     Thrust_Fill(contact_counts, 0);
     for (int index = 0; index < n_number_of_bins_active; index++) {
         uint start = n_bin_start_index[index];
@@ -790,6 +791,9 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
                     real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
                     uint bodyA = data_manager->host_data.id_rigid[shape_id_a];
                     if (!overlap(Amin, Amax, Bmin, Bmax)) {
+                        continue;
+                    }
+                    if (!collide(fam_data[shape_id_a], data_manager->fea_container->family)) {
                         continue;
                     }
 
@@ -826,24 +830,30 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
     LOG(TRACE) << "stop DispatchRigidNode: " << data_manager->num_rigid_node_contacts;
 }
 void ChCNarrowphaseDispatch::DispatchMPM() {
-//    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
-//    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
-//
-//    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-//    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-//
-//    bbox res(pos_marker[0], pos_marker[0]);
-//    bbox_transformation unary_op;
-//    bbox_reduction binary_op;
-//    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
-//
-//    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + data_manager->mpm_container->kernel_radius * 12)),
-//                               (Ceil(res.second.y), (res.second.y + data_manager->mpm_container->kernel_radius * 12)),
-//                               (Ceil(res.second.z), (res.second.z + data_manager->mpm_container->kernel_radius * 12)));
-//
-//    min_bounding_point = real3((Floor(res.first.x), (res.first.x - data_manager->mpm_container->kernel_radius * 12)),
-//                               (Floor(res.first.y), (res.first.y - data_manager->mpm_container->kernel_radius * 12)),
-//                               (Floor(res.first.z), (res.first.z - data_manager->mpm_container->kernel_radius * 12)));
+    //    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    //    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
+    //
+    //    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    //    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
+    //
+    //    bbox res(pos_marker[0], pos_marker[0]);
+    //    bbox_transformation unary_op;
+    //    bbox_reduction binary_op;
+    //    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
+    //
+    //    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + data_manager->mpm_container->kernel_radius *
+    //    12)),
+    //                               (Ceil(res.second.y), (res.second.y + data_manager->mpm_container->kernel_radius *
+    //                               12)),
+    //                               (Ceil(res.second.z), (res.second.z + data_manager->mpm_container->kernel_radius *
+    //                               12)));
+    //
+    //    min_bounding_point = real3((Floor(res.first.x), (res.first.x - data_manager->mpm_container->kernel_radius *
+    //    12)),
+    //                               (Floor(res.first.y), (res.first.y - data_manager->mpm_container->kernel_radius *
+    //                               12)),
+    //                               (Floor(res.first.z), (res.first.z - data_manager->mpm_container->kernel_radius *
+    //                               12)));
 }
 
 }  // end namespace collision

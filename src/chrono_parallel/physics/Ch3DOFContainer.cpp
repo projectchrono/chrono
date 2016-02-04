@@ -82,6 +82,11 @@ void Ch3DOFContainer::Setup(int start_constraint) {
         num_mpm_nodes = data_manager->num_mpm_nodes;
     }
 }
+
+void Ch3DOFContainer::SetFamily(short mfamily, short mask_no_collision) {
+    family.x = (1 << mfamily);
+    family.y &= ~(1 << mask_no_collision);
+}
 }  // END_OF_NAMESPACE____
 
 /////////////////////

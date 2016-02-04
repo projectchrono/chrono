@@ -64,6 +64,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     // After Solve
     virtual void UpdatePosition(double ChTime) {}
     virtual void PostSolve() {}
+    void SetFamily(short family, short mask_no_collision);
 
     // Helper Functions
     virtual int GetNumConstraints() { return 0; }
@@ -95,6 +96,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
 
     // Store boundary forces here for rigid bodies
     DynamicVector<real> contact_forces;
+
+    short2 family;
 
   protected:
     ChParallelDataManager* data_manager;
@@ -231,6 +234,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     void Build_D();
     void Build_b();
     void Build_E();
+
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
     custom_vector<Mat33> X0;  // Inverse of intial shape matrix
@@ -244,9 +248,11 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint start_boundary;
     uint start_rigid;
 
+
+
     // Id of the rigid body and node number
     custom_vector<int2> constraint_bodies;
-
+    real rigid_constraint_recovery_speed;
     // The point where the constraint is enforced in the local coords of the rigid body
     custom_vector<real3> constraint_position;
     custom_vector<quaternion> constraint_rotation;
