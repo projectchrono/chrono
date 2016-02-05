@@ -144,10 +144,10 @@ public:
 	}
 
 
-	btDbvt*							getDynamicAabbTree()
-	{
-		return m_dynamicAabbTree;
-	}
+	btDbvt*	getDynamicAabbTree() const  //***ALEX*** added const
+ 	{
+ 		return m_dynamicAabbTree;
+ 	}
 
 	void createAabbTreeFromChildren();
 

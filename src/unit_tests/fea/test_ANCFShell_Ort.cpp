@@ -33,6 +33,8 @@
 // cylindrical shell tip against Ansys. See Chrono's documentation for more details.
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/core/ChMathematics.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -229,7 +231,7 @@ int main(int argc, char* argv[]) {
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Checking tip Z displacement
-        double AbsVal = abs(nodetip->pos.z - FileInputMat[it][1]);
+        double AbsVal = std::abs(nodetip->pos.z - FileInputMat[it][1]);
         if (AbsVal > precision) {
             std::cout << "Unit test check failed \n";
             system("pause");
