@@ -931,14 +931,14 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
             if (step_control)
                 Anew = A;
             Vnew = V + Anew * h;
-            Xnew = X + Vnew * h + Anew * h * h;
+            Xnew = X + Vnew * h + Anew * (h * h);
             integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
             integrable->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
             CalcErrorWeights(A, reltol, abstolS, ewtS);
             break;
         case POSITION:
             Xnew = X;
-            Vnew = V * (-(gamma / beta - 1.0)) - A * h * (gamma / (2.0 * beta) - 1.0);
+            Vnew = V * (-(gamma / beta - 1.0)) - A * (h * (gamma / (2.0 * beta) - 1.0));
             Anew = V * (-1.0 / (beta * h)) - A * (1.0 / (2.0 * beta) - 1.0);
             integrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * f_old
             integrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * Cq'*l_old
@@ -1019,7 +1019,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
             Lnew += Dl * (1.0 / scaling_factor);  // not -= Dl because we assume StateSolveCorrection flips sign of Dl
             Dx += Da;
             Xnew = (X + Dx);
-            Vnew = V * (-(gamma / beta - 1.0)) - A * h * (gamma / (2.0 * beta) - 1.0);
+            Vnew = V * (-(gamma / beta - 1.0)) - A * (h * (gamma / (2.0 * beta) - 1.0));
             Vnew += Dx * (gamma / (beta * h));
             Anew = -V * (1.0 / (beta * h)) - A * (1.0 / (2.0 * beta) - 1.0);
             Anew += Dx * (1.0 / (beta * h * h));
