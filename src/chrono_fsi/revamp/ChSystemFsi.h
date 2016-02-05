@@ -27,6 +27,7 @@ public:
 	~ChSystemFsi();
 
 	DoStepDynamics_FSI();
+	DoStepDynamics_ChronoRK2(); 
 	CopyDeviceDataToHalfStep();
 
 private:
@@ -34,8 +35,8 @@ private:
 		double mTime, double time_hold_vehicle, bool haveVehicle);
 
 	ChFsiDataManager* fsiData;
-	ChFluidDynamics* ChFluidDynamics;
-	ChFsiInterface* ChFsiInterface;
+	ChFluidDynamics* fluidDynamics;
+	ChFsiInterface* fsiInterface;
 	ChBce* bceWorker;
 
 	chrono::ChSystemParallelDVI * mphysicalSystem;

@@ -22,12 +22,12 @@ namespace fsi {
 class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 	public:
 		ChFsiInterface(
-			FsiBodiesDataH * othere_fsiBodiesH,
-			ChronoBodiesDataH * othere_chronoRigidBackup,
-			chrono::ChSystemParallelDVI * othere_mphysicalSystem,
-			std::vector<chrono::ChSharedPtr<chrono::ChBody> > * othere_fsiBodeisIndex,
-			thrust::device_vector<Real3> * othere_rigid_FSI_ForcesD,
-			thrust::device_vector<Real3> * othere_rigid_FSI_TorquesD);
+			FsiBodiesDataH * other_fsiBodiesH,
+			ChronoBodiesDataH * other_chronoRigidBackup,
+			chrono::ChSystemParallelDVI * other_mphysicalSystem,
+			std::vector<chrono::ChSharedPtr<chrono::ChBody> > * other_fsiBodeisPtr,
+			thrust::device_vector<Real3> * other_rigid_FSI_ForcesD,
+			thrust::device_vector<Real3> * other_rigid_FSI_TorquesD);
 		~ChFsiInterface(); // TODO
 
 		void Add_Rigid_ForceTorques_To_ChSystem();
@@ -38,7 +38,7 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 		FsiBodiesDataH * fsiBodiesH;
 		ChronoBodiesDataH * chronoRigidBackup;
 		chrono::ChSystemParallelDVI * mphysicalSystem;
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisIndex;
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr;
 		thrust::device_vector<Real3> * rigid_FSI_ForcesD;
 		thrust::device_vector<Real3> * rigid_FSI_TorquesD;
 };

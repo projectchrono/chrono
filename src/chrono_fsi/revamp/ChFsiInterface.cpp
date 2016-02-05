@@ -17,26 +17,26 @@
 
 //------------------------------------------------------------------------------------
 ChFsiInterface::ChFsiInterface(
-		FsiBodiesDataH * othere_fsiBodiesH,
-		ChronoBodiesDataH * othere_chronoRigidBackup,
-		chrono::ChSystemParallelDVI * othere_mphysicalSystem,
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * othere_fsiBodeisIndex,
-		thrust::device_vector<Real3> * othere_rigid_FSI_ForcesD,
-		thrust::device_vector<Real3> * othere_rigid_FSI_TorquesD) :
-fsiBodiesH(othere_fsiBodiesH),
-chronoRigidBackup(othere_chronoRigidBackup),
-mphysicalSystem(othere_mphysicalSystem),
-fsiBodeisIndex(othere_fsiBodeisIndex),
-rigid_FSI_ForcesD(othere_rigid_FSI_ForcesD),
-rigid_FSI_TorquesD(othere_rigid_FSI_TorquesD)
+		FsiBodiesDataH * other_fsiBodiesH,
+		ChronoBodiesDataH * other_chronoRigidBackup,
+		chrono::ChSystemParallelDVI * other_mphysicalSystem,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * other_fsiBodeisPtr,
+		thrust::device_vector<Real3> * other_rigid_FSI_ForcesD,
+		thrust::device_vector<Real3> * other_rigid_FSI_TorquesD) :
+fsiBodiesH(other_fsiBodiesH),
+chronoRigidBackup(other_chronoRigidBackup),
+mphysicalSystem(other_mphysicalSystem),
+fsiBodeisPtr(other_fsiBodeisPtr),
+rigid_FSI_ForcesD(other_rigid_FSI_ForcesD),
+rigid_FSI_TorquesD(other_rigid_FSI_TorquesD)
 {}
 //------------------------------------------------------------------------------------
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
-	int numRigids = fsiBodeisIndex->size();
+	int numRigids = fsiBodeisPtr->size();
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numRigids; i++) {
-		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisIndex)[i];
+		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisPtr)[i];
 
 //		// --------------------------------
 //		// Add forces to bodies: Version 1
@@ -140,14 +140,14 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
 //------------------------------------------------------------------------------------
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsiBodiesD) {
-	int num_fsiBodies_Rigids = fsiBodeisIndex->size();
+	int num_fsiBodies_Rigids = fsiBodeisPtr->size();
 	if (posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids
 			|| posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
 		throw std::runtime_error ("number of fsi bodies that are tracked does not match the array size !\n");
 	}
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < num_fsiBodies_Rigids; i++) {
-		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisIndex)[i];
+		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisPtr)[i];
 		fsiBodiesH->posRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos());
 		fsiBodiesH->velMassRigid_fsiBodies_H[i] = ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
 		fsiBodiesH->accRigid_fsiBodies_H[i] = ConvertChVectorToR3(bodyPtr->GetPos_dtdt());

@@ -16,16 +16,18 @@
 // =============================================================================
 
 ChSystemFsi::ChSystemFsi() {
-
 	ChFsiDataManager* fsiData = new ChFsiDataManager();
-	ChFluidDynamics* ChFluidDynamics;
-	ChFsiInterface* ChFsiInterface;
-	ChBce* bceWorker;
-
+	paramsH = new SimParams;
+	numObjects = new NumberOfObjects;
+	fluidDynamics = new ChFluidDynamics(fsiData, paramsH, numObjects);
+	fsiInterface = new ChFsiInterface(fsiData->fsiBodiesH, fsiData->chronoRigidBackup,
+		mphysicalSystem, fsiData->fsiGeneralData.fsiBodeisPtr,
+		fsiData->fsiGeneralData.rigid_FSI_ForcesD,
+		fsiData->fsiGeneralData.rigid_FSI_TorquesD);
+	bceWorker = new ChBce(fsiData->fsiGeneralData, paramsH, numObjects);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::CopyDeviceDataToHalfStep(){
-	
+void ChSystemFsi::CopyDeviceDataToHalfStep() {	
 	thrust::copy(fsiData->sphMarkersD1.posRadD.begin(), fsiData->sphMarkersD1.posRadD.end(), fsiData->sphMarkersD2.posRadD.begin());
 	thrust::copy(fsiData->sphMarkersD1.velMasD.begin(), fsiData->sphMarkersD1.velMasD.end(), fsiData->sphMarkersD2.velMasD.begin());
 	thrust::copy(fsiData->sphMarkersD1.rhoPresMuD.begin(), fsiData->sphMarkersD1.rhoPresMuD.end(), fsiData->sphMarkersD2.rhoPresMuD.begin());
@@ -112,4 +114,19 @@ void ChSystemFsi::DoStepDynamics_FSI(){
 				numObjects.numAllMarkers, paramsH.gridSize);
 	}
 
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::DoStepDynamics_ChronoRK2() {
+	ChFsiInterface->Copy_ChSystem_to_External();
+	mTime += 0.5 * paramsH.dT;
+
+	DoStepChronoSystem(mphysicalSystem, mVehicle, 0.5 * paramsH.dT, mTime,
+				time_hold_vehicle, haveVehicle); // Keep only this if you are just interested in the rigid sys
+	mTime -= 0.5 * paramsH.dT;
+	ChFsiInterface->Copy_External_To_ChSystem();
+	mTime += paramsH.dT;
+
+	DoStepChronoSystem(mphysicalSystem, mVehicle, 1.0 * paramsH.dT, mTime,
+			time_hold_vehicle, haveVehicle);
 }
