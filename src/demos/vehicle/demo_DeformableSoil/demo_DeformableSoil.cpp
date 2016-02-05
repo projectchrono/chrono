@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     // Global parameter for tire:
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
-    ChVector<> tire_center(0, 0.02+tire_rad, 0.5);
+    ChVector<> tire_center(0, 0.02+tire_rad, 0);
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y)); // create rotated 180° on y
 
     double tire_w0 = tire_vel_z0/tire_rad;
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     my_system.Add(mrigidbody);
     mrigidbody->SetMass(200);
     mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
-    mrigidbody->SetPos(tire_center + ChVector<>(0,1,0));
+    mrigidbody->SetPos(tire_center + ChVector<>(0,0.3,0));
 
     ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
     mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     mrigidbody->AddAsset(mrigidmesh);
 
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(mrigidmesh->GetMesh(),false, false, VNULL, ChMatrix33<>(CH_C_PI, VECT_Y),0);
+    mrigidbody->GetCollisionModel()->AddTriangleMesh(mrigidmesh->GetMesh(),false, false, VNULL, ChMatrix33<>(CH_C_PI, VECT_Y),0.01);
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
@@ -95,9 +95,21 @@ int main(int argc, char* argv[]) {
     // THE DEFORMABLE TERRAIN
     //
 
+
+    // Create the 'deformable terrain' object
     ChSharedPtr<vehicle::DeformableTerrain> mterrain (new vehicle::DeformableTerrain(&my_system));
-    mterrain->Initialize(0.2,1,1,25,25);
+    mterrain->Initialize(0.2,1,1,50,50);
+    mterrain->SetSoilParametersSCM( 2e6, // Bekker Kphi
+                                    0,   // Bekker Kc
+                                    1.1, // Bekker n exponent
+                                    0,   // Mohr cohesive limit (Pa)
+                                    20,  // Mohr friction limit (degrees)
+                                    0.01 // Janosi shear coefficient (m)
+                                    );
     my_system.Add(mterrain);
+
+
+
 
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
