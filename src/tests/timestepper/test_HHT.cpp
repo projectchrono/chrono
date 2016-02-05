@@ -1,9 +1,15 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/core/ChLog.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChTimestepper.h"
+
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChLcpMklSolver.h"
+#endif
 
 using namespace chrono;
 
@@ -346,8 +352,107 @@ void Pendulum() {
 
 // ==========================================================================================================
 
+void RigidPendulums() {
+    printf("\nRigid pendulums\n");
+
+    bool double_pend = false;
+
+    double m1 = 1;
+    double l1 = 1;
+    double J1 = 1;
+    double m2 = 1;
+    double l2 = 1;
+    double J2 = 1;
+    double g = 10;
+
+    double step = 1e-3;
+    int num_steps = 100;
+    auto mode = ChTimestepperHHT::ACCELERATION;
+
+    ChSystem system;
+    system.Set_G_acc(ChVector<>(0, -g, 0));
+
+    // Bodies
+    ChSharedPtr<ChBody> ground(new ChBody);
+    ground->SetIdentifier(-1);
+    ground->SetBodyFixed(true);
+    system.AddBody(ground);
+
+    ChSharedPtr<ChBody> pend1(new ChBody);
+    pend1->SetIdentifier(1);
+    pend1->SetMass(m1);
+    pend1->SetInertiaXX(ChVector<>(1, 1, J1));
+    pend1->SetPos(ChVector<>(l1 / 2, 0, 0));
+    system.AddBody(pend1);
+
+    ChSharedPtr<ChBody> pend2(new ChBody);
+    if (double_pend) {
+        pend2->SetIdentifier(2);
+        pend2->SetMass(m2);
+        pend2->SetInertiaXX(ChVector<>(1, 1, J2));
+        pend2->SetPos(ChVector<>(l1 + l2 / 2, 0, 0));
+        system.AddBody(pend2);
+    }
+
+    // Joints
+    ChSharedPtr<ChLinkLockRevolute> revolute1(new ChLinkLockRevolute);
+    revolute1->Initialize(ground, pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+    system.AddLink(revolute1);
+
+    ChSharedPtr<ChLinkLockRevolute> revolute2(new ChLinkLockRevolute);
+    if (double_pend) {
+        revolute2->Initialize(pend1, pend2, ChCoordsys<>(ChVector<>(l1, 0, 0), QUNIT));
+        system.AddLink(revolute2);
+    }
+
+    // Set MKL solver
+#ifdef CHRONO_MKL
+    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
+    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    system.ChangeLcpSolverStab(mkl_solver_stab);
+    system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    mkl_solver_speed->SetSparsityPatternLock(true);
+    mkl_solver_stab->SetSparsityPatternLock(true);
+#endif
+
+    // Set integrator and modify parameters.
+    system.SetIntegrationType(ChSystem::INT_HHT);
+    ChSharedPtr<ChTimestepperHHT> integrator = system.GetTimestepper().StaticCastTo<ChTimestepperHHT>();
+    integrator->SetMode(mode);
+    integrator->SetVerbose(true);
+    integrator->SetAlpha(-0.2);
+    integrator->SetMaxiters(20);
+    integrator->SetRelTolerance(1e-4);
+    switch (mode) {
+        case ChTimestepperHHT::ACCELERATION:
+            integrator->SetAbsTolerances(1e-3, 1e-6);
+            printf("ACCELERATION mode\n\n");
+            break;
+        case ChTimestepperHHT::POSITION:
+            integrator->SetAbsTolerances(1e-6, 1e-6);
+            printf("POSITION mode\n\n");
+            break;
+    }
+
+    for (int it = 0; it < num_steps; it++) {
+        system.DoStepDynamics(step);
+        printf("    %7.4f  %4d", integrator->GetTime(), integrator->GetNumIterations());
+        printf("    %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f", pend1->GetPos().x, pend1->GetPos().y,
+               pend1->GetPos_dt().x, pend1->GetPos_dt().y, pend1->GetPos_dtdt().x, pend1->GetPos_dtdt().y);
+        if (double_pend) {
+            printf("    %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n", pend2->GetPos().x, pend2->GetPos().y,
+                   pend2->GetPos_dt().x, pend2->GetPos_dt().y, pend2->GetPos_dtdt().x, pend2->GetPos_dtdt().y);
+        } else {
+            printf("\n");
+        }
+    }
+}
+
+// ==========================================================================================================
+
 int main(int argc, char* argv[]) {
     //Oscillator();
-    Pendulum();
+    //Pendulum();
+    RigidPendulums();
     return 0;
 }
