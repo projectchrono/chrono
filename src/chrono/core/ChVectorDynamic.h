@@ -14,10 +14,13 @@
 #ifndef CHVECTORDYNAMIC_H
 #define CHVECTORDYNAMIC_H
 
+#include <cmath>
+
 #include "core/ChCoordsys.h"
 #include "core/ChStream.h"
 #include "core/ChException.h"
 #include "core/ChMatrix.h"
+
 namespace chrono {
 
 //
@@ -181,6 +184,20 @@ class ChVectorDynamic : public ChMatrix<Real> {
         // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
         for (int i = 0; i < this->rows; ++i)
             this->address[i] = 0;
+    }
+
+    /// Calculate the WRMS (weighted root-mean-square) norm of this vector.
+    ///     norm = sqrt{ sum{(w_i * x_i)^2} / N}
+    Real NormWRMS(const ChVectorDynamic<Real>& w) {
+        if (this->rows == 0)
+            return 0;
+
+        Real sum = 0;
+        for (int i = 0; i < this->rows; ++i) {
+            Real prod = this->address[i] * w.address[i];
+            sum += prod * prod;
+        }
+        return std::sqrt(sum / this->rows);
     }
 };
 

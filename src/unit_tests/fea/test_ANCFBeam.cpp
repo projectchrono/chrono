@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     if (ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>()) {
         mystepper->SetAlpha(0.0);
         mystepper->SetMaxiters(60);
-        mystepper->SetTolerance(1e-14);
+        mystepper->SetAbsTolerances(1e-14);
     }
 
     // Mark completion of system construction

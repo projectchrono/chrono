@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
 	{
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(6);
-		mystepper->SetTolerance(1e-12);
+		mystepper->SetAbsTolerances(1e-12);
         mystepper->SetVerbose(true);
         mystepper->SetStepControl(false);
 	}
