@@ -657,7 +657,7 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
     mystepper->SetAlpha(-0.3);  // Important for convergence
     mystepper->SetMaxiters(20);
-    mystepper->SetTolerance(6e-03);
+    mystepper->SetAbsTolerances(6e-03);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);  //
     mystepper->SetVerbose(true);

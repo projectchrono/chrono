@@ -525,7 +525,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
                     ++ntoken;
                 }
 
-                BC_nodes.push_back(NumBEdges(0, 0) - 1);
+                BC_nodes.push_back(nodes_offset + NumBEdges(0, 0) - 1);
 
                 if (ntoken != 3)
                     throw ChException("ERROR in .mesh file, Edges require 3 node IDs, see line:\n" + line + "\n");

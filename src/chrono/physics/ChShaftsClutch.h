@@ -105,6 +105,7 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
                                      bool do_clamp,
                                      double recovery_clamp);
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c){};
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,

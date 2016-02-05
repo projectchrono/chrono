@@ -174,47 +174,49 @@ class ChElementBeamANCF :   public ChElementBeam,
 
             this->ComputeInternalForces(F0);
 
-            // the rest could be in a for loop, if implementing a  ComputeInternalForces that
-            // accepts the DOFs values as a 12-vector state where one increments a value at a time,
-            // but ComputeInternalForces avoids moving that data by using nodes[0]->pos.blabla directly,
-            // so here we do a sort of 'unrolled' loop:
+            // Create local copies of the nodal coordinates and use the implementation version
+            // of the function for calculating the internal forces.  With this, the calculation
+            // of the Jacobian with finite differences is thread safe (otherwise, there would
+            // be race conditions when adjacent elements attempt to perturb a common node).
+            ChVector<> pos[2] = {this->nodes[0]->pos, this->nodes[1]->pos};
+            ChVector<> D[2] = {this->nodes[0]->D, this->nodes[1]->D};
 
             for (int inode = 0; inode < 2; ++inode) {
-                this->nodes[inode]->pos.x += diff;
-                this->ComputeInternalForces(F1);
+                pos[inode].x += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
-                this->nodes[inode]->pos.x -= diff;
+                pos[inode].x -= diff;
 
-                this->nodes[inode]->pos.y += diff;
-                this->ComputeInternalForces(F1);
+                pos[inode].y += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
-                this->nodes[inode]->pos.y -= diff;
+                pos[inode].y -= diff;
 
-                this->nodes[inode]->pos.z += diff;
-                this->ComputeInternalForces(F1);
+                pos[inode].z += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
-                this->nodes[inode]->pos.z -= diff;
+                pos[inode].z -= diff;
 
-                this->nodes[inode]->D.x += diff;
-                this->ComputeInternalForces(F1);
+                D[inode].x += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
-                this->nodes[inode]->D.x -= diff;
+                D[inode].x -= diff;
 
-                this->nodes[inode]->D.y += diff;
-                this->ComputeInternalForces(F1);
+                D[inode].y += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
-                this->nodes[inode]->D.y -= diff;
+                D[inode].y -= diff;
 
-                this->nodes[inode]->D.z += diff;
-                this->ComputeInternalForces(F1);
+                D[inode].z += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
-                this->nodes[inode]->D.z -= diff;
+                D[inode].z -= diff;
             }
         }
 
@@ -540,10 +542,21 @@ class ChElementBeamANCF :   public ChElementBeam,
         H.PasteSumMatrix(&temp, 0, 0);
     }
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
+    /// Computes the internal forces and set values in the Fi vector.
+    /// (ex. the actual position of nodes is not in relaxed reference position).
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+        ComputeInternalForces_Impl(this->nodes[0]->GetPos(), this->nodes[0]->GetD(), this->nodes[1]->GetPos(),
+                                   this->nodes[1]->GetD(), Fi);
+    }
+
+    /// Worker function for computing the internal forces.
+    /// This function takes the nodal coordinates as arguments and is therefore thread-safe.
+    /// (Typically invoked by ComputeInternalForces. Used explicitly in the FD Jacobian approximation)
+    void ComputeInternalForces_Impl(const ChVector<>& pA,
+                                    const ChVector<>& dA,
+                                    const ChVector<>& pB,
+                                    const ChVector<>& dB,
+                                    ChMatrixDynamic<>& Fi) {
         assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
         assert(!section.IsNull());
 
@@ -552,11 +565,6 @@ class ChElementBeamANCF :   public ChElementBeam,
         double I = section->I;
 
         double l = this->length;
-
-        ChVector<> pA = this->nodes[0]->GetPos();
-        ChVector<> dA = this->nodes[0]->GetD();
-        ChVector<> pB = this->nodes[1]->GetPos();
-        ChVector<> dB = this->nodes[1]->GetD();
 
         // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
         ChMatrixNM<double, 4, 3> d;

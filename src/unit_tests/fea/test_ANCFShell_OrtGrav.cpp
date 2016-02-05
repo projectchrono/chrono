@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().StaticCastTo<ChTimestepperHHT>();
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
-    mystepper->SetTolerance(1e-08);
+    mystepper->SetAbsTolerances(1e-08);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(false);
     mystepper->SetVerbose(true);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Check vertical displacement of the shell tip
-        double AbsVal = abs(nodetip->pos.z - FileInputMat[it][1]);
+        double AbsVal = std::abs(nodetip->pos.z - FileInputMat[it][1]);
         if (AbsVal > precision) {
             std::cout << "Unit test check failed \n";
             system("pause");
