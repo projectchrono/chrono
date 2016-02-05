@@ -804,8 +804,10 @@ void ChTimestepperHHT::Advance(const double dt) {
 
     // Setup auxiliary vectors
     Da.Reset(mintegrable->GetNcoords_a(), mintegrable);
-    if (mode == POSITION)
+    if (mode == POSITION) {
+        Xprev.Reset(mintegrable->GetNcoords_x(), mintegrable);
         Dx.Reset(mintegrable->GetNcoords_v(), mintegrable);
+    }
     Dl.Reset(mintegrable->GetNconstr());
     Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
     Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
@@ -938,6 +940,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
             break;
         case POSITION:
             Xnew = X;
+            Xprev = X;
             Vnew = V * (-(gamma / beta - 1.0)) - A * (h * (gamma / (2.0 * beta) - 1.0));
             Anew = V * (-1.0 / (beta * h)) - A * (1.0 / (2.0 * beta) - 1.0);
             integrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * f_old
@@ -1056,32 +1059,21 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
             break;
         }
         case POSITION: {
-            // Use a relative/absolute tolerance test on updates only:
-            //     |Dx| < rtol * |X| + atol
-            //     |Dl| < rtol * |L| + atol
-            // Since we use a single tolerance value and therefore rtol=atol, we use a
-            // threshold value of 1.0 for switching from relative to absolute tolerance test.
-            // Note also that, the scaling factor must be properly included in the update to
+            // Declare convergence when the WRMS norm of the update is less than 1
+            // (relative + absolute tolerance test).
+            // Note that the scaling factor must be properly included in the update to
             // the Lagrange multipliers.
-            double Err_Dx;
-            double tmpX = Xnew.NormTwo();
-            if (tmpX < 1)
-                Err_Dx = Da.NormTwo();  // absolute tolerance test
-            else
-                Err_Dx = Da.NormTwo() / tmpX;  // relative tolerance test
+            double Dx_nrm = (Xnew - Xprev).NormWRMS(ewtS);
+            Xprev = Xnew;
 
-            double Err_Dl;
-            double tmpL = Lnew.NormTwo();
-            if (tmpL < 1)
-                Err_Dl = (Dl.NormTwo() / scaling_factor);  // absolute tolerance test
-            else
-                Err_Dl = (Dl.NormTwo() / scaling_factor) / tmpL;  // relative tolerance test
+            double Dl_nrm = Dl.NormWRMS(ewtL);
+            Dl_nrm /= scaling_factor;
 
             if (verbose) {
-                GetLog() << " HHT iteration=" << num_it << "  |Err_Dx|=" << Err_Dx << "  |Err_Dl|=" << Err_Dl << "\n";
+                GetLog() << " HHT iteration=" << num_it << "  |Dx|=" << Dx_nrm << "  |Dl|=" << Dl_nrm << "\n";
             }
 
-            if (Err_Dx < abstolS && Err_Dl < abstolL)
+            if (Dx_nrm < 1 && Dl_nrm < 1)
                 converged = true;
 
             break;
