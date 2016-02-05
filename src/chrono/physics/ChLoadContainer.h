@@ -56,6 +56,8 @@ public:
         for (size_t i=0; i<loadlist.size(); ++i)  {
             loadlist[i]->Update();
         }
+        // Overloading of base class:
+        ChPhysicsItem::Update(mytime, update_assets);
     }
 
 
