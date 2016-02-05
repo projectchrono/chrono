@@ -833,7 +833,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         num_successful_steps = 0;
     } else if (num_successful_steps >= req_successful_steps) {
         double new_h = ChMin(h * step_increase_factor, dt);
-        if (new_h > h) {
+        if (new_h > h + h_min) {
             h = new_h;
             num_successful_steps = 0;
             if (verbose)
