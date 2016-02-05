@@ -47,13 +47,21 @@ DeformableTerrain::DeformableTerrain(ChSystem* system) {
 
     // Create the default mesh asset
     m_color = ChSharedPtr<ChColorAsset>(new ChColorAsset);
-    m_color->SetColor(ChColor(1, 1, 1));
+    m_color->SetColor(ChColor(0.3, 0.3, 0.3));
     this->AddAsset(m_color);
 
     // Create the default triangle mesh asset
     m_trimesh_shape = ChSharedPtr<ChTriangleMeshShape>(new ChTriangleMeshShape);
     this->AddAsset(m_trimesh_shape);
-    m_trimesh_shape->SetWireframe(true);
+    m_trimesh_shape->SetWireframe(false);
+
+
+    Bekker_Kphi = 2e6;
+    Bekker_Kc = 0;
+    Bekker_n = 1.1;
+    Mohr_cohesion = 50;
+    Mohr_friction = 20;
+    Janosi_shear = 0.01;
 
     Initialize(0,3,3,10,10);
 }
@@ -105,7 +113,7 @@ void DeformableTerrain::Initialize(double height, double sizeX, double sizeY, in
     vertices.resize(n_verts);
     normals.resize(n_verts);
     uv_coords.resize(n_verts);
-    colors.resize(n_verts);
+    //colors.resize(n_verts);
     idx_vertices.resize(n_faces);
     idx_normals.resize(n_faces);
 
@@ -119,7 +127,7 @@ void DeformableTerrain::Initialize(double height, double sizeX, double sizeY, in
             // Initialize vertex normal to Y up
             normals[iv] = ChVector<>(0, 1, 0);
             // Assign color white to all vertices
-            colors[iv] = ChVector<float>(1, 1, 1);
+            //colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
             uv_coords[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
             ++iv;
@@ -138,6 +146,14 @@ void DeformableTerrain::Initialize(double height, double sizeX, double sizeY, in
         }
     }
 
+    // Reset and initialize computation data:
+    //
+    p_vertices_initial= vertices;
+    p_speeds.resize( vertices.size());
+    p_step_sinkage.resize( vertices.size());
+    p_sinkage.resize( vertices.size());
+    p_kshear.resize( vertices.size());
+    p_area.resize( vertices.size());
 }
 
 // -----------------------------------------------------------------------------
@@ -267,6 +283,15 @@ void DeformableTerrain::Initialize(const std::string& heightmap_file,
     for (unsigned int in = 0; in < n_verts; ++in) {
         normals[in] /= (double)accumulators[in];
     }
+
+    // Reset and initialize computation data:
+    //
+    p_vertices_initial= vertices;
+    p_speeds.resize( vertices.size());
+    p_step_sinkage.resize( vertices.size());
+    p_sinkage.resize( vertices.size());
+    p_kshear.resize( vertices.size());
+    p_area.resize( vertices.size());
 }
 
 /*
@@ -288,28 +313,143 @@ ChVector<> DeformableTerrain::GetNormal(double x, double y) const {
 */
 
 
-// Updates the forces and the geometry
-void DeformableTerrain::Update(double mytime, bool update_assets) {
 
+void DeformableTerrain::UpdateInternalForces() {
+    
     // Readibility aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
+    std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
+    std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = m_trimesh_shape->GetMesh().getIndicesNormals();
 
+    // 
+    // Reset the load list
+    //
+
+    this->GetLoadList().clear();
+
+    //
+    // Compute (pseudo)areas per node
+    //
+    
+    // for a X-Z rectangular grid-like mesh it is simply area[i]= xsize/xsteps * zsize/zsteps, 
+    // but the following is more general, also for generic meshes:
+    for (unsigned int iv = 0; iv < vertices.size(); ++iv) {
+        p_area[iv] = 0;
+    }
+    for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
+        ChVector<> AB = vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x];
+        ChVector<> AC = vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x];
+        AB.y=0;
+        AC.y=0;
+        double triangle_area = 0.5*(Vcross(AB,AC)).Length();
+        p_area[idx_normals[it].x] += triangle_area /3.0;
+        p_area[idx_normals[it].y] += triangle_area /3.0;
+        p_area[idx_normals[it].z] += triangle_area /3.0;
+    }
+
+
+    //
+    // Perform ray-hit test to detect the contact point sinkage
+    // 
+    
     collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
 
     for (int i=0; i< vertices.size(); ++i) {
         ChVector<> from = vertices[i];
         ChVector<> to   = vertices[i];
-        ChVector<> D    = ChVector<>(0,1,0);
-        from = to - D*0.5;
+        ChVector<> N    = ChVector<>(0,1,0);
+        from = to - N*0.5;
+
+        p_step_sinkage[i]=0;
 
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
         if (mrayhit_result.hit == true) {
+            p_step_sinkage[i] = Vdot(( mrayhit_result.abs_hitPoint - vertices[i] ), N);
             vertices[i] = mrayhit_result.abs_hitPoint;
+            p_sinkage[i]=  Vdot(( vertices[i] - p_vertices_initial[i] ), N);
+
+            if (ChContactable* contactable = dynamic_cast<ChContactable*>(mrayhit_result.hitModel->GetPhysicsItem())) {
+                p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
+            }
+            
+            ChVector<> T = -p_speeds[i];
+            T.y=0;
+            T.Normalize();
+
+            // accumulate shear for Janosi-Hanamoto
+            p_kshear[i] += Vdot(p_speeds[i],-T) * this->GetSystem()->GetStep();
+
+            // Compute i-th force:
+            ChVector<> Fn;
+            ChVector<> Ft;
+            // Bekker formula, neglecting Bekker_Kc and 'b'
+            double sigma = this->Bekker_Kphi * pow(-p_sinkage[i], this->Bekker_n ); 
+            // Mohr-Coulomb
+            double tau_max = this->Mohr_cohesion + sigma * tan(this->Mohr_friction*CH_C_DEG_TO_RAD);
+            // Janosi-Hanamoto
+            double tau = tau_max * (1.0 - exp(- (p_kshear[i]/this->Janosi_shear)));
+            
+            Fn = N * p_area[i] * sigma;
+            Ft = T * p_area[i] * tau;
+
+            if (ChBody* rigidbody = dynamic_cast<ChBody*>(mrayhit_result.hitModel->GetPhysicsItem())) {
+                // Trick, since 'rigidbody' was not a new ChBody() object, but an already used pointer because
+                // mrayhit_result.hitModel->GetPhysicsItem() cannot return it as shared ptr, just raw ptr..
+                ChSharedPtr<ChBody> srigidbody(rigidbody); 
+                srigidbody->AddRef(); // avoid deleting when out of the if() scope
+                ChSharedPtr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn+Ft, false, vertices[i], false));
+                this->Add(mload);
+            }
         }
     }
 
-    // parent inheritance
-    ChPhysicsItem::Update(mytime, update_assets);
+    //
+    // Update the normals
+    // 
+
+    std::vector<int> accumulators(vertices.size(), 0);
+
+    // Calculate normals and then average the normals from all adjacent faces.
+    for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
+        // Calculate the triangle normal as a normalized cross product.
+        ChVector<> nrm = -Vcross(vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x],
+                                vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x]);
+        nrm.Normalize();
+        // Increment the normals of all incident vertices by the face normal
+        normals[idx_normals[it].x] += nrm;
+        normals[idx_normals[it].y] += nrm;
+        normals[idx_normals[it].z] += nrm;
+        // Increment the count of all incident vertices by 1
+        accumulators[idx_normals[it].x] += 1;
+        accumulators[idx_normals[it].y] += 1;
+        accumulators[idx_normals[it].z] += 1;
+    }
+
+    // Set the normals to the average values.
+    for (unsigned int in = 0; in < vertices.size(); ++in) {
+        normals[in] /= (double)accumulators[in];
+    }
+
+
+    // 
+    // Compute the forces 
+    //
+    
+
+    // Use the SCM soil contact model as described in the paper:
+    // "Parameter Identification of a Planetary Rover Wheel–Soil
+    // Contact Model via a Bayesian Approach", A.Gallina, R. Krenn et al.
+
+
+    // 
+    // Update visual asset
+    //
+
+    
+
+    // Not needed because Update() will happen anyway
+    //  ChPhysicsItem::Update(0, true);
 }
 
 

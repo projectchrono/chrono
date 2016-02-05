@@ -27,6 +27,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChLoadsBody.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -88,6 +89,29 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
                     double hMax                         ///< [in] maximum height (white level)
                     );
 
+    /// Set the properties of the SCM soild model. 
+    /// The meaning of these parameters is described in the paper:
+    // "Parameter Identification of a Planetary Rover Wheel–Soil
+    // Contact Model via a Bayesian Approach", A.Gallina, R. Krenn et al.
+    void SetSoilParametersSCM( 
+                    double mBekker_Kphi, ///< Kphi, frictional modulus in Bekker model 
+                    double mBekker_Kc,   ///< Kc, cohesive modulus in Bekker model
+                    double mBekker_n,    ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+                    double mMohr_cohesion, ///< Cohesion in, Pa, for shear failure
+                    double mMohr_friction, ///< Friction angle (in degrees!), for shear failure
+                    double mJanosi_shear   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
+                    ) {
+        Bekker_Kphi = mBekker_Kphi;
+        Bekker_Kc = mBekker_Kc;
+        Bekker_n = mBekker_n;
+        Mohr_cohesion = mMohr_cohesion;
+        Mohr_friction = mMohr_friction;
+        Janosi_shear  = mJanosi_shear;
+    }
+
+
+
+
     /// Get the terrain height at the specified (x,y) location.
     //virtual double GetHeight(double x, double y) const override;
 
@@ -95,12 +119,51 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     //virtual chrono::ChVector<> GetNormal(double x, double y) const override;
 
     // Updates the forces and the geometry
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double mytime, bool update_assets = true) override {
+        // Computes the internal forces
+        this->UpdateInternalForces();
+        // Overloading base class
+        ChLoadContainer::Update(mytime, update_assets);
+    }
+
+    // Reset the list of forces, and fills it with forces from a soil contact model.
+    // This is called automatically during timestepping (only at the beginning of 
+    // each IntLoadResidual_F() for performance reason, not at each Update() that might be overkill).
+    virtual void UpdateInternalForces();
+
+    /*
+    // Override the ChLoadContainer method for computing the generalized force F term:
+    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+                                   ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+                                   const double c           ///< a scaling factor
+                                   ) override {
+         // reset the internal forces
+       // this->GetLoadList().clear();
+         // Computes the internal forces
+       // this->UpdateInternalForces();
+         // Overloading base class, that takes all F vectors from the list of forces and put all them in R
+        ChLoadContainer::IntLoadResidual_F(off, R, c);
+    };
+    */
 
   private:
     ChSharedPtr<ChColorAsset> m_color;
     ChSharedPtr<ChTriangleMeshShape> m_trimesh_shape;
     double m_height;
+
+    std::vector<ChVector<>> p_vertices_initial;
+    std::vector<ChVector<>> p_speeds;
+    std::vector<double> p_sinkage;
+    std::vector<double> p_step_sinkage;
+    std::vector<double> p_kshear; // Janosi-Hanamoto shear accumulator
+    std::vector<double> p_area;
+    
+    double Bekker_Kphi;
+    double Bekker_Kc;
+    double Bekker_n;
+    double Mohr_cohesion;
+    double Mohr_friction;
+    double Janosi_shear;
 };
 
 /// @} vehicle_terrain
