@@ -313,7 +313,7 @@ void ChLinkMateGeneric::Initialize(
     ChFrame<> mpos1,        ///< mate frame (slave), for 1st body (rel. or abs., see flag above)
     ChFrame<> mpos2         ///< mate frame (master), for 2nd body (rel. or abs., see flag above)
     ) {
-    assert(mbody1.get_ptr() != mbody2.get_ptr());
+    assert(mbody1.get() != mbody2.get());
 
     this->Body1 = mbody1.get();
     this->Body2 = mbody2.get();

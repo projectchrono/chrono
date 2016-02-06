@@ -461,7 +461,7 @@ class ChArchive {
     /// has a network of sub objects. Works also for shared pointers, but remember to store
     /// the embedded pointer, not the shared pointer itself. For instance:
     ///    myarchive.CutPointers().insert(my_raw_pointer); // normal pointers
-    ///    myarchive.CutPointers().insert(my_shared_pointer.get_ptr());  // shared pointers
+    ///    myarchive.CutPointers().insert(my_shared_pointer.get());  // shared pointers
     /// The cut pointers are serialized as null pointers.
     std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
 };
@@ -570,7 +570,7 @@ class  ChArchiveOut : public ChArchive {
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
       out     (ChNameValue< std::shared_ptr<T> > bVal) {
           bool already_stored; size_t pos;
-          T* mptr = bVal.value().get_ptr();
+          T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
@@ -594,7 +594,7 @@ class  ChArchiveOut : public ChArchive {
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
       out     (ChNameValue< std::shared_ptr<T> > bVal) {
           bool already_stored; size_t pos;
-          T* mptr = bVal.value().get_ptr();
+          T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())

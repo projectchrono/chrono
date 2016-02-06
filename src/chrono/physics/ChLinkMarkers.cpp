@@ -134,7 +134,7 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
                                bool pos_are_relative,
                                const ChCoordsys<>& mpos1,
                                const ChCoordsys<>& mpos2) {
-    assert(mbody1.get_ptr() != mbody2.get());
+    assert(mbody1.get() != mbody2.get());
     assert(mbody1->GetSystem() == mbody2->GetSystem());
 
     // create markers to add to the two bodies

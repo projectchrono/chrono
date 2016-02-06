@@ -94,8 +94,8 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // Compute the 'average' material
 
         // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get_ptr());
-        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get_ptr());
+        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get());
+        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get());
 
         ChMaterialCouple mat;
         mat.static_friction = (float)ChMin(mmatA->static_friction, mmatB->static_friction);
