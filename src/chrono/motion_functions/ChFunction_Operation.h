@@ -68,15 +68,15 @@ class ChApi ChFunction_Operation : public ChFunction {
     CH_RTTI(ChFunction_Operation, ChFunction);
 
   private:
-    ChSharedPtr<ChFunction> fa;
-    ChSharedPtr<ChFunction> fb;
+    std::shared_ptr<ChFunction> fa;
+    std::shared_ptr<ChFunction> fb;
     eChOperation op_type;  // see operation type IDS
 
   public:
     ChFunction_Operation() {
         op_type = ChOP_ADD;
-        fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);
-        fb = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);
+        fa = std::make_shared<ChFunction_Const>();
+        fb = std::make_shared<ChFunction_Const>();
     }
     ~ChFunction_Operation(){};
     void Copy(ChFunction_Operation* source);

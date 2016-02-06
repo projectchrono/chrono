@@ -43,13 +43,13 @@ class ChApi ChFunction_Mirror : public ChFunction {
     CH_RTTI(ChFunction_Mirror, ChFunction);
 
   private:
-    ChSharedPtr<ChFunction> fa;
+    std::shared_ptr<ChFunction> fa;
     double mirror_axis;  // simmetry axis position on x
 
   public:
     ChFunction_Mirror() {
         mirror_axis = 0;
-        fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);  // default
+        fa = std::make_shared<ChFunction_Const>(); // default
     }
     ~ChFunction_Mirror(){};
     void Copy(ChFunction_Mirror* source);
@@ -58,8 +58,8 @@ class ChApi ChFunction_Mirror : public ChFunction {
     void Set_mirror_axis(double m_axis) { mirror_axis = m_axis; }
     double Get_mirror_axis() { return mirror_axis; }
 
-    void Set_fa(ChSharedPtr<ChFunction> m_fa) { fa = m_fa; }
-    ChSharedPtr<ChFunction> Get_fa() { return fa; }
+    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
+    std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
     double Get_y(double x);
 
