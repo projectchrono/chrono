@@ -26,7 +26,6 @@
 
 #include "core/ChApiCE.h"
 #include "core/ChQuaternion.h"
-#include "core/ChSmartpointers.h"
 #include "core/ChVector.h"
 
 #include "physics/ChBody.h"

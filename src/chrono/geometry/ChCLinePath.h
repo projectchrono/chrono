@@ -15,7 +15,6 @@
 #include <math.h>
 
 #include "ChCLine.h"
-#include "core/ChSmartpointers.h"
 
 namespace chrono {
 namespace geometry {

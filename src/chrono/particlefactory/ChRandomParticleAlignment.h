@@ -17,7 +17,6 @@
 #include "core/ChVector.h"
 #include "core/ChMatrix.h"
 #include "core/ChDistribution.h"
-#include "core/ChSmartpointers.h"
 
 namespace chrono {
 namespace particlefactory {

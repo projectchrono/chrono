@@ -14,7 +14,6 @@
 #define CHLOADER_H
 
 
-#include "core/ChSmartpointers.h"
 #include "core/ChVectorDynamic.h"
 #include "physics/ChLoadable.h"
 #include "chrono/core/ChQuadrature.h"

@@ -13,7 +13,6 @@
 #ifndef CHPARTICLEPROCESSOR_H
 #define CHPARTICLEPROCESSOR_H
 
-#include "core/ChSmartpointers.h"
 #include "ChParticleEventTrigger.h"
 #include "ChParticleProcessEvent.h"
 

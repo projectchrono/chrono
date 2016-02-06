@@ -28,7 +28,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChFunction_Base.h"
-#include "core/ChSmartpointers.h"
 
 namespace chrono {
 

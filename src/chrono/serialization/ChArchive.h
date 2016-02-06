@@ -23,7 +23,6 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChStream.h"
-#include "chrono/core/ChSmartpointers.h"
 #include "chrono/core/ChTemplateExpressions.h"
 
 namespace chrono {
