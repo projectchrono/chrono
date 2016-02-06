@@ -140,18 +140,18 @@ void ODEModel::WriteData(double step, const std::string& filename) {
 class ChronoModel {
   public:
     ChronoModel();
-    ChSharedPtr<ChSystem> GetSystem() const { return m_system; }
+    std::shared_ptr<ChSystem> GetSystem() const { return m_system; }
     void Simulate(double step, int num_steps);
     const utils::Data& GetData() const { return m_data; }
     const utils::Data& GetCnstrData() const { return m_cnstr_data; }
     void WriteData(double step, const std::string& filename);
 
   private:
-    ChSharedPtr<ChSystem> m_system;
-    ChSharedPtr<ChBody> m_slider;
-    ChSharedPtr<ChBody> m_pend;
-    ChSharedPtr<ChLinkLockPrismatic> m_prismatic;
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;
+    std::shared_ptr<ChSystem> m_system;
+    std::shared_ptr<ChBody> m_slider;
+    std::shared_ptr<ChBody> m_pend;
+    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;
     utils::Data m_data;
     utils::Data m_cnstr_data;
 };
@@ -159,19 +159,19 @@ class ChronoModel {
 ChronoModel::ChronoModel() {
     // Create the Chrono physical system
     // ---------------------------------
-    m_system = ChSharedPtr<ChSystem>(new ChSystem);
+    m_system = std::make_shared<ChSystem>();
     m_system->Set_G_acc(ChVector<>(0, -g, 0));
 
     // Create the ground body
     // ----------------------
-    ChSharedPtr<ChBody> ground(new ChBody);
+    auto ground = std::make_shared<ChBody>();
     m_system->AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
 
     // Create the slider body
     // ----------------------
-    m_slider = ChSharedPtr<ChBody>(new ChBody);
+    m_slider = std::make_shared<ChBody>();
     m_system->AddBody(m_slider);
     m_slider->SetIdentifier(1);
     m_slider->SetMass(m1);
@@ -180,7 +180,7 @@ ChronoModel::ChronoModel() {
 
     // Create the pendulum body
     // ------------------------
-    m_pend = ChSharedPtr<ChBody>(new ChBody);
+    m_pend = std::make_shared<ChBody>();
     m_system->AddBody(m_pend);
     m_pend->SetIdentifier(2);
     m_pend->SetMass(m2);
@@ -189,19 +189,19 @@ ChronoModel::ChronoModel() {
 
     // Translational joint ground-cart
     // -------------------------------
-    m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+    m_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_prismatic->Initialize(ground, m_slider, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
     m_system->AddLink(m_prismatic);
 
     // Revolute joint cart-pendulum
     // ----------------------------
-    m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute = std::make_shared<ChLinkLockRevolute>();
     m_revolute->Initialize(m_slider, m_pend, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute);
 
     // Spring ground-cart
     // ------------------
-    ChSharedPtr<ChLinkSpring> spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+    auto spring = std::make_shared<ChLinkSpring>();
     spring->Initialize(m_slider, ground, false, ChVector<>(0, 0, 0), ChVector<>(0, 0, 0), true);
     spring->Set_SpringK(k1);
     spring->Set_SpringR(0);
@@ -264,7 +264,7 @@ bool test_EULER_IMPLICIT_LINEARIZED(double step,
 
     // Create Chrono model.
     ChronoModel model;
-    ChSharedPtr<ChSystem> system = model.GetSystem();
+    std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set integrator and modify parameters.
     system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
@@ -301,7 +301,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
 
     // Create Chrono model.
     ChronoModel model;
-    ChSharedPtr<ChSystem> system = model.GetSystem();
+    std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set solver and modify parameters.
     ////system->SetIterLCPmaxItersSpeed(200);
@@ -313,7 +313,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
 
     // Set integrator and modify parameters.
     system->SetIntegrationType(ChSystem::INT_HHT);
-    ChSharedPtr<ChTimestepperHHT> integrator = system->GetTimestepper().StaticCastTo<ChTimestepperHHT>();
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(20);
     integrator->SetAbsTolerances(1e-6);
