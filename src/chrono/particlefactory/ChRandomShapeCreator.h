@@ -13,15 +13,16 @@
 #ifndef CHRANDOMSHAPECREATOR_H
 #define CHRANDOMSHAPECREATOR_H
 
-#include "core/ChMathematics.h"
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChDistribution.h"
-#include "core/ChSmartpointers.h"
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCBox.h"
-#include "geometry/ChCCylinder.h"
-#include "physics/ChBodyEasy.h"
+#include <memory>
+
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChDistribution.h"
+#include "chrono/geometry/ChCSphere.h"
+#include "chrono/geometry/ChCBox.h"
+#include "chrono/geometry/ChCCylinder.h"
+#include "chrono/physics/ChBodyEasy.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -89,8 +90,8 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
   public:
     ChRandomShapeCreatorSpheres() {
         // defaults
-        diameter = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.02));
-        density = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000));
+        diameter = std::make_shared<ChConstantDistribution>(0.02);
+        density = std::make_shared<ChConstantDistribution>(1000);
     }
 
     /// Function that creates a random ChBody particle each
@@ -104,14 +105,14 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
     };
 
     /// Set the statistical distribution for the random diameter.
-    void SetDiameterDistribution(ChSmartPtr<ChDistribution> mdistr) { diameter = mdistr; }
+    void SetDiameterDistribution(std::shared_ptr<ChDistribution> mdistr) { diameter = mdistr; }
 
     /// Set the statistical distribution for the random density.
-    void SetDensityDistribution(ChSmartPtr<ChDistribution> mdistr) { density = mdistr; }
+    void SetDensityDistribution(std::shared_ptr<ChDistribution> mdistr) { density = mdistr; }
 
   private:
-    ChSmartPtr<ChDistribution> diameter;
-    ChSmartPtr<ChDistribution> density;
+    std::shared_ptr<ChDistribution> diameter;
+    std::shared_ptr<ChDistribution> density;
 };
 
 /// Class for generating boxes with variable sizes
@@ -121,10 +122,10 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
   public:
     ChRandomShapeCreatorBoxes() {
         // defaults
-        x_size = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.01));
-        sizeratioYZ = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1.0));
-        sizeratioZ = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1.0));
-        density = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000));
+        x_size = std::make_shared<ChConstantDistribution>(0.01);
+        sizeratioYZ = std::make_shared<ChConstantDistribution>(1.0);
+        sizeratioZ = std::make_shared<ChConstantDistribution>(1.0);
+        density = std::make_shared<ChConstantDistribution>(1000);
     }
 
     /// Function that creates a random ChBody particle each
@@ -140,20 +141,20 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
     };
 
     /// Set the statistical distribution for the x size, that is the longest axis.
-    void SetXsizeDistribution(ChSmartPtr<ChDistribution> mdistr) { x_size = mdistr; }
+    void SetXsizeDistribution(std::shared_ptr<ChDistribution> mdistr) { x_size = mdistr; }
     /// Set the statistical distribution for scaling on both Y,Z widths (the lower <1, the thinner, as a needle).
-    void SetSizeRatioYZDistribution(ChSmartPtr<ChDistribution> mdistr) { sizeratioYZ = mdistr; }
+    void SetSizeRatioYZDistribution(std::shared_ptr<ChDistribution> mdistr) { sizeratioYZ = mdistr; }
     /// Set the statistical distribution for scaling on Z width (the lower <1, the flatter, as a chip).
-    void SetSizeRatioZDistribution(ChSmartPtr<ChDistribution> mdistr) { sizeratioZ = mdistr; }
+    void SetSizeRatioZDistribution(std::shared_ptr<ChDistribution> mdistr) { sizeratioZ = mdistr; }
 
     /// Set the statistical distribution for the random density.
-    void SetDensityDistribution(ChSmartPtr<ChDistribution> mdistr) { density = mdistr; }
+    void SetDensityDistribution(std::shared_ptr<ChDistribution> mdistr) { density = mdistr; }
 
   private:
-    ChSmartPtr<ChDistribution> x_size;
-    ChSmartPtr<ChDistribution> sizeratioYZ;
-    ChSmartPtr<ChDistribution> sizeratioZ;
-    ChSmartPtr<ChDistribution> density;
+    std::shared_ptr<ChDistribution> x_size;
+    std::shared_ptr<ChDistribution> sizeratioYZ;
+    std::shared_ptr<ChDistribution> sizeratioZ;
+    std::shared_ptr<ChDistribution> density;
 };
 
 /// Class for generating cylinders with variable diameter
@@ -163,9 +164,9 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
   public:
     ChRandomShapeCreatorCylinders() {
         // defaults
-        diameter = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.02));
-        length_factor = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(2.0));
-        density = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000));
+        diameter = std::make_shared<ChConstantDistribution>(0.02);
+        length_factor = std::make_shared<ChConstantDistribution>(2.0);
+        density = std::make_shared<ChConstantDistribution>(1000);
     }
 
     /// Function that creates a random ChBody particle each
@@ -180,17 +181,17 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
     };
 
     /// Set the statistical distribution for the diameter.
-    void SetDiameterDistribution(ChSmartPtr<ChDistribution> mdistr) { diameter = mdistr; }
+    void SetDiameterDistribution(std::shared_ptr<ChDistribution> mdistr) { diameter = mdistr; }
     /// Set the statistical distribution for the length ratio (length = diameter*length_factor).
-    void SetLengthFactorDistribution(ChSmartPtr<ChDistribution> mdistr) { length_factor = mdistr; }
+    void SetLengthFactorDistribution(std::shared_ptr<ChDistribution> mdistr) { length_factor = mdistr; }
 
     /// Set the statistical distribution for the random density.
-    void SetDensityDistribution(ChSmartPtr<ChDistribution> mdistr) { density = mdistr; }
+    void SetDensityDistribution(std::shared_ptr<ChDistribution> mdistr) { density = mdistr; }
 
   private:
-    ChSmartPtr<ChDistribution> diameter;
-    ChSmartPtr<ChDistribution> length_factor;
-    ChSmartPtr<ChDistribution> density;
+    std::shared_ptr<ChDistribution> diameter;
+    std::shared_ptr<ChDistribution> length_factor;
+    std::shared_ptr<ChDistribution> density;
 };
 
 /// Class for generating convex hulls with variable chordal size
@@ -201,10 +202,10 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
     ChRandomShapeCreatorConvexHulls() {
         // defaults
         npoints = 6;
-        chord = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.01));
-        sizeratioYZ = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1.0));
-        sizeratioZ = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1.0));
-        density = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000));
+        chord = std::make_shared<ChConstantDistribution>(0.01);
+        sizeratioYZ = std::make_shared<ChConstantDistribution>(1.0);
+        sizeratioZ = std::make_shared<ChConstantDistribution>(1.0);
+        density = std::make_shared<ChConstantDistribution>(1000);
     }
 
     /// Function that creates a random ChBody particle each
@@ -247,21 +248,21 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
     /// random points that fall inside the convex hull are not used.
     void SetNpoints(int mnpoints) { npoints = mnpoints; }
     /// Set the statistical distribution for the radius.
-    void SetChordDistribution(ChSmartPtr<ChDistribution> mdistr) { chord = mdistr; }
+    void SetChordDistribution(std::shared_ptr<ChDistribution> mdistr) { chord = mdistr; }
     /// Set the statistical distribution for scaling on both Y,Z widths (the lower <1, the thinner, as a needle).
-    void SetSizeRatioYZDistribution(ChSmartPtr<ChDistribution> mdistr) { sizeratioYZ = mdistr; }
+    void SetSizeRatioYZDistribution(std::shared_ptr<ChDistribution> mdistr) { sizeratioYZ = mdistr; }
     /// Set the statistical distribution for scaling on Z width (the lower <1, the flatter, as a chip).
-    void SetSizeRatioZDistribution(ChSmartPtr<ChDistribution> mdistr) { sizeratioZ = mdistr; }
+    void SetSizeRatioZDistribution(std::shared_ptr<ChDistribution> mdistr) { sizeratioZ = mdistr; }
 
     /// Set the statistical distribution for the random density.
-    void SetDensityDistribution(ChSmartPtr<ChDistribution> mdistr) { density = mdistr; }
+    void SetDensityDistribution(std::shared_ptr<ChDistribution> mdistr) { density = mdistr; }
 
   private:
     int npoints;
-    ChSmartPtr<ChDistribution> chord;
-    ChSmartPtr<ChDistribution> sizeratioYZ;
-    ChSmartPtr<ChDistribution> sizeratioZ;
-    ChSmartPtr<ChDistribution> density;
+    std::shared_ptr<ChDistribution> chord;
+    std::shared_ptr<ChDistribution> sizeratioYZ;
+    std::shared_ptr<ChDistribution> sizeratioZ;
+    std::shared_ptr<ChDistribution> density;
 };
 
 /// Class for generating worm-like particles, optionally helically twisted.
@@ -275,11 +276,11 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
     ChRandomShapeCreatorShavings() {
         // defaults
         spacing_factor = 0.5;
-        diameter = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.02));
-        twistU = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.00));
-        twistV = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.00));
-        lengthratio = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(3.0));
-        density = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000));
+        diameter = std::make_shared<ChConstantDistribution>(0.02);
+        twistU = std::make_shared<ChConstantDistribution>(0.00);
+        twistV = std::make_shared<ChConstantDistribution>(0.00);
+        lengthratio = std::make_shared<ChConstantDistribution>(3.0);
+        density = std::make_shared<ChConstantDistribution>(1000);
     }
 
     /// Function that creates a random ChBody particle each
@@ -335,23 +336,23 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
     /// The spacing might be adjusted automatically to match the end of the shaving, btw.
     void SetSpheresSpacingFactor(double md) { spacing_factor = md; }
     /// Set the statistical distribution for the diameter.
-    void SetDiameterDistribution(ChSmartPtr<ChDistribution> mdistr) { diameter = mdistr; }
+    void SetDiameterDistribution(std::shared_ptr<ChDistribution> mdistr) { diameter = mdistr; }
     /// Set the statistical distribution for the length/diameter ratio.
-    void SetLengthRatioDistribution(ChSmartPtr<ChDistribution> mdistr) { lengthratio = mdistr; }
+    void SetLengthRatioDistribution(std::shared_ptr<ChDistribution> mdistr) { lengthratio = mdistr; }
     /// Set the statistical distribution for the twist curvature of line (u direction). Curvature=1/radius
-    void SetTwistDistributionU(ChSmartPtr<ChDistribution> mdistr) { twistU = mdistr; }
+    void SetTwistDistributionU(std::shared_ptr<ChDistribution> mdistr) { twistU = mdistr; }
     /// Set the statistical distribution for the twist curvature of line (v direction). Curvature=1/radius
-    void SetTwistDistributionV(ChSmartPtr<ChDistribution> mdistr) { twistV = mdistr; }
+    void SetTwistDistributionV(std::shared_ptr<ChDistribution> mdistr) { twistV = mdistr; }
     /// Set the statistical distribution for the random density.
-    void SetDensityDistribution(ChSmartPtr<ChDistribution> mdistr) { density = mdistr; }
+    void SetDensityDistribution(std::shared_ptr<ChDistribution> mdistr) { density = mdistr; }
 
   private:
     double spacing_factor;
-    ChSmartPtr<ChDistribution> diameter;
-    ChSmartPtr<ChDistribution> twistU;
-    ChSmartPtr<ChDistribution> twistV;
-    ChSmartPtr<ChDistribution> lengthratio;
-    ChSmartPtr<ChDistribution> density;
+    std::shared_ptr<ChDistribution> diameter;
+    std::shared_ptr<ChDistribution> twistU;
+    std::shared_ptr<ChDistribution> twistV;
+    std::shared_ptr<ChDistribution> lengthratio;
+    std::shared_ptr<ChDistribution> density;
 };
 
 /// Class for generating spheres from different families,

@@ -162,8 +162,8 @@ int main(int argc, char* argv[]) {
     
         // ---Initialize a ChRandomShapeCreator object (ex. here for sphere particles)
         ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
-        mcreator_spheres->SetDiameterDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.05, 0.15))); 
-        mcreator_spheres->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+        mcreator_spheres->SetDiameterDistribution(std::make_shared<ChMinMaxDistribution>(0.05, 0.15)); 
+        mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
         mcreator_spheres->SetAddCollisionShape(false);
 
         // Finally, tell to the emitter that it must use the creator above:
@@ -253,8 +253,8 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
-    mcreator_spheres->SetDiameterDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.20, 0.06))); 
-    mcreator_spheres->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    mcreator_spheres->SetDiameterDistribution(std::make_shared<ChMinMaxDistribution>(0.20, 0.06));
+    mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_spheres : public ChCallbackPostCreation {
@@ -278,8 +278,8 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     // Create a ChRandomShapeCreator object (ex. here for hull particles)
 
     ChSharedPtr<ChRandomShapeCreatorConvexHulls> mcreator_hulls(new ChRandomShapeCreatorConvexHulls);
-    mcreator_hulls->SetChordDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.68, 0.15))); 
-    mcreator_hulls->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    mcreator_hulls->SetChordDistribution(std::make_shared<ChMinMaxDistribution>(0.68, 0.15));
+    mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_hulls : public ChCallbackPostCreation {

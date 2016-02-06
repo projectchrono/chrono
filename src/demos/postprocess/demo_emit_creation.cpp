@@ -162,8 +162,8 @@ int main(int argc, char* argv[]) {
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
-    mcreator_spheres->SetDiameterDistribution(ChSmartPtr<ChZhangDistribution>(new ChZhangDistribution(0.15, 0.03)));  // Zhang parameters: average val, min val.
-    mcreator_spheres->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    mcreator_spheres->SetDiameterDistribution(std::make_shared<ChZhangDistribution>(0.15, 0.03));  // Zhang parameters: average val, min val.
+    mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_spheres : public ChCallbackPostCreation {
@@ -188,10 +188,10 @@ int main(int argc, char* argv[]) {
     // Create a ChRandomShapeCreator object (ex. here for box particles)
 
     ChSharedPtr<ChRandomShapeCreatorBoxes> mcreator_boxes(new ChRandomShapeCreatorBoxes);
-    mcreator_boxes->SetXsizeDistribution(ChSmartPtr<ChZhangDistribution>(new ChZhangDistribution(0.20, 0.09)));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.8, 1.0)));
-    mcreator_boxes->SetSizeRatioYZDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.2, 0.3)));
-    mcreator_boxes->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000)));
+    mcreator_boxes->SetXsizeDistribution(std::make_shared<ChZhangDistribution>(0.20, 0.09));  // Zhang parameters: average val, min val.
+    mcreator_boxes->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.8, 1.0));
+    mcreator_boxes->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 0.3));
+    mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_plastic : public ChCallbackPostCreation {
@@ -220,8 +220,8 @@ int main(int argc, char* argv[]) {
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     ChSharedPtr<ChRandomShapeCreatorConvexHulls> mcreator_hulls(new ChRandomShapeCreatorConvexHulls);
-    mcreator_hulls->SetChordDistribution(ChSmartPtr<ChZhangDistribution>(new ChZhangDistribution(0.3, 0.14)));  // Zhang parameters: average val, min val.
-    mcreator_hulls->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    mcreator_hulls->SetChordDistribution(std::make_shared<ChZhangDistribution>(0.3, 0.14));  // Zhang parameters: average val, min val.
+    mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_hulls : public ChCallbackPostCreation {
@@ -246,11 +246,11 @@ int main(int argc, char* argv[]) {
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     ChSharedPtr<ChRandomShapeCreatorShavings> mcreator_shavings(new ChRandomShapeCreatorShavings);
-    mcreator_shavings->SetDiameterDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.06, 0.1))); 
-    mcreator_shavings->SetLengthRatioDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(3, 6)));  
-    mcreator_shavings->SetTwistDistributionU(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(5, 9)));
-    mcreator_shavings->SetTwistDistributionV(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(2, 3)));
-    mcreator_shavings->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    mcreator_shavings->SetDiameterDistribution(std::make_shared<ChMinMaxDistribution>(0.06, 0.1));
+    mcreator_shavings->SetLengthRatioDistribution(std::make_shared<ChMinMaxDistribution>(3, 6));
+    mcreator_shavings->SetTwistDistributionU(std::make_shared<ChMinMaxDistribution>(5, 9));
+    mcreator_shavings->SetTwistDistributionV(std::make_shared<ChMinMaxDistribution>(2, 3));
+    mcreator_shavings->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_shavings : public ChCallbackPostCreation {

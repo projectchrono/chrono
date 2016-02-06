@@ -136,10 +136,10 @@ int main(int argc, char* argv[]) {
     // Create a ChRandomShapeCreator object (ex. here for box particles)
     ChSharedPtr<ChRandomShapeCreatorBoxes> mcreator_boxes(new ChRandomShapeCreatorBoxes);
     mcreator_boxes->SetXsizeDistribution(
-        ChSmartPtr<ChZhangDistribution>(new ChZhangDistribution(0.5, 0.2)));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.2, 1.0)));
-    mcreator_boxes->SetSizeRatioYZDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.4, 1.0)));
-    mcreator_boxes->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000)));
+        std::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
+    mcreator_boxes->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 1.0));
+    mcreator_boxes->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_boxes : public ChCallbackPostCreation {
