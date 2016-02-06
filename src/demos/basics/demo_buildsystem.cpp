@@ -54,14 +54,14 @@ int main(int argc, char* argv[]) {
         // Markers are 'auxiliary coordinate systems' to be added
         // to rigid bodies.
         // Again, note that they are managed by shared pointers.
-        ChSharedMarkerPtr my_marker_a1(new ChMarker);
-        ChSharedMarkerPtr my_marker_a2(new ChMarker);
-        ChSharedMarkerPtr my_marker_b1(new ChMarker);
-        ChSharedMarkerPtr my_marker_b2(new ChMarker);
+        ChSharedPtr<ChMarker> my_marker_a1(new ChMarker);
+        ChSharedPtr<ChMarker> my_marker_a2(new ChMarker);
+        ChSharedPtr<ChMarker> my_marker_b1(new ChMarker);
+        ChSharedPtr<ChMarker> my_marker_b2(new ChMarker);
 
         // You can create some forces too...
-        ChSharedForcePtr my_force_a1(new ChForce);
-        ChSharedForcePtr my_force_a2(new ChForce);
+        ChSharedPtr<ChForce> my_force_a1(new ChForce);
+        ChSharedPtr<ChForce> my_force_a2(new ChForce);
 
         // Here you will add forces and markers to rigid
         // bodies.
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
 
         // Create two markers and add them to two bodies:
         // they will be used as references for 'rod-crank'link.
-        ChSharedMarkerPtr my_marker_b(new ChMarker);
-        ChSharedMarkerPtr my_marker_c(new ChMarker);
+        ChSharedPtr<ChMarker> my_marker_b(new ChMarker);
+        ChSharedPtr<ChMarker> my_marker_c(new ChMarker);
 
         my_marker_b->SetName("crank_rev");
         my_marker_c->SetName("rod_rev");

@@ -47,9 +47,6 @@ namespace chrono {
 
 // forward references & shortcuts..
 
-typedef ChSharedPtr<ChLink> ChSharedLinkPtr;
-typedef ChSharedPtr<ChProbe> ChSharedProbePtr;
-typedef ChSharedPtr<ChControls> ChSharedControlsPtr;
 class ChLcpSolver;
 class ChLcpSystemDescriptor;
 class ChContactContainerBase;

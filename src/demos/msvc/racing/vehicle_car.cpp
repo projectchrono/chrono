@@ -134,8 +134,8 @@ MySimpleCar::MySimpleCar(ChSystem& my_system,           ///< the chrono::engine 
     link_brakeRF = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
     link_revoluteRF->GetMarker1()->AddRef();
     link_revoluteRF->GetMarker2()->AddRef();
-    link_brakeRF->Initialize(ChSharedMarkerPtr(link_revoluteRF->GetMarker1()),
-                             ChSharedMarkerPtr(link_revoluteRF->GetMarker2()));
+    link_brakeRF->Initialize(ChSharedPtr<ChMarker>(link_revoluteRF->GetMarker1()),
+                             ChSharedPtr<ChMarker>(link_revoluteRF->GetMarker2()));
     my_system.AddLink(link_brakeRF);
 
     // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -221,8 +221,8 @@ MySimpleCar::MySimpleCar(ChSystem& my_system,           ///< the chrono::engine 
     link_brakeLF = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
     link_revoluteLF->GetMarker1()->AddRef();
     link_revoluteLF->GetMarker2()->AddRef();
-    link_brakeLF->Initialize(ChSharedMarkerPtr(link_revoluteLF->GetMarker1()),
-                             ChSharedMarkerPtr(link_revoluteLF->GetMarker2()));
+    link_brakeLF->Initialize(ChSharedPtr<ChMarker>(link_revoluteLF->GetMarker1()),
+                             ChSharedPtr<ChMarker>(link_revoluteLF->GetMarker2()));
     my_system.AddLink(link_brakeLF);
 
     // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
@@ -308,8 +308,8 @@ MySimpleCar::MySimpleCar(ChSystem& my_system,           ///< the chrono::engine 
     link_brakeRB = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
     link_revoluteRB->GetMarker1()->AddRef();
     link_revoluteRB->GetMarker2()->AddRef();
-    link_brakeRB->Initialize(ChSharedMarkerPtr(link_revoluteRB->GetMarker1()),
-                             ChSharedMarkerPtr(link_revoluteRB->GetMarker2()));
+    link_brakeRB->Initialize(ChSharedPtr<ChMarker>(link_revoluteRB->GetMarker1()),
+                             ChSharedPtr<ChMarker>(link_revoluteRB->GetMarker2()));
     my_system.AddLink(link_brakeRB);
 
     // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
@@ -404,8 +404,8 @@ MySimpleCar::MySimpleCar(ChSystem& my_system,           ///< the chrono::engine 
     link_brakeLB = ChSharedPtr<ChLinkBrake>(new ChLinkBrake);
     link_revoluteLB->GetMarker1()->AddRef();
     link_revoluteLB->GetMarker2()->AddRef();
-    link_brakeLB->Initialize(ChSharedMarkerPtr(link_revoluteLB->GetMarker1()),
-                             ChSharedMarkerPtr(link_revoluteLB->GetMarker2()));
+    link_brakeLB->Initialize(ChSharedPtr<ChMarker>(link_revoluteLB->GetMarker1()),
+                             ChSharedPtr<ChMarker>(link_revoluteLB->GetMarker2()));
     my_system.AddLink(link_brakeLB);
 
     // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)

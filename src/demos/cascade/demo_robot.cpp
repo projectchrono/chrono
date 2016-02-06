@@ -356,8 +356,8 @@ int main(int argc, char* argv[]) {
     // absolute reference: when we will move the marker in absolute reference, the
     // hand will follow it.
 
-    ChSharedMarkerPtr my_marker_hand(new ChMarker);
-    ChSharedMarkerPtr my_marker_move(new ChMarker);
+    ChSharedPtr<ChMarker> my_marker_hand(new ChMarker);
+    ChSharedPtr<ChMarker> my_marker_move(new ChMarker);
 
     mrigidBody_hand->AddMarker(my_marker_hand);
     mrigidBody_base->AddMarker(my_marker_move);

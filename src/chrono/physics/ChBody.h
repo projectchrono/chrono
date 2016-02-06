@@ -32,9 +32,6 @@ namespace chrono {
 
 class ChSystem;
 
-typedef ChSharedPtr<ChForce> ChSharedForcePtr;
-typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
-
 /////////////////////////////////////
 // Define body specific flags
 

@@ -95,8 +95,6 @@ class ChApi ChAsset : public ChShared {
     }
 };
 
-typedef ChSharedPtr<ChAsset> ChSharedAssetPtr;
-
 /// @} chrono_assets
 
 }  // END_OF_NAMESPACE____
