@@ -129,14 +129,14 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
     // start_vector = ||    -- description is still empty
     if (shapes.size() == 0) {
         if (centered) {
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
             bt_collision_object->setCollisionShape(mshape);
             // end_vector=  | centered shape |
             return;
         } else {
             btCompoundShape* mcompound = new btCompoundShape(true);
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mcompound));
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mcompound));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
             bt_collision_object->setCollisionShape(mcompound);
             btTransform mtransform;
             ChPosMatrToBullet(pos, rot, mtransform);
@@ -149,23 +149,23 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
     if (shapes.size() == 1) {
         btTransform mtransform;
         shapes.push_back(shapes[0]);
-        shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
         btCompoundShape* mcompound = new btCompoundShape(true);
-        shapes[0] = ChSmartPtr<btCollisionShape>(mcompound);
+        shapes[0] = std::shared_ptr<btCollisionShape>(mcompound);
         bt_collision_object->setCollisionShape(mcompound);
         mtransform.setIdentity();
-        mcompound->addChildShape(mtransform, shapes[1].get_ptr());
+        mcompound->addChildShape(mtransform, shapes[1].get());
         ChPosMatrToBullet(pos, rot, mtransform);
-        mcompound->addChildShape(mtransform, shapes[2].get_ptr());
+        mcompound->addChildShape(mtransform, shapes[2].get());
         // vector=  | compound | old centered shape | new shape | ...
         return;
     }
     // vector=  | compound | old | old.. |   ----already working with compounds..
     if (shapes.size() > 1) {
         btTransform mtransform;
-        shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
         ChPosMatrToBullet(pos, rot, mtransform);
-        btCollisionShape* mcom = shapes[0].get_ptr();
+        btCollisionShape* mcom = shapes[0].get();
         ((btCompoundShape*)mcom)->addChildShape(mtransform, mshape);
         // vector=  | compound | old | old.. | new shape | ...
         return;
@@ -792,9 +792,10 @@ void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
     bbmax.Set(btmax.x(), btmax.y(), btmax.z());
 }
 
-void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<smartptrshapes>& shapes) {
+void __recurse_add_newcollshapes(btCollisionShape* ashape,
+    std::vector<std::shared_ptr<btCollisionShape> >& shapes) {
     if (ashape) {
-        shapes.push_back(ChSmartPtr<btCollisionShape>(ashape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(ashape));
 
         if (ashape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE) {
             btCompoundShape* compoundShape = (btCompoundShape*)ashape;
@@ -824,7 +825,7 @@ void ChModelBullet::SyncPosition()
 bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
     if (this->shapes.size() != 1)
         return false;
-    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get_ptr())) {
+    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get())) {
         this->SetSafeMargin(coll_radius);
         this->SetEnvelope(out_envelope);
         mshape->setUnscaledRadius((btScalar)(coll_radius + out_envelope));
