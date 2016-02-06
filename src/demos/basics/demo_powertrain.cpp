@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         // and maybe one applied torque). The ChShaft objects do not have
         // any meaning in 3d: they are just 'building blocks' for making
         // power trains as in imput-output black box schemes.
-        ChSharedShaftPtr my_shaftA(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftA(new ChShaft);
         my_shaftA->SetInertia(10);
         my_shaftA->SetAppliedTorque(6);
         my_system.Add(my_shaftA);
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
         // Create another shaft. Note that we use shared pointers for ChShaft
         // objects, as we did for ChBody objects. Also, note that we must add them
         // to the ChSystem.
-        ChSharedShaftPtr my_shaftB(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftB(new ChShaft);
         my_shaftB->SetInertia(100);
         my_shaftB->SetShaftFixed(false);
         my_system.Add(my_shaftB);
@@ -136,13 +136,13 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create a ChShaft that starts with nonzero angular velocity
-        ChSharedShaftPtr my_shaftA(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftA(new ChShaft);
         my_shaftA->SetInertia(0.5);
         my_shaftA->SetPos_dt(30);
         my_system.Add(my_shaftA);
 
         // Create another ChShaft, with opposite initial angular velocity
-        ChSharedShaftPtr my_shaftB(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftB(new ChShaft);
         my_shaftB->SetInertia(0.6);
         my_shaftB->SetPos_dt(-10);
         my_system.Add(my_shaftB);
@@ -215,18 +215,18 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create shaft A, with applied torque
-        ChSharedShaftPtr my_shaftA(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftA(new ChShaft);
         my_shaftA->SetInertia(0.5);
         my_shaftA->SetAppliedTorque(10);
         my_system.Add(my_shaftA);
 
         // Create shaft B
-        ChSharedShaftPtr my_shaftB(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftB(new ChShaft);
         my_shaftB->SetInertia(0.5);
         my_system.Add(my_shaftB);
 
         // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
-        ChSharedShaftPtr my_shaftC(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftC(new ChShaft);
         my_shaftC->SetShaftFixed(true);
         my_system.Add(my_shaftC);
 
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
 
         // Now, let's make a shaft D, that is fixed, and used for the right side
         // of a clutch (so the clutch will act as a brake).
-        ChSharedShaftPtr my_shaftD(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftD(new ChShaft);
         my_shaftD->SetShaftFixed(true);
         my_system.Add(my_shaftD);
 
@@ -306,12 +306,12 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create 'A', a 1D shaft
-        ChSharedShaftPtr my_shaftA(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftA(new ChShaft);
         my_shaftA->SetInertia(9);
         my_system.Add(my_shaftA);
 
         // Create 'C', a 1D shaft, fixed
-        ChSharedShaftPtr my_shaftC(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftC(new ChShaft);
         my_shaftC->SetShaftFixed(true);
         my_system.Add(my_shaftC);
 
@@ -389,23 +389,23 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create 'A', a 1D shaft
-        ChSharedShaftPtr my_shaftA(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftA(new ChShaft);
         my_shaftA->SetInertia(1.5);
         my_system.Add(my_shaftA);
 
         // Create 'B', a 1D shaft
-        ChSharedShaftPtr my_shaftB(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftB(new ChShaft);
         my_shaftB->SetInertia(3.2);
         my_shaftB->SetAppliedTorque(-5);  // apply const braking torque
         my_system.Add(my_shaftB);
 
         // Create 'C', a 1D shaft, fixed
-        ChSharedShaftPtr my_shaftC(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftC(new ChShaft);
         my_shaftC->SetShaftFixed(true);
         my_system.Add(my_shaftC);
 
         // Create 'D', a 1D shaft, fixed
-        ChSharedShaftPtr my_shaftD(new ChShaft);
+        ChSharedPtr<ChShaft> my_shaftD(new ChShaft);
         my_shaftD->SetShaftFixed(true);
         my_system.Add(my_shaftD);
 

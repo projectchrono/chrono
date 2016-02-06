@@ -333,13 +333,13 @@ bool TestClutch(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) 
   ChSystemParallel* system = CreateSystem(cm);
 
   // Create a ChShaft that starts with nonzero angular velocity
-  ChSharedShaftPtr shaftA(new ChShaft);
+  ChSharedPtr<ChShaft> shaftA(new ChShaft);
   shaftA->SetInertia(0.5);
   shaftA->SetPos_dt(30);
   system->Add(shaftA);
 
   // Create another ChShaft, with opposite initial angular velocity
-  ChSharedShaftPtr shaftB(new ChShaft);
+  ChSharedPtr<ChShaft> shaftB(new ChShaft);
   shaftB->SetInertia(0.6);
   shaftB->SetPos_dt(-10);
   system->Add(shaftB);
@@ -403,18 +403,18 @@ bool TestShaftShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMe
   ChSystemParallel* system = CreateSystem(cm);
 
   // Create shaft A, with applied torque
-  ChSharedShaftPtr shaftA(new ChShaft);
+  ChSharedPtr<ChShaft> shaftA(new ChShaft);
   shaftA->SetInertia(0.5);
   shaftA->SetAppliedTorque(10);
   system->Add(shaftA);
 
   // Create shaft B
-  ChSharedShaftPtr shaftB(new ChShaft);
+  ChSharedPtr<ChShaft> shaftB(new ChShaft);
   shaftB->SetInertia(0.5);
   system->Add(shaftB);
 
   // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
-  ChSharedShaftPtr shaftC(new ChShaft);
+  ChSharedPtr<ChShaft> shaftC(new ChShaft);
   shaftC->SetShaftFixed(true);
   system->Add(shaftC);
 
@@ -435,7 +435,7 @@ bool TestShaftShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMe
 
   // Now, let's make a shaft D, that is fixed, and used for the right side
   // of a clutch (so the clutch will act as a brake).
-  ChSharedShaftPtr shaftD(new ChShaft);
+  ChSharedPtr<ChShaft> shaftD(new ChShaft);
   shaftD->SetShaftFixed(true);
   system->Add(shaftD);
 

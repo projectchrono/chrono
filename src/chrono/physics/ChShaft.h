@@ -289,8 +289,6 @@ class ChApi ChShaft : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChShaft> ChSharedShaftPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

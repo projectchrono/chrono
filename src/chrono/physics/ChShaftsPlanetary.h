@@ -250,8 +250,6 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChShaftsPlanetary> ChSharedPlanetaryPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

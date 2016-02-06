@@ -198,8 +198,6 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChShaftsClutch> ChSharedShaftsClutchPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

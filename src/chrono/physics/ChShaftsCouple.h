@@ -151,8 +151,6 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
 
 };
 
-typedef ChSharedPtr<ChShaftsCouple> ChSharedShaftsCouplePtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

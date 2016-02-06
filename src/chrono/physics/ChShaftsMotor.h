@@ -219,8 +219,6 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChShaftsMotor> ChSharedShaftsMotorPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif
