@@ -25,6 +25,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#include <memory>
+
 #include "core/ChMath.h"
 #include "core/ChShared.h"
 #include "core/ChApiCE.h"
