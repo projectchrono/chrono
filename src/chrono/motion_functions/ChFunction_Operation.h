@@ -85,11 +85,11 @@ class ChApi ChFunction_Operation : public ChFunction {
     void Set_optype(eChOperation m_op) { op_type = m_op; }
     eChOperation Get_optype() { return op_type; }
 
-    void Set_fa(ChSharedPtr<ChFunction> m_fa) { fa = m_fa; }
-    ChSharedPtr<ChFunction> Get_fa() { return fa; }
+    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
+    std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
-    void Set_fb(ChSharedPtr<ChFunction> m_fb) { fb = m_fb; }
-    ChSharedPtr<ChFunction> Get_fb() { return fb; }
+    void Set_fb(std::shared_ptr<ChFunction> m_fb) { fb = m_fb; }
+    std::shared_ptr<ChFunction> Get_fb() { return fb; }
 
     double Get_y(double x);
     //	double Get_y_dx   (double x) ;
