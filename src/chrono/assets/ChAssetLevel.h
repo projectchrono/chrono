@@ -49,7 +49,7 @@ class ChApi ChAssetLevel : public ChAsset {
     //
     ChFrame<> levelframe;
 
-    std::vector<ChSharedPtr<ChAsset> > assets;
+    std::vector<std::shared_ptr<ChAsset> > assets;
 
   public:
     //
@@ -69,20 +69,18 @@ class ChApi ChAssetLevel : public ChAsset {
     ChFrame<>& GetFrame() { return levelframe; }
 
     /// Access to the list of children assets.
-    std::vector<ChSharedPtr<ChAsset> >& GetAssets() { return this->assets; }
+    std::vector<std::shared_ptr<ChAsset> >& GetAssets() { return this->assets; }
 
     /// Get the Nth asset in list
-    ChSharedPtr<ChAsset> GetAssetN(unsigned int num) {
+    std::shared_ptr<ChAsset> GetAssetN(unsigned int num) {
         if (num < assets.size())
             return assets[num];
-        else {
-            ChSharedPtr<ChAsset> none;
-            return none;
-        };
+        else
+            return std::shared_ptr<ChAsset>();
     }
 
     /// Add an asset
-    void AddAsset(ChSharedPtr<ChAsset> masset) { this->assets.push_back(masset); }
+    void AddAsset(std::shared_ptr<ChAsset> masset) { this->assets.push_back(masset); }
 
     /// Updates all children assets, if any. Overrides default behaviour that does nothing.
     /// Note that when calls Update() on children assets, their 'coords' will be the result

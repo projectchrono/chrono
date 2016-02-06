@@ -30,7 +30,7 @@ class ChApi ChPathShape : public ChVisualization {
     //
     // DATA
     //
-    ChSharedPtr<geometry::ChLinePath> gpath;
+    std::shared_ptr<geometry::ChLinePath> gpath;
 
   public:
     //
@@ -39,18 +39,19 @@ class ChApi ChPathShape : public ChVisualization {
 
     ChPathShape() {
         // default path
-        gpath = ChSharedPtr<geometry::ChLinePath>(new geometry::ChLinePath);
-    };
-    ChPathShape(ChSharedPtr<geometry::ChLinePath>& mpath) : gpath(mpath){};
+        gpath = std::make_shared<geometry::ChLinePath>();
+    }
 
-    virtual ~ChPathShape(){};
+    ChPathShape(std::shared_ptr<geometry::ChLinePath>& mpath) : gpath(mpath) {}
+
+    virtual ~ChPathShape() {}
 
     //
     // FUNCTIONS
     //
 
     // Access the sphere geometry
-    ChSharedPtr<geometry::ChLinePath> GetPathGeometry() { return gpath; }
+    std::shared_ptr<geometry::ChLinePath> GetPathGeometry() { return gpath; }
 
 
     //
