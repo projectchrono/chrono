@@ -107,6 +107,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_fluid_bodies;
     uint num_rigid_bodies;
     uint num_rigid_fluid_contacts;
+    uint num_rigid_mpm_contacts;
     uint num_unilaterals;
     uint num_bilaterals;
     uint num_shafts;
@@ -191,6 +192,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     int GetNumNonZeros();
 
     DynamicVector<real> rhs;
+    DynamicVector<real> grid_vel;
 
     custom_vector<real> det_marker_Fp;
     custom_vector<Mat33> SVD_Fe_hat_R;
