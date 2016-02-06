@@ -763,8 +763,6 @@ const int BODY_DOF = 6;   ///< degrees of freedom of body in 3d space
 const int BODY_QDOF = 7;  ///< degrees of freedom with quaternion rotation state
 const int BODY_ROT = 3;   ///< rotational dof in Newton dynamics
 
-typedef ChSharedPtr<ChBody> ChSharedBodyPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

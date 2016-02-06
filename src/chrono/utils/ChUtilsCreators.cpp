@@ -329,7 +329,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
 
   int hull_count = used_decomposition->GetHullCount();
 
-  ChSharedBodyPtr body;
+  ChSharedPtr<ChBody> body;
   double mass;
   ChVector<> center;
   ChMatrix33<> inertia;

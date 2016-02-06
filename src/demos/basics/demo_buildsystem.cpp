@@ -46,9 +46,9 @@ int main(int argc, char* argv[]) {
         // Note that we use shared pointers, so you don't
         // have to care about the deletion (never use delete.. for
         // objects managed with shared pointers! it will be automatic!)
-        ChSharedBodyPtr my_body_A(new ChBody);
-        ChSharedBodyPtr my_body_B(new ChBody);
-        ChSharedBodyPtr my_body_C(new ChBody);
+        ChSharedPtr<ChBody> my_body_A(new ChBody);
+        ChSharedPtr<ChBody> my_body_B(new ChBody);
+        ChSharedPtr<ChBody> my_body_C(new ChBody);
 
         // Create some markers..
         // Markers are 'auxiliary coordinate systems' to be added
@@ -115,9 +115,9 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create three rigid bodies and add them to the system:
-        ChSharedBodyPtr my_body_A(new ChBody);  // truss
-        ChSharedBodyPtr my_body_B(new ChBody);  // crank
-        ChSharedBodyPtr my_body_C(new ChBody);  // rod
+        ChSharedPtr<ChBody> my_body_A(new ChBody);  // truss
+        ChSharedPtr<ChBody> my_body_B(new ChBody);  // crank
+        ChSharedPtr<ChBody> my_body_C(new ChBody);  // rod
 
         my_body_A->SetName("truss");
         my_body_B->SetName("crank");

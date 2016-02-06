@@ -390,7 +390,7 @@ namespace VehicleEnvironment {
 		wheelLB->SetRot_dt(chrono::QUNIT);
 	}
 
-	chrono::ChSharedBodyPtr VESuspensionDemo::getChassis() {
+    chrono::ChSharedPtr<ChBody> VESuspensionDemo::getChassis() {
 		return truss.ChBody();
 	}
 

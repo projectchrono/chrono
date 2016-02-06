@@ -18,16 +18,13 @@ using namespace tinyxml2;
 
 #define PI 3.1415
 
-#define CHBODYSHAREDPTR ChSharedBodyPtr
-#define CHBODY ChBody
 #define CHCOLLISIONSYS ChCollisionSystemBullet
 #define CHLCPDESC ChLcpSystemDescriptor
 #define CHCONTACTCONT ChContactContainer
 #define CHSOLVER ChLcpIterativeJacobi
 #define CHMODEL ChModelBullet
-#define CHSYS ChSystem
 
-void InitObject_(ChSharedPtr<CHBODY>& body,
+void InitObject_(ChSharedPtr<ChBody>& body,
                  double mass,
                  ChVector<> pos,
                  ChQuaternion<> rot,
@@ -53,7 +50,7 @@ void InitObject_(ChSharedPtr<CHBODY>& body,
     // body->SetUseSleeping(true);
 }
 
-void AddCollisionGeometry_(ChSharedPtr<CHBODY>& body, int type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
+void AddCollisionGeometry_(ChSharedPtr<ChBody>& body, int type, ChVector<> dim, ChVector<> lPos, ChQuaternion<> lRot) {
     CHMODEL* model = (CHMODEL*)body->GetCollisionModel();
     if (type == SPHERE) {
         model->AddSphere(dim.x, lPos);
@@ -65,7 +62,7 @@ void AddCollisionGeometry_(ChSharedPtr<CHBODY>& body, int type, ChVector<> dim, 
         model->AddCylinder(dim.x, dim.y, dim.z, lPos, lRot);
     }
 }
-void FinalizeObject_(ChSharedPtr<CHBODY> newbody, CHSYS* mSystem) {
+void FinalizeObject_(ChSharedPtr<ChBody> newbody, ChSystem* mSystem) {
     newbody->GetCollisionModel()->BuildModel();
     mSystem->AddBody(newbody);
 }
@@ -93,11 +90,11 @@ int main() {
     mSys->SetIntegrationType(ChSystem::INT_ANITESCU);
     mSys->Set_G_acc(ChVector<>(0, -9.80665, 0));
 
-    ChSharedBodyPtr sphere;
+    ChSharedPtr<ChBody> sphere;
     ChVector<> lpos(0, 0, 0);
     ChQuaternion<> quat(1, 0, 0, 0);
     for (int i = 0; i < 1000; i++) {
-        sphere = ChSharedBodyPtr(new ChBody);
+        sphere = ChSharedPtr<ChBody>(new ChBody);
         InitObject_(sphere, 1.0, ChVector<>((rand() % 10000 / 1000.0 - 5) * 2, (rand() % 10000 / 1000.0 - 5) * 2,
                                             (rand() % 10000 / 1000.0 - 5) * 2),
                     quat, 0, 0, 0, true, false, -1, i);
@@ -113,12 +110,12 @@ int main() {
 
     float container_R = -7.0, container_T = .1;
 
-    CHBODYSHAREDPTR L = CHBODYSHAREDPTR(new CHBODY);
-    CHBODYSHAREDPTR R = CHBODYSHAREDPTR(new CHBODY);
-    CHBODYSHAREDPTR F = CHBODYSHAREDPTR(new CHBODY);
-    CHBODYSHAREDPTR B = CHBODYSHAREDPTR(new CHBODY);
-    CHBODYSHAREDPTR BTM = CHBODYSHAREDPTR(new CHBODY);
-    CHBODYSHAREDPTR FREE = CHBODYSHAREDPTR(new CHBODY);
+    ChSharedPtr<ChBody> L(new ChBody);
+    ChSharedPtr<ChBody> R(new ChBody);
+    ChSharedPtr<ChBody> F(new ChBody);
+    ChSharedPtr<ChBody> B(new ChBody);
+    ChSharedPtr<ChBody> BTM(new ChBody);
+    ChSharedPtr<ChBody> FREE(new ChBody);
     ChQuaternion<> quat2(1, 0, 0, 0);
     quat2.Q_from_AngAxis(PI / 6.0, ChVector<>(1, 0, 0));
     InitObject_(L, 100000, ChVector<>(-container_R, 0, 0), quat, mWallMu, mWallMu, 0, true, true, -20, -20);

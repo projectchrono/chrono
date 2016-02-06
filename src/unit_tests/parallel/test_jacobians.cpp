@@ -153,7 +153,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
         ChVector<> rnd(rand() % 1000 / 100000.0, rand() % 1000 / 100000.0, rand() % 1000 / 100000.0);
         ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
-        ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+        ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel));
         ball->SetMaterialSurface(ballMat);
 
         ball->SetIdentifier(ballId++);

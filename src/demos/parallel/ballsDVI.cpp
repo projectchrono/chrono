@@ -72,7 +72,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
   mat->SetFriction(0.4f);
 
   // Create the containing bin (4 x 4 x 1)
-  ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
+  ChSharedPtr<ChBody> bin(new ChBody(new ChCollisionModelParallel));
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
@@ -113,7 +113,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
     for (int iy = -count_Y; iy <= count_Y; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+      ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel));
       ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);

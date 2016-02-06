@@ -41,7 +41,7 @@ const std::string ChChaseCamera::m_stateNames[] = {"Chase", "Follow", "Track", "
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChChaseCamera::ChChaseCamera(const ChSharedBodyPtr chassis)
+ChChaseCamera::ChChaseCamera(ChSharedPtr<ChBody> chassis)
     : m_chassis(chassis),
       m_mult(1),
       m_maxMult(10),

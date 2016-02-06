@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
 
   int triId = 0;
   for(int i=0; i<triangles.size(); i++) {
-    ChSharedBodyPtr triangle(new ChBody(new ChCollisionModelParallel));
+      ChSharedPtr<ChBody> triangle(new ChBody(new ChCollisionModelParallel));
     triangle->SetMaterialSurface(triMat);
     triangle->SetIdentifier(triId++);
     triangle->SetMass(mass);

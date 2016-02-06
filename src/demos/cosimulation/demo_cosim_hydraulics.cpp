@@ -43,11 +43,11 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create rigid bodies and add them to the system:
-        ChSharedBodyPtr my_body_A(new ChBody);  // truss
+        ChSharedPtr<ChBody> my_body_A(new ChBody);  // truss
         my_body_A->SetBodyFixed(true);          // truss does not move!
         my_system.AddBody(my_body_A);
 
-        ChSharedBodyPtr my_body_B(new ChBody);  // moving body
+        ChSharedPtr<ChBody> my_body_B(new ChBody);  // moving body
         my_body_B->SetMass(114);
         my_body_B->SetInertiaXX(ChVector<>(50, 50, 50));
         my_body_B->SetPos(ChVector<>(1, 1, 0));

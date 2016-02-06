@@ -91,20 +91,20 @@ int main(int argc, char* argv[]) {
     //   their center of mass (COG) etc.
 
     // ..the truss
-    ChSharedBodyPtr my_body_A(new ChBody);
+    ChSharedPtr<ChBody> my_body_A(new ChBody);
     my_system.AddBody(my_body_A);
     my_body_A->SetBodyFixed(true);  // truss does not move!
     my_body_A->SetName("Ground-Truss");
 
     // ..the crank
-    ChSharedBodyPtr my_body_B(new ChBody);
+    ChSharedPtr<ChBody> my_body_B(new ChBody);
     my_system.AddBody(my_body_B);
     my_body_B->SetPos(ChVector<>(1, 0, 0));  // position of COG of crank
     my_body_B->SetMass(2);
     my_body_B->SetName("Crank");
 
     // ..the rod
-    ChSharedBodyPtr my_body_C(new ChBody);
+    ChSharedPtr<ChBody> my_body_C(new ChBody);
     my_system.AddBody(my_body_C);
     my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
     my_body_C->SetMass(3);

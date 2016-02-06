@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
         my_system.Add(my_shaftC);
 
         // Create 'B', a 3D rigid body
-        ChSharedBodyPtr my_bodyB(new ChBody);
+        ChSharedPtr<ChBody> my_bodyB(new ChBody);
         my_bodyB->Accumulate_torque(ChVector<>(0, 0, 3), true);  // set some constant torque to body
         my_system.Add(my_bodyB);
 

@@ -21,7 +21,7 @@ int main() {
     ChSystem dynamics_system;
 
     for (int i = 0; i < num_bodies; i++) {
-        ChSharedBodyPtr body(new ChBody());
+        ChSharedPtr<ChBody> body(new ChBody());
         body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
         dynamics_system.AddBody(body);
     }

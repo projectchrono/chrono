@@ -68,7 +68,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
   mat->SetFriction(0.4f);
 
   // Create the containing bin (2 x 2 x 1)
-  ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
+  ChSharedPtr<ChBody> bin(new ChBody(new ChCollisionModelParallel));
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
@@ -93,7 +93,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
   sys->AddBody(bin);
 
   // The rotating mixer body (1.6 x 0.2 x 0.4)
-  ChSharedBodyPtr mixer(new ChBody(new ChCollisionModelParallel));
+  ChSharedPtr<ChBody> mixer(new ChBody(new ChCollisionModelParallel));
   mixer->SetMaterialSurface(mat);
   mixer->SetIdentifier(mixerId);
   mixer->SetMass(10.0);
@@ -140,7 +140,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
     for (int iy = -2; iy < 3; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+      ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel));
       ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
