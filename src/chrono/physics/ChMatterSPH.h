@@ -394,8 +394,6 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChMatterSPH> ChSharedMatterSPHPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

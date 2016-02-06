@@ -363,13 +363,6 @@ public:
 
 };
 
-
-
-// A shortcut..
-typedef ChSharedPtr<ChMatterMeshless> ChSharedMatterMeshlessPtr;
-
-
-
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____
 

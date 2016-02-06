@@ -123,8 +123,6 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChIndexedParticles> ChSharedIndexedParticlesPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

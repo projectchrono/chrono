@@ -89,8 +89,6 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChIndexedNodes> ChSharedIndexedNodesPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif

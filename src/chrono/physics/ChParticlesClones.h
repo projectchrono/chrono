@@ -385,8 +385,6 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-typedef ChSharedPtr<ChParticlesClones> ChSharedParticlesClonesPtr;
-
 }  // END_OF_NAMESPACE____
 
 #endif
