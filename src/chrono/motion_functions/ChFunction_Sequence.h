@@ -172,7 +172,7 @@ class ChApi ChFunction_Sequence : public ChFunction {
     ///  - If position = 0, returns always head (beginning),
     ///  - If position = -1 returns tail (end).
     ///  - If position > max number of current nodes, returns tail fx anyway.
-    ChSharedPtr<ChFunction> GetNthFunction(int position);
+    std::shared_ptr<ChFunction> GetNthFunction(int position);
 
     /// As above, but returns the function node (containing function pointer,
     /// function duration, continuity flags with previous node, etc.)
