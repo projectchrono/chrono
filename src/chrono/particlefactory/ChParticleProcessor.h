@@ -39,9 +39,9 @@ class ChParticleProcessor : public ChShared {
   public:
     ChParticleProcessor() {
         // default trigger: trigger never
-        trigger = ChSharedPtr<ChParticleEventTriggerNever>(new ChParticleEventTriggerNever);
+        trigger = std::make_shared<ChParticleEventTriggerNever>();
         // default event processor: do nothing
-        particle_processor = ChSharedPtr<ChParticleProcessEventDoNothing>(new ChParticleProcessEventDoNothing);
+        particle_processor = std::make_shared<ChParticleProcessEventDoNothing>();
     }
 
     /// This function process particles according to some rule,
@@ -57,7 +57,7 @@ class ChParticleProcessor : public ChShared {
 
         ChSystem::IteratorBodies myiter = msystem.IterBeginBodies();
         while (myiter != msystem.IterEndBodies()) {
-            ChSharedPtr<ChBody> mybody = (*myiter);
+            std::shared_ptr<ChBody> mybody = (*myiter);
 
             if (this->trigger->TriggerEvent(mybody, msystem)) {
                 this->particle_processor->ParticleProcessEvent(mybody, msystem, this->trigger);
@@ -74,14 +74,14 @@ class ChParticleProcessor : public ChShared {
     }
 
     /// Use this function to plug in an event trigger.
-    void SetEventTrigger(ChSharedPtr<ChParticleEventTrigger> mtrigger) { trigger = mtrigger; }
+    void SetEventTrigger(std::shared_ptr<ChParticleEventTrigger> mtrigger) { trigger = mtrigger; }
 
     /// Use this function to plug in a particle event processor.
-    void SetParticleEventProcessor(ChSharedPtr<ChParticleProcessEvent> mproc) { particle_processor = mproc; }
+    void SetParticleEventProcessor(std::shared_ptr<ChParticleProcessEvent> mproc) { particle_processor = mproc; }
 
   protected:
-    ChSharedPtr<ChParticleEventTrigger> trigger;
-    ChSharedPtr<ChParticleProcessEvent> particle_processor;
+    std::shared_ptr<ChParticleEventTrigger> trigger;
+    std::shared_ptr<ChParticleProcessEvent> particle_processor;
 };
 
 /// @} chrono_particles
