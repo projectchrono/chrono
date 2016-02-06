@@ -134,7 +134,6 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void Build_b();
     void Build_E();
     void Project(real* gamma);
-    void ProjectInternal(real* gamma);
     void GenerateSparsity();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);

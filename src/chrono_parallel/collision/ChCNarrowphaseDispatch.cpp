@@ -453,7 +453,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     cpta_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     dpth_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
     neighbor_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
-    contact_counts.resize(num_fluid_bodies);
+    contact_counts.resize(num_fluid_bodies + 1);
 
     Thrust_Fill(contact_counts, 0);
     for (int index = 0; index < f_number_of_bins_active; index++) {
@@ -514,7 +514,8 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
             }
         }
     }
-    data_manager->num_rigid_fluid_contacts = Thrust_Total(contact_counts);
+    Thrust_Exclusive_Scan(contact_counts);
+    data_manager->num_rigid_fluid_contacts = contact_counts[num_fluid_bodies];
     LOG(TRACE) << "stop DispatchRigidFluid: " << data_manager->num_rigid_fluid_contacts;
 }
 
