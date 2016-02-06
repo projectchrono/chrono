@@ -77,6 +77,7 @@ class ChApi CallbackGenerator {
 // -----------------------------------------------------------------------------
 class ChApi MixtureIngredient {
  public:
+  MixtureIngredient(Generator* generator, MixtureType type, double ratio);
   ~MixtureIngredient();
 
   void setDefaultMaterialDVI(const ChSharedPtr<ChMaterialSurface>& mat);
@@ -102,8 +103,6 @@ class ChApi MixtureIngredient {
   void SetCallbackPostCreation(CallbackGenerator* mc) { callback_post_creation = mc; }
 
  private:
-  MixtureIngredient(Generator* generator, MixtureType type, double ratio);
-
   void freeMaterialDist();
   ChVector<> getSize();
   double getDensity();
