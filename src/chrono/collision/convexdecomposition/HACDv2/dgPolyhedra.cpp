@@ -728,7 +728,6 @@ hacd::HaI32 dgPolyhedra::PackVertex (hacd::HaF32* const destArray, const hacd::H
 	iter ++;
 
 	tree[edgeCount] = node;
-	node->AddRef();
 
 	HACD_ASSERT (edgeCount < maxCount);
 	edgeCount ++;

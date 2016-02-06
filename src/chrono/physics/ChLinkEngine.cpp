@@ -394,9 +394,7 @@ void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
 
     if (Body1 && Body2) {
         std::shared_ptr<ChBodyFrame> b1(Body1);
-        b1->AddRef();  // trick because acquiring raw ptr
         std::shared_ptr<ChBodyFrame> b2(Body2);
-        b2->AddRef();  // trick because acquiring raw ptr
         if (innerconstraint1)
             innerconstraint1->Initialize(innershaft1, b1, VECT_Z);
         if (innerconstraint2)
