@@ -13,17 +13,18 @@
 #ifndef CHARCHIVE_H
 #define CHARCHIVE_H
 
-
-#include "core/ChApiCE.h"
-#include "core/ChStream.h"
-#include "core/ChSmartpointers.h"
-#include "core/ChTemplateExpressions.h"
 #include <string>
 #include <sstream>
 #include <vector>
 #include <list>
 #include <typeinfo>
 #include <unordered_set>
+#include <memory>
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChSmartpointers.h"
+#include "chrono/core/ChTemplateExpressions.h"
 
 namespace chrono {
 
@@ -286,9 +287,10 @@ class ChEnumMapper : public ChEnumMapperBase {
 public:
     ChEnumMapper () : 
         value_ptr(0) {
-        enummap = ChSmartPtr< std::vector< ChEnumNamePair<Te> > >(new std::vector< ChEnumNamePair<Te> >);
+        enummap = std::shared_ptr< std::vector< ChEnumNamePair<Te> > >(new std::vector< ChEnumNamePair<Te> >);
     };
-    ChEnumMapper (ChSmartPtr< std::vector< ChEnumNamePair<Te> > >  mmap) : 
+
+    ChEnumMapper (std::shared_ptr< std::vector< ChEnumNamePair<Te> > >  mmap) : 
         value_ptr(0), 
         enummap(mmap) {};
 
@@ -351,7 +353,7 @@ public:
 
  protected:
         
-    ChSmartPtr< std::vector< ChEnumNamePair<Te> > > enummap;
+    std::shared_ptr< std::vector< ChEnumNamePair<Te> > > enummap;
 };
 
 /// Three macros to simplify the use of enum mapper.
