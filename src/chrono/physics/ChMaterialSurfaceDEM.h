@@ -105,8 +105,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     void SetGt(float val) { gt = val; }
 
     /// Calculate composite material properties
-    static ChCompositeMaterialDEM CompositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>& mat1,
-                                                    const ChSharedPtr<ChMaterialSurfaceDEM>& mat2);
+    static ChCompositeMaterialDEM CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceDEM>& mat1,
+                                                    const std::shared_ptr<ChMaterialSurfaceDEM>& mat2);
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"

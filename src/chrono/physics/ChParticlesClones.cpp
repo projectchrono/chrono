@@ -86,7 +86,7 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     return *this;
 }
 
-ChSharedPtr<ChMaterialSurfaceBase>& ChAparticle::GetMaterialSurfaceBase()
+std::shared_ptr<ChMaterialSurfaceBase>& ChAparticle::GetMaterialSurfaceBase()
 {
     return container->GetMaterialSurfaceBase();
 }
@@ -223,7 +223,7 @@ ChParticlesClones::ChParticlesClones() {
     // this->ResizeNparticles(num_particles); // caused memory corruption.. why?
 
     // default DVI material
-    matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+    matsurface = std::make_shared<ChMaterialSurface>();
 
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 

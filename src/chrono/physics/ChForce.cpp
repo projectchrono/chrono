@@ -55,18 +55,18 @@ ChForce::ChForce() {
     vreldir = VECT_X;
     restpos = VNULL;
     mforce = 0;
-    modula = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
+    modula = std::make_shared<ChFunction_Const>(1);
 
     align = FDIR_BODY;
     frame = FPOS_BODY;
     mode = FTYPE_FORCE;
 
-    move_x = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    move_y = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    move_z = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    f_x = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    f_y = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    f_z = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    move_x = std::make_shared<ChFunction_Const>(0);
+    move_y = std::make_shared<ChFunction_Const>(0);
+    move_z = std::make_shared<ChFunction_Const>(0);
+    f_x = std::make_shared<ChFunction_Const>(0);
+    f_y = std::make_shared<ChFunction_Const>(0);
+    f_z = std::make_shared<ChFunction_Const>(0);
 
     ChTime = 0;
 }
@@ -98,15 +98,15 @@ void ChForce::Copy(ChForce* source) {
     Qf->CopyFromMatrix(*source->Qf);
 
  
-    modula = ChSharedPtr<ChFunction>(source->modula->new_Duplicate());
+    modula = std::shared_ptr<ChFunction>(source->modula->new_Duplicate());
     
-    move_x = ChSharedPtr<ChFunction>(source->move_x->new_Duplicate());
-    move_y = ChSharedPtr<ChFunction>(source->move_y->new_Duplicate());
-    move_z = ChSharedPtr<ChFunction>(source->move_z->new_Duplicate());
+    move_x = std::shared_ptr<ChFunction>(source->move_x->new_Duplicate());
+    move_y = std::shared_ptr<ChFunction>(source->move_y->new_Duplicate());
+    move_z = std::shared_ptr<ChFunction>(source->move_z->new_Duplicate());
     
-    f_x = ChSharedPtr<ChFunction>(source->f_x->new_Duplicate());
-    f_y = ChSharedPtr<ChFunction>(source->f_y->new_Duplicate());
-    f_z = ChSharedPtr<ChFunction>(source->f_z->new_Duplicate());
+    f_x = std::shared_ptr<ChFunction>(source->f_x->new_Duplicate());
+    f_y = std::shared_ptr<ChFunction>(source->f_y->new_Duplicate());
+    f_z = std::shared_ptr<ChFunction>(source->f_z->new_Duplicate());
 }
 
 ////// Impose absolute or relative positions, also

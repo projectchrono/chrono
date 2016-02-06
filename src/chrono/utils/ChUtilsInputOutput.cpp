@@ -36,7 +36,7 @@ void WriteBodies(ChSystem* system,
     CSV_writer csv(delim);
 
     for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-        ChSharedPtr<ChBody> body = system->Get_bodylist()->at(i);
+        std::shared_ptr<ChBody> body = system->Get_bodylist()->at(i);
         if (active_only && !body->IsActive())
             continue;
         csv << body->GetPos() << body->GetRot();
@@ -58,9 +58,9 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
     CSV_writer csv(" ");
 
-    std::vector<ChSharedPtr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
+    std::vector<std::shared_ptr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
     for (; ibody != system->Get_bodylist()->end(); ++ibody) {
-        ChSharedPtr<ChBody> body = *ibody;
+        std::shared_ptr<ChBody> body = *ibody;
 
         // Infer body type (0: DVI, 1:DEM)
         int btype = (body->GetContactMethod() == ChMaterialSurfaceBase::DVI) ? 0 : 1;
@@ -83,13 +83,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         // Write material information
         if (btype == 0) {
             // Write DVI material surface information
-            ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
+            std::shared_ptr<ChMaterialSurface> mat = body->GetMaterialSurface();
             csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
             csv << mat->restitution << mat->cohesion << mat->dampingf;
             csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
         } else {
             // Write DEM material surface information
-            ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
+            std::shared_ptr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
             csv << mat->young_modulus << mat->poisson_ratio;
             csv << mat->static_friction << mat->sliding_friction;
             csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
@@ -99,7 +99,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Count and write all visual assets.
         int num_visual_assets = 0;
-        std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
+        std::vector<std::shared_ptr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
         for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
             if ((*iasset).IsType<ChVisualization>())
                 num_visual_assets++;

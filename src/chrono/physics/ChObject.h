@@ -50,23 +50,13 @@ namespace chrono {
 class ChVar;
 class ChTag;
 
-/// Base class for items which can be named, deleted,
-/// copied. etc. as in the editor of a 3d modeler.
+/// Base class for items which can be named, deleted, copied. etc. as in the editor of a 3d modeler.
 ///
+/// Each ChObject has a pointer to user data (for example, the user data can be the encapsulating
+/// object in case of implementation as a plugin for 3D modeling software.
 ///
-/// This class inherits the features of the reference-countable
-/// ChShared class, so that  ChObj  instances can be managed
-/// easily with the 'intrusive smart pointers' ChSharedPtr
-/// (with minimal overhead in performance, yet providing the
-/// safe and comfortable automatic deallocation mechanism of
-/// shared/smart pointers).
-///
-/// Each ChObject also has a pointer to user data (for example,
-/// the user data can be the encapsulating object in case of
-/// implementation as a plugin for 3D modeling software.
-///
-/// Also, each ChObj object has a 32 bit identifier, in case
-/// unique identifiers are used (hash algorithms, etc.)
+/// Also, each ChObj object has a 32 bit identifier, in case unique identifiers are used
+/// (hash algorithms, etc.)
 class ChApi ChObj : public virtual ChShared {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChObj, ChShared);

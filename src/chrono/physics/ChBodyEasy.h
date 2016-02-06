@@ -58,7 +58,7 @@ class ChBodyEasySphere : public ChBody {
             SetCollide(true);
         }
         if (visual_asset) {
-            ChSharedPtr<ChSphereShape> vshape(new ChSphereShape());
+            std::shared_ptr<ChSphereShape> vshape(new ChSphereShape());
             vshape->GetSphereGeometry().rad = radius;
             this->AddAsset(vshape);
         }
@@ -95,7 +95,7 @@ class ChBodyEasyCylinder : public ChBody {
             SetCollide(true);
         }
         if (visual_asset) {
-            ChSharedPtr<ChCylinderShape> vshape(new ChCylinderShape());
+            auto vshape = std::make_shared<ChCylinderShape>();
             vshape->GetCylinderGeometry().p1 = ChVector<>(0, -height * 0.5, 0);
             vshape->GetCylinderGeometry().p2 = ChVector<>(0, height * 0.5, 0);
             vshape->GetCylinderGeometry().rad = radius;
@@ -139,7 +139,7 @@ class ChBodyEasyBox : public ChBody {
             SetCollide(true);
         }
         if (visual_asset) {
-            ChSharedPtr<ChBoxShape> vshape(new ChBoxShape());
+            auto vshape = std::make_shared<ChBoxShape>();
             vshape->GetBoxGeometry().SetLengths(ChVector<>(Xsize, Ysize, Zsize));
             this->AddAsset(vshape);
         }
@@ -167,7 +167,7 @@ class ChBodyEasyConvexHull : public ChBody {
                          double mdensity,
                          bool collide = false,
                          bool visual_asset = true) {
-        ChSharedPtr<ChTriangleMeshShape> vshape(new ChTriangleMeshShape());
+        auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
         if (visual_asset) {
@@ -227,7 +227,7 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                          double mdensity,
                          bool collide = false,
                          bool visual_asset = true) {
-        ChSharedPtr<ChTriangleMeshShape> vshape(new ChTriangleMeshShape());
+        auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
         if (visual_asset) {
@@ -338,7 +338,7 @@ class ChBodyEasyClusterOfSpheres : public ChBody {
         }
         if (visual_asset) {
             for (unsigned int i = 0; i < positions.size(); ++i) {
-                ChSharedPtr<ChSphereShape> vshape(new ChSphereShape());
+                auto vshape = std::make_shared<ChSphereShape>();
                 vshape->GetSphereGeometry().rad = radii[i];
                 vshape->GetSphereGeometry().center = offset_positions[i];
                 this->AddAsset(vshape);

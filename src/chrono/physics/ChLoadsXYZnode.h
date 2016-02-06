@@ -32,47 +32,39 @@ namespace chrono {
 /// Note that an equivalent shortcut is to set directly the node's own force member data
 /// as mynode->SetForce(), but this other approach is more object-oriented (es. you can 
 /// apply multiple forces at a single node, etc)
-
 class ChLoaderXYZnode : public ChLoaderUVWatomic {
-private:
+  private:
     ChVector<> force;
-public:
-        // Useful: a constructor that also sets ChLoadable    
-        ChLoaderXYZnode(ChSharedPtr<ChLoadableUVW> mloadable) 
-            :  ChLoaderUVWatomic(mloadable,0,0,0) {
-            this->force = VNULL;
-        };
 
-        // Compute F=F(u,v,w)
-        // Implement it from base class.
-        virtual void ComputeF(const double U,     ///< parametric coordinate -not used
-                              const double V,     ///< parametric coordinate -not used
-                              const double W,     ///< parametric coordinate -not used
-                        ChVectorDynamic<>& F,       ///< Result F vector here, size must be = n.field coords.of loadable
-                        ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
-                        ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
-                        ) {
-            F.PasteVector( this->force, 0,0);    // load, force part
-        }
+  public:
+    // Useful: a constructor that also sets ChLoadable
+    ChLoaderXYZnode(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVWatomic(mloadable, 0, 0, 0) {
+        this->force = VNULL;
+    };
 
-            /// Set force (ex. in [N] units), assumed to be constant in space and time,
-            /// assumed applyed at the node.
-        void SetForce(const ChVector<>& mf) {this->force = mf;}
-        ChVector<> GetForce() const {return this->force;}
+    // Compute F=F(u,v,w)
+    // Implement it from base class.
+    virtual void ComputeF(const double U,        ///< parametric coordinate -not used
+                          const double V,        ///< parametric coordinate -not used
+                          const double W,        ///< parametric coordinate -not used
+                          ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+                          ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
+                          ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
+                          ) {
+        F.PasteVector(this->force, 0, 0);  // load, force part
+    }
+
+    /// Set force (ex. in [N] units), assumed to be constant in space and time,
+    /// assumed applyed at the node.
+    void SetForce(const ChVector<>& mf) { this->force = mf; }
+    ChVector<> GetForce() const { return this->force; }
 };
 
-
-/// FORCE AT XYZ NODE (ready to use load)
-
+/// Force at XYZ node (ready to use load)
 class ChLoadXYZnode : public ChLoad<ChLoaderXYZnode> {
-public:
-    ChLoadXYZnode(ChSharedPtr<ChNodeXYZ> mloadable) 
-        : ChLoad<ChLoaderXYZnode>(mloadable)
-    {}
+  public:
+    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> mloadable) : ChLoad<ChLoaderXYZnode>(mloadable) {}
 };
-
-
-
 
 }  // END_OF_NAMESPACE____
 

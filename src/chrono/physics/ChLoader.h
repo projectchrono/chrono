@@ -38,7 +38,7 @@ public:
                            ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) = 0;
 
-    virtual ChSharedPtr<ChLoadable> GetLoadable() =0;
+    virtual std::shared_ptr<ChLoadable> GetLoadable() =0;
 
     virtual bool IsStiff() {return false;}
 };

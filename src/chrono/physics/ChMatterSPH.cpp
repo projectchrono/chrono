@@ -136,7 +136,7 @@ void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-ChSharedPtr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
@@ -246,7 +246,7 @@ ChMatterSPH::ChMatterSPH() {
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
     // default DVI material
-    matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+    matsurface = std::make_shared<ChMaterialSurface>();
 }
 
 ChMatterSPH::~ChMatterSPH() {
@@ -281,7 +281,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
     this->nodes.resize(newsize);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j] = ChSharedPtr<ChNodeSPH>(new ChNodeSPH);
+        this->nodes[j] = std::make_shared<ChNodeSPH>();
 
         this->nodes[j]->SetContainer(this);
 
@@ -295,7 +295,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
 }
 
 void ChMatterSPH::AddNode(ChVector<double> initial_state) {
-    ChSharedPtr<ChNodeSPH> newp(new ChNodeSPH);
+    auto newp = std::make_shared<ChNodeSPH>();
 
     newp->SetContainer(this);
 
@@ -350,7 +350,7 @@ void ChMatterSPH::FillBox(const ChVector<> size,
 
     for (unsigned int ip = 0; ip < this->GetNnodes(); ip++) {
         // downcasting
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[ip]);
+        std::shared_ptr<ChNodeSPH> mnode(this->nodes[ip]);
         assert(!mnode.IsNull());
 
         mnode->SetKernelRadius(kernelrad);
@@ -412,10 +412,10 @@ void ChMatterSPH::IntLoadResidual_F(
     // First, find if any ChProximityContainerSPH object is present
     // in the system,
 
-    ChSharedPtr<ChProximityContainerSPH> edges;
-    std::vector< ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+    std::shared_ptr<ChProximityContainerSPH> edges;
+    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerSPH>()))
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics))
             break;
         iterotherphysics++;
     }
@@ -437,7 +437,7 @@ void ChMatterSPH::IntLoadResidual_F(
     // 3- Per-node volume and pressure computation
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
+        std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
         assert(!mnode.IsNull());
 
         // node volume is v=mass/density
@@ -465,7 +465,7 @@ void ChMatterSPH::IntLoadResidual_F(
         ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
 
         // downcast
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
+        std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
         assert(!mnode.IsNull());
 
         R.PasteSumVector(TotForce * c, off + 3 * j, 0);
@@ -525,10 +525,10 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // First, find if any ChProximityContainerSPH object is present
     // in the system,
 
-    ChSharedPtr<ChProximityContainerSPH> edges;
-    std::vector<ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+    std::shared_ptr<ChProximityContainerSPH> edges;
+    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerSPH>()))
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics))
             break;
         iterotherphysics++;
     }
@@ -550,7 +550,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // 3- Per-node volume and pressure computation
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
+        std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
         assert(!mnode.IsNull());
 
         // node volume is v=mass/density
@@ -578,7 +578,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
         ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
 
         // downcast
-        ChSharedPtr<ChNodeSPH> mnode(this->nodes[j]);
+        std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
         assert(!mnode.IsNull());
 
         mnode->variables.Get_fb().PasteSumVector(TotForce * factor, 0, 0);
