@@ -24,11 +24,11 @@
 #include <random>
 #include <cmath>
 #include <vector>
+#include <memory>
 #include <utility>
 #include <string>
 
 #include "core/ChApiCE.h"
-#include "core/ChSmartpointers.h"
 #include "core/ChVector.h"
 #include "core/ChQuaternion.h"
 
@@ -52,9 +52,6 @@ enum MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE, ROUNDEDCYLIN
 // Forward declarations
 class Generator;
 class MixtureIngredient;
-
-// Shortcut for a smart pointer to MixtureIngredient
-typedef ChSmartPtr<MixtureIngredient> MixtureIngredientPtr;
 
 // -----------------------------------------------------------------------------
 // CallbackGenerator
@@ -164,7 +161,7 @@ class ChApi Generator {
 
   // Add a new mixture ingredient of the specified type and in the given ratio
   // (note that the ratios are normalized before creating bodies)
-  MixtureIngredientPtr& AddMixtureIngredient(MixtureType type, double ratio);
+  std::shared_ptr<MixtureIngredient>& AddMixtureIngredient(MixtureType type, double ratio);
 
   // Get/Set the identifier that will be assigned to the next body.
   // Identifiers are incremented for successively created bodies.
@@ -241,7 +238,7 @@ class ChApi Generator {
 
   std::uniform_real_distribution<> m_mixDist;
 
-  std::vector<MixtureIngredientPtr> m_mixture;
+  std::vector<std::shared_ptr<MixtureIngredient>> m_mixture;
   std::vector<BodyInfo> m_bodies;
   int m_totalNumBodies;
   double m_totalMass;

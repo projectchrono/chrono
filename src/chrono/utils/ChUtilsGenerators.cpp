@@ -268,11 +268,9 @@ Generator::~Generator() {
 // Add a new ingredient to the current mixture by specifying its type
 // and the ratio in the final mixture. A smart pointer to the new
 // mixture ingredient is returned to allow modifying its properties.
-MixtureIngredientPtr& Generator::AddMixtureIngredient(MixtureType type, double ratio) {
-  MixtureIngredientPtr ingredient(new MixtureIngredient(this, type, ratio));
-  m_mixture.push_back(ingredient);
-
-  return m_mixture.back();
+std::shared_ptr<MixtureIngredient>& Generator::AddMixtureIngredient(MixtureType type, double ratio) {
+    m_mixture.push_back(std::make_shared<MixtureIngredient>(this, type, ratio));
+    return m_mixture.back();
 }
 
 // Create objects in a box domain using the specified type of point

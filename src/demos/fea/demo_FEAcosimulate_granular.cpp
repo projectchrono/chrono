@@ -330,8 +330,7 @@ int main(int argc, char* argv[]) {
   double r = 0.1;//0.02;//
   double shapeRatio = 0.4;
   utils::Generator gen(systemG);
-  utils::MixtureIngredientPtr m1;
-  m1 = gen.AddMixtureIngredient(utils::ELLIPSOID, 1.0);
+  std::shared_ptr<utils::MixtureIngredient>& m1 = gen.AddMixtureIngredient(utils::ELLIPSOID, 1.0);
   m1->setDefaultMaterialDVI(triMat);
   m1->setDefaultDensity(2500);
   m1->setDefaultSize(ChVector<>(r,r*shapeRatio,r));
