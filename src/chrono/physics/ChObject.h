@@ -37,7 +37,6 @@
 #include "core/ChLog.h"
 #include "core/ChMath.h"
 #include "core/ChLists.h"
-#include "core/ChShared.h"
 
 #include <vector>
 
@@ -57,9 +56,9 @@ class ChTag;
 ///
 /// Also, each ChObj object has a 32 bit identifier, in case unique identifiers are used
 /// (hash algorithms, etc.)
-class ChApi ChObj : public virtual ChShared {
+class ChApi ChObj {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChObj, ChShared);
+    CH_RTTI_ROOT(ChObj);
 
   private:
     //

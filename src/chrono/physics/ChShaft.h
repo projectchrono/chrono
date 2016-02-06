@@ -30,7 +30,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-//#include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
 #include "lcp/ChLcpVariablesShaft.h"
 

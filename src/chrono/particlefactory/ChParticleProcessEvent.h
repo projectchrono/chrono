@@ -23,7 +23,7 @@ namespace particlefactory {
 /// You can directly use the ready-to-use processor for basic
 /// behaviors (remove particle, count particle, etc.),
 /// or inherit your own class with custom event processing.
-class ChParticleProcessEvent : public ChShared {
+class ChParticleProcessEvent {
   public:
     /// Children class MUST implement this function according to their
     /// desired behavior. For example, one class might be used to delete the

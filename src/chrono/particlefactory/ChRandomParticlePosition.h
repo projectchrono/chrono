@@ -26,7 +26,7 @@ namespace particlefactory {
 /// BASE class for generators of random particle positions.
 /// By default it simply always returns Pxyz={0,0,0}, so it
 /// it is up to sub-classes to implement more sophisticated randomizations.
-class ChRandomParticlePosition : public ChShared {
+class ChRandomParticlePosition {
   public:
     ChRandomParticlePosition() {}
 

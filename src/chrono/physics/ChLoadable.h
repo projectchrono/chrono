@@ -14,7 +14,6 @@
 #define CHLOADABLE_H
 
 
-#include "core/ChShared.h"
 #include "core/ChVectorDynamic.h"
 #include "lcp/ChLcpVariables.h"
 
@@ -26,7 +25,7 @@ namespace chrono {
 /// Forces can be distributed on UV surfaces, or lines, etc.,so
 /// look also the more detailed children classes.
 
-class ChApi ChLoadable : virtual public ChShared {
+class ChApi ChLoadable {
 public:
         /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() = 0;

@@ -24,7 +24,7 @@ namespace particlefactory {
 /// You can directly use the ready-to-use triggers for common
 /// triggering (particle collides with some object, particle inside
 /// a box, etc.), or inherit your own class with custom triggering.
-class ChParticleEventTrigger : public ChShared {
+class ChParticleEventTrigger {
   public:
     /// Children classes MUST implement this.
     /// Return true means that a ChParticleProcessEvent must

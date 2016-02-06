@@ -41,7 +41,7 @@ class ChCallbackPostCreation {
 };
 
 /// BASE class for generators of random ChBody shapes
-class ChRandomShapeCreator : public ChShared {
+class ChRandomShapeCreator {
   public:
     ChRandomShapeCreator() {
         callback_post_creation = 0;

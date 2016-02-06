@@ -34,7 +34,7 @@ namespace particlefactory {
 /// the default particle event processor is ChParticleProcessEventDoNothing, so
 /// the default behavior is 'do nothing', so you must plug in more sophisticated ones
 /// after you create the ChParticleProcessor and before you use it.
-class ChParticleProcessor : public ChShared {
+class ChParticleProcessor {
   public:
     ChParticleProcessor() {
         // default trigger: trigger never

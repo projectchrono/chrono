@@ -17,7 +17,6 @@
 
 //#include <math.h>
 
-#include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
 #include "lcp/ChLcpVariablesBodyOwnMass.h"
 
@@ -32,7 +31,7 @@ namespace chrono
 /// often a ChPhysicsItem is used as a container for a cluster 
 /// of these ChNodeBase.
 
-class ChApi ChNodeBase : public virtual ChShared
+class ChApi ChNodeBase
 {
 protected:
 	unsigned int offset_x; // offset in vector of state (position part)

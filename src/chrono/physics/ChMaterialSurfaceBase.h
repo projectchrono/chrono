@@ -12,7 +12,6 @@
 #ifndef CHMATERIALSURFACEBASE_H
 #define CHMATERIALSURFACEBASE_H
 
-#include "core/ChShared.h"
 #include "serialization/ChArchive.h"
 
 namespace chrono {
@@ -20,10 +19,10 @@ namespace chrono {
 /// Base class for specifying material properties for contact force
 /// generation.
 ///
-class ChApi ChMaterialSurfaceBase : public ChShared {
+class ChApi ChMaterialSurfaceBase {
 
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMaterialSurfaceBase, ChShared);
+    CH_RTTI_ROOT(ChMaterialSurfaceBase);
 
   public:
     enum ContactMethod {

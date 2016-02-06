@@ -26,7 +26,7 @@ namespace particlefactory {
 /// BASE class for generators of random particle velocities.
 /// By default it simply always returns Vxyz={0,0,0}, so it
 /// it is up to sub-classes to implement more sophisticated randomizations.
-class ChRandomParticleVelocity : public ChShared {
+class ChRandomParticleVelocity {
   public:
     ChRandomParticleVelocity() {}
 

@@ -58,7 +58,7 @@ public:
 /// the load so it optionally can compute the jacobian (the tangent stiffness
 /// matrix of the load) that can be used in implicit integrators, statics, etc.
 
-class ChLoadBase : public ChShared {
+class ChLoadBase {
    
 protected:
     ChLoadJacobians* jacobians;

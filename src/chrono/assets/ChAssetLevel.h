@@ -41,7 +41,7 @@ namespace chrono {
 
 class ChApi ChAssetLevel : public ChAsset {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChAsset, ChShared);
+    CH_RTTI(ChAssetLevel, ChAsset);
 
   protected:
     //

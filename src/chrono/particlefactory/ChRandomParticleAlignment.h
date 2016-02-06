@@ -24,7 +24,7 @@ namespace particlefactory {
 /// BASE class for generators of random particle alignment.
 /// By default it simply always returns quaternion {1,0,0,0} (no rotation) so it
 /// it is up to sub-classes to implement more sophisticated randomizations.
-class ChRandomParticleAlignment : public ChShared {
+class ChRandomParticleAlignment {
   public:
     ChRandomParticleAlignment() {}
 

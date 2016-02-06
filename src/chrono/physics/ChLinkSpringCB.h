@@ -21,7 +21,7 @@ namespace chrono {
 /// A derived class must implement the virtual operator().
 ///
 
-class ChSpringForceCallback : public ChShared {
+class ChSpringForceCallback {
   public:
     virtual double operator()(double time,         ///< current time
                               double rest_length,  ///< undeformed length
