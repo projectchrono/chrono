@@ -147,8 +147,8 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     /// The torque is applied to the output shaft, while the truss shafts
     /// gets the same torque but with opposite sign.
     /// Each shaft must belong to the same ChSystem.
-    virtual bool Initialize(ChSharedPtr<ChShaft> mshaft1,  ///< first  shaft to join (motor output shaft)
-                            ChSharedPtr<ChShaft> mshaft2   ///< second shaft to join (motor truss)
+    virtual bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (motor output shaft)
+                            std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join (motor truss)
                             );
 
     enum eCh_shaftsmotor_mode { MOT_MODE_ROTATION = 0, MOT_MODE_SPEED, MOT_MODE_TORQUE } motor_mode;

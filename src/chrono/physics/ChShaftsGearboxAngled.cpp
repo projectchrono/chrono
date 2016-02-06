@@ -60,15 +60,15 @@ void ChShaftsGearboxAngled::Copy(ChShaftsGearboxAngled* source) {
 }
 
 int ChShaftsGearboxAngled::Initialize(
-    ChSharedPtr<ChShaft> mshaft1,    ///< first (input) shaft to join
-    ChSharedPtr<ChShaft> mshaft2,    ///< second  (output) shaft to join
-    ChSharedPtr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
+    std::shared_ptr<ChShaft> mshaft1,    ///< first (input) shaft to join
+    std::shared_ptr<ChShaft> mshaft2,    ///< second  (output) shaft to join
+    std::shared_ptr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
     ChVector<>& mdir1,               ///< the direction of the first shaft on 3D body defining the gearbox truss
     ChVector<>& mdir2                ///< the direction of the first shaft on 3D body defining the gearbox truss
     ) {
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
-    ChBodyFrame* mm3 = mbody.get_ptr();
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
+    ChBodyFrame* mm3 = mbody.get();
     assert(mm1 && mm2 && mm3);
     assert(mm1 != mm2);
     assert((mm1->GetSystem() == mm2->GetSystem()));

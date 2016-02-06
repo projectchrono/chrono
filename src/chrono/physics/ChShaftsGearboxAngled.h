@@ -134,12 +134,11 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// Each shaft and body must belong to the same ChSystem.
     /// Shafts directions are considered in local body coordinates.
     virtual int Initialize(
-        ChSharedPtr<ChShaft> mshaft1,  ///< first (input) shaft to join
-        ChSharedPtr<ChShaft> mshaft2,  ///< second  (output) shaft to join
-        ChSharedPtr<ChBodyFrame>
-            mbody,          ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
-        ChVector<>& mdir1,  ///< the direction of the first shaft on 3D body defining the gearbox truss
-        ChVector<>& mdir2   ///< the direction of the first shaft on 3D body defining the gearbox truss
+        std::shared_ptr<ChShaft> mshaft1,    ///< first (input) shaft to join
+        std::shared_ptr<ChShaft> mshaft2,    ///< second  (output) shaft to join
+        std::shared_ptr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
+        ChVector<>& mdir1,                   ///< the direction of the first shaft on 3D body defining the gearbox truss
+        ChVector<>& mdir2                    ///< the direction of the first shaft on 3D body defining the gearbox truss
         );
 
     /// Get the first shaft (carrier wheel)
