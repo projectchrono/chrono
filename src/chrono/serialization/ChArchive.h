@@ -569,7 +569,7 @@ class  ChArchiveOut : public ChArchive {
         // trick to call out_ref on ChSharedPointer, with class abstraction:
       template<class T>
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
-      out     (ChNameValue< ChSharedPtr<T> > bVal) {
+      out     (ChNameValue< std::shared_ptr<T> > bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value().get_ptr();
           if (this->cut_all_pointers)
@@ -593,7 +593,7 @@ class  ChArchiveOut : public ChArchive {
         // trick to call out_ref on ChSharedPointer, without class abstraction:
       template<class T>
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
-      out     (ChNameValue< ChSharedPtr<T> > bVal) {
+      out     (ChNameValue< std::shared_ptr<T> > bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value().get_ptr();
           if (this->cut_all_pointers)
@@ -797,23 +797,23 @@ class  ChArchiveIn : public ChArchive {
         // trick to call in_ref on ChSharedPointer, with class abstraction:
       template<class T>
       typename enable_if< ChDetect_GetRTTI<T>::value >::type 
-      in     (ChNameValue< ChSharedPtr<T> > bVal) {
+      in     (ChNameValue< std::shared_ptr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&mptr, &T::ArchiveIN);
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
           this->in_ref_abstract(mtmp);
-          bVal.value() = ChSharedPtr<T> ( mptr );
+          bVal.value() = std::shared_ptr<T> ( mptr );
       }
 
          // trick to call in_ref on ChSharedPointer (no class abstraction):
       template<class T>
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type
-      in     (ChNameValue< ChSharedPtr<T> > bVal) {
+      in     (ChNameValue< std::shared_ptr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr, &T::ArchiveIN);
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
           this->in_ref(mtmp);
-          bVal.value() = ChSharedPtr<T> ( mptr );
+          bVal.value() = std::shared_ptr<T> ( mptr );
       }
 
         // trick to call in_ref on plain pointers, with class abstraction:
