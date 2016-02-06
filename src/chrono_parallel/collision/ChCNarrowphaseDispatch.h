@@ -36,8 +36,18 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     void DispatchRigid();
     void DispatchRigidFluid();
     void DispatchRigidNode();
-    void DispatchMPM();
+    void DispatchRigidMPM();
     void DispatchFluid();
+
+    void RigidSphereContact(const real sphere_radius,
+                            const int num_spheres,
+                            const custom_vector<real3>& pos_sphere,
+                            custom_vector<real3>& norm_rigid_sphere,
+                            custom_vector<real3>& cpta_rigid_sphere,
+                            custom_vector<real>& dpth_rigid_sphere,
+                            custom_vector<int>& neighbor_rigid_sphere,
+                            custom_vector<int>& contact_counts,
+                            uint& num_contacts);
 
     void DispatchMPR();
     void DispatchGJK();

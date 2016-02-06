@@ -52,6 +52,9 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
     if (data_manager->num_fea_nodes != 0) {
         DispatchRigidNode();
     }
+    if (data_manager->num_mpm_markers != 0) {
+        DispatchRigidMPM();
+    }
 }
 
 void ChCNarrowphaseDispatch::PreprocessCount() {
@@ -385,137 +388,16 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
 void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     LOG(TRACE) << "start DispatchRigidFluid: ";
 
-    real fluid_radius = data_manager->node_container->kernel_radius;
-    int num_fluid_bodies = data_manager->num_fluid_bodies;
-    int num_rigid_shapes = data_manager->num_rigid_shapes;
-    real3 global_origin = data_manager->measures.collision.global_origin;
-    int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
-    real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
-    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& norm_rigid_fluid = data_manager->host_data.norm_rigid_fluid;
-    custom_vector<real3>& cpta_rigid_fluid = data_manager->host_data.cpta_rigid_fluid;
-    custom_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
-    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    RigidSphereContact(data_manager->node_container->kernel_radius,   //
+                       data_manager->num_fluid_bodies,                //
+                       data_manager->host_data.sorted_pos_3dof,       //
+                       data_manager->host_data.norm_rigid_fluid,      //
+                       data_manager->host_data.cpta_rigid_fluid,      //
+                       data_manager->host_data.dpth_rigid_fluid,      //
+                       data_manager->host_data.neighbor_rigid_fluid,  //
+                       data_manager->host_data.c_counts_rigid_fluid,  //
+                       data_manager->num_rigid_fluid_contacts);
 
-    uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
-    is_rigid_bin_active.resize(total_bins);
-    Thrust_Fill(is_rigid_bin_active, 1000000000);
-#pragma omp parallel for
-    for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
-        uint bin_number = data_manager->host_data.bin_number_out[index];
-        is_rigid_bin_active[bin_number] = index;
-    }
-    f_bin_intersections.resize(num_fluid_bodies + 1);
-    f_bin_intersections[num_fluid_bodies] = 0;
-#pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        real3 pos_fluid = sorted_pos_fluid[p];
-        int3 gmin = HashMin(pos_fluid - real3(fluid_radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_fluid + real3(fluid_radius) - global_origin, inv_bin_size);
-        f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
-    }
-    Thrust_Exclusive_Scan(f_bin_intersections);
-    uint f_number_of_bin_intersections = f_bin_intersections.back();
-
-    f_bin_number.resize(f_number_of_bin_intersections);
-    f_bin_number_out.resize(f_number_of_bin_intersections);
-    f_bin_fluid_number.resize(f_number_of_bin_intersections);
-    f_bin_start_index.resize(f_number_of_bin_intersections);
-
-#pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        uint count = 0, i, j, k;
-        real3 pos_fluid = sorted_pos_fluid[p];
-        int3 gmin = HashMin(pos_fluid - real3(fluid_radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_fluid + real3(fluid_radius) - global_origin, inv_bin_size);
-        uint mInd = f_bin_intersections[p];
-        for (i = gmin.x; i <= gmax.x; i++) {
-            for (j = gmin.y; j <= gmax.y; j++) {
-                for (k = gmin.z; k <= gmax.z; k++) {
-                    f_bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
-                    f_bin_fluid_number[mInd + count] = p;
-                    count++;
-                }
-            }
-        }
-    }
-    Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
-    uint f_number_of_bins_active = Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index);
-
-    f_bin_start_index.resize(f_number_of_bins_active + 1);
-    f_bin_start_index[f_number_of_bins_active] = 0;
-    Thrust_Exclusive_Scan(f_bin_start_index);
-    custom_vector<uint> f_bin_num_contact(f_number_of_bins_active + 1);
-    f_bin_num_contact[f_number_of_bins_active] = 0;
-
-    norm_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
-    cpta_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
-    dpth_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
-    neighbor_rigid_fluid.resize(num_fluid_bodies * max_rigid_neighbors);
-    contact_counts.resize(num_fluid_bodies + 1);
-
-    Thrust_Fill(contact_counts, 0);
-    for (int index = 0; index < f_number_of_bins_active; index++) {
-        uint start = f_bin_start_index[index];
-        uint end = f_bin_start_index[index + 1];
-        uint count = 0;
-        // Terminate early if there is only one object in the bin
-        if (end - start == 1) {
-            continue;
-        }
-        unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
-        bool rigid_is_active = rigid_index != 1000000000;
-        if (rigid_is_active) {
-            uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
-            uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
-#pragma omp parallel for
-            for (uint i = start; i < end; i++) {
-                uint p = f_bin_fluid_number[i];
-                real3 pos_fluid = sorted_pos_fluid[p];
-                real3 Bmin = pos_fluid - real3(fluid_radius) - global_origin;
-                real3 Bmax = pos_fluid + real3(fluid_radius) - global_origin;
-
-                for (uint j = rigid_start; j < rigid_end; j++) {
-                    uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
-                    real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
-                    real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
-                    uint bodyA = data_manager->host_data.id_rigid[shape_id_a];
-                    if (!overlap(Amin, Amax, Bmin, Bmax)) {
-                        continue;
-                    }
-
-                    ConvexShape shapeA(data_manager->host_data.typ_rigid[shape_id_a],          //
-                                       data_manager->host_data.obj_data_A_global[shape_id_a],  //
-                                       data_manager->host_data.obj_data_B_global[shape_id_a],  //
-                                       data_manager->host_data.obj_data_C_global[shape_id_a],  //
-                                       data_manager->host_data.obj_data_R_global[shape_id_a],  //
-                                       data_manager->host_data.convex_data.data());            //
-
-                    ConvexShape shapeB(SPHERE, pos_fluid,                            //
-                                       real3(fluid_radius, 0, 0),                    //
-                                       real3(0),                                     //
-                                       quaternion(1, 0, 0, 0),                       //
-                                       data_manager->host_data.convex_data.data());  //
-
-                    real3 ptA, ptB, norm;
-                    real depth;
-
-                    if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
-                        if (contact_counts[p] < max_rigid_neighbors) {
-                            norm_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = norm;
-                            cpta_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = ptA;
-                            dpth_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = depth;
-                            neighbor_rigid_fluid[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
-                            contact_counts[p]++;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    Thrust_Exclusive_Scan(contact_counts);
-    data_manager->num_rigid_fluid_contacts = contact_counts[num_fluid_bodies];
     LOG(TRACE) << "stop DispatchRigidFluid: " << data_manager->num_rigid_fluid_contacts;
 }
 
@@ -680,28 +562,31 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 void ChCNarrowphaseDispatch::DispatchRigidNode() {
     LOG(TRACE) << "start DispatchRigidNode: ";
 
-    real node_radius = data_manager->fea_container->kernel_radius;
-    int num_nodes = data_manager->num_fea_nodes;
-    int num_rigid_shapes = data_manager->num_rigid_shapes;
+    RigidSphereContact(data_manager->fea_container->kernel_radius, data_manager->num_fea_nodes,
+                       data_manager->host_data.pos_node_fea, data_manager->host_data.norm_rigid_node,
+                       data_manager->host_data.cpta_rigid_node, data_manager->host_data.dpth_rigid_node,
+                       data_manager->host_data.neighbor_rigid_node, data_manager->host_data.c_counts_rigid_node,
+                       data_manager->num_rigid_node_contacts);
 
+    LOG(TRACE) << "stop DispatchRigidNode: " << data_manager->num_rigid_node_contacts;
+}
+//==================================================================================================================================
+
+void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
+                                                const int num_spheres,
+                                                const custom_vector<real3>& pos_spheres,
+                                                custom_vector<real3>& norm_rigid_sphere,
+                                                custom_vector<real3>& cpta_rigid_sphere,
+                                                custom_vector<real>& dpth_rigid_sphere,
+                                                custom_vector<int>& neighbor_rigid_sphere,
+                                                custom_vector<int>& contact_counts,
+                                                uint& num_contacts) {
+    int num_rigid_shapes = data_manager->num_rigid_shapes;
     real3 global_origin = data_manager->measures.collision.global_origin;
     int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
 
-    // printf("GRID %f %f %f [%d %d %d] [%f %f %f] nodes: %d\n", inv_bin_size.x, inv_bin_size.y, inv_bin_size.z,
-    // bins_per_axis.x,
-    //       bins_per_axis.y, bins_per_axis.z, global_origin.x, global_origin.y, global_origin.z, num_nodes);
-
-    custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
-
-    custom_vector<real3>& norm_rigid_node = data_manager->host_data.norm_rigid_node;
-    custom_vector<real3>& cpta_rigid_node = data_manager->host_data.cpta_rigid_node;
-    custom_vector<real>& dpth_rigid_node = data_manager->host_data.dpth_rigid_node;
-    custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_node;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_node;
-    custom_vector<real3>& pos_nodes = data_manager->host_data.pos_node_fea;
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
-
     is_rigid_bin_active.resize(total_bins);
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
@@ -709,82 +594,75 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
         uint bin_number = data_manager->host_data.bin_number_out[index];
         is_rigid_bin_active[bin_number] = index;
     }
-    n_bin_intersections.resize(num_nodes + 1);
-    n_bin_intersections[num_nodes] = 0;
+    f_bin_intersections.resize(num_spheres + 1);
+    f_bin_intersections[num_spheres] = 0;
 #pragma omp parallel for
-    for (int p = 0; p < num_nodes; p++) {
-        real3 pos_node = pos_nodes[p];
-        int3 gmin = HashMin(pos_node - real3(node_radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_node + real3(node_radius) - global_origin, inv_bin_size);
-        n_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
+    for (int p = 0; p < num_spheres; p++) {
+        real3 pos_sphere = pos_spheres[p];
+        int3 gmin = HashMin(pos_sphere - real3(sphere_radius) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_sphere + real3(sphere_radius) - global_origin, inv_bin_size);
+        f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
-    Thrust_Exclusive_Scan(n_bin_intersections);
-    uint n_number_of_bin_intersections = n_bin_intersections.back();
+    Thrust_Exclusive_Scan(f_bin_intersections);
+    uint f_number_of_bin_intersections = f_bin_intersections.back();
 
-    n_bin_number.resize(n_number_of_bin_intersections);
-    n_bin_number_out.resize(n_number_of_bin_intersections);
-    n_bin_node_number.resize(n_number_of_bin_intersections);
-    n_bin_start_index.resize(n_number_of_bin_intersections);
+    f_bin_number.resize(f_number_of_bin_intersections);
+    f_bin_number_out.resize(f_number_of_bin_intersections);
+    f_bin_fluid_number.resize(f_number_of_bin_intersections);
+    f_bin_start_index.resize(f_number_of_bin_intersections);
 
 #pragma omp parallel for
-    for (int p = 0; p < num_nodes; p++) {
+    for (int p = 0; p < num_spheres; p++) {
         uint count = 0, i, j, k;
-        real3 pos_node = pos_nodes[p];
-        int3 gmin = HashMin(pos_node - real3(node_radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_node + real3(node_radius) - global_origin, inv_bin_size);
-        uint mInd = n_bin_intersections[p];
+        real3 pos_sphere = pos_spheres[p];
+        int3 gmin = HashMin(pos_sphere - real3(sphere_radius) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_sphere + real3(sphere_radius) - global_origin, inv_bin_size);
+        uint mInd = f_bin_intersections[p];
         for (i = gmin.x; i <= gmax.x; i++) {
             for (j = gmin.y; j <= gmax.y; j++) {
                 for (k = gmin.z; k <= gmax.z; k++) {
-                    n_bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
-                    n_bin_node_number[mInd + count] = p;
-
-                    // printf("n_bin_number:  %d, n_bin_node_number %d \n", n_bin_number[mInd + count],
-                    // n_bin_node_number[mInd + count]);
-
+                    f_bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
+                    f_bin_fluid_number[mInd + count] = p;
                     count++;
                 }
             }
         }
     }
-    Thrust_Sort_By_Key(n_bin_number, n_bin_node_number);
-    uint n_number_of_bins_active = Run_Length_Encode(n_bin_number, n_bin_number_out, n_bin_start_index);
+    Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
+    uint f_number_of_bins_active = Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index);
 
-    n_bin_start_index.resize(n_number_of_bins_active + 1);
-    n_bin_start_index[n_number_of_bins_active] = 0;
-    Thrust_Exclusive_Scan(n_bin_start_index);
-    custom_vector<uint> n_bin_num_contact(n_number_of_bins_active + 1);
-    n_bin_num_contact[n_number_of_bins_active] = 0;
+    f_bin_start_index.resize(f_number_of_bins_active + 1);
+    f_bin_start_index[f_number_of_bins_active] = 0;
+    Thrust_Exclusive_Scan(f_bin_start_index);
+    custom_vector<uint> f_bin_num_contact(f_number_of_bins_active + 1);
+    f_bin_num_contact[f_number_of_bins_active] = 0;
 
-    norm_rigid_node.resize(num_nodes * max_rigid_neighbors);
-    cpta_rigid_node.resize(num_nodes * max_rigid_neighbors);
-    dpth_rigid_node.resize(num_nodes * max_rigid_neighbors);
-    neighbor_rigid_node.resize(num_nodes * max_rigid_neighbors);
-    contact_counts.resize(num_nodes);
+    norm_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
+    cpta_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
+    dpth_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
+    neighbor_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
+    contact_counts.resize(num_spheres + 1);
 
-    const custom_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
     Thrust_Fill(contact_counts, 0);
-    for (int index = 0; index < n_number_of_bins_active; index++) {
-        uint start = n_bin_start_index[index];
-        uint end = n_bin_start_index[index + 1];
+    for (int index = 0; index < f_number_of_bins_active; index++) {
+        uint start = f_bin_start_index[index];
+        uint end = f_bin_start_index[index + 1];
         uint count = 0;
         // Terminate early if there is only one object in the bin
         if (end - start == 1) {
             continue;
         }
-
-        // printf("n_bin_number_out: %d %d\n",index, n_bin_number_out[index]);
-        unsigned int rigid_index = is_rigid_bin_active[n_bin_number_out[index]];
+        unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
         bool rigid_is_active = rigid_index != 1000000000;
         if (rigid_is_active) {
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
             for (uint i = start; i < end; i++) {
-                uint p = n_bin_node_number[i];
-                real3 pos_node = pos_nodes[p];
-                real3 Bmin = pos_node - real3(node_radius) - global_origin;
-                real3 Bmax = pos_node + real3(node_radius) - global_origin;
+                uint p = f_bin_fluid_number[i];
+                real3 pos_sphere = pos_spheres[p];
+                real3 Bmin = pos_sphere - real3(sphere_radius) - global_origin;
+                real3 Bmax = pos_sphere + real3(sphere_radius) - global_origin;
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
@@ -792,9 +670,6 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
                     real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
                     uint bodyA = data_manager->host_data.id_rigid[shape_id_a];
                     if (!overlap(Amin, Amax, Bmin, Bmax)) {
-                        continue;
-                    }
-                    if (!collide(fam_data[shape_id_a], data_manager->fea_container->family)) {
                         continue;
                     }
 
@@ -805,8 +680,8 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
                                        data_manager->host_data.obj_data_R_global[shape_id_a],  //
                                        data_manager->host_data.convex_data.data());            //
 
-                    ConvexShape shapeB(SPHERE, pos_node,                             //
-                                       real3(node_radius, 0, 0),                     //
+                    ConvexShape shapeB(SPHERE, pos_sphere,                           //
+                                       real3(sphere_radius, 0, 0),                   //
                                        real3(0),                                     //
                                        quaternion(1, 0, 0, 0),                       //
                                        data_manager->host_data.convex_data.data());  //
@@ -816,10 +691,10 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
 
                     if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
-                            norm_rigid_node[p * max_rigid_neighbors + contact_counts[p]] = norm;
-                            cpta_rigid_node[p * max_rigid_neighbors + contact_counts[p]] = ptA;
-                            dpth_rigid_node[p * max_rigid_neighbors + contact_counts[p]] = depth;
-                            neighbor_rigid_node[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
+                            norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = norm;
+                            cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = ptA;
+                            dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = depth;
+                            neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
                             contact_counts[p]++;
                         }
                     }
@@ -827,34 +702,25 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
             }
         }
     }
-    data_manager->num_rigid_node_contacts = Thrust_Total(contact_counts);
-    LOG(TRACE) << "stop DispatchRigidNode: " << data_manager->num_rigid_node_contacts;
+    Thrust_Exclusive_Scan(contact_counts);
+    num_contacts = contact_counts[num_spheres];
 }
-void ChCNarrowphaseDispatch::DispatchMPM() {
-    //    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
-    //    custom_vector<real3>& vel_marker = data_manager->host_data.vel_marker_mpm;
-    //
-    //    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-    //    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-    //
-    //    bbox res(pos_marker[0], pos_marker[0]);
-    //    bbox_transformation unary_op;
-    //    bbox_reduction binary_op;
-    //    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
-    //
-    //    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + data_manager->mpm_container->kernel_radius *
-    //    12)),
-    //                               (Ceil(res.second.y), (res.second.y + data_manager->mpm_container->kernel_radius *
-    //                               12)),
-    //                               (Ceil(res.second.z), (res.second.z + data_manager->mpm_container->kernel_radius *
-    //                               12)));
-    //
-    //    min_bounding_point = real3((Floor(res.first.x), (res.first.x - data_manager->mpm_container->kernel_radius *
-    //    12)),
-    //                               (Floor(res.first.y), (res.first.y - data_manager->mpm_container->kernel_radius *
-    //                               12)),
-    //                               (Floor(res.first.z), (res.first.z - data_manager->mpm_container->kernel_radius *
-    //                               12)));
+
+//==================================================================================================================================
+void ChCNarrowphaseDispatch::DispatchRigidMPM() {
+    LOG(TRACE) << "Start DispatchRigidMPM: ";
+
+    RigidSphereContact(data_manager->mpm_container->kernel_radius,  //
+                       data_manager->num_mpm_markers,               //
+                       data_manager->host_data.pos_marker_mpm,      //
+                       data_manager->host_data.norm_rigid_mpm,      //
+                       data_manager->host_data.cpta_rigid_mpm,      //
+                       data_manager->host_data.dpth_rigid_mpm,      //
+                       data_manager->host_data.neighbor_rigid_mpm,  //
+                       data_manager->host_data.c_counts_rigid_mpm,  //
+                       data_manager->num_rigid_mpm_contacts);
+
+    LOG(TRACE) << "Stop DispatchRigidMPM: " << data_manager->num_rigid_mpm_contacts;
 }
 
 }  // end namespace collision

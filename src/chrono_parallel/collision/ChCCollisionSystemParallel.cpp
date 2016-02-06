@@ -111,11 +111,6 @@ void ChCollisionSystemParallel::Run() {
         // narrowphase->DispatchTets();
         data_manager->system_timer.stop("collision_narrow");
     }
-    if (data_manager->num_mpm_markers != 0) {
-        data_manager->system_timer.start("collision_narrow");
-        narrowphase->DispatchMPM();
-        data_manager->system_timer.stop("collision_narrow");
-    }
     if (data_manager->num_rigid_shapes != 0) {
         data_manager->system_timer.start("collision_broad");
         broadphase->DetectPossibleCollisions();

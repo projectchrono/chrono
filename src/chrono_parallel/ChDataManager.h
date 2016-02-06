@@ -225,6 +225,12 @@ struct host_container {
     custom_vector<int> neighbor_rigid_node;
     custom_vector<int> c_counts_rigid_node;
 
+    custom_vector<real3> norm_rigid_mpm;
+    custom_vector<real3> cpta_rigid_mpm;
+    custom_vector<real> dpth_rigid_mpm;
+    custom_vector<int> neighbor_rigid_mpm;
+    custom_vector<int> c_counts_rigid_mpm;
+
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
     // for bodies that are involved in at least one contact.
@@ -412,6 +418,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_mpm_markers;           // Total number of MPM markers
     uint num_rigid_node_contacts;   // The number of contacts between rigids and  nodes
     uint num_rigid_tet_contacts;    // The number of contacts between tetrahedron and rigid bodies
+    uint num_rigid_mpm_contacts;    // The number of contacts between rigids and  mpm markers
     uint nnz_bilaterals;            // The number of non-zero entries in the bilateral Jacobian
 
     //
