@@ -32,7 +32,7 @@
 #include <string>
 #include <math.h>
 #include <float.h>
-#include <memory.h>
+#include <memory>
 
 #include "core/ChLog.h"
 #include "core/ChMath.h"

@@ -13,11 +13,8 @@
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
 
-
-
 #include "lcp/ChLcpConstraintTuple.h"
 #include "physics/ChMaterialSurfaceBase.h"
-//#include "physics/ChPhysicsItem.h"
 #include "core/ChVectorDynamic.h"
 #include "core/ChMatrix33.h"
 
@@ -42,7 +39,7 @@ public:
         /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
         /// This function returns a reference to the shared pointer member
         /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() =0;
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() =0;
 
         /// Get the absolute speed of point abs_point if attached to the 
         /// surface.
