@@ -4,7 +4,7 @@
 SET(DEMOS
   demo_coords
   demo_math
-  demo_sharedptr
+  #demo_sharedptr
   demo_stream
   demo_archive
 )
