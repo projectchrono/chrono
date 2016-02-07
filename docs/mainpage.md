@@ -1,4 +1,4 @@
-\mainpage Chrono Engine API/SDK documentation
+\mainpage Project Chrono API/SDK documentation
 
 Welcome to the Chrono::Engine API/SDK documentation.
 
