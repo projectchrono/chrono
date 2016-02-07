@@ -1,9 +1,7 @@
 Tutorials {#tutorial_root}
 ==========================
 
-The following links describe a set of basic Chrono tutorials. All the source code mentioned here is
-provided as part of the Chrono regular releases, so check before you start copy & pasting the code.
-The list of tutorials below is automatically generated from our GIT repository.
+The following links describe a set of basic Chrono tutorials for the different modules part of Project Chrono. All the source code mentioned here is provided as part of the Chrono regular releases, so check before you start copy & pasting the code. The list of tutorials below is automatically generated from our GIT repository.
 
 As always, we would be happy to hear your comments and receive your contributions on any tutorial.
 
@@ -11,7 +9,7 @@ As always, we would be happy to hear your comments and receive your contribution
 
     You will learn how to setup Chrono on your computer!
 
--   @subpage tutorial_table_of_content_chrono_engine
+-   @subpage tutorial_table_of_content_chrono
 
     Here you will learn about the core of the chrono library
 
