@@ -64,6 +64,16 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
                     float tex_scale_y = 1        ///< [in] texture scale in Y
                     );
 
+    /// Set the plane reference. 
+    /// The soil height is on the Y axis of this plane, and X-Z axes of the coordsys are the
+    /// longitude-latitude. To set as Z up, do SetPlane(ChCoordys(VNULL, Q_from_AngAxis(VECT_X,-CH_C_PI_2)));
+    void SetPlane(ChCoordsys<> mplane) {plane = mplane;}
+
+    /// Get the plane reference. 
+    /// The soil height is on the Y axis of this plane, and X-Z axes of the coordsys are the
+    /// longitude-latitude.
+    ChCoordsys<> GetPlane() {return plane;}
+
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
     void Initialize(double height,  ///< [in] terrain height
@@ -110,7 +120,17 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     }
 
 
+    enum eChSoilDataPlot {
+        PLOT_NONE ,
+        PLOT_SINKAGE ,
+        PLOT_PRESSURE,
+        PLOT_SHEAR,
+        PLOT_K_JANOSI
+    };
 
+    /// Set the color plot type for the soil mesh. 
+    /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
+    void SetPlotType(eChSoilDataPlot mplot, double mmin, double mmax) { plot_type = mplot; plot_v_min = mmin; plot_v_max = mmax;}
 
     /// Get the terrain height at the specified (x,y) location.
     //virtual double GetHeight(double x, double y) const override;
@@ -157,6 +177,8 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     std::vector<double> p_step_sinkage;
     std::vector<double> p_kshear; // Janosi-Hanamoto shear accumulator
     std::vector<double> p_area;
+    std::vector<double> p_sigma;
+    std::vector<double> p_tau;
     
     double Bekker_Kphi;
     double Bekker_Kc;
@@ -164,6 +186,12 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     double Mohr_cohesion;
     double Mohr_friction;
     double Janosi_shear;
+
+    eChSoilDataPlot plot_type;
+    double plot_v_min;
+    double plot_v_max;
+
+    ChCoordsys<> plane;
 };
 
 /// @} vehicle_terrain

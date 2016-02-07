@@ -26,6 +26,7 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_vehicle/terrain/DeformableTerrain.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -61,6 +62,9 @@ int main(int argc, char* argv[]) {
                                    video::SColorf(0.8, 0.8, 1));
 
  
+    ChSharedPtr<ChBody> mtruss (new ChBody);
+    mtruss->SetBodyFixed(true);
+    my_system.Add(mtruss);
  
     //
     // CREATE A RIGID BODY WITH A MESH
@@ -89,7 +93,14 @@ int main(int argc, char* argv[]) {
     ChSharedPtr<ChColorAsset> mcol(new ChColorAsset);
     mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     mrigidbody->AddAsset(mcol);
-
+    
+    ChSharedPtr<ChLinkEngine> myengine(new ChLinkEngine);
+    myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);
+    myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+    if (ChSharedPtr<ChFunction_Const> mfun = myengine->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+        mfun->Set_yconst(CH_C_PI / 4.0);
+    myengine->Initialize(mrigidbody, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2,VECT_Y)));
+    my_system.Add(myengine);
 
     //
     // THE DEFORMABLE TERRAIN
@@ -98,18 +109,30 @@ int main(int argc, char* argv[]) {
 
     // Create the 'deformable terrain' object
     ChSharedPtr<vehicle::DeformableTerrain> mterrain (new vehicle::DeformableTerrain(&my_system));
-    mterrain->Initialize(0.2,1,1,50,50);
-    mterrain->SetSoilParametersSCM( 2e6, // Bekker Kphi
+    my_system.Add(mterrain);
+
+    // Optionally, displace/tilt/rotate the terrain reference plane:
+    mterrain->SetPlane(ChCoordsys<>( ChVector<>(0,0,0.5)) );
+
+    // Initialize the geometry of the soil: use either a regular grid:
+    // mterrain->Initialize(0.2,1,1,50,50);
+    // or use a height map:
+    mterrain->Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 2, 2, 0, 0.3);
+
+    // Set the soil terramechanical parameters:
+    mterrain->SetSoilParametersSCM( 0.2e6, // Bekker Kphi
                                     0,   // Bekker Kc
                                     1.1, // Bekker n exponent
                                     0,   // Mohr cohesive limit (Pa)
                                     20,  // Mohr friction limit (degrees)
                                     0.01 // Janosi shear coefficient (m)
                                     );
-    my_system.Add(mterrain);
 
-
-
+    // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
+    mterrain->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+   
 
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
@@ -153,10 +176,8 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-
-
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20,
-                                 ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X), video::SColor(50, 90, 90, 90), true);
+       // ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20,
+       //                         ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X), video::SColor(50, 90, 90, 90), true);
 
         application.EndScene();
     }

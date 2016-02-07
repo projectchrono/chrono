@@ -38,6 +38,36 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
+
+ChColor ComputeFalseColor(double v,double vmin,double vmax)
+{
+   ChColor c = {1.0,1.0,1.0, 0.0}; // default white
+   double dv;
+
+   if (v < vmin)
+      v = vmin;
+   if (v > vmax)
+      v = vmax;
+   dv = vmax - vmin;
+
+   if (v < (vmin + 0.25 * dv)) {
+      c.R = 0;
+      c.G = 4 * (v - vmin) / dv;
+   } else if (v < (vmin + 0.5 * dv)) {
+      c.R = 0;
+      c.B = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
+   } else if (v < (vmin + 0.75 * dv)) {
+      c.R = 4 * (v - vmin - 0.5 * dv) / dv;
+      c.B = 0;
+   } else {
+      c.G = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
+      c.B = 0;
+   }
+
+   return(c);
+}
+
+
 // -----------------------------------------------------------------------------
 // Default constructor.
 // -----------------------------------------------------------------------------
@@ -64,6 +94,10 @@ DeformableTerrain::DeformableTerrain(ChSystem* system) {
     Janosi_shear = 0.01;
 
     Initialize(0,3,3,10,10);
+    
+    plot_type = PLOT_NONE;
+    plot_v_min = 0;
+    plot_v_max = 0.2;
 }
 
 
@@ -123,9 +157,9 @@ void DeformableTerrain::Initialize(double height, double sizeX, double sizeY, in
         for (int ix = 0; ix < nvx; ++ix) {
             double x = ix * dx - 0.5 * sizeX;
             // Set vertex location
-            vertices[iv] = ChVector<>(x, height, y);
+            vertices[iv] = plane * ChVector<>(x, height, y);
             // Initialize vertex normal to Y up
-            normals[iv] = ChVector<>(0, 1, 0);
+            normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
             // Assign color white to all vertices
             //colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
@@ -154,6 +188,8 @@ void DeformableTerrain::Initialize(double height, double sizeX, double sizeY, in
     p_sinkage.resize( vertices.size());
     p_kshear.resize( vertices.size());
     p_area.resize( vertices.size());
+    p_sigma.resize( vertices.size());
+    p_tau.resize( vertices.size());    
 }
 
 // -----------------------------------------------------------------------------
@@ -235,7 +271,7 @@ void DeformableTerrain::Initialize(const std::string& heightmap_file,
             // Map gray level to vertex height
             double z = hMin + gray * h_scale;
             // Set vertex location
-            vertices[iv] = ChVector<>(x, y, z);
+            vertices[iv] = plane * ChVector<>(x, z, y);
             // Initialize vertex normal to (0, 0, 0).
             normals[iv] = ChVector<>(0, 0, 0);
             // Assign color white to all vertices
@@ -292,6 +328,8 @@ void DeformableTerrain::Initialize(const std::string& heightmap_file,
     p_sinkage.resize( vertices.size());
     p_kshear.resize( vertices.size());
     p_area.resize( vertices.size());
+    p_sigma.resize( vertices.size());
+    p_tau.resize( vertices.size());  
 }
 
 /*
@@ -319,9 +357,10 @@ void DeformableTerrain::UpdateInternalForces() {
     // Readibility aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
+    std::vector<ChVector<float> >& colors =  m_trimesh_shape->GetMesh().getCoordsColors();
     std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
     std::vector<ChVector<int> >& idx_normals = m_trimesh_shape->GetMesh().getIndicesNormals();
-
+    
     // 
     // Reset the load list
     //
@@ -340,6 +379,8 @@ void DeformableTerrain::UpdateInternalForces() {
     for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
         ChVector<> AB = vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x];
         ChVector<> AC = vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x];
+        AB = plane.TransformDirectionParentToLocal(AB);
+        AC = plane.TransformDirectionParentToLocal(AC);
         AB.y=0;
         AC.y=0;
         double triangle_area = 0.5*(Vcross(AB,AC)).Length();
@@ -355,16 +396,22 @@ void DeformableTerrain::UpdateInternalForces() {
     
     collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
 
+    std::vector<bool> p_step_touched;
+    p_step_touched.resize( vertices.size());
+
     for (int i=0; i< vertices.size(); ++i) {
         ChVector<> from = vertices[i];
         ChVector<> to   = vertices[i];
-        ChVector<> N    = ChVector<>(0,1,0);
+        ChVector<> N    = plane.TransformDirectionLocalToParent(ChVector<>(0,1,0));
         from = to - N*0.5;
 
         p_step_sinkage[i]=0;
 
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
         if (mrayhit_result.hit == true) {
+       
+            p_step_touched[i] =true;
+
             p_step_sinkage[i] = Vdot(( mrayhit_result.abs_hitPoint - vertices[i] ), N);
             vertices[i] = mrayhit_result.abs_hitPoint;
             p_sinkage[i]=  Vdot(( vertices[i] - p_vertices_initial[i] ), N);
@@ -374,7 +421,9 @@ void DeformableTerrain::UpdateInternalForces() {
             }
             
             ChVector<> T = -p_speeds[i];
+            T = plane.TransformDirectionParentToLocal(T);
             T.y=0;
+            T = plane.TransformDirectionLocalToParent(T);
             T.Normalize();
 
             // accumulate shear for Janosi-Hanamoto
@@ -384,14 +433,14 @@ void DeformableTerrain::UpdateInternalForces() {
             ChVector<> Fn;
             ChVector<> Ft;
             // Bekker formula, neglecting Bekker_Kc and 'b'
-            double sigma = this->Bekker_Kphi * pow(-p_sinkage[i], this->Bekker_n ); 
+            p_sigma[i] = this->Bekker_Kphi * pow(-p_sinkage[i], this->Bekker_n ); 
             // Mohr-Coulomb
-            double tau_max = this->Mohr_cohesion + sigma * tan(this->Mohr_friction*CH_C_DEG_TO_RAD);
+            double tau_max = this->Mohr_cohesion + p_sigma[i] * tan(this->Mohr_friction*CH_C_DEG_TO_RAD);
             // Janosi-Hanamoto
-            double tau = tau_max * (1.0 - exp(- (p_kshear[i]/this->Janosi_shear)));
+            p_tau[i] = tau_max * (1.0 - exp(- (p_kshear[i]/this->Janosi_shear)));
             
-            Fn = N * p_area[i] * sigma;
-            Ft = T * p_area[i] * tau;
+            Fn = N * p_area[i] * p_sigma[i];
+            Ft = T * p_area[i] * p_tau[i];
 
             if (ChBody* rigidbody = dynamic_cast<ChBody*>(mrayhit_result.hitModel->GetPhysicsItem())) {
                 // Trick, since 'rigidbody' was not a new ChBody() object, but an already used pointer because
@@ -405,7 +454,40 @@ void DeformableTerrain::UpdateInternalForces() {
     }
 
     //
-    // Update the normals
+    // Flow material to te side of rut, using heuristics
+    // 
+
+
+    //
+    // Update the visualization colors
+    // 
+    if (plot_type != PLOT_NONE) {
+        colors.resize(vertices.size());
+        for (size_t iv = 0; iv< vertices.size(); ++iv) {
+            ChColor mcolor;
+            switch (plot_type) {
+                case PLOT_SINKAGE:
+                    mcolor = ComputeFalseColor(-p_sinkage[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_K_JANOSI:
+                    mcolor = ComputeFalseColor(p_kshear[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_PRESSURE:
+                    mcolor = ComputeFalseColor(p_sigma[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_SHEAR:
+                    mcolor = ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
+                    break;
+            }
+            colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
+        }
+    } 
+    else {
+        colors.clear();
+    }
+
+    //
+    // Update the visualization normals
     // 
 
     std::vector<int> accumulators(vertices.size(), 0);
