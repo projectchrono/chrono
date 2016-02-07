@@ -1,7 +1,5 @@
-Chrono {#tutorial_install_chrono}
+Install Chrono {#tutorial_install_chrono}
 ==========================
-
-
 
 ##Simple Install Guide
 

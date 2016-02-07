@@ -1,14 +1,14 @@
-Tutorials {#tutorial_table_of_content_install}
+Installation Guides {#tutorial_table_of_content_install}
 ==========================
 
 -   @subpage tutorial_install_chrono
 
-    You will learn how to setup Chrono on your computer!
+    How to install the base chrono library
 
 -   @subpage tutorial_install_chrono_pyengine
 
-    Here you will learn about the core of the chrono library
+    How to install the chrono python interface - chrono pyengine
 
 -   @subpage tutorial_install_chrono_solidworks
 
-    Here you will learn about the core of the chrono library
+    How to install the chrono solidworks plugin
