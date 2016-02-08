@@ -766,12 +766,10 @@ void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
     // (the previous will be automatically deallocated thanks to shared pointers)
     switch (integration_type) {
         case INT_ANITESCU:
-            timestepper =
-                std::make_shared<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
+            timestepper = std::shared_ptr<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
             break;
         case INT_TASORA:
-            timestepper =
-                std::make_shared<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
+            timestepper = std::shared_ptr<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
             break;
         case INT_EULER_IMPLICIT:
             timestepper = std::make_shared<ChTimestepperEulerImplicit>(this);
