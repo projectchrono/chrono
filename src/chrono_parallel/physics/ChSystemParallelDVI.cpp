@@ -1,6 +1,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
-
+#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
+#include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
 using namespace chrono;
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemParallel(max_objects) {

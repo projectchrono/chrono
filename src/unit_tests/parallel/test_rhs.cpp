@@ -24,6 +24,8 @@
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
+#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
+#include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"

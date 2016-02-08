@@ -9,6 +9,9 @@
 ///////////////////////////////////////////////////
 
 #include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
+#include "chrono_parallel/collision/ChCAABBGenerator.h"
+#include "chrono_parallel/collision/ChCNarrowphaseDispatch.h"
+#include "chrono_parallel/collision/ChCBroadphase.h"
 
 namespace chrono {
 namespace collision {

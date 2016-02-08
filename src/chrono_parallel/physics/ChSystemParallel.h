@@ -33,11 +33,9 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
-#include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/math/ChParallelMath.h"
+
+#include "chrono_parallel/collision/ChCCollisionModelParallel.h"
 
 #include "chrono_fea/ChMesh.h"
 

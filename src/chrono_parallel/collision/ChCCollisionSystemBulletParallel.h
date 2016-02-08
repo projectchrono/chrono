@@ -31,18 +31,12 @@
 #include "LinearMath/btPoolAllocator.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChContactContainerParallel.h"
-#include "chrono_parallel/collision/ChCCollisionModelParallel.h"
-#include "chrono_parallel/collision/ChCAABBGenerator.h"
-#include "chrono_parallel/collision/ChCDataStructures.h"
-#include "chrono_parallel/collision/ChCBroadphase.h"
+
 
 namespace chrono {
 
 class ChSystemParallel;  // forward declaration
-
+class ChParallelDataManager;
 namespace collision {
 
 ///

@@ -9,15 +9,17 @@
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
 #include "chrono_parallel/collision/ChCCollisionModelParallel.h"
-#include "chrono_parallel/collision/ChCAABBGenerator.h"
-#include "chrono_parallel/collision/ChCNarrowphaseDispatch.h"
-#include "chrono_parallel/collision/ChCBroadphase.h"
 
 namespace chrono {
 
 class ChSystemParallel;  // forward declaration
 
 namespace collision {
+
+class ChCBroadphase;           // forward declaration
+class ChCNarrowphaseDispatch;  // forward declaration
+class ChCAABBGenerator;        // forward declaration
+
 ///
 /// Class for collision engine based on the spatial subdivision method.
 /// Contains both the broadphase and the narrow phase methods.
