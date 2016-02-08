@@ -114,7 +114,7 @@ public:
 
 	FsiGeneralData fsiGeneralData;
 
-	ProximityDataD markersProximityD;
+	ProximityDataD markersProximityD;isSolid
 private:
 }
 

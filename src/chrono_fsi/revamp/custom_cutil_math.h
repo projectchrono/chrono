@@ -16,6 +16,7 @@
 ////////Define Real, either float or double
 #include <cuda_runtime.h>
 
+namespace fsi {
 typedef unsigned int uint;
 typedef unsigned short ushort;
 
@@ -1751,5 +1752,7 @@ __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
 //__host__ __device__ inline bool operator== (const int2 & a , const int2 & b){
 //	return (a.x==b.x&&a.y==b.y);
 //}
+
+}
 
 #endif

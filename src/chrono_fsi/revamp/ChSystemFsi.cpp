@@ -84,10 +84,9 @@ void ChSystemFsi::DoStepDynamics_FSI(){
 		DoStepChronoSystem(mphysicalSystem, mVehicle, 0.5 * paramsH.dT, mTime,
 				time_hold_vehicle, haveVehicle); // Keep only this if you are just interested in the rigid sys
 	//
+		
 	ChFsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(fsiData->fsiBodiesD2);
 	bceWorker->UpdateRigidMarkersPositionVelocity(fsiData->sphMarkersD2, fsiData->fsiBodiesD2);
-
-
 
 	ChFluidDynamics->IntegrateSPH(
 		fsiData->sphMarkersD1,
