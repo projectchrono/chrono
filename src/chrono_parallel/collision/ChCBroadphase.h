@@ -31,25 +31,14 @@ class CH_PARALLEL_API ChCBroadphase {
     ChCBroadphase();
     void DetectPossibleCollisions();
     void OneLevelBroadphase();
-    void TwoLevelBroadphase();
     void DetermineBoundingBox();
     void OffsetAABB();
     void ComputeTopLevelResolution();
     void DispatchTets();
 
     ChParallelDataManager* data_manager;
-    real level_one_density;
-    real lelel_two_density;
 
   private:
-    //    uint number_of_leaf_intersections;
-    //    uint num_active_leaves;
-    //    custom_vector<uint> leaves_intersected;
-    //    custom_vector<uint> leaves_per_bin;
-    //    custom_vector<uint> leaf_number;
-    //    custom_vector<uint> leaf_number_out;
-    //    custom_vector<uint> leaf_aabb_number;
-    //    custom_vector<uint> leaf_start_index;
 };
 }
 }
