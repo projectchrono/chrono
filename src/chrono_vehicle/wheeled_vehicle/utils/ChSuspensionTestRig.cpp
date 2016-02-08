@@ -90,9 +90,9 @@ void ChSuspensionTestRig::LoadSteering(const std::string& filename) {
     // Create the steering using the appropriate template.
     // Create the driveline using the appropriate template.
     if (subtype.compare("PitmanArm") == 0) {
-        m_steering = std::make_shared<ChSteering>(d);
+        m_steering = std::make_shared<PitmanArm>(d);
     } else if (subtype.compare("RackPinion") == 0) {
-        m_steering = std::make_shared<ChSteering>(d);
+        m_steering = std::make_shared<RackPinion>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -120,13 +120,13 @@ void ChSuspensionTestRig::LoadSuspension(const std::string& filename) {
 
     // Create the suspension using the appropriate template.
     if (subtype.compare("DoubleWishbone") == 0) {
-        m_suspension = std::make_shared<ChSuspension>(d);
+        m_suspension = std::make_shared<DoubleWishbone>(d);
     } else if (subtype.compare("DoubleWishboneReduced") == 0) {
-        m_suspension = std::make_shared<ChSuspension>(d);
+        m_suspension = std::make_shared<DoubleWishboneReduced>(d);
     } else if (subtype.compare("SolidAxle") == 0) {
-        m_suspension = std::make_shared<ChSuspension>(d);
+        m_suspension = std::make_shared<SolidAxle>(d);
     } else if (subtype.compare("MultiLink") == 0) {
-        m_suspension = std::make_shared<ChSuspension>(d);
+        m_suspension = std::make_shared<MultiLink>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -154,7 +154,7 @@ void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
 
     // Create the wheel using the appropriate template.
     if (subtype.compare("Wheel") == 0) {
-        m_wheels[side] = std::make_shared<ChWheel>(d);
+        m_wheels[side] = std::make_shared<Wheel>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";

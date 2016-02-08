@@ -95,9 +95,9 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
     // Create the steering using the appropriate template.
     // Create the driveline using the appropriate template.
     if (subtype.compare("PitmanArm") == 0) {
-        m_steerings[which] = std::make_shared<ChSteering>(d);
+        m_steerings[which] = std::make_shared<PitmanArm>(d);
     } else if (subtype.compare("RackPinion") == 0) {
-        m_steerings[which] = std::make_shared<ChSteering>(d);
+        m_steerings[which] = std::make_shared<RackPinion>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -127,11 +127,11 @@ void WheeledVehicle::LoadDriveline(const std::string& filename) {
 
     // Create the driveline using the appropriate template.
     if (subtype.compare("ShaftsDriveline2WD") == 0) {
-        m_driveline = std::make_shared<ChDriveline>(d);
+        m_driveline = std::make_shared<ShaftsDriveline2WD>(d);
     } else if (subtype.compare("ShaftsDriveline4WD") == 0) {
-        m_driveline = std::make_shared<ChDriveline>(d);
+        m_driveline = std::make_shared<ShaftsDriveline4WD>(d);
     } else if (subtype.compare("SimpleDriveline") == 0) {
-        m_driveline = std::make_shared<ChDriveline>(d);
+        m_driveline = std::make_shared<SimpleDriveline>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -161,15 +161,15 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
 
     // Create the suspension using the appropriate template.
     if (subtype.compare("DoubleWishbone") == 0) {
-        m_suspensions[axle] = std::make_shared<ChSuspension>(d);
+        m_suspensions[axle] = std::make_shared<DoubleWishbone>(d);
     } else if (subtype.compare("DoubleWishboneReduced") == 0) {
-        m_suspensions[axle] = std::make_shared<ChSuspension>(d);
+        m_suspensions[axle] = std::make_shared<DoubleWishboneReduced>(d);
     } else if (subtype.compare("SolidAxle") == 0) {
-        m_suspensions[axle] = std::make_shared<ChSuspension>(d);
+        m_suspensions[axle] = std::make_shared<SolidAxle>(d);
     } else if (subtype.compare("MultiLink") == 0) {
-        m_suspensions[axle] = std::make_shared<ChSuspension>(d);
+        m_suspensions[axle] = std::make_shared<MultiLink>(d);
     } else if (subtype.compare("MacPhersonStrut") == 0) {
-        m_suspensions[axle] = std::make_shared<ChSuspension>(d);
+        m_suspensions[axle] = std::make_shared<MacPhersonStrut>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -198,7 +198,7 @@ void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
     std::string subtype = d["Template"].GetString();
 
     if (subtype.compare("AntirollBarRSD") == 0) {
-        m_antirollbars.push_back(std::make_shared<ChAntirollBar>(d));
+        m_antirollbars.push_back(std::make_shared<AntirollBarRSD>(d));
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -228,7 +228,7 @@ void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) 
 
     // Create the wheel using the appropriate template.
     if (subtype.compare("Wheel") == 0) {
-        m_wheels[2 * axle + side] = std::make_shared<ChWheel>(d);
+        m_wheels[2 * axle + side] = std::make_shared<Wheel>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -258,7 +258,7 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
 
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
-        m_brakes[2 * axle + side] = std::make_shared<ChBrake>(d);
+        m_brakes[2 * axle + side] = std::make_shared<BrakeSimple>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
