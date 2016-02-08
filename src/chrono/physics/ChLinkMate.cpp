@@ -594,7 +594,7 @@ void ChLinkMateGeneric::Initialize(
     ChVector<> mpt2,
     ChVector<> mnorm1,
     ChVector<> mnorm2) {
-    assert(mbody1.get_ptr() != mbody2.get_ptr());
+    assert(mbody1.get() != mbody2.get());
 
     this->Body1 = mbody1.get();
     this->Body2 = mbody2.get();

@@ -351,7 +351,7 @@ void ChMatterSPH::FillBox(const ChVector<> size,
     for (unsigned int ip = 0; ip < this->GetNnodes(); ip++) {
         // downcasting
         std::shared_ptr<ChNodeSPH> mnode(this->nodes[ip]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         mnode->SetKernelRadius(kernelrad);
         mnode->SetCollisionRadius(spacing * 0.05);
@@ -438,7 +438,7 @@ void ChMatterSPH::IntLoadResidual_F(
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density)
@@ -466,7 +466,7 @@ void ChMatterSPH::IntLoadResidual_F(
 
         // downcast
         std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         R.PasteSumVector(TotForce * c, off + 3 * j, 0);
     }
@@ -551,7 +551,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density)
@@ -579,7 +579,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
 
         // downcast
         std::shared_ptr<ChNodeSPH> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         mnode->variables.Get_fb().PasteSumVector(TotForce * factor, 0, 0);
     }
