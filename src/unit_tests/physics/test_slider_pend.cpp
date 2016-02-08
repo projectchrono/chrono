@@ -316,7 +316,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     ChSharedPtr<ChTimestepperHHT> integrator = system->GetTimestepper().StaticCastTo<ChTimestepperHHT>();
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(20);
-    integrator->SetTolerance(1e-6);
+    integrator->SetAbsTolerances(1e-6);
 
     // Set verbose solver and integrator (for debugging).
     ////system->GetLcpSolverSpeed()->SetVerbose(true);
