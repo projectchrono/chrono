@@ -91,20 +91,20 @@ void Wheel::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Wheel::Initialize(ChSharedPtr<ChBody> spindle) {
+void Wheel::Initialize(std::shared_ptr<ChBody> spindle) {
     // Call the base class initialization function
     ChWheel::Initialize(spindle);
 
     // Attach visualization
     switch (m_vis) {
         case PRIMITIVES: {
-            ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+            auto cyl = std::make_shared<ChCylinderShape>();
             cyl->GetCylinderGeometry().rad = m_radius;
             cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
             cyl->GetCylinderGeometry().p2 = ChVector<>(0, -m_width / 2, 0);
             spindle->AddAsset(cyl);
 
-            ChSharedPtr<ChTexture> tex(new ChTexture);
+            auto tex = std::make_shared<ChTexture>();
             tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
             spindle->AddAsset(tex);
 
@@ -114,12 +114,12 @@ void Wheel::Initialize(ChSharedPtr<ChBody> spindle) {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
 
-            ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(m_meshName);
             spindle->AddAsset(trimesh_shape);
 
-            ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.3f));
+            auto mcolor = std::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
             spindle->AddAsset(mcolor);
 
             break;
