@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
@@ -45,7 +44,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a suspension subsystem.
-class CH_VEHICLE_API ChSuspension : public ChShared {
+class CH_VEHICLE_API ChSuspension {
   public:
     ChSuspension(const std::string& name  ///< [in] name of the subsystem
                  );
@@ -65,13 +64,13 @@ class CH_VEHICLE_API ChSuspension : public ChShared {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the spindle body on the specified side.
-    ChSharedPtr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
+    std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
 
     /// Get a handle to the axle shaft on the specified side.
-    ChSharedPtr<ChShaft> GetAxle(VehicleSide side) const { return m_axle[side]; }
+    std::shared_ptr<ChShaft> GetAxle(VehicleSide side) const { return m_axle[side]; }
 
     /// Get a handle to the revolute joint on the specified side.
-    ChSharedPtr<ChLinkLockRevolute> GetRevolute(VehicleSide side) const { return m_revolute[side]; }
+    std::shared_ptr<ChLinkLockRevolute> GetRevolute(VehicleSide side) const { return m_revolute[side]; }
 
     /// Get the global location of the spindle on the specified side.
     const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
@@ -118,18 +117,18 @@ class CH_VEHICLE_API ChSuspension : public ChShared {
     /// Finally, tierod_body is a handle to the body to which the suspension
     /// tierods are to be attached. For a steerable suspension, this will be the
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            ChSharedPtr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) = 0;
 
     /// Specify the left body for a possible antirollbar subsystem.
     /// The default implementation returns a NULL pointer.
-    virtual ChSharedPtr<ChBody> GetLeftBody() const { return ChSharedPtr<ChBody>(); }
+    virtual std::shared_ptr<ChBody> GetLeftBody() const { return std::shared_ptr<ChBody>(); }
 
     /// Specify the right body for a possible antirollbar subsystem.
     /// The default implementation returns a NULL pointer.
-    virtual ChSharedPtr<ChBody> GetRightBody() const { return ChSharedPtr<ChBody>(); }
+    virtual std::shared_ptr<ChBody> GetRightBody() const { return std::shared_ptr<ChBody>(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}
@@ -137,14 +136,14 @@ class CH_VEHICLE_API ChSuspension : public ChShared {
   protected:
     std::string m_name;  ///< name of the subsystem
 
-    ChSharedPtr<ChBody> m_spindle[2];                ///< handles to spindle bodies
-    ChSharedPtr<ChShaft> m_axle[2];                  ///< handles to axle shafts
-    ChSharedPtr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
-    ChSharedPtr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
+    std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
+    std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
+    std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
+    std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
 };
 
 /// Vector of handles to suspension subsystems.
-typedef std::vector<ChSharedPtr<ChSuspension> > ChSuspensionList;
+typedef std::vector<std::shared_ptr<ChSuspension> > ChSuspensionList;
 
 /// @} vehicle_wheeled_suspension
 

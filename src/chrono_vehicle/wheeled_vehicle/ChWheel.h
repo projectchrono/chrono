@@ -26,7 +26,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -50,7 +49,7 @@ namespace vehicle {
 /// spindle body owned by the suspension.
 /// A concrete wheel subsystem can optionally carry its own visualization assets
 /// (which are associated with the suspension's spindle body).
-class CH_VEHICLE_API ChWheel : public ChShared {
+class CH_VEHICLE_API ChWheel {
   public:
     ChWheel() {}
     virtual ~ChWheel() {}
@@ -69,12 +68,12 @@ class CH_VEHICLE_API ChWheel : public ChShared {
 
     /// Initialize this wheel subsystem.
     /// The wheel mass and inertia are used to increment those of the spindle.
-    virtual void Initialize(ChSharedPtr<ChBody> spindle  ///< handle to the associated spindle body
+    virtual void Initialize(std::shared_ptr<ChBody> spindle  ///< handle to the associated spindle body
                             );
 };
 
 /// Vector of handles to wheel subsystems.
-typedef std::vector<ChSharedPtr<ChWheel> > ChWheelList;
+typedef std::vector<std::shared_ptr<ChWheel> > ChWheelList;
 
 /// @} vehicle_wheeled_wheel
 
