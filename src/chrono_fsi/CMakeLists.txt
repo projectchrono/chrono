@@ -54,40 +54,35 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 # LIST THE FILES THAT MAKE THE FSI FLUID-SOLID INTERACTION LIBRARY
 
 SET(ChronoEngine_FSI_SOURCES
-ChFsiModelData.cpp
-CreateBCE.cpp
-InitializeSphMarkers.cpp
-printToFile.cu
-VehicleExtraProperties.cpp
-revamp/ChFsiDynamics.cpp
-revamp/ChBce.cu
-revamp/ChFluidDynamics.cu
-revamp/ChFsiForceParallel.cu
-revamp/ChFsiInterface.cpp
-revamp/ChFsiGeneral.cu
-revamp/ChDeviceUtils.cu
-revamp/ChFsiDataManager.cu
+ChBce.cu
+ChCollisionSystemFsi.cu
+ChDeviceUtils.cu
+ChFluidDynamics.cu
+ChFsiDataManager.cu
+ChFsiForceParallel.cu
+ChFsiGeneral.cu
+ChFsiInterface.cpp
+ChSystemFsi.cpp
+ChUtilsGeneratorBce.cpp
+ChUtilsGeneratorFluid.cpp
+ChUtilsGeneratorFsi.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
-ChFsiModelData.h
-CreateBCE.h
-demo_utils.h
-InitializeSphMarkers.h
-MyStructs.cuh
-printToFile.cu
-SPHCudaUtils.h
-VehicleExtraProperties.h
-revamp/ChFsiDynamics.h
-revamp/ChBce.h
-revamp/ChFluidDynamics.cuh
-revamp/ChFsiForceParallel.cuh
-revamp/ChFsiInterface.h
-revamp/ChFsiGeneral.cuh
-revamp/ChDeviceUtils.cuh
-revamp/ChFsiDataManager.cuh
-revamp/custom_cutil_math.h
-revamp/ChApiFsi.h
+ChBce.cuh
+ChCollisionSystemFsi.cuh
+ChDeviceUtils.cuh
+ChFluidDynamics.cuh
+ChFsiDataManager.cuh
+ChFsiForceParallel.cuh
+ChFsiGeneral.cuh
+ChFsiInterface.h
+ChSystemFsi.h
+ChUtilsGeneratorBce.h
+ChUtilsGeneratorFluid.h
+ChUtilsGeneratorFsi.h
+ChApiFsi.h
+ChUtilsGeneralFsi.h
 )
 
 SOURCE_GROUP("" FILES 
