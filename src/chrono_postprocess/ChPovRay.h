@@ -64,10 +64,10 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// to render (if it has some associated ChAsset object).
     /// Note that this simply 'flags' the object as renderable
     /// but attaching a ChPovRayAsset to it.
-    virtual void Add(ChSharedPtr<ChPhysicsItem> mitem);
+    virtual void Add(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Remove a ChPhysicsItem object from the list of objects to render
-    virtual void Remove(ChSharedPtr<ChPhysicsItem> mitem);
+    virtual void Remove(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Add all ChPhysicsItem objects in the system to
     /// the list of objects to render. Call this at the
@@ -78,7 +78,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     virtual void RemoveAll();
 
     /// Tell if a ChPhysicsItem has been already added.
-    virtual bool IsAdded(ChSharedPtr<ChPhysicsItem> mitem);
+    virtual bool IsAdded(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Set the filename of the template for the script generation. If not set,
     /// it defaults to "_template_POV.pov" in the default Chrono data directory.
@@ -210,14 +210,14 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
   protected:
     virtual void SetupLists();
     virtual void ExportAssets();
-    void _recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
+    void _recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
 
-    void _recurseExportObjData(std::vector<ChSharedPtr<ChAsset> >& assetlist,
+    void _recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                ChFrame<> parentframe,
                                ChStreamOutAsciiFile& mfilepov);
 
-    std::vector<ChSharedPtr<ChPhysicsItem> > mdata;
-    ChHashTable<size_t, ChSharedPtr<ChAsset> > pov_assets;
+    std::vector<std::shared_ptr<ChPhysicsItem> > mdata;
+    ChHashTable<size_t, std::shared_ptr<ChAsset> > pov_assets;
 
     std::string template_filename;
     std::string pic_filename;
