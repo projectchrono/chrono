@@ -8,7 +8,7 @@ namespace collision {
 /*
  * Narrowphase dispatch will handle the outer loop for the collision detection code
  * For each contact pair it will decide what algorithm to use
- * The user can specify if they want to use only MPR, GJK etc or a hybrid approach with custom functions for certain
+ * The user can specify if they want to use only MPR etc or a hybrid approach with custom functions for certain
  *pair types
  *
  *
@@ -50,10 +50,8 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                             uint& num_contacts);
 
     void DispatchMPR();
-    void DispatchGJK();
     void DispatchR();
     void DispatchHybridMPR();
-    void DispatchHybridGJK();
     void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape& shapeA, ConvexShape& shapeB);
     void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
     ChParallelDataManager* data_manager;

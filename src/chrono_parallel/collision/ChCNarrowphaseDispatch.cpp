@@ -7,7 +7,6 @@
 #include "chrono_parallel/collision/ChCBroadphaseUtils.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
-#include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
 
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 
@@ -58,8 +57,8 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
 }
 
 void ChCNarrowphaseDispatch::PreprocessCount() {
-    // MPR and GJK always report at most one contact per pair.
-    if (narrowphase_algorithm == NARROWPHASE_MPR /*|| narrowphase_algorithm == NARROWPHASE_GJK*/) {
+    // MPR always reports at most one contact per pair.
+    if (narrowphase_algorithm == NARROWPHASE_MPR) {
         thrust::fill(contact_index.begin(), contact_index.end(), 1);
         return;
     }
@@ -206,35 +205,6 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
     }
 }
 
-void ChCNarrowphaseDispatch::DispatchGJK() {
-    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
-    custom_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
-    custom_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
-    custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
-    custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
-
-#pragma omp parallel for
-    for (int index = 0; index < num_potential_rigid_contacts; index++) {
-        uint ID_A, ID_B, icoll;
-        ConvexShape shapeA, shapeB;
-
-        Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
-
-        ContactPoint contact_point;
-        real3 separating_axis;
-        if (GJKCollide(shapeA, shapeB, collision_envelope, contact_point, separating_axis)) {
-            norm[icoll] = -contact_point.normal;
-            ptA[icoll] = contact_point.pointA;
-            ptB[icoll] = contact_point.pointB;
-            contactDepth[icoll] = contact_point.depth;
-
-            effective_radius[icoll] = edge_radius;
-            // The number of contacts reported by MPR is always 1.
-            Dispatch_Finalize(icoll, ID_A, ID_B, 1);
-        }
-    }
-}
-
 void ChCNarrowphaseDispatch::DispatchR() {
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
     real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
@@ -283,37 +253,6 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
     }
 }
 
-void ChCNarrowphaseDispatch::DispatchHybridGJK() {
-    real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
-    real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
-
-#pragma omp parallel for
-    for (int index = 0; index < num_potential_rigid_contacts; index++) {
-        uint ID_A, ID_B, icoll;
-        ConvexShape shapeA, shapeB;
-        int nC;
-
-        Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
-        ContactPoint contact_point;
-        real3 separating_axis;
-        if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
-                       &contactDepth[icoll], &effective_radius[icoll], nC)) {
-            Dispatch_Finalize(icoll, ID_A, ID_B, nC);
-        } else if (GJKCollide(shapeA, shapeB, collision_envelope, contact_point, separating_axis)) {
-            norm[icoll] = -contact_point.normal;
-            ptA[icoll] = contact_point.pointA;
-            ptB[icoll] = contact_point.pointB;
-            contactDepth[icoll] = contact_point.depth;
-
-            effective_radius[icoll] = edge_radius;
-            Dispatch_Finalize(icoll, ID_A, ID_B, 1);
-        }
-    }
-}
-
 void ChCNarrowphaseDispatch::DispatchRigid() {
     LOG(TRACE) << "start DispatchRigid: ";
     custom_vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
@@ -351,17 +290,11 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
         case NARROWPHASE_MPR:
             DispatchMPR();
             break;
-        case NARROWPHASE_GJK:
-            DispatchGJK();
-            break;
         case NARROWPHASE_R:
             DispatchR();
             break;
         case NARROWPHASE_HYBRID_MPR:
             DispatchHybridMPR();
-            break;
-        case NARROWPHASE_HYBRID_GJK:
-            DispatchHybridGJK();
             break;
     }
 

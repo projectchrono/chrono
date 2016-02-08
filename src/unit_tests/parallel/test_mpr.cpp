@@ -24,7 +24,6 @@
 
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
-#include "chrono_parallel/collision/ChCNarrowphaseGJK_EPA.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"

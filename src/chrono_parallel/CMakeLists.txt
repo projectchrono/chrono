@@ -225,10 +225,6 @@ SET(ChronoEngine_Parallel_COLLISION
     collision/ChCNarrowphaseMPR.cpp
     collision/ChCNarrowphaseDispatch.h
     collision/ChCNarrowphaseDispatch.cpp
-    collision/ChCNarrowphaseGJK_EPA.h
-    collision/ChCNarrowphaseGJK_EPA.cpp
-    collision/ChCNarrowphaseVoronoiSimplex.h
-    collision/ChCNarrowphaseVoronoiSimplex.cpp
     collision/ChCNarrowphaseRUtils.h
     collision/ChCNarrowphaseR.h
     collision/ChCNarrowphaseR.cpp

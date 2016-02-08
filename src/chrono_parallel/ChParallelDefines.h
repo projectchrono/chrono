@@ -100,10 +100,8 @@ enum COLLISIONSYSTEMTYPE { COLLSYS_PARALLEL, COLLSYS_BULLET_PARALLEL };
 
 enum NARROWPHASETYPE {
     NARROWPHASE_MPR,
-    NARROWPHASE_GJK,
     NARROWPHASE_R,
     NARROWPHASE_HYBRID_MPR,
-    NARROWPHASE_HYBRID_GJK
 };
 
 // This is set so that parts of the code that have been "flattened" can know what
