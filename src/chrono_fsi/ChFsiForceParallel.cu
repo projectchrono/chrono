@@ -14,8 +14,10 @@
 //
 // Class for handling time integration in fsi system.//
 // =============================================================================
-#include "ChFsiForceParallel.h"
-using namespace fsi;
+#include "ChFsiForceParallel.cuh"
+
+namespace chrono {
+namespace fsi {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -523,3 +525,7 @@ void ChFsiForceParallel::ForceSPH(
 	CollideWrapper();
 	AddGravityToFluid();
 }
+
+
+} // end namespace fsi
+} // end namespace chrono

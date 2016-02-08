@@ -15,6 +15,10 @@
 // Utility class for generating fluid markers.//
 // =============================================================================
 
+#include "chrono_fsi/ChUtilsGeneratorFluid.h"
+
+
+namespace chrono{
 namespace fsi {
 namespace utils {
 
@@ -102,5 +106,6 @@ int2 CreateFluidMarkers(
 	return num_fluidOrBoundaryMarkers;
 }
 
-}
-}
+} // end namespace utils
+} // end namespace fsi
+} // end namespace chrono

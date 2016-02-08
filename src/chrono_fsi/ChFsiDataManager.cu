@@ -15,9 +15,15 @@
 // Base class for managing data in chrono_fsi, aka fluid system.//
 // =============================================================================
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+
+namespace chrono {
+namespace fsi {
+
 ChFsiDataManager::ChFsiDataManager() {}
 
 ChFsiDataManager::~ChFsiDataManager() {}
 
-
+} // end namespace fsi
+} // end namespace chrono
 

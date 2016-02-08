@@ -15,6 +15,11 @@
 // Base class for processing the interface between chrono and fsi modules
 // =============================================================================
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+
+
+namespace chrono {
+namespace fsi {
 //------------------------------------------------------------------------------------
 ChFsiInterface::ChFsiInterface(
 		FsiBodiesDataH * other_fsiBodiesH,
@@ -170,3 +175,6 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsi
 	thrust::copy(fsiBodiesH->omegaAccLRF_fsiBodies_H.begin(),
 			fsiBodiesH->omegaAccLRF_fsiBodies_H.end(), fsiBodiesD->omegaAccLRF_fsiBodies_D.begin());
 }
+
+} // end namespace fsi
+} // end namespace chrono

@@ -15,6 +15,7 @@
 // Utility class for generating BCE markers.//
 // =============================================================================
 
+namespace chrono{
 namespace fsi {
 namespace utils {
 
@@ -403,5 +404,6 @@ void CreateBoxFSI(
 		hsize);
 }
 
-}
-}
+} // end namespace utils
+} // end namespace fsi
+} // end namespace chrono

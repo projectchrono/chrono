@@ -25,6 +25,7 @@
 // ----------------------------------------------------------------------------
 // Short-hand notation
 // ----------------------------------------------------------------------------
+namespace chrono {
 namespace fsi {
 
 
@@ -229,6 +230,6 @@ private:
 	double m_stop_cpu;
 };
 
-}
-
+} // end namespace fsi
+} // end namespace chrono
 #endif

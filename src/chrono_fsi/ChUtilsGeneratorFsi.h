@@ -18,6 +18,9 @@
 #ifndef CH_UTILSGENERATORFSI_CUH
 #define CH_UTILSGENERATORFSI_CUH
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+
+namespace chrono{
 namespace fsi {
 namespace utils {
 
@@ -121,7 +124,8 @@ namespace utils {
 		const chrono::ChVector<>& hsize);
 
 
-}
-}
+} // end namespace utils
+} // end namespace fsi
+} // end namespace chrono
 
 #endif

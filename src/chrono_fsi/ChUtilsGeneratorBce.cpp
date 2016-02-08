@@ -14,7 +14,10 @@
 //
 // Utility class for generating fluid markers.//
 // =============================================================================
+#include "chrono_fsi/ChUtilsGeneratorBce.h"
 
+
+namespace chrono{
 namespace fsi {
 namespace utils {
 // =============================================================================
@@ -155,5 +158,6 @@ void LoadBCE_fromFile(thrust::host_vector<Real3>& posRadBCE, // do not set the s
 	std::cout << "  Loaded BCE data from: " << fileName << std::endl;
 }
 
-}
-}
+} // end namespace utils
+} // end namespace fsi
+} // end namespace chrono

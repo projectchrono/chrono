@@ -15,8 +15,9 @@
 // Class for fsi properties and functions.//
 // =============================================================================
 
-#include "ChFsiGeneral.h"
-using namespace fsi;
+#include "ChFsiGeneral.cuh"
+namespace chrono {
+namespace fsi {
 
 uint ChFsiGeneral::iDivUp(uint a, uint b) {
 	return (a % b != 0) ? (a / b + 1) : (a / b);
@@ -41,3 +42,7 @@ void ChFsiGeneral::setParameters(SimParams* hostParams, NumberOfObjects* numObje
 	cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects));
 }
+
+
+} // end namespace fsi
+} // end namespace chrono

@@ -18,6 +18,11 @@
 #ifndef CH_UTILSGENERATORFLUID_CUH
 #define CH_UTILSGENERATORFLUID_CUH
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/custom_cutil_math.cuh"
+
+
+namespace chrono{
 namespace fsi {
 namespace utils {
 	int2 CreateFluidMarkers(
@@ -25,7 +30,8 @@ namespace utils {
 	FsiGeneralData& fsiGeneralData,
 	SimParams& paramsH);
 
-}
-}
+} // end namespace utils
+} // end namespace fsi
+} // end namespace chrono
 
 #endif

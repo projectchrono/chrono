@@ -18,6 +18,9 @@
 #ifndef CH_COLLISIONSYSTEM_FSI_H_
 #define CH_COLLISIONSYSTEM_FSI_H_
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+
+namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
@@ -65,6 +68,7 @@ class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 
 
 };
-}
+} // end namespace fsi
+} // end namespace chrono
 
 #endif /* CH_COLLISIONSYSTEM_FSI_H_ */

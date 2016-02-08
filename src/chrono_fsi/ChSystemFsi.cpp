@@ -15,6 +15,11 @@
 // Class for performing handling fsi system.
 // =============================================================================
 
+#include "chrono_fsi/ChSystemFsi.cuh"
+
+namespace chrono {
+namespace fsi {
+
 ChSystemFsi::ChSystemFsi() {
 	ChFsiDataManager* fsiData = new ChFsiDataManager();
 	paramsH = new SimParams;
@@ -129,3 +134,6 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 	DoStepChronoSystem(mphysicalSystem, mVehicle, 1.0 * paramsH.dT, mTime,
 			time_hold_vehicle, haveVehicle);
 }
+
+} // end namespace fsi
+} // end namespace chrono

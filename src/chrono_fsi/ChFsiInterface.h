@@ -17,6 +17,10 @@
 #ifndef CH_FSIINTERFACE_H_
 #define CH_FSIINTERFACE_H_
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_parallel/physics/ChSystemParallel.h"
+
+namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
@@ -42,6 +46,6 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 		thrust::device_vector<Real3> * rigid_FSI_ForcesD;
 		thrust::device_vector<Real3> * rigid_FSI_TorquesD;
 };
-}
-
+} // end namespace fsi
+} // end namespace chrono
 #endif

@@ -18,6 +18,11 @@
 #ifndef CH_DEVICEUTILS_H_
 #define CH_DEVICEUTILS_H_
 
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#include "chrono_fsi/custom_cutil_math.h"
+
+namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChDeviceUtils : public ChFsiGeneral {
@@ -37,6 +42,7 @@ class CH_FSI_API ChDeviceUtils : public ChFsiGeneral {
 
 	private:
 };
-}
+} // end namespace fsi
+} // end namespace chrono
 
 #endif

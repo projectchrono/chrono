@@ -17,6 +17,12 @@
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // applies periodic BC along x
+
+#include "chrono_fsi/ChFluidDynamics.cuh"
+
+namespace chrono {
+namespace fsi {
+
 __global__ void ApplyPeriodicBoundaryXKernel(Real3* posRadD,
 		Real4* rhoPresMuD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -249,7 +255,8 @@ void ChFluidDynamics::UpdateFluid(
 	Real dT) {
 
 //	int4 referencePortion = referenceArray[0];
-//	if (referencePortion.z != -1) {
+//	if (referennamespace chrono {
+namespace fsi {cePortion.z != -1) {
 //		printf("error in UpdateFluid, accessing non fluid\n");
 //		return;
 //	}
@@ -308,3 +315,6 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD) {
 	//    cudaThreadSynchronize();
 	//    cudaCheckError();
 }
+
+} // end namespace fsi
+} // end namespace chrono

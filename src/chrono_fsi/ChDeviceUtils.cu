@@ -17,6 +17,11 @@
 /**
  * @brief See collideSphereSphere.cuh for documentation.
  */
+
+namespace chrono {
+namespace fsi {
+ 
+
 void ChDeviceUtils::ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize) {
 	mThrustVec.resize(mSize);
 }
@@ -50,3 +55,6 @@ void ChDeviceUtils::ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size)
 void ChDeviceUtils::ResizeU1(thrust::device_vector<uint>& mThrustVec, int size) {
 	mThrustVec.resize(size);
 }
+
+} // end namespace fsi
+} // end namespace chrono

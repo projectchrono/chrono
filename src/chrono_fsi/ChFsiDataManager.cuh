@@ -18,6 +18,13 @@
 #ifndef CH_FSI_DATAMANAGER_H_
 #define CH_FSI_DATAMANAGER_H_
 
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/ChUtilsGeneralFsi.h"
+
+
+namespace chrono {
 namespace fsi {
 	struct SphMarkerDataD {
 		thrust::device_vector<Real3> posRadD;
@@ -116,10 +123,10 @@ public:
 
 	ProximityDataD markersProximityD;isSolid
 private:
-}
+};
 
-}
-
+} // end namespace fsi
+} // end namespace chrono
 
 
 

@@ -15,6 +15,10 @@
 // Base class for processing bce forces in fsi system.//
 // =============================================================================
 
+#include "chrono_fsi/ChBce.cuh" //for FsiGeneralData
+
+namespace chrono {
+namespace fsi {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the rigid body particles
@@ -179,3 +183,5 @@ void ChBce::UpdateRigidMarkersPositionVelocity(
 	cudaCheckError();
 }
 
+} // end namespace fsi
+} // end namespace chrono

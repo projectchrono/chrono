@@ -16,8 +16,10 @@
 // =============================================================================
 
 #include <stdexcept>
-#include "ChCollisionSystemFsi.h"
-using namespace fsi;
+#include "ChCollisionSystemFsi.cuh"
+
+namespace chrono {
+namespace fsi {
 
 /**
  * @brief calcHashD
@@ -235,7 +237,8 @@ void ChCollisionSystemFsi::ArrangeData(SphMarkerDataD * otherSphMarkersD) {
 	reorderDataAndFindCellStart();
 }
 
-
+} // end namespace fsi
+} // end namespace chrono
 
 
 

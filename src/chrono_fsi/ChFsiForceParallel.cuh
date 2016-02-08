@@ -18,6 +18,10 @@
 #ifndef CH_FSI_FORCEPARALLEL_H_
 #define CH_FSI_FORCEPARALLEL_H_
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChCollisionSystemFsi.cuh"
+
+namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
@@ -107,6 +111,6 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 
 
 };
-}
-
+} // end namespace fsi
+} // end namespace chrono
 #endif /* CH_COLLISIONSYSTEM_FSI_H_ */

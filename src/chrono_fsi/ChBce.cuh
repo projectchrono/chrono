@@ -18,6 +18,9 @@
 #ifndef CH_BCE_CUH_
 #define CH_BCE_CUH_
 
+#include "chrono_fsi/ChFsiDataManager.cuh" //for FsiGeneralData
+
+namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChBce : public ChFsiGeneral{
@@ -42,4 +45,5 @@ private:
 	thrust::device_vector<int> dummyIdentify;
 
 };
-}
+} // end namespace fsi
+} // end namespace chrono

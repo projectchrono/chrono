@@ -18,6 +18,11 @@
 #ifndef CH_FSIGENERAL_H_
 #define CH_FSIGENERAL_H_
 
+#include "chrono_fsi/custom_cutil_math.h"
+
+namespace chrono {
+namespace fsi {
+
 #ifdef __CDT_PARSER__
 #define __host__
 #define __device__
@@ -307,9 +312,8 @@ private:
 
 
 
-}
-
-
-}
+};
+} // end namespace fsi
+} // end namespace chrono
 
 #endif

@@ -18,6 +18,11 @@
 #ifndef CH_FLUIDDYNAMICS_H_
 #define CH_FLUIDDYNAMICS_H_
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChFsiForceParallel.cuh"
+#include "chrono_fsi/ChFsiInterface.h"
+
+namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChFluidDynamics : public ChFsiGeneral{
@@ -45,6 +50,9 @@ protected:
 	void UpdateFluid(SphMarkerDataD * sphMarkersD, Real dT);
 	void ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD);
 
-}
+};
+
+} // end namespace fsi
+} // end namespace chrono
 
 #endif

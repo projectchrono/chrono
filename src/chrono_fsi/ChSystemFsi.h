@@ -18,6 +18,14 @@
 #ifndef CH_SYSTEMFSI_H_
 #define CH_SYSTEMFSI_H_
 
+#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChFluidDynamics.cuh"
+#include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/ChBce.cuh"
+
+#include "chrono_parallel/physics/ChSystemParallel.h"
+
+namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChSystemFsi : public ChFsiGeneral{
@@ -42,5 +50,6 @@ private:
 	chrono::ChSystemParallelDVI * mphysicalSystem;
 	chrono::vehicle::ChWheeledVehicleAssembly* mVehicle;
 };
-}
+} // end namespace fsi
+} // end namespace chrono
 #endif
