@@ -12,7 +12,8 @@
 #ifndef CHMATERIALSURFACEBASE_H
 #define CHMATERIALSURFACEBASE_H
 
-#include "serialization/ChArchive.h"
+#include "chrono/core/ChRunTimeType.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 ///
