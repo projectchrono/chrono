@@ -393,8 +393,11 @@ void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMasked::SetUpMarkers(mark1, mark2);
 
     if (Body1 && Body2) {
-        std::shared_ptr<ChBodyFrame> b1(Body1);
-        std::shared_ptr<ChBodyFrame> b2(Body2);
+        // Note: we wrap Body1 and Body2 in shared_ptr with custom no-op destructors
+        // so that the two objects are not destroyed when these shared_ptr go out of
+        // scope (since Body1 and Body2 are still managed through other shared_ptr).
+        std::shared_ptr<ChBodyFrame> b1(Body1, [](ChBodyFrame*){});
+        std::shared_ptr<ChBodyFrame> b2(Body2, [](ChBodyFrame*){});
         if (innerconstraint1)
             innerconstraint1->Initialize(innershaft1, b1, VECT_Z);
         if (innerconstraint2)
