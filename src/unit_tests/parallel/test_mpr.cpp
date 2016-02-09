@@ -20,8 +20,8 @@
 #include <vector>
 #include <cmath>
 
-#include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
+#include "chrono_parallel/collision/ChNarrowphaseUtils.h"
+#include "chrono_parallel/collision/ChNarrowphaseMPR.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"

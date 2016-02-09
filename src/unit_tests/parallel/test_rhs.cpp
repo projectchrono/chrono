@@ -20,12 +20,12 @@
 #include <cmath>
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
+#include "chrono_parallel/collision/ChNarrowphaseMPR.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
+#include "chrono_parallel/collision/ChNarrowphaseUtils.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
-#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
-#include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"

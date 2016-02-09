@@ -2,11 +2,11 @@
 
 #include "collision/ChCCollisionModel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/collision/ChCNarrowphaseDispatch.h"
-#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
-#include "chrono_parallel/collision/ChCBroadphaseUtils.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include "chrono_parallel/collision/ChCNarrowphaseR.h"
+#include "chrono_parallel/collision/ChCollision.h"
+#include <chrono_parallel/collision/ChNarrowphaseUtils.h>
+#include "chrono_parallel/collision/ChBroadphaseUtils.h"
+#include "chrono_parallel/collision/ChNarrowphaseMPR.h"
+#include "chrono_parallel/collision/ChNarrowphaseR.h"
 
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 

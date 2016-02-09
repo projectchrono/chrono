@@ -19,7 +19,6 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/collision/ChCAABBGenerator.h"
 
 #include <thrust/pair.h>
 #include <thrust/functional.h>

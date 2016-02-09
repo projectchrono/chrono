@@ -35,7 +35,7 @@
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 
-#include "chrono_parallel/collision/ChCCollisionModelParallel.h"
+#include "chrono_parallel/collision/ChCollisionModelParallel.h"
 
 #include "chrono_fea/ChMesh.h"
 

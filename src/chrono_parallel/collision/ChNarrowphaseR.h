@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "chrono_parallel/collision/ChCDataStructures.h"
+#include "chrono_parallel/collision/ChDataStructures.h"
 
 namespace chrono {
 namespace collision {

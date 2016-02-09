@@ -14,7 +14,7 @@
 //
 // Description: class for a parallel collision model
 // =============================================================================
-#include "chrono_parallel/collision/ChCCollisionModelParallel.h"
+#include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "physics/ChBody.h"
 #include "physics/ChBodyAuxRef.h"
 #include "physics/ChSystem.h"

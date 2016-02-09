@@ -1,7 +1,7 @@
 #pragma once
 
 #include "collision/ChCCollisionModel.h"
-#include "chrono_parallel/collision/ChCDataStructures.h"
+#include "chrono_parallel/collision/ChDataStructures.h"
 namespace chrono {
 namespace collision {
 inline real3 GetSupportPoint_Sphere(const real& radius, const real3& n) {

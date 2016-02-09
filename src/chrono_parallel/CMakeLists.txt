@@ -214,26 +214,23 @@ SET(ChronoEngine_Parallel_CONSTRAINTS
 SOURCE_GROUP(constraints FILES ${ChronoEngine_Parallel_CONSTRAINTS})
 
 SET(ChronoEngine_Parallel_COLLISION
-    collision/ChCAABBGenerator.h
-    collision/ChCAABBGenerator.cpp
-    collision/ChCBroadphase.h
-    collision/ChCBroadphase.cpp
-    collision/ChCBroadphaseUtils.h
-    collision/ChCDataStructures.h
-    collision/ChCNarrowphaseUtils.h
-    collision/ChCNarrowphaseMPR.h
-    collision/ChCNarrowphaseMPR.cpp
-    collision/ChCNarrowphaseDispatch.h
-    collision/ChCNarrowphaseDispatch.cpp
-    collision/ChCNarrowphaseRUtils.h
-    collision/ChCNarrowphaseR.h
-    collision/ChCNarrowphaseR.cpp
-    collision/ChCCollisionModelParallel.h
-    collision/ChCCollisionModelParallel.cpp
-    collision/ChCCollisionSystemParallel.h
-    collision/ChCCollisionSystemParallel.cpp
-    collision/ChCCollisionSystemBulletParallel.h
-    collision/ChCCollisionSystemBulletParallel.cpp
+    collision/ChAABBGenerator.cpp
+    collision/ChBroadphase.cpp
+    collision/ChBroadphaseUtils.h
+    collision/ChDataStructures.h
+    collision/ChNarrowphaseUtils.h
+    collision/ChNarrowphaseMPR.h
+    collision/ChNarrowphaseMPR.cpp
+    collision/ChNarrowphaseDispatch.cpp
+    collision/ChNarrowphaseRUtils.h
+    collision/ChNarrowphaseR.h
+    collision/ChNarrowphaseR.cpp
+    collision/ChCollisionModelParallel.h
+    collision/ChCollisionModelParallel.cpp
+    collision/ChCollisionSystemParallel.h
+    collision/ChCollisionSystemParallel.cpp
+    collision/ChCollisionSystemBulletParallel.h
+    collision/ChCollisionSystemBulletParallel.cpp
     collision/ChContactContainerParallel.h
     collision/ChContactContainerParallel.cpp
     )

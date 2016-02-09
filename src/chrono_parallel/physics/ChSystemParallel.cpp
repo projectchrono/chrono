@@ -5,8 +5,8 @@
 #include "physics/ChShaftsBody.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
-#include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/mat33.h"  // for quaternion, real4
 

@@ -3,9 +3,9 @@
 #include "collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
-#include "chrono_parallel/collision/ChCDataStructures.h"
+#include "chrono_parallel/collision/ChNarrowphaseMPR.h"
+#include "chrono_parallel/collision/ChNarrowphaseUtils.h"
+#include "chrono_parallel/collision/ChDataStructures.h"
 
 using namespace chrono;
 using namespace chrono::collision;

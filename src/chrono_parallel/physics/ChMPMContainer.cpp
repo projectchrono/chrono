@@ -3,7 +3,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include <chrono_parallel/physics/Ch3DOFContainer.h>
 #include "chrono_parallel/lcp/MPMUtils.h"
-#include <chrono_parallel/collision/ChCBroadphaseUtils.h>
+#include <chrono_parallel/collision/ChBroadphaseUtils.h>
 #include <thrust/transform_reduce.h>
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"

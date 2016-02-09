@@ -1,19 +1,52 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+// This class generates an AABB for every collision shape
+// =============================================================================
+
 #pragma once
 
+#include "collision/ChCCollisionModel.h"
+
+#include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/collision/ChCDataStructures.h"
+
 namespace chrono {
 namespace collision {
-/*
- * Narrowphase dispatch will handle the outer loop for the collision detection code
- * For each contact pair it will decide what algorithm to use
- * The user can specify if they want to use only MPR etc or a hybrid approach with custom functions for certain
- *pair types
- *
- *
- *
- */
+
+class ConvexShape;
+
+class CH_PARALLEL_API ChCAABBGenerator {
+  public:
+    ChCAABBGenerator();
+    void GenerateAABB();
+    ChParallelDataManager* data_manager;
+};
+
+class CH_PARALLEL_API ChCBroadphase {
+  public:
+    ChCBroadphase();
+    void DetectPossibleCollisions();
+    void OneLevelBroadphase();
+    void DetermineBoundingBox();
+    void OffsetAABB();
+    void ComputeTopLevelResolution();
+    void DispatchTets();
+    ChParallelDataManager* data_manager;
+
+  private:
+};
 
 class CH_PARALLEL_API ChCNarrowphaseDispatch {
   public:
@@ -85,5 +118,5 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<uint> n_bin_node_number;
     custom_vector<uint> n_bin_start_index;
 };
-}  // end namespace collision
-}  // end namespace chrono
+}
+}
