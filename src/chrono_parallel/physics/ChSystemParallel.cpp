@@ -62,7 +62,7 @@ ChSystemParallel::~ChSystemParallel() {
 }
 
 int ChSystemParallel::Integrate_Y() {
-    LOG(INFO) << "ChSystemParallel::Integrate_Y()";
+    LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ChTime;
     // Get the pointer for the system descriptor and store it into the data manager
     data_manager->lcp_system_descriptor = this->LCP_descriptor;
     data_manager->body_list = &this->bodylist;
@@ -292,7 +292,7 @@ void ChSystemParallel::AddMesh(ChSharedPtr<fea::ChMesh> mesh) {
             // elem = Sort(elem);
 
             // printf("%d %d %d %d \n", elem.x, elem.y, elem.z, elem.w);
-            //Offset once we have swapped
+            // Offset once we have swapped
             elem.x += current_nodes;
             elem.y += current_nodes;
             elem.z += current_nodes;

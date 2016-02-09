@@ -158,10 +158,12 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
     tot_iterations = data_manager->measures.solver.maxd_hist.size();
 
-    LOG(TRACE) << "ChLcpSolverParallelDVI::RunTimeStep E solve_time: "
+    LOG(TRACE) << "ChLcpSolverParallelDVI::RunTimeStep E solve: "
                << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve")
-               << " shur_time: " << data_manager->system_timer.GetTime("ShurProduct")
-               << " residual: " << data_manager->measures.solver.residual << " tot_iterations: " << tot_iterations;
+               << " shur: " << data_manager->system_timer.GetTime("ShurProduct")
+               << " residual: " << data_manager->measures.solver.residual
+               << " objective: " << data_manager->measures.solver.maxdeltalambda_hist.back()
+               << " iterations: " << tot_iterations;
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
@@ -237,10 +239,10 @@ void ChLcpSolverParallelDVI::ComputeD() {
     data_manager->fea_container->Build_D();
     data_manager->mpm_container->Build_D();
 
-    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D";
+    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D = trans(D_T)";
 
     data_manager->host_data.D = trans(D_T);
-    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - M_invD";
+    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - M_inv * D";
 
     data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
 

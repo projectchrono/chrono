@@ -217,7 +217,6 @@ void ChFluidContainer::Density_Fluid() {
         Initialize();
         init_mass = true;
     }
-    LOG(INFO) << "ChConstraintFluidFluid::Density_Fluid";
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
     real h = kernel_radius;
     real envel = data_manager->settings.collision.collision_envelope;
@@ -283,7 +282,7 @@ void ChFluidContainer::Normalize_Density_Fluid() {
 }
 
 void ChFluidContainer::Build_D() {
-    LOG(INFO) << "ChConstraintFluidFluid::Build_D_Fluid";
+    LOG(INFO) << "ChFluidContainer::Build_D";
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
@@ -389,7 +388,6 @@ void ChFluidContainer::Build_D() {
         // Add more entries for viscosity
         // Code is repeated because there are three rows per viscosity constraint
     }
-    LOG(INFO) << "ChConstraintFluidFluid::JACOBIAN OF FLUID";
 }
 void ChFluidContainer::Build_b() {
     real dt = data_manager->settings.step_size;
@@ -528,7 +526,7 @@ void ChFluidContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     if (num_rigid_fluid_contacts > 0) {
-        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
+        LOG(INFO) << "ChFluidContainer::GenerateSparsity() ";
 
         int index_t = 0;
 
@@ -568,8 +566,6 @@ void ChFluidContainer::GenerateSparsity() {
         }
     }
     if (data_manager->num_fluid_contacts > 0) {
-        LOG(INFO) << "ChConstraintFluidFluid::GenerateSparsity";
-
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];

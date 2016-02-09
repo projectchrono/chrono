@@ -159,7 +159,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     bin_start_index.resize(number_of_bins_active + 1);
     bin_start_index[number_of_bins_active] = 0;
 
-    LOG(TRACE) << "number_of_bins_active: " << number_of_bins_active;
+    LOG(TRACE) << "Number of bins active: " << number_of_bins_active;
 
     Thrust_Exclusive_Scan(bin_start_index);
     bin_num_contact.resize(number_of_bins_active + 1);
