@@ -31,10 +31,11 @@
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 #include <irrlicht.h>
 
@@ -116,27 +117,32 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
         ChQuaternion<> randrot(ChRandom(), ChRandom(), ChRandom(), ChRandom());
         randrot.Normalize();
 
-        mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-            &mphysicalSystem, msceneManager, (4 / 3) * CH_C_PI * pow(sphrad, 3) * sphdens,
-            ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 0.01 + 0.04 * ((double)bi / (double)n_pebbles),
-                       -0.5 * bed_z + ChRandom() * bed_z),
-            sphrad);
-
-        mrigidBody->GetBody()->SetInertiaXX(ChVector<>(sphinertia, sphinertia, sphinertia));
-        mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.4f);
-        mrigidBody->GetBody()->SetRot(randrot);
-        // mrigidBody->addShadowVolumeSceneNode();
-        mrigidBody->setMaterialTexture(0, rockMap);
+        ChSharedPtr<ChBody> mrigidBody (new ChBodyEasySphere(sphrad, sphdens, true, true));
+        mphysicalSystem.Add(mrigidBody);
+        mrigidBody->SetRot(randrot);
+        mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 
+                            0.01 + 0.04 * ((double)bi / (double)n_pebbles),
+                              -0.5 * bed_z + ChRandom() * bed_z));
+        mrigidBody->GetMaterialSurface()->SetFriction(0.4f);
     }
 
     // Create the a plane using body of 'box' type:
-
+    ChSharedPtr<ChBody> mrigidBodyB (new ChBodyEasyBox(10, 1, 10, 1000, true, true));
+    mphysicalSystem.Add(mrigidBodyB);
+    mrigidBodyB->SetBodyFixed(true);
+    mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
+    mrigidBodyB->GetMaterialSurface()->SetFriction(0.5);
+    ChSharedPtr<ChColorAsset> mcolor (new ChColorAsset);
+    mcolor->SetColor(ChColor(0.2,0.2,0.2));
+    mrigidBodyB->AddAsset(mcolor);
+/*
     mrigidBody =
         (ChBodySceneNode*)addChBodySceneNode_easyBox(&mphysicalSystem, msceneManager, 100.0, ChVector<>(0, -0.5, 0),
                                                      ChQuaternion<>(1, 0, 0, 0), ChVector<>(10, 1, 10));
     mrigidBody->GetBody()->SetBodyFixed(true);
     mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
     mrigidBody->setMaterialTexture(0, cubeMap);
+ */
 }
 
 int main(int argc, char* argv[]) {
@@ -145,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrAppInterface application(&mphysicalSystem, L"Convex decomposed wheel", core::dimension2d<u32>(800, 600),
+    ChIrrApp application(&mphysicalSystem, L"Convex decomposed wheel", core::dimension2d<u32>(800, 600),
                                   false);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -161,6 +167,15 @@ int main(int argc, char* argv[]) {
     // Create the wheel
 
     ChBodySceneNode* mwheelBody = create_wheel(ChVector<>(0, 1, 0), application);
+
+
+    // Use this function for adding a ChIrrNodeAsset to all items
+    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    application.AssetBindAll();
+
+    // Use this function for 'converting' assets into Irrlicht meshes
+    application.AssetUpdateAll();
+
 
     //
     // THE SOFT-REAL-TIME CYCLE

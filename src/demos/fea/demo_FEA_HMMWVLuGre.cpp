@@ -18,6 +18,7 @@
 // [LuGre contact formulation needs to be modified for other cases]
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
@@ -1597,19 +1598,19 @@ int main(int argc, char* argv[]) {
     mvisualizemesh->SetColorscaleMinMax(0.0, 30);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
+
+
+    // Create the a plane using body of 'box' type:
+    ChSharedPtr<ChBody> mrigidBody (new ChBodyEasyBox(10, 10, 0.000001, 1000, false, true));
+    my_system.Add(mrigidBody);
+    mrigidBody->SetPos(ChVector<>(0, 0, ContactZ));
+    mrigidBody->SetBodyFixed(true);
+    mrigidBody->GetMaterialSurface()->SetFriction(0.5);
+
+
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-    video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
-    video::ITexture* rockMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("rock.jpg").c_str());
-    // Create the a plane using body of 'box' type:
-    ChBodySceneNode* mrigidBody;
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(&my_system, application.GetSceneManager(), 100.0,
-                                                              ChVector<>(0, 0, ContactZ), ChQuaternion<>(1, 0, 0, 0),
-                                                              ChVector<>(10, 10, 0.000001));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
-    mrigidBody->setMaterialTexture(0, cubeMap);
     ///////
 
     my_system.Setup();

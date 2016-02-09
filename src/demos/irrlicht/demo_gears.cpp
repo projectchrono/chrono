@@ -135,8 +135,8 @@ int main(int argc, char* argv[]) {
     //    Also, note that the initial position of the constraint has no importance (simply use CSYSNORM),
     //    but we must set where the two axes are placed in the local coordinates of the two wheels, so
     //    we use Set_local_shaft1() and pass some local ChFrame. Note that, since the Z axis of that frame
-    //    will be considered the axis of he wheel, we must rotate the frame 90° with Q_from_AngAxis(), because
-    //    we created the wheel with addChBodySceneNode_easyCylinder() which created a cylinder with Y as axis.
+    //    will be considered the axis of the wheel, we must rotate the frame 90° with Q_from_AngAxis(), because
+    //    we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis.
     ChSharedPtr<ChLinkGear> link_gearAB(new ChLinkGear);
     link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
     link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
