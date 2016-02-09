@@ -41,8 +41,8 @@ namespace collision {
 // This function returns true if it was able to determine the collision state
 // for the given pair of shapes and false if the shape types are not supported.
 
-bool RCollision(const ConvexShape& shapeA,  // first candidate shape
-                const ConvexShape& shapeB,  // second candidate shape
+bool RCollision(const ConvexBase* shapeA,  // first candidate shape
+                const ConvexBase* shapeB,  // second candidate shape
                 real separation,            // maximum separation
                 real3* ct_norm,             // [output] contact normal (per contact pair)
                 real3* ct_pt1,              // [output] point on shape1 (per contact pair)
@@ -56,140 +56,141 @@ bool RCollision(const ConvexShape& shapeA,  // first candidate shape
 
     nC = 0;
 
-    if (shapeA.type == SPHERE && shapeB.type == SPHERE) {
-        if (sphere_sphere(shapeA.A, shapeA.B.x, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2,
-                          *ct_eff_rad)) {
+    if (shapeA->Type() == SPHERE && shapeB->Type() == SPHERE) {
+        if (sphere_sphere(shapeA->A(), shapeA->Radius(), shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth,
+                          *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == CAPSULE && shapeB.type == SPHERE) {
-        if (capsule_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm,
-                           *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (shapeA->Type() == CAPSULE && shapeB->Type() == SPHERE) {
+        if (capsule_sphere(shapeA->A(), shapeA->R(), shapeA->Capsule().x, shapeA->Capsule().y, shapeB->A(), shapeB->Radius(),
+                           separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == SPHERE && shapeB.type == CAPSULE) {
-        if (capsule_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm,
-                           *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (shapeA->Type() == SPHERE && shapeB->Type() == CAPSULE) {
+        if (capsule_sphere(shapeB->A(), shapeB->R(), shapeB->Capsule().x, shapeB->Capsule().y, shapeA->A(), shapeA->Radius(),
+                           separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == CYLINDER && shapeB.type == SPHERE) {
-        if (cylinder_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.B.x, separation, *ct_norm,
-                            *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (shapeA->Type() == CYLINDER && shapeB->Type() == SPHERE) {
+        if (cylinder_sphere(shapeA->A(), shapeA->R(), shapeA->Box().x, shapeA->Box().y, shapeB->A(), shapeB->Radius(),
+                            separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == SPHERE && shapeB.type == CYLINDER) {
-        if (cylinder_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeA.A, shapeA.B.x, separation, *ct_norm,
-                            *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (shapeA->Type() == SPHERE && shapeB->Type() == CYLINDER) {
+        if (cylinder_sphere(shapeB->A(), shapeB->R(), shapeB->Box().x, shapeB->Box().y, shapeA->A(), shapeA->Radius(),
+                            separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == ROUNDEDCYL && shapeB.type == SPHERE) {
-        if (roundedcyl_sphere(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeA.C.x, shapeB.A, shapeB.B.x, separation,
-                              *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (shapeA->Type() == ROUNDEDCYL && shapeB->Type() == SPHERE) {
+        if (roundedcyl_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox().x, shapeA->Rbox().y, shapeA->Rbox().w, shapeB->A(),
+                              shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == SPHERE && shapeB.type == ROUNDEDCYL) {
-        if (roundedcyl_sphere(shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, shapeB.C.x, shapeA.A, shapeA.B.x, separation,
-                              *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (shapeA->Type() == SPHERE && shapeB->Type() == ROUNDEDCYL) {
+        if (roundedcyl_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox().x, shapeB->Rbox().y, shapeB->Rbox().w, shapeA->A(),
+                              shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == BOX && shapeB.type == SPHERE) {
-        if (box_sphere(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1,
-                       *ct_pt2, *ct_eff_rad)) {
+    if (shapeA->Type() == BOX && shapeB->Type() == SPHERE) {
+        if (box_sphere(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->Radius(), separation, *ct_norm,
+                       *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == SPHERE && shapeB.type == BOX) {
-        if (box_sphere(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2,
-                       *ct_pt1, *ct_eff_rad)) {
+    if (shapeA->Type() == SPHERE && shapeB->Type() == BOX) {
+        if (box_sphere(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->Radius(), separation, *ct_norm,
+                       *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == ROUNDEDBOX && shapeB.type == SPHERE) {
-        if (roundedbox_sphere(shapeA.A, shapeA.R, shapeA.B, shapeA.C.x, shapeB.A, shapeB.B.x, separation, *ct_norm,
-                              *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+    if (shapeA->Type() == ROUNDEDBOX && shapeB->Type() == SPHERE) {
+        if (roundedbox_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox(), shapeA->Rbox().w, shapeB->A(), shapeB->Radius(),
+                              separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == SPHERE && shapeB.type == ROUNDEDBOX) {
-        if (roundedbox_sphere(shapeB.A, shapeB.R, shapeB.B, shapeB.C.x, shapeA.A, shapeA.B.x, separation, *ct_norm,
-                              *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+    if (shapeA->Type() == SPHERE && shapeB->Type() == ROUNDEDBOX) {
+        if (roundedbox_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox(), shapeB->Rbox().w, shapeA->A(), shapeA->Radius(),
+                              separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == TRIANGLEMESH && shapeB.type == SPHERE) {
-        if (face_sphere(shapeA.A, shapeA.B, shapeA.C, shapeB.A, shapeB.B.x, separation, *ct_norm, *ct_depth, *ct_pt1,
-                        *ct_pt2, *ct_eff_rad)) {
+    if (shapeA->Type() == TRIANGLEMESH && shapeB->Type() == SPHERE) {
+        if (face_sphere(shapeA->Triangles()[0], shapeA->Triangles()[1], shapeA->Triangles()[2], shapeB->A(),
+                        shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == SPHERE && shapeB.type == TRIANGLEMESH) {
-        if (face_sphere(shapeB.A, shapeB.B, shapeB.C, shapeA.A, shapeA.B.x, separation, *ct_norm, *ct_depth, *ct_pt2,
-                        *ct_pt1, *ct_eff_rad)) {
+    if (shapeA->Type() == SPHERE && shapeB->Type() == TRIANGLEMESH) {
+        if (face_sphere(shapeB->Triangles()[0], shapeB->Triangles()[1], shapeB->Triangles()[2], shapeA->A(),
+                        shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }
         return true;
     }
 
-    if (shapeA.type == CAPSULE && shapeB.type == CAPSULE) {
-        nC = capsule_capsule(shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y,
-                             separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+    if (shapeA->Type() == CAPSULE && shapeB->Type() == CAPSULE) {
+        nC = capsule_capsule(shapeA->A(), shapeA->R(), shapeA->Capsule().x, shapeA->Capsule().y, shapeB->A(), shapeB->R(),
+                             shapeB->Capsule().x, shapeB->Capsule().y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2,
+                             ct_eff_rad);
         return true;
     }
 
-    if (shapeA.type == BOX && shapeB.type == CAPSULE) {
-        nC = box_capsule(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B.x, shapeB.B.y, separation, ct_norm,
-                         ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+    if (shapeA->Type() == BOX && shapeB->Type() == CAPSULE) {
+        nC = box_capsule(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Capsule().x,
+                         shapeB->Capsule().y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
         return true;
     }
 
-    if (shapeA.type == CAPSULE && shapeB.type == BOX) {
-        nC = box_capsule(shapeB.A, shapeB.R, shapeB.B, shapeA.A, shapeA.R, shapeA.B.x, shapeA.B.y, separation, ct_norm,
-                         ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
+    if (shapeA->Type() == CAPSULE && shapeB->Type() == BOX) {
+        nC = box_capsule(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->R(), shapeA->Capsule().x,
+                         shapeA->Capsule().y, separation, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
         for (int i = 0; i < nC; i++) {
             *(ct_norm + i) = -(*(ct_norm + i));
         }
         return true;
     }
 
-    if (shapeA.type == BOX && shapeB.type == BOX) {
-        nC = box_box(shapeA.A, shapeA.R, shapeA.B, shapeB.A, shapeB.R, shapeB.B, ct_norm, ct_depth, ct_pt1, ct_pt2,
-                     ct_eff_rad);
+    if (shapeA->Type() == BOX && shapeB->Type() == BOX) {
+        nC = box_box(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Box(), ct_norm, ct_depth,
+                     ct_pt1, ct_pt2, ct_eff_rad);
         // TODO: Change to true when this is implemented
         return false;
     }

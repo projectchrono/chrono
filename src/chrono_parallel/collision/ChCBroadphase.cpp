@@ -104,9 +104,9 @@ void ChCBroadphase::DetectPossibleCollisions() {
 void ChCBroadphase::OneLevelBroadphase() {
     const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const custom_vector<short2>& fam_data = data_manager->host_data.fam_rigid;
+    const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
     const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
-    const custom_vector<uint>& obj_data_id = data_manager->host_data.id_rigid;
+    const custom_vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
     custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
 
     custom_vector<uint>& bin_intersections = data_manager->host_data.bin_intersections;

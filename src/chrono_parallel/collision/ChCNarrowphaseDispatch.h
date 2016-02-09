@@ -52,7 +52,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     void DispatchMPR();
     void DispatchR();
     void DispatchHybridMPR();
-    void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape& shapeA, ConvexShape& shapeB);
+    void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape* shapeA, ConvexShape* shapeB);
     void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
     ChParallelDataManager* data_manager;
 

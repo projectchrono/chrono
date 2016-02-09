@@ -4,7 +4,9 @@
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include <chrono_parallel/collision/ChCNarrowphaseUtils.h>
+#include "chrono_parallel/collision/ChCNarrowphaseUtils.h"
+#include "chrono_parallel/collision/ChCDataStructures.h"
+
 using namespace chrono;
 using namespace chrono::collision;
 
@@ -18,47 +20,44 @@ struct simplex {
     support s0, s1, s2, s3, s4;
 };
 
-bool chrono::collision::MPRSphereSphere(const ConvexShape& ShapeA,
-                                        const ConvexShape& ShapeB,
+bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
+                                        const ConvexBase* ShapeB,
                                         real3& N,
                                         real& depth,
                                         real3& p1,
                                         real3& p2) {
-    real3 relpos = ShapeB.A - ShapeA.A;
+
+    real3 relpos = ShapeB->A() - ShapeA->A();
     real d2 = Dot(relpos);
-    real collide_dist = ShapeA.B.x + ShapeB.B.x;
+    real collide_dist = ShapeA->Radius() + ShapeB->Radius();
     if (d2 <= collide_dist * collide_dist) {
         N = relpos / Sqrt(d2);
-        p1 = ShapeA.A + N * ShapeA.B.x;
-        p2 = ShapeB.A - N * ShapeB.B.x;
+        p1 = ShapeA->A() + N * ShapeA->Radius();
+        p2 = ShapeB->A() - N * ShapeB->Radius();
         depth = Dot(N, p2 - p1);
         return true;
     }
     return false;
 }
 
-real3 GetCenter(const ConvexShape& Shape) {
-    if (Shape.type == TRIANGLEMESH) {
-        return GetCenter_Triangle(Shape.A, Shape.B, Shape.C);  // triangle center
-    } else if (Shape.type == CONVEX) {
-        return GetCenter_Convex(Shape.B, Shape.convex) + Shape.A;  // convex center
+real3 GetCenter(const ConvexBase* Shape) {
+    if (Shape->Type() == TRIANGLEMESH) {
+        return GetCenter_Triangle(Shape->Triangles());  // triangle center
+    } else if (Shape->Type() == CONVEX) {
+        return GetCenter_Convex(Shape->Size(), Shape->Convex()) + Shape->A();  // convex center
     } else {
-        return Shape.A;  // All other shapes assumed to be locally centered
+        return Shape->A();  // All other shapes assumed to be locally centered
     }
 }
 
-void FindCenter(const ConvexShape& shapeA, const ConvexShape& shapeB, simplex& portal) {
+void FindCenter(const ConvexBase* shapeA, const ConvexBase* shapeB, simplex& portal) {
     // v0 = center of Minkowski sum
     portal.s0.v1 = GetCenter(shapeA);
     portal.s0.v2 = GetCenter(shapeB);
     portal.s0.v = portal.s0.v2 - portal.s0.v1;
 }
 
-void MPRSupport(const ConvexShape& shapeA,
-                const ConvexShape& shapeB,
-                const real3& n,
-                const real& envelope,
-                support& s) {
+void MPRSupport(const ConvexBase* shapeA, const ConvexBase* shapeB, const real3& n, const real& envelope, support& s) {
     s.v1 = TransformSupportVert(shapeA, -n, envelope);
     s.v2 = TransformSupportVert(shapeB, n, envelope);
     s.v = s.v2 - s.v1;
@@ -403,8 +402,8 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
     return sqrDistance;
 }
 
-void FindPenetration(const ConvexShape& shapeA,
-                     const ConvexShape& shapeB,
+void FindPenetration(const ConvexBase* shapeA,
+                     const ConvexBase* shapeB,
                      const real& envelope,
                      simplex& portal,
                      real& depth,
@@ -434,8 +433,8 @@ void FindPenetration(const ConvexShape& shapeA,
     }
 }
 
-void FindPenetrationTouch(const ConvexShape& shapeA,
-                          const ConvexShape& shapeB,
+void FindPenetrationTouch(const ConvexBase* shapeA,
+                          const ConvexBase* shapeB,
                           simplex& portal,
                           real& depth,
                           real3& n,
@@ -445,8 +444,8 @@ void FindPenetrationTouch(const ConvexShape& shapeA,
     point = (portal.s1.v1 + portal.s1.v2) * .5;
 }
 
-void FindPenetrationSegment(const ConvexShape& shapeA,
-                            const ConvexShape& shapeB,
+void FindPenetrationSegment(const ConvexBase* shapeA,
+                            const ConvexBase* shapeB,
                             simplex& portal,
                             real& depth,
                             real3& n,
@@ -457,7 +456,7 @@ void FindPenetrationSegment(const ConvexShape& shapeA,
     n = Normalize(n);
 }
 
-bool FindPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, simplex& portal, real3& n) {
+bool FindPortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const real& envelope, simplex& portal, real3& n) {
     // Phase One: Identify a portal
     while (true) {
         // Obtain the support point in a direction perpendicular to the existing plane
@@ -485,7 +484,7 @@ bool FindPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const real
     return true;
 }
 
-int DiscoverPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, simplex& portal) {
+int DiscoverPortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const real& envelope, simplex& portal) {
     real3 n, va, vb;
     // vertex 0 is center of portal
     FindCenter(shapeA, shapeB, portal);
@@ -554,7 +553,7 @@ int DiscoverPortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const r
     }
     return 0;
 }
-int RefinePortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const real& envelope, simplex& portal) {
+int RefinePortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const real& envelope, simplex& portal) {
     real3 n;
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         // Compute normal of the wedge face
@@ -581,8 +580,8 @@ int RefinePortal(const ConvexShape& shapeA, const ConvexShape& shapeB, const rea
     return -1;
 }
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRContact(const ConvexShape& shapeA,
-                                   const ConvexShape& shapeB,
+bool chrono::collision::MPRContact(const ConvexBase* shapeA,
+                                   const ConvexBase* shapeB,
                                    const real& envelope,
                                    real3& returnNormal,
                                    real3& point,
@@ -610,8 +609,8 @@ bool chrono::collision::MPRContact(const ConvexShape& shapeA,
     return 1;
 }
 
-void chrono::collision::MPRGetPoints(const ConvexShape& shapeA,
-                                     const ConvexShape& shapeB,
+void chrono::collision::MPRGetPoints(const ConvexBase* shapeA,
+                                     const ConvexBase* shapeB,
                                      const real& envelope,
                                      real3& N,
                                      real3 p0,
@@ -623,8 +622,8 @@ void chrono::collision::MPRGetPoints(const ConvexShape& shapeA,
 }
 
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRCollision(const ConvexShape& shapeA,
-                                     const ConvexShape& shapeB,
+bool chrono::collision::MPRCollision(const ConvexBase* shapeA,
+                                     const ConvexBase* shapeB,
                                      real envelope,
                                      real3& normal,
                                      real3& pointA,

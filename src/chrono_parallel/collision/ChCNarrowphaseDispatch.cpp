@@ -70,7 +70,7 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
     //   - a box-box interaction can produce up to 8 contacts
 
     // shape type (per shape)
-    const shape_type* obj_data_T = data_manager->host_data.typ_rigid.data();
+    const shape_type* obj_data_T = data_manager->shape_data.typ_rigid.data();
     // encoded shape IDs (per collision pair)
     const long long* collision_pair = data_manager->host_data.contact_pairs.data();
 
@@ -98,20 +98,18 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
     LOG(TRACE) << "start PreprocessLocalToParent: ";
     uint num_shapes = data_manager->num_rigid_shapes;
 
-    const custom_vector<int>& obj_data_T = data_manager->host_data.typ_rigid;
-    const custom_vector<real3>& obj_data_A = data_manager->host_data.ObA_rigid;
-    const custom_vector<real3>& obj_data_B = data_manager->host_data.ObB_rigid;
-    const custom_vector<real3>& obj_data_C = data_manager->host_data.ObC_rigid;
-    const custom_vector<quaternion>& obj_data_R = data_manager->host_data.ObR_rigid;
-    const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+    const custom_vector<int>& obj_data_T = data_manager->shape_data.typ_rigid;
+    const custom_vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
+    const custom_vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
+    const custom_vector<uint>& obj_data_ID = data_manager->shape_data.id_rigid;
 
     const custom_vector<real3>& body_pos = data_manager->host_data.pos_rigid;
     const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
 
-    data_manager->host_data.obj_data_A_global.resize(num_shapes);
-    data_manager->host_data.obj_data_B_global.resize(num_shapes);
-    data_manager->host_data.obj_data_C_global.resize(num_shapes);
-    data_manager->host_data.obj_data_R_global.resize(num_shapes);
+    data_manager->shape_data.obj_data_A_global.resize(num_shapes);
+
+    data_manager->shape_data.obj_data_R_global.resize(num_shapes);
+    data_manager->shape_data.triangle_global.resize(data_manager->shape_data.triangle_rigid.size());
 
 #pragma omp parallel for
     for (int index = 0; index < num_shapes; index++) {
@@ -123,15 +121,17 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         real3 pos = body_pos[ID];       // Get the global object position
         quaternion rot = body_rot[ID];  // Get the global object rotation
 
-        data_manager->host_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
+        data_manager->shape_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
         if (T == TRIANGLEMESH) {
-            data_manager->host_data.obj_data_B_global[index] = TransformLocalToParent(pos, rot, obj_data_B[index]);
-            data_manager->host_data.obj_data_C_global[index] = TransformLocalToParent(pos, rot, obj_data_C[index]);
-        } else {
-            data_manager->host_data.obj_data_B_global[index] = obj_data_B[index];
-            data_manager->host_data.obj_data_C_global[index] = obj_data_C[index];
+            int start = data_manager->shape_data.start_rigid[index];
+            data_manager->shape_data.triangle_global[start * 3 + 0] =
+                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start * 3 + 0]);
+            data_manager->shape_data.triangle_global[start * 3 + 1] =
+                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start * 3 + 1]);
+            data_manager->shape_data.triangle_global[start * 3 + 2] =
+                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start * 3 + 2]);
         }
-        data_manager->host_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
+        data_manager->shape_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }
     LOG(TRACE) << "stop PreprocessLocalToParent: ";
 }
@@ -140,12 +140,11 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
                                            uint& icoll,
                                            uint& ID_A,
                                            uint& ID_B,
-                                           ConvexShape& shapeA,
-                                           ConvexShape& shapeB) {
-    const shape_type* obj_data_T = data_manager->host_data.typ_rigid.data();
-    const custom_vector<uint>& obj_data_ID = data_manager->host_data.id_rigid;
+                                           ConvexShape* shapeA,
+                                           ConvexShape* shapeB) {
+    const custom_vector<uint>& obj_data_ID = data_manager->shape_data.id_rigid;
     const custom_vector<long long>& contact_pair = data_manager->host_data.contact_pairs;
-    real3* convex_data = data_manager->host_data.convex_data.data();
+    real3* convex_data = data_manager->shape_data.convex_rigid.data();
 
     long long p = contact_pair[index];
     int2 pair =
@@ -154,19 +153,11 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
     ID_A = obj_data_ID[pair.x];
     ID_B = obj_data_ID[pair.y];  // Get the identifiers of the two associated objects (bodies)
 
-    shapeA.type = obj_data_T[pair.x];
-    shapeB.type = obj_data_T[pair.y];  // Load the type data for each object in the collision pair
+    shapeA->index = pair.x;
+    shapeB->index = pair.y;
 
-    shapeA.A = data_manager->host_data.obj_data_A_global[pair.x];
-    shapeB.A = data_manager->host_data.obj_data_A_global[pair.y];
-    shapeA.B = data_manager->host_data.obj_data_B_global[pair.x];
-    shapeB.B = data_manager->host_data.obj_data_B_global[pair.y];
-    shapeA.C = data_manager->host_data.obj_data_C_global[pair.x];
-    shapeB.C = data_manager->host_data.obj_data_C_global[pair.y];
-    shapeA.R = data_manager->host_data.obj_data_R_global[pair.x];
-    shapeB.R = data_manager->host_data.obj_data_R_global[pair.y];
-    shapeA.convex = convex_data;
-    shapeB.convex = convex_data;
+    shapeA->data = &data_manager->shape_data;
+    shapeB->data = &data_manager->shape_data;
 
     //// TODO: what is the best way to dispatch this?
     icoll = contact_index[index];
@@ -192,7 +183,8 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
 #pragma omp parallel for
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
-        ConvexShape shapeA, shapeB;
+        ConvexShape* shapeA = new ConvexShape();
+        ConvexShape* shapeB = new ConvexShape();
 
         Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
 
@@ -202,6 +194,8 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
             // The number of contacts reported by MPR is always 1.
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
+        delete shapeA;
+        delete shapeB;
     }
 }
 
@@ -215,7 +209,8 @@ void ChCNarrowphaseDispatch::DispatchR() {
 #pragma omp parallel for
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
-        ConvexShape shapeA, shapeB;
+        ConvexShape* shapeA = new ConvexShape();
+        ConvexShape* shapeB = new ConvexShape();
         int nC;
 
         Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
@@ -224,6 +219,8 @@ void ChCNarrowphaseDispatch::DispatchR() {
                        &contactDepth[icoll], &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
         }
+        delete shapeA;
+        delete shapeB;
     }
 }
 
@@ -237,7 +234,8 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
 #pragma omp parallel for
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
-        ConvexShape shapeA, shapeB;
+        ConvexShape* shapeA = new ConvexShape();
+        ConvexShape* shapeB = new ConvexShape();
         int nC;
 
         Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
@@ -250,6 +248,8 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
             effective_radius[icoll] = edge_radius;
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
+        delete shapeA;
+        delete shapeB;
     }
 }
 
@@ -601,23 +601,13 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
                     real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
                     real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
-                    uint bodyA = data_manager->host_data.id_rigid[shape_id_a];
+                    uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
                     if (!overlap(Amin, Amax, Bmin, Bmax)) {
                         continue;
                     }
 
-                    ConvexShape shapeA(data_manager->host_data.typ_rigid[shape_id_a],          //
-                                       data_manager->host_data.obj_data_A_global[shape_id_a],  //
-                                       data_manager->host_data.obj_data_B_global[shape_id_a],  //
-                                       data_manager->host_data.obj_data_C_global[shape_id_a],  //
-                                       data_manager->host_data.obj_data_R_global[shape_id_a],  //
-                                       data_manager->host_data.convex_data.data());            //
-
-                    ConvexShape shapeB(SPHERE, pos_sphere,                           //
-                                       real3(sphere_radius, 0, 0),                   //
-                                       real3(0),                                     //
-                                       quaternion(1, 0, 0, 0),                       //
-                                       data_manager->host_data.convex_data.data());  //
+                    ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
+                    ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius);
 
                     real3 ptA, ptB, norm;
                     real depth;
@@ -631,6 +621,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                             contact_counts[p]++;
                         }
                     }
+                    delete shapeA;
+                    delete shapeB;
                 }
             }
         }

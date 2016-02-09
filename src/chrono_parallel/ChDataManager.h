@@ -176,18 +176,33 @@ typedef blaze::DenseSubvector<const DynamicVector<real> > ConstSubVectorType;
 // The maximum number of shear history contacts per smaller body (DEM)
 #define max_shear 20
 
+struct shape_container {
+    custom_vector<short2> fam_rigid;      // Family information
+    custom_vector<uint> id_rigid;         // Body identifier for each shape
+    custom_vector<int> typ_rigid;         // Shape type
+    custom_vector<int> start_rigid;       // index for shape start
+    custom_vector<int> length_rigid;      // usually 1, except for convex
+    custom_vector<quaternion> ObR_rigid;  // Shape rotation
+    custom_vector<real3> ObA_rigid;       // Position of shape
+
+    custom_vector<real> sphere_rigid;
+    custom_vector<real3> box_like_rigid;
+    custom_vector<real3> triangle_rigid;
+    custom_vector<real2> capsule_rigid;
+    custom_vector<real4> rbox_like_rigid;
+    custom_vector<real3> convex_rigid;
+    custom_vector<int> tetrahedron_rigid;
+
+    custom_vector<real3> triangle_global;
+    custom_vector<real3> obj_data_A_global;
+    custom_vector<quaternion> obj_data_R_global;
+};
+
 struct host_container {
     // Collision data
-    custom_vector<real3> ObA_rigid;       // Position of shape
-    custom_vector<real3> ObB_rigid;       // Size of shape (dims or convex data)
-    custom_vector<real3> ObC_rigid;       // Rounded size
-    custom_vector<quaternion> ObR_rigid;  // Shape rotation
-    custom_vector<short2> fam_rigid;      // Family information
-    custom_vector<int> typ_rigid;         // Shape type
-    custom_vector<uint> id_rigid;         // Body identifier for each shape
-    custom_vector<real3> aabb_min;        // List of bounding boxes minimum point
-    custom_vector<real3> aabb_max;        // List of bounding boxes maximum point
-    custom_vector<real3> convex_data;     // list of convex points
+
+    custom_vector<real3> aabb_min;  // List of bounding boxes minimum point
+    custom_vector<real3> aabb_max;  // List of bounding boxes maximum point
 
     custom_vector<real3> aabb_min_tet;  // List of bounding boxes minimum point for tets
     custom_vector<real3> aabb_max_tet;  // List of bounding boxes maximum point for tets
@@ -363,13 +378,6 @@ struct host_container {
     custom_vector<uint> bin_aabb_number;
     custom_vector<uint> bin_start_index;
     custom_vector<uint> bin_num_contact;
-
-    //========Narrowphase Data========
-
-    custom_vector<real3> obj_data_A_global;
-    custom_vector<real3> obj_data_B_global;
-    custom_vector<real3> obj_data_C_global;
-    custom_vector<quaternion> obj_data_R_global;
 };
 
 class CH_PARALLEL_API ChParallelDataManager {
@@ -382,7 +390,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     // Structure that contains the data on the host, the naming convention is
     // from when the code supported the GPU (host vs device)
     host_container host_data;
-
+    shape_container shape_data;
     // This pointer is used by the bilarerals for computing the jacobian and other
     // terms
     ChLcpSystemDescriptor* lcp_system_descriptor;

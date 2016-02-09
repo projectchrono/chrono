@@ -171,8 +171,8 @@ int box_box(const real3& pos1,
             real* eff_radius);
 
 CH_PARALLEL_API
-bool RCollision(const ConvexShape& shapeA,  ///< first candidate shape
-                const ConvexShape& shapeB,  ///< second candidate shape
+bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
+                const ConvexBase* shapeB,  ///< second candidate shape
                 real separation,            ///< maximum separation
                 real3* ct_norm,             ///< [output] contact normal (per contact pair)
                 real3* ct_pt1,              ///< [output] point on shape1 (per contact pair)

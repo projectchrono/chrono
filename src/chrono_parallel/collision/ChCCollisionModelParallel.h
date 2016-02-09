@@ -21,13 +21,24 @@
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/collision/ChCDataStructures.h"
 namespace chrono {
 // forward references
 class ChBody;
 
 namespace collision {
 ///  A wrapper to uses GPU collision detection
+
+struct ConvexModel {
+    shape_type type;  // type of shape
+    real3 A;          // location
+    real3 B;          // dimensions
+    real3 C;          // extra
+    quaternion R;     // rotation
+    real3* convex;    // pointer to convex data;
+    ConvexModel() {}
+    ConvexModel(shape_type t, real3 a, real3 b, real3 c, quaternion r, real3* con)
+        : type(t), A(a), B(b), C(c), R(r), convex(con) {}
+};
 
 class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
   public:
@@ -180,7 +191,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
 
     float getVolume();
 
-    std::vector<ConvexShape> mData;
+    std::vector<ConvexModel> mData;
     std::vector<real3> local_convex_data;
 
   protected:

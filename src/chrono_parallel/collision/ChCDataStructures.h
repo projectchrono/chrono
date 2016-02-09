@@ -1,90 +1,78 @@
 #pragma once
 
-#include "chrono_parallel/math/ChParallelMath.h"
+#include "chrono_parallel/ChDataManager.h"
 
 namespace chrono {
 namespace collision {
 
-struct ConvexShape {
-    shape_type type;  // type of shape
-    real3 A;          // location
-    real3 B;          // dimensions
-    real3 C;          // extra
-    quaternion R;     // rotation
-    real3* convex;    // pointer to convex data;
-    ConvexShape(){}
-    ConvexShape(shape_type t, real3 a, real3 b, real3 c, quaternion r, real3* con)
-        : type(t), A(a), B(b), C(c), R(r), convex(con) {}
+class ConvexBase {
+  public:
+    ConvexBase() {}
+    virtual ~ConvexBase() {}
+    virtual const int Type() const { return 0; }
+    virtual const real3 A() const { return real3(0); }
+    virtual const quaternion R() const { return quaternion(1, 0, 0, 0); }
+    virtual const int Size() const { return 0; }
+    virtual const real3* Convex() const { return 0; }
+    virtual const real3* Triangles() const { return 0; }
+    virtual const real Radius() const { return 0; }
+    virtual const real3 Box() const { return real3(0); }
+    virtual const real4 Rbox() const { return real4(0); }
+    virtual const real2 Capsule() const { return real2(0); }
 };
 
-struct ContactPoint {
-    real3 pointA, pointB, normal;
-    real depth;
-    ContactPoint() {}
-    ContactPoint(const real3& pa, const real3& pb, const real3& norm, const real d) {
-        pointA = pa;
-        pointB = pb;
-        normal = norm;
-        depth = d;
-    }
+class ConvexShape : public ConvexBase {
+  public:
+    ConvexShape() {}
+    ConvexShape(int i, shape_container* d) : index(i), data(d) {}
+    virtual ~ConvexShape() {}
+    virtual const int Type() const { return data->typ_rigid[index]; }
+    virtual const real3 A() const { return data->obj_data_A_global[index]; }
+    virtual const quaternion R() const { return data->obj_data_R_global[index]; }
+    virtual const int Size() const { return data->length_rigid[index]; }
+    virtual const real3* Convex() const { return &data->convex_rigid[start()]; }
+    virtual const real3* Triangles() const { return &data->triangle_global[start() * 3]; }
+    virtual const real Radius() const { return data->sphere_rigid[start()]; }
+    virtual const real3 Box() const { return data->box_like_rigid[start()]; }
+    virtual const real4 Rbox() const { return data->rbox_like_rigid[start()]; }
+    virtual const real2 Capsule() const { return data->capsule_rigid[start()]; }
+
+    int index;
+    shape_container* data;  // pointer to convex data;
+  private:
+    virtual const inline int start() const { return data->start_rigid[index]; }
 };
 
-#define MANIFOLD_SIZE 3
+class ConvexShapeSphere : public ConvexBase {
+  public:
+    ConvexShapeSphere(real3 p, real r) : position(p), radius(r) {}
+    virtual ~ConvexShapeSphere() {}
+    const inline int Type() const { return SPHERE; }
+    const inline real3 A() const { return position; }
+    const inline quaternion R() const { return quaternion(1, 0, 0, 0); }
+    const inline real Radius() const { return radius; }
+    real3 position;
+    real radius;
+};
 
-struct ContactManifold {
-    ContactPoint points[MANIFOLD_SIZE];
-
-    unsigned int num_contact_points;
-    ContactManifold() { num_contact_points = 0; }
-
-    int getCacheEntry(ContactPoint& newPoint) {
-        real shortestDist = C_EPSILON * 2;  // TODO: SHOULD THIS BE SOMETHIGN ELSE
-        int size = num_contact_points;
-        int nearestPoint = -1;
-        for (int i = 0; i < size; i++) {
-            const ContactPoint& mp = points[i];
-
-            real3 diffA = mp.pointA - newPoint.pointA;
-            const real distToManiPoint = Dot(diffA);
-            if (distToManiPoint < shortestDist) {
-                shortestDist = distToManiPoint;
-                nearestPoint = i;
-            }
-        }
-        return nearestPoint;
-    }
-
-    void replaceContactPoint(ContactPoint& newPt, int& insertIndex) { points[insertIndex] = newPt; }
-    int addManifoldPoint(ContactPoint& newPt) {
-        if (num_contact_points == MANIFOLD_SIZE) {
-            points[0] = newPt;
-            return 0;
-        } else {
-            points[num_contact_points] = newPt;
-            num_contact_points++;
-            return num_contact_points - 1;
-        }
-    }
-
-    void addContactPoint(const ConvexShape& shapeA,
-                         const ConvexShape& shapeB,
-                         const real3& normalOnBInWorld,
-                         const real3& pointInWorld,
-                         const real& depth) {
-        real3 pointA = pointInWorld + normalOnBInWorld * depth;
-        real3 localA = TransformParentToLocal(shapeA.A, shapeA.R, pointA);
-        real3 localB = TransformParentToLocal(shapeB.A, shapeB.R, pointInWorld);
-
-        ContactPoint newPt(localA, localB, normalOnBInWorld, depth);
-        newPt.pointA = pointA;
-        newPt.pointB = pointInWorld;
-        int insertIndex = getCacheEntry(newPt);
-        if (insertIndex >= 0) {
-            replaceContactPoint(newPt, insertIndex);
-        } else {
-            insertIndex = addManifoldPoint(newPt);
-        }
-    }
+class ConvexShapeCustom : public ConvexBase {
+  public:
+    ConvexShapeCustom() {}
+    ConvexShapeCustom(const int t, const real3& p, const quaternion& rot, const real3& d, const real r = 0)
+        : type(t), position(p), rotation(rot), dimensions(d), radius(r) {}
+    virtual ~ConvexShapeCustom() {}
+    const inline int Type() const { return type; }
+    const inline real3 A() const { return position; }
+    const inline quaternion R() const { return rotation; }
+    const inline real Radius() const { return dimensions.x; }
+    const inline real3 Box() const { return dimensions; }
+    const inline real4 Rbox() const { return real4(dimensions, radius); }
+    const inline real2 Capsule() const { return real2(dimensions.x, dimensions.y); }
+    int type;
+    real3 position;
+    quaternion rotation;
+    real3 dimensions;
+    real radius;
 };
 
 }  // end namespace collision
