@@ -4,11 +4,6 @@ title: Download
 permalink: /download/
 ---
 
-Table of Contents
-
-* line will be removed
-{:toc}
-
 Chrono::Engine precompiled SDK
 ------------------------------
 

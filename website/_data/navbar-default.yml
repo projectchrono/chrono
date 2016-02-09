@@ -1,26 +1,16 @@
 main:
     - title: Documentation
-      url: ''
-      sub:
-       -
-         title: Overview
-         url: '#'
-       -
-         title: Reference (Doxygen)
-         url: '#'
-       -
-         title: User Manual
-         url: '#'
+      url: 'http://api.chrono.projectchrono.org'
     - title: Download
       url: '/download'
     - title: Tutorials
-      url: '/tutorials'
+      url: 'http://api.chrono.projectchrono.org/tutorial_root.html'
       sub:
        -
          title: Install Guide
-         url: '#'
+         url: 'http://api.chrono.projectchrono.org/tutorial_table_of_content_install.html'
        -
-         title: Example Models
+         title: Examples
          url: '#'
 
     - title: News
@@ -29,7 +19,5 @@ main:
       url: '/forum'
     - title: About
       url: '/about/'
-
-right:
     - title: Old Website
       url: 'http://projectchrono.org'

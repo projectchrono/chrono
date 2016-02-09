@@ -20,7 +20,7 @@
             {% for link in site.data.navbar-default.main %} 
             {% if link.sub.size > 0 %}
             <li class="dropdown">
-            <a href="{{ link.url }}" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">{{ link.title }} <span class="caret"></span></a>
+            <a href="{{ link.url }}" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">{{ link.title }} <span class="caret"></span></a>
               <ul class="dropdown-menu">
                 {% for sublink in link.sub %}
                 <li><a href="{{ sublink.url }}">{{ sublink.title }}</a></li>
@@ -32,11 +32,11 @@
             {% endif %} 
             {% endfor %}
           </ul>
-          <ul class="nav navbar-nav navbar-right">
+          <!-- <ul class="nav navbar-nav navbar-right">
             {% for link in site.data.navbar-default.right %}
             <li><a href="{{ link.url }}">{{ link.title }}</a></li>
             {% endfor %}
-          </ul>
+          </ul> -->
         </div><!--/.navbar-collapse -->
       </div>
     </nav>

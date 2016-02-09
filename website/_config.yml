@@ -10,4 +10,4 @@ permalink: /blog/:year/:month/:title/
 
 # Build settings
 markdown: kramdown
-highlighter: pygments
+highlighter: rouge
