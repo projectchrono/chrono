@@ -9,22 +9,8 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
 //
-//   Demo code about
-//
-//     - SPH smooth particle hydrodynamics
-//
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// SPH smooth particle hydrodynamics demo
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"
@@ -32,11 +18,7 @@
 #include "chrono/physics/ChProximityContainerSPH.h"
 #include "chrono/physics/ChMatterSPH.h"
 
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-
-#include <irrlicht.h>
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -44,22 +26,13 @@ using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
 
-void create_some_falling_items(ChIrrAppInterface& mapp) {
+void create_some_falling_items(ChSystem& system) {
     // box data
     double xsize = 0.5;
     double zsize = 0.5;
     double height = 0.5;
     double thick = 0.1;
-
-    ChSystem* mphysicalSystem = mapp.GetSystem();
-    ISceneManager* msceneManager = mapp.GetSceneManager();
-    IVideoDriver* driver = mapp.GetVideoDriver();
 
     // Create the SPH fluid
     ChSharedPtr<ChMatterSPH> myfluid(new ChMatterSPH);
@@ -79,89 +52,73 @@ void create_some_falling_items(ChIrrAppInterface& mapp) {
 
     // Add the SPH fluid matter to the system
     myfluid->SetCollide(true);
-    mphysicalSystem->Add(myfluid);
+    system.Add(myfluid);
 
     GetLog() << "Added " << myfluid->GetNnodes() << " SPH particles \n\n";
 
-    // Create some spheres that will fall
+    // Create the five walls of the rectangular container.
+    ChSharedPtr<ChTexture> texture(new ChTexture());
+    texture->SetTextureFilename(GetChronoDataFile("blu.png"));
 
-    ChBodySceneNode* mrigidBody;
+    auto wall1 = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(xsize + 2 * thick, thick, zsize + 2 * thick, 1.0, true, true));
+    wall1->SetPos(ChVector<>(0, -thick * 0.5, 0));
+    wall1->SetBodyFixed(true);
+    wall1->SetMass(100);
+    wall1->GetMaterialSurface()->SetFriction(0);
+    wall1->AddAsset(texture);
+    system.Add(wall1);
 
-    for (int bi = 0; bi < 0; bi++) {
-        mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easySphere(
-            mphysicalSystem, msceneManager, 10.0, ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10),
-            1.1);
+    auto wall2 = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(thick, height, zsize + 2 * thick, 1.0, true, true));
+    wall2->SetPos(ChVector<>(-xsize * 0.5 - thick * 0.5, height * 0.5, 0));
+    wall2->SetBodyFixed(true);
+    wall2->SetMass(100);
+    wall2->GetMaterialSurface()->SetFriction(0);
+    wall2->AddAsset(texture);
+    system.Add(wall2);
 
-        mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
-        mrigidBody->addShadowVolumeSceneNode();
+    auto wall3 = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(thick, height, zsize + 2 * thick, 1.0, true, true));
+    wall3->SetPos(ChVector<>(xsize * 0.5 + thick * 0.5, height * 0.5, 0));
+    wall3->SetBodyFixed(true);
+    wall3->SetMass(100);
+    wall3->GetMaterialSurface()->SetFriction(0);
+    wall3->AddAsset(texture);
+    system.Add(wall3);
 
-        video::ITexture* sphereMap = driver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
-        mrigidBody->setMaterialTexture(0, sphereMap);
-    }
+    auto wall4 = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(xsize + 2 * thick, height, thick, 1.0, true, true));
+    wall4->SetPos(ChVector<>(0, height * 0.5, -zsize * 0.5 - thick * 0.5));
+    wall4->SetBodyFixed(true);
+    wall4->SetMass(100);
+    wall4->GetMaterialSurface()->SetFriction(0);
+    wall4->AddAsset(texture);
+    system.Add(wall4);
 
-    // Create the five walls of the rectangular container, using
-    // fixed rigid bodies of 'box' type:
+    double opening = 0.2;
+    auto wall5 = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(xsize + 2 * thick, height, thick, 1.0, true, true));
+    wall5->SetPos(ChVector<>(opening, height * 0.5, zsize * 0.5 + thick * 0.5));
+    wall5->SetBodyFixed(true);
+    wall5->SetMass(100);
+    wall5->GetMaterialSurface()->SetFriction(0);
+    wall5->AddAsset(texture);
+    system.Add(wall5);
 
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        mphysicalSystem, msceneManager, 100.0, ChVector<>(0, -thick * 0.5, 0), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(xsize + 2 * thick, thick, zsize + 2 * thick));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
+    // Create the floor.
+    auto floor = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(2, 0.1, 2, 1.0, true, true));
+    floor->SetPos(ChVector<>(0, -0.5, 0));
+    floor->SetBodyFixed(true);
+    floor->SetMass(100);
+    floor->GetMaterialSurface()->SetFriction(0.2f);
+    system.Add(floor);
 
-    video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("blu.png").c_str());
-    mrigidBody->setMaterialTexture(0, cubeMap);
+    // Create floating balls.
+    ChSharedPtr<ChTexture> textureball(new ChTexture());
+    textureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        mphysicalSystem, msceneManager, 100.0, ChVector<>(-xsize * 0.5 - thick * 0.5, height * 0.5, 0),
-        ChQuaternion<>(1, 0, 0, 0), ChVector<>(thick, height, zsize + 2 * thick));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
-    mrigidBody->setMaterialTexture(0, cubeMap);
-
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        mphysicalSystem, msceneManager, 100.0, ChVector<>(xsize * 0.5 + thick * 0.5, height * 0.5, 0),
-        ChQuaternion<>(1, 0, 0, 0), ChVector<>(thick, height, zsize + 2 * thick));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
-    mrigidBody->setMaterialTexture(0, cubeMap);
-
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        mphysicalSystem, msceneManager, 100.0, ChVector<>(0, height * 0.5, -zsize * 0.5 - thick * 0.5),
-        ChQuaternion<>(1, 0, 0, 0), ChVector<>(xsize + 2 * thick, height, thick));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
-    mrigidBody->setMaterialTexture(0, cubeMap);
-
-    double opening = 0.2;  //=0.2
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        mphysicalSystem, msceneManager, 100.0, ChVector<>(opening, height * 0.5, zsize * 0.5 + thick * 0.5),
-        ChQuaternion<>(1, 0, 0, 0), ChVector<>(xsize + 2 * thick, height, thick));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0f);
-    mrigidBody->setMaterialTexture(0, cubeMap);
-
-    // another floor
-
-    mrigidBody =
-        (ChBodySceneNode*)addChBodySceneNode_easyBox(mphysicalSystem, msceneManager, 100.0, ChVector<>(0, -0.5, 0),
-                                                     ChQuaternion<>(1, 0, 0, 0), ChVector<>(2, 0.1, 2));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.2f);
-
-    // Create floating balls
     for (int ib = 0; ib < 12; ib++) {
-        ChSharedPtr<ChBodyEasySphere> mrigidBall(new ChBodyEasySphere(0.02 + ChRandom() * 0.02,  // radius
-                                                                      100,                       // density
-                                                                      true,                      // collide enable?
-                                                                      true));                    // visualization?
-        mrigidBall->SetPos(ChVector<>(ChRandom() * 0.3 - 0.15, 0.2, ChRandom() * 0.3 - 0.15));
-        mrigidBall->GetMaterialSurface()->SetFriction(0.0f);
-        mphysicalSystem->Add(mrigidBall);
-
-        // optional, attach a texture for better visualization
-        ChSharedPtr<ChTexture> mtextureball(new ChTexture());
-        mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-        mrigidBall->AddAsset(mtextureball);
+        auto ball = ChSharedPtr<ChBodyEasySphere>(new ChBodyEasySphere(0.02 + ChRandom() * 0.02, 100, true, true));
+        ball->SetPos(ChVector<>(ChRandom() * 0.3 - 0.15, 0.2, ChRandom() * 0.3 - 0.15));
+        ball->GetMaterialSurface()->SetFriction(0.0f);
+        ball->AddAsset(textureball);
+        system.Add(ball);
     }
 }
 
@@ -183,7 +140,7 @@ int main(int argc, char* argv[]) {
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.003);
 
-    create_some_falling_items(application);
+    create_some_falling_items(mphysicalSystem);
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // If you need a finer control on which item really needs a visualization proxy in
@@ -212,7 +169,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.0025);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.GetVideoDriver()->beginScene(true, true, video::SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
