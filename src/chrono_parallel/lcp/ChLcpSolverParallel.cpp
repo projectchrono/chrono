@@ -21,7 +21,7 @@ ChLcpSolverParallel::~ChLcpSolverParallel() {
 }
 
 void ChLcpSolverParallel::ComputeInvMassMatrix() {
-    LOG(INFO) << "ChLcpSolverParallel::ComputeMassMatrix()";
+    LOG(INFO) << "ChLcpSolverParallel::ComputeInvMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;

@@ -358,7 +358,6 @@ void ChSystemParallel::Update() {
 // vectors. Note that visualization assets are not updated.
 //
 void ChSystemParallel::UpdateRigidBodies() {
-    LOG(INFO) << "ChSystemParallel::UpdateBodies()";
     custom_vector<real3>& position = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rotation = data_manager->host_data.rot_rigid;
     custom_vector<char>& active = data_manager->host_data.active_rigid;

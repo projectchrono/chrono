@@ -9,7 +9,6 @@ using namespace chrono;
     M.resize(rows, cols, false);
 
 void ChLcpSolverParallelDVI::RunTimeStep() {
-    LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep";
     // Compute the offsets and number of constrains depending on the solver mode
     if (data_manager->settings.solver.solver_mode == NORMAL) {
         data_manager->rigid_rigid->offset = 1;
@@ -31,8 +30,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     // This is the total number of constraints
     data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof +
                                     num_tet_constraints + num_mpm_constraints;
-
-    LOG(INFO) << "num_constraints: " << data_manager->num_constraints;
+    LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep S num_constraints: " << data_manager->num_constraints;
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
     // ComputeMassMatrix();
@@ -158,8 +156,9 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
     tot_iterations = data_manager->measures.solver.maxd_hist.size();
 
-    LOG(TRACE) << "Solve Done: " << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve") << " "
-               << data_manager->system_timer.GetTime("ShurProduct") << residual;
+    LOG(TRACE) << "ChLcpSolverParallelDVI::RunTimeStep E solve_time: "
+               << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve")
+               << " shur_time: " << data_manager->system_timer.GetTime("ShurProduct") << " residual: " << residual;
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {
@@ -266,7 +265,7 @@ void ChLcpSolverParallelDVI::ComputeE() {
 }
 
 void ChLcpSolverParallelDVI::ComputeR() {
-    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR() ";
+    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR()";
     data_manager->system_timer.start("ChLcpSolverParallel_R");
     if (data_manager->num_constraints <= 0) {
         return;
@@ -290,8 +289,6 @@ void ChLcpSolverParallelDVI::ComputeR() {
     data_manager->fea_container->Build_b();
     data_manager->mpm_container->Build_b();
 
-    LOG(INFO) << "ChLcpSolverParallelDVI::ComputeR() " << b.size() << " " << D_T.rows() << " " << D_T.columns() << " "
-              << M_invk.size();
     R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");

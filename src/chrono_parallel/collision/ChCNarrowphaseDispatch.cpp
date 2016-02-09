@@ -95,7 +95,7 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
 }
 
 void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
-    LOG(TRACE) << "start PreprocessLocalToParent: ";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::PreprocessLocalToParent()";
     uint num_shapes = data_manager->num_rigid_shapes;
 
     const custom_vector<int>& obj_data_T = data_manager->shape_data.typ_rigid;
@@ -133,7 +133,6 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         }
         data_manager->shape_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }
-    LOG(TRACE) << "stop PreprocessLocalToParent: ";
 }
 
 void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
@@ -254,7 +253,7 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
 }
 
 void ChCNarrowphaseDispatch::DispatchRigid() {
-    LOG(TRACE) << "start DispatchRigid: ";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigid() S";
     custom_vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
     custom_vector<real3>& cpta_data = data_manager->host_data.cpta_rigid_rigid;
     custom_vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
@@ -315,11 +314,11 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     dpth_data.resize(num_rigid_contacts);
     erad_data.resize(num_rigid_contacts);
     bids_data.resize(num_rigid_contacts);
-    LOG(TRACE) << "stop DispatchRigid: ";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigid() E "<<num_rigid_contacts;
 }
 
 void ChCNarrowphaseDispatch::DispatchRigidFluid() {
-    LOG(TRACE) << "start DispatchRigidFluid: ";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidFluid() S";
 
     RigidSphereContact(data_manager->node_container->kernel_radius,   //
                        data_manager->num_fluid_bodies,                //
@@ -331,7 +330,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
                        data_manager->host_data.c_counts_rigid_fluid,  //
                        data_manager->num_rigid_fluid_contacts);
 
-    LOG(TRACE) << "stop DispatchRigidFluid: " << data_manager->num_rigid_fluid_contacts;
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidFluid() E " << data_manager->num_rigid_fluid_contacts;
 }
 
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
@@ -345,7 +344,7 @@ inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
 }
 
 void ChCNarrowphaseDispatch::DispatchFluid() {
-    LOG(TRACE) << "start DispatchFluidFluid: ";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() S";
     const int num_fluid_bodies = data_manager->num_fluid_bodies;
     const int num_rigid_bodies = data_manager->num_rigid_bodies;
     const int num_shafts = data_manager->num_shafts;
@@ -489,11 +488,11 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
 
     data_manager->num_fluid_contacts = Thrust_Total(contact_counts);
-    LOG(TRACE) << "stop DispatchFluidFluid: " << data_manager->num_fluid_contacts;
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() E " << data_manager->num_fluid_contacts;
 }
 
 void ChCNarrowphaseDispatch::DispatchRigidNode() {
-    LOG(TRACE) << "start DispatchRigidNode: ";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidNode() S";
 
     RigidSphereContact(data_manager->fea_container->kernel_radius, data_manager->num_fea_nodes,
                        data_manager->host_data.pos_node_fea, data_manager->host_data.norm_rigid_node,
@@ -501,7 +500,7 @@ void ChCNarrowphaseDispatch::DispatchRigidNode() {
                        data_manager->host_data.neighbor_rigid_node, data_manager->host_data.c_counts_rigid_node,
                        data_manager->num_rigid_node_contacts);
 
-    LOG(TRACE) << "stop DispatchRigidNode: " << data_manager->num_rigid_node_contacts;
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidNode() E " << data_manager->num_rigid_node_contacts;
 }
 //==================================================================================================================================
 
@@ -633,7 +632,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 
 //==================================================================================================================================
 void ChCNarrowphaseDispatch::DispatchRigidMPM() {
-    LOG(TRACE) << "Start DispatchRigidMPM: ";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidMPM() S";
 
     RigidSphereContact(data_manager->mpm_container->kernel_radius,  //
                        data_manager->num_mpm_markers,               //
@@ -645,7 +644,7 @@ void ChCNarrowphaseDispatch::DispatchRigidMPM() {
                        data_manager->host_data.c_counts_rigid_mpm,  //
                        data_manager->num_rigid_mpm_contacts);
 
-    LOG(TRACE) << "Stop DispatchRigidMPM: " << data_manager->num_rigid_mpm_contacts;
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidMPM() E " << data_manager->num_rigid_mpm_contacts;
 }
 
 }  // end namespace collision

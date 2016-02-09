@@ -105,7 +105,7 @@ void ChCAABBGenerator::GenerateAABB() {
     custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
-    LOG(TRACE) << "AABB START";
+    LOG(TRACE) << "ChCAABBGenerator::GenerateAABB() S";
 
     aabb_min.resize(num_rigid_shapes);
     aabb_max.resize(num_rigid_shapes);
@@ -194,5 +194,5 @@ void ChCAABBGenerator::GenerateAABB() {
             aabb_max_tet[index] = Max(Max(Max(x0, x1), x2), x3) + collision_envelope + real3(node_radius);
         }
     }
-    LOG(TRACE) << "AABB END";
+    LOG(TRACE) << "ChCAABBGenerator::GenerateAABB() E " << data_manager->num_rigid_shapes;
 }

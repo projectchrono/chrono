@@ -44,8 +44,8 @@ void ChCBroadphase::DetermineBoundingBox() {
     data_manager->measures.collision.max_bounding_point = res.second;
     data_manager->measures.collision.global_origin = res.first;
 
-    LOG(TRACE) << "Minimum bounding point: (" << res.first.x << ", " << res.first.y << ", " << res.first.z << ")";
-    LOG(TRACE) << "Maximum bounding point: (" << res.second.x << ", " << res.second.y << ", " << res.second.z << ")";
+    LOG(TRACE) << "ChCBroadphase::DetermineBoundingBox() Min : [" << res.first.x << ", " << res.first.y << ", "
+               << res.first.z << "] Max: [" << res.second.x << ", " << res.second.y << ", " << res.second.z << "]";
 }
 
 void ChCBroadphase::OffsetAABB() {
@@ -75,8 +75,9 @@ void ChCBroadphase::ComputeTopLevelResolution() {
         bins_per_axis = function_Compute_Grid_Resolution(num_shapes, diagonal, density);
     }
     bin_size = diagonal / real3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
-    LOG(TRACE) << "bins_per_axis: (" << bins_per_axis.x << ", " << bins_per_axis.y << ", " << bins_per_axis.z << ")";
-    LOG(TRACE) << "bin_size: (" << bin_size.x << ", " << bin_size.y << ", " << bin_size.z << ")";
+    LOG(TRACE) << "ChCBroadphase::ComputeTopLevelResolution() bins_per_axis: [" << bins_per_axis.x << ", "
+               << bins_per_axis.y << ", " << bins_per_axis.z << "] bin_size: [" << bin_size.x << ", " << bin_size.y
+               << ", " << bin_size.z << "]";
 
     // Store the inverse for use later
     inv_bin_size = 1.0 / bin_size;
@@ -84,14 +85,12 @@ void ChCBroadphase::ComputeTopLevelResolution() {
 
 // =========================================================================================================
 ChCBroadphase::ChCBroadphase() {
-    // number_of_leaf_intersections = 0;
-    // num_active_leaves = 0;
+    data_manager = 0;
 }
 // =========================================================================================================
 // use spatial subdivision to detect the list of POSSIBLE collisions
 // let user define their own narrow-phase collision detection
 void ChCBroadphase::DetectPossibleCollisions() {
-    LOG(TRACE) << "Number of AABBs: " << data_manager->num_rigid_shapes;
     DetermineBoundingBox();
     OffsetAABB();
     ComputeTopLevelResolution();
@@ -102,6 +101,7 @@ void ChCBroadphase::DetectPossibleCollisions() {
 }
 
 void ChCBroadphase::OneLevelBroadphase() {
+    LOG(TRACE) << "ChCBroadphase::OneLevelBroadphase()";
     const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
     const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
@@ -148,8 +148,6 @@ void ChCBroadphase::OneLevelBroadphase() {
                                       bin_aabb_number);
     }
 
-    LOG(TRACE) << "Completed (device_Store_AABB_BIN_Intersection)";
-
     Thrust_Sort_By_Key(bin_number, bin_aabb_number);
     number_of_bins_active = Run_Length_Encode(bin_number, bin_number_out, bin_start_index);
 
@@ -161,8 +159,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     bin_start_index.resize(number_of_bins_active + 1);
     bin_start_index[number_of_bins_active] = 0;
 
-    LOG(TRACE) << bins_per_axis.x << " " << bins_per_axis.y << " " << bins_per_axis.z;
-    LOG(TRACE) << "num_bins_active: " << number_of_bins_active;
+    LOG(TRACE) << "number_of_bins_active: " << number_of_bins_active;
 
     Thrust_Exclusive_Scan(bin_start_index);
     bin_num_contact.resize(number_of_bins_active + 1);
