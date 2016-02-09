@@ -57,9 +57,10 @@ public:
 /// It implements functionalities to perform automatic differentiation of
 /// the load so it optionally can compute the jacobian (the tangent stiffness
 /// matrix of the load) that can be used in implicit integrators, statics, etc.
-
 class ChLoadBase {
-   
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI_ROOT(ChLoadBase);
+
 protected:
     ChLoadJacobians* jacobians;
 
