@@ -19,6 +19,13 @@
 namespace chrono {
 namespace fsi {
 
+ChFsiGeneral() : paramsH(NULL), numObjectsH(NULL) {}
+
+ChFsiGeneral(SimParams* other_paramsH, NumberOfObjects* other_numObjects) :
+ paramsH(other_paramsH), numObjectsH(other_numObjects) {}
+
+~ChFsiGeneral();
+
 uint ChFsiGeneral::iDivUp(uint a, uint b) {
 	return (a % b != 0) ? (a / b + 1) : (a / b);
 }
@@ -35,14 +42,8 @@ ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks,
  * @details [long description]
  *
  * @param hostParams [description]
- * @param numObjects [description]
+ * @param numObjectsH [description]
  */
-void ChFsiGeneral::setParameters(SimParams* hostParams, NumberOfObjects* numObjects) {
-	// copy parameters to constant memory
-	cudaMemcpyToSymbolAsync(paramsD, hostParams, sizeof(SimParams));
-	cudaMemcpyToSymbolAsync(numObjectsD, numObjects, sizeof(NumberOfObjects));
-}
-
 
 } // end namespace fsi
 } // end namespace chrono

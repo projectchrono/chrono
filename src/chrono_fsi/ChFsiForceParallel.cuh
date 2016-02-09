@@ -79,6 +79,9 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 		FsiBodiesDataD * fsiBodiesD;
 		FsiGeneralData * fsiGeneralData;
 
+		SimParams* paramsH;
+		NumberOfObjects* numObjectsH;
+
 
 
 		thrust::device_vector<Real3> velMas_ModifiedBCE;//(numRigidAndBoundaryMarkers);

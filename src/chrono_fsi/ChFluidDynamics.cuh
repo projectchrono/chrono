@@ -45,6 +45,8 @@ protected:
 	ChFsiDataManager* fsiData;
 	ChFsiForceParallel* forceSystem;
 	ChFsiInterface*	fsiChronoInterface;
+	SimParams* paramsH;
+	NumberOfObjects* numObjectsH;
 
 
 	void UpdateFluid(SphMarkerDataD * sphMarkersD, Real dT);

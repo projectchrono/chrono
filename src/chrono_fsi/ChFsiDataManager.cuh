@@ -22,21 +22,23 @@
 #include <thrust/device_vector.h>
 #include "chrono_fsi/custom_cutil_math.h"
 #include "chrono_fsi/ChUtilsGeneralFsi.h"
+#include "chrono_fsi/ChParams.cuh"
 
 
 namespace chrono {
 namespace fsi {
+
 	struct SphMarkerDataD {
 		thrust::device_vector<Real3> posRadD;
 		thrust::device_vector<Real3> velMasD;
 		thrust::device_vector<Real4> rhoPresMuD;
-	}
+	};
 
 	struct SphMarkerDataH {
 		thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
 		thrust::host_vector<Real3> velMasH;
 		thrust::host_vector<Real4> rhoPresMuH;
-	}
+	};
 
 	struct FsiBodiesDataD {
 		thrust::device_vector<Real3> posRigid_fsiBodies_D;
@@ -45,7 +47,7 @@ namespace fsi {
 		thrust::device_vector<Real4> q_fsiBodies_D;
 		thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
 		thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
-	}
+	};
 
 	// dummy fsi bodies
 	struct FsiBodiesDataH {
@@ -55,7 +57,7 @@ namespace fsi {
 		thrust::host_vector<Real4> q_fsiBodies_H;
 		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;
 		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;
-	}
+	};
 
 	struct ProximityDataD {
 		thrust::device_vector<uint> gridMarkerHashD;//(numAllMarkers);
@@ -63,7 +65,7 @@ namespace fsi {
 		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
 		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
 		thrust::device_vector<uint> mapOriginalToSorted;
-	}
+	};
 
 	struct ChronoBodiesDataH {
 		thrust::host_vector<Real3> pos_ChSystemH;
@@ -72,7 +74,7 @@ namespace fsi {
 		thrust::host_vector<Real4> quat_ChSystemH;
 		thrust::host_vector<Real3> omegaVelGRF_ChSystemH;
 		thrust::host_vector<Real3> omegaAccGRF_ChSystemH;
-	}
+	};
 
 // make them classes
 	struct FsiGeneralData {
@@ -121,7 +123,7 @@ public:
 
 	FsiGeneralData fsiGeneralData;
 
-	ProximityDataD markersProximityD;isSolid
+	ProximityDataD markersProximityD;
 private:
 };
 

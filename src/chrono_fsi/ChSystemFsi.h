@@ -49,6 +49,9 @@ private:
 
 	chrono::ChSystemParallelDVI * mphysicalSystem;
 	chrono::vehicle::ChWheeledVehicleAssembly* mVehicle;
+
+	SimParams* paramsH;
+	NumberOfObjects* numObjectsH;
 };
 } // end namespace fsi
 } // end namespace chrono

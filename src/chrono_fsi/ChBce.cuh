@@ -44,6 +44,8 @@ private:
 	thrust::device_vector<Real3> torqueMarkersD;
 	thrust::device_vector<int> dummyIdentify;
 
+	SimParams* paramsH;
+	NumberOfObjects* numObjectsH;
 };
 } // end namespace fsi
 } // end namespace chrono

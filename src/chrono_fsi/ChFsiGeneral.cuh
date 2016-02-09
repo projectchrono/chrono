@@ -19,6 +19,7 @@
 #define CH_FSIGENERAL_H_
 
 #include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/ChParams.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -47,22 +48,10 @@ typedef unsigned int uint;
 #define INVPI 0.3183098861837906715377675267450287240689192914809128f
 #define EPSILON 1e-8
 
-struct Real3By3 {
-	Real3 a;  // first row
-	Real3 b;  // second row
-	Real3 c;  // third row
-};
-struct fluidData {
-	Real rho;
-	Real pressure;
-	Real velocityMag;
-	Real3 velocity;
-};
+#define RESOLUTION_LENGTH_MULT 2
 
 __constant__ SimParams paramsD;
 __constant__ NumberOfObjects numObjectsD;
-
-#define RESOLUTION_LENGTH_MULT 2
 //--------------------------------------------------------------------------------------------------------------------------------
 // 3D SPH kernel function, W3_SplineA
 __device__ inline Real W3_Spline(Real d) { // d is positive. h is the sph particle radius (i.e. h in the document) d is the distance of 2 particles
@@ -287,6 +276,10 @@ __device__ uint calcGridHash(int3 gridPos) {
 namespace fsi {
 	class CH_FSI_API ChFsiGeneral {
 public:
+
+	ChFsiGeneral();
+	ChFsiGeneral(SimParams* hostParams, NumberOfObjects* hostNumObjects);
+	~ChFsiGeneral();
 	/**
  * @brief computeGridSize
  * @details Compute grid and thread block size for a given number of elements
@@ -297,17 +290,11 @@ public:
  * @param numThreads Output: number of threads per block
  */
 	void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads);
-	void setParameters(SimParams* hostParams, NumberOfObjects* numObjects);
+	void setParameters(SimParams* hostParams, NumberOfObjects* hostNumObjects);
+
 
 protected:
 	uint iDivUp(uint a, uint b);
-
-	SimParams* paramsH;
-	NumberOfObjects* numObjects;
-	__constant__ SimParams paramsD;
-	__constant__ NumberOfObjects numObjectsD;
-
-
 private:
 
 

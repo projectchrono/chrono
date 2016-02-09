@@ -83,11 +83,12 @@ __global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD,
 ChBce::ChBce(FsiGeneralData* otherFsiGeneralData,
 	SimParams* otherParamsH, 
 	NumberOfObjects* otherNumObjects) :
-			 fsiGeneralData(otherFsiGeneralData), paramsH(otherParamsH), numObjects(otherNumObjects) {
-	this->setParameters(paramsH, numObjects);
-	totalSurfaceInteractionRigid4.resize(numObjects.numRigidBodies);
-	dummyIdentify.resize(numObjects.numRigidBodies);
-	torqueMarkersD.resize(numObjects.numRigid_SphMarkers);
+			 fsiGeneralData(otherFsiGeneralData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
+	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+	totalSurfaceInteractionRigid4.resize(numObjectsH.numRigidBodies);
+	dummyIdentify.resize(numObjectsH.numRigidBodies);
+	torqueMarkersD.resize(numObjectsH.numRigid_SphMarkers);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // applies the time step to the current quantities and saves the new values into variable with the same name and '2' and
@@ -99,14 +100,14 @@ void ChBce::Rigid_Forces_Torques(
 		FsiBodiesDataD* fsiBodiesD) {
 	// Arman: InitSystem has to be called before this point to set the number of objects
 
-	if (numObjects.numRigidBodies == 0) {
+	if (numObjectsH.numRigidBodies == 0) {
 		return;
 	}
 	//################################################### make force and torque arrays
 	//####### Force (Acceleration)
-	if (totalSurfaceInteractionRigid4.size() != numObjects.numRigidBodies ||
-	 dummyIdentify.size() != numObjects.numRigidBodies ||
-	 torqueMarkersD.size() != numObjects.numRigidBodies ) {
+	if (totalSurfaceInteractionRigid4.size() != numObjectsH.numRigidBodies ||
+	 dummyIdentify.size() != numObjectsH.numRigidBodies ||
+	 torqueMarkersD.size() != numObjectsH.numRigidBodies ) {
 		throw std::runtime_error ("Error! wrong size: totalSurfaceInteractionRigid4 or torqueMarkersD or dummyIdentify. Thrown from Rigid_Forces_Torques!\n");
 	}
 
@@ -118,14 +119,14 @@ void ChBce::Rigid_Forces_Torques(
 	//** forces on BCE markers of each rigid body are accumulated at center. "totalSurfaceInteractionRigid4" is got built.
 	(void) thrust::reduce_by_key(fsiGeneralData->rigidIdentifierD.begin(),
 			fsiGeneralData->rigidIdentifierD.end(),
-			fsiGeneralData->derivVelRhoD.begin() + numObjects.startRigidMarkers,
+			fsiGeneralData->derivVelRhoD.begin() + numObjectsH.startRigidMarkers,
 			dummyIdentify.begin(), totalSurfaceInteractionRigid4.begin(),
 			binary_pred, thrust::plus<Real4>());
 	thrust::fill(fsiGeneralData->rigid_FSI_ForcesD.begin(), fsiGeneralData->rigid_FSI_ForcesD.end(), mR3(0));
 
 	uint nBlock_UpdateRigid;
 	uint nThreads_rigidParticles;
-	computeGridSize(numObjects.numRigidBodies, 128, nBlock_UpdateRigid,
+	computeGridSize(numObjectsH.numRigidBodies, 128, nBlock_UpdateRigid,
 			nThreads_rigidParticles);
 
 	//** accumulated BCE forces at center are transformed to acceleration of rigid body "rigid_FSI_ForcesD".
@@ -138,7 +139,7 @@ void ChBce::Rigid_Forces_Torques(
 	//####### Torque
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;
-	computeGridSize(numObjects.numRigid_SphMarkers, 256,
+	computeGridSize(numObjectsH.numRigid_SphMarkers, 256,
 			nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 	
 
@@ -160,13 +161,13 @@ void ChBce::UpdateRigidMarkersPositionVelocity(
 	SphMarkerDataD* sphMarkersD,
 	FsiBodiesDataD* fsiBodiesD) {
 
-	if (numObjects.numRigidBodies == 0) {
+	if (numObjectsH.numRigidBodies == 0) {
 		return;
 	}
 
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;
-	computeGridSize(numObjects.numRigid_SphMarkers, 256,
+	computeGridSize(numObjectsH.numRigid_SphMarkers, 256,
 			nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 
 	// Arman: InitSystem has to be called before this lunch to set numObjectsD

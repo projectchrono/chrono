@@ -226,17 +226,17 @@ ChFluidDynamics::ChFluidDynamics(
 			ChFsiDataManager* otherFsiData,
 			SimParams* otherParamsH, 
 			NumberOfObjects* otherNumObjects)
-: fsiData(otherFsiData), paramsH(otherParamsH), numObjects(otherNumObjects) {
-	this->setParameters(paramsH, numObjects);
+: fsiData(otherFsiData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 	forceSystem = new ChFsiForceParallel(
 		fsiData->sortedSphMarkersD,
 		fsiData->markersProximityD,
 		fsiData->fsiGeneralData,
 		paramsH,
-		numObjects);
+		numObjectsH);
 
 
-	this->setParameters(otherParamsH, otherNumObjects);
+	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
+	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFluidDynamics::IntegrateSPH(

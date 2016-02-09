@@ -42,6 +42,9 @@ class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 		SphMarkerDataD * sphMarkersD;
 		SphMarkerDataD * sortedSphMarkersD;
 		ProximityDataD * markersProximityD;
+
+		SimParams* paramsH;
+		NumberOfObjects* numObjectsH;
 				/**
  * @brief calcHash - calcHashD
  *

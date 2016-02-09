@@ -62,43 +62,6 @@ inline __host__  __device__ float rsqrtf(float x) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// definition of basic cuda types
-////////////////////////////////////////////////////////////////////////////////
-// __cuda_builtin_vector_align8(int2, int x; int y;);
-// __cuda_builtin_vector_align8(uint2, unsigned int x; unsigned int y;);
-
-// struct __device_builtin__ int3
-// {
-//     int x, y, z;
-// };
-
-// struct __device_builtin__ uint3
-// {
-//     unsigned int x, y, z;
-// };
-
-// struct __device_builtin__ __builtin_align__(16) int4
-// {
-//     int x, y, z, w;
-// };
-
-// struct __device_builtin__ __builtin_align__(16) uint4
-// {
-//     unsigned int x, y, z, w;
-// };
-
-
-// struct __device_builtin__ float3
-// {
-//     float x, y, z;
-// };
-
-// struct __device_builtin__ __builtin_align__(16) float4
-// {
-//     float x, y, z, w;
-// };
-
-////////////////////////////////////////////////////////////////////////////////
 // implementations of basic cuda types
 ////////////////////////////////////////////////////////////////////////////////
 

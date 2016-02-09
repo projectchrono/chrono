@@ -314,10 +314,11 @@ void ChFsiForceParallel::ChFsiForceParallel(
 	SimParams* otherParamsH, 
 	NumberOfObjects* otherNumObjects)
 : sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), 
-paramsH(otherParamsH), numObjects(otherNumObjects) {
+paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 
-	fsiCollisionSystem = new ChCollisionSystemFsi(sortedSphMarkersD, markersProximityD, paramsH, numObjects);
-	this->setParameters(paramsH, numObjects);
+	fsiCollisionSystem = new ChCollisionSystemFsi(sortedSphMarkersD, markersProximityD, paramsH, numObjectsH);
+	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
+	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 
 	sphMarkersD = NULL;
 	fsiBodiesD = NULL;
@@ -350,19 +351,19 @@ void ChFsiForceParallel::CalcBceAcceleration(
 
 void ChFsiForceParallel::ModifyBceVelocity() {
 	// modify BCE velocity and pressure
-	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjects.numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
-	if ((numObjects.numBoundaryMarkers + numObjects.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
+	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjectsH.numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
+	if ((numObjectsH.numBoundaryMarkers + numObjectsH.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
 		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly. Thrown from ModifyBceVelocity!\n");
 	}
 	if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers && rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
 		throw std::runtime_error ("Error! size error velMas_ModifiedBCE and rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
 	}
-	int2 updatePortion = mI2(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[2 + numObjects.numRigidBodies - 1].y);
+	int2 updatePortion = mI2(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[2 + numObjectsH.numRigidBodies - 1].y);
 	if (paramsH.bceType == ADAMI) {
-		thrust::device_vector<Real3> bceAcc(numObjects.numRigid_SphMarkers);
-		if (numObjects.numRigid_SphMarkers > 0) {
+		thrust::device_vector<Real3> bceAcc(numObjectsH.numRigid_SphMarkers);
+		if (numObjectsH.numRigid_SphMarkers > 0) {
 			CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D, fsiBodiesD->omegaVelLRF_fsiBodies_D,
-					fsiBodiesD->omegaAccLRF_fsiBodies_D, fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD, numObjects.numRigid_SphMarkers);
+					fsiBodiesD->omegaAccLRF_fsiBodies_D, fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD, numObjectsH.numRigid_SphMarkers);
 		}
 		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
 				sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, rhoPresMuD->cellStartD, rhoPresMuD->cellEndD, 

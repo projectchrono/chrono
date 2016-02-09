@@ -22,14 +22,17 @@ namespace fsi {
 
 ChSystemFsi::ChSystemFsi() {
 	ChFsiDataManager* fsiData = new ChFsiDataManager();
-	paramsH = new SimParams;
-	numObjects = new NumberOfObjects;
-	fluidDynamics = new ChFluidDynamics(fsiData, paramsH, numObjects);
+	paramsH = new SimParams; // Arman: define a function to set paramsH default values
+	numObjectsH = new NumberOfObjects;
+	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
+	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+
+	fluidDynamics = new ChFluidDynamics(fsiData, paramsH, numObjectsH);
 	fsiInterface = new ChFsiInterface(fsiData->fsiBodiesH, fsiData->chronoRigidBackup,
 		mphysicalSystem, fsiData->fsiGeneralData.fsiBodeisPtr,
 		fsiData->fsiGeneralData.rigid_FSI_ForcesD,
 		fsiData->fsiGeneralData.rigid_FSI_TorquesD);
-	bceWorker = new ChBce(fsiData->fsiGeneralData, paramsH, numObjects);
+	bceWorker = new ChBce(fsiData->fsiGeneralData, paramsH, numObjectsH);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::CopyDeviceDataToHalfStep() {	
@@ -115,7 +118,7 @@ void ChSystemFsi::DoStepDynamics_FSI(){
 	// TODO
 	if ((tStep % 10 == 0) && (paramsH.densityReinit != 0)) {
 		DensityReinitialization(posRadD, velMasD, rhoPresMuD,
-				numObjects.numAllMarkers, paramsH.gridSize);
+				numObjectsH.numAllMarkers, paramsH.gridSize);
 	}
 
 }
