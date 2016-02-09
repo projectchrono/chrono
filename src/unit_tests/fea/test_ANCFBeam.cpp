@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     const double f_const = 5.0;  // Gerstmayr's paper's parameter
     double diam = 0.0;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     unsigned int NElem = 4;
     double rho = 0.0;
 
-    ChSharedPtr<ChBeamSectionCable> msection_cable(new ChBeamSectionCable);
+    auto msection_cable = std::make_shared<ChBeamSectionCable>();
     diam = sqrt(1e-6 / CH_C_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
     msection_cable->SetYoungModulus(1e9 / pow(f_const, 4));
@@ -92,12 +92,11 @@ int main(int argc, char* argv[]) {
     msection_cable->SetDensity(rho);
 
     // Create the nodes
-    ChSharedPtr<ChNodeFEAxyzD> hnodeancf1(new ChNodeFEAxyzD(ChVector<>(0, 0, 0.0), ChVector<>(1, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyzD> hnodeancf2(new ChNodeFEAxyzD(ChVector<>(beam_length / 4, 0, 0), ChVector<>(1, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyzD> hnodeancf3(new ChNodeFEAxyzD(ChVector<>(beam_length / 2, 0, 0), ChVector<>(1, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyzD> hnodeancf4(
-        new ChNodeFEAxyzD(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyzD> hnodeancf5(new ChNodeFEAxyzD(ChVector<>(beam_length, 0, 0), ChVector<>(1, 0, 0)));
+    auto hnodeancf1 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, 0.0), ChVector<>(1, 0, 0));
+    auto hnodeancf2 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf3 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 2, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf4 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf5 = std::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length, 0, 0), ChVector<>(1, 0, 0));
 
     my_mesh->AddNode(hnodeancf1);
     my_mesh->AddNode(hnodeancf2);
@@ -106,32 +105,33 @@ int main(int argc, char* argv[]) {
     my_mesh->AddNode(hnodeancf5);
 
     // Create the element 1
-    ChSharedPtr<ChElementBeamANCF> belementancf1(new ChElementBeamANCF);
+    auto belementancf1 = std::make_shared<ChElementBeamANCF>();
     belementancf1->SetNodes(hnodeancf1, hnodeancf2);
     belementancf1->SetSection(msection_cable);
     my_mesh->AddElement(belementancf1);
 
     // Create the element 2
-    ChSharedPtr<ChElementBeamANCF> belementancf2(new ChElementBeamANCF);
+    auto belementancf2 = std::make_shared<ChElementBeamANCF>();
     belementancf2->SetNodes(hnodeancf2, hnodeancf3);
     belementancf2->SetSection(msection_cable);
     my_mesh->AddElement(belementancf2);
 
     // Create the element 3
-    ChSharedPtr<ChElementBeamANCF> belementancf3(new ChElementBeamANCF);
+    auto belementancf3 = std::make_shared<ChElementBeamANCF>();
     belementancf3->SetNodes(hnodeancf3, hnodeancf4);
     belementancf3->SetSection(msection_cable);
     my_mesh->AddElement(belementancf3);
 
     // Create the element 4
-    ChSharedPtr<ChElementBeamANCF> belementancf4(new ChElementBeamANCF);
+    auto belementancf4 = std::make_shared<ChElementBeamANCF>();
     belementancf4->SetNodes(hnodeancf4, hnodeancf5);
     belementancf4->SetSection(msection_cable);
     my_mesh->AddElement(belementancf4);
-    ChSharedPtr<ChBody> mtruss(new ChBody);
+
+    auto mtruss = std::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
 
-    ChSharedPtr<ChLinkPointFrame> constraint_hinge(new ChLinkPointFrame);
+    auto constraint_hinge = std::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(hnodeancf1, mtruss);
     my_system.Add(constraint_hinge);
 
@@ -151,28 +151,29 @@ int main(int argc, char* argv[]) {
 
     // First: loads must be added to "load containers",
     // and load containers must be added to your ChSystem
-    ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+    auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
     // Add gravity (constant volumetric load): Use 2 Gauss integration points
 
-    ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity1(new ChLoad<ChLoaderGravity>(belementancf1));
+    auto mgravity1 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf1);
     mgravity1->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity1);
-    ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity2(new ChLoad<ChLoaderGravity>(belementancf2));
+
+    auto mgravity2 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf2);
     mgravity2->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity2);
-    ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity3(new ChLoad<ChLoaderGravity>(belementancf3));
+
+    auto mgravity3 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf3);
     mgravity3->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity3);
-    ChSharedPtr<ChLoad<ChLoaderGravity> > mgravity4(new ChLoad<ChLoaderGravity>(belementancf4));
+ 
+    auto mgravity4 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf4);
     mgravity4->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity4);
 
     // Change solver settings
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED THIS OR ::LCP_SIMPLEX because other LCP_ITERATIVE_MINRES
-    // solvers can't handle stiffness matrices
+    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(200);
     my_system.SetIterLCPmaxItersStab(200);
@@ -181,12 +182,14 @@ int main(int argc, char* argv[]) {
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
+    my_system.SetEndTime(12.5);
+
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
     //  my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
-    my_system.SetEndTime(12.5);
+
     // if later you want to change integrator settings:
-    if (ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>()) {
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
         mystepper->SetAlpha(0.0);
         mystepper->SetMaxiters(60);
         mystepper->SetAbsTolerances(1e-14);

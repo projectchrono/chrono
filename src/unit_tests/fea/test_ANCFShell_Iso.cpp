@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     double dz = plate_lenght_z / numDiv_z;
 
     // Create the mesh
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create and add the nodes
     for (int i = 0; i < TotalNumNodes; i++) {
@@ -110,8 +110,7 @@ int main(int argc, char* argv[]) {
         double dir_z = 1;
 
         // Create the node
-        ChSharedPtr<ChNodeFEAxyzD> node(
-            new ChNodeFEAxyzD(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z)));
+        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -124,13 +123,13 @@ int main(int argc, char* argv[]) {
     }
 
     // Get handles to a few nodes.
-    ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode(TotalNumNodes - 1).DynamicCastTo<ChNodeFEAxyzD>());
-    ChSharedPtr<ChNodeFEAxyzD> noderand(my_mesh->GetNode(TotalNumNodes / 2).DynamicCastTo<ChNodeFEAxyzD>());
-    ChSharedPtr<ChNodeFEAxyzD> noderclamped(my_mesh->GetNode(0).DynamicCastTo<ChNodeFEAxyzD>());
+    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
+    auto noderand = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes / 2));
+    auto noderclamped = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(0));
 
     // Create an isotropic material.
     // All layers for all elements share the same material.
-    ChSharedPtr<ChMaterialShellANCF> mat(new ChMaterialShellANCF(500, 2.1e8, 0.3));
+    auto mat = std::make_shared<ChMaterialShellANCF>(500, 2.1e8, 0.3);
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -141,11 +140,11 @@ int main(int argc, char* argv[]) {
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
 
         // Create the element and set its nodes.
-        ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
-        element->SetNodes(my_mesh->GetNode(node0).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(node1).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(node2).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(node3).DynamicCastTo<ChNodeFEAxyzD>());
+        auto element = std::make_shared<ChElementShellANCF>();
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
+                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
 
         // Set element dimensions
         element->SetDimensions(dx, dy);
@@ -193,7 +192,7 @@ int main(int argc, char* argv[]) {
 
     // Setup integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().StaticCastTo<ChTimestepperHHT>();
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
     mystepper->SetAbsTolerances(1e-06);
