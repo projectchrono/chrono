@@ -14,8 +14,8 @@
 #define CHELEMENTTETRA10_H
 
 #include <cmath>
-#include "ChElementTetrahedron.h"
-#include "ChNodeFEAxyz.h"
+#include "chrono_fea/ChElementTetrahedron.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -29,8 +29,8 @@ namespace fea {
 class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
                                    public ChLoadableUVW  {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
-    ChSharedPtr<ChContinuumElastic> Material;
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::shared_ptr<ChContinuumElastic> Material;
     std::vector<ChMatrixDynamic<> >
         MatrB;  // matrices of shape function's partial derivatives (one for each integration point)
                 // we use a vector to keep in memory all the four matrices (-> 4 integr. point)
@@ -46,18 +46,18 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
     virtual int GetNcoords() { return 10 * 3; }
     virtual int GetNdofs() { return 10 * 3; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
-                          ChSharedPtr<ChNodeFEAxyz> nodeB,
-                          ChSharedPtr<ChNodeFEAxyz> nodeC,
-                          ChSharedPtr<ChNodeFEAxyz> nodeD,
-                          ChSharedPtr<ChNodeFEAxyz> nodeE,
-                          ChSharedPtr<ChNodeFEAxyz> nodeF,
-                          ChSharedPtr<ChNodeFEAxyz> nodeG,
-                          ChSharedPtr<ChNodeFEAxyz> nodeH,
-                          ChSharedPtr<ChNodeFEAxyz> nodeI,
-                          ChSharedPtr<ChNodeFEAxyz> nodeJ) {
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                          std::shared_ptr<ChNodeFEAxyz> nodeB,
+                          std::shared_ptr<ChNodeFEAxyz> nodeC,
+                          std::shared_ptr<ChNodeFEAxyz> nodeD,
+                          std::shared_ptr<ChNodeFEAxyz> nodeE,
+                          std::shared_ptr<ChNodeFEAxyz> nodeF,
+                          std::shared_ptr<ChNodeFEAxyz> nodeG,
+                          std::shared_ptr<ChNodeFEAxyz> nodeH,
+                          std::shared_ptr<ChNodeFEAxyz> nodeI,
+                          std::shared_ptr<ChNodeFEAxyz> nodeJ) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
         nodes[2] = nodeC;
@@ -680,8 +680,8 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
     //
 
     /// Set the material of the element
-    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
-    ChSharedPtr<ChContinuumElastic> GetMaterial() { return Material; }
+    void SetMaterial(std::shared_ptr<ChContinuumElastic> my_material) { Material = my_material; }
+    std::shared_ptr<ChContinuumElastic> GetMaterial() { return Material; }
 
     /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
     ChMatrix<>& GetMatrB(int n) { return MatrB[n]; }

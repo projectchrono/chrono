@@ -11,14 +11,15 @@
 // File authors: Andrea Favali, Alessandro Tasora
 
 
-#include "core/ChMath.h"
-#include "physics/ChObject.h"
-#include "physics/ChLoad.h"
-#include "physics/ChSystem.h"
-#include "ChMesh.h"
-// for the TetGen parsing:
-#include "ChNodeFEAxyz.h"
-#include "ChElementTetra_4.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/physics/ChObject.h"
+#include "chrono/physics/ChLoad.h"
+#include "chrono/physics/ChSystem.h"
+
+#include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono_fea/ChElementTetra_4.h"
+
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -26,16 +27,10 @@
 #include <algorithm>
 #include <functional> 
 
-
 using namespace std;
 
-
-namespace chrono 
-{
-namespace fea
-{
-
-
+namespace chrono  {
+namespace fea {
 
 void ChMesh::SetupInitial()
 {
@@ -80,88 +75,68 @@ void ChMesh::SetNoSpeedNoAcceleration()
   }
 }
 
-
-void ChMesh::AddNode ( ChSharedPtr<ChNodeFEAbase> m_node)
-{
-  this->vnodes.push_back(m_node);
+void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
+    this->vnodes.push_back(m_node);
 }
 
-void ChMesh::AddElement ( ChSharedPtr<ChElementBase> m_elem)
-{
-  this->velements.push_back(m_elem);
+void ChMesh::AddElement(std::shared_ptr<ChElementBase> m_elem) {
+    this->velements.push_back(m_elem);
 }
 
-void ChMesh::ClearElements ()
-{
-  velements.clear();
-  vcontactsurfaces.clear();
+void ChMesh::ClearElements() {
+    velements.clear();
+    vcontactsurfaces.clear();
 }
 
-void ChMesh::ClearNodes ()
-{
-  velements.clear();
-  vnodes.clear();
-  vcontactsurfaces.clear();
+void ChMesh::ClearNodes() {
+    velements.clear();
+    vnodes.clear();
+    vcontactsurfaces.clear();
 }
 
-void ChMesh::AddContactSurface ( ChSharedPtr<ChContactSurface> m_surf)
-{
-  m_surf->SetMesh(this);
-  this->vcontactsurfaces.push_back(m_surf);
+void ChMesh::AddContactSurface(std::shared_ptr<ChContactSurface> m_surf) {
+    m_surf->SetMesh(this);
+    this->vcontactsurfaces.push_back(m_surf);
 }
 
-void ChMesh::ClearContactSurfaces()
-{
-  vcontactsurfaces.clear();
+void ChMesh::ClearContactSurfaces() {
+    vcontactsurfaces.clear();
 }
 
-
-void ChMesh::AddMeshSurface ( ChSharedPtr<ChMeshSurface> m_surf)
-{
-  m_surf->SetMesh(this);
-  this->vmeshsurfaces.push_back(m_surf);
+void ChMesh::AddMeshSurface(std::shared_ptr<ChMeshSurface> m_surf) {
+    m_surf->SetMesh(this);
+    this->vmeshsurfaces.push_back(m_surf);
 }
-
 
 /// This recomputes the number of DOFs, constraints,
-/// as well as state offsets of contained items 
-void ChMesh::Setup()
-{
-  n_dofs = 0;
-  n_dofs_w = 0;
+/// as well as state offsets of contained items
+void ChMesh::Setup() {
+    n_dofs = 0;
+    n_dofs_w = 0;
 
-  for (unsigned int i=0; i< vnodes.size(); i++)
-  {
-    if (!vnodes[i]->GetFixed())
-    {
-      vnodes[i]->NodeSetOffset_x(this->GetOffset_x() + n_dofs);
-      vnodes[i]->NodeSetOffset_w(this->GetOffset_w() + n_dofs_w);
+    for (unsigned int i = 0; i < vnodes.size(); i++) {
+        if (!vnodes[i]->GetFixed()) {
+            vnodes[i]->NodeSetOffset_x(this->GetOffset_x() + n_dofs);
+            vnodes[i]->NodeSetOffset_w(this->GetOffset_w() + n_dofs_w);
 
-      //    - count the degrees of freedom
-      n_dofs += vnodes[i]->Get_ndof_x();
-      n_dofs_w += vnodes[i]->Get_ndof_w();
+            //    - count the degrees of freedom
+            n_dofs += vnodes[i]->Get_ndof_x();
+            n_dofs_w += vnodes[i]->Get_ndof_w();
+        }
     }
-  }
 }
-
-
-
 
 // Updates all time-dependant variables, if any...
 // Ex: maybe the elasticity can increase in time, etc.
+void ChMesh::Update(double m_time, bool update_assets) {
+    // Parent class update
+    ChIndexedNodes::Update(m_time, update_assets);
 
-void ChMesh::Update(double m_time, bool update_assets)
-{
-  // Parent class update
-  ChIndexedNodes::Update(m_time, update_assets);
-
-  for (unsigned int i = 0; i < velements.size(); i++)
-  {
-    //    - update auxiliary stuff, ex. update element's rotation matrices if corotational..
-    velements[i]->Update();
-  }
+    for (unsigned int i = 0; i < velements.size(); i++) {
+        //    - update auxiliary stuff, ex. update element's rotation matrices if corotational..
+        velements[i]->Update();
+    }
 }
-
 
 void ChMesh::SyncCollisionModels() {
   for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
@@ -318,14 +293,13 @@ void ChMesh::IntLoadResidual_F(
     // a ChLoad object to each element: just instance here a single ChLoad and reuse
     // it for all 'volume' objects.
     if (automatic_gravity_load) {
-        ChSharedPtr<ChLoadableUVW> mloadable;  // still null
-        ChSharedPtr<ChLoad<ChLoaderGravity> > common_gravity_loader(new ChLoad<ChLoaderGravity>(mloadable));
+        std::shared_ptr<ChLoadableUVW> mloadable;  // still null
+        auto common_gravity_loader = std::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
         common_gravity_loader->loader.Set_G_acc(this->GetSystem()->Get_G_acc());
         common_gravity_loader->loader.SetNumIntPoints(num_points_gravity);
 
         for (unsigned int ie = 0; ie < this->velements.size(); ie++) {
-            mloadable = this->velements[ie].DynamicCastTo<ChLoadableUVW>();
-            if (mloadable) {
+            if (mloadable = std::dynamic_pointer_cast<ChLoadableUVW>(this->velements[ie])) {
                 if (mloadable->GetDensity()) {
                     // temporary set loader target and compute generalized forces term
                     common_gravity_loader->loader.loadable = mloadable;

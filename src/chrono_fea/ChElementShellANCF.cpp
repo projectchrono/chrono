@@ -41,10 +41,10 @@ ChElementShellANCF::ChElementShellANCF() : m_gravity_on(false), m_numLayers(0), 
 // Set element nodes
 // ------------------------------------------------------------------------------
 
-void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
-                                  ChSharedPtr<ChNodeFEAxyzD> nodeB,
-                                  ChSharedPtr<ChNodeFEAxyzD> nodeC,
-                                  ChSharedPtr<ChNodeFEAxyzD> nodeD) {
+void ChElementShellANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
+                                  std::shared_ptr<ChNodeFEAxyzD> nodeB,
+                                  std::shared_ptr<ChNodeFEAxyzD> nodeC,
+                                  std::shared_ptr<ChNodeFEAxyzD> nodeD) {
     assert(!nodeA.IsNull());
     assert(!nodeB.IsNull());
     assert(!nodeC.IsNull());
@@ -74,7 +74,7 @@ void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
 // Add a layer.
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::AddLayer(double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material) {
+void ChElementShellANCF::AddLayer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF> material) {
     m_layers.push_back(Layer(this, thickness, theta, material));
 }
 
@@ -1894,7 +1894,7 @@ void ChMaterialShellANCF::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, 
 ChElementShellANCF::Layer::Layer(ChElementShellANCF* element,
                                  double thickness,
                                  double theta,
-                                 ChSharedPtr<ChMaterialShellANCF> material)
+                                 std::shared_ptr<ChMaterialShellANCF> material)
     : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
 
 // Initial setup for this layer: calculate T0 and detJ0 at the element center.

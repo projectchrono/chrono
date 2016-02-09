@@ -15,10 +15,10 @@
 
 //#define BEAM_VERBOSE
 
-#include "ChElementBeam.h"
-#include "ChBeamSection.h"
-#include "ChNodeFEAxyzrot.h"
-#include "ChElementCorotational.h"
+#include "chrono_fea/ChElementBeam.h"
+#include "chrono_fea/ChBeamSection.h"
+#include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono_fea/ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {
@@ -35,9 +35,9 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                     public ChLoadableUVW,
                                     public ChElementCorotational {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyzrot> > nodes;
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
-    ChSharedPtr<ChBeamSectionAdvanced> section;
+    std::shared_ptr<ChBeamSectionAdvanced> section;
 
     ChMatrixDynamic<> StiffnessMatrix;  // undeformed local stiffness matrix
 
@@ -72,9 +72,9 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual int GetNcoords() { return 2 * 6; }
     virtual int GetNdofs() { return 2 * 6; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyzrot> nodeA, ChSharedPtr<ChNodeFEAxyzrot> nodeB) {
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
         assert(!nodeA.IsNull());
         assert(!nodeB.IsNull());
 
@@ -92,15 +92,15 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(ChSharedPtr<ChBeamSectionAdvanced> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section = my_material; }
     /// Get the section & material of the element
-    ChSharedPtr<ChBeamSectionAdvanced> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionAdvanced> GetSection() { return section; }
 
     /// Get the first node (beginning)
-    ChSharedPtr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
+    std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
 
     /// Get the second node (ending)
-    ChSharedPtr<ChNodeFEAxyzrot> GetNodeB() { return nodes[1]; }
+    std::shared_ptr<ChNodeFEAxyzrot> GetNodeB() { return nodes[1]; }
 
     /// Set the reference rotation of nodeA respect to the element rotation.
     void SetNodeAreferenceRot(ChQuaternion<> mrot) { q_refrotA = mrot; }

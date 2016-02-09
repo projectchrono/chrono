@@ -24,7 +24,6 @@
 #include "chrono_fea/ChNodeFEAxyzD.h"
 #include "chrono_fea/ChUtilsFEA.h"
 #include "core/ChQuadrature.h"
-#include "core/ChShared.h"
 
 namespace chrono {
 namespace fea {
@@ -35,7 +34,7 @@ namespace fea {
 // ----------------------------------------------------------------------------
 /// Material definition.
 /// This class implements material properties for a layer.
-class ChApiFea ChMaterialShellANCF : public ChShared {
+class ChApiFea ChMaterialShellANCF {
   public:
     /// Construct an isotropic material.
     ChMaterialShellANCF(double rho,  ///< material density
@@ -82,14 +81,14 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         double Get_theta() const { return m_theta; }
 
         /// Return the layer material.
-        ChSharedPtr<ChMaterialShellANCF> GetMaterial() const { return m_material; }
+        std::shared_ptr<ChMaterialShellANCF> GetMaterial() const { return m_material; }
 
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
-        Layer(ChElementShellANCF* element,               ///< containing element
-              double thickness,                          ///< layer thickness
-              double theta,                              ///< fiber angle
-              ChSharedPtr<ChMaterialShellANCF> material  ///< layer material
+        Layer(ChElementShellANCF* element,                   ///< containing element
+              double thickness,                              ///< layer thickness
+              double theta,                                  ///< fiber angle
+              std::shared_ptr<ChMaterialShellANCF> material  ///< layer material
               );
 
         double Get_detJ0C() const { return m_detJ0C; }
@@ -98,10 +97,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
         /// Initial setup for this layer: calculate T0 and detJ0 at the element center.
         void SetupInitial();
 
-        ChElementShellANCF* m_element;                ///< containing ANCF shell element
-        ChSharedPtr<ChMaterialShellANCF> m_material;  ///< layer material
-        double m_thickness;                           ///< layer thickness
-        double m_theta;                               ///< fiber angle
+        ChElementShellANCF* m_element;                    ///< containing ANCF shell element
+        std::shared_ptr<ChMaterialShellANCF> m_material;  ///< layer material
+        double m_thickness;                               ///< layer thickness
+        double m_theta;                                   ///< fiber angle
 
         double m_detJ0C;
         ChMatrixNM<double, 6, 6> m_T0;
@@ -122,10 +121,10 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     virtual int GetNdofs() override { return 4 * 6; }
 
     /// Specify the nodes of this element.
-    void SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
-                  ChSharedPtr<ChNodeFEAxyzD> nodeB,
-                  ChSharedPtr<ChNodeFEAxyzD> nodeC,
-                  ChSharedPtr<ChNodeFEAxyzD> nodeD);
+    void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
+                  std::shared_ptr<ChNodeFEAxyzD> nodeB,
+                  std::shared_ptr<ChNodeFEAxyzD> nodeC,
+                  std::shared_ptr<ChNodeFEAxyzD> nodeD);
 
     /// Specify the element dimensions.
     void SetDimensions(double lenX, double lenY) {
@@ -134,24 +133,24 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     }
 
     /// Access the n-th node of this element.
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeA() const { return m_nodes[0]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeA() const { return m_nodes[0]; }
 
     /// Get a handle to the second node of this element.
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeB() const { return m_nodes[1]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeB() const { return m_nodes[1]; }
 
     /// Get a handle to the third node of this element.
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeC() const { return m_nodes[2]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeC() const { return m_nodes[2]; }
 
     /// Get a handle to the fourth node of this element.
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeD() const { return m_nodes[3]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeD() const { return m_nodes[3]; }
 
     /// Add a layer.
-    void AddLayer(double thickness,                          ///< layer thickness
-                  double theta,                              ///< fiber angle (radians)
-                  ChSharedPtr<ChMaterialShellANCF> material  ///< layer material
+    void AddLayer(double thickness,                              ///< layer thickness
+                  double theta,                                  ///< fiber angle (radians)
+                  std::shared_ptr<ChMaterialShellANCF> material  ///< layer material
                   );
 
     /// Get the number of layers.
@@ -199,28 +198,28 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
 
   private:
-    std::vector<ChSharedPtr<ChNodeFEAxyzD> > m_nodes;    ///< element nodes
-    std::vector<Layer> m_layers;                         ///< element layers
-    size_t m_numLayers;                                  ///< number of layers for this element
-    double m_lenX;                                       ///< element length in X direction
-    double m_lenY;                                       ///< element length in Y direction
-    double m_thickness;                                  ///< total element thickness
-    std::vector<double> m_GaussZ;                        ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;                               ///< scaling factor due to change of integration intervals
-    double m_Alpha;                                      ///< structural damping
-    bool m_gravity_on;                                   ///< enable/disable gravity calculation
-    ChMatrixNM<double, 24, 1> m_GravForce;               ///< Gravity Force
-    ChMatrixNM<double, 24, 24> m_MassMatrix;             ///< mass matrix
-    ChMatrixNM<double, 24, 24> m_JacobianMatrix;         ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 8, 3> m_d0;                       ///< initial nodal coordinates
-    ChMatrixNM<double, 8, 8> m_d0d0T;                    ///< matrix m_d0 * m_d0^T
-    ChMatrixNM<double, 8, 3> m_d;                        ///< current nodal coordinates
-    ChMatrixNM<double, 8, 8> m_ddT;                      ///< matrix m_d * m_d^T
-    ChMatrixNM<double, 24, 1> m_d_dt;                    ///< current nodal velocities
-    ChMatrixNM<double, 8, 1> m_strainANS;                ///< ANS strain
-    ChMatrixNM<double, 8, 24> m_strainANS_D;             ///< ANS strain derivatives
-    std::vector<ChMatrixNM<double, 5, 1> > m_alphaEAS;   ///< EAS parameters (5 per layer)
-    std::vector<ChMatrixNM<double, 5, 5> > m_KalphaEAS;  ///< EAS Jacobians (a 5x5 matrix per layer)
+    std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
+    std::vector<Layer> m_layers;                           ///< element layers
+    size_t m_numLayers;                                    ///< number of layers for this element
+    double m_lenX;                                         ///< element length in X direction
+    double m_lenY;                                         ///< element length in Y direction
+    double m_thickness;                                    ///< total element thickness
+    std::vector<double> m_GaussZ;                          ///< layer separation z values (scaled to [-1,1])
+    double m_GaussScaling;                                 ///< scaling factor due to change of integration intervals
+    double m_Alpha;                                        ///< structural damping
+    bool m_gravity_on;                                     ///< enable/disable gravity calculation
+    ChMatrixNM<double, 24, 1> m_GravForce;                 ///< Gravity Force
+    ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
+    ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 8, 3> m_d0;                         ///< initial nodal coordinates
+    ChMatrixNM<double, 8, 8> m_d0d0T;                      ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 8, 3> m_d;                          ///< current nodal coordinates
+    ChMatrixNM<double, 8, 8> m_ddT;                        ///< matrix m_d * m_d^T
+    ChMatrixNM<double, 24, 1> m_d_dt;                      ///< current nodal velocities
+    ChMatrixNM<double, 8, 1> m_strainANS;                  ///< ANS strain
+    ChMatrixNM<double, 8, 24> m_strainANS_D;               ///< ANS strain derivatives
+    std::vector<ChMatrixNM<double, 5, 1> > m_alphaEAS;     ///< EAS parameters (5 per layer)
+    std::vector<ChMatrixNM<double, 5, 5> > m_KalphaEAS;    ///< EAS Jacobians (a 5x5 matrix per layer)
 
     static const double m_toleranceEAS;   ///< tolerance for nonlinear EAS solver (on residual)
     static const int m_maxIterationsEAS;  ///< maximum number of nonlinear EAS iterations

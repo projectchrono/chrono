@@ -1,25 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
+// ANCF gradient-deficient beam element (cable element).
+// =============================================================================
 
 #ifndef CHELEMENTBEAMANCF_H
 #define CHELEMENTBEAMANCF_H
 
 //#define BEAM_VERBOSE
-
-#include "ChElementBeam.h"
 #include "chrono/core/ChVector.h"
-#include "ChBeamSection.h"
-#include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
+#include "chrono_fea/ChElementBeam.h"
+#include "chrono_fea/ChBeamSection.h"
+#include "chrono_fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 namespace fea {
@@ -27,10 +30,8 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Simple beam element with two nodes and ANCF gradient-deficient
-/// formulation.
-/// For this 'basic' implementation, constant section and
-/// constant material are assumed along the beam coordinate.
+/// Simple beam element with two nodes and ANCF gradient-deficient formulation.
+/// For this 'basic' implementation, constant section and constant material are assumed along the beam coordinate.
 /// Torsional stiffness is impossible because of the formulation.
 /// Based on the formulation in:
 ///  "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation"
@@ -41,13 +42,11 @@ namespace fea {
 /// "On the Validation and Applications of a Parallel Flexible Multi-body
 ///  Dynamics Implementation"
 ///  D. MELANZ
-class ChElementBeamANCF :   public ChElementBeam, 
-                            public ChLoadableU, 
-                            public ChLoadableUVW {
+class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyzD> > nodes;
+    std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
 
-    ChSharedPtr<ChBeamSectionCable> section;
+    std::shared_ptr<ChBeamSectionCable> section;
     ChMatrixNM<double, 12, 1> GenForceVec0;
     ChMatrixNM<double, 12, 12> StiffnessMatrix;  // stiffness matrix
     ChMatrixNM<double, 12, 12> MassMatrix;       // mass matrix
@@ -66,9 +65,9 @@ class ChElementBeamANCF :   public ChElementBeam,
     virtual int GetNcoords() { return 2 * 6; }
     virtual int GetNdofs() { return 2 * 6; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA, ChSharedPtr<ChNodeFEAxyzD> nodeB) {
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB) {
         assert(!nodeA.IsNull());
         assert(!nodeB.IsNull());
 
@@ -88,15 +87,15 @@ class ChElementBeamANCF :   public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(ChSharedPtr<ChBeamSectionCable> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionCable> my_material) { section = my_material; }
     /// Get the section & material of the element
-    ChSharedPtr<ChBeamSectionCable> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionCable> GetSection() { return section; }
 
     /// Get the first node (beginning)
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeA() { return nodes[0]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeA() { return nodes[0]; }
 
     /// Get the second node (ending)
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
 
     /// Fills the N shape function matrix with the
     /// values of shape functions at abscyssa 'xi'.
