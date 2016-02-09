@@ -8,7 +8,6 @@ ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manag
     tolerance = 1e-7;
     record_violation_history = true;
     warm_start = false;
-    residual = 0;
     solver = new ChSolverAPGD();
     bilateral_solver = new ChSolverMinRes();
     data_manager->rigid_rigid = new ChConstraintRigidRigid();

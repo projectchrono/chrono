@@ -61,11 +61,12 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     ComputeE();
     ComputeR();
     ComputeN();
+
+    data_manager->system_timer.start("ChLcpSolverParallel_Solve");
+
     data_manager->node_container->PreSolve();
     data_manager->fea_container->PreSolve();
     data_manager->mpm_container->PreSolve();
-
-    data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
     ShurProductFull.Setup(data_manager);
     ShurProductBilateral.Setup(data_manager);
@@ -144,10 +145,11 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     //    /////
 
     data_manager->Fc_current = false;
-    data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
     data_manager->node_container->PostSolve();
     data_manager->fea_container->PostSolve();
     data_manager->mpm_container->PostSolve();
+
+    data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
 
     ComputeImpulses();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
@@ -158,7 +160,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     LOG(TRACE) << "ChLcpSolverParallelDVI::RunTimeStep E solve_time: "
                << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve")
-               << " shur_time: " << data_manager->system_timer.GetTime("ShurProduct") << " residual: " << residual;
+               << " shur_time: " << data_manager->system_timer.GetTime("ShurProduct")
+               << " residual: " << data_manager->measures.solver.residual << " tot_iterations: " << tot_iterations;
 }
 
 void ChLcpSolverParallelDVI::ComputeD() {

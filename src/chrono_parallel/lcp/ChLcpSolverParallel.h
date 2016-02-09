@@ -49,15 +49,12 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
     // Solves just the bilaterals so that they can be warm started
     void PerformStabilization();
 
-    real GetResidual() { return residual; }
     ChParallelDataManager* data_manager;
     ChSolverParallel* solver;
     ChSolverParallel* bilateral_solver;
 
   protected:
     ChLcpSolverParallel(ChParallelDataManager* dc);
-
-    real residual;
 
     ChShurProductBilateral ShurProductBilateral;
     ChProjectNone ProjectNone;
