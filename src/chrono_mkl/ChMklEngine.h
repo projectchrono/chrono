@@ -118,6 +118,7 @@ namespace chrono
 
 		// Auxiliary functions
 		int* GetIparmAddress(){ return iparm; }
+		void SetIparmValue(int parm_num, int value){ IPARM(parm_num) = value; }; //< Sets the \c parm_num th element of \c iparm to \c value
 		void PrintIparmOutput() const;
 
 		// Advanced functions
