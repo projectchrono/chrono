@@ -641,6 +641,19 @@ int main(int argc, char* argv[]) {
     spring4->Set_SpringR(damping_coef);
     my_system.AddLink(spring4);
 
+
+    // Create a large cube as a floor.
+
+    ChSharedPtr<ChBodyEasyBox> mrigidBody( new ChBodyEasyBox(10,10,0.00001, 1000,
+                                                        false, // no collide
+                                                        true)); // visualize
+    my_system.Add(mrigidBody);
+    mrigidBody->SetPos(ChVector<>(0, 0, GroundLoc));
+    mrigidBody->SetBodyFixed(true);
+    mrigidBody->GetMaterialSurface()->SetFriction(0.0);
+
+    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
+    mrigidBody->AddAsset(mtexture);
     
 
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
@@ -679,17 +692,7 @@ int main(int argc, char* argv[]) {
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-    video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
-    video::ITexture* rockMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("rock.jpg").c_str());
-    // Create the a plane using body of 'box' type:
-    ChBodySceneNode* mrigidBody;
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(&my_system, application.GetSceneManager(), 100.0,
-        ChVector<>(0, 0, GroundLoc), ChQuaternion<>(1, 0, 0, 0),
-                                                              ChVector<>(10, 10, 0.000001));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.0);
-    mrigidBody->setMaterialTexture(0, cubeMap);
-    mrigidBody->GetBody()->SetCollide(false);
+
     my_system.SetupInitial();
     my_system.Setup();
     my_system.Update();

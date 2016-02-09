@@ -577,6 +577,17 @@ int main(int argc, char* argv[]) {
     my_mesh->SetAutomaticGravity(false);
     // Remember to add the mesh to the system
     my_system.Add(my_mesh);
+
+    // Create a floor body
+    ChSharedPtr<ChBodyEasyBox> mrigidBody( new ChBodyEasyBox(10,0.2,10, 1000,true,true));
+    my_system.Add(mrigidBody);
+    mrigidBody->SetBodyFixed(true);
+    mrigidBody->SetPos(ChVector<>(0, GroundLoc -0.1, 0));
+    mrigidBody->GetMaterialSurface()->SetFriction(0.5);
+
+    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
+    mrigidBody->AddAsset(mtexture);
+
     // This is mandatory
     my_system.SetupInitial();
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;  // MKL Solver option
@@ -626,17 +637,7 @@ int main(int argc, char* argv[]) {
         application.AssetBindAll();
         application.AssetUpdateAll();
 
-        video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
-        video::ITexture* rockMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("rock.jpg").c_str());
-        // Create the a plane using body of 'box' type:
-        ChBodySceneNode* mrigidBody;
-        mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-            &my_system, application.GetSceneManager(), 100.0, ChVector<>(0, GroundLoc, 0), ChQuaternion<>(1, 0, 0, 0),
-            ChVector<>(10, 0.000001, 10));
-        mrigidBody->GetBody()->SetBodyFixed(true);
-        mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
-        mrigidBody->setMaterialTexture(0, cubeMap);
-
+        
         my_system.Setup();
         my_system.Update();
 

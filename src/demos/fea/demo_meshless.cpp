@@ -71,15 +71,15 @@ int main(int argc, char* argv[]) {
 
     // CREATE A FLOOR
 
-    ChBodySceneNode* mfloorBody;
-    mfloorBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(&mphysicalSystem, application.GetSceneManager(), 100.0,
-                                                              ChVector<>(0, -5, 0), ChQuaternion<>(1, 0, 0, 0),
-                                                              ChVector<>(20, 1, 20));
-    mfloorBody->GetBody()->SetBodyFixed(true);
+    ChSharedPtr<ChBodyEasyBox> mfloorBody( new ChBodyEasyBox(20,1,20,1000,true,true));
+    my_system.Add(mfloorBody);
+    mfloorBody->SetBodyFixed(true);
+    mfloorBody->SetPos(ChVector<>(0, -5, 0));
 
-    video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
-    mfloorBody->setMaterialTexture(0, cubeMap);
+    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
+    mfloorBody->AddAsset(mtexture);
 
+   
     // CREATE THE ELASTOPLASTIC MESHLESS CONTINUUM
 
     // Create elastoplastic matter
@@ -143,11 +143,21 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(my_sph_proximity);
 
 
-    ChBodySceneNode* msphere;
-    msphere = (ChBodySceneNode*)addChBodySceneNode_easySphere(&mphysicalSystem, application.GetSceneManager(), 160000.0,
-                                                              ChVector<>(0, -0.5, 0), 2);
-    msphere->GetBody()->SetInertiaXX(ChVector<>(16000, 16000, 16000));
-    // msphere->GetBody()->SetBodyFixed(true);
+    // CREATE A SPHERE PRESSING THE MATERIAL:
+
+    ChSharedPtr<ChBodyEasySphere> msphere( new ChBodyEasySphere(2, 7000, true,true));
+    my_system.Add(msphere);
+    msphere->SetPos(ChVector<>(0, -0.5, 0));
+
+    
+
+    // Use this function for adding a ChIrrNodeAsset to all items
+    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    application.AssetBindAll();
+
+    // Use this function for 'converting' assets into Irrlicht meshes
+    application.AssetUpdateAll();
+
 
     // Modify some setting of the physical system for the simulation, if you want
 

@@ -415,16 +415,15 @@ int main(int argc, char* argv[]) {
     my_marker_move->SetMotion_Z(motlaw_z);
     my_marker_move->SetMotion_Y(motlaw_y);
 
+    
     // Create a large cube as a floor.
 
-    ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        &my_system, application.GetSceneManager(), 1000.0, ChVector<>(0, -0.6, 0), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(20, 1, 20));
-    mfloor->GetBody()->SetBodyFixed(true);
-    mfloor->GetBody()->SetCollide(true);
-    video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
-    mfloor->setMaterialTexture(0, cubeMap);
+    ChSharedPtr<ChBodyEasyBox> mfloor( new ChBodyEasyBox(20,1,20,1000,true,true));
+    my_system.Add(mfloor);
+    mfloor->SetBodyFixed(true);
 
+    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("blu.png").c_str()));
+    mfloor->AddAsset(mtexture);
 
 
     // Use this function for adding a ChIrrNodeAsset to all items
