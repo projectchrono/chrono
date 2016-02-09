@@ -3,7 +3,6 @@
 
 SET(DEMOS
   demo_collision
-  demo_benchmark
   demo_bricks
   demo_cohesion
   demo_conveyor
