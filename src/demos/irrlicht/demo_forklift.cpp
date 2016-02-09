@@ -346,11 +346,7 @@ class MySimpleForklift {
     // removes constraints from the system.
     ~MySimpleForklift() {
         ChSystem* mysystem = truss->GetSystem();  // trick to get the system here
-        // When a ChBodySceneNode is removed via ->remove() from Irrlicht 3D scene manager,
-        // it is also automatically removed from the ChSystem (the ChSystem::RemoveBody() is
-        // automatically called at Irrlicht node deletion - see ChBodySceneNode.h ).
 
-        // For links, just remove them from the ChSystem using ChSystem::RemoveLink()
         mysystem->Remove(link_revoluteRF);
         mysystem->Remove(link_revoluteLF);
         mysystem->Remove(link_steer_engineB);

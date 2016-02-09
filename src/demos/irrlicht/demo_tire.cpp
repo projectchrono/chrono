@@ -52,42 +52,43 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-ChBodySceneNode* create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplication) {
+ChSharedPtr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplication) {
+
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
     ChCollisionModel::SetDefaultSuggestedMargin(0.004);
 
-    // the mesh for the visualization (independent from the collision shape)
-    IAnimatedMesh* tireMesh = mapplication.GetSceneManager()->getMesh(GetChronoDataFile("tractor_wheel.obj").c_str());
+    // create a basic rigid body, it comes with no visualization or collision shapes 
+    ChSharedPtr<ChBody> mrigidBody (new ChBody);
+    mapplication.GetSystem()->Add(mrigidBody);
+    mrigidBody->SetMass(50);
+    mrigidBody->SetInertiaXX(ChVector<>(10, 10, 10));
+    mrigidBody->SetPos(mposition);
+    mrigidBody->GetMaterialSurface()->SetFriction(0.5);
 
-    ChBodySceneNode* mrigidBody =
-        (ChBodySceneNode*)addChBodySceneNode(mapplication.GetSystem(), mapplication.GetSceneManager(),
-                                             tireMesh,  // this mesh only for visualization
-                                             50.0, mposition);
+    // now attach a visualization shape, as a mesh from disk
+    ChSharedPtr<ChObjShapeFile> tireMesh (new ChObjShapeFile);
+    tireMesh->SetFilename(GetChronoDataFile("tractor_wheel.obj").c_str());
+    mrigidBody->AddAsset(tireMesh);
 
-    mrigidBody->GetBody()->SetInertiaXX(ChVector<>(10, 10, 10));
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
+    // now attach collision shape, as a compound of convex hulls (for each thread pair):
 
-    // turn collision ON, otherwise no collide by default
-    mrigidBody->GetBody()->SetCollide(true);
-
-    // Clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
-    mrigidBody->GetBody()->GetCollisionModel()->ClearModel();
-    // Describe the (invisible) colliding shape by adding the 'carcass' decomposed shape and the
-    // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them.
-
+    // clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
+    mrigidBody->GetCollisionModel()->ClearModel();
+    // describe the (invisible) colliding shape by adding the 'carcass' decomposed shape and the
+    // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them:
     for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
         ChQuaternion<> myrot;
         ChStreamInAsciiFile myknobs(GetChronoDataFile("tractor_wheel_knobs.chulls").c_str());
         ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
         myrot.Q_from_AngAxis(mangle * (CH_C_PI / 180.), VECT_X);
         ChMatrix33<> mm(myrot);
-        mrigidBody->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myknobs, ChVector<>(0, 0, 0), mm);
-        mrigidBody->GetBody()->GetCollisionModel()->AddConvexHullsFromFile(myslice, ChVector<>(0, 0, 0), mm);
+        mrigidBody->GetCollisionModel()->AddConvexHullsFromFile(myknobs, ChVector<>(0, 0, 0), mm);
+        mrigidBody->GetCollisionModel()->AddConvexHullsFromFile(myslice, ChVector<>(0, 0, 0), mm);
         // break;
     }
-
-    // Complete the description.
-    mrigidBody->GetBody()->GetCollisionModel()->BuildModel();
+    // complete the description.
+    mrigidBody->GetCollisionModel()->BuildModel();
+    mrigidBody->SetCollide(true);
 
     return mrigidBody;
 }
@@ -96,8 +97,6 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     // Make some pebbles, just for fun, under the wheel
     video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("concrete.jpg").c_str());
     video::ITexture* rockMap = driver->getTexture(GetChronoDataFile("rock.jpg").c_str());
-
-    ChBodySceneNode* mrigidBody;
 
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
@@ -133,16 +132,8 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
     mrigidBodyB->GetMaterialSurface()->SetFriction(0.5);
     ChSharedPtr<ChColorAsset> mcolor (new ChColorAsset);
-    mcolor->SetColor(ChColor(0.2,0.2,0.2));
+    mcolor->SetColor(ChColor(0.2f,0.2f,0.2f));
     mrigidBodyB->AddAsset(mcolor);
-/*
-    mrigidBody =
-        (ChBodySceneNode*)addChBodySceneNode_easyBox(&mphysicalSystem, msceneManager, 100.0, ChVector<>(0, -0.5, 0),
-                                                     ChQuaternion<>(1, 0, 0, 0), ChVector<>(10, 1, 10));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
-    mrigidBody->setMaterialTexture(0, cubeMap);
- */
 }
 
 int main(int argc, char* argv[]) {
@@ -166,7 +157,7 @@ int main(int argc, char* argv[]) {
 
     // Create the wheel
 
-    ChBodySceneNode* mwheelBody = create_wheel(ChVector<>(0, 1, 0), application);
+    ChSharedPtr<ChBody> mwheelBody = create_wheel(ChVector<>(0, 1, 0), application);
 
 
     // Use this function for adding a ChIrrNodeAsset to all items
