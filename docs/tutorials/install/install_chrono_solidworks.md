@@ -29,9 +29,9 @@ Installation
 -   A copy of [SolidWorks](http://www.solidworks.com) must be installed
     on your computer. Supported from version 2011, 64bit, or later.
 -   Install the
-    [Chrono::SolidWorks](/download/#chronosolidworks) add-in,
+    [Chrono::SolidWorks](projectchrono.org/download/#chronosolidworks) add-in,
     using the installer in our download section.
--   install the [Chrono::PyEngine](/download/#chronopyengine)
+-   install the [Chrono::PyEngine](@ref tutorial_install_chrono_pyengine)
     module, using the installer in our download section.
 
 How to use it

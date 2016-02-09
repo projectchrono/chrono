@@ -20,3 +20,8 @@ As always, we would be happy to hear your comments and receive your contribution
 -   @subpage tutorial_table_of_content_chrono_vehicle
 
     Here you will learn about the chrono vehicle library
+
+Other Guides
+-----------------
+
+-   @subpage tutorial_git

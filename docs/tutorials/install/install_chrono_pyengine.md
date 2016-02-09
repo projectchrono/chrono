@@ -3,11 +3,7 @@ Install Chrono PyEngine {#tutorial_install_chrono_pyengine}
 
 This is an optional unit that adds Python support in Chrono::Engine. Read the introduction to units for a technical background on the modularity of the Chrono::Engine project. 
 
-* This will become a table of contents (this text will be scraped).
-{:toc}
-
-
-The **unit\_PYTHON** allows users to use the
+The **unit_PYTHON** allows users to use the
 [Python](http://www.python.org) language for creating simulations, with
 the typical advantages of scripting languages (immediate execution, no
 compilers, ease of use, etc.). This units, in particular, builds the
@@ -18,16 +14,14 @@ This unit consists of **two** main sets of build targets:
 -   The Python modules for
     [**Chrono::PyEngine**](/documentation/chrono_pyengine/).
     Currently, the PyChrono::Engine Python modules that are built are:
-    -   **ChronoEngine\_PYTHON\_core**, that wraps all the core
+    -   **ChronoEngine_PYTHON_core**, that wraps all the core
         Chrono::Engine,
-    -   **ChronoEngine\_PYTHON\_postprocess**, that wraps
-        the unit\_POSTPROCESS.
-    -   **ChronoEngine\_PYTHON\_irrlicht**, that wraps
-        the unit\_IRRLICHT.
+    -   **ChronoEngine_PYTHON_postprocess**, that wraps
+        the unit_POSTPROCESS.
+    -   **ChronoEngine_PYTHON_irrlicht**, that wraps
+        the unit_IRRLICHT.
 
-<!-- -->
-
--   A **unit\_PYPARSER** is built, that is a c++ unit for parsing /
+-   A **unit_PYPARSER** is built, that is a c++ unit for parsing /
     executing / interpreting Python instructions from C++ programs.
 
 Requirements
@@ -46,32 +40,22 @@ Building instructions
 -   Install SWIG on your system. (If needed, add its directory to your
     PATH so that swig.exe can be run from the shell).
 
-<!-- -->
-
 -   Repeat the instructions for the [full
     installation](Install "wikilink"), but when you see the CMake
     window, you must add the following steps:
 
-<!-- -->
+-   Set the ENABLE_UNIT_PYTHON as 'on', then press 'Configure' (to
+    refresh the variable list)
 
--   Set the ENABLE\_UNIT\_PYTHON as 'on', then press 'Configure' (to
-    refresh the variable list)\
-    ![](/images/cmake_units.gif "fig:cmake_units.gif")
-
-<!-- -->
-
--   Set the CH\_PYTHONDIR variable to the directory where you have your
+-   Set the CH_PYTHONDIR variable to the directory where you have your
     copy of Python. For example, it could be C:/Python33
 
-<!-- -->
 
 -   When you pressed 'Configure', CMake should have detected your SWIG
-    tools: this should create two variables in CMake called SWIG\_DIR
-    and SWIG\_EXECUTABLE. If all is fine, they should automatically
+    tools: this should create two variables in CMake called SWIG_DIR
+    and SWIG_EXECUTABLE. If all is fine, they should automatically
     contain meaningful values, for example C:/swigwin-2.0.4/Lib and
     C:/swigwin-2.0.4/swig.exe , so you do not need to touch them.
-
-<!-- -->
 
 -   Press 'Configure' again, then 'Generate', and proceed as usual in
     the installation instructions.

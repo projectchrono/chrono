@@ -1,6 +1,6 @@
-Introduction {#introduction}
+About Doxygen {#introduction_doxygen}
 ==========================
-The Chrono::Engine is a C++ library of tools for physics simulation (multibody dynamics, kinematics, etc.). This documentation is an important part of it. If you have any questions or suggestions, just send a email to the author of the engine, Alessandro Tasora (tasora (at) deltaknowledge.com).
+Chrono is a C++ library of tools for physics simulation (multibody dynamics, kinematics, etc.). This documentation is an important part of it. If you have any questions or suggestions, just send a email to the author of the engine, Alessandro Tasora (tasora (at) deltaknowledge.com).
 
 \section links Links
 
