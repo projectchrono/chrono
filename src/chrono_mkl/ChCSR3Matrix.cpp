@@ -454,7 +454,7 @@ namespace chrono {
 			nonzeros_vector[row_sel] = rowIndex[row_sel + 1] - rowIndex[row_sel];
 	}
 
-	bool ChCSR3Matrix::CheckArraysAlignment(int alignment)
+	bool ChCSR3Matrix::CheckArraysAlignment(int alignment) const
 	{
 		if (alignment == 0)
 			alignment = array_alignment;
@@ -466,7 +466,7 @@ namespace chrono {
 		return (dec_part_a == 0 && dec_part_ia == 0 && dec_part_ja == 0) ? true : false;
 	}
 
-	void ChCSR3Matrix::GetMemoryInfo()
+	void ChCSR3Matrix::GetMemoryInfo() const
 	{
 		printf("\nMemory allocated: %.2f MB", static_cast<double>( (2*colIndex_occupancy*sizeof(double) + rowIndex_occupancy* sizeof(int)) )/1000000  );
 	}
@@ -479,7 +479,7 @@ namespace chrono {
 	// -2 - error message: there's a row that has some an uninitialized element NOT at the end of its space in colIndex
 	// -4 - error message: colIndex has not ascending indexes within the rows
 
-	int ChCSR3Matrix::VerifyMatrix()
+	int ChCSR3Matrix::VerifyMatrix() const
 	{
 		bool uninitialized_elements_found = false;
 		for (int row_sel = 0; row_sel < rows; row_sel++)
@@ -948,7 +948,7 @@ namespace chrono {
 				this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
 	}
 
-	void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision)
+	void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision) const
 	{
 		std::ofstream a_file, ia_file, ja_file;
 		a_file.open(filepath+"a.dat");
