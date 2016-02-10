@@ -304,8 +304,9 @@ struct host_container {
     custom_vector<real> mass_node_fea;
     custom_vector<uint4> tet_indices;
     custom_vector<short2> tet_family;
-    custom_vector<uint3> boundary_element_fea;
-    custom_vector<uint> boundary_mask_fea;
+    custom_vector<uint4> boundary_triangles_fea;
+    custom_vector<uint> boundary_node_mask_fea;
+    custom_vector<uint> boundary_element_mask_fea;
 
     // Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;

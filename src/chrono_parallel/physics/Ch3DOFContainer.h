@@ -245,8 +245,9 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     void ComputeMass(int offset);
     custom_vector<Mat33> X0;  // Inverse of intial shape matrix
 
-    int num_boundary_element;
-    int boundary_node_num;
+    int num_boundary_triangles;
+    int num_boundary_elements;
+    int num_boundary_node;
 
     custom_vector<real> V;  // volume of tet
     real youngs_modulus;

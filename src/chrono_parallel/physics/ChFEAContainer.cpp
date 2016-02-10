@@ -855,15 +855,24 @@ bool customCompare(const FaceData& face1, const FaceData& face2) {
 }
 
 void ChFEAContainer::FindSurface() {
+    // Mark nodes that are on the boundary
+    // Mark triangles that are on the boundary
+    // Mark elements that are on the boundary
     uint num_nodes = data_manager->num_fea_nodes;
     uint num_tets = data_manager->num_fea_tets;
 
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
-    custom_vector<uint3>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
-    custom_vector<uint>& boundary_mask_fea = data_manager->host_data.boundary_mask_fea;
+    custom_vector<uint4>& boundary_triangles_fea = data_manager->host_data.boundary_triangles_fea;
+    custom_vector<uint>& boundary_node_mask_fea = data_manager->host_data.boundary_node_mask_fea;
+    custom_vector<uint>& boundary_element_mask_fea = data_manager->host_data.boundary_element_mask_fea;
 
     std::vector<FaceData> faces(4 * num_tets);
-    boundary_mask_fea.resize(num_nodes);
+    boundary_node_mask_fea.resize(num_nodes);
+    boundary_element_mask_fea.resize(num_tets);
+
+    std::fill(boundary_node_mask_fea.begin(), boundary_node_mask_fea.end(), 0);
+    std::fill(boundary_element_mask_fea.begin(), boundary_element_mask_fea.end(), 0);
+
     for (int e = 0; e < num_tets; e++) {
         int i = tet_indices[e].x;
         int j = tet_indices[e].y;
@@ -892,27 +901,30 @@ void ChFEAContainer::FindSurface() {
         }
 
         uint3 tri = faces[face].tri;
-        boundary_mask_fea[tri.x] = 1;
-        boundary_mask_fea[tri.y] = 1;
-        boundary_mask_fea[tri.z] = 1;
+        boundary_node_mask_fea[tri.x] = 1;
+        boundary_node_mask_fea[tri.y] = 1;
+        boundary_node_mask_fea[tri.z] = 1;
 
         int f = faces[face].f;
         uint e = faces[face].element;
 
+        boundary_element_mask_fea[e] = 1;
+
         if (f == 0) {
-            boundary_element_fea.push_back(_make_uint3(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w, e));
         } else if (f == 1) {
-            boundary_element_fea.push_back(_make_uint3(tet_indices[e].x, tet_indices[e].z, tet_indices[e].w));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].z, tet_indices[e].w, e));
         } else if (f == 2) {
-            boundary_element_fea.push_back(_make_uint3(tet_indices[e].x, tet_indices[e].y, tet_indices[e].w));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].w, e));
         } else if (f == 3) {
-            boundary_element_fea.push_back(_make_uint3(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z, e));
         }
 
         face++;
     }
-    num_boundary_element = boundary_element_fea.size();
-    boundary_node_num = std::accumulate(boundary_mask_fea.begin(), boundary_mask_fea.end(), 0);
+    num_boundary_triangles = boundary_triangles_fea.size();
+    num_boundary_node = std::accumulate(boundary_node_mask_fea.begin(), boundary_node_mask_fea.end(), 0);
+    num_boundary_elements = std::accumulate(boundary_element_mask_fea.begin(), boundary_element_mask_fea.end(), 0);
 }
 
 }  // END_OF_NAMESPACE____
