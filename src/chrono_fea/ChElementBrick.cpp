@@ -37,14 +37,14 @@ void ChElementBrick::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                               std::shared_ptr<ChNodeFEAxyz> nodeF,
                               std::shared_ptr<ChNodeFEAxyz> nodeG,
                               std::shared_ptr<ChNodeFEAxyz> nodeH) {
-    assert(!nodeA.IsNull());
-    assert(!nodeB.IsNull());
-    assert(!nodeC.IsNull());
-    assert(!nodeD.IsNull());
-    assert(!nodeE.IsNull());
-    assert(!nodeF.IsNull());
-    assert(!nodeG.IsNull());
-    assert(!nodeH.IsNull());
+    assert(nodeA);
+    assert(nodeB);
+    assert(nodeC);
+    assert(nodeD);
+    assert(nodeE);
+    assert(nodeF);
+    assert(nodeG);
+    assert(nodeH);
 
     m_nodes[0] = nodeA;
     m_nodes[1] = nodeB;

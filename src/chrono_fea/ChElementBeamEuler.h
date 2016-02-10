@@ -75,8 +75,8 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
-        assert(!nodeA.IsNull());
-        assert(!nodeB.IsNull());
+        assert(nodeA);
+        assert(nodeB);
 
         nodes[0] = nodeA;
         nodes[1] = nodeB;
@@ -290,7 +290,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed, so the explicit result of quadrature is used.
     virtual void ComputeStiffnessMatrix() {
-        assert(!section.IsNull());
+        assert(section);
 
         double Area = section->Area;
         double E = section->E;
@@ -425,7 +425,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
 
     virtual void SetupInitial(ChSystem* system) override {
-        assert(!section.IsNull());
+        assert(section);
 
         // Compute rest length, mass:
         this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
@@ -446,7 +446,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
         assert((H.GetRows() == 12) && (H.GetColumns() == 12));
-        assert(!section.IsNull());
+        assert(section);
 
         // Corotational K stiffness:
         ChMatrixDynamic<> CK(12, 12);
@@ -689,7 +689,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
-        assert(!section.IsNull());
+        assert(section);
 
         // set up vector of nodal displacements and small rotations (in local element system)
         ChMatrixDynamic<> displ(12, 1);
@@ -915,7 +915,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                             const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) {
-        assert(!section.IsNull());
+        assert(section);
 
         double Jpolar = section->J;
 

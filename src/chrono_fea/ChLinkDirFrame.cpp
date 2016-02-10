@@ -90,7 +90,7 @@ void ChLinkDirFrame::SetDirectionInAbsoluteCoords(ChVector<> mattach)
 int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> anode,  ///< node to join
                                std::shared_ptr<ChBodyFrame> mbody,    ///< body to join
                                ChVector<>* mdir) {
-    assert(!anode.IsNull() && !mbody.IsNull());
+    assert(anode && mbody);
 
     this->body = mbody;
 	this->mnode = anode;

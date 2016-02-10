@@ -45,10 +45,10 @@ void ChElementShellANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
                                   std::shared_ptr<ChNodeFEAxyzD> nodeB,
                                   std::shared_ptr<ChNodeFEAxyzD> nodeC,
                                   std::shared_ptr<ChNodeFEAxyzD> nodeD) {
-    assert(!nodeA.IsNull());
-    assert(!nodeB.IsNull());
-    assert(!nodeC.IsNull());
-    assert(!nodeD.IsNull());
+    assert(nodeA);
+    assert(nodeB);
+    assert(nodeC);
+    assert(nodeD);
 
     m_nodes[0] = nodeA;
     m_nodes[1] = nodeB;

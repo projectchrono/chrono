@@ -276,7 +276,7 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
     for (unsigned int ip = 0; ip < this->GetNnodes(); ip++) {
         // downcasting
         std::shared_ptr<ChNodeMeshless> mnode(this->nodes[ip]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         mnode->SetKernelRadius(kernelrad);
         mnode->SetCollisionRadius(spacing * 0.1);
@@ -365,7 +365,7 @@ void ChMatterMeshless::IntLoadResidual_F(
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density > 0)
@@ -439,7 +439,7 @@ void ChMatterMeshless::IntLoadResidual_F(
         ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
 
         std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         R.PasteSumVector(TotForce * c, off + 3 * j, 0);
     }
@@ -526,7 +526,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density > 0)
@@ -600,7 +600,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
         ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
 
         std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         mnode->variables.Get_fb().PasteSumVector(TotForce * factor, 0, 0);
     }
@@ -640,7 +640,7 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step) {
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        assert(mnode);
 
         // Integrate plastic flow
         ChStrainTensor<> strainplasticflow;

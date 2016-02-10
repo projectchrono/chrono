@@ -53,7 +53,7 @@ ChCoordsys<> ChLinkPointPoint::GetLinkAbsoluteCoords() {
 int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< node to join
 						         std::shared_ptr<ChNodeFEAxyz> anodeB  ///< node to join
                                  ) {
-	assert(!anodeA.IsNull() && !anodeB.IsNull());
+	assert(anodeA && anodeB);
 
 	this->mnodeA = anodeA;
     this->mnodeB = anodeB;

@@ -68,8 +68,8 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB) {
-        assert(!nodeA.IsNull());
-        assert(!nodeB.IsNull());
+        assert(nodeA);
+        assert(nodeB);
 
         nodes[0] = nodeA;
         nodes[1] = nodeB;
@@ -158,7 +158,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     virtual void ComputeStiffnessMatrix() {
-        assert(!section.IsNull());
+        assert(section);
 
         bool use_numerical_differentiation = true;
 
@@ -429,7 +429,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     virtual void ComputeMassMatrix() {
-        assert(!section.IsNull());
+        assert(section);
 
         double Area = section->Area;
         double rho = section->density;
@@ -478,7 +478,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     /// simulation, ex. the mass matrix in ANCF is constant
 
     virtual void SetupInitial(ChSystem* system) override {
-        assert(!section.IsNull());
+        assert(section);
 
         // Compute rest length, mass:
         this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
@@ -511,7 +511,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
         assert((H.GetRows() == 12) && (H.GetColumns() == 12));
-        assert(!section.IsNull());
+        assert(section);
 
         // Compute global stiffness matrix:
         ComputeStiffnessMatrix();
@@ -557,7 +557,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
                                     const ChVector<>& dB,
                                     ChMatrixDynamic<>& Fi) {
         assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
-        assert(!section.IsNull());
+        assert(section);
 
         double Area = section->Area;
         double E = section->E;
@@ -827,7 +827,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
                                             const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) {
-        assert(!section.IsNull());
+        assert(section);
 
         ChMatrixNM<double, 1, 4> N;
         ChMatrixNM<double, 1, 4> Nd;
@@ -846,7 +846,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     /// This is not mandatory for the element to work, but it can be useful for plotting,
     /// showing results, etc.
     virtual void EvaluateSectionStrain(const double eta, const ChMatrix<>& displ, ChVector<>& StrainV) override {
-        assert(!section.IsNull());
+        assert(section);
 
         ChMatrixNM<double, 1, 4> N;
         ChMatrixNM<double, 1, 4> Nd;

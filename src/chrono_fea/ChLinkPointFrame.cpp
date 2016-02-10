@@ -59,7 +59,7 @@ int ChLinkPointFrame::Initialize(std::shared_ptr<ChIndexedNodes> mnodes,  ///< n
                                  unsigned int mnode_index,                ///< index of the node to join
                                  std::shared_ptr<ChBodyFrame> mbody,      ///< body to join
                                  ChVector<>* mattach) {
-    assert(!mnodes.IsNull());
+    assert(mnodes);
 
     std::shared_ptr<ChNodeFEAxyz> anode(std::dynamic_pointer_cast<ChNodeFEAxyz>(mnodes->GetNode(mnode_index))); // downcasting
 	
@@ -73,7 +73,7 @@ int ChLinkPointFrame::Initialize(std::shared_ptr<ChIndexedNodes> mnodes,  ///< n
 int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> anode,  ///< node to join
 						         std::shared_ptr<ChBodyFrame>  mbody,  ///< body to join 
                                  ChVector<>* mattach) {
-	assert(!anode.IsNull() && !mbody.IsNull());
+	assert(anode && mbody);
 
 	this->body = mbody;
 	this->mnode = anode;
