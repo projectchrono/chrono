@@ -112,11 +112,6 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<int> ff_bin_starts;
     custom_vector<int> ff_bin_ends;
 
-    custom_vector<uint> n_bin_intersections;
-    custom_vector<uint> n_bin_number;
-    custom_vector<uint> n_bin_number_out;
-    custom_vector<uint> n_bin_node_number;
-    custom_vector<uint> n_bin_start_index;
 };
 }
 }

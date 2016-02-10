@@ -183,10 +183,6 @@ void ChCBroadphase::OneLevelBroadphase() {
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
                                        obj_data_id, contact_pairs);
     }
-    // LOG(TRACE) << "Thrust_Sort(contact_pairs);: ";
-    // Thrust_Sort(contact_pairs);
-    // LOG(TRACE) << "Thrust_Unique(contact_pairs);: ";
-    // number_of_contacts_possible = Thrust_Unique(contact_pairs);
     contact_pairs.resize(number_of_contacts_possible);
     LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;
 }
