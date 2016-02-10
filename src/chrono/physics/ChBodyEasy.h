@@ -18,6 +18,7 @@
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"
 #include "assets/ChTriangleMeshShape.h"
+#include "assets/ChObjShapeFile.h"
 #include "collision/ChCCollisionUtils.h"
 
 namespace chrono {
@@ -261,6 +262,65 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
 
             GetCollisionModel()->ClearModel();
             GetCollisionModel()->AddConvexHull(points_reduced); // coll.model is respect to REF c.sys
+            GetCollisionModel()->BuildModel();
+            SetCollide(true);
+        }
+    }
+};
+
+
+/// Easy-to-use class for quick creation of rigid bodies with a
+/// triangle mesh shape, that has a REF csys distinct from the COG cys (this
+/// is helpful because in many cases the mesh might have an offset barycenter
+/// respect to the reference that we want to use for the body)
+/// This class does automatically, at object creation:
+/// - a visualization shape is created and added, if visualization asset is desired
+/// - a collision shape is created and added, if collision is desired,
+/// - mass and moment of inertia is automatically set, according to the geometry (this
+///   requires the mesh to be closed, watertight, with proper triangle orientation)
+/// Note:  this inherits the ChBodyAuxRef, that allow to have the barycenter (COG) and
+/// the body reference (REF) in two different positions. So the REF will remain unchanged,
+/// while the COG reference is moved to the computed barycenter of convex hull and its rotation
+/// is automatically aligned to the main inertia axes of the tensor of inertia.
+
+class ChBodyEasyMesh : public ChBodyAuxRef {
+  public:
+    /// Creates a ChBody plus adds an optional visualization shape and, optionally,
+    /// a collision shape. Mass and inertia are set automatically depending
+    /// on density.
+    ChBodyEasyMesh(const std::string filename, ///< .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
+                         double mdensity,
+                         bool compute_mass = true,
+                         bool collide = false,
+                         double sphere_swept = 0.001, ///< radius of 'inflating' of mesh, leads to more robust collision detection
+                         bool visual_asset = true) {
+
+        ChSharedPtr<ChTriangleMeshShape> vshape(new ChTriangleMeshShape());
+        vshape->GetMesh().LoadWavefrontMesh(filename,true, true);
+        this->AddAsset(vshape); // assets are respect to REF c.sys
+
+        if (!visual_asset) {
+            vshape->SetVisible(false);
+        }
+
+        this->SetDensity((float)mdensity);
+        if (compute_mass) {
+            double mass;
+            ChVector<> baricenter;
+            ChMatrix33<> inertia;
+            vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
+            ChMatrix33<> principal_inertia_csys;
+            double principal_I[3];
+            inertia.FastEigen(principal_inertia_csys,principal_I);
+            this->SetMass(mass * mdensity);
+            this->SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
+            // Set the COG coordinates to barycenter, without displacing the REF reference
+            this->SetFrame_COG_to_REF(ChFrame<>(baricenter,principal_inertia_csys));
+        }
+
+        if (collide) {
+            GetCollisionModel()->ClearModel();
+            GetCollisionModel()->AddTriangleMesh(vshape->GetMesh(),false, false, VNULL, ChMatrix33<>(1), sphere_swept); // coll.model is respect to REF c.sys
             GetCollisionModel()->BuildModel();
             SetCollide(true);
         }

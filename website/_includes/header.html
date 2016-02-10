@@ -1,0 +1,44 @@
+<header class="site-header">
+
+  <div class="container">
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{{ site.baseurl }}/">
+            {% include module.html first="PROJECT" second="CHRONO" %}
+          </a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            {% for link in site.data.navbar-default.main %} 
+            {% if link.sub.size > 0 %}
+            <li class="dropdown">
+            <a href="{{ link.url }}" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">{{ link.title }} <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                {% for sublink in link.sub %}
+                <li><a href="{{ sublink.url }}">{{ sublink.title }}</a></li>
+                {% endfor %}
+              </ul>
+            </li>
+            {% else %}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {% endif %} 
+            {% endfor %}
+          </ul>
+          <!-- <ul class="nav navbar-nav navbar-right">
+            {% for link in site.data.navbar-default.right %}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {% endfor %}
+          </ul> -->
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
+  </div>
+</header>

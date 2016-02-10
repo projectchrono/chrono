@@ -238,17 +238,19 @@ int main(int argc, char* argv[]) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
 
     // Create two conveyor fences
-    ChBodySceneNode* mfence1 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        &mphysicalSystem, application.GetSceneManager(), 1.0, ChVector<>(0, 0, -0.325), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(2, 0.11, 0.04));
-    mfence1->GetBody()->SetBodyFixed(true);
-    mfence1->GetBody()->GetMaterialSurface()->SetFriction(0.1f);
+   
+    ChSharedPtr<ChBodyEasyBox> mfence1 (new ChBodyEasyBox(2, 0.11, 0.04, 1000, true, true));
+    mphysicalSystem.Add(mfence1);
+    mfence1->SetPos(ChVector<>(0, 0, -0.325));
+    mfence1->SetBodyFixed(true);
+    mfence1->GetMaterialSurface()->SetFriction(0.1f);
+    
+    ChSharedPtr<ChBodyEasyBox> mfence2 (new ChBodyEasyBox(2, 0.11, 0.04, 1000, true, true));
+    mphysicalSystem.Add(mfence2);
+    mfence2->SetPos(ChVector<>(0, 0,  0.325));
+    mfence2->SetBodyFixed(true);
+    mfence2->GetMaterialSurface()->SetFriction(0.1f);
 
-    ChBodySceneNode* mfence2 = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        &mphysicalSystem, application.GetSceneManager(), 1.0, ChVector<>(0, 0, 0.325), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(2, 0.11, 0.04));
-    mfence2->GetBody()->SetBodyFixed(true);
-    mfence2->GetBody()->GetMaterialSurface()->SetFriction(0.1f);
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
@@ -261,8 +263,15 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.Add(mconveyor);
 
-    // Create an Irrlicht 'directory' where debris will be put during the simulation loop
-    ISceneNode* parent = application.GetSceneManager()->addEmptySceneNode();
+
+
+    // Use this function for adding a ChIrrNodeAsset to all items
+    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    application.AssetBindAll();
+
+    // Use this function for 'converting' assets into Irrlicht meshes
+    application.AssetUpdateAll();
+
 
     //
     // THE SOFT-REAL-TIME CYCLE
