@@ -122,9 +122,9 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1, (f32)1.4, -1.2), core::vector3df(0, tire_rad, 0));
-    application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                                   video::SColorf(0.8, 0.8, 1));
+    application.AddTypicalCamera(core::vector3df(f32(1.0), f32(1.4), f32(-1.2)), core::vector3df(0, f32(tire_rad), 0));
+    application.AddLightWithShadow(core::vector3df(f32(1.5), f32(5.5), f32(-2.5)), core::vector3df(0, 0, 0), 3, 2.2,
+                                   7.2, 40, 512, video::SColorf(f32(0.8), f32(0.8), f32(1.0)));
 
     //
     // CREATE A FINITE ELEMENT MESH
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     // Create the surface material, containing information
     // about friction etc.
 
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -143,14 +143,14 @@ int main(int argc, char* argv[]) {
     // Create a mesh, that is a container for groups
     // of FEA elements and their referenced nodes.
 
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
     my_system.Add(my_mesh); 
 
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
 
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.003e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.4);
     mmaterial->Set_RayleighDampingK(0.004);
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
 
-    std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
 
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     // Create the contact surface(s). 
     // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh:
 
-    ChSharedPtr<ChContactSurfaceMesh> mcontactsurf (new ChContactSurfaceMesh);
+    auto mcontactsurf = std::make_shared<ChContactSurfaceMesh>();
     my_mesh->AddContactSurface(mcontactsurf);
     
     mcontactsurf->AddFacesFromBoundary();
@@ -187,10 +187,10 @@ int main(int argc, char* argv[]) {
     /// Create a mesh load for cosimulation, acting on the contact surface above
     /// (forces on nodes will be computed by an external procedure)
 
-    ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+    auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
-    ChSharedPtr<ChLoadContactSurfaceMesh> mmeshload (new ChLoadContactSurfaceMesh(mcontactsurf));
+    auto mmeshload = std::make_shared<ChLoadContactSurfaceMesh>(mcontactsurf);
     mloadcontainer->Add(mmeshload);
     
 
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colours as in the FEM elements.
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
@@ -219,23 +219,23 @@ int main(int argc, char* argv[]) {
     // this time the ChLoadContactSurfaceMesh cannot be used as in the FEA case, so we
     // will use the ChLoadBodyMesh class:
 
-    ChSharedPtr<ChBody> mrigidbody (new ChBody);
+    auto mrigidbody = std::make_shared<ChBody>();
     my_system.Add(mrigidbody);
     mrigidbody->SetMass(200);
     mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
     mrigidbody->SetPos(tire_center + ChVector<>(-1,0,0));
 
-    ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+    auto mrigidmesh = std::make_shared<ChTriangleMeshShape>();
     mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
     mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
     mrigidbody->AddAsset(mrigidmesh);
 
-    ChSharedPtr<ChColorAsset> mcol(new ChColorAsset);
+    auto mcol = std::make_shared<ChColorAsset>();
     mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     mrigidbody->AddAsset(mcol);
 
-            // this is used to use the mesh in cosimulation!
-    ChSharedPtr<ChLoadBodyMesh> mrigidmeshload(new ChLoadBodyMesh(mrigidbody, mrigidmesh->GetMesh()));
+    // this is used to use the mesh in cosimulation!
+    auto mrigidmeshload = std::make_shared<ChLoadBodyMesh>(mrigidbody, mrigidmesh->GetMesh());
     mloadcontainer->Add(mrigidmeshload);
 
 
