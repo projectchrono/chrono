@@ -101,7 +101,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
 
     InputMode m_mode;
     double m_time_shift;
-    ChSharedPtr<ChDataDriver> m_data_driver;
+    std::shared_ptr<ChDataDriver> m_data_driver;
 };
 
 /// @} vehicle_driver

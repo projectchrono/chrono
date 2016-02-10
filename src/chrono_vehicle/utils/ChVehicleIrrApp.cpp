@@ -267,10 +267,10 @@ void ChVehicleIrrApp::DrawAll() {
 void ChVehicleIrrApp::renderSprings() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
+        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get())) {
             irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
                                              video::SColor(255, 150, 20, 20), 80, 15, true);
-        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get_ptr())) {
+        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get())) {
             irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
                                              video::SColor(255, 150, 20, 20), 80, 15, true);
         }
@@ -281,10 +281,10 @@ void ChVehicleIrrApp::renderSprings() {
 void ChVehicleIrrApp::renderLinks() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get_ptr())) {
+        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get())) {
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
                                               video::SColor(255, 0, 20, 0), true);
-        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get_ptr())) {
+        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get())) {
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
                                               video::SColor(255, 180, 0, 0), true);
         }
