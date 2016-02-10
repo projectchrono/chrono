@@ -129,11 +129,11 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 if (mresult.hit) {
                     if (ChBody* mbo =
                             dynamic_cast<ChBody*>(mresult.hitModel->GetContactable())) {
-                        app->selectedmover = new ChSharedPtr<ChBody>(mbo);
+                        app->selectedmover = new std::shared_ptr<ChBody>(mbo);
                         app->selectedpoint = (*(app->selectedmover))->Point_World2Body(mresult.abs_hitPoint);
                         app->selecteddist = (mfrom - mresult.abs_hitPoint).Length();
-                        app->selectedspring = new ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
-                        app->selectedtruss = new ChSharedPtr<ChBody>(new ChBody);
+                        app->selectedspring = new std::shared_ptr<ChLinkSpring>(new ChLinkSpring);
+                        app->selectedtruss = new std::shared_ptr<ChBody>(new ChBody);
                         (*(app->selectedtruss))->SetBodyFixed(true);
                         app->GetSystem()->AddBody(*(app->selectedtruss));
                         (*(app->selectedspring))
@@ -553,8 +553,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 
     system = psystem;
 
-    system->AddRef();  // so that it works as with shared ptr
-
     show_infos = false;
 
     // the container, a level that contains all chrono nodes
@@ -570,8 +568,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 ChIrrAppInterface::~ChIrrAppInterface() {
     device->drop();
     // delete (receiver);
-
-    system->RemoveRef();
 }
 
 // Set integration time step.

@@ -43,7 +43,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
 
     /// Shortcut to add and bind a ChIrrNodeAsset to an item, if it has not been
     /// added previously.
-    void AssetBind(ChSharedPtr<ChPhysicsItem> mitem);
+    void AssetBind(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Shortcut to add and bind a ChIrrNodeAsset to all items in a ChSystem.
     /// If it has been already added, the existing ChIrrNodeAsset is used.
@@ -64,7 +64,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
     /// NOTE. This conversion should be done only if needed (ex. at the beginning
     /// of an animation or when a shape changes), i.e. not too often, for
     /// performance reasons.
-    void AssetUpdate(ChSharedPtr<ChPhysicsItem> mitem);
+    void AssetUpdate(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// For all items in a ChSystem, this function sets up the Irrlicht nodes
     /// corresponding to the geometric assets that have been added to the items.
@@ -77,7 +77,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
     /// Shortcut to enable shadow maps for an item. Shadow maps in Irrlicht may
     /// slow visualization a bit. Also, one must remember to add shadow-enabled
     /// lights, using myapp.AddLightWithShadow(..)
-    void AddShadow(ChSharedPtr<ChPhysicsItem> mitem);
+    void AddShadow(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Shortcut to enable shadow maps for all items in scene. Shadow maps in
     /// Irrlicht may slow visualization a bit. Also, one must remember to add

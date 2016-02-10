@@ -283,9 +283,9 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIStaticText* gad_textHelp;
 
   public:
-    ChSharedPtr<ChLinkSpring>* selectedspring;
-    ChSharedPtr<ChBody>* selectedtruss;
-    ChSharedPtr<ChBody>* selectedmover;
+    std::shared_ptr<ChLinkSpring>* selectedspring;
+    std::shared_ptr<ChBody>* selectedtruss;
+    std::shared_ptr<ChBody>* selectedmover;
     ChVector<> selectedpoint;
     double selecteddist;
 
