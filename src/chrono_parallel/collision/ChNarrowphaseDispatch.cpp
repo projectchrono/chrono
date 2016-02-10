@@ -48,8 +48,8 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
     if (data_manager->num_fluid_bodies != 0) {
         DispatchRigidFluid();
     }
-    if (data_manager->num_fea_nodes != 0) {
-        DispatchRigidNode();
+    if (data_manager->num_fea_tets != 0) {
+        DispatchRigidTet();
     }
     if (data_manager->num_mpm_markers != 0) {
         DispatchRigidMPM();
@@ -491,16 +491,15 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() E " << data_manager->num_fluid_contacts;
 }
 
-void ChCNarrowphaseDispatch::DispatchRigidNode() {
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidNode() S";
+void ChCNarrowphaseDispatch::DispatchRigidTet() {
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidTet() S";
 
-    //    RigidSphereContact(data_manager->fea_container->kernel_radius, data_manager->num_fea_nodes,
-    //                       data_manager->host_data.pos_node_fea, data_manager->host_data.norm_rigid_node,
-    //                       data_manager->host_data.cpta_rigid_node, data_manager->host_data.dpth_rigid_node,
-    //                       data_manager->host_data.neighbor_rigid_node, data_manager->host_data.c_counts_rigid_node,
-    //                       data_manager->num_rigid_node_contacts);
+    RigidTetContact(data_manager->host_data.norm_rigid_tet, data_manager->host_data.cpta_rigid_tet,
+                    data_manager->host_data.cptb_rigid_tet, data_manager->host_data.dpth_rigid_tet,
+                    data_manager->host_data.neighbor_rigid_tet, data_manager->host_data.c_counts_rigid_tet,
+                    data_manager->num_rigid_tet_contacts);
 
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidNode() E " << data_manager->num_rigid_node_contacts;
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidTet() E " << data_manager->num_rigid_tet_contacts;
 }
 //==================================================================================================================================
 

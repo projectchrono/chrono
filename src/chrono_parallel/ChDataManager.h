@@ -430,7 +430,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_fea_tets;              // Total number of FEM nodes
     uint num_mpm_nodes;             // Total number of MPM nodes
     uint num_mpm_markers;           // Total number of MPM markers
-    uint num_rigid_node_contacts;   // The number of contacts between rigids and  nodes
+    //uint num_rigid_node_contacts;   // The number of contacts between rigids and  nodes
     uint num_rigid_tet_contacts;    // The number of contacts between tetrahedron and rigid bodies
     uint num_rigid_mpm_contacts;    // The number of contacts between rigids and  mpm markers
     uint nnz_bilaterals;            // The number of non-zero entries in the bilateral Jacobian
