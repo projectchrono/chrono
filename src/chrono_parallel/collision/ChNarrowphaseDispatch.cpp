@@ -314,7 +314,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     dpth_data.resize(num_rigid_contacts);
     erad_data.resize(num_rigid_contacts);
     bids_data.resize(num_rigid_contacts);
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigid() E "<<num_rigid_contacts;
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigid() E " << num_rigid_contacts;
 }
 
 void ChCNarrowphaseDispatch::DispatchRigidFluid() {
@@ -494,11 +494,11 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
 void ChCNarrowphaseDispatch::DispatchRigidNode() {
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidNode() S";
 
-    RigidSphereContact(data_manager->fea_container->kernel_radius, data_manager->num_fea_nodes,
-                       data_manager->host_data.pos_node_fea, data_manager->host_data.norm_rigid_node,
-                       data_manager->host_data.cpta_rigid_node, data_manager->host_data.dpth_rigid_node,
-                       data_manager->host_data.neighbor_rigid_node, data_manager->host_data.c_counts_rigid_node,
-                       data_manager->num_rigid_node_contacts);
+    //    RigidSphereContact(data_manager->fea_container->kernel_radius, data_manager->num_fea_nodes,
+    //                       data_manager->host_data.pos_node_fea, data_manager->host_data.norm_rigid_node,
+    //                       data_manager->host_data.cpta_rigid_node, data_manager->host_data.dpth_rigid_node,
+    //                       data_manager->host_data.neighbor_rigid_node, data_manager->host_data.c_counts_rigid_node,
+    //                       data_manager->num_rigid_node_contacts);
 
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidNode() E " << data_manager->num_rigid_node_contacts;
 }
@@ -628,6 +628,137 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     }
     Thrust_Exclusive_Scan(contact_counts);
     num_contacts = contact_counts[num_spheres];
+}
+//==================================================================================================================================
+
+void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_tet,
+                                             custom_vector<real3>& cpta_rigid_tet,
+                                             custom_vector<real3>& cptb_rigid_tet,
+                                             custom_vector<real>& dpth_rigid_tet,
+                                             custom_vector<int>& neighbor_rigid_tet,
+                                             custom_vector<int>& contact_counts,
+                                             uint& num_contacts) {
+    int num_rigid_shapes = data_manager->num_rigid_shapes;
+    real3 global_origin = data_manager->measures.collision.global_origin;
+    int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
+    real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
+
+    int num_tets = data_manager->num_fea_tets;
+    custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
+    custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
+
+    uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
+    is_rigid_bin_active.resize(total_bins);
+    Thrust_Fill(is_rigid_bin_active, 1000000000);
+#pragma omp parallel for
+    for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
+        uint bin_number = data_manager->host_data.bin_number_out[index];
+        is_rigid_bin_active[bin_number] = index;
+    }
+    f_bin_intersections.resize(num_tets + 1);
+    f_bin_intersections[num_tets] = 0;
+#pragma omp parallel for
+    for (int p = 0; p < num_tets; p++) {
+        int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
+        int3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
+        f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
+    }
+    Thrust_Exclusive_Scan(f_bin_intersections);
+    uint f_number_of_bin_intersections = f_bin_intersections.back();
+
+    f_bin_number.resize(f_number_of_bin_intersections);
+    f_bin_number_out.resize(f_number_of_bin_intersections);
+    f_bin_fluid_number.resize(f_number_of_bin_intersections);
+    f_bin_start_index.resize(f_number_of_bin_intersections);
+
+#pragma omp parallel for
+    for (int p = 0; p < num_tets; p++) {
+        uint count = 0, i, j, k;
+        int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
+        int3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
+        uint mInd = f_bin_intersections[p];
+        for (i = gmin.x; i <= gmax.x; i++) {
+            for (j = gmin.y; j <= gmax.y; j++) {
+                for (k = gmin.z; k <= gmax.z; k++) {
+                    f_bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
+                    f_bin_fluid_number[mInd + count] = p;
+                    count++;
+                }
+            }
+        }
+    }
+    Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
+    uint f_number_of_bins_active = Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index);
+
+    f_bin_start_index.resize(f_number_of_bins_active + 1);
+    f_bin_start_index[f_number_of_bins_active] = 0;
+    Thrust_Exclusive_Scan(f_bin_start_index);
+    custom_vector<uint> f_bin_num_contact(f_number_of_bins_active + 1);
+    f_bin_num_contact[f_number_of_bins_active] = 0;
+
+    norm_rigid_tet.resize(num_tets * max_rigid_neighbors);
+    cpta_rigid_tet.resize(num_tets * max_rigid_neighbors);
+    cptb_rigid_tet.resize(num_tets * max_rigid_neighbors);
+    dpth_rigid_tet.resize(num_tets * max_rigid_neighbors);
+    neighbor_rigid_tet.resize(num_tets * max_rigid_neighbors);
+    contact_counts.resize(num_tets + 1);
+
+    Thrust_Fill(contact_counts, 0);
+    for (int index = 0; index < f_number_of_bins_active; index++) {
+        uint start = f_bin_start_index[index];
+        uint end = f_bin_start_index[index + 1];
+        uint count = 0;
+        // Terminate early if there is only one object in the bin
+        if (end - start == 1) {
+            continue;
+        }
+        unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
+        bool rigid_is_active = rigid_index != 1000000000;
+        if (rigid_is_active) {
+            uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
+            uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
+#pragma omp parallel for
+            for (uint i = start; i < end; i++) {
+                uint p = f_bin_fluid_number[i];
+                real3 Bmin = aabb_min_tet[p] - global_origin;
+                real3 Bmax = aabb_max_tet[p] - global_origin;
+
+                uint4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
+                real3* node_pos = data_manager->host_data.pos_node_fea.data();
+
+                for (uint j = rigid_start; j < rigid_end; j++) {
+                    uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
+                    real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
+                    real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
+                    uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
+                    if (!overlap(Amin, Amax, Bmin, Bmax)) {
+                        continue;
+                    }
+
+                    ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
+                    ConvexShapeTetradhedron* shapeB = new ConvexShapeTetradhedron(tet_index, node_pos);
+
+                    real3 ptA, ptB, norm;
+                    real depth;
+
+                    if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
+                        if (contact_counts[p] < max_rigid_neighbors) {
+                            norm_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = norm;
+                            cpta_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = ptA;
+                            cptb_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = ptB;
+                            dpth_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = depth;
+                            neighbor_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
+                            contact_counts[p]++;
+                        }
+                    }
+                    delete shapeA;
+                    delete shapeB;
+                }
+            }
+        }
+    }
+    Thrust_Exclusive_Scan(contact_counts);
+    num_contacts = contact_counts[num_tets];
 }
 
 //==================================================================================================================================

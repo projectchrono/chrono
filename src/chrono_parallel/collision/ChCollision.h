@@ -82,6 +82,14 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                             custom_vector<int>& contact_counts,
                             uint& num_contacts);
 
+    void RigidTetContact(custom_vector<real3>& norm_rigid_tet,
+                         custom_vector<real3>& cpta_rigid_tet,
+                         custom_vector<real3>& cptb_rigid_tet,
+                         custom_vector<real>& dpth_rigid_tet,
+                         custom_vector<int>& neighbor_rigid_tet,
+                         custom_vector<int>& contact_counts,
+                         uint& num_contacts);
+
     void DispatchMPR();
     void DispatchR();
     void DispatchHybridMPR();
@@ -111,7 +119,6 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<int> ff_bin_ids;
     custom_vector<int> ff_bin_starts;
     custom_vector<int> ff_bin_ends;
-
 };
 }
 }

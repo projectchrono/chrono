@@ -234,11 +234,12 @@ struct host_container {
     // custom_vector<long long> bids_fluid_fluid;
     custom_vector<int> reverse_mapping_3dof;
 
-    custom_vector<real3> norm_rigid_node;
-    custom_vector<real3> cpta_rigid_node;
-    custom_vector<real> dpth_rigid_node;
-    custom_vector<int> neighbor_rigid_node;
-    custom_vector<int> c_counts_rigid_node;
+    custom_vector<real3> norm_rigid_tet;
+    custom_vector<real3> cpta_rigid_tet;
+    custom_vector<real3> cptb_rigid_tet;
+    custom_vector<real> dpth_rigid_tet;
+    custom_vector<int> neighbor_rigid_tet;
+    custom_vector<int> c_counts_rigid_tet;
 
     custom_vector<real3> norm_rigid_mpm;
     custom_vector<real3> cpta_rigid_mpm;

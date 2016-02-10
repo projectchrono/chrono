@@ -44,9 +44,9 @@ class collision_measures {
         ff_max_bounding_point = real3(0);
         ff_bins_per_axis = int3(0);
 
-        node_min_bounding_point = real3(0);
-        node_max_bounding_point = real3(0);
-        node_bins_per_axis = int3(0);
+        tet_min_bounding_point = real3(0);
+        tet_max_bounding_point = real3(0);
+        tet_bins_per_axis = int3(0);
 
         mpm_min_bounding_point = real3(0);
         mpm_max_bounding_point = real3(0);
@@ -66,9 +66,9 @@ class collision_measures {
     real3 ff_min_bounding_point;
     real3 ff_max_bounding_point;
     // Tet Collision info
-    int3 node_bins_per_axis;
-    real3 node_min_bounding_point;
-    real3 node_max_bounding_point;
+    int3 tet_bins_per_axis;
+    real3 tet_min_bounding_point;
+    real3 tet_max_bounding_point;
 
     // MPM Collision info
 

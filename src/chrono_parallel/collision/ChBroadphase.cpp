@@ -32,9 +32,9 @@ void ChCBroadphase::DetermineBoundingBox() {
         res.first = Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
         res.second = Max(res.second, data_manager->measures.collision.ff_max_bounding_point);
     }
-    if (data_manager->num_fea_nodes != 0) {
-        res.first = Min(res.first, data_manager->measures.collision.node_min_bounding_point);
-        res.second = Max(res.second, data_manager->measures.collision.node_max_bounding_point);
+    if (data_manager->num_fea_tets != 0) {
+        res.first = Min(res.first, data_manager->measures.collision.tet_min_bounding_point);
+        res.second = Max(res.second, data_manager->measures.collision.tet_max_bounding_point);
     }
     if (data_manager->num_mpm_markers != 0) {
         res.first = Min(res.first, data_manager->measures.collision.mpm_min_bounding_point);
@@ -198,8 +198,8 @@ void ChCBroadphase::DispatchTets() {
     res = thrust::transform_reduce(aabb_min_tet.begin(), aabb_min_tet.end(), unary_op, res, binary_op);
     res = thrust::transform_reduce(aabb_max_tet.begin(), aabb_max_tet.end(), unary_op, res, binary_op);
 
-    data_manager->measures.collision.node_min_bounding_point = res.first;
-    data_manager->measures.collision.node_max_bounding_point = res.second;
+    data_manager->measures.collision.tet_min_bounding_point = res.first;
+    data_manager->measures.collision.tet_max_bounding_point = res.second;
 }
 }
 }

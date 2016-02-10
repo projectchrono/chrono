@@ -173,7 +173,7 @@ void ChCollisionSystemParallel::Run() {
         narrowphase->ProcessRigids();
         data_manager->system_timer.stop("collision_narrow");
     } else {
-        data_manager->host_data.c_counts_rigid_node.clear();
+        data_manager->host_data.c_counts_rigid_tet.clear();
         data_manager->host_data.c_counts_rigid_fluid.clear();
         data_manager->num_rigid_node_contacts = 0;
         data_manager->num_rigid_fluid_contacts = 0;

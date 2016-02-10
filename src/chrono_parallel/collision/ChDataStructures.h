@@ -50,7 +50,6 @@ class ConvexShapeSphere : public ConvexBase {
     virtual ~ConvexShapeSphere() {}
     const inline int Type() const { return SPHERE; }
     const inline real3 A() const { return position; }
-    const inline quaternion R() const { return quaternion(1, 0, 0, 0); }
     const inline real Radius() const { return radius; }
     real3 position;
     real radius;
@@ -82,7 +81,6 @@ class ConvexShapeTetradhedron : public ConvexBase {
     virtual ~ConvexShapeTetradhedron() {}
     const inline int Type() const { return TETRAHEDRON; }
     const inline real3 A() const { return real3(0); }
-    const inline quaternion R() const { return quaternion(1, 0, 0, 0); }
     const uint4 TetIndex() const { return indices; }
     const real3* TetNodes() const { return nodes; }
     uint4 indices;

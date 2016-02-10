@@ -146,7 +146,7 @@ inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, co
     return point;
 }
 
-inline real3 GetSupportPoint_Tetrahedron(const uint4 indices, const real3* nodes) {
+inline real3 GetSupportPoint_Tetrahedron(const uint4 indices, const real3* nodes, const real3& n) {
     real max_dot_p = -C_LARGE_REAL;
     real dot_p;
     real3 point;
