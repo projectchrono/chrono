@@ -155,7 +155,13 @@ static inline uint4 Sort(const uint4& a) {
     }
     return t;
 }
-
+static inline uint3 Sort(const uint3& a) {
+    uint3 t = a;
+    SwapIfGreater(t.x, t.y);
+    SwapIfGreater(t.x, t.z);
+    SwapIfGreater(t.y, t.z);
+    return t;
+}
 static inline uint3 operator-(const uint3& a, const uint3& b) {
     return U3(a.x - b.x, a.y - b.y, a.z - b.z);
 }

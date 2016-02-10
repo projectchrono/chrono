@@ -539,40 +539,38 @@ void ChOpenGLViewer::RenderFEA() {
         if (parallel_system->data_manager->num_fea_nodes <= 0) {
             return;
         }
+        /*
+                fea_node_data.clear();
+                if (parallel_system->data_manager->fea_container) {
+                    ChFEAContainer* fea_container = (ChFEAContainer*)(parallel_system->data_manager->fea_container);
 
-        fea_node_data.resize(parallel_system->data_manager->num_fea_nodes);
-#pragma omp parallel for
-        for (int i = 0; i < parallel_system->data_manager->num_fea_nodes; i++) {
-            real3 pos = parallel_system->data_manager->host_data.pos_node_fea[i];
-            fea_node_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-        }
+                    //#pragma omp parallel for
+                    for (int i = 0; i < parallel_system->data_manager->num_fea_nodes; i++) {
+                        if (parallel_system->data_manager->host_data.boundary_mask_fea[i]) {
+                            real3 pos = parallel_system->data_manager->host_data.pos_node_fea[i];
+                            fea_node_data.push_back(glm::vec3(pos.x, pos.y, pos.z));
+                        }
+                    }
+                }
+                fea_nodes.SetPointSize(parallel_system->data_manager->fea_container->kernel_radius);
 
-        fea_nodes.SetPointSize(parallel_system->data_manager->fea_container->kernel_radius);
-        fea_nodes.Update(fea_node_data);
-        glm::mat4 model(1);
-        fea_nodes.Draw(projection, view * model);
+                fea_nodes.Update(fea_node_data);
+                glm::mat4 model(1);
+                fea_nodes.Draw(projection, view * model);
+        */
         fea_element_data.clear();
-        for (int i = 0; i < parallel_system->data_manager->num_fea_tets; i++) {
-            uint4 ind = parallel_system->data_manager->host_data.tet_indices[i];
+
+        for (int i = 0; i < parallel_system->data_manager->host_data.boundary_element_fea.size(); i++) {
+            uint3 ind = parallel_system->data_manager->host_data.boundary_element_fea[i];
             real3 pos1 = parallel_system->data_manager->host_data.pos_node_fea[ind.x];
             real3 pos2 = parallel_system->data_manager->host_data.pos_node_fea[ind.y];
             real3 pos3 = parallel_system->data_manager->host_data.pos_node_fea[ind.z];
-            real3 pos4 = parallel_system->data_manager->host_data.pos_node_fea[ind.w];
 
             fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
             fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
 
             fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
             fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));
-
-            fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
-            fea_element_data.push_back(glm::vec3(pos4.x, pos4.y, pos4.z));
-
-            fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
-            fea_element_data.push_back(glm::vec3(pos4.x, pos4.y, pos4.z));
-
-            fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));
-            fea_element_data.push_back(glm::vec3(pos4.x, pos4.y, pos4.z));
 
             fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
             fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));

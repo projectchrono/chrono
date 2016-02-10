@@ -265,6 +265,14 @@ inline void Swap(T& a, T& b) {
     a = b;
     b = temp;
 }
+
+template <typename T>
+void SwapIfGreater(T& a, T& b) {
+    if (a > b) {
+        Swap(a, b);
+    }
+}
+
 // Clamps a given value a between user specified minimum and maximum values
 inline real Clamp(real x, real low, real high) {
     if (low > high) {

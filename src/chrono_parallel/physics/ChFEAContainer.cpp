@@ -812,6 +812,109 @@ void ChFEAContainer::PostSolve() {
         gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1));
     }
 }
+
+struct FaceData {
+    uint3 tri;
+    int f;
+    uint element;
+    FaceData(){};
+    FaceData(const uint3& t, int face, uint e) : tri(t), f(face), element(e) {}
+};
+
+struct {
+    bool operator()(const FaceData& face1, const FaceData& face2) {
+        uint3 a = face1.tri;
+        uint3 b = face2.tri;
+
+        if (a.x < b.x) {
+            return true;
+        }
+        if (b.x < a.x) {
+            return false;
+        }
+        if (a.y < b.y) {
+            return true;
+        }
+        if (b.y < a.y) {
+            return false;
+        }
+        if (a.z < b.z) {
+            return true;
+        }
+        if (b.z < a.z) {
+            return false;
+        }
+        return false;
+    }
+} customSort;
+
+bool customCompare(const FaceData& face1, const FaceData& face2) {
+    uint3 a = face1.tri;
+    uint3 b = face2.tri;
+    return (a.x == b.x && a.y == b.y && a.z == b.z);
+}
+
+void ChFEAContainer::FindSurface() {
+    uint num_nodes = data_manager->num_fea_nodes;
+    uint num_tets = data_manager->num_fea_tets;
+
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uint3>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
+    custom_vector<uint>& boundary_mask_fea = data_manager->host_data.boundary_mask_fea;
+
+    std::vector<FaceData> faces(4 * num_tets);
+    boundary_mask_fea.resize(num_nodes);
+    for (int e = 0; e < num_tets; e++) {
+        int i = tet_indices[e].x;
+        int j = tet_indices[e].y;
+        int k = tet_indices[e].z;
+        int l = tet_indices[e].w;
+
+        faces[4 * e + 0] = FaceData(Sort(_make_uint3(j, k, l)), 0, e);
+        faces[4 * e + 1] = FaceData(Sort(_make_uint3(i, k, l)), 1, e);
+        faces[4 * e + 2] = FaceData(Sort(_make_uint3(i, j, l)), 2, e);
+        faces[4 * e + 3] = FaceData(Sort(_make_uint3(i, j, k)), 3, e);
+    }
+
+    std::sort(faces.begin(), faces.end(), customSort);
+
+    uint face = 0;
+
+    while (face < 4 * num_tets) {
+        if (face < 4 * num_tets - 1) {
+            uint3 tri1 = faces[face].tri;
+            uint3 tri2 = faces[face + 1].tri;
+
+            if (tri1.x == tri2.x && tri1.y == tri2.y && tri1.z == tri2.z) {
+                face += 2;
+                continue;
+            }
+        }
+
+        uint3 tri = faces[face].tri;
+        boundary_mask_fea[tri.x] = 1;
+        boundary_mask_fea[tri.y] = 1;
+        boundary_mask_fea[tri.z] = 1;
+
+        int f = faces[face].f;
+        uint e = faces[face].element;
+
+        if (f == 0) {
+            boundary_element_fea.push_back(_make_uint3(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w));
+        } else if (f == 1) {
+            boundary_element_fea.push_back(_make_uint3(tet_indices[e].x, tet_indices[e].z, tet_indices[e].w));
+        } else if (f == 2) {
+            boundary_element_fea.push_back(_make_uint3(tet_indices[e].x, tet_indices[e].y, tet_indices[e].w));
+        } else if (f == 3) {
+            boundary_element_fea.push_back(_make_uint3(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z));
+        }
+
+        face++;
+    }
+    num_boundary_element = boundary_element_fea.size();
+    boundary_node_num = std::accumulate(boundary_mask_fea.begin(), boundary_mask_fea.end(), 0);
+}
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////
