@@ -18,15 +18,19 @@
 #ifndef CH_BCE_CUH_
 #define CH_BCE_CUH_
 
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh" //for FsiGeneralData
 
 namespace chrono {
 namespace fsi {
 
-class CH_FSI_API ChBce : public ChFsiGeneral{
+class CH_FSI_API ChBce : public ChFsiGeneral {
 public:
-	ChBce::ChBce(SimParams* otherParamsH, 
-			NumberOfObjects* otherNumObjects);
+	ChBce(FsiGeneralData* otherFsiGeneralData,
+		SimParams* otherParamsH, 
+		NumberOfObjects* otherNumObjects);
+
 	~ChBce();
 
 	void UpdateRigidMarkersPositionVelocity(
@@ -49,3 +53,5 @@ private:
 };
 } // end namespace fsi
 } // end namespace chrono
+
+#endif
