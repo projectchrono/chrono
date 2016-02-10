@@ -18,8 +18,10 @@
 #ifndef CH_FSIGENERAL_H_
 #define CH_FSIGENERAL_H_
 
+#include "ChApiFsi.h"
 #include "chrono_fsi/custom_cutil_math.h"
 #include "chrono_fsi/ChParams.cuh"
+#include "chrono_fsi/ChUtilsGeneralFsi.h"
 
 namespace chrono {
 namespace fsi {
@@ -273,8 +275,7 @@ __device__ uint calcGridHash(int3 gridPos) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
-namespace fsi {
-	class CH_FSI_API ChFsiGeneral {
+class CH_FSI_API ChFsiGeneral {
 public:
 
 	ChFsiGeneral();
@@ -296,6 +297,8 @@ public:
 protected:
 	uint iDivUp(uint a, uint b);
 private:
+	SimParams* paramsH;
+	NumberOfObjects* numObjectsH;
 
 
 

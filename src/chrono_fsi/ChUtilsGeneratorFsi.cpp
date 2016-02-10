@@ -287,6 +287,7 @@ void AddBCE_FromFile(
 void CreateSphereFSI(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
+	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	chrono::ChSystem& mphysicalSystem,
 	NumberOfObjects& numObjects,
 	const SimParams& paramsH,
@@ -318,7 +319,7 @@ void CreateSphereFSI(
 	chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
-	fsiGeneralData.fsiBodeisPtr.push_back(body);
+	fsiBodeisPtr->push_back(body);
 
 	AddSphereBce(sphMarkersH, fsiGeneralData,
 			numObjects, paramsH, body, 
@@ -329,6 +330,7 @@ void CreateSphereFSI(
 void CreateCylinderFSI(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
+	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	chrono::ChSystem& mphysicalSystem,
 	NumberOfObjects& numObjects,
 	const SimParams& paramsH,
@@ -359,7 +361,7 @@ void CreateCylinderFSI(
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
 
-	fsiGeneralData.fsiBodeisPtr.push_back(body);
+	fsiBodeisPtr->push_back(body);
 	AddCylinderBce(sphMarkersH, fsiGeneralData,
 			numObjects, paramsH, body, chrono::ChVector<>(0,0,0), chrono::ChQuaternion<>(1, 0, 0, 0), 
 			radius, length);
@@ -368,6 +370,7 @@ void CreateCylinderFSI(
 void CreateBoxFSI(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
+	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	chrono::ChSystem& mphysicalSystem,
 	NumberOfObjects& numObjects,
 	const SimParams& paramsH,
@@ -398,7 +401,7 @@ void CreateBoxFSI(
 	mphysicalSystem.AddBody(body);
 
 
-	fsiGeneralData.fsiBodeisPtr.push_back(body);
+	fsiBodeisPtr->push_back(body);
 	AddBoxBce(sphMarkersH, fsiGeneralData, 
 		numObjects, paramsH, body, chrono::ChVector<>(0,0,0), chrono::ChQuaternion<>(1, 0, 0, 0), 
 		hsize);

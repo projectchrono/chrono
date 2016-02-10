@@ -86,9 +86,6 @@ namespace fsi {
 		thrust::host_vector<::int4> referenceArray;
 		thrust::host_vector<uint> bodyIndexH;
 
-		// map fsi to chrono bodies
-		std::vector<ChSharedPtr<ChBody> > fsiBodeisPtr;
-
 		// ----------------
 		//  device
 		// ----------------

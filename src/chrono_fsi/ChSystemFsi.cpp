@@ -22,6 +22,7 @@ namespace fsi {
 
 ChSystemFsi::ChSystemFsi() {
 	ChFsiDataManager* fsiData = new ChFsiDataManager();
+	fsiBodeisPtr.resize(0);
 	paramsH = new SimParams; // Arman: define a function to set paramsH default values
 	numObjectsH = new NumberOfObjects;
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
@@ -29,7 +30,7 @@ ChSystemFsi::ChSystemFsi() {
 
 	fluidDynamics = new ChFluidDynamics(fsiData, paramsH, numObjectsH);
 	fsiInterface = new ChFsiInterface(fsiData->fsiBodiesH, fsiData->chronoRigidBackup,
-		mphysicalSystem, fsiData->fsiGeneralData.fsiBodeisPtr,
+		mphysicalSystem, &fsiBodeisPtr,
 		fsiData->fsiGeneralData.rigid_FSI_ForcesD,
 		fsiData->fsiGeneralData.rigid_FSI_TorquesD);
 	bceWorker = new ChBce(fsiData->fsiGeneralData, paramsH, numObjectsH);

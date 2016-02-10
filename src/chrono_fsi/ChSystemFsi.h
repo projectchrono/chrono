@@ -43,6 +43,8 @@ private:
 		double mTime, double time_hold_vehicle, bool haveVehicle);
 
 	ChFsiDataManager* fsiData;
+	// map fsi to chrono bodies
+	std::vector<ChSharedPtr<ChBody> > fsiBodeisPtr;
 	ChFluidDynamics* fluidDynamics;
 	ChFsiInterface* fsiInterface;
 	ChBce* bceWorker;

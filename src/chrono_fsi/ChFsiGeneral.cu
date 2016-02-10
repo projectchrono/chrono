@@ -19,18 +19,18 @@
 namespace chrono {
 namespace fsi {
 
-ChFsiGeneral() : paramsH(NULL), numObjectsH(NULL) {}
+ChFsiGeneral::ChFsiGeneral() : paramsH(NULL), numObjectsH(NULL) {}
 
-ChFsiGeneral(SimParams* other_paramsH, NumberOfObjects* other_numObjects) :
+ChFsiGeneral::ChFsiGeneral(SimParams* other_paramsH, NumberOfObjects* other_numObjects) :
  paramsH(other_paramsH), numObjectsH(other_numObjects) {}
 
-~ChFsiGeneral();
+ChFsiGeneral::~ChFsiGeneral() {}
 
 uint ChFsiGeneral::iDivUp(uint a, uint b) {
 	return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
-ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks,
+void ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks,
 		uint& numThreads) {
 	uint n2 = (n == 0) ? 1 : n;
 	numThreads = min(blockSize, n2);

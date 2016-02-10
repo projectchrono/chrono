@@ -90,6 +90,7 @@ namespace utils {
 	void CreateSphereFSI(
 		SphMarkerDataH& sphMarkersH,
 		FsiGeneralData& fsiGeneralData,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 		chrono::ChSystem& mphysicalSystem,
 		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
@@ -101,6 +102,7 @@ namespace utils {
 	void CreateCylinderFSI(
 		SphMarkerDataH& sphMarkersH,
 		FsiGeneralData& fsiGeneralData,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 		chrono::ChSystem& mphysicalSystem,
 		NumberOfObjects& numObjects,
 		const SimParams& paramsH,
@@ -114,6 +116,7 @@ namespace utils {
 	void CreateBoxFSI(
 		SphMarkerDataH& sphMarkersH,
 		FsiGeneralData& fsiGeneralData,
+		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 		chrono::ChSystem& mphysicalSystem,
 		NumberOfObjects& numObjects,
 		const SimParams& paramsH,

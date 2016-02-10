@@ -1156,40 +1156,6 @@ inline __host__  __device__ float4 normalize(float4 v) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// absolute value
-////////////////////////////////////////////////////////////////////////////////
-
-inline __host__  __device__ float2 fabs(float2 v) {
-	return make_float2(std::fabs(v.x), std::fabs(v.y));
-}
-inline __host__  __device__ float3 fabs(float3 v) {
-	return make_float3(std::fabs(v.x), std::fabs(v.y), std::fabs(v.z));
-}
-inline __host__  __device__ float4 fabs(float4 v) {
-	return make_float4(std::fabs(v.x), std::fabs(v.y), std::fabs(v.z), std::fabs(v.w));
-}
-
-inline __host__  __device__ int2 abs(int2 v) {
-	return make_int2(std::abs(v.x), std::abs(v.y));
-}
-inline __host__  __device__ int3 abs(int3 v) {
-	return make_int3(std::abs(v.x), std::abs(v.y), std::abs(v.z));
-}
-inline __host__  __device__ int4 abs(int4 v) {
-	return make_int4(std::abs(v.x), std::abs(v.y), std::abs(v.z), std::abs(v.w));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// reflect
-// - returns reflection of incident ray I around surface normal N
-// - N should be normalized, reflected vector's length is equal to length of I
-////////////////////////////////////////////////////////////////////////////////
-
-inline __host__  __device__ float3 reflect(float3 i, float3 n) {
-	return i - 2.0f * n * dot(n, i);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // cross product
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1697,20 +1663,6 @@ __host__ __device__ inline Real4 normalize(Real4 v) {
 	return v * invLen;
 }
 
-
-__host__ __device__ inline Real2 fabs(Real2 v) {
-	return make_Real2(std::fabs(v.x), std::fabs(v.y));
-}
-__host__ __device__ inline Real3 fabs(Real3 v) {
-	return make_Real3(std::fabs(v.x), std::fabs(v.y), std::fabs(v.z));
-}
-__host__ __device__ inline Real4 fabs(Real4 v) {
-	return make_Real4(std::fabs(v.x), std::fabs(v.y), std::fabs(v.z), std::fabs(v.w));
-}
-
-__host__ __device__ inline Real3 reflect(Real3 i, Real3 n) {
-	return i - 2.0 * n * dot(n, i);
-}
 
 __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
 	return make_Real3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
