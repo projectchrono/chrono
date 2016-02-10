@@ -36,10 +36,10 @@ class HMMWV_Powertrain : public chrono::vehicle::ChShaftsPowertrain {
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
 
-    virtual void SetEngineTorqueMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
-    virtual void SetEngineLossesMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
-    virtual void SetTorqueConverterCapacityFactorMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
-    virtual void SetTorqeConverterTorqueRatioMap(chrono::ChSharedPtr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetEngineTorqueMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetEngineLossesMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
 
   private:
     // Shaft inertias.

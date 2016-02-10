@@ -152,24 +152,24 @@ int main() {
     FlatTerrain flat_terrain(0);
 
     // create the Fiala tire
-    ChSharedPtr<FialaTire> test_tire(new FialaTire(vehicle::GetDataFile(Fiala_testfile)));
+    auto test_tire = std::make_shared<FialaTire>(vehicle::GetDataFile(Fiala_testfile));
     test_tire->Initialize();
     double radius = test_tire->GetUnloadedRadius();
     double width = test_tire->GetWidth();
 
     // Create the ground body.
-    ChSharedPtr<ChBody> ground(new ChBody);
+    auto ground = std::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     my_system.AddBody(ground);
     // Add some geometry to the ground body for visualizing the road
-    ChSharedPtr<ChBoxShape> box_gnd(new ChBoxShape);
+    auto box_gnd = std::make_shared<ChBoxShape>();
     box_gnd->GetBoxGeometry().Size = ChVector<>(1, .2, .0005);
     box_gnd->Pos = ChVector<>(0, 0, 0);
     box_gnd->Rot = QUNIT;
     ground->AddAsset(box_gnd);
 
     // Create the Chassis Body
-    ChSharedPtr<ChBody> chassis(new ChBody);
+    auto chassis = std::make_shared<ChBody>();
     chassis->SetPos(ChVector<>(0, 0, radius));
     chassis->SetRot(QUNIT);
     chassis->SetPos_dt(desired_speed * ChVector<>(1, 0, 0));
@@ -178,17 +178,17 @@ int main() {
     chassis->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system.AddBody(chassis);
     // Add some geometry to the chassis body for visualizing the carrier
-    ChSharedPtr<ChBoxShape> box_chassis(new ChBoxShape);
+    auto box_chassis = std::make_shared<ChBoxShape>();
     box_chassis->GetBoxGeometry().Size = ChVector<>(.25, .005, .005);
     box_chassis->Pos = ChVector<>(0, 0, radius);
     box_chassis->Rot = QUNIT;
     chassis->AddAsset(box_chassis);
-    ChSharedPtr<ChColorAsset> col_chassis(new ChColorAsset);
+    auto col_chassis = std::make_shared<ChColorAsset>();
     col_chassis->SetColor(ChColor(1.0f, 0.5f, 0.0f));
     chassis->AddAsset(col_chassis);
 
     // Create the set_toe body
-    ChSharedPtr<ChBody> set_toe(new ChBody);
+    auto set_toe = std::make_shared<ChBody>();
     set_toe->SetPos(ChVector<>(0, 0, radius));
     set_toe->SetRot(QUNIT);
     set_toe->SetMass(set_toe_mass);
@@ -196,17 +196,17 @@ int main() {
     set_toe->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system.AddBody(set_toe);
     // Add some geometry to the set_toe body for visualizing the carrier
-    ChSharedPtr<ChBoxShape> box_set_toe(new ChBoxShape);
+    auto box_set_toe = std::make_shared<ChBoxShape>();
     box_set_toe->GetBoxGeometry().Size = ChVector<>(.2, .007, .007);
     box_set_toe->Pos = ChVector<>(0, 0, radius);
     box_set_toe->Rot = QUNIT;
     set_toe->AddAsset(box_set_toe);
-    ChSharedPtr<ChColorAsset> col_set_toe(new ChColorAsset);
+    auto col_set_toe = std::make_shared<ChColorAsset>();
     col_set_toe->SetColor(ChColor(0.0f, 0.0f, 1.0f));
     set_toe->AddAsset(col_set_toe);
 
     // Create the wheel_carrier body
-    ChSharedPtr<ChBody> wheel_carrier(new ChBody);
+    auto wheel_carrier = std::make_shared<ChBody>();
     wheel_carrier->SetPos(ChVector<>(0, 0, radius));
     wheel_carrier->SetRot(QUNIT);
     wheel_carrier->SetMass(wheel_carrier_mass);
@@ -214,17 +214,17 @@ int main() {
     wheel_carrier->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system.AddBody(wheel_carrier);
     // Add some geometry to the set_toe body for visualizing the carrier
-    ChSharedPtr<ChBoxShape> box_wheel_carrier(new ChBoxShape);
+    auto box_wheel_carrier = std::make_shared<ChBoxShape>();
     box_wheel_carrier->GetBoxGeometry().Size = ChVector<>(.15, .009, .009);
     box_wheel_carrier->Pos = ChVector<>(0, 0, radius);
     box_wheel_carrier->Rot = QUNIT;
     wheel_carrier->AddAsset(box_wheel_carrier);
-    ChSharedPtr<ChColorAsset> col_wheel_carrier(new ChColorAsset);
+    auto col_wheel_carrier = std::make_shared<ChColorAsset>();
     col_wheel_carrier->SetColor(ChColor(0.0f, 1.0f, 0.0f));
     wheel_carrier->AddAsset(col_wheel_carrier);
 
     // Create the set_camber body
-    ChSharedPtr<ChBody> set_camber(new ChBody);
+    auto set_camber = std::make_shared<ChBody>();
     set_camber->SetPos(ChVector<>(0, 0, radius));
     set_camber->SetRot(QUNIT);
     set_camber->SetMass(set_camber_mass);
@@ -232,17 +232,17 @@ int main() {
     set_camber->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system.AddBody(set_camber);
     // Add some geometry to the set_toe body for visualizing the carrier
-    ChSharedPtr<ChBoxShape> box_set_camber(new ChBoxShape);
+    auto box_set_camber = std::make_shared<ChBoxShape>();
     box_set_camber->GetBoxGeometry().Size = ChVector<>(.13, .011, .011);
     box_set_camber->Pos = ChVector<>(0, 0, radius);
     box_set_camber->Rot = QUNIT;
     set_camber->AddAsset(box_set_camber);
-    ChSharedPtr<ChColorAsset> col_set_camber(new ChColorAsset);
+    auto col_set_camber = std::make_shared<ChColorAsset>();
     col_set_camber->SetColor(ChColor(1.0f, 0.0f, 0.0f));
     set_camber->AddAsset(col_set_camber);
 
     // Create the rim body
-    ChSharedPtr<ChBody> rim(new ChBody);
+    auto rim = std::make_shared<ChBody>();
     rim->SetPos(ChVector<>(0, 0, radius));
     rim->SetRot(QUNIT);
     rim->SetMass(rim_mass);
@@ -250,17 +250,17 @@ int main() {
     rim->SetWvel_par(ChVector<>(0, desired_speed / radius, 0));
     rim->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system.AddBody(rim);
-    ChSharedPtr<ChCylinderShape> cyl_rim(new ChCylinderShape);
+    auto cyl_rim = std::make_shared<ChCylinderShape>();
     cyl_rim->GetCylinderGeometry().p1 = ChVector<>(0, -.25, 0);
     cyl_rim->GetCylinderGeometry().p2 = ChVector<>(0, 0.25, 0);
     cyl_rim->GetCylinderGeometry().rad = 0.1;
     rim->AddAsset(cyl_rim);
-    ChSharedPtr<ChTexture> tex_rim(new ChTexture);
+    auto tex_rim = std::make_shared<ChTexture>();
     tex_rim->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     rim->AddAsset(tex_rim);
 
     // Create the wheel body
-    ChSharedPtr<ChBody> wheel(new ChBody);
+    auto wheel = std::make_shared<ChBody>();
     wheel->SetPos(ChVector<>(0, 0, radius));
     wheel->SetRot(QUNIT);
     wheel->SetMass(wheel_mass);
@@ -268,12 +268,12 @@ int main() {
     wheel->SetWvel_par(ChVector<>(0, desired_speed / radius, 0));
     wheel->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system.AddBody(wheel);
-    ChSharedPtr<ChCylinderShape> cyl_wheel(new ChCylinderShape);
+    auto cyl_wheel = std::make_shared<ChCylinderShape>();
     cyl_wheel->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
     cyl_wheel->GetCylinderGeometry().p2 = ChVector<>(0, width / 2, 0);
     cyl_wheel->GetCylinderGeometry().rad = radius;
     wheel->AddAsset(cyl_wheel);
-    ChSharedPtr<ChTexture> tex_wheel(new ChTexture);
+    auto tex_wheel = std::make_shared<ChTexture>();
     tex_wheel->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     wheel->AddAsset(tex_wheel);
 
@@ -297,7 +297,7 @@ int main() {
     // call) so that the link coordinate system is expressed in the ground frame.
     // The prismatic degree of freedom is along the Z-axis of the specified coordinate system
 
-    ChSharedPtr<ChLinkLockPrismatic> prismatic_gnd_chassis(new ChLinkLockPrismatic);
+    auto prismatic_gnd_chassis = std::make_shared<ChLinkLockPrismatic>();
     prismatic_gnd_chassis->Initialize(chassis, ground, ChCoordsys<>(ChVector<>(0, 0, radius), Q_from_AngY(CH_C_PI_2)));
     my_system.AddLink(prismatic_gnd_chassis);
 
@@ -305,14 +305,14 @@ int main() {
     //   y(t) = 0 + t * desiredSpeed
     //   y'(t) = desiredSpeed
 
-    ChSharedPtr<ChFunction_Ramp> long_actuator_fun(new ChFunction_Ramp(0.0, desired_speed));
+    auto long_actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, desired_speed);
 
     // Create the linear actuator, connecting the plate to the ground.
     // Here, we set the plate as the master body (second one in the initialization
     // call) so that the link coordinate system is expressed in the plate body
     // frame.
 
-    ChSharedPtr<ChLinkLinActuator> actuator(new ChLinkLinActuator);
+    auto actuator = std::make_shared<ChLinkLinActuator>();
     ChVector<> pt1 = ChVector<>(0, 0, radius);
     actuator->Initialize(ground, chassis, false, ChCoordsys<>(pt1, QUNIT),
                          ChCoordsys<>(pt1 + ChVector<>(1, 0, 0), QUNIT));
@@ -326,9 +326,9 @@ int main() {
     // --------------------------------------------
     // Create the Slip motor (Revolute joint) between the chassis body and the set_toe body
     // The revolute joint's axis of rotation will be the Z axis of the specified rotation matrix.
-    ChSharedPtr<ChFunction_SlipAngle> f_slip(new ChFunction_SlipAngle);
+    auto f_slip = std::make_shared<ChFunction_SlipAngle>();
 
-    ChSharedPtr<ChLinkEngine> slip_motor(new ChLinkEngine);
+    auto slip_motor = std::make_shared<ChLinkEngine>();
     slip_motor->Initialize(set_toe, chassis, ChCoordsys<>(ChVector<>(0, 0, radius), QUNIT));
     slip_motor->SetName("engine_set_slip");
     slip_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
@@ -342,7 +342,7 @@ int main() {
     // This joint imposes the normal force of the system.
     // Downwards normal force = Desired normal force (downwards) - weight of the remaining bodies
 
-    ChSharedPtr<ChLinkLockPrismatic> prismatic_set_toe_wheel_carrier(new ChLinkLockPrismatic);
+    auto prismatic_set_toe_wheel_carrier = std::make_shared<ChLinkLockPrismatic>();
     prismatic_set_toe_wheel_carrier->Initialize(wheel_carrier, set_toe, ChCoordsys<>(ChVector<>(0, 0, radius), QUNIT));
     my_system.AddLink(prismatic_set_toe_wheel_carrier);
 
@@ -351,9 +351,9 @@ int main() {
     // --------------------------------------------
     // Create the Camber motor (Revolute joint) between the wheel_carrier body and the set_camber
     // The revolute joint's axis of rotation will be the Z axis of the specified rotation matrix.
-    ChSharedPtr<ChFunction_CamberAngle> f_camber(new ChFunction_CamberAngle);
+    auto f_camber = std::make_shared<ChFunction_CamberAngle>();
 
-    ChSharedPtr<ChLinkEngine> camber_motor(new ChLinkEngine);
+    auto camber_motor = std::make_shared<ChLinkEngine>();
     camber_motor->Initialize(set_camber, wheel_carrier, ChCoordsys<>(ChVector<>(0, 0, radius), Q_from_AngY(CH_C_PI_2)));
     camber_motor->SetName("engine_set_camber");
     camber_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
@@ -367,7 +367,7 @@ int main() {
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
 
-    ChSharedPtr<ChLinkLockRevolute> revolute_set_camber_rim(new ChLinkLockRevolute);
+    auto revolute_set_camber_rim = std::make_shared<ChLinkLockRevolute>();
     revolute_set_camber_rim->Initialize(rim, set_camber,
                                         ChCoordsys<>(ChVector<>(0, 0, radius), Q_from_AngX(CH_C_PI_2)));
     my_system.AddLink(revolute_set_camber_rim);
@@ -376,7 +376,7 @@ int main() {
     // rim           ==lock==>         wheel
     // --------------------------------------------
 
-    ChSharedPtr<ChLinkLockLock> lock_rim_wheel(new ChLinkLockLock);
+    auto lock_rim_wheel = std::make_shared<ChLinkLockLock>();
     lock_rim_wheel->Initialize(wheel, rim, ChCoordsys<>(ChVector<>(0, 0, radius), QUNIT));
     my_system.AddLink(lock_rim_wheel);
 

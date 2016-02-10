@@ -57,7 +57,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
     // -------------------------------------------
     // Create the chassis body
     // -------------------------------------------
-    m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
+    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
 
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("chassis");
@@ -68,7 +68,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
 
     switch (chassisVis) {
         case PRIMITIVES: {
-            ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+            auto sphere = std::make_shared<ChSphereShape>();
             sphere->GetSphereGeometry().rad = 0.1;
             sphere->Pos = m_chassisCOM;
             m_chassis->AddAsset(sphere);
@@ -79,7 +79,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
 
-            ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(m_chassisMeshName);
             m_chassis->AddAsset(trimesh_shape);
@@ -94,23 +94,23 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(2);
-    m_suspensions[0] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneReducedFront("FrontSusp"));
-    m_suspensions[1] = ChSharedPtr<ChSuspension>(new HMMWV_DoubleWishboneReducedRear("RearSusp"));
+    m_suspensions[0] = std::make_shared<HMMWV_DoubleWishboneReducedFront>("FrontSusp");
+    m_suspensions[1] = std::make_shared<HMMWV_DoubleWishboneReducedRear>("RearSusp");
 
     // -----------------------------
     // Create the steering subsystem
     // -----------------------------
     m_steerings.resize(1);
-    m_steerings[0] = ChSharedPtr<ChSteering>(new HMMWV_RackPinion("Steering"));
+    m_steerings[0] = std::make_shared<HMMWV_RackPinion>("Steering");
 
     // -----------------
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = ChSharedPtr<ChWheel>(new HMMWV_WheelLeft(wheelVis));
-    m_wheels[1] = ChSharedPtr<ChWheel>(new HMMWV_WheelRight(wheelVis));
-    m_wheels[2] = ChSharedPtr<ChWheel>(new HMMWV_WheelLeft(wheelVis));
-    m_wheels[3] = ChSharedPtr<ChWheel>(new HMMWV_WheelRight(wheelVis));
+    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>(wheelVis);
+    m_wheels[1] = std::make_shared<HMMWV_WheelRight>(wheelVis);
+    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>(wheelVis);
+    m_wheels[3] = std::make_shared<HMMWV_WheelRight>(wheelVis);
 
     // --------------------
     // Create the driveline
@@ -118,10 +118,10 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
     switch (m_driveType) {
         case FWD:
         case RWD:
-            m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline2WD);
+            m_driveline = std::make_shared<HMMWV_Driveline2WD>();
             break;
         case AWD:
-            m_driveline = ChSharedPtr<ChDriveline>(new HMMWV_Driveline4WD);
+            m_driveline = std::make_shared<HMMWV_Driveline4WD>();
             break;
     }
 
@@ -129,10 +129,10 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
-    m_brakes[1] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
-    m_brakes[2] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
-    m_brakes[3] = ChSharedPtr<ChBrake>(new HMMWV_BrakeSimple);
+    m_brakes[0] = std::make_shared<HMMWV_BrakeSimple>();
+    m_brakes[1] = std::make_shared<HMMWV_BrakeSimple>();
+    m_brakes[2] = std::make_shared<HMMWV_BrakeSimple>();
+    m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>();
 }
 
 HMMWV_VehicleReduced::~HMMWV_VehicleReduced() {
@@ -189,8 +189,8 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos) {
 void HMMWV_VehicleReduced::ExportMeshPovray(const std::string& out_dir) {
     utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
 
-    HMMWV_Wheel* wheelFL = static_cast<HMMWV_Wheel*>(m_wheels[0].get_ptr());
-    HMMWV_Wheel* wheelFR = static_cast<HMMWV_Wheel*>(m_wheels[1].get_ptr());
+    HMMWV_Wheel* wheelFL = static_cast<HMMWV_Wheel*>(m_wheels[0].get());
+    HMMWV_Wheel* wheelFR = static_cast<HMMWV_Wheel*>(m_wheels[1].get());
     wheelFL->ExportMeshPovray(out_dir);
     wheelFR->ExportMeshPovray(out_dir);
 }

@@ -60,8 +60,8 @@ int main(int argc, char* argv[]) {
     FlatTerrain flat_terrain(0);
 
     // Use rigid wheels to actuate suspension.
-    ChSharedPtr<RigidTire> tire_L(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
-    ChSharedPtr<RigidTire> tire_R(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
+    auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+    auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
     tire_L->Initialize(rig.GetWheelBody(LEFT));
     tire_R->Initialize(rig.GetWheelBody(RIGHT));
 
