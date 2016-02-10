@@ -230,6 +230,8 @@ void ChFEAContainer::Initialize() {
     //    Mat33 Ed = fd * Mat33(omnd, nud, nud,   //
     //                          nud, omnd, nud,   //
     //                          nud, nud, omnd);  //
+
+    FindSurface();
 }
 
 bool Cone_generalized_rnode(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
@@ -863,8 +865,11 @@ void ChFEAContainer::FindSurface() {
 
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     custom_vector<uint4>& boundary_triangles_fea = data_manager->host_data.boundary_triangles_fea;
-    custom_vector<uint>& boundary_node_mask_fea = data_manager->host_data.boundary_node_mask_fea;
-    custom_vector<uint>& boundary_element_mask_fea = data_manager->host_data.boundary_element_mask_fea;
+    custom_vector<uint>& boundary_node_fea = data_manager->host_data.boundary_node_fea;
+    custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
+
+    custom_vector<uint> boundary_node_mask_fea;
+    custom_vector<uint> boundary_element_mask_fea;
 
     std::vector<FaceData> faces(4 * num_tets);
     boundary_node_mask_fea.resize(num_nodes);
@@ -923,8 +928,27 @@ void ChFEAContainer::FindSurface() {
         face++;
     }
     num_boundary_triangles = boundary_triangles_fea.size();
-    num_boundary_node = std::accumulate(boundary_node_mask_fea.begin(), boundary_node_mask_fea.end(), 0);
-    num_boundary_elements = std::accumulate(boundary_element_mask_fea.begin(), boundary_element_mask_fea.end(), 0);
+    // num_boundary_nodes = std::accumulate(boundary_node_mask_fea.begin(), boundary_node_mask_fea.end(), 0);
+    // num_boundary_elements = std::accumulate(boundary_element_mask_fea.begin(), boundary_element_mask_fea.end(), 0);
+
+    // get the list of boundary tetrahedra and nodes
+    boundary_node_fea.clear();
+
+    for (int i = 0; i < num_nodes; i++) {
+        if (boundary_node_mask_fea[i]) {
+            boundary_node_fea.push_back(i);
+        }
+    }
+    num_boundary_nodes = boundary_node_fea.size();
+
+    boundary_element_fea.clear();
+
+    for (int i = 0; i < num_tets; i++) {
+        if (boundary_element_mask_fea[i]) {
+            boundary_element_fea.push_back(i);
+        }
+    }
+    num_boundary_elements = boundary_element_fea.size();
 }
 
 }  // END_OF_NAMESPACE____

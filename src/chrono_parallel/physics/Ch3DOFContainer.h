@@ -247,7 +247,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
 
     int num_boundary_triangles;
     int num_boundary_elements;
-    int num_boundary_node;
+    int num_boundary_nodes;
 
     custom_vector<real> V;  // volume of tet
     real youngs_modulus;
