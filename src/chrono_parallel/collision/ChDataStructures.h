@@ -19,6 +19,8 @@ class ConvexBase {
     virtual const real3 Box() const { return real3(0); }
     virtual const real4 Rbox() const { return real4(0); }
     virtual const real2 Capsule() const { return real2(0); }
+    virtual const uint4 TetIndex() const { return _make_uint4(0, 0, 0, 0); }
+    virtual const real3* TetNodes() const { return 0; }
 };
 
 class ConvexShape : public ConvexBase {
@@ -36,7 +38,6 @@ class ConvexShape : public ConvexBase {
     virtual const real3 Box() const { return data->box_like_rigid[start()]; }
     virtual const real4 Rbox() const { return data->rbox_like_rigid[start()]; }
     virtual const real2 Capsule() const { return data->capsule_rigid[start()]; }
-
     int index;
     shape_container* data;  // pointer to convex data;
   private:
@@ -73,6 +74,19 @@ class ConvexShapeCustom : public ConvexBase {
     quaternion rotation;
     real3 dimensions;
     real radius;
+};
+
+class ConvexShapeTetradhedron : public ConvexBase {
+  public:
+    ConvexShapeTetradhedron(uint4 i, real3* n) : indices(i), nodes(nodes) {}
+    virtual ~ConvexShapeTetradhedron() {}
+    const inline int Type() const { return TETRAHEDRON; }
+    const inline real3 A() const { return real3(0); }
+    const inline quaternion R() const { return quaternion(1, 0, 0, 0); }
+    const uint4 TetIndex() const { return indices; }
+    const real3* TetNodes() const { return nodes; }
+    uint4 indices;
+    real3* nodes;
 };
 
 }  // end namespace collision

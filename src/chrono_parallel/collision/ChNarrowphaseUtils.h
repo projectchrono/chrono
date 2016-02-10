@@ -146,12 +146,43 @@ inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, co
     return point;
 }
 
+inline real3 GetSupportPoint_Tetrahedron(const uint4 indices, const real3* nodes) {
+    real max_dot_p = -C_LARGE_REAL;
+    real dot_p;
+    real3 point;
+
+    dot_p = Dot(nodes[indices.x], n);
+    if (dot_p > max_dot_p) {
+        max_dot_p = dot_p;
+        point = nodes[indices.x];
+    }
+
+    dot_p = Dot(nodes[indices.y], n);
+    if (dot_p > max_dot_p) {
+        max_dot_p = dot_p;
+        point = nodes[indices.y];
+    }
+
+    dot_p = Dot(nodes[indices.z], n);
+    if (dot_p > max_dot_p) {
+        max_dot_p = dot_p;
+        point = nodes[indices.z];
+    }
+
+    dot_p = Dot(nodes[indices.w], n);
+    if (dot_p > max_dot_p) {
+        max_dot_p = dot_p;
+        point = nodes[indices.w];
+    }
+
+    return point;
+}
+
 inline real3 GetCenter_Sphere() {
     return real3(0);
 }
 inline real3 GetCenter_Triangle(const real3* t) {
-    return real3((t[0].x + t[1].x + t[2].x) / real(3.0), (t[0].y + t[1].y + t[2].y) / real(3.0),
-                 (t[0].z + t[1].z + t[2].z) / real(3.0));
+    return (t[0] + t[1] + t[2]) * 1.0 / 3.0;
 }
 inline real3 GetCenter_Box() {
     return real3(0);
@@ -175,6 +206,12 @@ inline real3 GetCenter_Convex(const int size, const real3* convex_data) {
     }
     return point / real(size);
 }
+
+inline real3 GetCenter_Tetrahedron(const uint4 indices, const real3* nodes) {
+    real3 tet = nodes[indices.x] + nodes[indices.y] + nodes[indices.z] + nodes[indices.w];
+    return tet / real(4.0);
+}
+
 inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, const real3& nv, const real& envelope) {
     real3 localSupport;
     real3 n = Normalize(nv);
@@ -208,6 +245,9 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, con
             break;
         case chrono::collision::CONVEX:
             localSupport = GetSupportPoint_Convex(Shape->Size(), Shape->Convex(), n);
+            break;
+        case chrono::collision::TETRAHEDRON:
+            localSupport = GetSupportPoint_Tetrahedron(Shape->TetIndex(), Shape->TetNodes(), n);
             break;
     }
     // The collision envelope is applied as a compound support.

@@ -26,7 +26,6 @@ bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
                                         real& depth,
                                         real3& p1,
                                         real3& p2) {
-
     real3 relpos = ShapeB->A() - ShapeA->A();
     real d2 = Dot(relpos);
     real collide_dist = ShapeA->Radius() + ShapeB->Radius();
@@ -41,12 +40,19 @@ bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
 }
 
 real3 GetCenter(const ConvexBase* Shape) {
-    if (Shape->Type() == TRIANGLEMESH) {
-        return GetCenter_Triangle(Shape->Triangles());  // triangle center
-    } else if (Shape->Type() == CONVEX) {
-        return GetCenter_Convex(Shape->Size(), Shape->Convex()) + Shape->A();  // convex center
-    } else {
-        return Shape->A();  // All other shapes assumed to be locally centered
+    switch (Shape->Type()) {
+        case chrono::collision::TRIANGLEMESH:
+            return GetCenter_Triangle(Shape->Triangles());  // triangle center
+            break;
+        case chrono::collision::CONVEX:
+            return GetCenter_Convex(Shape->Size(), Shape->Convex()) + Shape->A();  // convex center
+            break;
+        case chrono::collision::TETRAHEDRON:
+            return GetCenter_Tetrahedron(Shape->TetIndex(), Shape->TetNodes());  // tetrahedron center
+            break;
+        default:
+            return Shape->A();  // All other shapes assumed to be locally centereda
+            break;
     }
 }
 
