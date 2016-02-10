@@ -20,6 +20,8 @@
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/custom_cutil_math.h"
 
 namespace chrono {

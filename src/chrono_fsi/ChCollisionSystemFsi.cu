@@ -16,6 +16,7 @@
 // =============================================================================
 
 #include <stdexcept>
+#include <thrust/sort.h>
 #include "ChCollisionSystemFsi.cuh"
 
 namespace chrono {
@@ -157,7 +158,7 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD, // output: cell s
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChCollisionSystemFsi::ChCollisionSystemFsi(
-	SphMarkerDataD * otherSortedSphMarkersD;
+	SphMarkerDataD * otherSortedSphMarkersD,
 	ProximityDataD * otherMarkersProximityD, 
 	SimParams* otherParamsH, 
 	NumberOfObjects* otherNumObjects)
@@ -169,8 +170,8 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChCollisionSystemFsi::calcHash() {
-	if (!(markersProximityD->gridMarkerHashD.size() == paramsH.numAllMarkers &&
-		markersProximityD->gridMarkerIndexD.size() == paramsH.numAllMarkers)) {
+	if (!(markersProximityD->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
+		markersProximityD->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
 		throw std::runtime_error ("Error! size error, calcHash!\n");
 	}
 
@@ -182,11 +183,11 @@ void ChCollisionSystemFsi::calcHash() {
 	//------------------------------------------------------------------------
 	/* Is there a need to optimize the number of threads used at once? */
 	uint numThreads, numBlocks;
-	computeGridSize(paramsH.numAllMarkers, 256, numBlocks, numThreads);
+	computeGridSize(numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 	/* Execute Kernel */
 	calcHashD<<<numBlocks, numThreads>>>(U1CAST(markersProximityD->gridMarkerHashD),
 			U1CAST(markersProximityD->gridMarkerIndexD), mR3CAST(sphMarkersD->posRadD),
-			paramsH.numAllMarkers, isErrorD);
+			numObjectsH->numAllMarkers, isErrorD);
 
 	/* Check for errors in kernel execution */
 	cudaThreadSynchronize();
@@ -201,9 +202,10 @@ void ChCollisionSystemFsi::calcHash() {
 }
 
 void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
-
-	if (!(markersProximityD->cellStartD.size() == paramsH.numCells &&
-		markersProximityD->cellEndD.size() == paramsH.numCells)) {
+	int3 cellsDim = paramsH->gridSize;
+	int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
+	if (!(markersProximityD->cellStartD.size() ==  numCells &&
+		markersProximityD->cellEndD.size() == numCells)) {
 		throw std::runtime_error ("Error! size error, reorderDataAndFindCellStart!\n");
 	}
 
@@ -211,27 +213,27 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
 	thrust::fill(markersProximityD->cellEndD.begin(), markersProximityD->cellEndD.end(), 0);
 
 	uint numThreads, numBlocks;
-	computeGridSize(paramsH.numAllMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
+	computeGridSize(numObjectsH->numAllMarkers, 256, numBlocks, numThreads); //?$ 256 is blockSize
 
 	uint smemSize = sizeof(uint) * (numThreads + 1);
 	reorderDataAndFindCellStartD<<<numBlocks, numThreads, smemSize>>>(
 			U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), mR3CAST(sortedSphMarkersD->posRadD),
-			mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPreMuD),
+			mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
 			U1CAST(markersProximityD->gridMarkerHashD), U1CAST(markersProximityD->gridMarkerIndexD),
 			U1CAST(markersProximityD->mapOriginalToSorted), mR3CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
-			mR4CAST(sphMarkersD->rhoPresMuD), paramsH.numAllMarkers);
+			mR4CAST(sphMarkersD->rhoPresMuD), numObjectsH->numAllMarkers);
 	cudaThreadSynchronize();
 	cudaCheckError();
 
 	// unroll sorted index to have the location of original particles in the sorted arrays
-	thrust::device_vector<uint> dummyIndex = gridMarkerIndexD;
+	thrust::device_vector<uint> dummyIndex = markersProximityD->gridMarkerIndexD;
 	thrust::sort_by_key(dummyIndex.begin(), dummyIndex.end(),
 			markersProximityD->mapOriginalToSorted.begin());
 	dummyIndex.clear();
 }
 
 void ChCollisionSystemFsi::ArrangeData(SphMarkerDataD * otherSphMarkersD) {
-	sphMarkersD = otherSphMarkerD;
+	sphMarkersD = otherSphMarkersD;
 	calcHash();
 	thrust::sort_by_key(markersProximityD->gridMarkerHashD.begin(), markersProximityD->gridMarkerHashD.end(),
 			markersProximityD->gridMarkerIndexD.begin());

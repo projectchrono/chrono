@@ -18,6 +18,8 @@
  * @brief See collideSphereSphere.cuh for documentation.
  */
 
+#include "chrono_fsi/ChDeviceUtils.cuh" 
+
 namespace chrono {
 namespace fsi {
  

@@ -18,6 +18,8 @@
 #ifndef CH_FSI_FORCEPARALLEL_H_
 #define CH_FSI_FORCEPARALLEL_H_
 
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
 #include "chrono_fsi/ChCollisionSystemFsi.cuh"
 
@@ -32,13 +34,6 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 			FsiGeneralData * otherFsiGeneralData,
 			SimParams* otherParamsH, 
 			NumberOfObjects* otherNumObjects);
-		~ChFsiForceParallel();
-
-
-
-		ChFsiForceParallel(FsiDataContainer* otherFsiData) : fsiData(otherFsiData) {
-			fsiCollisionSystem = new ChCollisionSystemFsi(fsiData);
-		};
 		~ChFsiForceParallel();
 
 		/**

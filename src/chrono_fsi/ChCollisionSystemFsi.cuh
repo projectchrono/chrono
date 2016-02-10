@@ -18,6 +18,8 @@
 #ifndef CH_COLLISIONSYSTEM_FSI_H_
 #define CH_COLLISIONSYSTEM_FSI_H_
 
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
 
 namespace chrono {
@@ -27,7 +29,7 @@ class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 	public:
 		// ChCollisionSystemFsi();
 		ChCollisionSystemFsi(
-			SphMarkerDataD * otherSortedSphMarkersD;
+			SphMarkerDataD * otherSortedSphMarkersD,
 			ProximityDataD * otherMarkersProximityD, 
 			SimParams* otherParamsH, 
 			NumberOfObjects* otherNumObjects);
