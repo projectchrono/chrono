@@ -55,9 +55,9 @@ using namespace irr::gui;
 
 class MyCreatorForAll : public ChCallbackPostCreation {
   public:
-    virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+    virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
         // optional: add further assets, ex for improving visualization:
-        ChSharedPtr<ChTexture> mtexture(new ChTexture());
+        auto mtexture = std::make_shared<ChTexture>();
         mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
         mbody->AddAsset(mtexture);
 
@@ -93,15 +93,15 @@ int main(int argc, char* argv[]) {
     // functions it also sets mass and inertia tensor for you, and collision
     // and visualization shapes are added automatically)
 
-    ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(2.1,     // radius size
-                                                                   1800,    // density
-                                                                   true,    // collide enable?
-                                                                   true));  // visualization?
+    auto msphereBody = std::make_shared<ChBodyEasySphere>(2.1,    // radius size
+                                                          1800,   // density
+                                                          true,   // collide enable?
+                                                          true);  // visualization?
     msphereBody->SetPos(ChVector<>(1, 1, 0));
     msphereBody->GetMaterialSurface()->SetFriction(0.2f);
 
     // optional: add further assets, ex for improving visualization:
-    ChSharedPtr<ChTexture> mtexture(new ChTexture());
+    auto mtexture = std::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     msphereBody->AddAsset(mtexture);
 
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // inherit your own class from these randomizers if the choice is not enough).
 
     // ---Initialize the randomizer for POSITIONS: random points in a large cube
-    ChSharedPtr<ChRandomParticlePositionOnGeometry> emitter_positions(new ChRandomParticlePositionOnGeometry);
+    auto emitter_positions = std::make_shared<ChRandomParticlePositionOnGeometry>();
 
     std::shared_ptr<ChGeometry> sampled_cube(new ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(50, 50, 50)));
     emitter_positions->SetGeometry(sampled_cube);
@@ -143,16 +143,16 @@ int main(int argc, char* argv[]) {
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for ALIGNMENTS
-    ChSharedPtr<ChRandomParticleAlignmentUniform> emitter_rotations(new ChRandomParticleAlignmentUniform);
+    auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
     emitter.SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for VELOCITIES, with statistical distribution
-    ChSharedPtr<ChRandomParticleVelocityAnyDirection> mvelo(new ChRandomParticleVelocityAnyDirection);
+    auto mvelo = std::make_shared<ChRandomParticleVelocityAnyDirection>();
     mvelo->SetModulusDistribution(std::make_shared<ChMinMaxDistribution>(0.0, 0.5));
     emitter.SetParticleVelocity(mvelo);
 
     // ---Initialize the randomizer for ANGULAR VELOCITIES, with statistical distribution
-    ChSharedPtr<ChRandomParticleVelocityAnyDirection> mangvelo(new ChRandomParticleVelocityAnyDirection);
+    auto mangvelo = std::make_shared<ChRandomParticleVelocityAnyDirection>();
     mangvelo->SetModulusDistribution(std::make_shared<ChMinMaxDistribution>(0.0, 0.2));
     emitter.SetParticleAngularVelocity(mangvelo);
 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     */
 
     // ..as an alternative: create odd shapes with convex hulls, like faceted fragments:
-    ChSharedPtr<ChRandomShapeCreatorConvexHulls> mcreator_hulls(new ChRandomShapeCreatorConvexHulls);
+    auto mcreator_hulls = std::make_shared<ChRandomShapeCreatorConvexHulls>();
     mcreator_hulls->SetNpoints(15);
     mcreator_hulls->SetChordDistribution(std::make_shared<ChZhangDistribution>(1.3, 0.4));
     mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
