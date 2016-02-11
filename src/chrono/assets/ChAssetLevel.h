@@ -56,7 +56,7 @@ class ChApi ChAssetLevel : public ChAsset {
     // CONSTRUCTORS
     //
 
-    ChAssetLevel() : levelframe(chrono::CSYSNORM){};
+    ChAssetLevel() : levelframe(CSYSNORM){};
 
     virtual ~ChAssetLevel(){};
 

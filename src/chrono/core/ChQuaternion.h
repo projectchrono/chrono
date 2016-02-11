@@ -33,6 +33,13 @@
 
 namespace chrono {
 
+//
+// CONSTANTS
+//
+// Added this here as code was not compiling (under Swig parser)
+#define QNULL ChQuaternion<double>(0.,0.,0.,0.)
+#define QUNIT ChQuaternion<double>(1.,0.,0.,0.)
+
 ///
 /// QUATERNION:
 ///
@@ -408,7 +415,11 @@ class ChQuaternion {
     ChQuaternion<Real> GetConjugate() const { return ChQuaternion<Real>(e0, -e1, -e2, -e3); }
 
     /// Returns the inverse of the quaternion
-    ChQuaternion<Real> GetInverse() const { return ((this->GetConjugate()).Scale(1.0 / this->Length())); }
+    ChQuaternion<Real> GetInverse() const { 
+        ChQuaternion<Real> invq = this->GetConjugate();
+        invq.Scale(1.0 / this->Length());
+        return invq;
+    }
 
     //
     // TRANSFORMATIONS
@@ -711,33 +722,33 @@ typedef ChQuaternion<float> QuaternionF;
 // these functions - use the member functions or operators of
 // the ChQuaternion class instead!
 
-ChApi double Qlength(const Quaternion& q);
-ChApi Quaternion Qadd(const Quaternion& qa, const Quaternion& qb);
-ChApi Quaternion Qsub(const Quaternion& qa, const Quaternion& qb);
-ChApi Quaternion Qscale(const Quaternion& q, double fact);
-ChApi Quaternion Qnorm(const Quaternion& q);
-ChApi Quaternion Q_from_AngAxis(double angle, const Vector& axis);
-ChApi Quaternion Q_from_NasaAngles(const Vector& RxRyRz);
-ChApi Vector Q_to_NasaAngles(const Quaternion& mq);
-ChApi Quaternion Q_from_AngZ(double angleZ);
-ChApi Quaternion Q_from_AngX(double angleX);
-ChApi Quaternion Q_from_AngY(double angleY);
-ChApi void Q_to_AngAxis(Quaternion* quat, double* a_angle, Vector* a_axis);
-ChApi Quaternion Qdt_from_Wrel(const Vector& w, const Quaternion& q);
-ChApi Quaternion Qdt_from_Wabs(const Vector& w, const Quaternion& q);
-ChApi Quaternion Qdt_from_AngAxis(const Quaternion& quat, double angle_dt, const Vector& axis);
-ChApi Quaternion Qdtdt_from_Aabs(const Vector& a, const Quaternion& q, const Quaternion& q_dt);
-ChApi Quaternion Qdtdt_from_Arel(const Vector& a, const Quaternion& q, const Quaternion& q_dt);
-ChApi Quaternion Qdtdt_from_AngAxis(double angle_dtdt, const Vector& axis, const Quaternion& q, const Quaternion& q_dt);
-ChApi Quaternion Qconjugate(const Quaternion& q);
-ChApi Quaternion Qcross(const Quaternion& qa, const Quaternion& qb);
-ChApi bool Qequal(const Quaternion& qa, const Quaternion& qb);
-ChApi bool Qnotnull(const Quaternion& qa);
-ChApi Quaternion ImmQ_complete(Vector* qimm);
-ChApi Quaternion ImmQ_dt_complete(Quaternion* mq, Vector* qimm_dt);
-ChApi Quaternion ImmQ_dtdt_complete(Quaternion* mq, Quaternion* mqdt, Vector* qimm_dtdt);
+ChApi double Qlength(const ChQuaternion<double>& q);
+ChApi ChQuaternion<double> Qadd(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi ChQuaternion<double> Qsub(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi ChQuaternion<double> Qscale(const ChQuaternion<double>& q, double fact);
+ChApi ChQuaternion<double> Qnorm(const ChQuaternion<double>& q);
+ChApi ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis);
+ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& RxRyRz);
+ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
+ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
+ChApi ChQuaternion<double> Q_from_AngX(double angleX);
+ChApi ChQuaternion<double> Q_from_AngY(double angleY);
+ChApi void Q_to_AngAxis(ChQuaternion<double>* quat, double* a_angle, ChVector<double>* a_axis);
+ChApi ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const Quaternion& q);
+ChApi ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const Quaternion& q);
+ChApi ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector<double>& axis);
+ChApi ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt);
+ChApi ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt);
+ChApi ChQuaternion<double> Qdtdt_from_AngAxis(double angle_dtdt, const ChVector<double>& axis, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt);
+ChApi ChQuaternion<double> Qconjugate(const ChQuaternion<double>& q);
+ChApi ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi bool Qequal(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+ChApi bool Qnotnull(const ChQuaternion<double>& qa);
+ChApi ChQuaternion<double> ImmQ_complete(ChVector<double>* qimm);
+ChApi ChQuaternion<double> ImmQ_dt_complete(ChQuaternion<double>* mq, ChVector<double>* qimm_dt);
+ChApi ChQuaternion<double> ImmQ_dtdt_complete(ChQuaternion<double>* mq, ChQuaternion<double>* mqdt, ChVector<double>* qimm_dtdt);
 
-ChApi Vector VaxisXfromQuat(const Quaternion& quat);
+ChApi ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat);
 
 //
 // ANGLE SET CONVERSION
@@ -753,18 +764,12 @@ ChApi Vector VaxisXfromQuat(const Quaternion& quat);
 
 // Angle conversion utilities
 
-ChApi Vector Quat_to_Angle(int angset, const Quaternion& mquat);
-ChApi Vector Angle_to_Angle(int setfrom, int setto, const Vector& mangles);
-ChApi Quaternion Angle_to_Quat(int angset, const Vector& mangles);
-ChApi Quaternion AngleDT_to_QuatDT(int angset, const Vector& mangles, const Quaternion& q);
-ChApi Quaternion AngleDTDT_to_QuatDTDT(int angset, const Vector& mangles, const Quaternion& q);
+ChApi ChVector<double> Quat_to_Angle(int angset, const ChQuaternion<double>& mquat);
+ChApi ChVector<double> Angle_to_Angle(int setfrom, int setto, const ChVector<double>& mangles);
+ChApi ChQuaternion<double> Angle_to_Quat(int angset, const ChVector<double>& mangles);
+ChApi ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
+ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
 
-//
-// CONSTANTS
-//
-
-static const ChQuaternion<double> QNULL(0., 0., 0., 0.);
-static const ChQuaternion<double> QUNIT(1., 0., 0., 0.);
 
 }  // END_OF_NAMESPACE____
 
