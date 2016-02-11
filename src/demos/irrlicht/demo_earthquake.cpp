@@ -74,7 +74,7 @@ void create_column(ChSystem& mphysicalSystem,
         double y = col_base;
         mpoints.push_back(ChVector<>(x, y, z));
     }
-    ChSharedPtr<ChBodyEasyConvexHull> bodyColumn(new ChBodyEasyConvexHull(mpoints, col_density, true, true));
+    auto bodyColumn = std::make_shared<ChBodyEasyConvexHull>(mpoints, col_density, true, true);
     ChCoordsys<> cog_column(ChVector<>(0, col_base + col_height / 2, 0));
     ChCoordsys<> abs_cog_column = cog_column >> base_pos;
     bodyColumn->SetCoord(abs_cog_column);
@@ -94,40 +94,40 @@ int main(int argc, char* argv[]) {
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(1, 3, -10));
-    application.AddLightWithShadow(vector3df(1, 25, -5), vector3df(0, 0, 0), 35, 0.2, 35, 35, 512,
-                                   video::SColorf(0.6, 0.8, 1));
+    application.AddLightWithShadow(vector3df(1.0f, 25.0f, -5.0f), vector3df(0, 0, 0), 35, 0.2, 35, 35, 512,
+                                   video::SColorf(0.6f, 0.8f, 1.0f));
 
     // Create all the rigid bodies.
 
     // Create a floor that is fixed (that is used also to represent the aboslute reference)
 
-    ChSharedPtr<ChBodyEasyBox> floorBody(new ChBodyEasyBox(20, 2, 20, 3000, false, true));
+    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, false, true);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
 
     mphysicalSystem.Add(floorBody);
 
     // optional, attach a texture for better visualization
-    ChSharedPtr<ChTexture> mtexture(new ChTexture());
+    auto mtexture = std::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("blu.png"));
     floorBody->AddAsset(mtexture);
 
     // Create the table that is subject to earthquake
 
-    ChSharedPtr<ChBodyEasyBox> tableBody(new ChBodyEasyBox(15, 1, 15, 3000, true, true));
+    auto tableBody = std::make_shared<ChBodyEasyBox>(15, 1, 15, 3000, true, true);
     tableBody->SetPos(ChVector<>(0, -0.5, 0));
 
     mphysicalSystem.Add(tableBody);
 
     // optional, attach a texture for better visualization
-    ChSharedPtr<ChTexture> mtextureconcrete(new ChTexture());
+    auto mtextureconcrete = std::make_shared<ChTexture>();
     mtextureconcrete->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     tableBody->AddAsset(mtextureconcrete);
 
     // Create the constraint between ground and table. If no earthquacke, it just
     // keeps the table in position.
 
-    ChSharedPtr<ChLinkLockLock> linkEarthquake(new ChLinkLockLock);
+    auto linkEarthquake = std::make_shared<ChLinkLockLock>();
     linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0)));
 
     ChFunction_Sine* mmotion_x = new ChFunction_Sine(0, 0.6, 0.2);  // phase freq ampl
@@ -147,10 +147,10 @@ int main(int argc, char* argv[]) {
 
         ChCoordsys<> base_position3(ChVector<>(icol * spacing, 3.0, 0));
         create_column(mphysicalSystem, base_position3, 10, 0.35, 0.40, 1.5, density);
-
+ 
         if (icol < 4) {
-            ChSharedPtr<ChBodyEasyBox> bodyTop(new ChBodyEasyBox(spacing, 0.4, 1.2,  // x y z sizes
-                                                                 density, true, true));
+            auto bodyTop = std::make_shared<ChBodyEasyBox>(spacing, 0.4, 1.2,  // x y z sizes
+                                                           density, true, true);
 
             ChCoordsys<> cog_top(ChVector<>(icol * spacing + spacing / 2, 4.5 + 0.4 / 2, 0));
             bodyTop->SetCoord(cog_top);
