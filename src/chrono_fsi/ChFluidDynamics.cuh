@@ -20,7 +20,6 @@
 
 #include "chrono_fsi/ChFsiDataManager.cuh"
 #include "chrono_fsi/ChFsiForceParallel.cuh"
-#include "chrono_fsi/ChFsiInterface.h"
 
 namespace chrono {
 namespace fsi {
@@ -44,7 +43,6 @@ public:
 protected:
 	ChFsiDataManager* fsiData;
 	ChFsiForceParallel* forceSystem;
-	ChFsiInterface*	fsiChronoInterface;
 	SimParams* paramsH;
 	NumberOfObjects* numObjectsH;
 

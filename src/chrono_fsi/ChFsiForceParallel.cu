@@ -270,6 +270,24 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 	sortedDerivVelRho_fsi_D[index] = derivVelRho;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+
+void ChFsiForceParallel::ChFsiForceParallel(
+	SphMarkerDataD * otherSortedSphMarkersD,
+	ProximityDataD * otherMarkersProximityD,
+	FsiGeneralData * otherFsiGeneralData,
+	SimParams* otherParamsH, 
+	NumberOfObjects* otherNumObjects)
+: sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), 
+paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+
+	fsiCollisionSystem = new ChCollisionSystemFsi(sortedSphMarkersD, markersProximityD, paramsH, numObjectsH);
+	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
+	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+
+	sphMarkersD = NULL;
+	fsiBodiesD = NULL;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 // use invasive to avoid one extra copy. However, keep in mind that sorted is changed.
 void ChFsiForceParallel::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,
@@ -304,24 +322,6 @@ void ChFsiForceParallel::CopySortedToOriginal_NonInvasive_R4(thrust::device_vect
 		const thrust::device_vector<uint>& gridMarkerIndex) {
 	thrust::device_vector<Real4> dummySorted = sorted;
 	CopySortedToOriginal_Invasive_R4(original, dummySorted, gridMarkerIndex);
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChFsiForceParallel::ChFsiForceParallel(
-	SphMarkerDataD * otherSortedSphMarkersD,
-	ProximityDataD * otherMarkersProximityD,
-	FsiGeneralData * otherFsiGeneralData,
-	SimParams* otherParamsH, 
-	NumberOfObjects* otherNumObjects)
-: sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), 
-paramsH(otherParamsH), numObjectsH(otherNumObjects) {
-
-	fsiCollisionSystem = new ChCollisionSystemFsi(sortedSphMarkersD, markersProximityD, paramsH, numObjectsH);
-	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
-	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
-
-	sphMarkersD = NULL;
-	fsiBodiesD = NULL;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

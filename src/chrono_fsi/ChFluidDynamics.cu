@@ -228,12 +228,11 @@ ChFluidDynamics::ChFluidDynamics(
 			NumberOfObjects* otherNumObjects)
 : fsiData(otherFsiData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 	forceSystem = new ChFsiForceParallel(
-		fsiData->sortedSphMarkersD,
-		fsiData->markersProximityD,
-		fsiData->fsiGeneralData,
+		&(fsiData->sortedSphMarkersD),
+		&(fsiData->markersProximityD),
+		&(fsiData->fsiGeneralData),
 		paramsH,
 		numObjectsH);
-
 
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
@@ -245,7 +244,7 @@ void ChFluidDynamics::IntegrateSPH(
 		FsiBodiesDataD * fsiBodiesD1,
 		Real dT) {
 	forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD1);
-	this->UpdateFluid(sphMarkersD2, Real dT);
+	this->UpdateFluid(sphMarkersD2, dT);
 	this->ApplyBoundarySPH_Markers(sphMarkersD2);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -256,7 +255,6 @@ void ChFluidDynamics::UpdateFluid(
 
 //	int4 referencePortion = referenceArray[0];
 //	if (referennamespace chrono {
-namespace fsi {cePortion.z != -1) {
 //		printf("error in UpdateFluid, accessing non fluid\n");
 //		return;
 //	}
@@ -294,7 +292,7 @@ namespace fsi {cePortion.z != -1) {
  */
 void ChFluidDynamics::ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD) {
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
-	computeGridSize(paramsH.numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
+	computeGridSize(numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
 	ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
 			mR3CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
 	cudaThreadSynchronize();

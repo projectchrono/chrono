@@ -18,13 +18,10 @@
 #define CH_FSIINTERFACE_H_
 
 #include "chrono_fsi/ChFsiDataManager.cuh"
-//#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 namespace chrono {
-	class ChSystemParallelDVI;
 namespace fsi {
-
-
 
 class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 	public:
