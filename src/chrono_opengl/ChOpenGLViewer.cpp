@@ -97,6 +97,8 @@ void ChOpenGLViewer::TakeDown() {
     cone.TakeDown();
     cloud.TakeDown();
     grid.TakeDown();
+    fea_nodes.TakeDown();
+    fea_elements.TakeDown();
     contact_renderer.TakeDown();
     HUD_renderer.TakeDown();
     graph_renderer.TakeDown();
@@ -535,30 +537,11 @@ void ChOpenGLViewer::RenderFluid() {
 }
 
 void ChOpenGLViewer::RenderFEA() {
+    fea_element_data.clear();
     if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
         if (parallel_system->data_manager->num_fea_nodes <= 0) {
             return;
         }
-        /*
-                fea_node_data.clear();
-                if (parallel_system->data_manager->fea_container) {
-                    ChFEAContainer* fea_container = (ChFEAContainer*)(parallel_system->data_manager->fea_container);
-
-                    //#pragma omp parallel for
-                    for (int i = 0; i < parallel_system->data_manager->num_fea_nodes; i++) {
-                        if (parallel_system->data_manager->host_data.boundary_mask_fea[i]) {
-                            real3 pos = parallel_system->data_manager->host_data.pos_node_fea[i];
-                            fea_node_data.push_back(glm::vec3(pos.x, pos.y, pos.z));
-                        }
-                    }
-                }
-                fea_nodes.SetPointSize(parallel_system->data_manager->fea_container->kernel_radius);
-
-                fea_nodes.Update(fea_node_data);
-                glm::mat4 model(1);
-                fea_nodes.Draw(projection, view * model);
-        */
-        fea_element_data.clear();
 
         for (int i = 0; i < parallel_system->data_manager->host_data.boundary_triangles_fea.size(); i++) {
             uint4 ind = parallel_system->data_manager->host_data.boundary_triangles_fea[i];
@@ -575,9 +558,10 @@ void ChOpenGLViewer::RenderFEA() {
             fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
             fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));
         }
-        fea_elements.Update(fea_element_data);
-        fea_elements.Draw(projection, view * model);
     }
+    fea_elements.Update(fea_element_data);
+    glm::mat4 model(1);
+    fea_elements.Draw(projection, view * model);
 }
 
 void ChOpenGLViewer::RenderMPM() {

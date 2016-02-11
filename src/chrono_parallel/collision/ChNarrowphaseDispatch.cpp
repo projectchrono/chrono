@@ -496,8 +496,8 @@ void ChCNarrowphaseDispatch::DispatchRigidTet() {
 
     RigidTetContact(data_manager->host_data.norm_rigid_tet, data_manager->host_data.cpta_rigid_tet,
                     data_manager->host_data.cptb_rigid_tet, data_manager->host_data.dpth_rigid_tet,
-                    data_manager->host_data.neighbor_rigid_tet, data_manager->host_data.c_counts_rigid_tet,
-                    data_manager->num_rigid_tet_contacts);
+                    data_manager->host_data.neighbor_rigid_tet, data_manager->host_data.face_rigid_tet,
+                    data_manager->host_data.c_counts_rigid_tet, data_manager->num_rigid_tet_contacts);
 
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidTet() E " << data_manager->num_rigid_tet_contacts;
 }
@@ -635,6 +635,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                                              custom_vector<real3>& cptb_rigid_tet,
                                              custom_vector<real>& dpth_rigid_tet,
                                              custom_vector<int>& neighbor_rigid_tet,
+                                             custom_vector<real4>& face_rigid_tet,
                                              custom_vector<int>& contact_counts,
                                              uint& num_contacts) {
     int num_rigid_shapes = data_manager->num_rigid_shapes;
@@ -642,21 +643,21 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
 
-    int num_tets = data_manager->num_fea_tets;
+    int num_tets = data_manager->host_data.boundary_element_fea.size();
     custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
     custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
-
+    const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
     is_rigid_bin_active.resize(total_bins);
     Thrust_Fill(is_rigid_bin_active, 1000000000);
-#pragma omp parallel for
+    //#pragma omp parallel for
     for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
         uint bin_number = data_manager->host_data.bin_number_out[index];
         is_rigid_bin_active[bin_number] = index;
     }
     f_bin_intersections.resize(num_tets + 1);
     f_bin_intersections[num_tets] = 0;
-#pragma omp parallel for
+    //#pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
         int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
         int3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
@@ -670,7 +671,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     f_bin_fluid_number.resize(f_number_of_bin_intersections);
     f_bin_start_index.resize(f_number_of_bin_intersections);
 
-#pragma omp parallel for
+    //#pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
         uint count = 0, i, j, k;
         int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
@@ -699,9 +700,10 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     cpta_rigid_tet.resize(num_tets * max_rigid_neighbors);
     cptb_rigid_tet.resize(num_tets * max_rigid_neighbors);
     dpth_rigid_tet.resize(num_tets * max_rigid_neighbors);
+    face_rigid_tet.resize(num_tets * max_rigid_neighbors);
     neighbor_rigid_tet.resize(num_tets * max_rigid_neighbors);
     contact_counts.resize(num_tets + 1);
-
+    short2 family = data_manager->fea_container->family;
     Thrust_Fill(contact_counts, 0);
     for (int index = 0; index < f_number_of_bins_active; index++) {
         uint start = f_bin_start_index[index];
@@ -716,7 +718,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
         if (rigid_is_active) {
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
-#pragma omp parallel for
+            //#pragma omp parallel for
             for (uint i = start; i < end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 Bmin = aabb_min_tet[p] - global_origin;
@@ -733,20 +735,25 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     if (!overlap(Amin, Amax, Bmin, Bmax)) {
                         continue;
                     }
-
+                    if (!collide(family, fam_data[shape_id_a]))
+                        continue;
                     ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
                     ConvexShapeTetradhedron* shapeB = new ConvexShapeTetradhedron(tet_index, node_pos);
 
                     real3 ptA, ptB, norm;
                     real depth;
-
+                    real3 barycentric;
+                    int face;
                     if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
+                            FindTriIndex(ptB, tet_index, node_pos, face, barycentric);
+
                             norm_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = norm;
                             cpta_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = ptA;
                             cptb_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = ptB;
                             dpth_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = depth;
                             neighbor_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
+                            face_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = real4(barycentric, face);
                             contact_counts[p]++;
                         }
                     }

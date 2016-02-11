@@ -264,6 +264,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     // The point where the constraint is enforced in the local coords of the rigid body
     custom_vector<real3> constraint_position;
     custom_vector<quaternion> constraint_rotation;
+    DynamicVector<real> gamma_old_rigid;
 
     uint num_rigid_constraints;
 };

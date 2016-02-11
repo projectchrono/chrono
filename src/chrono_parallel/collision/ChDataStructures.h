@@ -77,7 +77,7 @@ class ConvexShapeCustom : public ConvexBase {
 
 class ConvexShapeTetradhedron : public ConvexBase {
   public:
-    ConvexShapeTetradhedron(uint4 i, real3* n) : indices(i), nodes(nodes) {}
+    ConvexShapeTetradhedron(uint4 i, real3* n) : indices(i), nodes(n) {}
     virtual ~ConvexShapeTetradhedron() {}
     const inline int Type() const { return TETRAHEDRON; }
     const inline real3 A() const { return real3(0); }

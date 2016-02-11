@@ -87,6 +87,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                          custom_vector<real3>& cptb_rigid_tet,
                          custom_vector<real>& dpth_rigid_tet,
                          custom_vector<int>& neighbor_rigid_tet,
+                         custom_vector<real4>& face_rigid_tet,
                          custom_vector<int>& contact_counts,
                          uint& num_contacts);
 
