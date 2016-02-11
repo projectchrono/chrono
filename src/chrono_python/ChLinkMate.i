@@ -13,22 +13,21 @@
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 
+// Enable shared pointer
+%shared_ptr(chrono::ChLinkMate)
+%shared_ptr(chrono::ChLinkMateGeneric)
+%shared_ptr(chrono::ChLinkMatePlane)
+%shared_ptr(chrono::ChLinkMateCoaxial)
+%shared_ptr(chrono::ChLinkMateSpherical)
+%shared_ptr(chrono::ChLinkMateXdistance)
+%shared_ptr(chrono::ChLinkMateParallel)
+%shared_ptr(chrono::ChLinkMateOrthogonal)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChLinkMate.h"  
 
 
 
-// Define also the shared pointer chrono::ChShared<ChXxxx> 
-// (renamed as 'ChXxxxShared' in python)
 
-%DefChSharedPtr(chrono::,ChLinkMate)
-%DefChSharedPtr(chrono::,ChLinkMateGeneric)
-%DefChSharedPtr(chrono::,ChLinkMatePlane)
-%DefChSharedPtr(chrono::,ChLinkMateCoaxial)
-%DefChSharedPtr(chrono::,ChLinkMateSpherical)
-%DefChSharedPtr(chrono::,ChLinkMateXdistance)
-%DefChSharedPtr(chrono::,ChLinkMateParallel)
-%DefChSharedPtr(chrono::,ChLinkMateOrthogonal)
 
 

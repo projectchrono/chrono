@@ -8,10 +8,6 @@ using namespace collision;
 %}
 
 
-// Forward ref
-//%import "ChXxxxx.i"
-//%import "ChVector.i"
-
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 

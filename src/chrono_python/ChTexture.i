@@ -6,11 +6,12 @@
 using namespace chrono;
 
 %}
- 
+
+// Enable shared pointer 
+%shared_ptr(chrono::ChTexture)
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChTexture.h"    
 
-// Define also the shared pointer 
 
-%DefChSharedPtr(chrono::,ChTexture)
 

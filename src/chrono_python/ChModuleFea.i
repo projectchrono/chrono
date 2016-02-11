@@ -37,8 +37,6 @@
 // For optional downcasting of polimorphic objects:
 %include "chrono_downcast.i" 
 
-// The complete support of smart shared pointers
-%include "chrono_shared_ptr.i" 
 
 
 
@@ -113,118 +111,76 @@ using namespace fea;
 %import  "ChBodyFrame.i"
 
 //  core/  classes
+%shared_ptr(chrono::fea::ChElementBase)
 %include "../chrono_fea/ChElementBase.h"
-%DefChSharedPtr(chrono::fea::,ChElementBase)
 
+%shared_ptr(chrono::fea::ChElementGeneric)
 %include "../chrono_fea/ChElementGeneric.h"
-%DefChSharedPtr(chrono::fea::,ChElementGeneric)
 
+%shared_ptr(chrono::fea::ChBeamSection)
+%shared_ptr(chrono::fea::ChBeamSectionAdvanced)
 %include "../chrono_fea/ChBeamSection.h"
-%DefChSharedPtr(chrono::fea::,ChBeamSection)
-%DefChSharedPtr(chrono::fea::,ChBeamSectionAdvanced)
 
+%shared_ptr(chrono::fea::ChElementBeam)
 %include "../chrono_fea/ChElementBeam.h"
-%DefChSharedPtr(chrono::fea::,ChElementBeam)
 
+%shared_ptr(chrono::fea::ChElementBeamEuler)
 %include "../chrono_fea/ChElementBeamEuler.h"
-%DefChSharedPtr(chrono::fea::,ChElementBeamEuler)
 
+%shared_ptr(chrono::fea::ChContinuumMaterial)
+%shared_ptr(chrono::fea::ChContinuumElastic)
+%shared_ptr(chrono::fea::ChContinuumElastoplastic)
+%shared_ptr(chrono::fea::ChContinuumPlasticVonMises)
+%shared_ptr(chrono::fea::ChContinuumDruckerPrager)
 %include "../chrono/physics/ChContinuumMaterial.h"
-%DefChSharedPtr(chrono::fea::,ChContinuumMaterial)
-%DefChSharedPtr(chrono::fea::,ChContinuumElastic)
-%DefChSharedPtr(chrono::fea::,ChContinuumElastoplastic)
-%DefChSharedPtr(chrono::fea::,ChContinuumPlasticVonMises)
-%DefChSharedPtr(chrono::fea::,ChContinuumDruckerPrager)
 
+%shared_ptr(chrono::fea::ChContinuumPoisson3D)
 %include "../chrono_fea/ChContinuumPoisson3D.h"
-%DefChSharedPtr(chrono::fea::,ChContinuumPoisson3D)
 
+%shared_ptr(chrono::fea::ChContinuumElectrostatics)
 %include "../chrono_fea/ChContinuumElectrostatics.h"
-%DefChSharedPtr(chrono::fea::,ChContinuumElectrostatics)
 
+%shared_ptr(chrono::fea::ChContinuumThermal)
 %include "../chrono_fea/ChContinuumThermal.h"
-%DefChSharedPtr(chrono::fea::,ChContinuumThermal)
 
 //%include "../chrono_fea/ChElementTetrahedron.h"  	// pure virtual: do not create Python obj
-//%DefChSharedPtr(chrono::fea::,ChElementTetrahedron)
 
+%shared_ptr(chrono::fea::ChElementTetrahedron)
+%shared_ptr(chrono::fea::ChElementTetra_4)
 %include "../chrono_fea/ChElementTetra_4.h"
-%DefChSharedPtr(chrono::fea::,ChElementTetrahedron)
-%DefChSharedPtr(chrono::fea::,ChElementTetra_4)
 
+%shared_ptr(chrono::fea::ChElementTetra_10)
 %include "../chrono_fea/ChElementTetra_10.h"
-%DefChSharedPtr(chrono::fea::,ChElementTetra_10)
 
 //%include "../chrono_fea/ChElementHexahedron.h"		// pure virtual: do not create Python obj
-//%DefChSharedPtr(chrono::fea::,ChElementHexahedron)
 
+%shared_ptr(chrono::fea::ChElementHexahedron)
+%shared_ptr(chrono::fea::ChElementHexa_8)
 %include "../chrono_fea/ChElementHexa_8.h"
-%DefChSharedPtr(chrono::fea::,ChElementHexahedron)
-%DefChSharedPtr(chrono::fea::,ChElementHexa_8)
 
+%shared_ptr(chrono::fea::ChElementHexa_20)
 %include "../chrono_fea/ChElementHexa_20.h"
-%DefChSharedPtr(chrono::fea::,ChElementHexa_20)
 
+%shared_ptr(chrono::fea::ChNodeFEAbase)
 %include "../chrono_fea/ChNodeFEAbase.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEAbase)
 
+%shared_ptr(chrono::fea::ChNodeFEAxyz)
 %include "../chrono_fea/ChNodeFEAxyz.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEAxyz)
 
+%shared_ptr(chrono::fea::ChNodeFEAxyzP)
 %include "../chrono_fea/ChNodeFEAxyzP.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEAxyzP)
 
+%shared_ptr(chrono::fea::ChNodeFEAxyzrot)
 %include "../chrono_fea/ChNodeFEAxyzrot.h"
-%DefChSharedPtr(chrono::fea::,ChNodeFEAxyzrot)
 
+//%shared_ptr(chrono::fea::ChBuilderBeam)
 %include "../chrono_fea/ChBuilderBeam.h"
-//%DefChSharedPtr(chrono::fea::,ChBuilderBeam)
 
+%shared_ptr(chrono::fea::ChMesh)
 %include "../chrono_fea/ChMesh.h"
-%DefChSharedPtr(chrono::fea::,ChMesh)
-
-
-//%include "ChPostProcessBase.i"
-//%include "ChPovRay.i"
-
-//%import  "ChColor.i"
-//%include "ChPovRayAssetCustom.i"
 
 
 
-//
-// UPCASTING OF SHARED POINTERS           (custom inheritance)
-//
-// Note: SWIG takes care automatically of how to cast from  
-// FooDerived* to FooBase* given its swig_cast_info inner structures,
-// but this casting does not happen for ChSharedPtr<FooDerived> to
-// ChSharedPtr<FooBase> because shared ptrs are different classes (not inherited
-// one from the other, just templated versions of a ChSharedPtr<> ).
-// A workaround for this problem is using the (undocumented)
-// function  %types   , that can work here because each templated version
-// of the CSharedPtr has exactly the same data structure, so they can be just
-// cast. 
-// So, use the %DefChSharedPtrCast(derived,base) macro to enable the upcasting.
-
-//%DefChSharedPtrCast(chrono::fea::ChNodeFEAbase, chrono::ChNodeBase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyz, chrono::fea::ChNodeFEAbase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyzP, chrono::fea::ChNodeFEAbase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyzrot, chrono::fea::ChNodeFEAbase)
-%DefChSharedPtrCast(chrono::fea::ChNodeFEAxyzrot, chrono::ChBodyFrame)
-%DefChSharedPtrCast(chrono::fea::ChElementGeneric, chrono::fea::ChElementBase)
-%DefChSharedPtrCast(chrono::fea::ChElementBeam, chrono::fea::ChElementGeneric)
-%DefChSharedPtrCast(chrono::fea::ChElementBeamEuler, chrono::fea::ChElementBeam)
-%DefChSharedPtrCast(chrono::fea::ChElementTetrahedron, chrono::fea::ChElementGeneric)
-%DefChSharedPtrCast(chrono::fea::ChElementTetra_4, chrono::fea::ChElementTetrahedron)
-%DefChSharedPtrCast(chrono::fea::ChElementTetra_10, chrono::fea::ChElementTetrahedron)
-%DefChSharedPtrCast(chrono::fea::ChElementHexahedron, chrono::fea::ChElementGeneric)
-%DefChSharedPtrCast(chrono::fea::ChElementHexa_8, chrono::fea::ChElementHexahedron)
-%DefChSharedPtrCast(chrono::fea::ChElementHexa_20, chrono::fea::ChElementHexahedron)
-%DefChSharedPtrCast(chrono::fea::ChContinuumElastic, chrono::fea::ChContinuumMaterial)
-%DefChSharedPtrCast(chrono::fea::ChContinuumElastoplastic, chrono::fea::ChContinuumElastic)
-%DefChSharedPtrCast(chrono::fea::ChContinuumPlasticVonMises, chrono::fea::ChContinuumElastoplastic)
-%DefChSharedPtrCast(chrono::fea::ChContinuumDruckerPrager, chrono::fea::ChContinuumElastoplastic)
-%DefChSharedPtrCast(chrono::fea::ChMesh, chrono::ChPhysicsItem)
 
 //
 // DOWNCASTING OF SHARED POINTERS

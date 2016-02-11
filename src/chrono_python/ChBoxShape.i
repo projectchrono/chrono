@@ -6,12 +6,12 @@
 using namespace chrono;
 
 %}
- 
+
+// Enable shared pointer
+%shared_ptr(chrono::ChBoxShape)
+
 /* Parse the header file to generate wrappers */
  %include "../chrono/assets/ChBoxShape.h"    
 
-// Define also the shared pointer chrono::ChShared<ChBoxShape> 
-// (renamed as 'ChBoxShapeShared' in python)
 
-%DefChSharedPtr(chrono::,ChBoxShape)
 

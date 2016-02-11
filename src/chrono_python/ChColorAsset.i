@@ -6,12 +6,12 @@
 using namespace chrono;
 
 %}
- 
+
+// Enable shared pointer 
+%shared_ptr(chrono::ChColorAsset)
+
 /* Parse the header file to generate wrappers */
- %include "../chrono/assets/ChColorAsset.h"    
+%include "../chrono/assets/ChColorAsset.h"    
 
 
-// Define also the shared pointer chrono::ChShared<ChColorAsset> 
-// (renamed as 'ChColorAssetShared' in python)
 
-%DefChSharedPtr(chrono::,ChColorAsset)

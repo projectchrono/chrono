@@ -11,26 +11,24 @@
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 
+// Enable shared pointer
+%shared_ptr(chrono::ChLinkLock)
+%shared_ptr(chrono::ChLinkLockRevolute)
+%shared_ptr(chrono::ChLinkLockLock)
+%shared_ptr(chrono::ChLinkLockSpherical)
+%shared_ptr(chrono::ChLinkLockCylindrical)
+%shared_ptr(chrono::ChLinkLockPrismatic)
+%shared_ptr(chrono::ChLinkLockPointPlane)
+%shared_ptr(chrono::ChLinkLockPointLine)
+%shared_ptr(chrono::ChLinkLockPlanePlane)
+%shared_ptr(chrono::ChLinkLockOldham)
+%shared_ptr(chrono::ChLinkLockFree)
+%shared_ptr(chrono::ChLinkLockAlign)
+%shared_ptr(chrono::ChLinkLockParallel)
+%shared_ptr(chrono::ChLinkLockPerpend)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChLinkLock.h"  
 
 
 
-// Define also the shared pointer chrono::ChShared<ChXxxx> 
-// (renamed as 'ChXxxxShared' in python)
-
-%DefChSharedPtr(chrono::,ChLinkLock)
-%DefChSharedPtr(chrono::,ChLinkLockRevolute)
-%DefChSharedPtr(chrono::,ChLinkLockLock)
-%DefChSharedPtr(chrono::,ChLinkLockSpherical)
-%DefChSharedPtr(chrono::,ChLinkLockCylindrical)
-%DefChSharedPtr(chrono::,ChLinkLockPrismatic)
-%DefChSharedPtr(chrono::,ChLinkLockPointPlane)
-%DefChSharedPtr(chrono::,ChLinkLockPointLine)
-%DefChSharedPtr(chrono::,ChLinkLockPlanePlane)
-%DefChSharedPtr(chrono::,ChLinkLockOldham)
-%DefChSharedPtr(chrono::,ChLinkLockFree)
-%DefChSharedPtr(chrono::,ChLinkLockAlign)
-%DefChSharedPtr(chrono::,ChLinkLockParallel)
-%DefChSharedPtr(chrono::,ChLinkLockPerpend)

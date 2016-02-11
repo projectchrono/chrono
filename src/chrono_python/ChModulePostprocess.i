@@ -37,8 +37,6 @@
 // For optional downcasting of polimorphic objects:
 %include "chrono_downcast.i" 
 
-// The complete support of smart shared pointers
-%include "chrono_shared_ptr.i" 
 
 
 

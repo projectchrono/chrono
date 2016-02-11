@@ -37,9 +37,8 @@
 // For optional downcasting of polimorphic objects:
 %include "chrono_downcast.i" 
 
-// The complete support of smart shared pointers
-%include "chrono_shared_ptr.i" 
-
+// For supporting shared pointers:
+%include <std_shared_ptr.i>
 
 
 
@@ -89,8 +88,10 @@ using namespace chrono::geometry;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
+
 %include "ChException.i"
 %include "ChHashFunction.i"
+%include "ChArchive.i"
 %include "ChVector.i" 
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
@@ -104,10 +105,10 @@ using namespace chrono::geometry;
 %include "ChLog.i"
 %include "ChMathematics.i"
 %include "ChMatrix.i"
+%include "ChVectorDynamic.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
-%include "ChShared.i"
 
 // motion_functions/   classes
 %include "ChFunction_Base.i"
@@ -129,6 +130,7 @@ using namespace chrono::geometry;
 %include "ChTexture.i"
 %include "ChCamera.i"
 %include "ChAssetLevel.i"
+
   // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
 %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
 
@@ -147,6 +149,7 @@ using namespace chrono::geometry;
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
 %include "ChSystem.i"
+/*
 %include "ChContactContainerBase.i"
 %include "ChProximityContainerBase.i"
 %include "ChLinkBase.i"
@@ -167,6 +170,7 @@ using namespace chrono::geometry;
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
 %include "ChLinkUniversal.i"
+*/
 /*
 %include "ChShaft.i"
 %include "ChShaftsCouple.i"
@@ -180,7 +184,7 @@ using namespace chrono::geometry;
 */
 
 // collision/   classes
-
+/*
 %include "ChCollisionInfo.i"
 
 
@@ -261,6 +265,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrCast(chrono::ChLinkRevolute, chrono::ChLink)
 %DefChSharedPtrCast(chrono::ChLinkRevoluteSpherical, chrono::ChLink)
 %DefChSharedPtrCast(chrono::ChLinkUniversal, chrono::ChLink)
+*/
 /*
 %DefChSharedPtrCast(chrono::ChShaft, chrono::ChPhysicsItem)
 %DefChSharedPtrCast(chrono::ChShaftsBody, chrono::ChPhysicsItem)
@@ -286,7 +291,7 @@ using namespace chrono::geometry;
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
-
+/*
 %DefChSharedPtrDynamicDowncast(ChAsset,ChVisualization)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChObjShapeFile)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChBoxShape)
@@ -335,6 +340,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+*/
 /*
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaft)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsBody)
@@ -426,4 +432,5 @@ def ImportSolidWorksSystem(mpath):
 %}
 
 
-
+// Enable shared pointer 
+//%shared_ptr(chrono::ChSystem)

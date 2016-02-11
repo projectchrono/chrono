@@ -9,11 +9,11 @@ using namespace chrono;
  
 %import  "ChAsset.i"
 
+// Enable shared pointer
+%shared_ptr(chrono::irrlicht::ChIrrNodeAsset)
+
 /* Parse the header file to generate wrappers */
- %include "../chrono_irrlicht/ChIrrNodeAsset.h"    
+%include "../chrono_irrlicht/ChIrrNodeAsset.h"    
 
-// Define also the shared pointer chrono::ChShared<ChIrrNodeAsset> 
-// (renamed as 'ChIrrNodeAssetShared' in python)
 
-%DefChSharedPtr(chrono::,ChIrrNodeAsset)
 

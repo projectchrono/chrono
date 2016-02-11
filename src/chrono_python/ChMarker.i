@@ -14,13 +14,12 @@ namespace chrono { class ChBody; }
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 
+// Enable shared pointer
+%shared_ptr(chrono::ChMarker)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChMarker.h"  
 
 
-// Define also the shared pointer chrono::ChShared<ChForce> 
-// (renamed as 'ChForceShared' in python)
 
-%DefChSharedPtr(chrono::,ChMarker)
 

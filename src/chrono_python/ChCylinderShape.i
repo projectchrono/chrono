@@ -6,11 +6,12 @@
 using namespace chrono;
 
 %}
- 
+
+// Enable shared pointer
+%shared_ptr(chrono::ChCylinderShape)
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChCylinderShape.h"    
 
-// Define also the shared pointer 
 
-%DefChSharedPtr(chrono::,ChCylinderShape)
 

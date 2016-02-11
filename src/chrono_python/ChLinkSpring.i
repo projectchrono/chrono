@@ -11,16 +11,15 @@
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 
+// Enable shared pointer
+%shared_ptr(chrono::ChLinkSpring)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChLinkSpring.h"  
 
 
 
-// Define also the shared pointer chrono::ChShared<ChXxxx> 
-// (renamed as 'ChXxxxShared' in python)
 
-%DefChSharedPtr(chrono::,ChLinkSpring)
 
 
 

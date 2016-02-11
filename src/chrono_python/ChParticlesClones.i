@@ -13,14 +13,13 @@
 %import "ChMaterialSurface.i"
 %import "ChCollisionModel.i"
 
+// Enable shared pointer
+%shared_ptr(chrono::ChParticlesClones)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChParticlesClones.h"  
 
 
 
-// Define also the shared pointer chrono::ChShared<ChXxxx> 
-// (renamed as 'ChXxxxShared' in python)
 
-%DefChSharedPtr(chrono::,ChParticlesClones)
 

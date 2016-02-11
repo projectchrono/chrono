@@ -7,9 +7,10 @@
 // Forward ref
 %import "ChSystem.i"
 
+// Enable shared pointer 
+%shared_ptr(chrono::postprocess::ChPostProcessBase)
+
 /* Parse the header file to generate wrappers */
 %include "../chrono_postprocess/ChPostProcessBase.h"    
 
-// Define also the shared pointer chrono::ChShared<thisclass> 
 
-//%DefChSharedPtr(chrono::,ChPostProcessBase)

@@ -107,7 +107,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  chrono::ChSharedPtr<ChBody> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<ChBody> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -119,7 +119,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  chrono::ChSharedPtr<ChLink> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<ChLink> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -131,7 +131,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  chrono::ChSharedPtr<ChPhysicsItem> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<ChPhysicsItem> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -143,7 +143,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  chrono::ChSharedPtr<ChPhysicsItem> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<ChPhysicsItem> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -308,7 +308,4 @@ class IterPhysicsItems():
 %}
 
 
-// Define also the shared pointer chrono::ChShared<ChSystem> 
-// (renamed as 'ChSystemShared' in python)
 
-%DefChSharedPtr(chrono::,ChSystem)

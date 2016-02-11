@@ -7,12 +7,10 @@
 %import "ChVector.i"
 %import "ChVisualization.i"
 
+// Enable shared pointer 
+%shared_ptr(chrono::postprocess::ChPovRayAssetCustom)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono_postprocess/ChPovRayAssetCustom.h"    
 
 
-// Define also the shared pointer 
-//%DefChSharedPtr(mynamespace::, myclassname)
-
-%DefChSharedPtr(chrono::postprocess::,ChPovRayAssetCustom)
