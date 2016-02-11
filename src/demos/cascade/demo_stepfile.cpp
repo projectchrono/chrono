@@ -105,15 +105,15 @@ int main(int argc, char* argv[]) {
     // the GetNamedShape() function, that can use path/subpath/subsubpath/part
     // syntax and * or ? wildcards, etc.
 
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody1;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody2;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody1;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody2;
 
     if (load_ok) {
        
         TopoDS_Shape shape1;
         if (mydoc.GetNamedShape(shape1, "Assem1/body1")) {
             
-            ChSharedPtr<ChBodyEasyCascade> mbody1 (new ChBodyEasyCascade(shape1, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody1 (new ChBodyEasyCascade(shape1, 1000, false, true));
             my_system.Add(mbody1);
             
             mbody1->SetBodyFixed(true); 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape2;
         if (mydoc.GetNamedShape(shape2, "Assem1/body2")) {
 
-            ChSharedPtr<ChBodyEasyCascade> mbody2 (new ChBodyEasyCascade(shape2, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody2 (new ChBodyEasyCascade(shape2, 1000, false, true));
             my_system.Add(mbody2);
             
             // Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
@@ -152,19 +152,19 @@ int main(int argc, char* argv[]) {
         ((ChFrame<>)root_frame) * (measured_joint_pos_mm * scale);  // transform because we rotated everything
 
     if (mrigidBody1 && mrigidBody2) {
-        ChSharedPtr<ChLinkLockRevolute> my_link(new ChLinkLockRevolute);
+        std::shared_ptr<ChLinkLockRevolute> my_link(new ChLinkLockRevolute);
         my_link->Initialize(mrigidBody1, mrigidBody2, ChCoordsys<>(joint_pos));
         my_system.AddLink(my_link);
     }
 
     // Create a large cube as a floor.
 
-    ChSharedPtr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(1, 0.2, 1, 1000));
+    std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(1, 0.2, 1, 1000));
     mfloor->SetPos(ChVector<>(0,-0.3,0));
     mfloor->SetBodyFixed(true);
     application.GetSystem()->Add(mfloor);
 
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset(0.3,0.3,0.8));
+    std::shared_ptr<ChColorAsset> mcolor(new ChColorAsset(0.3,0.3,0.8));
     mfloor->AddAsset(mcolor);
 
 
