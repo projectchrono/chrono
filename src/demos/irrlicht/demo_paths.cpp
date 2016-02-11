@@ -120,8 +120,8 @@ int main(int argc, char* argv[]) {
     auto my_motor = std::make_shared<ChLinkEngine>();
     my_motor->Initialize(mwheel, mfloor, ChCoordsys<>(ChVector<>(-3, 2, 0)));
     my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::make_shared<ChFunction_Const>(my_motor->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI / 4.0);  // speed w=45°/s
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_motor->Get_spe_funct()))
+        mfun->Set_yconst(CH_C_PI / 4.0);  // speed w=45 deg/s
     mphysicalSystem.AddLink(my_motor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
