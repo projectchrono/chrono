@@ -114,32 +114,32 @@ int main(int argc, char* argv[]) {
         double z_step = (double)k * 2.;
 
         // .. the truss
-        ChSharedPtr<ChBodyEasyBox> mrigidBody0(new ChBodyEasyBox(5, 1, 0.5,  // x,y,z size
-                                                                 100,        // density
-                                                                 false,      // collide enable?
-                                                                 true));     // visualization?
+        auto mrigidBody0 = std::make_shared<ChBodyEasyBox>(5, 1, 0.5,  // x,y,z size
+                                                           100,        // density
+                                                           false,      // collide enable?
+                                                           true);      // visualization?
         mrigidBody0->SetPos(ChVector<>(0, 0, z_step));
         mrigidBody0->SetBodyFixed(true);  // the truss does not move!
         my_system.Add(mrigidBody0);
 
-        ChSharedPtr<ChBodyEasyBox> mrigidBody1(new ChBodyEasyBox(1, 6, 1,  // x,y,z size
-                                                                 1,        // density
-                                                                 false,    // collide enable?
-                                                                 true));   // visualization?
+        auto mrigidBody1 = std::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
+                                                           1,        // density
+                                                           false,    // collide enable?
+                                                           true);    // visualization?);
         mrigidBody1->SetPos(ChVector<>(0, -3, z_step));
         my_system.Add(mrigidBody1);
 
-        ChSharedPtr<ChBodyEasyBox> mrigidBody2(new ChBodyEasyBox(1, 6, 1,  // x,y,z size
-                                                                 1,        // density
-                                                                 false,    // collide enable?
-                                                                 true));   // visualization?
+        auto mrigidBody2 = std::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
+                                                           1,        // density
+                                                           false,    // collide enable?
+                                                           true);    // visualization?
         mrigidBody2->SetPos(ChVector<>(0, -9, z_step));
         my_system.Add(mrigidBody2);
 
-        ChSharedPtr<ChBodyEasyBox> mrigidBody3(new ChBodyEasyBox(6, 1, 1,  // x,y,z size
-                                                                 1,        // density
-                                                                 false,    // collide enable?
-                                                                 true));   // visualization?
+        auto mrigidBody3 = std::make_shared<ChBodyEasyBox>(6, 1, 1,  // x,y,z size
+                                                           1,        // density
+                                                           false,    // collide enable?
+                                                           true);    // visualization?
         mrigidBody3->SetPos(ChVector<>(3, -12, z_step));
         my_system.Add(mrigidBody3);
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
         // .. a joint of type 'point on a line', with upper and lower limits on
         //    the X sliding direction, for the pendulum-ground constraint.
-        ChSharedPtr<ChLinkLockPointLine> my_link_01(new ChLinkLockPointLine);
+        auto my_link_01 = std::make_shared<ChLinkLockPointLine>();
         my_link_01->Initialize(mrigidBody1, mrigidBody0, ChCoordsys<>(ChVector<>(0, 0, z_step)));
 
         my_link_01->GetLimit_X()->Set_active(true);
@@ -159,15 +159,14 @@ int main(int argc, char* argv[]) {
         my_system.AddLink(my_link_01);
 
         // .. a spherical joint
-        ChSharedPtr<ChLinkLockSpherical> my_link_12(new ChLinkLockSpherical);
+        auto my_link_12 = std::make_shared<ChLinkLockSpherical>();
         my_link_12->Initialize(mrigidBody2, mrigidBody1, ChCoordsys<>(ChVector<>(0, -6, z_step)));
         my_system.AddLink(my_link_12);
 
         // .. a spherical joint
-        ChSharedPtr<ChLinkLockSpherical> my_link_23(new ChLinkLockSpherical);
+        auto my_link_23 = std::make_shared<ChLinkLockSpherical>();
         my_link_23->Initialize(mrigidBody3, mrigidBody2, ChCoordsys<>(ChVector<>(0, -12, z_step)));
-        my_system.AddLink(my_link_23);
-        
+        my_system.AddLink(my_link_23);     
     }
 
     //

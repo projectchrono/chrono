@@ -59,7 +59,7 @@ IGUIStaticText* text_enginespeed = 0;
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChSystem* asystem, IrrlichtDevice* adevice, ChSharedPtr<ChLinkEngine> aengine) {
+    MyEventReceiver(ChSystem* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkEngine> aengine) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
         msystem = asystem;
         mdevice = adevice;
@@ -79,8 +79,7 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newspeed = 10 * (double)pos / 100.0;
                         // set the speed into engine object
-                        if (ChSharedPtr<ChFunction_Const> mfun =
-                                mengine->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mengine->Get_spe_funct()))
                             mfun->Set_yconst(newspeed);
                         // show speed as formatted text in interface screen
                         char message[50];
@@ -97,7 +96,7 @@ class MyEventReceiver : public IEventReceiver {
   private:
     ChSystem* msystem;
     IrrlichtDevice* mdevice;
-    ChSharedPtr<ChLinkEngine> mengine;
+    std::shared_ptr<ChLinkEngine> mengine;
 };
 
 int main(int argc, char* argv[]) {
@@ -120,22 +119,22 @@ int main(int argc, char* argv[]) {
     //   position/mass/inertias of their center of mass (COG) etc.
 
     // ..the truss
-    ChSharedPtr<ChBody> my_body_A(new ChBody);
+    auto my_body_A = std::make_shared<ChBody>();
     my_system.AddBody(my_body_A);
     my_body_A->SetBodyFixed(true);  // truss does not move!
 
     // ..the flywheel
-    ChSharedPtr<ChBody> my_body_B(new ChBody);
+    auto my_body_B = std::make_shared<ChBody>();
     my_system.AddBody(my_body_B);
     my_body_B->SetPos(ChVector<>(0, 0, 0));  // position of COG of flywheel
 
     // ..the rod
-    ChSharedPtr<ChBody> my_body_C(new ChBody);
+    auto my_body_C = std::make_shared<ChBody>();
     my_system.AddBody(my_body_C);
     my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
 
     // ..the rocker
-    ChSharedPtr<ChBody> my_body_D(new ChBody);
+    auto my_body_D = std::make_shared<ChBody>();
     my_system.AddBody(my_body_D);
     my_body_D->SetPos(ChVector<>(8, -4, 0));  // position of COG of rod
 
@@ -143,25 +142,25 @@ int main(int argc, char* argv[]) {
     //    rigid bodies. Doesn't matter if some constraints are redundant.
 
     // .. an engine between flywheel and truss
-    ChSharedPtr<ChLinkEngine> my_link_AB(new ChLinkEngine);
+    auto my_link_AB = std::make_shared<ChLinkEngine>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0, 0, 0)));
     my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = my_link_AB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_AB->Get_spe_funct()))
         mfun->Set_yconst(CH_C_PI);  // speed w=3.145 rad/sec
     my_system.AddLink(my_link_AB);
 
     // .. a revolute joint between flywheel and rod
-    ChSharedPtr<ChLinkLockRevolute> my_link_BC(new ChLinkLockRevolute);
+    auto my_link_BC = std::make_shared<ChLinkLockRevolute>();
     my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
     my_system.AddLink(my_link_BC);
 
     // .. a revolute joint between rod and rocker
-    ChSharedPtr<ChLinkLockRevolute> my_link_CD(new ChLinkLockRevolute);
+    auto my_link_CD = std::make_shared<ChLinkLockRevolute>();
     my_link_CD->Initialize(my_body_C, my_body_D, ChCoordsys<>(ChVector<>(8, 0, 0)));
     my_system.AddLink(my_link_CD);
 
     // .. a revolute joint between rocker and truss
-    ChSharedPtr<ChLinkLockRevolute> my_link_DA(new ChLinkLockRevolute);
+    auto my_link_DA = std::make_shared<ChLinkLockRevolute>();
     my_link_DA->Initialize(my_body_D, my_body_A, ChCoordsys<>(ChVector<>(8, -8, 0)));
     my_system.AddLink(my_link_DA);
 
