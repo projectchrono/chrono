@@ -116,7 +116,7 @@ class ChApiCASCADE ChCascadeDoc {
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
 
     /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-    static ChSharedPtr<ChBodyAuxRef> CreateBodyFromShape(
+    static std::shared_ptr<ChBodyAuxRef> CreateBodyFromShape(
                 const TopoDS_Shape& mshape,   ///< pass the shape here
                 const double density          ///< pass the density here
                 );
