@@ -70,35 +70,32 @@ int main(int argc, char* argv[]) {
         ChVector<> vd(0, 0, 0.0001);
 
         // Create a truss:
-        ChSharedPtr<ChBody> body_truss(new ChBody);
-
+        auto body_truss = std::make_shared<ChBody>();
         body_truss->SetBodyFixed(true);
 
         my_system.AddBody(body_truss);
 
         // Attach a 'box' shape asset for visualization.
-        ChSharedPtr<ChBoxShape> mboxtruss(new ChBoxShape);
+        auto mboxtruss = std::make_shared<ChBoxShape>();
         mboxtruss->GetBoxGeometry().Pos = ChVector<>(-0.01, 0, 0);
         mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.2, 0.1));
         body_truss->AddAsset(mboxtruss);
 
         // Create body for crank
-
-        ChSharedPtr<ChBody> body_crank(new ChBody);
+        auto body_crank = std::make_shared<ChBody>();
 
         body_crank->SetPos((vB + vG) * 0.5);
-
         my_system.AddBody(body_crank);
 
         // Attach a 'box' shape asset for visualization.
-        ChSharedPtr<ChBoxShape> mboxcrank(new ChBoxShape);
+        auto mboxcrank = std::make_shared<ChBoxShape>();
         mboxcrank->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
         mboxcrank->GetBoxGeometry().SetLengths(ChVector<>(K, 0.02, 0.02));
         body_crank->AddAsset(mboxcrank);
 
         // Create a motor between the truss
         // and the crank:
-        ChSharedPtr<ChLinkEngine> constr_motor(new ChLinkEngine);
+        auto constr_motor = std::make_shared<ChLinkEngine>();
         constr_motor->Initialize(body_truss, body_crank, ChCoordsys<>(vG));
         my_system.Add(constr_motor);
 
@@ -114,17 +111,16 @@ int main(int argc, char* argv[]) {
             }
         };
 
-        ChSharedPtr<ChFunction_myf> f_ramp(new ChFunction_myf);
+        auto f_ramp = std::make_shared<ChFunction_myf>();
         constr_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
         constr_motor->Set_rot_funct(f_ramp);
 
         // Create a FEM mesh, that is a container for groups
         // of elements and their referenced nodes.
-        ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+        auto my_mesh = std::make_shared<ChMesh>();
 
         // Create the horizontal beam
-
-        ChSharedPtr<ChBeamSectionAdvanced> msection1(new ChBeamSectionAdvanced);
+        auto msection1 = std::make_shared<ChBeamSectionAdvanced>();
 
         double beam_wy = 0.10;
         double beam_wz = 0.01;
@@ -148,12 +144,11 @@ int main(int argc, char* argv[]) {
         // For example say you want to fix the A end and apply a force to the B end:
         builder.GetLastBeamNodes().front()->SetFixed(true);
 
-        ChSharedPtr<ChNodeFEAxyzrot> node_tip = builder.GetLastBeamNodes().back();
-        ChSharedPtr<ChNodeFEAxyzrot> node_mid = builder.GetLastBeamNodes()[7];
+        auto node_tip = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
+        auto node_mid = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes()[7]);
 
         // Create the vertical beam
-
-        ChSharedPtr<ChBeamSectionAdvanced> msection2(new ChBeamSectionAdvanced);
+        auto msection2 = std::make_shared<ChBeamSectionAdvanced>();
 
         double hbeam_d = 0.024;
         msection2->SetDensity(2700);
@@ -168,13 +163,11 @@ int main(int argc, char* argv[]) {
                           vC + vd,               // the 'A' point in space (beginning of beam)
                           vB + vd,               // the 'B' point in space (end of beam)
                           ChVector<>(1, 0, 0));  // the 'Y' up direction of the section for the beam
-
-        ChSharedPtr<ChNodeFEAxyzrot> node_top = builder.GetLastBeamNodes().front();
-        ChSharedPtr<ChNodeFEAxyzrot> node_down = builder.GetLastBeamNodes().back();
+        auto node_top = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().front());
+        auto node_down = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
 
         // Create a constraint between the vertical and horizontal beams:
-
-        ChSharedPtr<ChLinkMateGeneric> constr_bb(new ChLinkMateGeneric);
+        auto constr_bb = std::make_shared<ChLinkMateGeneric>();
         constr_bb->Initialize(node_top, node_tip, false, node_top->Frame(), node_top->Frame());
         my_system.Add(constr_bb);
 
@@ -182,13 +175,12 @@ int main(int argc, char* argv[]) {
                                         false, false, false);  // Rx, Ry, Rz
 
         // For example, attach small shape to show the constraint
-        ChSharedPtr<ChSphereShape> msphereconstr2(new ChSphereShape);
+        auto msphereconstr2 = std::make_shared<ChSphereShape>();
         msphereconstr2->GetSphereGeometry().rad = 0.01;
         constr_bb->AddAsset(msphereconstr2);
 
         // Create a beam as a crank
-
-        ChSharedPtr<ChBeamSectionAdvanced> msection3(new ChBeamSectionAdvanced);
+        auto msection3 = std::make_shared<ChBeamSectionAdvanced>();
 
         double crankbeam_d = 0.048;
         msection3->SetDensity(2700);
@@ -204,12 +196,10 @@ int main(int argc, char* argv[]) {
                           vB + vd,               // the 'B' point in space (end of beam)
                           ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
 
-        ChSharedPtr<ChNodeFEAxyzrot> node_crankG = builder.GetLastBeamNodes().front();
-        ChSharedPtr<ChNodeFEAxyzrot> node_crankB = builder.GetLastBeamNodes().back();
-
+        auto node_crankG = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().front());
+        auto node_crankB = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
         // Create a constraint between the crank beam and body crank:
-
-        ChSharedPtr<ChLinkMateGeneric> constr_cbd(new ChLinkMateGeneric);
+        auto constr_cbd = std::make_shared<ChLinkMateGeneric>();
         constr_cbd->Initialize(node_crankG, body_crank, false, node_crankG->Frame(), node_crankG->Frame());
         my_system.Add(constr_cbd);
 
@@ -217,8 +207,7 @@ int main(int argc, char* argv[]) {
                                          true, true, true);  // Rx, Ry, Rz
 
         // Create a constraint between the vertical beam and the crank beam:
-
-        ChSharedPtr<ChLinkMateGeneric> constr_bc(new ChLinkMateGeneric);
+        auto constr_bc = std::make_shared<ChLinkMateGeneric>();
         constr_bc->Initialize(node_down, node_crankB, false, node_crankB->Frame(), node_crankB->Frame());
         my_system.Add(constr_bc);
 
@@ -226,7 +215,7 @@ int main(int argc, char* argv[]) {
                                         true, true, false);  // Rx, Ry, Rz
 
         // For example, attach small shape to show the constraint
-        ChSharedPtr<ChSphereShape> msphereconstr3(new ChSphereShape);
+        auto msphereconstr3 = std::make_shared<ChSphereShape>();
         msphereconstr3->GetSphereGeometry().rad = 0.01;
         constr_bc->AddAsset(msphereconstr3);
 
@@ -247,15 +236,14 @@ int main(int argc, char* argv[]) {
         // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
         // postprocessor that can handle a coloured ChTriangleMeshShape).
         // Do not forget AddAsset() at the end!
-
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+        auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
         mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MX);
         mvisualizebeamA->SetColorscaleMinMax(-500, 500);
         mvisualizebeamA->SetSmoothFaces(true);
         mvisualizebeamA->SetWireframe(false);
         my_mesh->AddAsset(mvisualizebeamA);
 
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+        auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));        
         mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
         mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
         mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -316,7 +304,7 @@ int main(int argc, char* argv[]) {
         
         // Use the following for less numerical damping, 2nd order accuracy (but slower)
         //my_system.SetIntegrationType(ChSystem::INT_HHT);
-        if (ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>()) {
+        if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())){
             mystepper->SetVerbose(true);
             mystepper->SetStepControl(false);
         }
@@ -365,21 +353,20 @@ int main(int argc, char* argv[]) {
         application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
 
         // Create a truss:
-        ChSharedPtr<ChBody> my_body_A(new ChBody);
+        auto my_body_A = std::make_shared<ChBody>();
 
         my_body_A->SetBodyFixed(true);
-
         my_system.AddBody(my_body_A);
 
         // Attach a 'box' shape asset for visualization.
-        ChSharedPtr<ChBoxShape> mboxtruss(new ChBoxShape);
+        auto mboxtruss = std::make_shared<ChBoxShape>();
         mboxtruss->GetBoxGeometry().Pos = ChVector<>(-0.01, -0.2, -0.25);
         mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.5, 0.5));
         my_body_A->AddAsset(mboxtruss);
 
         // Create a FEM mesh, that is a container for groups
         // of elements and their referenced nodes.
-        ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+        auto my_mesh = std::make_shared<ChMesh>();
 
         double rotstep = 15;
         double rotmax = 90;
@@ -392,8 +379,7 @@ int main(int argc, char* argv[]) {
         double z_spacing = -0.07;
         double y_spacing = -0.14;
 
-        std::vector<ChSharedPtr<ChNodeFEAxyzrot> > endnodes[3];
-
+        std::vector<std::shared_ptr<ChNodeFEAxyzrot> > endnodes[3];
         for (int nload = 0; nload < 3; ++nload) {
             int i = 0;
             for (double rot = 0; rot <= rotmax; rot += rotstep) {
@@ -405,8 +391,7 @@ int main(int argc, char* argv[]) {
 
                 // Create a section, i.e. thickness and material properties
                 // for beams. This will be shared among some beams.
-
-                ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
+                auto msection = std::make_shared<ChBeamSectionAdvanced>();
 
                 double beam_wz = 0.0032024;  // 3.175;
                 double beam_wy = 0.01237;    // 12.7;
@@ -462,15 +447,14 @@ int main(int argc, char* argv[]) {
         // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
         // postprocessor that can handle a coloured ChTriangleMeshShape).
         // Do not forget AddAsset() at the end!
-
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+        auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
         mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MY);
         mvisualizebeamA->SetColorscaleMinMax(-0.001, 6);
         mvisualizebeamA->SetSmoothFaces(true);
         mvisualizebeamA->SetWireframe(false);
         my_mesh->AddAsset(mvisualizebeamA);
 
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+        auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
         mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
         mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
         mvisualizebeamC->SetSymbolsThickness(0.02);

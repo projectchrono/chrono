@@ -62,16 +62,16 @@ bool addSingleLoad = false;
 bool addPressure = false;
 bool addPressureAlessandro = true;
 
-ChSharedPtr<ChBody> BGround;
-ChSharedPtr<ChBody> Body_2;  // Rim (unsuspended)
-ChSharedPtr<ChBody> Body_3;  // Hub
-ChSharedPtr<ChBody> Body_4;  // Suspended
-ChSharedPtr<ChLinkPointFrame> NodePosRim;
-ChSharedPtr<ChLinkDirFrame> NodeDirRim;
-ChSharedPtr<ChNodeFEAxyzD> ConstrainedNode;
-ChSharedPtr<ChLinkPointFrame> NodePosRim2;
-ChSharedPtr<ChLinkDirFrame> NodeDirRim2;
-ChSharedPtr<ChNodeFEAxyzD> ConstrainedNode2;
+std::shared_ptr<ChBody> BGround;
+std::shared_ptr<ChBody> Body_2;  // Rim (unsuspended)
+std::shared_ptr<ChBody> Body_3;  // Hub
+std::shared_ptr<ChBody> Body_4;  // Suspended
+std::shared_ptr<ChLinkPointFrame> NodePosRim;
+std::shared_ptr<ChLinkDirFrame> NodeDirRim;
+std::shared_ptr<ChNodeFEAxyzD> ConstrainedNode;
+std::shared_ptr<ChLinkPointFrame> NodePosRim2;
+std::shared_ptr<ChLinkDirFrame> NodeDirRim2;
+std::shared_ptr<ChNodeFEAxyzD> ConstrainedNode2;
 
 // Some model parameters
 
@@ -82,15 +82,15 @@ const double ForVel = 0.0;      // Initial velocity of the tire. Applied to rim 
 double plate_lenght_z = 0.014;  // Thickness of the tire
 
 // Specification of the mesh
-const int numEl_Diameter = 120;  // Number of elements along diameter
-const int numEl_Thread = 24;     // Number of elements along thread
-const int numEl_z = 1;           // Single element along the thickness
+const int numEl_Diameter = 60;  // Number of elements along diameter
+const int numEl_Thread = 12;     // Number of elements along thread
+const int numEl_z = 1;          // Single element along the thickness
 const int N_Diameter = numEl_Diameter;
 const int N_Thread = numEl_Thread + 1;
 const int N_z = numEl_z + 1;
 const double TorusSmallRadius = 0.195;
 const double TorusRadius = 0.35;
-const double Clearance = 0.00;  // Initial space between tire and ground
+const double Clearance = 0.0002;  // Initial space between tire and ground
 const double GroundLoc =
     -(TorusRadius + TorusSmallRadius + Clearance);          // Vertical position of the ground (for contact)
 int TotalNumElements = numEl_Diameter * numEl_Thread;       // Number of elements in the tire
@@ -103,7 +103,7 @@ double dy = CH_C_PI * TorusSmallRadius / numEl_Thread;
 // ChLoadCustomMultiple to include basic node-Ground contact interaction
 class MyLoadCustomMultiple : public ChLoadCustomMultiple {
   public:
-    MyLoadCustomMultiple(std::vector<ChSharedPtr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
+    MyLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable> >& mloadables) : ChLoadCustomMultiple(mloadables){};
 
     // Compute Q=Q(x,v)
     // This is the function that you have to implement. It should return the
@@ -120,7 +120,7 @@ class MyLoadCustomMultiple : public ChLoadCustomMultiple {
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) {
-        std::vector<ChSharedPtr<ChLoadable>> NodeList;
+        std::vector<std::shared_ptr<ChLoadable> > NodeList;
         ChVector<> Node1_Pos;
         ChVector<> Node1_Vel;
         ChVector<> Node1_Grad;
@@ -138,9 +138,9 @@ class MyLoadCustomMultiple : public ChLoadCustomMultiple {
                 Node1_GradVel = state_w->ClipVector(iii * 6 + 3, 0);
 
                 if (Node1_Pos.y < GroundLoc) {
-                    NormalForceNode = KGround * abs(Node1_Pos.y - GroundLoc) - CGround * (Node1_Vel.y);
+                    NormalForceNode = KGround * abs(Node1_Pos.y - GroundLoc);
                     this->load_Q(iii * 6 + 1) = NormalForceNode;  // Fy (Vertical)
-                    const double VelLimit = 0.0001;
+                    const double VelLimit = 0.5;
                     // Calculation of friction forces
                     if (abs(Node1_Vel.x) > VelLimit) {
                         this->load_Q(iii * 6 + 0) =
@@ -161,7 +161,6 @@ class MyLoadCustomMultiple : public ChLoadCustomMultiple {
                             (Node1_Vel.z / sqrt((pow(Node1_Vel.x, 2) + pow(Node1_Vel.z, 2))));  // Fz (Plane y)
                     }
                 }
-                Node1_Pos.SetNull();
             }
         } else {
             // explicit integrators might call ComputeQ(0,0), null pointers mean
@@ -217,7 +216,7 @@ class MyLoadCustomMultiple : public ChLoadCustomMultiple {
 int main(int argc, char* argv[]) {
     // Definition of the model
     ChSystem my_system;
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
     ChIrrApp application(&my_system, L"ANCF Rolling Tire", core::dimension2d<u32>(1080, 800), false);
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -244,8 +243,7 @@ int main(int argc, char* argv[]) {
             double loc_x = TorusSmallRadius * sin(thethaTorus);
             double loc_y = (TorusRadius + TorusSmallRadius * cos(thethaTorus)) * sin(phiTorus);
             double loc_z = (TorusRadius + TorusSmallRadius * cos(thethaTorus)) * cos(phiTorus);
-            
-            
+
             double dir_x = sin(thethaTorus);
             double dir_y = cos(thethaTorus) * sin(phiTorus);
             double dir_z = cos(thethaTorus) * cos(phiTorus);
@@ -259,10 +257,10 @@ int main(int argc, char* argv[]) {
             double vel_z = ForVel;
 
             // Create the node
-            ChSharedPtr<ChNodeFEAxyzD> node(
-                new ChNodeFEAxyzD(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z)));
+            auto node =
+                std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
             // Apply initial velocities
-            node.StaticCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(vel_x, vel_y = 0, vel_z));
+            std::static_pointer_cast<ChNodeFEAxyz>(node)->SetPos_dt(ChVector<>(vel_x, vel_y, vel_z));
             node->SetMass(0);
             // Add node to mesh
             my_mesh->AddNode(node);
@@ -270,31 +268,28 @@ int main(int argc, char* argv[]) {
     }
     // Create an isotropic material.
     // All elements share the same material.
-    ChSharedPtr<ChMaterialShellANCF> mat(new ChMaterialShellANCF(500, 9.0e7, 0.3));
-
+    auto mat = std::make_shared<ChMaterialShellANCF>(500, 9.0e7, 0.3);
     // Create the elements
-    int node0, node1, node2, node3; // Node numbering
+    int node0, node1, node2, node3;         // Node numbering
     for (int j = 0; j < N_Diameter; j++) {  // Start node numbering by zero
         for (int i = 0; i < numEl_Thread; i++) {
-
             if (j == N_Diameter - 1) {
                 node0 = i + j * (numEl_Thread + 1);
                 node1 = i;
                 node2 = i + 1;
                 node3 = i + 1 + j * (numEl_Thread + 1);
-            }
-            else {
+            } else {
                 node0 = i + j * (numEl_Thread + 1);
                 node1 = i + (j + 1) * (numEl_Thread + 1);
                 node2 = i + 1 + (j + 1) * (numEl_Thread + 1);
                 node3 = i + 1 + j * (numEl_Thread + 1);
             }
             // Create the element and set its nodes.
-            ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
-            element->SetNodes(my_mesh->GetNode(node0).DynamicCastTo<ChNodeFEAxyzD>(),
-                my_mesh->GetNode(node1).DynamicCastTo<ChNodeFEAxyzD>(),
-                my_mesh->GetNode(node3).DynamicCastTo<ChNodeFEAxyzD>(),
-                my_mesh->GetNode(node2).DynamicCastTo<ChNodeFEAxyzD>());
+            auto element = std::make_shared<ChElementShellANCF>();
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)));
             // Set element dimensions
             element->SetDimensions(dx, dy);
 
@@ -302,7 +297,7 @@ int main(int argc, char* argv[]) {
             element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
 
             // Set other element properties
-            element->SetAlphaDamp(0.15);   // Structural damping for this element
+            element->SetAlphaDamp(0.15);  // Structural damping for this element
             element->SetGravityOn(true);  // no gravitational forces
 
             // Add element to mesh
@@ -319,15 +314,14 @@ int main(int argc, char* argv[]) {
     // Mark completion of system construction
     my_system.SetupInitial();
 
-
     if (addSingleLoad) {
-        ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode(TotalNumNodes - 1).DynamicCastTo<ChNodeFEAxyzD>());
+        auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
         nodetip->SetForce(ChVector<>(0, 0, -10));
     }
 
     if (addBodies) {
         // Body 1: Ground
-        BGround = ChSharedPtr<ChBody>(new ChBody);
+        BGround = std::make_shared<ChBody>();
         my_system.AddBody(BGround);
         BGround->SetIdentifier(1);
         BGround->SetBodyFixed(true);
@@ -338,7 +332,7 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> rot = Q_from_AngX(0.0);
         BGround->SetRot(rot);
         // Defining the Body 2: Rim
-        Body_2 = ChSharedPtr<ChBody>(new ChBody);
+        Body_2 = std::make_shared<ChBody>();
         my_system.AddBody(Body_2);
         Body_2->SetIdentifier(2);
         Body_2->SetBodyFixed(false);
@@ -347,9 +341,10 @@ int main(int argc, char* argv[]) {
         Body_2->SetInertiaXX(ChVector<>(1, 0.3, 0.3));
         Body_2->SetPos(ChVector<>(0, 0, 0));  // Y = -1m
         Body_2->SetRot(rot);
+        Body_2->SetPos_dt(ChVector<>(0, 0, ForVel));
         // Create constrained rim: Will remain in a perpendicular plane to the ground
         // Defining the Body 3: Hub
-        Body_3 = ChSharedPtr<ChBody>(new ChBody);
+        Body_3 = std::make_shared<ChBody>();
         my_system.AddBody(Body_3);
         Body_3->SetIdentifier(3);
         Body_3->SetBodyFixed(false);
@@ -358,8 +353,9 @@ int main(int argc, char* argv[]) {
         Body_3->SetInertiaXX(ChVector<>(0.01, 0.01, 0.01));
         Body_3->SetPos(ChVector<>(0, 0.0, 0));  // Y = -1m
         Body_3->SetRot(rot);
+        Body_3->SetPos_dt(ChVector<>(0, 0, ForVel));
         // Defining the Body 4: Suspended mass
-        Body_4 = ChSharedPtr<ChBody>(new ChBody);
+        Body_4 = std::make_shared<ChBody>();
         my_system.AddBody(Body_4);
         Body_4->SetIdentifier(4);
         Body_4->SetBodyFixed(false);
@@ -368,20 +364,20 @@ int main(int argc, char* argv[]) {
         Body_4->SetInertiaXX(ChVector<>(10, 3, 3));
         Body_4->SetPos(ChVector<>(0, 0.4, 0));  // Y = -1m
         Body_4->SetRot(rot);
-
+        Body_4->SetPos_dt(ChVector<>(0, 0, ForVel));
         // Create revolute joint between
-        ChSharedPtr<ChLinkLockOldham> Body4Plane(new ChLinkLockOldham);
+        auto Body4Plane = std::make_shared<ChLinkLockOldham>();
         my_system.AddLink(Body4Plane);
         Body4Plane->Initialize(Body_4, BGround, ChCoordsys<>(ChVector<>(0, 0.4, 0), Q_from_AngY(-CH_C_PI_2)));
 
         // Prismatic joint between hub and suspended mass
-        ChSharedPtr<ChLinkLockPrismatic> prims(new ChLinkLockPrismatic);
+        auto prims = std::make_shared<ChLinkLockPrismatic>();
         my_system.AddLink(prims);
         prims->Initialize(Body_3, Body_4, ChCoordsys<>(ChVector<>(0, 0.4, 0), Q_from_AngX(-CH_C_PI_2)));
         my_system.Set_G_acc(ChVector<>(0, -9.81, 0));  // Hey! 4G!
 
         // Revolute joint between hub and rim
-        ChSharedPtr<ChLinkLockRevolute> Rev(new ChLinkLockRevolute);
+        auto Rev = std::make_shared<ChLinkLockRevolute>();
         my_system.AddLink(Rev);
         Rev->Initialize(Body_2, Body_3, ChCoordsys<>(ChVector<>(0, 0.0, 0), Q_from_AngY(-CH_C_PI_2)));
 
@@ -390,7 +386,7 @@ int main(int argc, char* argv[]) {
         const double damping_coef = 1e3;
 
         // Spring and damper for secondary suspension
-        ChSharedPtr<ChLinkSpring> spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+        auto spring = std::make_shared<ChLinkSpring>();
         spring->Initialize(Body_3, Body_4, false, ChVector<>(0, 0, 0), ChVector<>(0, 0, 0), true);
         spring->Set_SpringK(spring_coef);
         spring->Set_SpringR(damping_coef);
@@ -398,12 +394,13 @@ int main(int argc, char* argv[]) {
     }
     // First: loads must be added to "load containers",
     // and load containers must be added to your ChSystem
-    ChSharedPtr<ChLoadContainer> Mloadcontainer(new ChLoadContainer);
+    auto Mloadcontainer = std::make_shared<ChLoadContainer>();
     // Add constant pressure using ChLoaderPressure (preferred for simple, constant pressure)
     if (addPressureAlessandro) {
         for (int NoElmPre = 0; NoElmPre < TotalNumElements; NoElmPre++) {
-            ChSharedPtr<ChLoad<ChLoaderPressure>> faceload(
-                new ChLoad<ChLoaderPressure>(my_mesh->GetElement(NoElmPre).StaticCastTo<ChElementShellANCF>()));
+            auto faceload = std::make_shared<ChLoad<ChLoaderPressure>>(
+                std::static_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(NoElmPre)));
+            ;
             faceload->loader.SetPressure(320e3);
             faceload->loader.SetStiff(false);
             faceload->loader.SetIntegrationPoints(2);
@@ -415,12 +412,13 @@ int main(int argc, char* argv[]) {
     if (addPressure) {
         class MyPressureLoad : public ChLoaderUVdistributed {
           private:
-            ChSharedPtr<ChElementShellANCF> m_element;
+            std::shared_ptr<ChElementShellANCF> m_element;
 
           public:
             // Useful: a constructor that also sets ChLoadable
-            MyPressureLoad(ChSharedPtr<ChLoadableUV> element) : ChLoaderUVdistributed(element) {
-                m_element = element.StaticCastTo<ChElementShellANCF>();
+
+            MyPressureLoad(std::shared_ptr<ChLoadableUV> element) : ChLoaderUVdistributed(element) {
+                m_element = std::static_pointer_cast<ChElementShellANCF>(element);
             };
             virtual bool IsStiff() override { return true; }
             virtual int GetIntegrationPointsU() { return 2; }
@@ -511,8 +509,8 @@ int main(int argc, char* argv[]) {
         // It is created using templates, that is instancing a ChLoad<a_loader_class>()
         // initiate for loop for all the elements
         for (int NoElmPre = 0; NoElmPre < TotalNumElements; NoElmPre++) {
-            ChSharedPtr<ChLoad<MyPressureLoad>> PressureElement(
-                new ChLoad<MyPressureLoad>(my_mesh->GetElement(NoElmPre).StaticCastTo<ChElementShellANCF>()));
+            auto PressureElement = std::make_shared<ChLoad<MyPressureLoad>>(
+                std::static_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(NoElmPre)));
             Mloadcontainer->Add(PressureElement);  // do not forget to add the load to the load container.
         }
     }
@@ -528,27 +526,24 @@ int main(int argc, char* argv[]) {
 
                 if ((i + j * N_Thread) % (N_Thread) == 0) {
                     // First node to be constrained (one side of the rim)
-                    ConstrainedNode =
-                        ChSharedPtr<ChNodeFEAxyzD>(my_mesh->GetNode(ConstNodeInx).DynamicCastTo<ChNodeFEAxyzD>());
-                    NodePosRim = ChSharedPtr<ChLinkPointFrame>(new ChLinkPointFrame);
+                    ConstrainedNode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ConstNodeInx));
+                    NodePosRim = std::make_shared<ChLinkPointFrame>();
                     NodePosRim->Initialize(ConstrainedNode, Body_2);
                     my_system.Add(NodePosRim);
 
-                    NodeDirRim = ChSharedPtr<ChLinkDirFrame>(new ChLinkDirFrame);
+                    NodeDirRim = std::make_shared<ChLinkDirFrame>();
                     NodeDirRim->Initialize(ConstrainedNode, Body_2);
                     NodeDirRim->SetDirectionInAbsoluteCoords(ConstrainedNode->D);
                     my_system.Add(NodeDirRim);
 
                     // Second node to be constrained (other side of the rim)
-
-                    ConstrainedNode2 = ChSharedPtr<ChNodeFEAxyzD>(
-                        my_mesh->GetNode(ConstNodeInx + N_Thread - 1).DynamicCastTo<ChNodeFEAxyzD>());
-
-                    NodePosRim2 = ChSharedPtr<ChLinkPointFrame>(new ChLinkPointFrame);
+                    ConstrainedNode2 =
+                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ConstNodeInx + N_Thread - 1));
+                    NodePosRim2 = std::make_shared<ChLinkPointFrame>();
                     NodePosRim2->Initialize(ConstrainedNode2, Body_2);
                     my_system.Add(NodePosRim2);
 
-                    NodeDirRim2 = ChSharedPtr<ChLinkDirFrame>(new ChLinkDirFrame);
+                    NodeDirRim2 = std::make_shared<ChLinkDirFrame>();
                     NodeDirRim2->Initialize(ConstrainedNode2, Body_2);
                     NodeDirRim2->SetDirectionInAbsoluteCoords(ConstrainedNode2->D);
                     my_system.Add(NodeDirRim2);
@@ -557,39 +552,23 @@ int main(int argc, char* argv[]) {
         }
 
         if (addGroundForces) {
-            // Select on which nodes we are going to apply a load
-            // ChSharedPtr<ChNodeFEAxyzD> NodeLoad6(my_mesh->GetNode(6).DynamicCastTo<ChNodeFEAxyzD>());
-            // ChSharedPtr<ChNodeFEAxyzD> NodeLoad7(my_mesh->GetNode(7).DynamicCastTo<ChNodeFEAxyzD>());
-            std::vector<ChSharedPtr<ChLoadable>> NodeList;
+            std::vector<std::shared_ptr<ChLoadable>> NodeList;
             for (int iNode = 0; iNode < TotalNumNodes; iNode++) {
-                ChSharedPtr<ChNodeFEAxyzD> NodeLoad(my_mesh->GetNode(iNode).DynamicCastTo<ChNodeFEAxyzD>());
+                auto NodeLoad =
+                    std::shared_ptr<ChNodeFEAxyzD>(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(iNode)));
                 NodeList.push_back(NodeLoad);
             }
             // Instance load object. This require a list of ChLoadable objects
             // (these are our two nodes,pay attention to the sequence order), and add to
             // container.
-            ChSharedPtr<MyLoadCustomMultiple> Mloadcustommultiple(new MyLoadCustomMultiple(NodeList));
+            auto Mloadcustommultiple = std::make_shared<MyLoadCustomMultiple>(NodeList);
             Mloadcontainer->Add(Mloadcustommultiple);
         }
     }
     my_system.Add(Mloadcontainer);
     // Switch off mesh class gravity: my_mesh still does not implement this element's gravity forces
     my_mesh->SetAutomaticGravity(false);
-    // Remember to add the mesh to the system
-    my_system.Add(my_mesh);
 
-    // Create a floor body
-    ChSharedPtr<ChBodyEasyBox> mrigidBody( new ChBodyEasyBox(10,0.2,10, 1000,true,true));
-    my_system.Add(mrigidBody);
-    mrigidBody->SetBodyFixed(true);
-    mrigidBody->SetPos(ChVector<>(0, GroundLoc -0.1, 0));
-    mrigidBody->GetMaterialSurface()->SetFriction(0.5);
-
-    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
-    mrigidBody->AddAsset(mtexture);
-
-    // This is mandatory
-    my_system.SetupInitial();
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;  // MKL Solver option
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
@@ -599,11 +578,10 @@ int main(int argc, char* argv[]) {
 
     // INT_HHT or INT_EULER_IMPLICIT
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);  // Important for convergence
-    mystepper->SetMaxiters(10);
-    mystepper->SetAbsTolerances(5e-05);
+    mystepper->SetMaxiters(20);
+    mystepper->SetAbsTolerances(5e-05, 5e-03);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);  //
     mystepper->SetVerbose(true);
@@ -611,99 +589,92 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 3, 1> Cp;
     ChMatrixNM<double, 2, 1> Cd;  // Matrices for storing constraint violations
 
-    // Visualization
-    Body_2->SetPos_dt(ChVector<>(0, 0, ForVel));
-    ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
-    mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
-    Body_2->AddAsset(mobjmesh);
     double start = std::clock();
     if (showVisual) {
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+
+
+        // Visualization
+        auto mobjmesh = std::make_shared<ChObjShapeFile>();
+        mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj").c_str());
+        Body_2->AddAsset(mobjmesh);
+
+        // Create a floor body
+        auto mrigidBody = std::make_shared<ChBodyEasyBox>(10, 0.2, 10, 1000, true, true);
+        my_system.Add(mrigidBody);
+        mrigidBody->SetBodyFixed(true);
+        mrigidBody->SetPos(ChVector<>(0, GroundLoc - 0.1, 0));
+        mrigidBody->GetMaterialSurface()->SetFriction(0.5);
+        auto mtexture = std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg").c_str());
+        mrigidBody->AddAsset(mtexture);
+
+
+        auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
         mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
         mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
         mvisualizemeshC->SetSymbolsThickness(0.003);
         my_mesh->AddAsset(mvisualizemeshC);
 
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshwire(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+        auto mvisualizemeshwire = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
         mvisualizemeshwire->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
         mvisualizemeshwire->SetWireframe(true);
         my_mesh->AddAsset(mvisualizemeshwire);
 
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+        auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
         mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
         mvisualizemesh->SetColorscaleMinMax(0.0, 30);
         mvisualizemesh->SetSmoothFaces(true);
         my_mesh->AddAsset(mvisualizemesh);
         application.AssetBindAll();
         application.AssetUpdateAll();
-
-        
-        my_system.Setup();
-        my_system.Update();
-
-        GetLog() << "\n\nREADME\n\n"
-                 << " - Press SPACE to start dynamic simulation \n - Press F10 for nonlinear statics - Press F11 for "
-                    "linear statics. \n";
-
-        // at beginning, no analysis is running..
-        application.SetPaused(true);
-        int AccuNoIterations = 0;
-        application.SetStepManage(true);
-        application.SetTimestep(time_step);
-        application.SetTryRealtime(true);
-        double ChTime = 0.0;
-
-        utils::CSV_writer out("\t");
-        out.stream().setf(std::ios::scientific | std::ios::showpos);
-        out.stream().precision(7);
-        const double VerForce = 0;
-        const double HorForce = 4000;
-        const double tini = 0.1;
-        const double tend = 0.2;
-        const double interval = tend - tini;
-        while (application.GetDevice()->run()) {
-            Body_2->Empty_forces_accumulators();
-            // Body_2->Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
-            if (my_system.GetChTime() >= tini && my_system.GetChTime() <= tend) {
-                Body_2->Set_Scr_torque(ChVector<>(HorForce * (my_system.GetChTime() - tini) / interval, 0, 0));
-            } else if (my_system.GetChTime() > tend) {
-                Body_2->Set_Scr_torque(ChVector<>(HorForce, 0, 0));
-            }
-            application.BeginScene();
-            application.DrawAll();
-            application.DoStep();
-            application.EndScene();
-            if (!application.GetPaused()) {
-                std::cout << "Time t = " << my_system.GetChTime() << "s \n";
-                AccuNoIterations += mystepper->GetNumIterations();
-                printf("Forward position of rim X:      %12.4e \n", Body_2->coord.pos.x);
-                out << my_system.GetChTime() << Body_2->GetPos().x << Body_2->GetPos().y << Body_2->GetPos().z
-                    << Body_3->GetPos().x << Body_3->GetPos().y << Body_3->GetPos().z << Body_4->GetPos().x
-                    << Body_4->GetPos().y << Body_4->GetPos().z << std::endl;
-                out.write_to_file("../VertPosRim.txt");
-            }
-        }
-        double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        chrono::GetLog() << "Computation Time: " << duration << "\n";
-    } else {
-        for (unsigned int it = 0; it < num_steps; it++) {
-            my_system.DoStepDynamics(time_step);
-            std::cout << "Time t = " << my_system.GetChTime() << "s \n";
-            // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
-            std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
-            if (addConstRim) {
-                Cp = NodePosRim->GetC();
-                printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp.GetElement(0, 0),
-                       Cp.GetElement(1, 0), Cp.GetElement(2, 0));
-                Cd = NodeDirRim->GetC();
-                printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd.GetElement(0, 0), Cd.GetElement(1, 0));
-
-                printf("Vertical position of the rim:  %12.4e m\n", Body_2->coord.pos.y);
-            }
-        }
-        double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        chrono::GetLog() << "Computation Time: " << duration << "\n";
     }
 
+    my_system.Setup();
+    my_system.Update();
+
+    // This is mandatory
+    my_system.SetupInitial();
+
+    GetLog() << "\n\nREADME\n\n"
+             << " - Press SPACE to start dynamic simulation \n - Press F10 for nonlinear statics - Press F11 for "
+                "linear statics. \n";
+
+    // at beginning, no analysis is running..
+    application.SetPaused(true);
+    int AccuNoIterations = 0;
+    application.SetStepManage(true);
+    application.SetTimestep(time_step);
+    application.SetTryRealtime(true);
+    double ChTime = 0.0;
+
+    const double VerForce = 0;
+    const double HorForce = 4000;
+    const double tini = 0.1;
+    const double tend = 0.2;
+    const double interval = tend - tini;
+    double duration = 0.0;
+    while (application.GetDevice()->run()) {
+        Body_2->Empty_forces_accumulators();
+        // Body_2->Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
+        if (my_system.GetChTime() >= tini && my_system.GetChTime() <= tend) {
+            Body_2->Set_Scr_torque(ChVector<>(HorForce * (my_system.GetChTime() - tini) / interval, 0, 0));
+        } else if (my_system.GetChTime() > tend) {
+            Body_2->Set_Scr_torque(ChVector<>(HorForce, 0, 0));
+        }
+        application.BeginScene();
+        application.DrawAll();
+        application.DoStep();
+        application.EndScene();
+        if (!application.GetPaused()) {
+            std::cout << "Time t = " << my_system.GetChTime() << "s \n";
+            AccuNoIterations += mystepper->GetNumIterations();
+            printf("Vertical position of rim:      %12.4e \n", Body_2->GetPos().y);
+            out << my_system.GetChTime() << Body_2->GetPos().x << Body_2->GetPos().y << Body_2->GetPos().z
+                << Body_3->GetPos().x << Body_3->GetPos().y << Body_3->GetPos().z << Body_4->GetPos().x
+                << Body_4->GetPos().y << Body_4->GetPos().z << std::endl;
+            out.write_to_file("../VertPosRim.txt");
+        }
+        duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+    }
+    chrono::GetLog() << "Computation Time: " << duration << "\n";
     return 0;
 }
