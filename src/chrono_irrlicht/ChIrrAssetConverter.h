@@ -63,8 +63,7 @@ class ChApiIrr ChIrrAssetConverter {
     ~ChIrrAssetConverter();
 
     /// Returns the proxy to the ChIrrNode, by scanning all assets.
-    /// Note, check for the returned pointer, using mnode.IsNull(), just in case a
-    /// proxy has not been added.
+    /// Note, check for the returned pointer, just in case a proxy has not been added.
     std::shared_ptr<ChIrrNodeAsset> GetIrrNodeAsset(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Shortcut to add and bind a ChIrrNodeAsset to an item, if it has not been
