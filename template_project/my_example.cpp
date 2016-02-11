@@ -61,8 +61,11 @@ int main(int argc, char* argv[]) {
 
     // 1-Create a floor that is fixed (that is used also to represent the absolute reference)
 
-    ChSharedPtr<ChBodyEasyBox> floorBody(new ChBodyEasyBox(
-        10, 2, 10, 3000, false, true));  // to create the floor, false -> doesn't represent a collide's surface
+    auto floorBody = std::make_shared<ChBodyEasyBox>(10, 2, 10,  // x, y, z dimensions
+                                                     3000,       // density
+                                                     false,      // no contact geometry
+                                                     true        // enable visualization geometry
+                                                     );
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
 
@@ -70,8 +73,11 @@ int main(int argc, char* argv[]) {
 
     // 2-Create a pendulum
 
-    ChSharedPtr<ChBodyEasyBox> pendulumBody(new ChBodyEasyBox(
-        0.5, 2, 0.5, 3000, false, true));  // to create the floor, false -> doesn't represent a collide's surface
+    auto pendulumBody = std::make_shared<ChBodyEasyBox>(0.5, 2, 0.5,  // x, y, z dimensions
+                                                        3000,         // density
+                                                        false,        // no contact geometry
+                                                        true          // enable visualization geometry
+                                                        );
     pendulumBody->SetPos(ChVector<>(0, 3, 0));
     pendulumBody->SetPos_dt(ChVector<>(1, 0, 0));
 
@@ -80,8 +86,8 @@ int main(int argc, char* argv[]) {
     // 3-Create a spherical constraint.
     //   Here we'll use a ChLinkMateGeneric, but we could also use ChLinkLockSpherical
 
-    ChSharedPtr<ChLinkMateGeneric> sphericalLink(
-        new ChLinkMateGeneric(true, true, true, false, false, false));  // x,y,z,Rx,Ry,Rz constrains
+    auto sphericalLink =
+        std::make_shared<ChLinkMateGeneric>(true, true, true, false, false, false);  // x,y,z,Rx,Ry,Rz constrains
     ChFrame<> link_position_abs(ChVector<>(0, 4, 0));
 
     sphericalLink->Initialize(pendulumBody,        // the 1st body to connect
@@ -92,15 +98,15 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.Add(sphericalLink);
 
-    // optional, attach a RGB color asset to the floor, for better visualization
-    ChSharedPtr<ChColorAsset> mcolor(new ChColorAsset());
-    mcolor->SetColor(ChColor(0.2, 0.25, 0.25));
-    floorBody->AddAsset(mcolor);
+    // Optionally, attach a RGB color asset to the floor, for better visualization
+    auto color = std::make_shared<ChColorAsset>();
+    color->SetColor(ChColor(0.2f, 0.25f, 0.25f));
+    floorBody->AddAsset(color);
 
-    // optional, attach a texture to the pendulum, for better visualization
-    ChSharedPtr<ChTexture> mtexture(new ChTexture());
-    mtexture->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));  // texture in ../data
-    pendulumBody->AddAsset(mtexture);
+    // Optionally, attach a texture to the pendulum, for better visualization
+    auto texture = std::make_shared<ChTexture>();
+    texture->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));  // texture in ../data
+    pendulumBody->AddAsset(texture);
 
     //======================================================================
 
