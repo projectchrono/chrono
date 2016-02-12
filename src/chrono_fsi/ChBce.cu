@@ -21,6 +21,42 @@ namespace chrono {
 namespace fsi {
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// calculate marker acceleration, required in ADAMI
+__global__ void calcBceAcceleration_kernel(
+		Real3* bceAcc,
+		Real4* q_fsiBodies_D,
+		Real3* accRigid_fsiBodies_D,
+		Real3* omegaVelLRF_fsiBodies_D,
+		Real3* omegaAccLRF_fsiBodies_D,
+		Real3* rigidSPH_MeshPos_LRF_D,
+		const uint* rigidIdentifierD) {
+	uint bceIndex = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
+		return;
+	}
+
+	int rigidBodyIndex = rigidIdentifierD[bceIndex];
+	Real3 acc3 = accRigid_fsiBodies_D[rigidBodyIndex]; // linear acceleration (CM)
+
+	Real4 q4 = q_fsiBodies_D[rigidBodyIndex];
+	Real3 a1, a2, a3;
+	RotationMatirixFromQuaternion(a1, a2, a3, q4);
+	Real3 wVel3 = omegaVelLRF_fsiBodies_D[rigidBodyIndex];
+	Real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[bceIndex];
+	Real3 wVelCrossS = cross(wVel3, rigidSPH_MeshPos_LRF);
+	Real3 wVelCrossWVelCrossS = cross(wVel3, wVelCrossS);
+	acc3 += dot(a1, wVelCrossWVelCrossS), dot(a2, wVelCrossWVelCrossS), dot(a3,
+			wVelCrossWVelCrossS); 						// centrigugal acceleration
+
+	Real3 wAcc3 = omegaAccLRF_fsiBodies_D[rigidBodyIndex];
+	Real3 wAccCrossS = cross(wAcc3, rigidSPH_MeshPos_LRF);
+	acc3 += dot(a1, wAccCrossS), dot(a2, wAccCrossS), dot(a3,
+			wAccCrossS); 								// tangential acceleration
+
+//	printf("linear acc %f %f %f point acc %f %f %f \n", accRigid3.x, accRigid3.y, accRigid3.z, acc3.x, acc3.y, acc3.z);
+	bceAcc[bceIndex] = acc3;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 // updates the rigid body particles
 __global__ void UpdateRigidMarkersPositionVelocityD(Real3* posRadD, Real3* velMasD,
 		const Real3* rigidSPH_MeshPos_LRF_D, const uint* rigidIdentifierD,
@@ -89,6 +125,63 @@ ChBce::ChBce(FsiGeneralData* otherFsiGeneralData,
 	totalSurfaceInteractionRigid4.resize(numObjectsH->numRigidBodies);
 	dummyIdentify.resize(numObjectsH->numRigidBodies);
 	torqueMarkersD.resize(numObjectsH->numRigid_SphMarkers);
+
+	// modify BCE velocity and pressure
+	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
+	if ((numObjects.numBoundaryMarkers + numObjects.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
+		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly!\n");
+	}
+	velMas_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
+	rhoPreMu_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChFsiForceParallel::CalcBceAcceleration(
+		thrust::device_vector<Real3>& bceAcc,
+		const thrust::device_vector<Real4>& q_fsiBodies_D,
+		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
+		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
+		const thrust::device_vector<uint>& rigidIdentifierD,
+		int numRigid_SphMarkers) {
+
+	// thread per particle
+	uint numThreads, numBlocks;
+	computeGridSize(numRigid_SphMarkers, 64, numBlocks, numThreads);
+
+	calcBceAcceleration_kernel<<<numBlocks, numThreads>>>(mR3CAST(bceAcc),
+			mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D), mR3CAST(omegaAccLRF_fsiBodies_D),
+			mR3CAST(rigidSPH_MeshPos_LRF_D), U1CAST(rigidIdentifierD));
+
+	cudaThreadSynchronize();
+	cudaCheckError();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChFsiForceParallel::ModifyBceVelocity(FsiBodiesDataD * fsiBodiesD) {
+	// modify BCE velocity and pressure
+	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjectsH.numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
+	if ((numObjectsH.numBoundaryMarkers + numObjectsH.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
+		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly. Thrown from ModifyBceVelocity!\n");
+	}
+	if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers && rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
+		throw std::runtime_error ("Error! size error velMas_ModifiedBCE and rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
+	}
+	int2 updatePortion = mI2(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[2 + numObjectsH.numRigidBodies - 1].y);
+	if (paramsH.bceType == ADAMI) {
+		thrust::device_vector<Real3> bceAcc(numObjectsH.numRigid_SphMarkers);
+		if (numObjectsH.numRigid_SphMarkers > 0) {
+			CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D, fsiBodiesD->omegaVelLRF_fsiBodies_D,
+					fsiBodiesD->omegaAccLRF_fsiBodies_D, fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD, numObjectsH.numRigid_SphMarkers);
+		}
+		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
+				sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, ProximityDataD->cellStartD, ProximityDataD->cellEndD, 
+				ProximityDataD->mapOriginalToSorted, bceAcc, updatePortion);
+		bceAcc.clear();
+	} else {
+		thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, sphMarkersD->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
+		thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x, sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
+	}
+
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // applies the time step to the current quantities and saves the new values into variable with the same name and '2' and

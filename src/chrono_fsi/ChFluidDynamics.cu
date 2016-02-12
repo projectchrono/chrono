@@ -223,11 +223,14 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChFluidDynamics::ChFluidDynamics(
+			ChBce* otherBceWorker,
 			ChFsiDataManager* otherFsiData,
 			SimParams* otherParamsH, 
 			NumberOfObjects* otherNumObjects)
 : fsiData(otherFsiData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+
 	forceSystem = new ChFsiForceParallel(
+		otherBceWorker,
 		&(fsiData->sortedSphMarkersD),
 		&(fsiData->markersProximityD),
 		&(fsiData->fsiGeneralData),

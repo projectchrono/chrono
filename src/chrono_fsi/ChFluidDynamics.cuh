@@ -28,6 +28,7 @@ class CH_FSI_API ChFluidDynamics : public ChFsiGeneral{
 public:
 	//TODO: Default constructor
 	ChFluidDynamics(
+		ChBce* otherBceWorker,
 		ChFsiDataManager* otherFsiData,
 		SimParams* otherParamsH, 
 		NumberOfObjects* otherNumObjects);

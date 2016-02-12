@@ -28,12 +28,12 @@ ChSystemFsi::ChSystemFsi() {
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 
-	fluidDynamics = new ChFluidDynamics(fsiData, paramsH, numObjectsH);
+	bceWorker = new ChBce(fsiData->fsiGeneralData, paramsH, numObjectsH);
+	fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH);
 	fsiInterface = new ChFsiInterface(fsiData->fsiBodiesH, fsiData->chronoRigidBackup,
 		mphysicalSystem, &fsiBodeisPtr,
 		fsiData->fsiGeneralData.rigid_FSI_ForcesD,
 		fsiData->fsiGeneralData.rigid_FSI_TorquesD);
-	bceWorker = new ChBce(fsiData->fsiGeneralData, paramsH, numObjectsH);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::CopyDeviceDataToHalfStep() {	

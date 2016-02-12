@@ -27,12 +27,17 @@ namespace fsi {
 
 class CH_FSI_API ChBce : public ChFsiGeneral {
 public:
+	thrust::device_vector<Real3> velMas_ModifiedBCE;//(numRigidAndBoundaryMarkers);
+	thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;//(numRigidAndBoundaryMarkers);
+
+
 	ChBce(FsiGeneralData* otherFsiGeneralData,
 		SimParams* otherParamsH, 
 		NumberOfObjects* otherNumObjects);
 
 	~ChBce();
 
+	void ModifyBceVelocity();
 	void UpdateRigidMarkersPositionVelocity(
 		SphMarkerDataD* sphMarkersD,
 		FsiBodiesDataD* fsiBodiesD);
@@ -44,6 +49,12 @@ public:
 private:
 
 	FsiGeneralData* fsiGeneralData;
+	SphMarkerDataD * sortedSphMarkersD;
+	ProximityDataD * markersProximityD;
+
+
+
+
 	thrust::device_vector<Real4> totalSurfaceInteractionRigid4;
 	thrust::device_vector<Real3> torqueMarkersD;
 	thrust::device_vector<int> dummyIdentify;

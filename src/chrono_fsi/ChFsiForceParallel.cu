@@ -15,6 +15,7 @@
 // Class for handling time integration in fsi system.//
 // =============================================================================
 #include "ChFsiForceParallel.cuh"
+#include <thrust/sort.h>
 
 namespace chrono {
 namespace fsi {
@@ -53,6 +54,98 @@ __device__ Real3 deltaVShare(int3 gridPos, uint index, Real3 posRadA,
 		}
 	}
 	return deltaV;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// modify pressure for body force
+__device__ __inline__ void modifyPressure(Real4& rhoPresMuB,
+		const Real3& dist3Alpha) {
+	// body force in x direction
+	rhoPresMuB.y =
+			(dist3Alpha.x > 0.5 * paramsD.boxDims.x) ?
+					(rhoPresMuB.y - paramsD.deltaPress.x) : rhoPresMuB.y;
+	rhoPresMuB.y =
+			(dist3Alpha.x < -0.5 * paramsD.boxDims.x) ?
+					(rhoPresMuB.y + paramsD.deltaPress.x) : rhoPresMuB.y;
+	// body force in x direction
+	rhoPresMuB.y =
+			(dist3Alpha.y > 0.5 * paramsD.boxDims.y) ?
+					(rhoPresMuB.y - paramsD.deltaPress.y) : rhoPresMuB.y;
+	rhoPresMuB.y =
+			(dist3Alpha.y < -0.5 * paramsD.boxDims.y) ?
+					(rhoPresMuB.y + paramsD.deltaPress.y) : rhoPresMuB.y;
+	// body force in x direction
+	rhoPresMuB.y =
+			(dist3Alpha.z > 0.5 * paramsD.boxDims.z) ?
+					(rhoPresMuB.y - paramsD.deltaPress.z) : rhoPresMuB.y;
+	rhoPresMuB.y =
+			(dist3Alpha.z < -0.5 * paramsD.boxDims.z) ?
+					(rhoPresMuB.y + paramsD.deltaPress.z) : rhoPresMuB.y;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+/**
+ * @brief calcGridHash
+ * @details  See SDKCollisionSystem.cuh
+ */
+__device__ inline Real4 DifVelocityRho(Real3& dist3, Real& d, Real3 posRadA, Real3 posRadB,
+		Real3& velMasA, Real3& vel_XSPH_A, Real3& velMasB,
+		Real3& vel_XSPH_B, Real4& rhoPresMuA,
+		Real4& rhoPresMuB, Real multViscosity) {
+	Real3 gradW = GradW(dist3);
+
+	// Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
+
+	//	//*** Artificial viscosity type 1.1
+	//	Real alpha = .001;
+	//	Real c_ab = 10 * paramsD.v_Max; //Ma = .1;//sqrt(7.0f * 10000 / ((rhoPresMuA.x + rhoPresMuB.x) / 2.0f));
+	//	//Real h = paramsD.HSML;
+	//	Real rho = .5f * (rhoPresMuA.x + rhoPresMuB.x);
+	//	Real nu = alpha * paramsD.HSML * c_ab / rho;
+
+	//	//*** Artificial viscosity type 1.2
+	//	Real nu = 22.8f * paramsD.mu0 / 2.0f / (rhoPresMuA.x * rhoPresMuB.x);
+	//	Real3 derivV = -paramsD.markerMass * (
+	//		rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)
+	//		- nu * vAB_Dot_rAB / ( d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML )
+	//		) * gradW;
+	//	return mR4(derivV,
+	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
+
+	//*** Artificial viscosity type 2
+	Real rAB_Dot_GradW = dot(dist3, gradW);
+	Real rAB_Dot_GradW_OverDist = rAB_Dot_GradW
+			/ (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+	Real3 derivV = -paramsD.markerMass
+			* (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x)
+					+ rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
+			+ paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0
+					* pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2))
+					* rAB_Dot_GradW_OverDist * (velMasA - velMasB);
+	Real derivRho = rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x
+			* dot(vel_XSPH_A - vel_XSPH_B, gradW);
+	//	Real zeta = 0;//.05;//.1;
+	//	Real derivRho = rhoPresMuA.x * paramsD.markerMass * invrhoPresMuBx * (dot(vel_XSPH_A - vel_XSPH_B, gradW)
+	//			+ zeta * paramsD.HSML * (10 * paramsD.v_Max) * 2 * (rhoPresMuB.x / rhoPresMuA.x - 1) *
+	// rAB_Dot_GradW_OverDist
+	//			);
+
+	//--------------------------------
+	// Ferrari Modification
+	derivRho = paramsD.markerMass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
+	Real cA = FerrariCi(rhoPresMuA.x);
+	Real cB = FerrariCi(rhoPresMuB.x);
+	derivRho -= rAB_Dot_GradW / (d + paramsD.epsMinMarkersDis * paramsD.HSML) * max(cA, cB) / rhoPresMuB.x * (rhoPresMuB.x - rhoPresMuA.x);
+
+	//--------------------------------
+	return mR4(derivV, derivRho);
+
+	//	//*** Artificial viscosity type 1.3
+	//	Real rAB_Dot_GradW = dot(dist3, gradW);
+	//	Real3 derivV = -paramsD.markerMass * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x *
+	// rhoPresMuB.x)) * gradW
+	//		+ paramsD.markerMass / (rhoPresMuA.x * rhoPresMuB.x) * 2.0f * paramsD.mu0 * rAB_Dot_GradW / ( d * d +
+	// paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML ) * (velMasA - velMasB);
+	//	return mR4(derivV,
+	//		rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -116,42 +209,6 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 	// ff1
 	//	if (rhoPresMuA.w > 0) printf("force value %f %f %f\n", 1e20*derivV.x, 1e20*derivV.y, 1e20*derivV.z);
 	return derivVelRho;
-} 
-//--------------------------------------------------------------------------------------------------------------------------------
-// calculate marker acceleration, required in ADAMI
-__global__ void calcBceAcceleration_kernel(
-		Real3* bceAcc,
-		Real4* q_fsiBodies_D,
-		Real3* accRigid_fsiBodies_D,
-		Real3* omegaVelLRF_fsiBodies_D,
-		Real3* omegaAccLRF_fsiBodies_D,
-		Real3* rigidSPH_MeshPos_LRF_D,
-		const uint* rigidIdentifierD) {
-	uint bceIndex = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
-	if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
-		return;
-	}
-
-	int rigidBodyIndex = rigidIdentifierD[bceIndex];
-	Real3 acc3 = accRigid_fsiBodies_D[rigidBodyIndex]; // linear acceleration (CM)
-
-	Real4 q4 = q_fsiBodies_D[rigidBodyIndex];
-	Real3 a1, a2, a3;
-	RotationMatirixFromQuaternion(a1, a2, a3, q4);
-	Real3 wVel3 = omegaVelLRF_fsiBodies_D[rigidBodyIndex];
-	Real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[bceIndex];
-	Real3 wVelCrossS = cross(wVel3, rigidSPH_MeshPos_LRF);
-	Real3 wVelCrossWVelCrossS = cross(wVel3, wVelCrossS);
-	acc3 += dot(a1, wVelCrossWVelCrossS), dot(a2, wVelCrossWVelCrossS), dot(a3,
-			wVelCrossWVelCrossS); 						// centrigugal acceleration
-
-	Real3 wAcc3 = omegaAccLRF_fsiBodies_D[rigidBodyIndex];
-	Real3 wAccCrossS = cross(wAcc3, rigidSPH_MeshPos_LRF);
-	acc3 += dot(a1, wAccCrossS), dot(a2, wAccCrossS), dot(a3,
-			wAccCrossS); 								// tangential acceleration
-
-//	printf("linear acc %f %f %f point acc %f %f %f \n", accRigid3.x, accRigid3.y, accRigid3.z, acc3.x, acc3.y, acc3.z);
-	bceAcc[bceIndex] = acc3;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -271,13 +328,14 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceParallel::ChFsiForceParallel(
+ChFsiForceParallel::ChFsiForceParallel(
+	ChBce* otherBceWorker,
 	SphMarkerDataD * otherSortedSphMarkersD,
 	ProximityDataD * otherMarkersProximityD,
 	FsiGeneralData * otherFsiGeneralData,
 	SimParams* otherParamsH, 
 	NumberOfObjects* otherNumObjects)
-: sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), 
+: bceWorker(otherBceWorker), sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), 
 paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 
 	fsiCollisionSystem = new ChCollisionSystemFsi(sortedSphMarkersD, markersProximityD, paramsH, numObjectsH);
@@ -285,7 +343,6 @@ paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 
 	sphMarkersD = NULL;
-	fsiBodiesD = NULL;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // use invasive to avoid one extra copy. However, keep in mind that sorted is changed.
@@ -324,57 +381,6 @@ void ChFsiForceParallel::CopySortedToOriginal_NonInvasive_R4(thrust::device_vect
 	CopySortedToOriginal_Invasive_R4(original, dummySorted, gridMarkerIndex);
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChFsiForceParallel::CalcBceAcceleration(
-		thrust::device_vector<Real3>& bceAcc,
-		const thrust::device_vector<Real4>& q_fsiBodies_D,
-		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
-		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
-		const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
-		const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
-		const thrust::device_vector<uint>& rigidIdentifierD,
-		int numRigid_SphMarkers) {
-
-	// thread per particle
-	uint numThreads, numBlocks;
-	computeGridSize(numRigid_SphMarkers, 64, numBlocks, numThreads);
-
-	calcBceAcceleration_kernel<<<numBlocks, numThreads>>>(mR3CAST(bceAcc),
-			mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D), mR3CAST(omegaAccLRF_fsiBodies_D),
-			mR3CAST(rigidSPH_MeshPos_LRF_D), U1CAST(rigidIdentifierD));
-
-	cudaThreadSynchronize();
-	cudaCheckError();
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChFsiForceParallel::ModifyBceVelocity() {
-	// modify BCE velocity and pressure
-	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjectsH.numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
-	if ((numObjectsH.numBoundaryMarkers + numObjectsH.numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
-		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly. Thrown from ModifyBceVelocity!\n");
-	}
-	if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers && rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
-		throw std::runtime_error ("Error! size error velMas_ModifiedBCE and rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
-	}
-	int2 updatePortion = mI2(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[2 + numObjectsH.numRigidBodies - 1].y);
-	if (paramsH.bceType == ADAMI) {
-		thrust::device_vector<Real3> bceAcc(numObjectsH.numRigid_SphMarkers);
-		if (numObjectsH.numRigid_SphMarkers > 0) {
-			CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D, fsiBodiesD->omegaVelLRF_fsiBodies_D,
-					fsiBodiesD->omegaAccLRF_fsiBodies_D, fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD, numObjectsH.numRigid_SphMarkers);
-		}
-		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
-				sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, rhoPresMuD->cellStartD, rhoPresMuD->cellEndD, 
-				rhoPresMuD->mapOriginalToSorted, bceAcc, updatePortion);
-		bceAcc.clear();
-	} else {
-		thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, sphMarkersD->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
-		thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x, sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
-	}
-
-}
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		thrust::device_vector<Real3>& sortedPosRad,
@@ -419,7 +425,7 @@ void ChFsiForceParallel::CalculateXSPH_velocity() {
 		throw std::runtime_error ("Error! size error vel_XSPH_Sorted_D Thrown from CalculateXSPH_velocity!\n");
 	}
 	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD,
-			sortedSphMarkersD->rhoPresMuD, rhoPresMuD->gridMarkerIndexD, rhoPresMuD->cellStartD, rhoPresMuD->cellEndD,
+			sortedSphMarkersD->rhoPresMuD, ProximityDataD->gridMarkerIndexD, ProximityDataD->cellStartD, ProximityDataD->cellEndD,
 			paramsH.numAllMarkers, paramsH.m_numGridCells);
 
 	/* Collide */
@@ -490,12 +496,12 @@ void ChFsiForceParallel::CollideWrapper() {
 	thrust::fill(m_dSortedDerivVelRho_fsi_D.begin(), m_dSortedDerivVelRho_fsi_D.end(), mR4(0));
 
 	collide(m_dSortedDerivVelRho_fsi_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, vel_XSPH_Sorted_D,
-			sortedSphMarkersD->rhoPresMuD, velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, rhoPresMuD->gridMarkerIndexD, 
-			rhoPresMuD->cellStartD, rhoPresMuD->cellEndD,
+			sortedSphMarkersD->rhoPresMuD, bceWorker->velMas_ModifiedBCE, bceWorker->rhoPreMu_ModifiedBCE, ProximityDataD->gridMarkerIndexD, 
+			ProximityDataD->cellStartD, ProximityDataD->cellEndD,
 			paramsH.numAllMarkers, paramsH.m_numGridCells);
 
-	CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, rhoPresMuD->gridMarkerIndexD);
-	CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD, m_dSortedDerivVelRho_fsi_D, rhoPresMuD->gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, ProximityDataD->gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD, m_dSortedDerivVelRho_fsi_D, ProximityDataD->gridMarkerIndexD);
 
 	m_dSortedDerivVelRho_fsi_D.clear();
 	// vel_XSPH_Sorted_D.clear();
@@ -518,10 +524,9 @@ void ChFsiForceParallel::ForceSPH(
 		FsiBodiesDataD * otherFsiBodiesD) {
 	// Arman: Change this function by getting in the arrays of the current stage: useful for RK2. array pointers need to be private members
 	sphMarkersD = otherSphMarkersD;
-	fsiBodiesD = otherFsiBodiesD;
 
 	fsiCollisionSystem->ArrangeData(sphMarkersD);
-	ModifyBceVelocity();
+	bceWorker->ModifyBceVelocity(otherFsiBodiesD);
 	CalculateXSPH_velocity();
 	CollideWrapper();
 	AddGravityToFluid();

@@ -29,6 +29,7 @@ namespace fsi {
 class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 	public:
 		ChFsiForceParallel(
+			ChBce* otherBceWorker,
 			SphMarkerDataD * otherSortedSphMarkersD,
 			ProximityDataD * otherMarkersProximityD,
 			FsiGeneralData * otherFsiGeneralData,
@@ -45,7 +46,6 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 		FsiBodiesDataD * otherFsiBodiesD);
 	private:
 
-	void ModifyBceVelocity();
 	void CalculateXSPH_velocity();
 	void CollideWrapper();
 	void DensityReinitialization(); // Arman : TODO
@@ -67,20 +67,16 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 
 
 		ChCollisionSystemFsi* fsiCollisionSystem;
+		ChBce* bceWorker;
 
 		SphMarkerDataD * sphMarkersD;
 		SphMarkerDataD * sortedSphMarkersD;
 		ProximityDataD * markersProximityD;
-		FsiBodiesDataD * fsiBodiesD;
 		FsiGeneralData * fsiGeneralData;
 
 		SimParams* paramsH;
 		NumberOfObjects* numObjectsH;
 
-
-
-		thrust::device_vector<Real3> velMas_ModifiedBCE;//(numRigidAndBoundaryMarkers);
-		thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;//(numRigidAndBoundaryMarkers);
 		thrust::device_vector<Real3> vel_XSPH_Sorted_D;
 
 
