@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
 
 
 	/*
-	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);

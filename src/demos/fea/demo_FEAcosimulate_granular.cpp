@@ -185,29 +185,29 @@ int main(int argc, char* argv[]) {
   // this time the ChLoadContactSurfaceMesh cannot be used as in the FEA case, so we
   // will use the ChLoadBodyMesh class:
 
-  ChSharedPtr<ChBody> mrigidbody (new ChBody);
+  auto mrigidbody = std::make_shared<ChBody>();
   my_system.Add(mrigidbody);
   mrigidbody->SetMass(200);
   mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
   mrigidbody->SetPos(tire_center);
 
-  ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+  auto mrigidmesh = std::make_shared<ChTriangleMeshShape>();
   mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
   mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
   mrigidbody->AddAsset(mrigidmesh);
 
-  ChSharedPtr<ChColorAsset> mcol(new ChColorAsset);
+  auto mcol = std::make_shared<ChColorAsset>();
   mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
   mrigidbody->AddAsset(mcol);
 
   /// Create a mesh load for cosimulation, acting on the contact surface above
   /// (forces on nodes will be computed by an external procedure)
 
-  ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+  auto mloadcontainer = std::make_shared<ChLoadContainer>();
   my_system.Add(mloadcontainer);
 
   // this is used to use the mesh in cosimulation!
-  ChSharedPtr<ChLoadBodyMesh> mrigidmeshload(new ChLoadBodyMesh(mrigidbody, mrigidmesh->GetMesh()));
+  auto mrigidmeshload = std::make_shared<ChLoadBodyMesh>(mrigidbody, mrigidmesh->GetMesh());
   mloadcontainer->Add(mrigidmeshload);
 
   //
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
       triangle->SetBodyFixed(true);
 
       triangle->GetCollisionModel()->ClearModel();
-      // utils::AddSphereGeometry(triangle.get_ptr(), radius);
+      // utils::AddSphereGeometry(triangle.get(), radius);
       std::string name = "tri" + std::to_string(triId);
       utils::AddTriangle(triangle.get(), vert_pos[triangles[i].x] - pos, vert_pos[triangles[i].y] - pos,
                          vert_pos[triangles[i].z] - pos, name);
@@ -445,12 +445,12 @@ int main(int argc, char* argv[]) {
         //            // Update visual assets TODO: chrono_opengl cannot handle dynamic meshes yet
         //            for (int j = 0; j < triBody->GetAssets().size(); j++) {
         //              std::shared_ptr<ChAsset> asset = triBody->GetAssets()[j];
-        //              if (asset.IsType<ChTriangleMeshShape>()) {
+        //              if (std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
         //                //std::cout << j << std::endl;
         //                //std::cout << vert_pos[triangles[i].x].x << " " << vert_pos[triangles[i].x].y << " " << vert_pos[triangles[i].x].z << std::endl;
-        //                ((ChTriangleMeshShape*)(asset.get_ptr()))->GetMesh().m_vertices[0] = vert_pos[triangles[i].x];
-        //                ((ChTriangleMeshShape*)(asset.get_ptr()))->GetMesh().m_vertices[1] = vert_pos[triangles[i].y];
-        //                ((ChTriangleMeshShape*)(asset.get_ptr()))->GetMesh().m_vertices[2] = ChVector<>(0);//vert_pos[triangles[i].z];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[0] = vert_pos[triangles[i].x];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[1] = vert_pos[triangles[i].y];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[2] = ChVector<>(0);//vert_pos[triangles[i].z];
         //              }
         //            }
 

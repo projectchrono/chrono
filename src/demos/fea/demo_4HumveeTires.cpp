@@ -442,10 +442,6 @@ void MakeANCFHumveeWheel(ChSystem& my_system,
             }
         }
     }
-    // Constrain the Rim to the X-Z plane: WE DO NOT NEED THIS CONSTRAINT FOR THE VEHICLE
-    //constraintRim = ChSharedPtr<ChLinkLockPlanePlane>(new ChLinkLockPlanePlane);
-    //my_system.AddLink(constraintRim);
-    //constraintRim->Initialize(Rim, Ground, ChCoordsys<>(ChVector<>(0.0, 0.0, 0.0), Q_from_AngX(CH_C_PI_2)));
 
     // END OF INPUT DATA AND CREATE ARRAYS
 
@@ -570,11 +566,10 @@ int main(int argc, char* argv[]) {
     mmaterial->SetComplianceT(0.0000005f);
     mmaterial->SetDampingF(0.2f);
 
-    // SimpChassis = ChSharedPtr<ChBody>(new ChBody);
     SimpChassis = std::make_shared<ChBodyEasyBox>(2.4, 1.1, 0.2,  // x,y,z size
-                                                             2800,            // density
-                                                             false,          // collide enable?
-                                                             true);         // visualization?
+                                                  2800,           // density
+                                                  false,          // collide enable?
+                                                  true);          // visualization?
     my_system.AddBody(SimpChassis);
     SimpChassis->SetMaterialSurface(mmaterial);  // use shared surface properties
     // optional, attach a texture for better visualization
@@ -668,12 +663,14 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 2, 1> Cd;  // Matrices for storing constraint violations
 
     // Visualization
-    /*ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
+    /*
+    auto mobjmesh = std::make_shared<ChObjShapeFile>();
     mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
     Hub_1->AddAsset(mobjmesh);
     Hub_2->AddAsset(mobjmesh);
     Hub_3->AddAsset(mobjmesh);
-    Hub_4->AddAsset(mobjmesh);*/
+    Hub_4->AddAsset(mobjmesh);
+    */
 
     double start = std::clock();
 

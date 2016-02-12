@@ -256,22 +256,21 @@ int main(int argc, char* argv[]) {
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh); 
-    
-/*
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-    mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemeshB->SetWireframe(true);
-    my_mesh->AddAsset(mvisualizemeshB); 
+    my_mesh->AddAsset(mvisualizemesh);
+
+    /*
+        auto mvisualizemeshB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+        mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+        mvisualizemeshB->SetWireframe(true);
+        my_mesh->AddAsset(mvisualizemeshB);
     */
-/*
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.006);
-    my_mesh->AddAsset(mvisualizemeshC);
- */
- 
+    /*
+        auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+        mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+        mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+        mvisualizemeshC->SetSymbolsThickness(0.006);
+        my_mesh->AddAsset(mvisualizemeshC);
+     */
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

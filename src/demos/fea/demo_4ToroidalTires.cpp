@@ -410,11 +410,10 @@ int main(int argc, char* argv[]) {
     mmaterial->SetComplianceT(0.0000005f);
     mmaterial->SetDampingF(0.2f);
 
-    // SimpChassis = ChSharedPtr<ChBody>(new ChBody);
     SimpChassis = std::make_shared<ChBodyEasyBox>(1.1, 0.2, 2.4,  // x,y,z size
-        100,            // density
-        false,          // collide enable?
-        true);
+                                                  100,            // density
+                                                  false,          // collide enable?
+                                                  true);
     my_system.AddBody(SimpChassis);
     SimpChassis->SetMaterialSurface(mmaterial);  // use shared surface properties
     // optional, attach a texture for better visualization

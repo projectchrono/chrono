@@ -147,10 +147,6 @@ Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
 void Articulated_Trailer::Initialize(const ChCoordsys<>& chassisPos,
                                      const bool connect_to_puller,
                                      std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle) {
-    //*m_chassis.get_ptr() >>= chassisPos;
-    //*m_frontaxle.get_ptr() >>= chassisPos;
-    // m_chassis->ConcatenatePreTransformation(ChFrameMoving<>(chassisPos));
-    // m_frontaxle->ConcatenatePreTransformation(ChFrameMoving<>(chassisPos));
     m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
     m_frontaxle->SetFrame_REF_to_abs(ChFrame<>(m_frontaxleREF >> chassisPos));
 

@@ -303,15 +303,16 @@ int main(int argc, char* argv[]) {
     my_system.Add(mrevolute_FL);
     mrevolute_FL->Initialize(mtruss, mrim_FL, ChCoordsys<>(tire_center_FL, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
 
-/* for MKL solver we should deactivate at least 1 wheel on four... max 3 wheels can run, 4 will hang.. ***TO BE FIXED***
+    //// TODO
+    //// for MKL solver we should deactivate at least 1 wheel on four... max 3 wheels can run, 4 will hang..
+    /*
     // Make a wheel and connect it to truss:
-    ChSharedPtr<ChBody> mrim_BR;
+    std::shared_ptr<ChBody> mrim_BR;
     MakeWheel(my_system, tire_center_BR, tire_alignment, tire_scaleR, tire_scaleW, tire_w0, tire_vel_z0, mysurfmaterial, mtirematerial, mrim_BR);
-
-    ChSharedPtr<ChLinkLockRevolute> mrevolute_BR (new ChLinkLockRevolute);
+    auto mrevolute_BR = std::make_shared<ChLinkLockRevolute>();
     my_system.Add(mrevolute_BR);
     mrevolute_BR->Initialize(mtruss, mrim_BR, ChCoordsys<>(tire_center_BR, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
-*/
+    */
 
     // Make a wheel and connect it to truss:
     std::shared_ptr<ChBody> mrim_FR;
