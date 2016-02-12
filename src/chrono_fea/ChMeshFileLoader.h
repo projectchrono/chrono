@@ -53,13 +53,14 @@ class ChApiFea ChMeshFileLoader {
 
     /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
     static void FromAbaqusFile(
-        std::shared_ptr<ChMesh> mesh,                                           ///< destination mesh
-        const char* filename,                                                   ///< input file name
-        std::shared_ptr<ChContinuumMaterial> my_material,                       ///< material for the created tetahedrons
+        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
+        const char* filename,                              ///< input file name
+        std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
         std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes
-        ChVector<> pos_transform = VNULL,                                       ///< optional displacement of imported mesh
+        ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
-        bool discard_unused_nodes = true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
+        bool discard_unused_nodes =
+            true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
         );
 
     static void ANCFShellFromGMFFile(
@@ -70,7 +71,6 @@ class ChApiFea ChMeshFileLoader {
         ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
         double scaleFactor = 1,
-        bool printBC = false,
         bool printNodes = false,
         bool printElements = false);
 };

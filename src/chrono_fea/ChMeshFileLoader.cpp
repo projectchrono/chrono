@@ -409,17 +409,17 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                                             const char* filename,
                                             std::shared_ptr<ChMaterialShellANCF> my_material,
-                                            std::vector<int>& BC_nodes,
+                                            std::vector<int>& Boundary_nodes,
                                             ChVector<> pos_transform,
                                             ChMatrix33<> rot_transform,
                                             double scaleFactor,
-                                            bool printBC,
                                             bool printNodes,
                                             bool printElements) {
     int added_nodes = 0;
     int added_elements = 0;
     double dx, dy;
     int nodes_offset = mesh->GetNnodes();
+    printf("Current number of nodes in mesh is %d \n", nodes_offset);
     ChMatrixDynamic<double> nodesXYZ(1, 4);
     ChMatrixDynamic<int> NumBEdges(1, 3);  // To store boundary nodes
     ChMatrixNM<double, 1, 6> BoundingBox;  // (xmin xmax ymin ymax zmin zmax) bounding box of the mesh
@@ -522,16 +522,9 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                     ++ntoken;
                 }
 
-                BC_nodes.push_back(nodes_offset + NumBEdges(0, 0) - 1);
-
                 if (ntoken != 3)
                     throw ChException("ERROR in .mesh file, Edges require 3 node IDs, see line:\n" + line + "\n");
-                if (printBC) {
-                    cout << edge << " ";
-                    for (int i = 0; i < 2; i++)
-                        cout << NumBEdges(0, i) << " ";
-                    cout << endl;
-                }
+
                 getline(fin, line);
             }
         }
@@ -613,6 +606,9 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     //
     for (int inode = 0; inode < 0 + TotalNumNodes; inode++) {
         ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);
+        //
+        if (num_Normals[inode] <= 2)
+            Boundary_nodes.push_back(nodes_offset + inode);
         node_normal.Normalize();
         ChVector<> node_position = nodesVector[inode]->GetPos();
         auto node = std::make_shared<ChNodeFEAxyzD>(node_position, node_normal);
