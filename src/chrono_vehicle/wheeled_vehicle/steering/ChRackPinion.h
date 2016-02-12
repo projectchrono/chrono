@@ -54,9 +54,9 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// Initialize the steering subsystem.
     /// This attached the steering mechanism to the specified chassis body at the
     /// given offset and orientation, relative to the frame of the chassis.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< pin] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< pin] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
     /// Update the state of this steering subsystem at the current time.
@@ -92,8 +92,8 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// Return the maximum rotation angle of the pinion (in either direction).
     virtual double GetMaxAngle() const = 0;
 
-    ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
-    ChSharedPtr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
+    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
+    std::shared_ptr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
 
   private:
     void AddVisualizationSteeringLink();

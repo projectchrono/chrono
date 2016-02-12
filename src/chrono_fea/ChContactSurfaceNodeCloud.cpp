@@ -10,38 +10,33 @@
 //
 // File authors: Andrea Favali, Alessandro Tasora
 
-
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementShellANCF.h"
-#include "physics/ChSystem.h"
-#include "collision/ChCModelBullet.h"
-
+#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChMesh.h"
 
 using namespace std;
 
-
-namespace chrono 
-{
-namespace fea
-{
-
+namespace chrono {
+namespace fea {
 
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactNodeXYZ
 
-    
-void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                    ChVectorDynamic<>& R) {
+void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                  const ChVector<>& abs_point,
+                                                  ChVectorDynamic<>& R) {
     R.PasteSumVector(F, this->mnode->NodeGetOffset_w() + 0, 0);
 }
 
-void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-            type_constraint_tuple& jacobian_tuple_N, 
-            type_constraint_tuple& jacobian_tuple_U, 
-            type_constraint_tuple& jacobian_tuple_V, 
-            bool second) {
+void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                                     ChMatrix33<>& contact_plane,
+                                                     type_constraint_tuple& jacobian_tuple_N,
+                                                     type_constraint_tuple& jacobian_tuple_U,
+                                                     type_constraint_tuple& jacobian_tuple_V,
+                                                     bool second) {
     ChMatrix33<> Jx1;
 
     Jx1.CopyFromMatrixT(contact_plane);
@@ -53,47 +48,38 @@ void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-ChSharedPtr<ChMaterialSurfaceBase>& ChContactNodeXYZ::GetMaterialSurfaceBase()
-{
+std::shared_ptr<ChMaterialSurfaceBase>& ChContactNodeXYZ::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
-ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem()
-{
+ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
     return (ChPhysicsItem*)container->GetMesh();
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactNodeXYZsphere
 
 ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSurface* acontainer)
-            : ChContactNodeXYZ(anode, acontainer)  {
-        this->collision_model = new collision::ChModelBullet;
-        this->collision_model->SetContactable(this);
+    : ChContactNodeXYZ(anode, acontainer) {
+    this->collision_model = new collision::ChModelBullet;
+    this->collision_model->SetContactable(this);
 
-        //this->collision_model->AddPoint(0.001); //***TODO*** avoid magic number.
-        //this->collision_model->BuildModel();
-
-    }
-
-
+    // this->collision_model->AddPoint(0.001); //***TODO*** avoid magic number.
+    // this->collision_model->BuildModel();
+}
 
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactSurfaceNodeCloud
 
-
-void ChContactSurfaceNodeCloud::AddNode(ChSharedPtr< ChNodeFEAxyz > mnode, const double point_radius) {
-
+void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, const double point_radius) {
     if (!mnode)
         return;
 
-    ChSharedPtr<ChContactNodeXYZsphere> newp(new ChContactNodeXYZsphere(mnode.get_ptr(), this));
-    
+    auto newp = std::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
+
     newp->GetCollisionModel()->AddPoint(point_radius);
-    newp->GetCollisionModel()->BuildModel();    // will also add to system, if collision is on.
-    
+    newp->GetCollisionModel()->BuildModel();  // will also add to system, if collision is on.
+
     this->vnodes.push_back(newp);
 }
 
@@ -101,16 +87,16 @@ void ChContactSurfaceNodeCloud::AddNode(ChSharedPtr< ChNodeFEAxyz > mnode, const
 void ChContactSurfaceNodeCloud::AddAllNodes(const double point_radius) {
     if (!this->GetMesh())
         return;
-    for (unsigned int i = 0; i< this->GetMesh()->GetNnodes(); ++i)
-        this->AddNode( this->GetMesh()->GetNode(i).DynamicCastTo<ChNodeFEAxyz>(), point_radius);
+    for (unsigned int i = 0; i < this->GetMesh()->GetNnodes(); ++i)
+        this->AddNode(std::dynamic_pointer_cast<ChNodeFEAxyz>(this->GetMesh()->GetNode(i)), point_radius);
 }
 
         /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
-void ChContactSurfaceNodeCloud::AddFacesFromNodeSet( std::vector<ChSharedPtr<ChNodeFEAbase> >& node_set, const double point_radius) {
+void ChContactSurfaceNodeCloud::AddFacesFromNodeSet( std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set, const double point_radius) {
     if (!this->GetMesh())
         return;
-    for (unsigned int i = 0; i< node_set.size(); ++i)
-        this->AddNode( node_set[i].DynamicCastTo<ChNodeFEAxyz>(), point_radius);
+    for (unsigned int i = 0; i < node_set.size(); ++i)
+        this->AddNode(std::dynamic_pointer_cast<ChNodeFEAxyz>(node_set[i]), point_radius);
 }
 
 

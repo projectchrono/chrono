@@ -18,6 +18,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#include <memory>
+#include <array>
+
 #include "ChCModelBullet.h"
 #include "physics/ChPhysicsItem.h"
 #include "physics/ChSystem.h"
@@ -34,7 +37,6 @@
 #include "BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "BulletCollision/CollisionShapes/bt2DShape.h"
 #include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
-#include <array>
 
 
 namespace chrono {
@@ -129,14 +131,14 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
     // start_vector = ||    -- description is still empty
     if (shapes.size() == 0) {
         if (centered) {
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
             bt_collision_object->setCollisionShape(mshape);
             // end_vector=  | centered shape |
             return;
         } else {
             btCompoundShape* mcompound = new btCompoundShape(true);
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mcompound));
-            shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mcompound));
+            shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
             bt_collision_object->setCollisionShape(mcompound);
             btTransform mtransform;
             ChPosMatrToBullet(pos, rot, mtransform);
@@ -149,23 +151,23 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
     if (shapes.size() == 1) {
         btTransform mtransform;
         shapes.push_back(shapes[0]);
-        shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
         btCompoundShape* mcompound = new btCompoundShape(true);
-        shapes[0] = ChSmartPtr<btCollisionShape>(mcompound);
+        shapes[0] = std::shared_ptr<btCollisionShape>(mcompound);
         bt_collision_object->setCollisionShape(mcompound);
         mtransform.setIdentity();
-        mcompound->addChildShape(mtransform, shapes[1].get_ptr());
+        mcompound->addChildShape(mtransform, shapes[1].get());
         ChPosMatrToBullet(pos, rot, mtransform);
-        mcompound->addChildShape(mtransform, shapes[2].get_ptr());
+        mcompound->addChildShape(mtransform, shapes[2].get());
         // vector=  | compound | old centered shape | new shape | ...
         return;
     }
     // vector=  | compound | old | old.. |   ----already working with compounds..
     if (shapes.size() > 1) {
         btTransform mtransform;
-        shapes.push_back(ChSmartPtr<btCollisionShape>(mshape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
         ChPosMatrToBullet(pos, rot, mtransform);
-        btCollisionShape* mcom = shapes[0].get_ptr();
+        btCollisionShape* mcom = shapes[0].get();
         ((btCompoundShape*)mcom)->addChildShape(mtransform, mshape);
         // vector=  | compound | old | old.. | new shape | ...
         return;
@@ -266,57 +268,47 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
     this->SetEnvelope(0); 
 
     //if (!mpath.Get_closed()) 
-    //    throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!"); 
-  
+    //    throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!");
 
-    for (size_t i=0; i < mpath.GetSubLinesCount(); ++i)
-    {
-        if (ChSharedPtr< geometry::ChLineSegment > msegment = mpath.GetSubLineN(i).DynamicCastTo<geometry::ChLineSegment>())
-        {
+    for (size_t i = 0; i < mpath.GetSubLinesCount(); ++i) {
+        if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath.GetSubLineN(i))) {
             if ((msegment->pA.z != 0) || (msegment->pB.z != 0))
-                throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate! It must be flat on xy."); 
+                throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate!");
 
             btVector3 pa((btScalar)msegment->pA.x, (btScalar)msegment->pA.y, (btScalar)0);
             btVector3 pb((btScalar)msegment->pB.x, (btScalar)msegment->pB.y, (btScalar)0);
             bt2DsegmentShape* mshape = new bt2DsegmentShape(pa, pb, (btScalar)mthickness);
-           
-            mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
-            _injectShape(pos, rot, mshape);
-        } 
-        else 
-        if (ChSharedPtr< geometry::ChLineArc > marc = mpath.GetSubLineN(i).DynamicCastTo<geometry::ChLineArc>())
-        {
-            if ((marc->origin.pos.z != 0))
-                throw ChException("Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be flat on xy.");
-            double mangle1 = marc->angle1;
-            double mangle2 = marc->angle2;
-            if (mangle1-mangle2 == CH_C_2PI)
-                mangle1 -= 1e-7;
-            bt2DarcShape* mshape = new bt2DarcShape(
-                (btScalar)marc->origin.pos.x, 
-                (btScalar)marc->origin.pos.y, 
-                (btScalar)marc->radius, 
-                (btScalar)mangle1, 
-                (btScalar)mangle2,
-                marc->counterclockwise, 
-                (btScalar)mthickness);
 
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
             _injectShape(pos, rot, mshape);
-        }
-        else
-        {
+        } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath.GetSubLineN(i))) {
+            if ((marc->origin.pos.z != 0))
+                throw ChException(
+                    "Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be "
+                    "flat on xy.");
+            double mangle1 = marc->angle1;
+            double mangle2 = marc->angle2;
+            if (mangle1 - mangle2 == CH_C_2PI)
+                mangle1 -= 1e-7;
+            bt2DarcShape* mshape =
+                new bt2DarcShape((btScalar)marc->origin.pos.x, (btScalar)marc->origin.pos.y, (btScalar)marc->radius,
+                                 (btScalar)mangle1, (btScalar)mangle2, marc->counterclockwise, (btScalar)mthickness);
+
+            mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
+            _injectShape(pos, rot, mshape);
+        } else {
             throw ChException("Error! Add2Dpath: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
-        
-        size_t i_prev= i;
-        size_t i_next= i+1;
-        if (i_next >= mpath.GetSubLinesCount()) 
-            if ((mpath.GetEndA()-mpath.GetEndB()).Length() < 1e-9) // can't use Get_closed() that is user preference via Set_closed()
-                i_next= 0; // closed path 
+
+        size_t i_prev = i;
+        size_t i_next = i + 1;
+        if (i_next >= mpath.GetSubLinesCount())
+            if ((mpath.GetEndA() - mpath.GetEndB()).Length() <
+                1e-9)        // can't use Get_closed() that is user preference via Set_closed()
+                i_next = 0;  // closed path
         if (i_next < mpath.GetSubLinesCount()) {
-            ChSharedPtr< geometry::ChLine > mline_prev = mpath.GetSubLineN(i_prev);
-            ChSharedPtr< geometry::ChLine > mline_next = mpath.GetSubLineN(i_next);
+            std::shared_ptr<geometry::ChLine> mline_prev = mpath.GetSubLineN(i_prev);
+            std::shared_ptr<geometry::ChLine> mline_next = mpath.GetSubLineN(i_next);
             ChVector<> pos_prev, pos_next;
             ChVector<> dir_prev, dir_next;
             mline_prev->Evaluate(pos_prev, 1);
@@ -327,28 +319,24 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
             dir_next.Normalize();
 
             // check if connected segments
-            if ((pos_prev-pos_next).Length() > 1e-9)
-                throw ChException("Error! Add2Dpath: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
-            
+            if ((pos_prev - pos_next).Length() > 1e-9)
+                throw ChException(
+                    "Error! Add2Dpath: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
+
             // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment
-            if(Vcross(dir_prev,dir_next).z < -1e-9) {
+            if (Vcross(dir_prev, dir_next).z < -1e-9) {
                 double mangle1 = atan2(dir_prev.y, dir_prev.x) + CH_C_PI_2;
                 double mangle2 = atan2(dir_next.y, dir_next.x) + CH_C_PI_2;
-                bt2DarcShape* mshape = new bt2DarcShape(
-                    (btScalar)pos_prev.x, 
-                    (btScalar)pos_prev.y, 
-                    (btScalar)0, 
-                    (btScalar)mangle1, 
-                    (btScalar)mangle2,
-                    false, 
-                    (btScalar)mthickness);
+                bt2DarcShape* mshape =
+                    new bt2DarcShape((btScalar)pos_prev.x, (btScalar)pos_prev.y, (btScalar)0, (btScalar)mangle1,
+                                     (btScalar)mangle2, false, (btScalar)mthickness);
 
                 mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
                 _injectShape(pos, rot, mshape);
-                //GetLog() << "convex corner between " << i_next << " and " << i_next << " w.angles: " << mangle1 << " " << mangle2 << "\n";
-            }
-            else {
-                //GetLog() << "concave corner between " << i_next << " and " << i_next << "\n";
+                // GetLog() << "convex corner between " << i_next << " and " << i_next << " w.angles: " << mangle1 << "
+                // " << mangle2 << "\n";
+            } else {
+                // GetLog() << "concave corner between " << i_next << " and " << i_next << "\n";
             }
         }
     }
@@ -792,9 +780,10 @@ void ChModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
     bbmax.Set(btmax.x(), btmax.y(), btmax.z());
 }
 
-void __recurse_add_newcollshapes(btCollisionShape* ashape, std::vector<smartptrshapes>& shapes) {
+void __recurse_add_newcollshapes(btCollisionShape* ashape,
+    std::vector<std::shared_ptr<btCollisionShape> >& shapes) {
     if (ashape) {
-        shapes.push_back(ChSmartPtr<btCollisionShape>(ashape));
+        shapes.push_back(std::shared_ptr<btCollisionShape>(ashape));
 
         if (ashape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE) {
             btCompoundShape* compoundShape = (btCompoundShape*)ashape;
@@ -824,7 +813,7 @@ void ChModelBullet::SyncPosition()
 bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
     if (this->shapes.size() != 1)
         return false;
-    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get_ptr())) {
+    if (btSphereShape* mshape = dynamic_cast<btSphereShape*>(this->shapes[0].get())) {
         this->SetSafeMargin(coll_radius);
         this->SetEnvelope(out_envelope);
         mshape->setUnscaledRadius((btScalar)(coll_radius + out_envelope));

@@ -20,7 +20,7 @@ namespace VehicleEnvironment {
 		virtual void shift(uint8_t gear);
 		virtual void brake();
 
-		virtual chrono::ChSharedBodyPtr getChassis();
+        virtual chrono::ChSharedPtr<ChBody> getChassis();
 
 	protected:
 

@@ -43,7 +43,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 RigidTerrain::RigidTerrain(ChSystem* system) {
     // Create the ground body and add it to the system.
-    m_ground = ChSharedPtr<ChBody>(new ChBody(system->GetContactMethod()));
+    m_ground = std::make_shared<ChBody>(system->GetContactMethod());
     m_ground->SetIdentifier(-1);
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
@@ -52,7 +52,7 @@ RigidTerrain::RigidTerrain(ChSystem* system) {
     system->AddBody(m_ground);
 
     // Create the default color asset
-    m_color = ChSharedPtr<ChColorAsset>(new ChColorAsset);
+    m_color = std::make_shared<ChColorAsset>();
     m_color->SetColor(ChColor(1, 1, 1));
     m_ground->AddAsset(m_color);
 }
@@ -69,7 +69,7 @@ static ChColor loadColor(const Value& a) {
 
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename) {
     // Create the ground body and add it to the system.
-    m_ground = ChSharedPtr<ChBody>(new ChBody(system->GetContactMethod()));
+    m_ground = std::make_shared<ChBody>(system->GetContactMethod());
     m_ground->SetIdentifier(-1);
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
@@ -78,7 +78,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename) {
     system->AddBody(m_ground);
 
     // Create the default color asset
-    m_color = ChSharedPtr<ChColorAsset>(new ChColorAsset);
+    m_color = std::make_shared<ChColorAsset>();
     m_color->SetColor(ChColor(1, 1, 1));
     m_ground->AddAsset(m_color);
 
@@ -177,7 +177,7 @@ void RigidTerrain::SetColor(ChColor color) {
 // Set the texture and texture scaling
 // -----------------------------------------------------------------------------
 void RigidTerrain::SetTexture(const std::string tex_file, float tex_scale_x, float tex_scale_y) {
-    ChSharedPtr<ChTexture> texture(new ChTexture);
+    auto texture = std::make_shared<ChTexture>();
     texture->SetTextureFilename(tex_file);
     texture->SetTextureScale(tex_scale_x, tex_scale_y);
     m_ground->AddAsset(texture);
@@ -191,7 +191,8 @@ void RigidTerrain::Initialize(double height, double sizeX, double sizeY) {
     m_ground->GetCollisionModel()->ClearModel();
     m_ground->GetCollisionModel()->AddBox(0.5 * sizeX, 0.5 * sizeY, 0.5 * depth,
                                           ChVector<>(0, 0, height - 0.5 * depth));
-    ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+
+    auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(0.5 * sizeX, 0.5 * sizeY, 0.5 * depth);
     box->GetBoxGeometry().Pos = ChVector<>(0, 0, height - 0.5 * depth);
     m_ground->AddAsset(box);
@@ -208,7 +209,7 @@ void RigidTerrain::Initialize(const std::string& mesh_file, const std::string& m
     m_trimesh.LoadWavefrontMesh(mesh_file, true, true);
 
     // Create the visualization asset.
-    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(m_trimesh);
     trimesh_shape->SetName(mesh_name);
     m_ground->AddAsset(trimesh_shape);
@@ -339,7 +340,7 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     }
 
     // Create the visualization asset.
-    ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(m_trimesh);
     trimesh_shape->SetName(mesh_name);
     m_ground->AddAsset(trimesh_shape);

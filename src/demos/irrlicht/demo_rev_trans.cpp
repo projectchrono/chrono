@@ -40,25 +40,25 @@ int main(int argc, char* argv[]) {
     // Create the ground body
     // ----------------------
 
-    ChSharedPtr<ChBody> ground(new ChBody);
+    auto ground = std::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
     ground->SetPos(ChVector<>(0, 0, -1));
 
-    ChSharedPtr<ChBoxShape> cyl(new ChBoxShape);
+    auto cyl = std::make_shared<ChBoxShape>();
     cyl->GetBoxGeometry().Size = ChVector<>(3, 0.04, 0.06);
     ground->AddAsset(cyl);
 
-    ChSharedPtr<ChColorAsset> col_g(new ChColorAsset);
+    auto col_g = std::make_shared<ChColorAsset>();
     col_g->SetColor(ChColor(0, 0, 0.6f, 0));
     ground->AddAsset(col_g);
 
     // Create a pendulum body
     // ----------------------
 
-    ChSharedPtr<ChBody> pend(new ChBody);
+    auto pend = std::make_shared<ChBody>();
     system.AddBody(pend);
     pend->SetIdentifier(1);
     pend->SetBodyFixed(false);
@@ -70,24 +70,24 @@ int main(int argc, char* argv[]) {
     pend->SetPos(ChVector<>(1.5, -L, -1));
 
     // Attach visualization assets.
-    ChSharedPtr<ChCylinderShape> cyl_p(new ChCylinderShape);
+    auto cyl_p = std::make_shared<ChCylinderShape>();
     cyl_p->GetCylinderGeometry().p1 = ChVector<>(-1.46, 0, 0);
     cyl_p->GetCylinderGeometry().p2 = ChVector<>(1.46, 0, 0);
     cyl_p->GetCylinderGeometry().rad = 0.2;
     pend->AddAsset(cyl_p);
 
-    ChSharedPtr<ChCylinderShape> cyl_j(new ChCylinderShape);
+    auto cyl_j = std::make_shared<ChCylinderShape>();
     cyl_j->GetCylinderGeometry().p1 = ChVector<>(-1.5, 0, 0.2);
     cyl_j->GetCylinderGeometry().p2 = ChVector<>(-1.5, 0, -0.2);
     cyl_j->GetCylinderGeometry().rad = 0.04;
     pend->AddAsset(cyl_j);
 
-    ChSharedPtr<ChColorAsset> col_p(new ChColorAsset);
+    auto col_p = std::make_shared<ChColorAsset>();
     col_p->SetColor(ChColor(0.6f, 0, 0));
     pend->AddAsset(col_p);
 
     // Create a revolute-translational joint to connect pendulum to ground.
-    ChSharedPtr<ChLinkRevoluteTranslational> rev_trans = ChSharedPtr<ChLinkRevoluteTranslational>(new ChLinkRevoluteTranslational);
+    auto rev_trans = std::make_shared<ChLinkRevoluteTranslational>();
     system.AddLink(rev_trans);
 
     // Initialize the joint specifying a coordinate system (expressed in the

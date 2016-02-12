@@ -107,7 +107,7 @@ void ShaftsPowertrain::ReadMapData(const rapidjson::Value& a, MapData& map_data)
     }
 }
 
-void ShaftsPowertrain::SetMapData(const MapData& map_data, ChSharedPtr<ChFunction_Recorder>& map) {
+void ShaftsPowertrain::SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map) {
     for (unsigned int i = 0; i < map_data.m_n; i++) {
         map->AddPoint(map_data.m_x[i], map_data.m_y[i]);
     }

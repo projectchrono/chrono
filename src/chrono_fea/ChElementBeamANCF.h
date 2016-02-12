@@ -1,25 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
+// ANCF gradient-deficient beam element (cable element).
+// =============================================================================
 
 #ifndef CHELEMENTBEAMANCF_H
 #define CHELEMENTBEAMANCF_H
 
 //#define BEAM_VERBOSE
-
-#include "ChElementBeam.h"
 #include "chrono/core/ChVector.h"
-#include "ChBeamSection.h"
-#include "ChNodeFEAxyzD.h"
 #include "core/ChQuadrature.h"
+#include "chrono_fea/ChElementBeam.h"
+#include "chrono_fea/ChBeamSection.h"
+#include "chrono_fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 namespace fea {
@@ -27,10 +30,8 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Simple beam element with two nodes and ANCF gradient-deficient
-/// formulation.
-/// For this 'basic' implementation, constant section and
-/// constant material are assumed along the beam coordinate.
+/// Simple beam element with two nodes and ANCF gradient-deficient formulation.
+/// For this 'basic' implementation, constant section and constant material are assumed along the beam coordinate.
 /// Torsional stiffness is impossible because of the formulation.
 /// Based on the formulation in:
 ///  "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation"
@@ -41,13 +42,11 @@ namespace fea {
 /// "On the Validation and Applications of a Parallel Flexible Multi-body
 ///  Dynamics Implementation"
 ///  D. MELANZ
-class ChElementBeamANCF :   public ChElementBeam, 
-                            public ChLoadableU, 
-                            public ChLoadableUVW {
+class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyzD> > nodes;
+    std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
 
-    ChSharedPtr<ChBeamSectionCable> section;
+    std::shared_ptr<ChBeamSectionCable> section;
     ChMatrixNM<double, 12, 1> GenForceVec0;
     ChMatrixNM<double, 12, 12> StiffnessMatrix;  // stiffness matrix
     ChMatrixNM<double, 12, 12> MassMatrix;       // mass matrix
@@ -66,11 +65,11 @@ class ChElementBeamANCF :   public ChElementBeam,
     virtual int GetNcoords() { return 2 * 6; }
     virtual int GetNdofs() { return 2 * 6; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA, ChSharedPtr<ChNodeFEAxyzD> nodeB) {
-        assert(!nodeA.IsNull());
-        assert(!nodeB.IsNull());
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB) {
+        assert(nodeA);
+        assert(nodeB);
 
         nodes[0] = nodeA;
         nodes[1] = nodeB;
@@ -88,15 +87,15 @@ class ChElementBeamANCF :   public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(ChSharedPtr<ChBeamSectionCable> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionCable> my_material) { section = my_material; }
     /// Get the section & material of the element
-    ChSharedPtr<ChBeamSectionCable> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionCable> GetSection() { return section; }
 
     /// Get the first node (beginning)
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeA() { return nodes[0]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeA() { return nodes[0]; }
 
     /// Get the second node (ending)
-    ChSharedPtr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
 
     /// Fills the N shape function matrix with the
     /// values of shape functions at abscyssa 'xi'.
@@ -159,7 +158,7 @@ class ChElementBeamANCF :   public ChElementBeam,
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     virtual void ComputeStiffnessMatrix() {
-        assert(!section.IsNull());
+        assert(section);
 
         bool use_numerical_differentiation = true;
 
@@ -174,47 +173,49 @@ class ChElementBeamANCF :   public ChElementBeam,
 
             this->ComputeInternalForces(F0);
 
-            // the rest could be in a for loop, if implementing a  ComputeInternalForces that
-            // accepts the DOFs values as a 12-vector state where one increments a value at a time,
-            // but ComputeInternalForces avoids moving that data by using nodes[0]->pos.blabla directly,
-            // so here we do a sort of 'unrolled' loop:
+            // Create local copies of the nodal coordinates and use the implementation version
+            // of the function for calculating the internal forces.  With this, the calculation
+            // of the Jacobian with finite differences is thread safe (otherwise, there would
+            // be race conditions when adjacent elements attempt to perturb a common node).
+            ChVector<> pos[2] = {this->nodes[0]->pos, this->nodes[1]->pos};
+            ChVector<> D[2] = {this->nodes[0]->D, this->nodes[1]->D};
 
             for (int inode = 0; inode < 2; ++inode) {
-                this->nodes[inode]->pos.x += diff;
-                this->ComputeInternalForces(F1);
+                pos[inode].x += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
-                this->nodes[inode]->pos.x -= diff;
+                pos[inode].x -= diff;
 
-                this->nodes[inode]->pos.y += diff;
-                this->ComputeInternalForces(F1);
+                pos[inode].y += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
-                this->nodes[inode]->pos.y -= diff;
+                pos[inode].y -= diff;
 
-                this->nodes[inode]->pos.z += diff;
-                this->ComputeInternalForces(F1);
+                pos[inode].z += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
-                this->nodes[inode]->pos.z -= diff;
+                pos[inode].z -= diff;
 
-                this->nodes[inode]->D.x += diff;
-                this->ComputeInternalForces(F1);
+                D[inode].x += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
-                this->nodes[inode]->D.x -= diff;
+                D[inode].x -= diff;
 
-                this->nodes[inode]->D.y += diff;
-                this->ComputeInternalForces(F1);
+                D[inode].y += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
-                this->nodes[inode]->D.y -= diff;
+                D[inode].y -= diff;
 
-                this->nodes[inode]->D.z += diff;
-                this->ComputeInternalForces(F1);
+                D[inode].z += diff;
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff);
                 this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
-                this->nodes[inode]->D.z -= diff;
+                D[inode].z -= diff;
             }
         }
 
@@ -428,7 +429,7 @@ class ChElementBeamANCF :   public ChElementBeam,
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     virtual void ComputeMassMatrix() {
-        assert(!section.IsNull());
+        assert(section);
 
         double Area = section->Area;
         double rho = section->density;
@@ -477,7 +478,7 @@ class ChElementBeamANCF :   public ChElementBeam,
     /// simulation, ex. the mass matrix in ANCF is constant
 
     virtual void SetupInitial(ChSystem* system) override {
-        assert(!section.IsNull());
+        assert(section);
 
         // Compute rest length, mass:
         this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
@@ -510,7 +511,7 @@ class ChElementBeamANCF :   public ChElementBeam,
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
         assert((H.GetRows() == 12) && (H.GetColumns() == 12));
-        assert(!section.IsNull());
+        assert(section);
 
         // Compute global stiffness matrix:
         ComputeStiffnessMatrix();
@@ -540,23 +541,29 @@ class ChElementBeamANCF :   public ChElementBeam,
         H.PasteSumMatrix(&temp, 0, 0);
     }
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector.
+    /// Computes the internal forces and set values in the Fi vector.
+    /// (ex. the actual position of nodes is not in relaxed reference position).
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+        ComputeInternalForces_Impl(this->nodes[0]->GetPos(), this->nodes[0]->GetD(), this->nodes[1]->GetPos(),
+                                   this->nodes[1]->GetD(), Fi);
+    }
+
+    /// Worker function for computing the internal forces.
+    /// This function takes the nodal coordinates as arguments and is therefore thread-safe.
+    /// (Typically invoked by ComputeInternalForces. Used explicitly in the FD Jacobian approximation)
+    void ComputeInternalForces_Impl(const ChVector<>& pA,
+                                    const ChVector<>& dA,
+                                    const ChVector<>& pB,
+                                    const ChVector<>& dB,
+                                    ChMatrixDynamic<>& Fi) {
         assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
-        assert(!section.IsNull());
+        assert(section);
 
         double Area = section->Area;
         double E = section->E;
         double I = section->I;
 
         double l = this->length;
-
-        ChVector<> pA = this->nodes[0]->GetPos();
-        ChVector<> dA = this->nodes[0]->GetD();
-        ChVector<> pB = this->nodes[1]->GetPos();
-        ChVector<> dB = this->nodes[1]->GetD();
 
         // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
         ChMatrixNM<double, 4, 3> d;
@@ -820,7 +827,7 @@ class ChElementBeamANCF :   public ChElementBeam,
                                             const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) {
-        assert(!section.IsNull());
+        assert(section);
 
         ChMatrixNM<double, 1, 4> N;
         ChMatrixNM<double, 1, 4> Nd;
@@ -839,7 +846,7 @@ class ChElementBeamANCF :   public ChElementBeam,
     /// This is not mandatory for the element to work, but it can be useful for plotting,
     /// showing results, etc.
     virtual void EvaluateSectionStrain(const double eta, const ChMatrix<>& displ, ChVector<>& StrainV) override {
-        assert(!section.IsNull());
+        assert(section);
 
         ChMatrixNM<double, 1, 4> N;
         ChMatrixNM<double, 1, 4> Nd;

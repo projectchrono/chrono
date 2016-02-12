@@ -137,10 +137,10 @@ int main(int argc, char* argv[]) {
     // Create and initialize the tires
     int num_axles = vehicle.GetNumberAxles();
     int num_wheels = 2 * num_axles;
-    std::vector<ChSharedPtr<RigidTire> > tires(num_wheels);
+    std::vector<std::shared_ptr<RigidTire> > tires(num_wheels);
 
     for (int i = 0; i < num_wheels; i++) {
-        tires[i] = ChSharedPtr<RigidTire>(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
+        tires[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
         tires[i]->Initialize(vehicle.GetWheelBody(i));
     }
 

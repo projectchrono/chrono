@@ -117,7 +117,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     virtual double GetContactableMass()  {return this->GetMass();}
 
         /// Return the pointer to the surface material. 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
 
         /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem();
@@ -206,12 +206,12 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     //
 
     // The nodes:
-    std::vector<ChSharedPtr<ChNodeSPH> > nodes;
+    std::vector<std::shared_ptr<ChNodeSPH> > nodes;
 
     ChContinuumSPH material;
 
     // data for surface contact and impact (can be shared):
-    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+    std::shared_ptr<ChMaterialSurfaceBase> matsurface;
 
     bool do_collide;
 
@@ -255,7 +255,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     unsigned int GetNnodes() { return (unsigned int)nodes.size(); }
 
     /// Access the N-th node
-    ChSharedPtr<ChNodeBase> GetNode(unsigned int n) {
+    std::shared_ptr<ChNodeBase> GetNode(unsigned int n) {
         assert(n < nodes.size());
         return nodes[n];
     }
@@ -269,10 +269,10 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void AddNode(ChVector<double> initial_state);
 
     /// Set the material surface for 'boundary contact'
-    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact' 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS
@@ -393,8 +393,6 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     virtual void ArchiveOUT(ChArchiveOut& marchive);
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChMatterSPH> ChSharedMatterSPHPtr;
 
 }  // END_OF_NAMESPACE____
 

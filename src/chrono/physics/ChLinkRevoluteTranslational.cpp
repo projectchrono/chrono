@@ -84,13 +84,13 @@ ChLink* ChLinkRevoluteTranslational::new_Duplicate() {
 // Link initialization functions
 // -----------------------------------------------------------------------------
 void ChLinkRevoluteTranslational::Initialize(
-    ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-    ChSharedPtr<ChBodyFrame> body2,  // second frame (translational side)
+    std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
+    std::shared_ptr<ChBodyFrame> body2,  // second frame (translational side)
     const ChCoordsys<>& csys,        // joint coordinate system (in absolute frame)
     double distance                  // imposed distance between rotation axis and translation axis
     ) {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_par1.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_par2.SetVariables(&Body1->Variables(), &Body2->Variables());
@@ -116,8 +116,8 @@ void ChLinkRevoluteTranslational::Initialize(
 }
 
 void ChLinkRevoluteTranslational::Initialize(
-    ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-    ChSharedPtr<ChBodyFrame> body2,  // second frame (spherical side)
+    std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
+    std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
     bool local,                      // true if data given in body local frames
     const ChVector<>& p1,            // point on first frame (revolute side)
     const ChVector<>& dirZ1,         // direction of revolute on first frame
@@ -127,8 +127,8 @@ void ChLinkRevoluteTranslational::Initialize(
     bool auto_distance,              // true if imposed distance equal to distance between axes
     double distance                  // imposed distance (used only if auto_distance = false)
     ) {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_par1.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_par2.SetVariables(&Body1->Variables(), &Body2->Variables());

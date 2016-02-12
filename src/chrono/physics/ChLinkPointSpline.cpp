@@ -35,7 +35,7 @@ ChLinkPointSpline::ChLinkPointSpline() {
     type = LNK_POINTSPLINE;  // initializes type
 
     // default trajectory is a segment
-    trajectory_line = ChSharedPtr<ChLine>(new ChLineSegment());
+    trajectory_line = std::make_shared<ChLineSegment>();
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
@@ -55,7 +55,7 @@ void ChLinkPointSpline::Copy(ChLinkPointSpline* source) {
 
     // copy own data
 
-    trajectory_line = ChSharedPtr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
+    trajectory_line = std::shared_ptr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
 }
 
 ChLink* ChLinkPointSpline::new_Duplicate() {
@@ -67,7 +67,7 @@ ChLink* ChLinkPointSpline::new_Duplicate() {
 
 //////////
 
-void ChLinkPointSpline::Set_trajectory_line(ChSharedPtr<geometry::ChLine> mline) {
+void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
     trajectory_line = mline;
 }
 

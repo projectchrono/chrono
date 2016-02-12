@@ -64,13 +64,13 @@ void AddContainer(ChSystemParallelDEM* sys) {
   int mixerId = -201;
 
   // Create a common material
-  ChSharedPtr<ChMaterialSurfaceDEM> mat(new ChMaterialSurfaceDEM);
+  auto mat = std::make_shared<ChMaterialSurfaceDEM>();
   mat->SetYoungModulus(2e5f);
   mat->SetFriction(0.4f);
   mat->SetRestitution(0.1f);
 
   // Create the containing bin (2 x 2 x 1)
-  ChSharedPtr<ChBody> bin(new ChBody(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM));
+  auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
@@ -83,11 +83,11 @@ void AddContainer(ChSystemParallelDEM* sys) {
   double hthick = 0.1;
 
   bin->GetCollisionModel()->ClearModel();
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
   bin->GetCollisionModel()->SetFamily(1);
   bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
   bin->GetCollisionModel()->BuildModel();
@@ -95,7 +95,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
   sys->AddBody(bin);
 
   // The rotating mixer body (1.6 x 0.2 x 0.4)
-  ChSharedPtr<ChBody> mixer(new ChBody(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM));
+  auto mixer = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
   mixer->SetMaterialSurface(mat);
   mixer->SetIdentifier(mixerId);
   mixer->SetMass(10.0);
@@ -107,21 +107,18 @@ void AddContainer(ChSystemParallelDEM* sys) {
   ChVector<> hsize(0.8, 0.1, 0.2);
 
   mixer->GetCollisionModel()->ClearModel();
-  utils::AddBoxGeometry(mixer.get_ptr(), hsize);
+  utils::AddBoxGeometry(mixer.get(), hsize);
   mixer->GetCollisionModel()->SetFamily(2);
   mixer->GetCollisionModel()->BuildModel();
 
   sys->AddBody(mixer);
 
   // Create an engine between the two bodies, constrained to rotate at 90 deg/s
-  ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
+  auto motor = std::make_shared<ChLinkEngine>();
 
-  ChSharedPtr<ChBody> mixer_(mixer);
-  ChSharedPtr<ChBody> bin_(bin);
-
-  motor->Initialize(mixer_, bin_, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+  motor->Initialize(mixer, bin, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
   motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-  if (ChSharedPtr<ChFunction_Const> mfun = motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+  if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(motor->Get_spe_funct()))
     mfun->Set_yconst(CH_C_PI / 2);
 
   sys->AddLink(motor);
@@ -132,7 +129,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallelDEM* sys) {
   // Common material
-  ChSharedPtr<ChMaterialSurfaceDEM> ballMat(new ChMaterialSurfaceDEM);
+  auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
   ballMat->SetYoungModulus(2e5f);
   ballMat->SetFriction(0.4f);
   ballMat->SetRestitution(0.1f);
@@ -147,7 +144,7 @@ void AddFallingBalls(ChSystemParallelDEM* sys) {
     for (int iy = -2; iy < 3; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      ChSharedPtr<ChBody> ball(new ChBody(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM));
+      auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
       ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
@@ -159,7 +156,7 @@ void AddFallingBalls(ChSystemParallelDEM* sys) {
       ball->SetCollide(true);
 
       ball->GetCollisionModel()->ClearModel();
-      utils::AddSphereGeometry(ball.get_ptr(), radius);
+      utils::AddSphereGeometry(ball.get(), radius);
       ball->GetCollisionModel()->BuildModel();
 
       sys->AddBody(ball);

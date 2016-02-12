@@ -37,7 +37,7 @@ void ChSystemParallelDVI::ChangeSolverType(SOLVERTYPE type) {
     ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type);
 }
 
-void ChSystemParallelDVI::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
+void ChSystemParallelDVI::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
     assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DVI);
 
     // Reserve space for material properties for the specified body. Not that the
@@ -57,7 +57,7 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
     // ChBody::GetMaterialSurface since that returns a copy of the reference
     // counted shared pointer).
     ChSharedPtr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
-    ChMaterialSurface* mat_ptr = static_cast<ChMaterialSurface*>(mat.get_ptr());
+    ChMaterialSurface* mat_ptr = static_cast<ChMaterialSurface*>(mat.get());
 
     friction[index] = real3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());
     cohesion[index] = mat_ptr->GetCohesion();
@@ -108,18 +108,19 @@ void ChSystemParallelDVI::SolveSystem() {
 
     data_manager->system_timer.start("collision");
     collision_system->Run();
-    collision_system->ReportContacts(this->contact_container.get_ptr());
+    collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
     data_manager->system_timer.start("lcp");
     ((ChLcpSolverParallel*)(LCP_solver_speed))->RunTimeStep();
     data_manager->system_timer.stop("lcp");
     data_manager->system_timer.stop("step");
 }
+
 void ChSystemParallelDVI::AssembleSystem() {
     Setup();
 
     collision_system->Run();
-    collision_system->ReportContacts(this->contact_container.get_ptr());
+    collision_system->ReportContacts(this->contact_container.get());
     ChSystem::Update();
     this->contact_container->BeginAddContact();
     chrono::collision::ChCollisionInfo icontact;
@@ -188,7 +189,7 @@ void ChSystemParallelDVI::Initialize() {
 
     data_manager->system_timer.start("collision");
     collision_system->Run();
-    collision_system->ReportContacts(this->contact_container.get_ptr());
+    collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
 
     data_manager->node_container->Initialize();

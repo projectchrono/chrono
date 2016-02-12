@@ -7,10 +7,8 @@ using namespace chrono;
 
 %}
  
+
 /* Parse the header file to generate wrappers */
- %include "../chrono/assets/ChAsset.h"    
+%include "../chrono/assets/ChAsset.h"    
 
-// Define also the shared pointer chrono::ChShared<ChAsset> 
-// (renamed as 'ChAssetShared' in python)
 
-%DefChSharedPtr(chrono::,ChAsset)

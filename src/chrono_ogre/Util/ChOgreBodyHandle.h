@@ -17,8 +17,8 @@ class CHOGRE_DLL_TAG ChOgreBodyHandle {
     ChOgreBodyHandle& operator=(const ChOgreBodyHandle& other);
     ChOgreBodyHandle& operator=(ChOgreBodyHandle&& other);
 
-    chrono::ChSharedBodyPtr operator->();
-    chrono::ChSharedBodyPtr ChBody();
+    chrono::ChSharedPtr<ChBody> operator->();
+    chrono::ChSharedPtr<ChBody> ChBody();
     ChOgreBody& body();
     void setBodyPtr(ChOgreBodySharedPtr& BodyPtr);
 

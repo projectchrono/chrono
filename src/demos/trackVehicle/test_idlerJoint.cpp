@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 
     // 2. Create the two mechanisms, attach to a common ground body
     // 2a.  Ground
-    ChSharedBodyPtr ground(new ChBody);
+    ChSharedPtr<ChBody> ground(new ChBody);
     ground->SetName("ground");
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);

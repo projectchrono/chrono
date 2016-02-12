@@ -1,0 +1,13 @@
+# Site settings
+title: Project Chrono
+email: info@projectchrono.org
+description: Website for Project Chrono
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "https://projectchrono.org" # the base hostname & protocol for your site
+twitter_username: projectchrono
+github_username:  projectchrono
+permalink: /blog/:year/:month/:title/
+
+# Build settings
+markdown: kramdown
+highlighter: rouge

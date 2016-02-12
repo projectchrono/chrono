@@ -37,9 +37,8 @@
 // For optional downcasting of polimorphic objects:
 %include "chrono_downcast.i" 
 
-// The complete support of smart shared pointers
-%include "chrono_shared_ptr.i" 
-
+// For supporting shared pointers:
+%include <std_shared_ptr.i>
 
 
 
@@ -47,12 +46,12 @@
 
 %{
 
-//#include "chrono_irrlicht/ChXxxyyyzzz.h"
 #include <irrlicht.h>
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 using namespace irr;
 using namespace core;
 using namespace scene;
@@ -65,6 +64,7 @@ using namespace gui;
 
 // Undefine ChApi and other macros that otherwise SWIG gives a syntax error
 #define ChApiIrr 
+#define ChApi 
 #define _IRR_DEPRECATED_ //
 
 // Include other .i configuration files for SWIG. 
@@ -83,7 +83,28 @@ using namespace gui;
 
 
 
-// IMPORTANT!!!
+
+//
+// For each class, keep updated the  A, B, C sections: 
+// 
+
+
+//
+// A- ENABLE SHARED POINTERS
+//
+// Note that this must be done for almost all objects (not only those that are
+// handled by shered pointers in C++, but all their chidren and parent classes. It
+// is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
+// tree must be promoted to %shared_ptr too).
+
+%shared_ptr(chrono::ChSystem)
+%shared_ptr(chrono::irrlicht::ChIrrNodeAsset)
+
+
+//
+// B- INCLUDE HEADERS
+//
+//
 // 1) 
 //    When including with %include all the .i files, make sure that 
 // the .i of a derived class is included AFTER the .i of
@@ -94,11 +115,11 @@ using namespace gui;
 //    Then, this said, if one member function in Foo_B.i returns
 // an object of Foo_A.i (or uses it as a parameter) and yet you must %include
 // A before B, ex.because of rule 1), a 'forward reference' to A must be done in
-// B by using the %import keyword that tells Swig that somewhere there's
-// a type B. Otherwise a name mangling is built anyway, but the runtime is not ok.
+// B by. Seems that it is enough to write 
+//  mynamespace { class myclass; }
+// in the .i file, before the %include of the .h, even if already forwarded in .h
 
-//  core/  classes
-// %include "ChIrrlichtBase.i" // not existing
+
 
 %import  "ChSystem.i"
 %import  "ChAsset.i"
@@ -127,23 +148,7 @@ using namespace gui;
 
 
 //
-// UPCASTING OF SHARED POINTERS           (custom inheritance)
-//
-// Note: SWIG takes care automatically of how to cast from  
-// FooDerived* to FooBase* given its swig_cast_info inner structures,
-// but this casting does not happen for ChSharedPtr<FooDerived> to
-// ChSharedPtr<FooBase> because shared ptrs are different classes (not inherited
-// one from the other, just templated versions of a ChSharedPtr<> ).
-// A workaround for this problem is using the (undocumented)
-// function  %types   , that can work here because each templated version
-// of the CSharedPtr has exactly the same data structure, so they can be just
-// cast. 
-// So, use the %DefChSharedPtrCast(derived,base) macro to enable the upcasting.
-
-%DefChSharedPtrCast(chrono::ChIrrNodeAsset, chrono::ChAsset)
-
-//
-// DOWNCASTING OF SHARED POINTERS
+// C- DOWNCASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG, except if one uses the 
 // %downcast_output_sharedptr(...) macro, as above, but this causes

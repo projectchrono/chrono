@@ -68,15 +68,15 @@ class ChApi ChFunction_Operation : public ChFunction {
     CH_RTTI(ChFunction_Operation, ChFunction);
 
   private:
-    ChSharedPtr<ChFunction> fa;
-    ChSharedPtr<ChFunction> fb;
+    std::shared_ptr<ChFunction> fa;
+    std::shared_ptr<ChFunction> fb;
     eChOperation op_type;  // see operation type IDS
 
   public:
     ChFunction_Operation() {
         op_type = ChOP_ADD;
-        fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);
-        fb = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);
+        fa = std::make_shared<ChFunction_Const>();
+        fb = std::make_shared<ChFunction_Const>();
     }
     ~ChFunction_Operation(){};
     void Copy(ChFunction_Operation* source);
@@ -85,11 +85,11 @@ class ChApi ChFunction_Operation : public ChFunction {
     void Set_optype(eChOperation m_op) { op_type = m_op; }
     eChOperation Get_optype() { return op_type; }
 
-    void Set_fa(ChSharedPtr<ChFunction> m_fa) { fa = m_fa; }
-    ChSharedPtr<ChFunction> Get_fa() { return fa; }
+    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
+    std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
-    void Set_fb(ChSharedPtr<ChFunction> m_fb) { fb = m_fb; }
-    ChSharedPtr<ChFunction> Get_fb() { return fb; }
+    void Set_fb(std::shared_ptr<ChFunction> m_fb) { fb = m_fb; }
+    std::shared_ptr<ChFunction> Get_fb() { return fb; }
 
     double Get_y(double x);
     //	double Get_y_dx   (double x) ;

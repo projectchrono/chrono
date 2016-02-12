@@ -25,7 +25,7 @@ namespace chrono {
 /// It is useful for doing cosimulation: one can pass this object's vertex & faces
 /// to an external software (ex. CFD) that in turn will perform collision detection 
 /// with its entities, compute forces, send forces back to Chrono via this object.
-/// Note, this is based on a cluster of  std::vector< ChSharedPtr<ChLoadBodyForce> >, but
+/// Note, this is based on a cluster of  std::vector< std::shared_ptr<ChLoadBodyForce> >, but
 /// the class itself could bypass all methods of ChLoadBodyForce and directly implement
 /// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
 
@@ -36,7 +36,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
 
 
   public:
-    ChLoadBodyMesh(ChSharedPtr<ChBody> cbody, geometry::ChTriangleMeshConnected& cmesh) {
+    ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, geometry::ChTriangleMeshConnected& cmesh) {
         contactbody = cbody;
         contactmesh = cmesh;
     };
@@ -87,7 +87,8 @@ class  ChLoadBodyMesh : public ChLoadBase {
         // Populate the array of applied loads to nodes
         for (size_t i = 0; i< vert_forces.size(); ++i) {
             ChVector<> rel_application = contactmesh.m_vertices[vert_ind[i]];
-            ChSharedPtr< ChLoadBodyForce > mforce (new ChLoadBodyForce(contactbody,vert_forces[i],false, rel_application,true));
+
+            std::shared_ptr< ChLoadBodyForce > mforce(new ChLoadBodyForce(contactbody, vert_forces[i], false, rel_application, true));
             this->forces.push_back(mforce);
         }
         
@@ -104,7 +105,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
         /// Access the list of applied forces, so you can add new ones by using push_back(), 
         /// remove them, count them, etc.
         /// Note that if you add nodes, these should belong to the referenced mesh. 
-    std::vector< ChSharedPtr<ChLoadBodyForce> >& GetForceList() {return forces;}
+    std::vector< std::shared_ptr<ChLoadBodyForce> >& GetForceList() { return forces; }
 
 
     //
@@ -197,13 +198,11 @@ class  ChLoadBodyMesh : public ChLoadBase {
     // 
     // DATA
     //
-    ChSharedPtr<ChBody> contactbody;
+    std::shared_ptr<ChBody> contactbody;
     geometry::ChTriangleMeshConnected contactmesh;
 
-    std::vector< ChSharedPtr<ChLoadBodyForce> >  forces;
+    std::vector<std::shared_ptr<ChLoadBodyForce> > forces;
 };
-
-
 
 }  // END_OF_NAMESPACE____
 

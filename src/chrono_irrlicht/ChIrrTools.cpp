@@ -233,8 +233,7 @@ int ChIrrTools::drawAllLinks(ChSystem& mphysicalSystem,
 
     ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<ChLinkBase>()) {
-            ChSharedPtr<ChLinkBase> mylink = (*myiter).DynamicCastTo<ChLinkBase>();
+        if (auto mylink = std::dynamic_pointer_cast<ChLinkBase>(*myiter)) {
             ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();
             ChVector<> v1abs = mlinkframe.pos;
             ChVector<> v2;
@@ -272,8 +271,7 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
 
     ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<ChLinkBase>()) {
-            ChSharedPtr<ChLinkBase> mylink = (*myiter).DynamicCastTo<ChLinkBase>();
+        if (auto mylink = std::dynamic_pointer_cast<ChLinkBase>(*myiter)) {
             ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();  // GetAssetsFrame();
 
             char buffer[25];
@@ -329,10 +327,7 @@ int ChIrrTools::drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVid
 
     ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<ChBody>())  // item is inherited from ChBody?
-        {
-            ChSharedPtr<ChBody> abody((*myiter).DynamicCastTo<ChBody>());
-
+        if (auto abody = std::dynamic_pointer_cast<ChBody>(*myiter)) {
             irr::video::SColor mcol;
 
             if (abody->GetSleeping())
@@ -393,10 +388,7 @@ int ChIrrTools::drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver*
 
     ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<ChBody>())  // item is inherited from ChBody?
-        {
-            ChSharedPtr<ChBody> abody((*myiter).DynamicCastTo<ChBody>());
-
+        if (auto abody = std::dynamic_pointer_cast<ChBody>(*myiter)) {
             irr::video::SColor mcol;
             const ChFrame<>& mframe_cog = abody->GetFrame_COG_to_abs();
             const ChFrame<>& mframe_ref = abody->GetFrame_REF_to_abs();
@@ -444,11 +436,9 @@ int ChIrrTools::drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoD
 
     ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        if ((*myiter).IsType<ChLinkBase>()) {
+        if (auto mylinkbase = std::dynamic_pointer_cast<ChLinkBase>(*myiter)) {
             ChFrame<> frAabs;
             ChFrame<> frBabs;
-
-            ChSharedPtr<ChLinkBase> mylinkbase = ((*myiter).DynamicCastTo<ChLinkBase>());
 
             // default frame alignment:
 
@@ -457,15 +447,12 @@ int ChIrrTools::drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoD
 
             // special cases:
 
-            if ((*myiter).IsType<ChLinkMarkers>()) {
-                ChSharedPtr<ChLinkMarkers> mylink((*myiter).DynamicCastTo<ChLinkMarkers>());
+            if (auto mylink = std::dynamic_pointer_cast<ChLinkMarkers>(*myiter)) {
                 frAabs = *mylink->GetMarker1() >> *mylink->GetBody1();
                 frBabs = *mylink->GetMarker2() >> *mylink->GetBody2();
             }
 
-            if ((*myiter).IsType<ChLinkMateGeneric>()) {
-                ChSharedPtr<ChLinkMateGeneric> mylink(
-                    (*myiter).DynamicCastTo<ChLinkMateGeneric>());
+            if (auto mylink = std::dynamic_pointer_cast<ChLinkMateGeneric>(*myiter)) {
                 frAabs = mylink->GetFrame1() >> *mylink->GetBody1();
                 frBabs = mylink->GetFrame2() >> *mylink->GetBody2();
             }

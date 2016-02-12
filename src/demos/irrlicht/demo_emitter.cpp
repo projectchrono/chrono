@@ -69,11 +69,11 @@ int main(int argc, char* argv[]) {
 
     // Create the floor:
 
-    ChSharedPtr<ChBodyEasyBox> floorBody(new ChBodyEasyBox(20, 1, 20, 1000, true, true));
+    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
-    ChSharedPtr<ChTexture> mtexture(new ChTexture());
+    auto mtexture = std::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     floorBody->AddAsset(mtexture);
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     // inherit your own class from these randomizers if the choice is not enough).
 
     // ---Initialize the randomizer for positions
-    ChSharedPtr<ChRandomParticlePositionRectangleOutlet> emitter_positions(new ChRandomParticlePositionRectangleOutlet);
+    auto emitter_positions = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
         ChCoordsys<>(ChVector<>(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
@@ -120,12 +120,12 @@ int main(int argc, char* argv[]) {
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for alignments
-    ChSharedPtr<ChRandomParticleAlignmentUniform> emitter_rotations(new ChRandomParticleAlignmentUniform);
+    auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
 
     emitter.SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for velocities, with statistical distribution
-    ChSharedPtr<ChRandomParticleVelocityConstantDirection> mvelo(new ChRandomParticleVelocityConstantDirection);
+    auto mvelo = std::make_shared<ChRandomParticleVelocityConstantDirection>();
     mvelo->SetDirection(-VECT_Y);
     mvelo->SetModulusDistribution(0.0);
 
@@ -134,20 +134,20 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for creations, with statistical distribution
 
     // Create a ChRandomShapeCreator object (ex. here for box particles)
-    ChSharedPtr<ChRandomShapeCreatorBoxes> mcreator_boxes(new ChRandomShapeCreatorBoxes);
+    auto mcreator_boxes = std::make_shared<ChRandomShapeCreatorBoxes>();
     mcreator_boxes->SetXsizeDistribution(
-        ChSmartPtr<ChZhangDistribution>(new ChZhangDistribution(0.5, 0.2)));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.2, 1.0)));
-    mcreator_boxes->SetSizeRatioYZDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.4, 1.0)));
-    mcreator_boxes->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1000)));
+        std::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
+    mcreator_boxes->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 1.0));
+    mcreator_boxes->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
     class MyCreator_boxes : public ChCallbackPostCreation {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
             // Ex.: attach some optional assets, ex for visualization
-            ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+            auto mvisual = std::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
             mbody->AddAsset(mvisual);
         }
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     // a- define a class that implement your custom PostCreation method...
     class MyCreatorForAll : public ChCallbackPostCreation {
       public:
-        virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
             // Enable Irrlicht visualization for all particles
             airrlicht_application->AssetBind(mbody);
             airrlicht_application->AssetUpdate(mbody);

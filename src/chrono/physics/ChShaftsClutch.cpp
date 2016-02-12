@@ -64,13 +64,13 @@ void ChShaftsClutch::Copy(ChShaftsClutch* source) {
     cache_li_pos = source->cache_li_pos;
 }
 
-bool ChShaftsClutch::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaft> mshaft2) {
+bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // parent class initialization
     if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
         return false;
 
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
 
     this->constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
 
@@ -125,6 +125,17 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
 
     Qc(off_L) += cnstr_violation;
 }
+
+
+void ChShaftsClutch::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // Might not be the best place to put this, but it works.
+    // Update the limits on lagrangian multipliers:
+    double dt = c; // note: not always c=dt, this is true for euler implicit linearized and similar DVI timesteppers, might be not the case in future
+    // double dt = this->system->GetStep(); // this could be another option.. but with variable-dt timesteppers it should go deeper..
+    this->constraint.SetBoxedMinMax(dt * this->minT * this->modulation, 
+                                    dt * this->maxT * this->modulation);
+}
+
 
 void ChShaftsClutch::IntToLCP(const unsigned int off_v,  ///< offset in v, R
                               const ChStateDelta& v,

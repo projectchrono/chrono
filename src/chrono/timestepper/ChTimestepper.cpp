@@ -339,7 +339,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt  ///< timestep to advan
         if (verbose)
             GetLog() << " Euler iteration=" << i << "  |R|=" << R.NormInf() << "  |Qc|=" << Qc.NormInf() << "\n";
 
-        if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+        if ((R.NormInf() < abstolS) && (Qc.NormInf() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(
@@ -599,7 +599,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt  ///< timestep to advance
         if (verbose)
             GetLog() << " Trapezoidal iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 
-        if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+        if ((R.NormInf() < abstolS) && (Qc.NormInf() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(
@@ -804,8 +804,10 @@ void ChTimestepperHHT::Advance(const double dt) {
 
     // Setup auxiliary vectors
     Da.Reset(mintegrable->GetNcoords_a(), mintegrable);
-    if (mode == POSITION)
+    if (mode == POSITION) {
+        Xprev.Reset(mintegrable->GetNcoords_x(), mintegrable);
         Dx.Reset(mintegrable->GetNcoords_v(), mintegrable);
+    }
     Dl.Reset(mintegrable->GetNconstr());
     Xnew.Reset(mintegrable->GetNcoords_x(), mintegrable);
     Vnew.Reset(mintegrable->GetNcoords_v(), mintegrable);
@@ -827,9 +829,13 @@ void ChTimestepperHHT::Advance(const double dt) {
 
     // If we had a streak of successful steps, consider a stepsize increase.
     // Note that we never attempt a step larger than the specified dt value.
-    if (num_successful_steps >= req_successful_steps) {
+    // If step size control is disabled, always use h = dt.
+    if (!step_control) {
+        h = dt;
+        num_successful_steps = 0;
+    } else if (num_successful_steps >= req_successful_steps) {
         double new_h = ChMin(h * step_increase_factor, dt);
-        if (new_h > h) {
+        if (new_h > h + h_min) {
             h = new_h;
             num_successful_steps = 0;
             if (verbose)
@@ -854,8 +860,8 @@ void ChTimestepperHHT::Advance(const double dt) {
                 break;
         }
 
-        if (converged) {
-            // NR converged.
+        if (converged || !step_control) {
+            // NR converged (or step size control disabled):
             // - if the number of iterations was low enough, increase the count of successive
             //   successful steps (for possible step increase)
             // - if needed, adjust stepsize to reach exactly tfinal
@@ -866,9 +872,13 @@ void ChTimestepperHHT::Advance(const double dt) {
             else
                 num_successful_steps = 0;
 
-            if (verbose)
-                GetLog() << " HHT NR converged (" << num_successful_steps << ")\n";
-
+            if (verbose) {
+                if (converged)
+                    GetLog() << " HHT NR converged (" << num_successful_steps << ").";
+                else
+                    GetLog() << " HHT NR terminated.";
+                GetLog() << "  T = " << T + h << "  h = " << h << "\n";
+            }
 
             if (std::abs(T + h - tfinal) < 1e-6)
                 h = tfinal - T;
@@ -914,25 +924,34 @@ void ChTimestepperHHT::Advance(const double dt) {
 // Prepare attempting a step of size h (assuming a converged state at the current time t):
 // - Initialize residual vector with terms at current time
 // - Obtain a prediction at T+h for NR using extrapolation from solution at current time.
+// - For ACCELERATION mode, if not using step size control, start with zero acceleration
+//   guess (previous step not guaranteed to have converged)
+// - Set the error weight vectors (using solution at current time)
 void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_factor) {
     switch (mode) {
         case ACCELERATION:
-            Anew = A;
+            if (step_control)
+                Anew = A;
             Vnew = V + Anew * h;
-            Xnew = X + Vnew * h + Anew * h * h;
+            Xnew = X + Vnew * h + Anew * (h * h);
             integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
             integrable->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
+            CalcErrorWeights(A, reltol, abstolS, ewtS);
             break;
         case POSITION:
             Xnew = X;
-            Vnew = V * (-(gamma / beta - 1.0)) - A * h * (gamma / (2.0 * beta) - 1.0);
+            Xprev = X;
+            Vnew = V * (-(gamma / beta - 1.0)) - A * (h * (gamma / (2.0 * beta) - 1.0));
             Anew = V * (-1.0 / (beta * h)) - A * (1.0 / (2.0 * beta) - 1.0);
-            integrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);       // -alpha/(1.0+alpha) * f_old
+            integrable->LoadResidual_F(Rold, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * f_old
             integrable->LoadResidual_CqL(Rold, L, -(alpha / (1.0 + alpha)) * scaling_factor);  // -alpha/(1.0+alpha) * Cq'*l_old
+            CalcErrorWeights(X, reltol, abstolS, ewtS);
             break;
     }
 
     Lnew = L;
+
+    CalcErrorWeights(L, reltol, abstolL, ewtL);
 }
 
 // Calculate a new iterate of the new state at time T+h:
@@ -1003,7 +1022,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
             Lnew += Dl * (1.0 / scaling_factor);  // not -= Dl because we assume StateSolveCorrection flips sign of Dl
             Dx += Da;
             Xnew = (X + Dx);
-            Vnew = V * (-(gamma / beta - 1.0)) - A * h * (gamma / (2.0 * beta) - 1.0);
+            Vnew = V * (-(gamma / beta - 1.0)) - A * (h * (gamma / (2.0 * beta) - 1.0));
             Vnew += Dx * (gamma / (beta * h));
             Anew = -V * (1.0 / (beta * h)) - A * (1.0 / (2.0 * beta) - 1.0);
             Anew += Dx * (1.0 / (beta * h * h));
@@ -1018,53 +1037,43 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
 
     switch (mode) {
         case ACCELERATION: {
-            // Use an absolute tolerance test.
-            // Declare convergence when either the residual or the update is below tolerance:
-            //    |R| < atol  or  |D| < atol
+            // Declare convergence when either the residual is below the absolute tolerance or
+            // the WRMS update norm is less than 1 (relative + absolute tolerance test)
+            //    |R|_2 < atol
+            // or |D|_WRMS < 1
+            // Both states and Lagrange multipliers must converge.
             double R_nrm = R.NormTwo();
             double Qc_nrm = Qc.NormTwo();
-            double Da_nrm = Da.NormTwo();
-            double Dl_nrm = Dl.NormTwo();
+            double Da_nrm = Da.NormWRMS(ewtS);
+            double Dl_nrm = Dl.NormWRMS(ewtL);
 
             if (verbose) {
                 GetLog() << " HHT iteration=" << num_it << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
-                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  tol=" << GetTolerance() << "\n";
+                         << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.GetLength()
+                         << "  M = " << Qc.GetLength() << "\n";
             }
 
-            if ((R.NormTwo() < GetTolerance() && Qc.NormTwo() < GetTolerance()) ||
-                (Da.NormTwo() < GetTolerance() && Dl.NormTwo() < GetTolerance()))
+            if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Da_nrm < 1 && Dl_nrm < 1))
                 converged = true;
 
             break;
         }
         case POSITION: {
-            // Use a relative/absolute tolerance test on updates only:
-            //     |Dx| < rtol * |X| + atol
-            //     |Dl| < rtol * |L| + atol
-            // Since we use a single tolerance value and therefore rtol=atol, we use a
-            // threshold value of 1.0 for switching from relative to absolute tolerance test.
-            // Note also that, the scaling factor must be properly included in the update to
+            // Declare convergence when the WRMS norm of the update is less than 1
+            // (relative + absolute tolerance test).
+            // Note that the scaling factor must be properly included in the update to
             // the Lagrange multipliers.
-            double Err_Dx;
-            double tmpX = Xnew.NormTwo();
-            if (tmpX < 1)
-                Err_Dx = Da.NormTwo();  // absolute tolerance test
-            else
-                Err_Dx = Da.NormTwo() / tmpX;  // relative tolerance test
+            double Dx_nrm = (Xnew - Xprev).NormWRMS(ewtS);
+            Xprev = Xnew;
 
-            double Err_Dl;
-            double tmpL = Lnew.NormTwo();
-            if (tmpL < 1)
-                Err_Dl = (Dl.NormTwo() / scaling_factor);  // absolute tolerance test
-            else
-                Err_Dl = (Dl.NormTwo() / scaling_factor) / tmpL;  // relative tolerance test
+            double Dl_nrm = Dl.NormWRMS(ewtL);
+            Dl_nrm /= scaling_factor;
 
             if (verbose) {
-                GetLog() << " HHT iteration=" << num_it << "  |Err_Dx|=" << Err_Dx << "  |Err_Dl|=" << Err_Dl
-                         << "  tol=" << GetTolerance() << "\n";
+                GetLog() << " HHT iteration=" << num_it << "  |Dx|=" << Dx_nrm << "  |Dl|=" << Dl_nrm << "\n";
             }
 
-            if (Err_Dx < GetTolerance() && Err_Dl < GetTolerance())
+            if (Dx_nrm < 1 && Dl_nrm < 1)
                 converged = true;
 
             break;
@@ -1072,6 +1081,15 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
     }
 
     return converged;
+}
+
+// Calculate the error weight vector correspondiong to the specified solution vector x,
+// using the given relative and absolute tolerances.
+void ChTimestepperHHT::CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt) {
+    ewt.Reset(x.GetLength());
+    for (int i = 0; i < x.GetLength(); ++i) {
+        ewt.ElementN(i) = 1.0 / (rtol * std::abs(x.ElementN(i)) + atol);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1130,7 +1148,7 @@ void ChTimestepperNewmark::Advance(const double dt  ///< timestep to advance
         if (verbose)
             GetLog() << " Newmark iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
 
-        if ((R.NormInf() < this->GetTolerance()) && (Qc.NormInf() < this->GetTolerance()))
+        if ((R.NormInf() < abstolS) && (Qc.NormInf() < abstolL))
             break;
 
         mintegrable->StateSolveCorrection(

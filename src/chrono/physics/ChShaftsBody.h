@@ -148,9 +148,9 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     /// the 1D shaft and 3D body to join.
     /// Each item must belong to the same ChSystem.
     /// Direction is expressed in the local coordinates of the body.
-    bool Initialize(ChSharedPtr<ChShaft> mshaft,     ///< shaft to join
-                    ChSharedPtr<ChBodyFrame> mbody,  ///< body to join
-                    const ChVector<>& mdir  ///< the direction of the shaft on 3D body (applied on COG: pure torque)
+    bool Initialize(std::shared_ptr<ChShaft> mshaft,     ///< shaft to join
+                    std::shared_ptr<ChBodyFrame> mbody,  ///< body to join
+                    const ChVector<>& mdir               ///< the direction of the shaft on 3D body (applied on COG: pure torque)
                     );
 
     /// Get the shaft
@@ -191,8 +191,6 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChShaftsBody> ChSharedShaftsBodyPtr;
 
 }  // END_OF_NAMESPACE____
 

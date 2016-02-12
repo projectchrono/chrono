@@ -199,7 +199,7 @@ void ChOpenGLViewer::Render() {
             model_cylinder.clear();
             model_obj.clear();
             for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-                ChSharedPtr<ChBody> abody = physics_system->Get_bodylist()->at(i);
+                auto abody = physics_system->Get_bodylist()->at(i);
                 DrawObject(abody);
             }
             if (model_box.size() > 0) {
@@ -230,7 +230,7 @@ void ChOpenGLViewer::Render() {
             cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
             for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-                ChSharedPtr<ChBody> abody = physics_system->Get_bodylist()->at(i);
+                auto abody = physics_system->Get_bodylist()->at(i);
                 ChVector<> pos = abody->GetPos();
                 cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
             }
@@ -267,7 +267,7 @@ void ChOpenGLViewer::Render() {
     fps = 1.0 / current_time;
 }
 
-void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
+void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
     if (abody->GetAssets().size() == 0) {
         return;
     }
@@ -280,9 +280,9 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
     rot.Q_to_AngAxis(angle, axis);
 
     for (int i = 0; i < abody->GetAssets().size(); i++) {
-        ChSharedPtr<ChAsset> asset = abody->GetAssets().at(i);
+        auto asset = abody->GetAssets().at(i);
 
-        if (!asset.IsType<ChVisualization>()) {
+        if (!std::dynamic_pointer_cast<ChVisualization>(asset)) {
             continue;
         }
 
@@ -294,7 +294,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
         lrot.Normalize();
         lrot.Q_to_AngAxis(angle, axis);
 
-        if (asset.IsType<ChSphereShape>()) {
+        if (std::dynamic_pointer_cast<ChSphereShape>(asset)) {
             ChSphereShape* sphere_shape = ((ChSphereShape*)(asset.get_ptr()));
             float radius = sphere_shape->GetSphereGeometry().rad;
             ChVector<> pos_final = pos + center;
@@ -304,7 +304,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(radius, radius, radius));
             model_sphere.push_back(model);
 
-        } else if (asset.IsType<ChEllipsoidShape>()) {
+        } else if (std::dynamic_pointer_cast<ChEllipsoidShape>(asset)) {
             ChEllipsoidShape* ellipsoid_shape = ((ChEllipsoidShape*)(asset.get_ptr()));
             Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
             ChVector<> pos_final = pos + center;
@@ -313,7 +313,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
             model_sphere.push_back(model);
 
-        } else if (asset.IsType<ChBoxShape>()) {
+        } else if (std::dynamic_pointer_cast<ChBoxShape>(asset)) {
             ChBoxShape* box_shape = ((ChBoxShape*)(asset.get_ptr()));
             ChVector<> pos_final = pos + center;
             Vector radius = box_shape->GetBoxGeometry().Size;
@@ -323,7 +323,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
             model_box.push_back(model);
 
-        } else if (asset.IsType<ChCylinderShape>()) {
+        } else if (std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
             ChCylinderShape* cylinder_shape = ((ChCylinderShape*)(asset.get_ptr()));
             double rad = cylinder_shape->GetCylinderGeometry().rad;
             double height = cylinder_shape->GetCylinderGeometry().p1.y - cylinder_shape->GetCylinderGeometry().p2.y;
@@ -339,7 +339,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(rad, height * .5, rad));
             model_cylinder.push_back(model);
 
-        } else if (asset.IsType<ChConeShape>()) {
+        } else if (std::dynamic_pointer_cast<ChConeShape>(asset)) {
             ChConeShape* cone_shape = ((ChConeShape*)(asset.get_ptr()));
             Vector rad = cone_shape->GetConeGeometry().rad;
             ChVector<> pos_final = pos + center;
@@ -348,7 +348,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(rad.x, rad.y, rad.z));
             model_cone.push_back(model);
 
-        } else if (asset.IsType<ChRoundedBoxShape>()) {
+        } else if (std::dynamic_pointer_cast<ChRoundedBoxShape>(asset)) {
             ChRoundedBoxShape* shape = ((ChRoundedBoxShape*)(asset.get_ptr()));
             Vector rad = shape->GetRoundedBoxGeometry().Size;
             double radsphere = shape->GetRoundedBoxGeometry().radsphere;
@@ -406,7 +406,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
                                    glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
             model = glm::scale(model, glm::vec3(radsphere));
             model_sphere.push_back(model);
-        } else if (asset.IsType<ChCapsuleShape>()) {
+        } else if (std::dynamic_pointer_cast<ChCapsuleShape>(asset)) {
             ChCapsuleShape* capsule_shape = ((ChCapsuleShape*)(asset.get_ptr()));
             double rad = capsule_shape->GetCapsuleGeometry().rad;
             double height = capsule_shape->GetCapsuleGeometry().hlen;
@@ -434,7 +434,7 @@ void ChOpenGLViewer::DrawObject(ChSharedPtr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(rad));
             model_sphere.push_back(model);
 
-        } else if (asset.IsType<ChTriangleMeshShape>()) {
+        } else if (std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
             ChTriangleMeshShape* trimesh_shape = ((ChTriangleMeshShape*)(asset.get_ptr()));
             ChVector<> pos_final = pos + center;
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));

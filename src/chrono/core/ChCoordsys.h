@@ -419,8 +419,8 @@ ChApi Coordsys Force2Dcsys(Coordsys* cs);
 // CONSTANTS
 //
 
-static const Coordsys CSYSNULL(VNULL, QNULL);
-static const Coordsys CSYSNORM(VNULL, QUNIT);
+#define CSYSNULL ChCoordsys<double>(VNULL,QNULL)
+#define CSYSNORM ChCoordsys<double>(VNULL,QUNIT)
 
 }  // END_OF_NAMESPACE____
 

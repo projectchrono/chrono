@@ -30,7 +30,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-//#include "core/ChShared.h"
 #include "physics/ChPhysicsItem.h"
 #include "lcp/ChLcpVariablesShaft.h"
 
@@ -288,8 +287,6 @@ class ChApi ChShaft : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChShaft> ChSharedShaftPtr;
 
 }  // END_OF_NAMESPACE____
 

@@ -36,7 +36,7 @@ void WriteBodies(ChSystem* system,
     CSV_writer csv(delim);
 
     for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-        ChSharedPtr<ChBody> body = system->Get_bodylist()->at(i);
+        std::shared_ptr<ChBody> body = system->Get_bodylist()->at(i);
         if (active_only && !body->IsActive())
             continue;
         csv << body->GetPos() << body->GetRot();
@@ -58,9 +58,9 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
     CSV_writer csv(" ");
 
-    std::vector<ChSharedPtr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
+    std::vector<std::shared_ptr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
     for (; ibody != system->Get_bodylist()->end(); ++ibody) {
-        ChSharedPtr<ChBody> body = *ibody;
+        std::shared_ptr<ChBody> body = *ibody;
 
         // Infer body type (0: DVI, 1:DEM)
         int btype = (body->GetContactMethod() == ChMaterialSurfaceBase::DVI) ? 0 : 1;
@@ -83,13 +83,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         // Write material information
         if (btype == 0) {
             // Write DVI material surface information
-            ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
+            std::shared_ptr<ChMaterialSurface> mat = body->GetMaterialSurface();
             csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
             csv << mat->restitution << mat->cohesion << mat->dampingf;
             csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
         } else {
             // Write DEM material surface information
-            ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
+            std::shared_ptr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
             csv << mat->young_modulus << mat->poisson_ratio;
             csv << mat->static_friction << mat->sliding_friction;
             csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
@@ -99,9 +99,9 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Count and write all visual assets.
         int num_visual_assets = 0;
-        std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
+        std::vector<std::shared_ptr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
         for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            if ((*iasset).IsType<ChVisualization>())
+            if (std::dynamic_pointer_cast<ChVisualization>(*iasset))
                 num_visual_assets++;
         }
         csv << num_visual_assets << std::endl;
@@ -110,34 +110,33 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         // on a separate line. If we encounter an unsupported type, return false.
         iasset = (*ibody)->GetAssets().begin();
         for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            ChSharedPtr<ChVisualization> visual_asset = (*iasset).DynamicCastTo<ChVisualization>();
-            if (visual_asset.IsNull())
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(*iasset);
+            if (!visual_asset)
                 continue;
 
             // Write relative position and rotation
             csv << visual_asset->Pos << visual_asset->Rot.Get_A_quaternion();
 
             // Write shape type and geometry data
-            if (ChSharedPtr<ChSphereShape> sphere = visual_asset.DynamicCastTo<ChSphereShape>()) {
+            if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(visual_asset)) {
                 csv << collision::SPHERE << sphere->GetSphereGeometry().rad;
-            } else if (ChSharedPtr<ChEllipsoidShape> ellipsoid = visual_asset.DynamicCastTo<ChEllipsoidShape>()) {
+            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(visual_asset)) {
                 csv << collision::ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
-            } else if (ChSharedPtr<ChBoxShape> box = visual_asset.DynamicCastTo<ChBoxShape>()) {
+            } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(visual_asset)) {
                 csv << collision::BOX << box->GetBoxGeometry().Size;
-            } else if (ChSharedPtr<ChCapsuleShape> capsule = visual_asset.DynamicCastTo<ChCapsuleShape>()) {
+            } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(visual_asset)) {
                 const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
                 csv << collision::CAPSULE << geom.rad << geom.hlen;
-            } else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>()) {
+            } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
                 csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
-            } else if (ChSharedPtr<ChConeShape> cone = visual_asset.DynamicCastTo<ChConeShape>()) {
+            } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
                 csv << collision::CONE << geom.rad.x << geom.rad.y;
-            } else if (ChSharedPtr<ChRoundedBoxShape> rbox = visual_asset.DynamicCastTo<ChRoundedBoxShape>()) {
+            } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(visual_asset)) {
                 const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
                 csv << collision::ROUNDEDBOX << geom.Size << geom.radsphere;
-            } else if (ChSharedPtr<ChRoundedCylinderShape> rcyl =
-                           visual_asset.DynamicCastTo<ChRoundedCylinderShape>()) {
+            } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(visual_asset)) {
                 const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
                 csv << collision::ROUNDEDCYL << geom.rad << geom.hlen << geom.radsphere;
             } else {
@@ -190,19 +189,19 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Create a body of the appropriate type, read and apply material properties
         ChBody* body = system->NewBody();
         if (btype == 0) {
-            ChSharedPtr<ChMaterialSurface> mat = body->GetMaterialSurface();
+            std::shared_ptr<ChMaterialSurface> mat = body->GetMaterialSurface();
             iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
             iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
             iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
         } else {
-            ChSharedPtr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
+            std::shared_ptr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
             iss2 >> mat->young_modulus >> mat->poisson_ratio;
             iss2 >> mat->static_friction >> mat->sliding_friction;
             iss2 >> mat->restitution >> mat->constant_adhesion >> mat->adhesionMultDMT;
         }
 
         // Add the body to the system.
-        system->AddBody(ChSharedPtr<ChBody>(body));
+        system->AddBody(std::shared_ptr<ChBody>(body));
 
         // Set body properties and state
         body->SetPos(bpos);
@@ -332,7 +331,7 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
     int b_count = 0;
 
     if (body_info) {
-        std::vector<ChSharedPtr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
+        std::vector<std::shared_ptr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
         for (; ibody != system->Get_bodylist()->end(); ++ibody) {
             const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
             const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
@@ -345,7 +344,7 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
 
     // Loop over all bodies and over all their assets.
     int a_count = 0;
-    std::vector<ChSharedPtr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
+    std::vector<std::shared_ptr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
     for (; ibody != system->Get_bodylist()->end(); ++ibody) {
         const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
         const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
@@ -353,17 +352,17 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
         ChColor color(0.8f, 0.8f, 0.8f);
 
         // First loop over assets -- search for a color asset
-        std::vector<ChSharedPtr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
+        std::vector<std::shared_ptr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
         for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            if (ChSharedPtr<ChColorAsset> color_asset = (*iasset).DynamicCastTo<ChColorAsset>())
+            if (auto color_asset = std::dynamic_pointer_cast<ChColorAsset>(*iasset))
                 color = color_asset->GetColor();
         }
 
         // Loop over assets once again -- write information for supported types.
         iasset = (*ibody)->GetAssets().begin();
         for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            ChSharedPtr<ChVisualization> visual_asset = (*iasset).DynamicCastTo<ChVisualization>();
-            if (visual_asset.IsNull())
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(*iasset);
+            if (!visual_asset)
                 continue;
 
             const Vector& asset_pos = visual_asset->Pos;
@@ -375,46 +374,45 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
             bool supported = true;
             std::stringstream gss;
 
-            if (ChSharedPtr<ChSphereShape> sphere = visual_asset.DynamicCastTo<ChSphereShape>()) {
+            if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(visual_asset)) {
                 gss << SPHERE << delim << sphere->GetSphereGeometry().rad;
                 a_count++;
-            } else if (ChSharedPtr<ChEllipsoidShape> ellipsoid = visual_asset.DynamicCastTo<ChEllipsoidShape>()) {
+            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(visual_asset)) {
                 const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
                 gss << ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
                 a_count++;
-            } else if (ChSharedPtr<ChBoxShape> box = visual_asset.DynamicCastTo<ChBoxShape>()) {
+            } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(visual_asset)) {
                 const Vector& size = box->GetBoxGeometry().Size;
                 gss << BOX << delim << size.x << delim << size.y << delim << size.z;
                 a_count++;
-            } else if (ChSharedPtr<ChCapsuleShape> capsule = visual_asset.DynamicCastTo<ChCapsuleShape>()) {
+            } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(visual_asset)) {
                 const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
                 gss << CAPSULE << delim << geom.rad << delim << geom.hlen;
                 a_count++;
-            } else if (ChSharedPtr<ChCylinderShape> cylinder = visual_asset.DynamicCastTo<ChCylinderShape>()) {
+            } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
                 gss << CYLINDER << delim << geom.rad << delim << geom.p1.x << delim << geom.p1.y << delim << geom.p1.z
                     << delim << geom.p2.x << delim << geom.p2.y << delim << geom.p2.z;
                 a_count++;
-            } else if (ChSharedPtr<ChConeShape> cone = visual_asset.DynamicCastTo<ChConeShape>()) {
+            } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
                 gss << CONE << delim << geom.rad.x << delim << geom.rad.y;
                 a_count++;
-            } else if (ChSharedPtr<ChRoundedBoxShape> rbox = visual_asset.DynamicCastTo<ChRoundedBoxShape>()) {
+            } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(visual_asset)) {
                 const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
                 gss << ROUNDEDBOX << delim << geom.Size.x << delim << geom.Size.y << delim << geom.Size.z << delim
                     << geom.radsphere;
                 a_count++;
-            } else if (ChSharedPtr<ChRoundedCylinderShape> rcyl =
-                           visual_asset.DynamicCastTo<ChRoundedCylinderShape>()) {
+            } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(visual_asset)) {
                 const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
                 gss << ROUNDEDCYL << delim << geom.rad << delim << geom.hlen << delim << geom.radsphere;
                 a_count++;
-            } else if (ChSharedPtr<ChTriangleMeshShape> mesh = visual_asset.DynamicCastTo<ChTriangleMeshShape>()) {
+            } else if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(visual_asset)) {
                 gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
                 a_count++;
-            } else if (ChSharedPtr<ChLineShape> line = visual_asset.DynamicCastTo<ChLineShape>()) {
-                ChSharedPtr<geometry::ChLine> geom = line->GetLineGeometry();
-                if (ChSharedPtr<geometry::ChLineBezier> bezier = geom.DynamicCastTo<geometry::ChLineBezier>()) {
+            } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(visual_asset)) {
+                std::shared_ptr<geometry::ChLine> geom = line->GetLineGeometry();
+                if (auto bezier = std::dynamic_pointer_cast<geometry::ChLineBezier>(geom)) {
                     gss << BEZIER << delim << "\"" << line->GetName() << "\"";
                     a_count++;
                 } else {
@@ -433,52 +431,52 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
 
     // Loop over all links.  Write information on selected types of links.
     int l_count = 0;
-    std::vector<ChSharedPtr<ChLink> >::iterator ilink = system->Get_linklist()->begin();
+    std::vector<std::shared_ptr<ChLink> >::iterator ilink = system->Get_linklist()->begin();
     for (; ilink != system->Get_linklist()->end(); ++ilink) {
         int type = (*ilink)->GetType();
 
-        if (ChLinkLockRevolute* link = dynamic_cast<ChLinkLockRevolute*>((*ilink).get_ptr())) {
+        if (ChLinkLockRevolute* link = dynamic_cast<ChLinkLockRevolute*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
-        } else if (ChLinkLockSpherical* link = dynamic_cast<ChLinkLockSpherical*>((*ilink).get_ptr())) {
+        } else if (ChLinkLockSpherical* link = dynamic_cast<ChLinkLockSpherical*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << type << frA_abs.GetPos() << std::endl;
             l_count++;
         }
-        if (ChLinkLockPrismatic* link = dynamic_cast<ChLinkLockPrismatic*>((*ilink).get_ptr())) {
+        if (ChLinkLockPrismatic* link = dynamic_cast<ChLinkLockPrismatic*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
-        } else if (ChLinkUniversal* link = dynamic_cast<ChLinkUniversal*>((*ilink).get_ptr())) {
+        } else if (ChLinkUniversal* link = dynamic_cast<ChLinkUniversal*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
             chrono::ChFrame<> frB_abs = link->GetFrame2Abs();
 
             csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Xaxis() << frB_abs.GetA().Get_A_Yaxis()
                 << std::endl;
             l_count++;
-        } else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
+        } else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
             l_count++;
-        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get_ptr())) {
+        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
             l_count++;
-        } else if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get_ptr())) {
+        } else if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get())) {
             csv << type << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
             l_count++;
-        } else if (ChLinkEngine* link = dynamic_cast<ChLinkEngine*>((*ilink).get_ptr())) {
+        } else if (ChLinkEngine* link = dynamic_cast<ChLinkEngine*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 

@@ -59,10 +59,10 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Finally, susp_body_left and susp_body_right are handles to the suspension
     /// bodies to which the anti-roll bar's droplinks are to be attached.
     virtual void Initialize(
-        ChSharedPtr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
-        const ChVector<>& location,          ///< [in] location relative to the chassis frame
-        ChSharedPtr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
-        ChSharedPtr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
+        std::shared_ptr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
+        const ChVector<>& location,              ///< [in] location relative to the chassis frame
+        std::shared_ptr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
+        std::shared_ptr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
         ) override;
 
     /// Log current constraint violations.
@@ -88,15 +88,15 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Return the rotational damping coefficient.
     virtual double getDampingCoefficient() const = 0;
 
-    ChSharedPtr<ChBody> m_arm_left;                 ///< handle to the left arm body
-    ChSharedPtr<ChBody> m_arm_right;                ///< handle to the right arm body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute_ch;  ///< handle to revolute joint to chassis
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;     ///< handle to central revolute joint
-    ChSharedPtr<ChLinkDistance> m_link_left;        ///< handle to the left droplink distance constraint
-    ChSharedPtr<ChLinkDistance> m_link_right;       ///< handle to the right droplink distance constraint
+    std::shared_ptr<ChBody> m_arm_left;                 ///< handle to the left arm body
+    std::shared_ptr<ChBody> m_arm_right;                ///< handle to the right arm body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute_ch;  ///< handle to revolute joint to chassis
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;     ///< handle to central revolute joint
+    std::shared_ptr<ChLinkDistance> m_link_left;        ///< handle to the left droplink distance constraint
+    std::shared_ptr<ChLinkDistance> m_link_right;       ///< handle to the right droplink distance constraint
 
   private:
-    void AddVisualizationArm(ChSharedPtr<ChBody> arm,
+    void AddVisualizationArm(std::shared_ptr<ChBody> arm,
                              const ChVector<>& pt_1,
                              const ChVector<>& pt_2,
                              const ChVector<>& pt_3,

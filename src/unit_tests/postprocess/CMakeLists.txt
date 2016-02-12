@@ -1,5 +1,0 @@
-#ADD_EXECUTABLE(test_mitsubaRender	mitsubaRender.cpp)
-#SET_TARGET_PROPERTIES(test_mitsubaRender PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-#TARGET_LINK_LIBRARIES(test_mitsubaRender ChronoEngine ChronoEngine_POSTPROCESS)
-#ADD_DEPENDENCIES (test_mitsubaRender ChronoEngine ChronoEngine_POSTPROCESS)
-#ADD_TEST(test_mitsubaRender ${PROJECT_BINARY_DIR}/bin/test_mitsubaRender)

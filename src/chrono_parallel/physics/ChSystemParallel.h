@@ -49,8 +49,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     ~ChSystemParallel();
 
     virtual int Integrate_Y();
-    virtual void AddBody(ChSharedPtr<ChBody> newbody);
-    virtual void AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem);
+    virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
     void ClearForceVariables();
     void Update();
@@ -62,7 +62,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     void Update3DOFBodies();
     void RecomputeThreads();
 
-    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) = 0;
+    virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup();
     virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
@@ -123,8 +123,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     COLLISIONSYSTEMTYPE collision_system_type;
 
   private:
-    void AddShaft(ChSharedPtr<ChShaft> shaft);
-    void AddMesh(ChSharedPtr<fea::ChMesh> mesh);
+    void AddShaft(std::shared_ptr<ChShaft> shaft);
+    void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     std::vector<ChShaft*> shaftlist;
 };
@@ -138,8 +138,8 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     void ChangeSolverType(SOLVERTYPE type);
     virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
     virtual ChBody* NewBody();
-    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+    virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
+    virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
     void Initialize();
 
@@ -162,8 +162,8 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
 
     virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
     virtual ChBody* NewBody();
-    virtual void AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody);
-    virtual void UpdateMaterialSurfaceData(int index, ChBody* body);
+    virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
+    virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
     virtual void Setup();
     virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);

@@ -29,7 +29,7 @@ ChClassRegister<ChFunction_Mirror> a_registration_mirror;
 void ChFunction_Mirror::Copy(ChFunction_Mirror* source) {
     mirror_axis = source->mirror_axis;
     // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+    fa = std::shared_ptr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Mirror::new_Duplicate() {

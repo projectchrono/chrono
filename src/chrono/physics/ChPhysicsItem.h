@@ -59,7 +59,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     ChSystem* system;  // parent system
 
-    std::vector<ChSharedPtr<ChAsset> > assets;
+    std::vector<std::shared_ptr<ChAsset> > assets;
 
     unsigned int offset_x;  // offset in vector of state (position part)
     unsigned int offset_w;  // offset in vector of state (speed part)
@@ -112,18 +112,17 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Add an optional asset (it can be used to define visualization shapes, es ChSphereShape,
     /// or textures, or custom attached properties that the user can define by
     /// creating his class inherited from ChAsset)
-    void AddAsset(ChSharedPtr<ChAsset> masset) { this->assets.push_back(masset); }
+    void AddAsset(std::shared_ptr<ChAsset> masset) { this->assets.push_back(masset); }
 
     /// Access to the list of optional assets.
-    std::vector<ChSharedPtr<ChAsset> >& GetAssets() { return this->assets; }
+    std::vector<std::shared_ptr<ChAsset> >& GetAssets() { return this->assets; }
 
     /// Access the Nth asset in the list of optional assets.
-    ChSharedPtr<ChAsset> GetAssetN(unsigned int num) {
+    std::shared_ptr<ChAsset> GetAssetN(unsigned int num) {
         if (num < assets.size())
             return assets[num];
         else {
-            ChSharedPtr<ChAsset> none;
-            return none;
+            return std::shared_ptr<ChAsset>();
         };
     }
 

@@ -14,6 +14,7 @@ option(ENABLE_MODULE_PARALLEL "Enable the Chrono Parallel module" OFF)
 if(NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE BLAZE_DIR)
   mark_as_advanced(FORCE BOOST_DIR)
+  mark_as_advanced(FORCE USE_PARALLEL_DOUBLE)
   return()
 endif()
 
@@ -21,6 +22,7 @@ message(STATUS "==== Chrono Parallel module ====")
 
 mark_as_advanced(CLEAR BLAZE_DIR)
 mark_as_advanced(CLEAR BOOST_DIR)
+mark_as_advanced(CLEAR USE_PARALLEL_DOUBLE)
 
 # ------------------------------------------------------------------------------
 # Additional compiler flags
@@ -34,9 +36,9 @@ set(CH_PARALLEL_C_FLAGS "")
 # ------------------------------------------------------------------------------
 
 
-OPTION(USE_DOUBLE "Compile with double precision math (no SSE support)" ON)
+OPTION(USE_PARALLEL_DOUBLE "Compile Chrono::Parallel with double precision math (no SSE support)" ON)
 
-IF(USE_DOUBLE)
+IF(USE_PARALLEL_DOUBLE)
   SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
 ENDIF()
 

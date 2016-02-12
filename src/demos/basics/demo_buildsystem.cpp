@@ -46,22 +46,22 @@ int main(int argc, char* argv[]) {
         // Note that we use shared pointers, so you don't
         // have to care about the deletion (never use delete.. for
         // objects managed with shared pointers! it will be automatic!)
-        ChSharedBodyPtr my_body_A(new ChBody);
-        ChSharedBodyPtr my_body_B(new ChBody);
-        ChSharedBodyPtr my_body_C(new ChBody);
+        auto my_body_A = std::make_shared<ChBody>();
+        auto my_body_B = std::make_shared<ChBody>();
+        auto my_body_C = std::make_shared<ChBody>();
 
         // Create some markers..
         // Markers are 'auxiliary coordinate systems' to be added
         // to rigid bodies.
         // Again, note that they are managed by shared pointers.
-        ChSharedMarkerPtr my_marker_a1(new ChMarker);
-        ChSharedMarkerPtr my_marker_a2(new ChMarker);
-        ChSharedMarkerPtr my_marker_b1(new ChMarker);
-        ChSharedMarkerPtr my_marker_b2(new ChMarker);
+        auto my_marker_a1 = std::make_shared<ChMarker>();
+        auto my_marker_a2 = std::make_shared<ChMarker>();
+        auto my_marker_b1 = std::make_shared<ChMarker>();
+        auto my_marker_b2 = std::make_shared<ChMarker>();
 
         // You can create some forces too...
-        ChSharedForcePtr my_force_a1(new ChForce);
-        ChSharedForcePtr my_force_a2(new ChForce);
+        auto my_force_a1 = std::make_shared<ChForce>();
+        auto my_force_a2 = std::make_shared<ChForce>();
 
         // Here you will add forces and markers to rigid
         // bodies.
@@ -115,9 +115,9 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create three rigid bodies and add them to the system:
-        ChSharedBodyPtr my_body_A(new ChBody);  // truss
-        ChSharedBodyPtr my_body_B(new ChBody);  // crank
-        ChSharedBodyPtr my_body_C(new ChBody);  // rod
+        auto my_body_A = std::make_shared<ChBody>();
+        auto my_body_B = std::make_shared<ChBody>();
+        auto my_body_C = std::make_shared<ChBody>();
 
         my_body_A->SetName("truss");
         my_body_B->SetName("crank");
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]) {
 
         // Create two markers and add them to two bodies:
         // they will be used as references for 'rod-crank'link.
-        ChSharedMarkerPtr my_marker_b(new ChMarker);
-        ChSharedMarkerPtr my_marker_c(new ChMarker);
+        auto my_marker_b = std::make_shared<ChMarker>();
+        auto my_marker_c = std::make_shared<ChMarker>();
 
         my_marker_b->SetName("crank_rev");
         my_marker_c->SetName("rod_rev");
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
         // Now create a mechanical link (a revolute joint)
         // between these two markers, and insert in system:
-        ChSharedPtr<ChLinkLockRevolute> my_link_BC(new ChLinkLockRevolute);
+        auto my_link_BC = std::make_shared<ChLinkLockRevolute>();
         my_link_BC->Initialize(my_marker_b, my_marker_c);
         my_link_BC->SetName("REVOLUTE crank-rod");
         my_system.AddLink(my_link_BC);
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
         // automatically created and added to the two bodies)
         // i.e. is using two bodies and a position as arguments..
         // For example, to create the rod-truss constraint:
-        ChSharedPtr<ChLinkLockPointLine> my_link_CA(new ChLinkLockPointLine);
+        auto my_link_CA = std::make_shared<ChLinkLockPointLine>();
         my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
         my_system.AddLink(my_link_CA);
 
@@ -171,10 +171,10 @@ int main(int argc, char* argv[]) {
 
         // Now create a 'motor' link between crank and truss,
         // in 'imposed speed' mode:
-        ChSharedPtr<ChLinkEngine> my_link_AB(new ChLinkEngine);
+        auto my_link_AB = std::make_shared<ChLinkEngine>();
         my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0, 0, 0)));
         my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-        if (ChSharedPtr<ChFunction_Const> mfun = my_link_AB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_AB->Get_spe_funct()))
             mfun->Set_yconst(CH_C_PI);  // speed w=3.145 rad/sec
         my_system.AddLink(my_link_AB);
 

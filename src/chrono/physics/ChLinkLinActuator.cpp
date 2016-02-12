@@ -20,9 +20,9 @@ ChClassRegister<ChLinkLinActuator> a_registration_ChLinkLinActuator;
 ChLinkLinActuator::ChLinkLinActuator() {
     type = LNK_LINACTUATOR;  // initializes type
 
-    dist_funct = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    mot_torque = ChSharedPtr<ChFunction>(new ChFunction_Recorder());
-    mot_rot = ChSharedPtr<ChFunction>(new ChFunction_Recorder());
+    dist_funct = std::make_shared<ChFunction_Const>(0);
+    mot_torque = std::make_shared<ChFunction_Recorder>();
+    mot_rot = std::make_shared<ChFunction_Recorder>();
 
     learn = FALSE;
     learn_torque_rotation = TRUE;
@@ -53,9 +53,9 @@ void ChLinkLinActuator::Copy(ChLinkLinActuator* source) {
     learn_torque_rotation = source->learn_torque_rotation;
     offset = source->offset;
 
-    dist_funct = ChSharedPtr<ChFunction>(source->dist_funct->new_Duplicate());
-    mot_torque = ChSharedPtr<ChFunction>(source->mot_torque->new_Duplicate());
-    mot_rot = ChSharedPtr<ChFunction>(source->mot_rot->new_Duplicate());
+    dist_funct = std::shared_ptr<ChFunction>(source->dist_funct->new_Duplicate());
+    mot_torque = std::shared_ptr<ChFunction>(source->mot_torque->new_Duplicate());
+    mot_rot = std::shared_ptr<ChFunction>(source->mot_rot->new_Duplicate());
 
     mot_tau = source->mot_tau;
     mot_eta = source->mot_eta;
@@ -86,16 +86,16 @@ void ChLinkLinActuator::Set_learn(int mset) {
 
     learn = mset;
     if (dist_funct->Get_Type() != FUNCT_RECORDER)
-        dist_funct = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+        dist_funct = std::make_shared<ChFunction_Recorder>();
 }
 
 void ChLinkLinActuator::Set_learn_torque_rotaton(int mset) {
 	learn_torque_rotation = mset;
     if (mot_torque->Get_Type() != FUNCT_RECORDER)
-        mot_torque = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+        mot_torque = std::make_shared<ChFunction_Recorder>();
 
     if (mot_rot->Get_Type() != FUNCT_RECORDER)
-        mot_rot = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+        mot_rot = std::make_shared<ChFunction_Recorder>();
 }
 
 
@@ -114,12 +114,12 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
         deltaC_dtdt.rot = QNULL;
         */
         if (dist_funct->Get_Type() != FUNCT_RECORDER)
-            dist_funct = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+            dist_funct = std::make_shared<ChFunction_Recorder>();
 
         // record point
         double rec_dist = Vlength(Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos));
         rec_dist -= offset;
-        dist_funct.StaticCastTo<ChFunction_Recorder>()->AddPoint(mytime, rec_dist, 1);  // (x,y,w)  x=t
+        std::static_pointer_cast<ChFunction_Recorder>(dist_funct)->AddPoint(mytime, rec_dist, 1);  // (x,y,w)  x=t
     }
 
     // Move (well, rotate...) marker 2 to align it in actuator direction
@@ -189,13 +189,13 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     if (learn_torque_rotation == TRUE) {
 		if (mot_torque->Get_Type() != FUNCT_RECORDER)
-			mot_torque = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+			mot_torque = std::make_shared<ChFunction_Recorder>();
 
 		if (mot_rot->Get_Type() != FUNCT_RECORDER)
-			mot_rot = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+			mot_rot = std::make_shared<ChFunction_Recorder>();
 
-		mot_torque.StaticCastTo<ChFunction_Recorder>()->AddPoint(mytime, mot_retorque, 1);  // (x,y,w)  x=t
-		mot_rot.StaticCastTo<ChFunction_Recorder>()->AddPoint(mytime, mot_rerot, 1);        // (x,y,w)  x=t
+        std::static_pointer_cast<ChFunction_Recorder>(mot_torque)->AddPoint(mytime, mot_retorque, 1);  // (x,y,w)  x=t
+        std::static_pointer_cast<ChFunction_Recorder>(mot_rot)->AddPoint(mytime, mot_rerot, 1);        // (x,y,w)  x=t
     }
 }
 

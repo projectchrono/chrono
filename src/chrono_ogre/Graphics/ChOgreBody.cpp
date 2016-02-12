@@ -15,7 +15,7 @@ ChOgreBody::ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* Syste
     m_pSceneManager = SceneManager;
     m_pChSystem = System;
 
-    m_pBody = chrono::ChSharedBodyPtr(new chrono::ChBody);
+    m_pBody = chrono::ChSharedPtr<ChBody>(new chrono::ChBody);
     System->AddBody(m_pBody);
 
     name = "";
@@ -228,11 +228,11 @@ void ChOgreBody::setMesh(Ogre::ManualObject* Mesh, const chrono::ChVector<>& Sca
     isStaticMesh = true;
 }
 
-chrono::ChSharedBodyPtr ChOgreBody::getChBody() {
+chrono::ChSharedPtr<ChBody> ChOgreBody::getChBody() {
     return m_pBody;
 }
 
-chrono::ChSharedBodyPtr ChOgreBody::operator->() {
+chrono::ChSharedPtr<ChBody> ChOgreBody::operator->() {
     return getChBody();
 }
 }

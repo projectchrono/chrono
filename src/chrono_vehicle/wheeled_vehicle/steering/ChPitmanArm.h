@@ -55,9 +55,9 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis) and with specified orientation (with
     /// respect to the chassis reference frame).
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
     /// Update the state of this steering subsystem at the current time.
@@ -119,19 +119,19 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// Return the maximum rotation angle of the revolute joint.
     virtual double getMaxAngle() const = 0;
 
-    ChSharedPtr<ChBody> m_arm;  ///< handle to the Pitman arm body
+    std::shared_ptr<ChBody> m_arm;  ///< handle to the Pitman arm body
 
-    ChSharedPtr<ChLinkEngine> m_revolute;           ///< handle to the chassis-arm revolute joint
-    ChSharedPtr<ChLinkRevoluteSpherical> m_revsph;  ///< handle to the revolute-spherical joint (idler arm)
-    ChSharedPtr<ChLinkUniversal> m_universal;       ///< handle to the arm-link universal joint
+    std::shared_ptr<ChLinkEngine> m_revolute;           ///< handle to the chassis-arm revolute joint
+    std::shared_ptr<ChLinkRevoluteSpherical> m_revsph;  ///< handle to the revolute-spherical joint (idler arm)
+    std::shared_ptr<ChLinkUniversal> m_universal;       ///< handle to the arm-link universal joint
 
   private:
-    static void AddVisualizationPitmanArm(ChSharedPtr<ChBody> arm,
+    static void AddVisualizationPitmanArm(std::shared_ptr<ChBody> arm,
                                           const ChVector<>& pt_C,
                                           const ChVector<>& pt_L,
                                           double radius);
 
-    static void AddVisualizationSteeringLink(ChSharedPtr<ChBody> link,
+    static void AddVisualizationSteeringLink(std::shared_ptr<ChBody> link,
                                              const ChVector<>& pt_P,
                                              const ChVector<>& pt_I,
                                              const ChVector<>& pt_TP,

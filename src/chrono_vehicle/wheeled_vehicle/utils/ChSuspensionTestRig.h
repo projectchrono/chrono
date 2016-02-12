@@ -61,13 +61,13 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     ~ChSuspensionTestRig() {}
 
     /// Set the actuator function on the left wheel
-    void SetActuator_func_L(const ChSharedPtr<ChFunction>& funcL) { m_actuator_L = funcL; }
+    void SetActuator_func_L(const std::shared_ptr<ChFunction>& funcL) { m_actuator_L = funcL; }
 
     /// Set the actuator function on the right wheel
-    void SetActuator_func_R(const ChSharedPtr<ChFunction>& funcR) { m_actuator_R = funcR; }
+    void SetActuator_func_R(const std::shared_ptr<ChFunction>& funcR) { m_actuator_R = funcR; }
 
     /// Get a handle to the specified wheel body.
-    ChSharedPtr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
+    std::shared_ptr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
 
     /// Get the global location of the specified wheel.
     const ChVector<>& GetWheelPos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
@@ -89,14 +89,14 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     double GetActuatorMarkerDist(VehicleSide side);
 
     /// Return true if a steering system is attached.
-    bool HasSteering() const { return !m_steering.IsNull(); }
+    bool HasSteering() const { return m_steering != 0; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
 
     /// Get a handle to the vehicle's driveshaft body.
-    virtual ChSharedPtr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
 
     /// Get the angular speed of the driveshaft.
     virtual double GetDriveshaftSpeed() const override { return 0; }
@@ -121,29 +121,29 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     void LoadSteering(const std::string& filename);
     void LoadSuspension(const std::string& filename);
     void LoadWheel(const std::string& filename, int side);
-    static void AddVisualize_post(ChSharedPtr<ChBody> post_body,
-                                  ChSharedPtr<ChBody> ground_body,
+    static void AddVisualize_post(std::shared_ptr<ChBody> post_body,
+        std::shared_ptr<ChBody> ground_body,
                                   double height,
                                   double rad,
                                   const ChColor& color);
 
-    ChSharedPtr<ChSuspension> m_suspension;  ///< handle to suspension subsystem
-    ChSharedPtr<ChSteering> m_steering;      ///< handle to the steering subsystem
-    ChWheelList m_wheels;                    ///< list of handles to wheel subsystems
+    std::shared_ptr<ChSuspension> m_suspension;  ///< handle to suspension subsystem
+    std::shared_ptr<ChSteering> m_steering;      ///< handle to the steering subsystem
+    ChWheelList m_wheels;                        ///< list of handles to wheel subsystems
 
-    ChSharedPtr<ChShaft> m_dummy_shaft;  ///< dummy driveshaft
+    std::shared_ptr<ChShaft> m_dummy_shaft;  ///< dummy driveshaft
 
-    ChSharedPtr<ChBody> m_post_L;                         ///< left shaker post
-    ChSharedPtr<ChBody> m_post_R;                         ///< right shaker post
-    ChSharedPtr<ChLinkLockPrismatic> m_post_L_prismatic;  ///< left post prismatic joint
-    ChSharedPtr<ChLinkLockPrismatic> m_post_R_prismatic;  ///< right post prismatic joint
-    ChSharedPtr<ChLinkLinActuator> m_post_L_linact;       ///< actuate left post
-    ChSharedPtr<ChLinkLinActuator> m_post_R_linact;       ///< actuate right post
-    ChSharedPtr<ChLinkLockPointPlane> m_post_L_ptPlane;   ///< actuate L suspension to a specified height
-    ChSharedPtr<ChLinkLockPointPlane> m_post_R_ptPlane;   ///< actuate R suspension to a specified height
+    std::shared_ptr<ChBody> m_post_L;                         ///< left shaker post
+    std::shared_ptr<ChBody> m_post_R;                         ///< right shaker post
+    std::shared_ptr<ChLinkLockPrismatic> m_post_L_prismatic;  ///< left post prismatic joint
+    std::shared_ptr<ChLinkLockPrismatic> m_post_R_prismatic;  ///< right post prismatic joint
+    std::shared_ptr<ChLinkLinActuator> m_post_L_linact;       ///< actuate left post
+    std::shared_ptr<ChLinkLinActuator> m_post_R_linact;       ///< actuate right post
+    std::shared_ptr<ChLinkLockPointPlane> m_post_L_ptPlane;   ///< actuate L suspension to a specified height
+    std::shared_ptr<ChLinkLockPointPlane> m_post_R_ptPlane;   ///< actuate R suspension to a specified height
 
-    ChSharedPtr<ChFunction> m_actuator_L;  ///< actuator function applied to left wheel
-    ChSharedPtr<ChFunction> m_actuator_R;  ///< actuator function applied to right wheel
+    std::shared_ptr<ChFunction> m_actuator_L;  ///< actuator function applied to left wheel
+    std::shared_ptr<ChFunction> m_actuator_R;  ///< actuator function applied to right wheel
 
     double m_steer;    ///< cached steering driver input
     double m_displ_L;  ///< cached left post displacement

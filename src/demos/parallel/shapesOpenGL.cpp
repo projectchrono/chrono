@@ -35,12 +35,12 @@ utils::Generator* gen;
 // Create a mixture of geometries
 // -----------------------------------------------------------------------------
 void AddShapes(ChSystemParallelDVI* sys) {
-  ChSharedBodyPtr bin(new ChBody);
-  utils::AddSphereGeometry(bin.get_ptr(), 1, ChVector<>(0, 0, 0));
-  utils::AddEllipsoidGeometry(bin.get_ptr(), ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
-  utils::AddCylinderGeometry(bin.get_ptr(), 1, 1, ChVector<>(9, 0, 0));
-  utils::AddConeGeometry(bin.get_ptr(), 1, 1, ChVector<>(12, 0, 0));
+   auto bin = std::make_shared<ChBody>();
+  utils::AddSphereGeometry(bin.get(), 1, ChVector<>(0, 0, 0));
+  utils::AddEllipsoidGeometry(bin.get(), ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
+  utils::AddCylinderGeometry(bin.get(), 1, 1, ChVector<>(9, 0, 0));
+  utils::AddConeGeometry(bin.get(), 1, 1, ChVector<>(12, 0, 0));
   sys->AddBody(bin);
 }
 

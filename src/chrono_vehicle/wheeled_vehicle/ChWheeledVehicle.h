@@ -63,22 +63,22 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual ~ChWheeledVehicle() {}
 
     /// Get the specified suspension subsystem.
-    ChSharedPtr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
+    std::shared_ptr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
 
     /// Get the specified steering subsystem.
-    ChSharedPtr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
+    std::shared_ptr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
 
     /// Get a handle to the specified vehicle wheel subsystem.
-    ChSharedPtr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
+    std::shared_ptr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
 
     /// Get a handle to the specified vehicle brake subsystem.
-    ChSharedPtr<ChBrake> GetBrake(const WheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
+    std::shared_ptr<ChBrake> GetBrake(const WheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
-    ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
+    std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
 
     /// Get a handle to the vehicle's driveshaft body.
-    virtual ChSharedPtr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
     /// Get the angular speed of the driveshaft.
     /// This function provides the interface between a vehicle system and a
@@ -89,7 +89,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual int GetNumberAxles() const = 0;
 
     /// Get a handle to the specified wheel body.
-    ChSharedPtr<ChBody> GetWheelBody(const WheelID& wheelID) const;
+    std::shared_ptr<ChBody> GetWheelBody(const WheelID& wheelID) const;
 
     /// Get the global location of the specified wheel.
     const ChVector<>& GetWheelPos(const WheelID& wheel_id) const;
@@ -135,12 +135,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void LogConstraintViolations() override;
 
   protected:
-    ChSuspensionList m_suspensions;        ///< list of handles to suspension subsystems
-    ChAntirollbarList m_antirollbars;      ///< list of handles to antirollbar subsystems (optional)
-    ChSharedPtr<ChDriveline> m_driveline;  ///< handle to the driveline subsystem
-    ChSteeringList m_steerings;            ///< list of handles to steering subsystems
-    ChWheelList m_wheels;                  ///< list of handles to wheel subsystems
-    ChBrakeList m_brakes;                  ///< list of handles to brake subsystems
+    ChSuspensionList m_suspensions;            ///< list of handles to suspension subsystems
+    ChAntirollbarList m_antirollbars;          ///< list of handles to antirollbar subsystems (optional)
+    std::shared_ptr<ChDriveline> m_driveline;  ///< handle to the driveline subsystem
+    ChSteeringList m_steerings;                ///< list of handles to steering subsystems
+    ChWheelList m_wheels;                      ///< list of handles to wheel subsystems
+    ChBrakeList m_brakes;                      ///< list of handles to brake subsystems
 };
 
 /// @} vehicle_wheeled

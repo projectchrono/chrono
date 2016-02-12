@@ -25,7 +25,7 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     CH_RTTI(ChLinkLinActuator, ChLinkLock);
 
   protected:
-    ChSharedPtr<ChFunction> dist_funct;  // distance function
+    std::shared_ptr<ChFunction> dist_funct;  // distance function
     int learn;                           // if TRUE, the actuator does not apply constraint, just
                                          // records the motion into its dist_function.
     int learn_torque_rotation;           // if TRUE, the actuator records the torque and rotation.
@@ -34,8 +34,8 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     double mot_tau;                      // motor: transmission ratio
     double mot_eta;                      // motor: transmission efficiency
     double mot_inertia;                  // motor: inertia (added to system)
-    ChSharedPtr<ChFunction> mot_torque;  // motor: recorder of torque
-    ChSharedPtr<ChFunction> mot_rot;     // motor: recorder of motor rotation
+    std::shared_ptr<ChFunction> mot_torque;  // motor: recorder of torque
+    std::shared_ptr<ChFunction> mot_rot;     // motor: recorder of motor rotation
 
     double mot_rerot;       // current rotation (read only)  before reducer
     double mot_rerot_dt;    // current ang speed (read only) before reducer
@@ -55,13 +55,13 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     virtual void UpdateTime(double mytime);
 
     // data get/set
-    ChSharedPtr<ChFunction> Get_dist_funct() { return dist_funct; }
-    ChSharedPtr<ChFunction> Get_motrot_funct() { return mot_rot; }
-    ChSharedPtr<ChFunction> Get_mottorque_funct() { return mot_torque; }
+    std::shared_ptr<ChFunction> Get_dist_funct() { return dist_funct; }
+    std::shared_ptr<ChFunction> Get_motrot_funct() { return mot_rot; }
+    std::shared_ptr<ChFunction> Get_mottorque_funct() { return mot_torque; }
 
-    void Set_dist_funct(ChSharedPtr<ChFunction> mf) { dist_funct = mf; }
-    void Set_motrot_funct(ChSharedPtr<ChFunction> mf) { mot_rot = mf; }
-    void Set_mottorque_funct(ChSharedPtr<ChFunction> mf) { mot_torque = mf; }
+    void Set_dist_funct(std::shared_ptr<ChFunction> mf) { dist_funct = mf; }
+    void Set_motrot_funct(std::shared_ptr<ChFunction> mf) { mot_rot = mf; }
+    void Set_mottorque_funct(std::shared_ptr<ChFunction> mf) { mot_torque = mf; }
 
     int Get_learn() { return learn; }
     void Set_learn(int mset);

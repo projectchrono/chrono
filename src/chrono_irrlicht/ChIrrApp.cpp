@@ -31,7 +31,7 @@ ChIrrApp::~ChIrrApp() {
         delete mconverter;
 }
 
-void ChIrrApp::AssetBind(ChSharedPtr<ChPhysicsItem> mitem) {
+void ChIrrApp::AssetBind(std::shared_ptr<ChPhysicsItem> mitem) {
     GetAssetConverter()->Bind(mitem);
 }
 
@@ -39,7 +39,7 @@ void ChIrrApp::AssetBindAll() {
     GetAssetConverter()->BindAll();
 }
 
-void ChIrrApp::AssetUpdate(ChSharedPtr<ChPhysicsItem> mitem) {
+void ChIrrApp::AssetUpdate(std::shared_ptr<ChPhysicsItem> mitem) {
     GetAssetConverter()->Update(mitem);
 }
 
@@ -47,10 +47,10 @@ void ChIrrApp::AssetUpdateAll() {
     GetAssetConverter()->UpdateAll();
 }
 
-void ChIrrApp::AddShadow(ChSharedPtr<ChPhysicsItem> mitem) {
-    ChSharedPtr<ChIrrNodeAsset> myirrasset;
+void ChIrrApp::AddShadow(std::shared_ptr<ChPhysicsItem> mitem) {
+    std::shared_ptr<ChIrrNodeAsset> myirrasset;
     myirrasset = GetAssetConverter()->GetIrrNodeAsset(mitem);
-    if (!myirrasset.IsNull()) {
+    if (myirrasset) {
         _recurse_add_shadow(myirrasset->GetIrrlichtNode());
     }
 }

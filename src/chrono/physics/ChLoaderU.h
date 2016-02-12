@@ -29,9 +29,9 @@ class ChLoaderU : public ChLoader {
 public:
     typedef ChLoadableU type_loadable;
 
-    ChSharedPtr<ChLoadableU> loadable;
+    std::shared_ptr<ChLoadableU> loadable;
       
-    ChLoaderU(ChSharedPtr<ChLoadableU> mloadable) : 
+    ChLoaderU(std::shared_ptr<ChLoadableU> mloadable) :
           loadable(mloadable) {};
 
             /// Children classes must provide this function that evaluates F = F(u)
@@ -42,9 +42,9 @@ public:
                           ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
                           ) = 0;
 
-    void SetLoadable(ChSharedPtr<ChLoadableU>mloadable) {loadable = mloadable;}
-    virtual ChSharedPtr<ChLoadable> GetLoadable() {return loadable;}
-    ChSharedPtr<ChLoadableU> GetLoadableU() {return loadable;}
+    void SetLoadable(std::shared_ptr<ChLoadableU>mloadable) { loadable = mloadable; }
+    virtual std::shared_ptr<ChLoadable> GetLoadable() { return loadable; }
+    std::shared_ptr<ChLoadableU> GetLoadableU() { return loadable; }
 
 };
 
@@ -56,7 +56,7 @@ public:
 class ChLoaderUdistributed : public ChLoaderU {
 public:
     
-    ChLoaderUdistributed(ChSharedPtr<ChLoadableU> mloadable) : 
+    ChLoaderUdistributed(std::shared_ptr<ChLoadableU> mloadable) :
           ChLoaderU(mloadable) {};
 
     virtual int GetIntegrationPointsU() = 0;
@@ -99,7 +99,7 @@ class ChLoaderUatomic : public ChLoaderU {
 public:
     double Pu;
 
-    ChLoaderUatomic(ChSharedPtr<ChLoadableU> mloadable) : 
+    ChLoaderUatomic(std::shared_ptr<ChLoadableU> mloadable) :
           ChLoaderU(mloadable)
          {};
 

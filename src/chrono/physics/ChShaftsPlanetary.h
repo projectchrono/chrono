@@ -159,9 +159,9 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// input gear, and the gear with inner teeth that usually is kept fixed (but the
     /// ChShaftsPlanetary does not require that one shaft is fixed - it's up to you)
     /// Each shaft must belong to the same ChSystem.
-    virtual int Initialize(ChSharedPtr<ChShaft> mshaft1,  ///< first  shaft to join (carrier wheel)
-                           ChSharedPtr<ChShaft> mshaft2,  ///< second shaft to join (wheel)
-                           ChSharedPtr<ChShaft> mshaft3   ///< third  shaft to join (wheel)
+    virtual int Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (carrier wheel)
+                           std::shared_ptr<ChShaft> mshaft2,  ///< second shaft to join (wheel)
+                           std::shared_ptr<ChShaft> mshaft3   ///< third  shaft to join (wheel)
                            );
 
     /// Get the first shaft (carrier wheel)
@@ -249,8 +249,6 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChShaftsPlanetary> ChSharedPlanetaryPtr;
 
 }  // END_OF_NAMESPACE____
 
