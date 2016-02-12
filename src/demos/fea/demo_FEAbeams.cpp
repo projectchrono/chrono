@@ -68,13 +68,13 @@ int main(int argc, char* argv[])
 
 				// Create a mesh, that is a container for groups
 				// of elements and their referenced nodes.
-	ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 	
 
 				// Create a section, i.e. thickness and material properties
 				// for beams. This will be shared among some beams.
 	
-	ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
+    auto msection = std::make_shared<ChBeamSectionAdvanced>();
 
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
@@ -94,15 +94,15 @@ int main(int argc, char* argv[])
 	double beam_L  = 0.1;
 	
 
-	ChSharedPtr<ChNodeFEAxyzrot> hnode1(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(0,0,0)) )); //, Q_from_AngAxis( -0.5, VECT_Y )) ));
-	ChSharedPtr<ChNodeFEAxyzrot> hnode2(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L,0,0)) ));
-	ChSharedPtr<ChNodeFEAxyzrot> hnode3(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(beam_L*2,0,0)) ));
+    auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
+    auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
+    auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 2, 0, 0)));
 
 	my_mesh->AddNode(hnode1);
 	my_mesh->AddNode(hnode2);
 	my_mesh->AddNode(hnode3);
 
-	ChSharedPtr<ChElementBeamEuler> belement1 (new ChElementBeamEuler);
+    auto belement1 = std::make_shared<ChElementBeamEuler>();
 
 	belement1->SetNodes(hnode1, hnode2);
 	belement1->SetSection(msection);
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 	my_mesh->AddElement(belement1);
 
 
-	ChSharedPtr<ChElementBeamEuler> belement2 (new ChElementBeamEuler);
+    auto belement2 = std::make_shared<ChElementBeamEuler>();
 
 	belement2->SetNodes(hnode2, hnode3);
 	belement2->SetSection(msection);
@@ -125,11 +125,11 @@ int main(int argc, char* argv[])
 
 				// Fix a node to ground:
 	//hnode1->SetFixed(true);
-	ChSharedPtr<ChBody> mtruss(new ChBody);
+    auto mtruss = std::make_shared<ChBody>();
 	mtruss->SetBodyFixed(true);
 	my_system.Add(mtruss);
 
-	ChSharedPtr<ChLinkMateGeneric> constr_bc(new ChLinkMateGeneric);
+    auto constr_bc = std::make_shared<ChLinkMateGeneric>();
 	constr_bc->Initialize(  hnode3,
 							mtruss,
 							false, 
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 	constr_bc->SetConstrainedCoords( true, true, true,	  // x, y, z
 									 true, true, true);   // Rx, Ry, Rz
 
-	ChSharedPtr<ChLinkMateGeneric> constr_d(new ChLinkMateGeneric);
+    auto constr_d = std::make_shared<ChLinkMateGeneric>();
 	constr_d->Initialize(  hnode1,
 							mtruss,
 							false, 
@@ -213,20 +213,20 @@ int main(int argc, char* argv[])
 
 
 	/*
-	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
 	mvisualizebeamA->SetSmoothFaces(true);
 	my_mesh->AddAsset(mvisualizebeamA);
 	*/
 
-	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
 	mvisualizebeamA->SetColorscaleMinMax(-0.4,0.4);
 	mvisualizebeamA->SetSmoothFaces(true);
 	mvisualizebeamA->SetWireframe(false);
 	my_mesh->AddAsset(mvisualizebeamA);
 
-	ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
 	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
 	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
 	mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -279,8 +279,7 @@ int main(int argc, char* argv[])
 	my_system.SetIntegrationType(chrono::ChSystem::INT_HHT); 
 	
 	// if later you want to change integrator settings:
-	if( ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>() )
-	{
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
 		mystepper->SetAlpha(-0.2);
 		mystepper->SetMaxiters(6);
 		mystepper->SetAbsTolerances(1e-12);

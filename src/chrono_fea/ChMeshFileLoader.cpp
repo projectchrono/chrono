@@ -36,10 +36,10 @@ using namespace std;
 namespace chrono {
 namespace fea {
 
-void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
+void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                                       const char* filename_node,
                                       const char* filename_ele,
-                                      ChSharedPtr<ChContinuumMaterial> my_material,
+                                      std::shared_ptr<ChContinuumMaterial> my_material,
                                       ChVector<> pos_transform,
                                       ChMatrix33<> rot_transform) {
     int totnodes = 0;
@@ -105,11 +105,11 @@ void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
                 node_position = rot_transform * node_position;  // rotate/scale, if needed
                 node_position = pos_transform + node_position;  // move, if needed
 
-                if (my_material.IsType<ChContinuumElastic>()) {
-                    ChSharedPtr<ChNodeFEAxyz> mnode(new ChNodeFEAxyz(node_position));
+                if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
+                    auto mnode = std::make_shared<ChNodeFEAxyz>(node_position);
                     mesh->AddNode(mnode);
-                } else if (my_material.IsType<ChContinuumPoisson3D>()) {
-                    ChSharedPtr<ChNodeFEAxyzP> mnode(new ChNodeFEAxyzP(node_position));
+                } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
+                    auto mnode = std::make_shared<ChNodeFEAxyzP>(node_position);
                     mesh->AddNode(mnode);
                 } else
                     throw ChException("ERROR in TetGen generation. Material type not supported. \n");
@@ -166,22 +166,21 @@ void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
                     throw ChException("ERROR in TetGen .node file, ID of 3rd node is out of range: \n" + line + "\n");
                 if (n4 > totnodes)
                     throw ChException("ERROR in TetGen .node file, ID of 4th node is out of range: \n" + line + "\n");
-
-                if (my_material.IsType<ChContinuumElastic>()) {
-                    ChSharedPtr<ChElementTetra_4> mel(new ChElementTetra_4);
-                    mel->SetNodes(mesh->GetNode(nodes_offset + n1 - 1).DynamicCastTo<ChNodeFEAxyz>(),
-                                  mesh->GetNode(nodes_offset + n3 - 1).DynamicCastTo<ChNodeFEAxyz>(),
-                                  mesh->GetNode(nodes_offset + n2 - 1).DynamicCastTo<ChNodeFEAxyz>(),
-                                  mesh->GetNode(nodes_offset + n4 - 1).DynamicCastTo<ChNodeFEAxyz>());
-                    mel->SetMaterial(my_material.DynamicCastTo<ChContinuumElastic>());
+                if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
+                    auto mel = std::make_shared<ChElementTetra_4>();
+                    mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n1 - 1)),
+                                  std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n3 - 1)),
+                                  std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n2 - 1)),
+                                  std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n4 - 1)));
+                    mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
                     mesh->AddElement(mel);
-                } else if (my_material.IsType<ChContinuumPoisson3D>()) {
-                    ChSharedPtr<ChElementTetra_4_P> mel(new ChElementTetra_4_P);
-                    mel->SetNodes(mesh->GetNode(nodes_offset + n1 - 1).DynamicCastTo<ChNodeFEAxyzP>(),
-                                  mesh->GetNode(nodes_offset + n3 - 1).DynamicCastTo<ChNodeFEAxyzP>(),
-                                  mesh->GetNode(nodes_offset + n2 - 1).DynamicCastTo<ChNodeFEAxyzP>(),
-                                  mesh->GetNode(nodes_offset + n4 - 1).DynamicCastTo<ChNodeFEAxyzP>());
-                    mel->SetMaterial(my_material.DynamicCastTo<ChContinuumPoisson3D>());
+                } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
+                    auto mel = std::make_shared<ChElementTetra_4_P>();
+                    mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n1 - 1)),
+                                  std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n3 - 1)),
+                                  std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n2 - 1)),
+                                  std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n4 - 1)));
+                    mel->SetMaterial(std::static_pointer_cast<ChContinuumPoisson3D>(my_material));
                     mesh->AddElement(mel);
                 } else
                     throw ChException("ERROR in TetGen generation. Material type not supported. \n");
@@ -192,16 +191,16 @@ void ChMeshFileLoader::FromTetGenFile(ChSharedPtr<ChMesh> mesh,
     }  // end .ele file
 }
 
-void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
+void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                                       const char* filename,
-                                      ChSharedPtr<ChContinuumMaterial> my_material,
-                                      std::vector<std::vector<ChSharedPtr<ChNodeFEAbase>>>& node_sets,
+                                      std::shared_ptr<ChContinuumMaterial> my_material,
+                                      std::vector<std::vector<std::shared_ptr<ChNodeFEAbase>>>& node_sets,
                                       ChVector<> pos_transform,
                                       ChMatrix33<> rot_transform,
                                       bool discard_unused_nodes) {
     node_sets.resize(0);
 
-    std::vector<ChSharedPtr<ChNodeFEAbase>> parsed_nodes;
+    std::vector<std::shared_ptr<ChNodeFEAbase>> parsed_nodes;
     std::vector<bool> parsed_nodes_used;
 
     int totnodes = 0;
@@ -269,7 +268,7 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
                     string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
                     GetLog() << "Parsing: nodeset: " << s_node_set << "\n";
 
-                    std::vector<ChSharedPtr<ChNodeFEAbase>> empty_set;
+                    std::vector<std::shared_ptr<ChNodeFEAbase>> empty_set;
                     node_sets.push_back(empty_set);
                 }
                 e_parse_section = E_PARSE_NODESET;
@@ -311,12 +310,12 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
             node_position = rot_transform * node_position;  // rotate/scale, if needed
             node_position = pos_transform + node_position;  // move, if needed
 
-            if (my_material.IsType<ChContinuumElastic>()) {
-                ChSharedPtr<ChNodeFEAxyz> mnode(new ChNodeFEAxyz(node_position));
+            if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
+                auto mnode = std::make_shared<ChNodeFEAxyz>(node_position);
                 parsed_nodes.push_back(mnode);
                 parsed_nodes_used.push_back(false);
-            } else if (my_material.IsType<ChContinuumPoisson3D>()) {
-                ChSharedPtr<ChNodeFEAxyzP> mnode(new ChNodeFEAxyzP(ChVector<>(x, y, z)));
+            } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
+                auto mnode = std::make_shared<ChNodeFEAxyzP>(ChVector<>(x, y, z));
                 parsed_nodes.push_back(mnode);
                 parsed_nodes_used.push_back(false);
             } else
@@ -347,25 +346,25 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
                 if (tokenvals[in + 1] == -10e30)
                     throw ChException("ERROR in in .inp file, in parsing IDs of tetahedron: \n" + line + "\n");
 
-            if (my_material.IsType<ChContinuumElastic>()) {
-                ChSharedPtr<ChElementTetra_4> mel(new ChElementTetra_4);
-                mel->SetNodes(parsed_nodes[tokenvals[4] - 1].DynamicCastTo<ChNodeFEAxyz>(),
-                              parsed_nodes[tokenvals[2] - 1].DynamicCastTo<ChNodeFEAxyz>(),
-                              parsed_nodes[tokenvals[3] - 1].DynamicCastTo<ChNodeFEAxyz>(),
-                              parsed_nodes[tokenvals[1] - 1].DynamicCastTo<ChNodeFEAxyz>());
-                mel->SetMaterial(my_material.DynamicCastTo<ChContinuumElastic>());
+            if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
+                auto mel = std::make_shared<ChElementTetra_4>();
+                mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[4] - 1]),
+                              std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[2] - 1]),
+                              std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[3] - 1]),
+                              std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[1] - 1]));
+                mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
                 mesh->AddElement(mel);
                 parsed_nodes_used[tokenvals[1] - 1] = true;
                 parsed_nodes_used[tokenvals[2] - 1] = true;
                 parsed_nodes_used[tokenvals[3] - 1] = true;
                 parsed_nodes_used[tokenvals[4] - 1] = true;
-            } else if (my_material.IsType<ChContinuumPoisson3D>()) {
-                ChSharedPtr<ChElementTetra_4_P> mel(new ChElementTetra_4_P);
-                mel->SetNodes(parsed_nodes[tokenvals[1] - 1].DynamicCastTo<ChNodeFEAxyzP>(),
-                              parsed_nodes[tokenvals[2] - 1].DynamicCastTo<ChNodeFEAxyzP>(),
-                              parsed_nodes[tokenvals[3] - 1].DynamicCastTo<ChNodeFEAxyzP>(),
-                              parsed_nodes[tokenvals[4] - 1].DynamicCastTo<ChNodeFEAxyzP>());
-                mel->SetMaterial(my_material.DynamicCastTo<ChContinuumPoisson3D>());
+            } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
+                auto mel = std::make_shared<ChElementTetra_4_P>();
+                mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[1] - 1]),
+                              std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[2] - 1]),
+                              std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[3] - 1]),
+                              std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[4] - 1]));
+                mel->SetMaterial(std::static_pointer_cast<ChContinuumPoisson3D>(my_material));
                 mesh->AddElement(mel);
                 parsed_nodes_used[tokenvals[1] - 1] = true;
                 parsed_nodes_used[tokenvals[2] - 1] = true;
@@ -392,7 +391,7 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
             for (int nt = 0; nt < ntoken; ++nt) {
                 int idnode = (int)tokenvals[nt];
                 if (idnode > 0) {
-                    node_sets.back().push_back(parsed_nodes[idnode - 1].DynamicCastTo<ChNodeFEAbase>());
+                    node_sets.back().push_back(std::dynamic_pointer_cast<ChNodeFEAbase>(parsed_nodes[idnode - 1]));
                     parsed_nodes_used[idnode - 1] = true;
                 }
             }
@@ -407,9 +406,9 @@ void ChMeshFileLoader::FromAbaqusFile(ChSharedPtr<ChMesh> mesh,
     }
 }
 
-void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
+void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                                             const char* filename,
-                                            ChSharedPtr<ChMaterialShellANCF> my_material,
+                                            std::shared_ptr<ChMaterialShellANCF> my_material,
                                             std::vector<int>& BC_nodes,
                                             ChVector<> pos_transform,
                                             ChMatrix33<> rot_transform,
@@ -426,11 +425,11 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
     ChMatrixNM<double, 1, 6> BoundingBox;  // (xmin xmax ymin ymax zmin zmax) bounding box of the mesh
     std::vector<ChVector<>> Normals;       // To store the normal vectors
     std::vector<int> num_Normals;
-    ChVector<double> pos1, pos2, pos3, pos4;              // Position of nodes in each element
-    ChVector<double> vec1, vec2, vec3;                    // intermediate vectors for calculation of normals
-    std::vector<ChSharedPtr<ChNodeFEAxyzD>> nodesVector;  // To store intermediate nodes
-    std::vector<std::vector<int>> elementsVector;         // nodes of each element
-    std::vector<std::vector<double>> elementsdxdy;        // dx, dy of elements
+    ChVector<double> pos1, pos2, pos3, pos4;                  // Position of nodes in each element
+    ChVector<double> vec1, vec2, vec3;                        // intermediate vectors for calculation of normals
+    std::vector<std::shared_ptr<ChNodeFEAxyzD>> nodesVector;  // To store intermediate nodes
+    std::vector<std::vector<int>> elementsVector;             // nodes of each element
+    std::vector<std::vector<double>> elementsdxdy;            // dx, dy of elements
 
     int TotalNumNodes, TotalNumElements, TottalNumBEdges;
     BoundingBox.FillElem(0);
@@ -458,7 +457,6 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
             for (int inode = 0; inode < TotalNumNodes; inode++) {
                 double loc_x, loc_y, loc_z;
                 double dir_x, dir_y, dir_z;
-                unsigned int tokenvals[20];
 
                 int ntoken = 0;
                 string token;
@@ -480,7 +478,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
                 ChVector<> node_position(loc_x, loc_y, loc_z);
                 node_position = rot_transform * node_position;  // rotate/scale, if needed
                 node_position = pos_transform + node_position;  // move, if needed
-                ChSharedPtr<ChNodeFEAxyzD> node(new ChNodeFEAxyzD(node_position, ChVector<>(dir_x, dir_y, dir_z)));
+                auto node = std::make_shared<ChNodeFEAxyzD>(node_position, ChVector<>(dir_x, dir_y, dir_z));
                 nodesVector.push_back(node);
 
                 if (loc_x < BoundingBox(0, 0) || added_nodes == 0)
@@ -515,7 +513,6 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
             getline(fin, line);
 
             for (int edge = 0; edge < TottalNumBEdges; edge++) {
-                unsigned int tokenvals[20];
                 int ntoken = 0;
                 string token;
                 std::istringstream ss(line);
@@ -550,7 +547,6 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
             cout << "Reading elemental information ..." << endl;
 
             for (int ele = 0; ele < TotalNumElements; ele++) {
-                unsigned int tokenvals[20];
                 int ntoken = 0;
                 string token;
                 std::istringstream ss(line);
@@ -619,7 +615,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
         ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);
         node_normal.Normalize();
         ChVector<> node_position = nodesVector[inode]->GetPos();
-        ChSharedPtr<ChNodeFEAxyzD> node(new ChNodeFEAxyzD(node_position, node_normal));
+        auto node = std::make_shared<ChNodeFEAxyzD>(node_position, node_normal);
         node->SetMass(0);
         // Add node to mesh
         mesh->AddNode(node);
@@ -629,11 +625,12 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(ChSharedPtr<ChMesh> mesh,
     }
     GetLog() << "-----------------------------------------------------------\n";
     for (int ielem = 0; ielem < 0 + TotalNumElements; ielem++) {
-        ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
-        element->SetNodes(mesh->GetNode(nodes_offset + elementsVector[ielem][0] - 1).DynamicCastTo<ChNodeFEAxyzD>(),
-                          mesh->GetNode(nodes_offset + elementsVector[ielem][1] - 1).DynamicCastTo<ChNodeFEAxyzD>(),
-                          mesh->GetNode(nodes_offset + elementsVector[ielem][3] - 1).DynamicCastTo<ChNodeFEAxyzD>(),
-                          mesh->GetNode(nodes_offset + elementsVector[ielem][2] - 1).DynamicCastTo<ChNodeFEAxyzD>());
+        auto element = std::make_shared<ChElementShellANCF>();
+        element->SetNodes(
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][0] - 1)),
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][1] - 1)),
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][3] - 1)),
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][2] - 1)));
         dx = elementsdxdy[ielem][0];
         dy = elementsdxdy[ielem][1];
         element->SetDimensions(dx, dy);

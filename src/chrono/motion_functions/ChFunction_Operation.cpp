@@ -29,9 +29,9 @@ ChClassRegister<ChFunction_Operation> a_registration_operation;
 void ChFunction_Operation::Copy(ChFunction_Operation* source) {
     op_type = source->op_type;
     // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+    fa = std::shared_ptr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
     // fb = source->fb;		//***? shallow copy (now sharing same object)...
-    fb = ChSharedPtr<ChFunction>(source->fb->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+    fb = std::shared_ptr<ChFunction>(source->fb->new_Duplicate());  //***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Operation::new_Duplicate() {

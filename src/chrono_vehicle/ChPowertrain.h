@@ -19,7 +19,6 @@
 #ifndef CH_POWERTRAIN_H
 #define CH_POWERTRAIN_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
 
@@ -39,7 +38,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a powertrain system.
-class CH_VEHICLE_API ChPowertrain : public ChShared {
+class CH_VEHICLE_API ChPowertrain {
   public:
     /// Driving modes.
     enum DriveMode {

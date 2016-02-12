@@ -10,17 +10,17 @@
 //
 // File author: Alessandro Tasora
 
-#include "ChBuilderBeam.h"
+#include "chrono_fea/ChBuilderBeam.h"
 
 namespace chrono {
 namespace fea {
 
-void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                              ChSharedPtr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
-                              const int N,                              ///< number of elements in the segment
-                              const ChVector<> A,                       ///< starting point
-                              const ChVector<> B,                       ///< ending point
-                              const ChVector<> Ydir                     ///< the 'up' Y direction of the beam
+void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
+                              std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                              const int N,                                  ///< number of elements in the segment
+                              const ChVector<> A,                           ///< starting point
+                              const ChVector<> B,                           ///< ending point
+                              const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
                               ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -28,7 +28,7 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
     ChMatrix33<> mrot;
     mrot.Set_A_Xdir(B - A, Ydir);
 
-    ChSharedPtr<ChNodeFEAxyzrot> nodeA(new ChNodeFEAxyzrot(ChFrame<>(A, mrot)));
+    auto nodeA = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(A, mrot));
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
 
@@ -36,11 +36,11 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
         double eta = (double)i / (double)N;
         ChVector<> pos = A + (B - A) * eta;
 
-        ChSharedPtr<ChNodeFEAxyzrot> nodeB(new ChNodeFEAxyzrot(ChFrame<>(pos, mrot)));
+        auto nodeB = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));
         mesh->AddNode(nodeB);
         beam_nodes.push_back(nodeB);
 
-        ChSharedPtr<ChElementBeamEuler> element(new ChElementBeamEuler);
+        auto element = std::make_shared<ChElementBeamEuler>();
         mesh->AddElement(element);
         beam_elems.push_back(element);
 
@@ -50,12 +50,12 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
     }
 }
 
-void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                              ChSharedPtr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
-                              const int N,                              ///< number of elements in the segment
-                              ChSharedPtr<ChNodeFEAxyzrot> nodeA,       ///< starting point
-                              ChSharedPtr<ChNodeFEAxyzrot> nodeB,       ///< ending point
-                              const ChVector<> Ydir                     ///< the 'up' Y direction of the beam
+void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
+                              std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                              const int N,                                  ///< number of elements in the segment
+                              std::shared_ptr<ChNodeFEAxyzrot> nodeA,       ///< starting point
+                              std::shared_ptr<ChNodeFEAxyzrot> nodeB,       ///< ending point
+                              const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
                               ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -69,16 +69,16 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
         double eta = (double)i / (double)N;
         ChVector<> pos = nodeA->Frame().GetPos() + (nodeB->Frame().GetPos() - nodeA->Frame().GetPos()) * eta;
 
-        ChSharedPtr<ChNodeFEAxyzrot> nodeBi;
+        std::shared_ptr<ChNodeFEAxyzrot> nodeBi;
         if (i < N) {
-            nodeBi = ChSharedPtr<ChNodeFEAxyzrot>(new ChNodeFEAxyzrot(ChFrame<>(pos, mrot)));
+            nodeBi = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));
             mesh->AddNode(nodeBi);
         } else
             nodeBi = nodeB;  // last node: use the one passed as parameter.
 
         beam_nodes.push_back(nodeBi);
 
-        ChSharedPtr<ChElementBeamEuler> element(new ChElementBeamEuler);
+        auto element = std::make_shared<ChElementBeamEuler>();
         mesh->AddElement(element);
         beam_elems.push_back(element);
 
@@ -92,12 +92,12 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
     }
 }
 
-void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                              ChSharedPtr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
-                              const int N,                              ///< number of elements in the segment
-                              ChSharedPtr<ChNodeFEAxyzrot> nodeA,       ///< starting point
-                              const ChVector<> B,                       ///< ending point
-                              const ChVector<> Ydir                     ///< the 'up' Y direction of the beam
+void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
+                              std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                              const int N,                                  ///< number of elements in the segment
+                              std::shared_ptr<ChNodeFEAxyzrot> nodeA,       ///< starting point
+                              const ChVector<> B,                           ///< ending point
+                              const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
                               ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -111,11 +111,11 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
         double eta = (double)i / (double)N;
         ChVector<> pos = nodeA->Frame().GetPos() + (B - nodeA->Frame().GetPos()) * eta;
 
-        ChSharedPtr<ChNodeFEAxyzrot> nodeBi(new ChNodeFEAxyzrot(ChFrame<>(pos, mrot)));
+        auto nodeBi = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));
         mesh->AddNode(nodeBi);
         beam_nodes.push_back(nodeBi);
 
-        ChSharedPtr<ChElementBeamEuler> element(new ChElementBeamEuler);
+        auto element = std::make_shared<ChElementBeamEuler>();
         mesh->AddElement(element);
         beam_elems.push_back(element);
 
@@ -142,19 +142,19 @@ void ChBuilderBeam::BuildBeam(ChSharedPtr<ChMesh> mesh,                 ///< mes
 
 
 
-void ChBuilderBeamANCF::BuildBeam(ChSharedPtr<ChMesh> mesh,             ///< mesh to store the resulting elements
-                              ChSharedPtr<ChBeamSectionCable> sect,     ///< section material for beam elements
-                              const int N,                              ///< number of elements in the segment
-                              const ChVector<> A,                       ///< starting point
-                              const ChVector<> B                        ///< ending point
-                              ) {
+void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,               ///< mesh to store the resulting elements
+                                  std::shared_ptr<ChBeamSectionCable> sect,   ///< section material for beam elements
+                                  const int N,                                ///< number of elements in the segment
+                                  const ChVector<> A,                         ///< starting point
+                                  const ChVector<> B                          ///< ending point
+                                  ) {
     beam_elems.clear();
     beam_nodes.clear();
 
     ChVector<> bdir = (B-A);
     bdir.Normalize();
 
-    ChSharedPtr<ChNodeFEAxyzD> nodeA(new ChNodeFEAxyzD(A,bdir));
+    auto nodeA = std::make_shared<ChNodeFEAxyzD>(A, bdir);
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
 
@@ -162,11 +162,11 @@ void ChBuilderBeamANCF::BuildBeam(ChSharedPtr<ChMesh> mesh,             ///< mes
         double eta = (double)i / (double)N;
         ChVector<> pos = A + (B - A) * eta;
 
-        ChSharedPtr<ChNodeFEAxyzD> nodeB(new ChNodeFEAxyzD(pos, bdir));
+        auto nodeB = std::make_shared<ChNodeFEAxyzD>(pos, bdir);
         mesh->AddNode(nodeB);
         beam_nodes.push_back(nodeB);
 
-        ChSharedPtr<ChElementBeamANCF> element(new ChElementBeamANCF);
+        auto element = std::make_shared<ChElementBeamANCF>();
         mesh->AddElement(element);
         beam_elems.push_back(element);
 

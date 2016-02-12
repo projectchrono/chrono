@@ -49,12 +49,12 @@ void test_1() {
     ChSystem my_system;
 
     // Create a mesh:
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
     my_system.Add(my_mesh);
 
-    // Create some nodes. 
-    ChSharedPtr<ChNodeFEAxyzrot> mnodeA(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(0, 0, 0)) ));
-    ChSharedPtr<ChNodeFEAxyzrot> mnodeB(new ChNodeFEAxyzrot( ChFrame<>(ChVector<>(2, 0, 0)) ));
+    // Create some nodes.
+    auto mnodeA = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
+    auto mnodeB = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(2, 0, 0)));
 
     // Default mass for FEM nodes is zero
     mnodeA->SetMass(0.0);
@@ -64,7 +64,7 @@ void test_1() {
     my_mesh->AddNode(mnodeB);
 
     // Create beam section & material
-    ChSharedPtr<ChBeamSectionAdvanced> msection(new ChBeamSectionAdvanced);
+    auto msection = std::make_shared<ChBeamSectionAdvanced>();
 	double beam_wy = 0.1;
 	double beam_wz = 0.2;
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
@@ -74,19 +74,19 @@ void test_1() {
     msection->SetDensity(1500);
 
     // Create a beam of Eulero-Bernoulli type:
-    ChSharedPtr<ChElementBeamEuler> melementA(new ChElementBeamEuler);
+    auto melementA = std::make_shared<ChElementBeamEuler>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSection(msection);
     my_mesh->AddElement(melementA);
 
 
     // Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
+    auto truss = std::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint at the end of the beam
-    ChSharedPtr<ChLinkMateGeneric> constr_a(new ChLinkMateGeneric);
+    auto constr_a = std::make_shared<ChLinkMateGeneric>();
 	constr_a->Initialize(  mnodeA,
 							truss,
 							false, 
@@ -101,14 +101,14 @@ void test_1() {
 
     // First: loads must be added to "load containers", 
     // and load containers must be added to your ChSystem 
-    ChSharedPtr< ChLoadContainer > mloadcontainer(new ChLoadContainer);
+    auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
 
     // Example 1:
     
     // Add a vertical load to the end of the beam element:
-    ChSharedPtr<ChLoadBeamWrench> mwrench(new ChLoadBeamWrench(melementA));
+    auto mwrench = std::make_shared<ChLoadBeamWrench>(melementA);
     mwrench->loader.SetApplication(1.0); // in -1..+1 range, -1: end A, 0: mid, +1: end B
     mwrench->loader.SetForce(ChVector<>(0,-0.2,0));
     mloadcontainer->Add(mwrench);  // do not forget to add the load to the load container.
@@ -117,7 +117,7 @@ void test_1() {
     // Example 2:
 
     // Add a distributed load along the beam element:
-    ChSharedPtr<ChLoadBeamWrenchDistributed> mwrenchdis(new ChLoadBeamWrenchDistributed(melementA));
+    auto mwrenchdis = std::make_shared<ChLoadBeamWrenchDistributed>(melementA);
     mwrenchdis->loader.SetForcePerUnit(ChVector<>(0,-0.1,0)); // load per unit length
     mloadcontainer->Add(mwrenchdis);  
 
@@ -125,7 +125,7 @@ void test_1() {
     // Example 3:
 
     // Add gravity (constant volumetric load)
-    ChSharedPtr< ChLoad<ChLoaderGravity> > mgravity(new ChLoad<ChLoaderGravity>(melementA));
+    auto mgravity = std::make_shared<ChLoad<ChLoaderGravity>>(melementA);
     mloadcontainer->Add(mgravity);  
 
     // note that by default all solid elements in the mesh will already 
@@ -146,7 +146,7 @@ void test_1() {
     class MyLoaderTriangular : public ChLoaderUdistributed {
     public:
             // Useful: a constructor that also sets ChLoadable    
-            MyLoaderTriangular(ChSharedPtr<ChLoadableU> mloadable) :  ChLoaderUdistributed(mloadable) {};
+            MyLoaderTriangular(std::shared_ptr<ChLoadableU> mloadable) :  ChLoaderUdistributed(mloadable) {};
 
             // Compute F=F(u)
             // This is the function that you have to implement. It should return the 
@@ -170,7 +170,7 @@ void test_1() {
     // The ChLoad is a 'container' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<a_loader_class>()
 
-    ChSharedPtr< ChLoad<MyLoaderTriangular> > mloadtri (new ChLoad<MyLoaderTriangular>(melementA) );
+    std::shared_ptr< ChLoad<MyLoaderTriangular> > mloadtri (new ChLoad<MyLoaderTriangular>(melementA) );
     mloadcontainer->Add(mloadtri);  // do not forget to add the load to the load container.
 
 
@@ -181,12 +181,12 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    ChSharedPtr<ChNodeFEAxyz> mnodeC(new ChNodeFEAxyz( ChVector<>(2, 10, 3) ));
+    auto mnodeC = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeC);
 
     class MyLoaderPointStiff : public ChLoaderUVWatomic {
     public:   
-            MyLoaderPointStiff(ChSharedPtr<ChLoadableUVW> mloadable) :  ChLoaderUVWatomic(mloadable,0,0,0) {};
+            MyLoaderPointStiff(std::shared_ptr<ChLoadableUVW> mloadable) :  ChLoaderUVWatomic(mloadable,0,0,0) {};
 
             // Compute F=F(u)
             // This is the function that you have to implement. It should return the F load at U,V,W. 
@@ -204,8 +204,8 @@ void test_1() {
                     node_vel = state_w->ClipVector(0,0);
                 }
                 else {
-                    node_pos = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos();
-                    node_vel = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
+                    node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
+                    node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos_dt();
                 }
                 // Just implement a simple force+spring+damper in xy plane, 
                 // for spring&damper connected to absolute reference:
@@ -230,7 +230,7 @@ void test_1() {
 
     // Instance a ChLoad object, applying to a node, and passing a ChLoader as a template 
     // (in this case the ChLoader-inherited class is our MyLoaderPointStiff), and add to container:
-    ChSharedPtr< ChLoad<MyLoaderPointStiff> > mloadstiff (new ChLoad<MyLoaderPointStiff>(mnodeC) );
+    std::shared_ptr< ChLoad<MyLoaderPointStiff> > mloadstiff (new ChLoad<MyLoaderPointStiff>(mnodeC) );
     mloadcontainer->Add(mloadstiff);  
 
 
@@ -243,12 +243,12 @@ void test_1() {
     // As a stiff load, this will automatically generate a jacobian (tangent stiffness matrix K)
     // that will be used in statics, implicit integrators, etc.
 
-    ChSharedPtr<ChNodeFEAxyz> mnodeD(new ChNodeFEAxyz( ChVector<>(2, 10, 3) ));
+    auto mnodeD = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeD);
 
     class MyLoadCustom : public ChLoadCustom {
     public:   
-            MyLoadCustom(ChSharedPtr<ChLoadableUVW> mloadable) :  ChLoadCustom(mloadable) {};
+            MyLoadCustom(std::shared_ptr<ChLoadableUVW> mloadable) :  ChLoadCustom(mloadable) {};
 
             // Compute Q=Q(x,v)
             // This is the function that you have to implement. It should return the generalized Q load 
@@ -265,8 +265,8 @@ void test_1() {
                     node_vel = state_w->ClipVector(0,0);
                 }
                 else {
-                    node_pos = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos();
-                    node_vel = loadable.DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
+                    node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
+                    node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos_dt();
                 }
                 // Just implement a simple force+spring+damper in xy plane, 
                 // for spring&damper connected to absolute reference:
@@ -304,7 +304,7 @@ void test_1() {
     };
 
     // Instance load object, applying to a node, as in previous example, and add to container:
-    ChSharedPtr< MyLoadCustom > mloadcustom (new MyLoadCustom(mnodeD) );
+    auto mloadcustom = std::make_shared<MyLoadCustom>(mnodeD);
     mloadcontainer->Add(mloadcustom);  
 
   
@@ -318,14 +318,14 @@ void test_1() {
     // by default using numerical differentiation; but if you want you 
     // can override ComputeJacobian() and compute mK, mR analytically - see prev.example.
 
-    ChSharedPtr<ChNodeFEAxyz> mnodeE(new ChNodeFEAxyz( ChVector<>(2, 10, 3) ));
+    auto mnodeE = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 10, 3));
     my_mesh->AddNode(mnodeE);
-    ChSharedPtr<ChNodeFEAxyz> mnodeF(new ChNodeFEAxyz( ChVector<>(2, 11, 3) ));
+    auto mnodeF = std::make_shared<ChNodeFEAxyz>(ChVector<>(2, 11, 3));
     my_mesh->AddNode(mnodeF);
 
     class MyLoadCustomMultiple : public ChLoadCustomMultiple {
     public:   
-            MyLoadCustomMultiple(std::vector< ChSharedPtr<ChLoadable> >& mloadables) :  ChLoadCustomMultiple(mloadables) {};
+            MyLoadCustomMultiple(std::vector< std::shared_ptr<ChLoadable> >& mloadables) :  ChLoadCustomMultiple(mloadables) {};
 
             // Compute Q=Q(x,v)
             // This is the function that you have to implement. It should return the generalized Q load 
@@ -350,10 +350,10 @@ void test_1() {
                 else { 
                     // explicit integrators might call ComputeQ(0,0), null pointers mean
                     // that we assume current state, without passing state_x for efficiency
-                    Enode_pos = loadables[0].DynamicCastTo<ChNodeFEAxyz>()->GetPos();
-                    Enode_vel = loadables[0].DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
-                    Fnode_pos = loadables[1].DynamicCastTo<ChNodeFEAxyz>()->GetPos();
-                    Fnode_vel = loadables[1].DynamicCastTo<ChNodeFEAxyz>()->GetPos_dt();
+                    Enode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPos();
+                    Enode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPos_dt();
+                    Enode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPos();
+                    Enode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPos_dt();
                 }
                 // Just implement two simple force+spring+dampers in xy plane:
                     // ... from node E to ground, 
@@ -392,10 +392,10 @@ void test_1() {
 
     // Instance load object. This require a list of ChLoadable objects
     // (these are our two nodes,pay attention to the sequence order), and add to container.
-    std::vector< ChSharedPtr< ChLoadable > > mnodelist;
+    std::vector< std::shared_ptr< ChLoadable > > mnodelist;
     mnodelist.push_back(mnodeE);
     mnodelist.push_back(mnodeF);
-    ChSharedPtr< MyLoadCustomMultiple > mloadcustommultiple (new MyLoadCustomMultiple(mnodelist) );
+    auto mloadcustommultiple = std::make_shared<MyLoadCustomMultiple>(mnodelist);
     mloadcontainer->Add(mloadcustommultiple);  
 
   
@@ -439,6 +439,5 @@ int main(int argc, char* argv[]) {
 
     test_1();
 	
-    system("pause");
     return 0;
 }

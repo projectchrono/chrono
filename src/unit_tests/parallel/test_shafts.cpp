@@ -116,17 +116,17 @@ bool TestShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMethod 
 
   // Create two 1-D shaft objects, with a constant torque applied to the first
   // shaft. By default, a ChShaft is free to rotate.
-  ChSharedPtr<ChShaft> shaftA(new ChShaft);
+  auto shaftA = std::make_shared<ChShaft>();
   shaftA->SetInertia(J1);
   shaftA->SetAppliedTorque(T);
   system->Add(shaftA);
 
-  ChSharedPtr<ChShaft> shaftB(new ChShaft);
+  auto shaftB = std::make_shared<ChShaft>();
   shaftB->SetInertia(J2);
   system->Add(shaftB);
 
   // Create a connection between the two shafts with a given trnsmission ratio.
-  ChSharedPtr<ChShaftsGear> gearAB(new ChShaftsGear);
+  auto gearAB = std::make_shared<ChShaftsGear>();
   gearAB->Initialize(shaftA, shaftB);
   gearAB->SetTransmissionRatio(r);
   system->Add(gearAB);
@@ -220,23 +220,23 @@ bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod c
   ChSystemParallel* system = CreateSystem(cm);
 
   // Create 'A', a 1D shaft
-  ChSharedPtr<ChShaft> shaftA(new ChShaft);
+  auto shaftA = std::make_shared<ChShaft>();
   shaftA->SetInertia(9);
   system->Add(shaftA);
 
   // Create 'C', a 1D shaft, fixed
-  ChSharedPtr<ChShaft> shaftC(new ChShaft);
+  auto shaftC = std::make_shared<ChShaft>();
   shaftC->SetShaftFixed(true);
   system->Add(shaftC);
 
   // Create 'B', a 3D rigid body
-  ChSharedPtr<ChBody> bodyB(system->NewBody());
+  std::shared_ptr<ChBody> bodyB(system->NewBody());
 
   bodyB->Accumulate_torque(ChVector<>(0, 0, 3), true);  // set some constant torque to body
   system->Add(bodyB);
 
   // Make the torsional spring-damper between shafts A and C.
-  ChSharedPtr<ChShaftsTorsionSpring> shaft_torsionAC(new ChShaftsTorsionSpring);
+  auto shaft_torsionAC = std::make_shared<ChShaftsTorsionSpring>();
   shaft_torsionAC->Initialize(shaftA, shaftC);
   shaft_torsionAC->SetTorsionalStiffness(40);
   shaft_torsionAC->SetTorsionalDamping(0);
@@ -245,7 +245,7 @@ bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod c
   // Make the shaft 'A' connected to the rotation of the 3D body 'B'.
   // We must specify the direction (in body coordinates) along which the
   // shaft will affect the body.
-  ChSharedPtr<ChShaftsBody> shaftbody_connection(new ChShaftsBody);
+  auto shaftbody_connection = std::make_shared<ChShaftsBody>();
   ChVector<> shaftdir(VECT_Z);
   shaftbody_connection->Initialize(shaftA, bodyB, shaftdir);
   system->Add(shaftbody_connection);
@@ -333,13 +333,13 @@ bool TestClutch(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) 
   ChSystemParallel* system = CreateSystem(cm);
 
   // Create a ChShaft that starts with nonzero angular velocity
-  ChSharedShaftPtr shaftA(new ChShaft);
+  auto shaftA = std::make_shared<ChShaft>();
   shaftA->SetInertia(0.5);
   shaftA->SetPos_dt(30);
   system->Add(shaftA);
 
   // Create another ChShaft, with opposite initial angular velocity
-  ChSharedShaftPtr shaftB(new ChShaft);
+  auto shaftB = std::make_shared<ChShaft>();
   shaftB->SetInertia(0.6);
   shaftB->SetPos_dt(-10);
   system->Add(shaftB);
@@ -347,7 +347,7 @@ bool TestClutch(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) 
   // Create a ChShaftsClutch, that represents a simplified model
   // of a clutch between two ChShaft objects (something that limits
   // the max transmitted torque, up to slippage).
-  ChSharedPtr<ChShaftsClutch> clutchAB(new ChShaftsClutch);
+  auto clutchAB = std::make_shared<ChShaftsClutch>();
   clutchAB->Initialize(shaftA, shaftB);
   clutchAB->SetTorqueLimit(60);
   clutchAB->SetModulation(0);
@@ -403,25 +403,25 @@ bool TestShaftShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMe
   ChSystemParallel* system = CreateSystem(cm);
 
   // Create shaft A, with applied torque
-  ChSharedShaftPtr shaftA(new ChShaft);
+  auto shaftA = std::make_shared<ChShaft>();
   shaftA->SetInertia(0.5);
   shaftA->SetAppliedTorque(10);
   system->Add(shaftA);
 
   // Create shaft B
-  ChSharedShaftPtr shaftB(new ChShaft);
+  auto shaftB = std::make_shared<ChShaft>();
   shaftB->SetInertia(0.5);
   system->Add(shaftB);
 
   // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
-  ChSharedShaftPtr shaftC(new ChShaft);
+  auto shaftC = std::make_shared<ChShaft>();
   shaftC->SetShaftFixed(true);
   system->Add(shaftC);
 
   // Create a ChShaftsPlanetary, that represents a simplified model
   // of a planetary gear between THREE ChShaft objects (ex.: a car differential)
   // An epicycloidal reducer is a special type of planetary gear.
-  ChSharedPtr<ChShaftsPlanetary> planetaryBAC(new ChShaftsPlanetary);
+  auto planetaryBAC = std::make_shared<ChShaftsPlanetary>();
   planetaryBAC->Initialize(shaftB, shaftA, shaftC);  // output, carrier, fixed
 
   // We can set the ratios of the planetary using a simplified formula, for the
@@ -435,13 +435,13 @@ bool TestShaftShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMe
 
   // Now, let's make a shaft D, that is fixed, and used for the right side
   // of a clutch (so the clutch will act as a brake).
-  ChSharedShaftPtr shaftD(new ChShaft);
+  auto shaftD = std::make_shared<ChShaft>();
   shaftD->SetShaftFixed(true);
   system->Add(shaftD);
 
   // Make the brake. It is, in fact a clutch between shafts B and D, where
   // D is fixed as a truss, so the clutch will operate as a brake.
-  ChSharedPtr<ChShaftsClutch> clutchBD(new ChShaftsClutch);
+  auto clutchBD = std::make_shared<ChShaftsClutch>();
   clutchBD->Initialize(shaftB, shaftD);
   clutchBD->SetTorqueLimit(60);
   system->Add(clutchBD);

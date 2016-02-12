@@ -60,13 +60,13 @@ void ChShaftsMotor::Copy(ChShaftsMotor* source) {
     cache_li_pos = source->cache_li_pos;
 }
 
-bool ChShaftsMotor::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaft> mshaft2) {
+bool ChShaftsMotor::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // Parent class initialize
     if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
         return false;
 
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
 
     this->constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
 

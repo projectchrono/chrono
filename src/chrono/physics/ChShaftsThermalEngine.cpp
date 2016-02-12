@@ -27,7 +27,7 @@ ChShaftsThermalEngine::ChShaftsThermalEngine() {
     this->error_backward = false;
 
     // default torque curve= constant zero. User will provide better fx.
-    this->Tw = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    this->Tw = std::make_shared<ChFunction_Const>(0);
 
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
@@ -42,7 +42,7 @@ void ChShaftsThermalEngine::Copy(ChShaftsThermalEngine* source) {
     // copy class data
     throttle = source->throttle;
     error_backward = source->error_backward;
-    this->Tw = ChSharedPtr<ChFunction>(source->Tw->new_Duplicate());  // deep copy
+    this->Tw = std::shared_ptr<ChFunction>(source->Tw->new_Duplicate());  // deep copy
 }
 
 double ChShaftsThermalEngine::ComputeTorque() {

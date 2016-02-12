@@ -48,17 +48,17 @@ using namespace irr::gui;
 
 // Static data used for this simple demo
 
-std::vector<ChSharedPtr<ChBody> > mspheres;
+std::vector<std::shared_ptr<ChBody> > mspheres;
 
 
 void create_items(ChIrrAppInterface& application) {
     // Create some spheres in a vertical stack
 
-    ChSharedPtr<ChMaterialSurface> material (new ChMaterialSurface);
-    material->SetFriction   (0.4);
-    material->SetCompliance (0.001f / 700);  // as 1/K, in m/N. es: 1mm/700N
-    material->SetComplianceT(material->GetCompliance()); // use tangential compliance as normal compliance
-    material->SetDampingF   (0.2f); // damping factor, 0...1 
+    auto material = std::make_shared<ChMaterialSurface>();
+    material->SetFriction(0.4f);
+    material->SetCompliance(0.001f / 700);                // as 1/K, in m/N. es: 1mm/700N
+    material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance
+    material->SetDampingF(0.2f);                          // damping factor, 0...1
     material->SetRestitution(0.0);
 
     bool do_wall = false;
@@ -87,24 +87,24 @@ void create_items(ChIrrAppInterface& application) {
                 sphrad = sphrad * pow(oddfactor, 1. / 3.);
             double dens = 1000;
 
-            ChSharedPtr<ChBody> mrigidBody;
+            std::shared_ptr<ChBody> mrigidBody;
 
             if (do_spheres) {
-                mrigidBody = ChSharedPtr<ChBodyEasySphere>(new ChBodyEasySphere(sphrad,  // radius
-                                                                                dens,    // density
-                                                                                true,    // collide enable?
-                                                                                true));  // visualization?
+                mrigidBody = std::make_shared<ChBodyEasySphere>(sphrad,  // radius
+                                                                dens,    // density
+                                                                true,    // collide enable?
+                                                                true);   // visualization?
                 mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("bluwhite.png"))));
+                mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
 
                 application.GetSystem()->Add(mrigidBody);
             } else {
-                mrigidBody = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(sphrad, sphrad, sphrad,  // x,y,z size
-                                                                          dens,                    // density
-                                                                          true,                    // collide enable?
-                                                                          true));                  // visualization?
+                mrigidBody = std::make_shared<ChBodyEasyBox>(sphrad, sphrad, sphrad,  // x,y,z size
+                                                             dens,                    // density
+                                                             true,                    // collide enable?
+                                                             true);                   // visualization?
                 mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
+                mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
 
                 application.GetSystem()->Add(mrigidBody);
             }
@@ -127,12 +127,12 @@ void create_items(ChIrrAppInterface& application) {
             {
                 for (int ui = 0; ui < 15; ui++)  // N. of hor. bricks
                 {
-                    ChSharedPtr<ChBodyEasyBox> mrigidWall(new ChBodyEasyBox(0.396, 0.2, 0.4,  // size
-                                                                            dens,        // density
-                                                                            true,        // collide enable?
-                                                                            true));      // visualization?
+                    auto mrigidWall = std::make_shared<ChBodyEasyBox>(0.396, 0.2, 0.4,  // size
+                                                                      dens,             // density
+                                                                      true,             // collide enable?
+                                                                      true);            // visualization?
                     mrigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
-                    mrigidWall->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
+                    mrigidWall->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
                     mrigidWall->SetMaterialSurface(material);
 
                     application.GetSystem()->Add(mrigidWall);
@@ -145,12 +145,12 @@ void create_items(ChIrrAppInterface& application) {
         double dens = 1000;
         double hfactor = 100;
 
-        ChSharedPtr<ChBodyEasySphere> mrigidHeavy(new ChBodyEasySphere(sphrad,          // radius
-                                                                       dens * hfactor,  // density
-                                                                       true,            // collide enable?
-                                                                       true));          // visualization?
+        auto mrigidHeavy = std::make_shared<ChBodyEasySphere>(sphrad,          // radius
+                                                              dens * hfactor,  // density
+                                                              true,            // collide enable?
+                                                              true);           // visualization?
         mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.1, -1));
-        mrigidHeavy->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("pinkwhite.png"))));
+        mrigidHeavy->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
         mrigidHeavy->SetMaterialSurface(material);
 
         application.GetSystem()->Add(mrigidHeavy);
@@ -161,14 +161,14 @@ void create_items(ChIrrAppInterface& application) {
 
     // Create the floor using a fixed rigid body of 'box' type:
 
-    ChSharedPtr<ChBodyEasyBox> mrigidFloor(new ChBodyEasyBox(50, 4, 50,  // radius
-                                                             dens,       // density
-                                                             true,       // collide enable?
-                                                             true));     // visualization?
+    auto mrigidFloor = std::make_shared<ChBodyEasyBox>(50, 4, 50,  // radius
+                                                       dens,       // density
+                                                       true,       // collide enable?
+                                                       true);      // visualization?
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
     mrigidFloor->GetMaterialSurface()->SetFriction(0.6f);
-    mrigidFloor->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("concrete.jpg"))));
+    mrigidFloor->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
     application.GetSystem()->Add(mrigidFloor);
 }
@@ -179,7 +179,7 @@ void create_items(ChIrrAppInterface& application) {
 
 void align_spheres(ChIrrAppInterface& application) {
     for (unsigned int i = 0; i < mspheres.size(); ++i) {
-        ChSharedPtr<ChBody> body = mspheres[i];
+        std::shared_ptr<ChBody> body = mspheres[i];
         ChVector<> mpos = body->GetPos();
         mpos.x = 0.5;
         mpos.z = 0.7;

@@ -114,10 +114,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         double R_eff = 1;
 
         // just casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChSharedPtr<ChMaterialSurfaceDEM> mmatA =
-            this->objA->GetMaterialSurfaceBase().template DynamicCastTo<ChMaterialSurfaceDEM>();
-        ChSharedPtr<ChMaterialSurfaceDEM> mmatB =
-            this->objB->GetMaterialSurfaceBase().template DynamicCastTo<ChMaterialSurfaceDEM>();
+        auto mmatA = std::static_pointer_cast<ChMaterialSurfaceDEM>(this->objA->GetMaterialSurfaceBase());
+        auto mmatB = std::static_pointer_cast<ChMaterialSurfaceDEM>(this->objB->GetMaterialSurfaceBase());
 
         // Calculate composite material properties
         ChCompositeMaterialDEM mat = ChMaterialSurfaceDEM::CompositeMaterial(mmatA, mmatB);

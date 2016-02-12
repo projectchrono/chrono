@@ -71,57 +71,57 @@ int main(int argc, char* argv[]) {
     double radB = 4;
 
     // ...the truss
-    ChSharedPtr<ChBody> mbody_truss (new ChBodyEasyBox(20, 10, 2, 1000, false, true));
+    auto mbody_truss = std::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, false, true);
     mphysicalSystem.Add(mbody_truss);
     mbody_truss->SetBodyFixed(true);
     mbody_truss->SetPos(ChVector<>(0, 0, 3));
 
     // ...a texture asset that will be shared among the four wheels
-    ChSharedPtr<ChTexture> cylinder_texture (new ChTexture(GetChronoDataFile("pinkwhite.png")));
+    auto cylinder_texture = std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png"));
 
     // ...the rotating bar support for the two epicycloidal wheels
-    ChSharedPtr<ChBody> mbody_train (new ChBodyEasyBox(8, 1.5, 1.0, 1000, false, true));
+    auto mbody_train = std::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, false, true);
     mphysicalSystem.Add(mbody_train);
     mbody_train->SetPos(ChVector<>(3, 0, 0));
 
     // ...which must rotate respect to truss along Z axis, in 0,0,0,
-    ChSharedPtr<ChLinkLockRevolute> link_revoluteTT(new ChLinkLockRevolute);
+    auto link_revoluteTT = std::make_shared<ChLinkLockRevolute>();
     link_revoluteTT->Initialize(mbody_truss, mbody_train,
                                 ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     mphysicalSystem.AddLink(link_revoluteTT);
 
     // ...the first gear
-    ChSharedPtr<ChBody> mbody_gearA (new ChBodyEasyCylinder(radA, 0.5,  1000, false, true));
+    auto mbody_gearA = std::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, false, true);
     mphysicalSystem.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearA->AddAsset(cylinder_texture);
     // for aesthetical reasons, also add a thin cylinder only as a visualization:
-    ChSharedPtr<ChCylinderShape> mshaft_shape(new ChCylinderShape);
+    auto mshaft_shape = std::make_shared<ChCylinderShape>();
     mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0,-3,0);
     mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10,0);
     mshaft_shape->GetCylinderGeometry().rad = radA*0.4;
     mbody_gearA->AddAsset(mshaft_shape);
 
     // ...impose rotation between the first gear and the fixed truss
-    ChSharedPtr<ChLinkEngine> link_engine(new ChLinkEngine);
+    auto link_engine = std::make_shared<ChLinkEngine>();
     link_engine->Initialize(mbody_gearA, mbody_truss, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     link_engine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);  // also works as revolute support
     link_engine->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = link_engine->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_engine->Get_spe_funct()))
         mfun->Set_yconst(6);  // rad/s  angular speed
     mphysicalSystem.AddLink(link_engine);
 
     // ...the second gear
     double interaxis12 = radA + radB;
-    ChSharedPtr<ChBody> mbody_gearB (new ChBodyEasyCylinder(radB, 0.4,  1000, false, true));
+    auto mbody_gearB = std::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, false, true);
     mphysicalSystem.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
     mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearB->AddAsset(cylinder_texture);
 
     // ... the second gear is fixed to the rotating bar
-    ChSharedPtr<ChLinkLockRevolute> link_revolute(new ChLinkLockRevolute);
+    auto link_revolute = std::make_shared<ChLinkLockRevolute>();
     link_revolute->Initialize(mbody_gearB, mbody_train,
                               ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));
     mphysicalSystem.AddLink(link_revolute);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     //    we use Set_local_shaft1() and pass some local ChFrame. Note that, since the Z axis of that frame
     //    will be considered the axis of the wheel, we must rotate the frame 90° with Q_from_AngAxis(), because
     //    we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis.
-    ChSharedPtr<ChLinkGear> link_gearAB(new ChLinkGear);
+    auto link_gearAB = std::make_shared<ChLinkGear>();
     link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
     link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     //    does not necessarily need to be created as a new body because it is the 'fixed' part of the
     //    epicycloidal reducer, so, as wheel C, we will simply use the ground object 'mbody_truss'.
     double radC = 2 * radB + radA;
-    ChSharedPtr<ChLinkGear> link_gearBC(new ChLinkGear);
+    auto link_gearBC = std::make_shared<ChLinkGear>();
     link_gearBC->Initialize(mbody_gearB, mbody_truss, CSYSNORM);
     link_gearBC->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearBC->Set_local_shaft2(ChFrame<>(ChVector<>(0, 0, -4), QUNIT));
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     // ...the bevel gear at the side,
     double radD = 5;
-    ChSharedPtr<ChBody> mbody_gearD (new ChBodyEasyCylinder(radD, 0.8,  1000, false, true));
+    auto mbody_gearD = std::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, false, true);
     mphysicalSystem.Add(mbody_gearD);
     mbody_gearD->SetPos(ChVector<>(-10, 0, -9));
     mbody_gearD->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -167,14 +167,14 @@ int main(int argc, char* argv[]) {
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
     //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
-    ChSharedPtr<ChLinkLockRevolute> link_revoluteD(new ChLinkLockRevolute);
+    auto link_revoluteD = std::make_shared<ChLinkLockRevolute>();
     link_revoluteD->Initialize(mbody_gearD, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, 0, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
     mphysicalSystem.AddLink(link_revoluteD);
 
     // ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: chrono::engine does not require
     //     special info for this case -the position of the two shafts and the transmission ratio are enough-
-    ChSharedPtr<ChLinkGear> link_gearAD(new ChLinkGear);
+    auto link_gearAD = std::make_shared<ChLinkGear>();
     link_gearAD->Initialize(mbody_gearA, mbody_gearD, CSYSNORM);
     link_gearAD->Set_local_shaft1(ChFrame<>(ChVector<>(0, -7, 0), chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_gearAD->Set_local_shaft2(ChFrame<>(ChVector<>(0, -7, 0), chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
 
     // ...the pulley at the side,
     double radE = 2;
-    ChSharedPtr<ChBody> mbody_pulleyE (new ChBodyEasyCylinder(radE, 0.8,  1000, false, true));
+    auto mbody_pulleyE = std::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, false, true);
     mphysicalSystem.Add(mbody_pulleyE);
     mbody_pulleyE->SetPos(ChVector<>(-10, -11, -9));
     mbody_pulleyE->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -191,14 +191,14 @@ int main(int argc, char* argv[]) {
 
     // ... it is fixed to the truss using a revolute joint with horizontal axis (must rotate
     //     default ChLink creation coordys 90° on the Y vertical, since the revolute axis is the Z axis).
-    ChSharedPtr<ChLinkLockRevolute> link_revoluteE(new ChLinkLockRevolute);
+    auto link_revoluteE = std::make_shared<ChLinkLockRevolute>();
     link_revoluteE->Initialize(mbody_pulleyE, mbody_truss,
                                ChCoordsys<>(ChVector<>(-10, -11, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
     mphysicalSystem.AddLink(link_revoluteE);
 
     // ... Let's make a synchro belt constraint between pulley D and pulley E. The user must be
     //     sure that the two shafts are parallel in absolute space. Also, interaxial distance should not change.
-    ChSharedPtr<ChLinkPulley> link_pulleyDE(new ChLinkPulley);
+    auto link_pulleyDE = std::make_shared<ChLinkPulley>();
     link_pulleyDE->Initialize(mbody_gearD, mbody_pulleyE, CSYSNORM);
     link_pulleyDE->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
     link_pulleyDE->Set_local_shaft2(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));

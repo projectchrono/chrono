@@ -74,9 +74,9 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Finally, tierod_body is a handle to the body to which the suspension
     /// tierods are to be attached. For a steerable suspension, this will be the
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            ChSharedPtr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) override;
 
     /// There could be a spring (coil or air) and damper element between chassis and lower beam
@@ -220,60 +220,57 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return the callback function for shock force.
     virtual ChSpringForceCallback* getShockAHForceCallback() const = 0;
 
-    ChSharedPtr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
-    ChSharedPtr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
-    ChSharedPtr<ChBody> m_lowerbeam[2];    ///< handles to lowerbeam bodies (left/right)
-    ChSharedPtr<ChBody> m_transversebeam;  ///< handles to transversebeam body
-    ChSharedPtr<ChBody> m_axlehousing;     ///< handles to axlehousing body
+    std::shared_ptr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
+    std::shared_ptr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
+    std::shared_ptr<ChBody> m_lowerbeam[2];    ///< handles to lowerbeam bodies (left/right)
+    std::shared_ptr<ChBody> m_transversebeam;  ///< handles to transversebeam body
+    std::shared_ptr<ChBody> m_axlehousing;     ///< handles to axlehousing body
 
-    ChSharedPtr<ChLinkLockRevolute>
+    std::shared_ptr<ChLinkLockRevolute>
         m_revoluteKingpin[2];  ///< handles to the knuckle-axle housing revolute joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalTorquerod[2];  ///< handles to the torque rod-axle housing spherical joints (left/right)
 
-    ChSharedPtr<ChLinkLockRevolute>
+    std::shared_ptr<ChLinkLockRevolute>
       m_revoluteTorquerod[2];  ///< handles to the torquerod chasis revolute joints (left/right)
 
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalLowerbeam[2];  ///< handles to the lower beam-axle housing spherical joints (left/right)
 
-    ChSharedPtr<ChLinkLockRevolute>
+    std::shared_ptr<ChLinkLockRevolute>
       m_revoluteLowerbeam[2];  ///< handles to the lowerbeam chasis revolute joints (left/right)
 
-
-
-
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalTB[2];  ///< handles to the transversebeam-lower beam spherical joints (left/right)
-    ChSharedPtr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
-    ChSharedPtr<ChLinkSpringCB> m_shockLB[2];  ///< handles to the spring links (left/right)
-    ChSharedPtr<ChLinkSpringCB> m_shockAH[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_shockLB[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_shockAH[2];  ///< handles to the spring links (left/right)
 
   private:
     void InitializeSide(VehicleSide side,
-                        ChSharedPtr<ChBodyAuxRef> chassis,
-                        ChSharedPtr<ChBody> tierod_body,
+                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points,
                         const std::vector<ChVector<> >& dirs);
 
-    static void AddVisualizationLink(ChSharedPtr<ChBody> body,
+    static void AddVisualizationLink(std::shared_ptr<ChBody> body,
                                      const ChVector<> pt_1,
                                      const ChVector<> pt_2,
                                      double radius,
                                      const ChColor& color);
-    static void AddVisualizationLowerBeam(ChSharedPtr<ChBody> body,
+    static void AddVisualizationLowerBeam(std::shared_ptr<ChBody> body,
                                           const ChVector<> pt_C,
                                           const ChVector<> pt_AH,
                                           const ChVector<> pt_TB,
                                           double radius,
                                           const ChColor& color);
-    static void AddVisualizationKnuckle(ChSharedPtr<ChBody> knuckle,
+    static void AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
                                         const ChVector<> pt_U,
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
-    static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
+    static void AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width);
 
     static const std::string m_pointNames[NUM_POINTS];
 };

@@ -54,43 +54,43 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
         // Create a bunch of ChronoENGINE rigid bodies (spheres and
         // boxes etc.) which will fall..
 
-        ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(1.1,     // radius size
-                                                                       1000,    // density
-                                                                       true,    // collide enable?
-                                                                       true));  // visualization?
+        auto msphereBody = std::make_shared<ChBodyEasySphere>(1.1,    // radius size
+                                                              1000,   // density
+                                                              true,   // collide enable?
+                                                              true);  // visualization?
         msphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         msphereBody->GetMaterialSurface()->SetFriction(0.2f);
 
         mphysicalSystem.Add(msphereBody);
 
         // optional, attach a texture for better visualization
-        ChSharedPtr<ChTexture> mtexture(new ChTexture());
+        auto mtexture = std::make_shared<ChTexture>();
         mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
         msphereBody->AddAsset(mtexture);
 
-        ChSharedPtr<ChBodyEasyBox> mboxBody(new ChBodyEasyBox(1.5, 1.5, 1.5,  // x,y,z size
-                                                              100,            // density
-                                                              true,           // collide enable?
-                                                              true));         // visualization?
+        auto mboxBody = std::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5,  // x,y,z size
+                                                        100,            // density
+                                                        true,           // collide enable?
+                                                        true);          // visualization?
         mboxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
 
         mphysicalSystem.Add(mboxBody);
 
         // optional, attach a texture for better visualization
-        ChSharedPtr<ChTexture> mtexturebox(new ChTexture());
+        auto mtexturebox = std::make_shared<ChTexture>();
         mtexturebox->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
         mboxBody->AddAsset(mtexturebox);
 
-        ChSharedPtr<ChBodyEasyCylinder> mcylBody(new ChBodyEasyCylinder(0.75, 0.5,  // radius, height
-                                                                        100,        // density
-                                                                        true,       // collide enable?
-                                                                        true));     // visualization?
+        auto mcylBody = std::make_shared<ChBodyEasyCylinder>(0.75, 0.5,  // radius, height
+                                                             100,        // density
+                                                             true,       // collide enable?
+                                                             true);      // visualization?
         mcylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
 
         mphysicalSystem.Add(mcylBody);
 
         // optional, attach a texture for better visualization
-        ChSharedPtr<ChTexture> mtexturecyl(new ChTexture());
+        auto mtexturecyl = std::make_shared<ChTexture>();
         mtexturecyl->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
         mcylBody->AddAsset(mtexturecyl);
     }
@@ -98,38 +98,38 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     // Create the five walls of the rectangular container, using
     // fixed rigid bodies of 'box' type:
 
-    ChSharedPtr<ChBodyEasyBox> floorBody(new ChBodyEasyBox(20, 1, 20, 1000, true, true));
+    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
     mphysicalSystem.Add(floorBody);
 
-    ChSharedPtr<ChBodyEasyBox> wallBody1(new ChBodyEasyBox(1, 10, 20.99, 1000, true, true));
+    auto wallBody1 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true);
     wallBody1->SetPos(ChVector<>(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
 
     mphysicalSystem.Add(wallBody1);
 
-    ChSharedPtr<ChBodyEasyBox> wallBody2(new ChBodyEasyBox(1, 10, 20.99, 1000, true, true));
+    auto wallBody2 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true);
     wallBody2->SetPos(ChVector<>(10, 0, 0));
     wallBody2->SetBodyFixed(true);
 
     mphysicalSystem.Add(wallBody2);
 
-    ChSharedPtr<ChBodyEasyBox> wallBody3(new ChBodyEasyBox(20.99, 10, 1, 1000, true, true));
+    auto wallBody3 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true);
     wallBody3->SetPos(ChVector<>(0, 0, -10));
     wallBody3->SetBodyFixed(true);
 
     mphysicalSystem.Add(wallBody3);
 
-    ChSharedPtr<ChBodyEasyBox> wallBody4(new ChBodyEasyBox(20.99, 10, 1, 1000, true, true));
+    auto wallBody4 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true);
     wallBody4->SetPos(ChVector<>(0, 0, 10));
     wallBody4->SetBodyFixed(true);
 
     mphysicalSystem.Add(wallBody4);
 
     // optional, attach  textures for better visualization
-    ChSharedPtr<ChTexture> mtexturewall(new ChTexture());
+    auto mtexturewall = std::make_shared<ChTexture>();
     mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     wallBody1->AddAsset(mtexturewall);  // note: most assets can be shared
     wallBody2->AddAsset(mtexturewall);
@@ -138,20 +138,20 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     floorBody->AddAsset(mtexturewall);
 
     // Add the rotating mixer
-    ChSharedPtr<ChBodyEasyBox> rotatingBody(new ChBodyEasyBox(10, 5, 1,  // x,y,z size
-                                                              4000,      // density
-                                                              true,      // collide enable?
-                                                              true));    // visualization?
+    auto rotatingBody = std::make_shared<ChBodyEasyBox>(10, 5, 1,        // x,y,z size
+                                                        4000,            // density
+                                                        true,            // collide enable?
+                                                        true);           // visualization?
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
     rotatingBody->GetMaterialSurface()->SetFriction(0.4f);
 
     mphysicalSystem.Add(rotatingBody);
 
     // .. an engine between mixer and truss
-    ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
+    auto my_motor = std::make_shared<ChLinkEngine>();
     my_motor->Initialize(rotatingBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = my_motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_motor->Get_spe_funct()))
         mfun->Set_yconst(CH_C_PI / 2.0);  // speed w=90°/s
     mphysicalSystem.AddLink(my_motor);
 
@@ -163,7 +163,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     /// as in the alternative approach:
 
         // create a plain ChBody (no colliding shape nor visualization mesh is used yet)
-    ChSharedPtr<ChBodyEasyBox> mrigidBody(new ChBody);
+    auto mrigidBody = std::make_shared<ChBody>();
 
         // set the ChBodySceneNode as fixed body, and turn collision ON, otherwise no collide by default
     mrigidBody->SetBodyFixed(true);
@@ -181,7 +181,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     mrigidBody->GetCollisionModel()->BuildModel();
 
         // Attach some visualization shapes if needed:
-    ChSharedPtr<ChBoxShape> vshape (new ChBoxShape() );
+    auto vshape = std::make_shared<ChBoxShape>();
     vshape->GetBoxGeometry().SetLengths( ChVector<> (20,1,20) );
     vshape->GetBoxGeometry().Pos = ChVector<> (0,-5,0);
     this->AddAsset( vshape );

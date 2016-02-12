@@ -29,7 +29,7 @@ namespace vehicle {
 // The base class initialization function attaches this wheel to the specified
 // suspension spindle body (by incrementing the spindle's mass and inertia with
 // that of the wheel.  A derived class should always invoke this base method.
-void ChWheel::Initialize(ChSharedPtr<ChBody> spindle) {
+void ChWheel::Initialize(std::shared_ptr<ChBody> spindle) {
     spindle->SetMass(spindle->GetMass() + GetMass());
     spindle->SetInertiaXX(spindle->GetInertiaXX() + GetInertia());
 }

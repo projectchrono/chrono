@@ -48,8 +48,8 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     double torque_in;
     double torque_out;
 
-    ChSharedPtr<ChFunction> K;
-    ChSharedPtr<ChFunction> T;
+    std::shared_ptr<ChFunction> K;
+    std::shared_ptr<ChFunction> T;
 
     bool state_warning_reverseflow;
     bool state_warning_wrongimpellerdirection;
@@ -91,9 +91,9 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// Use this function after torque converter creation, to initialize it, given
     /// input and output shafts to join (plus the stator shaft, that should be fixed).
     /// Each shaft must belong to the same ChSystem.
-    virtual int Initialize(ChSharedPtr<ChShaft> mshaft1,       ///< input shaft
-                           ChSharedPtr<ChShaft> mshaft2,       ///< output shaft
-                           ChSharedPtr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
+    virtual int Initialize(std::shared_ptr<ChShaft> mshaft1,       ///< input shaft
+                           std::shared_ptr<ChShaft> mshaft2,       ///< output shaft
+                           std::shared_ptr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
                            );
 
     /// Get the input shaft
@@ -106,15 +106,15 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// Set the capacity factor curve, function of speed ratio R.
     /// It is K(R)= input speed / square root of the input torque.
     /// Units: (rad/s) / sqrt(Nm)
-    void SetCurveCapacityFactor(ChSharedPtr<ChFunction> mf) { K = mf; }
+    void SetCurveCapacityFactor(std::shared_ptr<ChFunction> mf) { K = mf; }
     /// Get the capacity factor curve.
-    ChSharedPtr<ChFunction> GetCurveCapacityFactor() { return K; }
+    std::shared_ptr<ChFunction> GetCurveCapacityFactor() { return K; }
 
     /// Set the torque ratio curve, function of speed ratio R.
     /// It is T(R) = (output torque) / (input torque)
-    void SetCurveTorqueRatio(ChSharedPtr<ChFunction> mf) { T = mf; }
+    void SetCurveTorqueRatio(std::shared_ptr<ChFunction> mf) { T = mf; }
     /// Get the torque ratio curve.
-    ChSharedPtr<ChFunction> GetCurveTorqueRatio() { return T; }
+    std::shared_ptr<ChFunction> GetCurveTorqueRatio() { return T; }
 
     /// Get the torque applied to the input shaft
     double GetTorqueReactionOnInput() const { return torque_in; }

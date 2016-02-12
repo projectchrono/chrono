@@ -14,17 +14,11 @@
 #ifndef CHNODEBASE_H
 #define CHNODEBASE_H
 
+#include "chrono/core/ChRunTimeType.h"
+#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
-//#include <math.h>
-
-#include "core/ChShared.h"
-#include "physics/ChPhysicsItem.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
-
-
-namespace chrono
-{
-
+namespace chrono {
 
 /// Class for a node, that has some degrees of 
 /// freedom and that contain a proxy to the solver.
@@ -32,13 +26,15 @@ namespace chrono
 /// often a ChPhysicsItem is used as a container for a cluster 
 /// of these ChNodeBase.
 
-class ChApi ChNodeBase : public virtual ChShared
-{
-protected:
+class ChApi ChNodeBase {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI_ROOT(ChMaterialSurfaceBase);
+
+  protected:
 	unsigned int offset_x; // offset in vector of state (position part)
 	unsigned int offset_w; // offset in vector of state (speed part)
 
-public:
+  public:
 	ChNodeBase ();
 	virtual ~ChNodeBase ();
 

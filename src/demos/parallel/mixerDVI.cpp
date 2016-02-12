@@ -64,11 +64,11 @@ void AddContainer(ChSystemParallelDVI* sys) {
   int mixerId = -201;
 
   // Create a common material
-  ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+  auto mat = std::make_shared<ChMaterialSurface>();
   mat->SetFriction(0.4f);
 
   // Create the containing bin (2 x 2 x 1)
-  ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
+  auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
@@ -81,11 +81,11 @@ void AddContainer(ChSystemParallelDVI* sys) {
   double hthick = 0.1;
 
   bin->GetCollisionModel()->ClearModel();
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
-  utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
+  utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
   bin->GetCollisionModel()->SetFamily(1);
   bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
   bin->GetCollisionModel()->BuildModel();
@@ -93,7 +93,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
   sys->AddBody(bin);
 
   // The rotating mixer body (1.6 x 0.2 x 0.4)
-  ChSharedBodyPtr mixer(new ChBody(new ChCollisionModelParallel));
+  auto mixer = std::make_shared<ChBody>(new ChCollisionModelParallel);
   mixer->SetMaterialSurface(mat);
   mixer->SetIdentifier(mixerId);
   mixer->SetMass(10.0);
@@ -105,19 +105,19 @@ void AddContainer(ChSystemParallelDVI* sys) {
   ChVector<> hsize(0.8, 0.1, 0.2);
 
   mixer->GetCollisionModel()->ClearModel();
-  utils::AddBoxGeometry(mixer.get_ptr(), hsize);
+  utils::AddBoxGeometry(mixer.get(), hsize);
   mixer->GetCollisionModel()->SetFamily(2);
   mixer->GetCollisionModel()->BuildModel();
 
   sys->AddBody(mixer);
 
   // Create an engine between the two bodies, constrained to rotate at 90 deg/s
-  ChSharedPtr<ChLinkEngine> motor(new ChLinkEngine);
+  auto motor = std::make_shared<ChLinkEngine>();
 
   motor->Initialize(mixer, bin, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
   motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-  motor->Set_rot_funct(ChSharedPtr<ChFunction>(new ChFunction_Ramp(0, CH_C_PI / 2)));
+  motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 2));
 
   sys->AddLink(motor);
 }
@@ -127,7 +127,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallel* sys) {
   // Common material
-  ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
+  auto ballMat = std::make_shared<ChMaterialSurface>();
   ballMat->SetFriction(0.4f);
 
   // Create the falling balls
@@ -140,7 +140,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
     for (int iy = -2; iy < 3; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+      auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel);
       ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
@@ -152,7 +152,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
       ball->SetCollide(true);
 
       ball->GetCollisionModel()->ClearModel();
-      utils::AddSphereGeometry(ball.get_ptr(), radius);
+      utils::AddSphereGeometry(ball.get(), radius);
       ball->GetCollisionModel()->BuildModel();
 
       sys->AddBody(ball);

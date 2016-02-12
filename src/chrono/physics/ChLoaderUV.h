@@ -29,9 +29,9 @@ class ChLoaderUV : public ChLoader {
 public:
     typedef ChLoadableUV type_loadable;
 
-    ChSharedPtr<ChLoadableUV> loadable;
+    std::shared_ptr<ChLoadableUV> loadable;
       
-    ChLoaderUV(ChSharedPtr<ChLoadableUV> mloadable) : 
+    ChLoaderUV(std::shared_ptr<ChLoadableUV> mloadable) :
           loadable(mloadable) {};
 
             /// Children classes must provide this function that evaluates F = F(u,v)
@@ -43,9 +43,9 @@ public:
                           ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
                           ) = 0;
 
-    void SetLoadable(ChSharedPtr<ChLoadableUV>mloadable) {loadable = mloadable;}
-    virtual ChSharedPtr<ChLoadable> GetLoadable() {return loadable;}
-    ChSharedPtr<ChLoadableUV> GetLoadableUV() {return loadable;}
+    void SetLoadable(std::shared_ptr<ChLoadableUV>mloadable) { loadable = mloadable; }
+    virtual std::shared_ptr<ChLoadable> GetLoadable() { return loadable; }
+    std::shared_ptr<ChLoadableUV> GetLoadableUV() { return loadable; }
 
 };
 
@@ -57,7 +57,7 @@ public:
 class ChLoaderUVdistributed : public ChLoaderUV {
 public:
     
-    ChLoaderUVdistributed(ChSharedPtr<ChLoadableUV> mloadable) : 
+    ChLoaderUVdistributed(std::shared_ptr<ChLoadableUV> mloadable) :
           ChLoaderUV(mloadable) {};
 
     virtual int GetIntegrationPointsU() = 0;
@@ -131,7 +131,7 @@ public:
     double Pu;
     double Pv;
 
-    ChLoaderUVatomic(ChSharedPtr<ChLoadableUV> mloadable) : 
+    ChLoaderUVatomic(std::shared_ptr<ChLoadableUV> mloadable) :
           ChLoaderUV(mloadable)
          {};
 
@@ -166,7 +166,7 @@ private:
     bool is_stiff;
     int num_integration_points;
 public:    
-    ChLoaderPressure(ChSharedPtr<ChLoadableUV> mloadable) :
+    ChLoaderPressure(std::shared_ptr<ChLoadableUV> mloadable) :
             ChLoaderUVdistributed(mloadable),
             is_stiff(false),
             num_integration_points(1)

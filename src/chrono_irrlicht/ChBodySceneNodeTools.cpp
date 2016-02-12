@@ -211,8 +211,7 @@ ISceneNode* addChBodySceneNode_easyClone(ChSystem* asystem,
                                                                        0,  // source->GetChildMesh()->getMesh(),
                                                                        1, position, rotation, aparent, mid);
 
-    rigidBodyZ->GetBody()->Copy(
-        source->GetBody().get_ptr());  // copy all settings of the original body (masses, inertia, etc.)
+    rigidBodyZ->GetBody()->Copy(source->GetBody().get());  // copy all settings of the original body (masses, inertia, etc.)
     rigidBodyZ->GetBody()->SetSystem(source->GetBody()->GetSystem());  // because Copy() set system to null..
     rigidBodyZ->GetBody()->SetPos(position);                           // because Copy() changed it
     rigidBodyZ->GetBody()->SetRot(rotation);                           // because Copy() changed it

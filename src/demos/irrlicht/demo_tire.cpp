@@ -52,13 +52,13 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-ChSharedPtr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplication) {
+std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& mapplication) {
 
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
     ChCollisionModel::SetDefaultSuggestedMargin(0.004);
 
     // create a basic rigid body, it comes with no visualization or collision shapes 
-    ChSharedPtr<ChBody> mrigidBody (new ChBody);
+    auto mrigidBody = std::make_shared<ChBody>();
     mapplication.GetSystem()->Add(mrigidBody);
     mrigidBody->SetMass(50);
     mrigidBody->SetInertiaXX(ChVector<>(10, 10, 10));
@@ -66,7 +66,7 @@ ChSharedPtr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& mappli
     mrigidBody->GetMaterialSurface()->SetFriction(0.5);
 
     // now attach a visualization shape, as a mesh from disk
-    ChSharedPtr<ChObjShapeFile> tireMesh (new ChObjShapeFile);
+    auto tireMesh = std::make_shared<ChObjShapeFile>();
     tireMesh->SetFilename(GetChronoDataFile("tractor_wheel.obj").c_str());
     mrigidBody->AddAsset(tireMesh);
 
@@ -116,7 +116,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
         ChQuaternion<> randrot(ChRandom(), ChRandom(), ChRandom(), ChRandom());
         randrot.Normalize();
 
-        ChSharedPtr<ChBody> mrigidBody (new ChBodyEasySphere(sphrad, sphdens, true, true));
+        auto mrigidBody = std::make_shared<ChBodyEasySphere>(sphrad, sphdens, true, true);
         mphysicalSystem.Add(mrigidBody);
         mrigidBody->SetRot(randrot);
         mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 
@@ -126,12 +126,12 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     }
 
     // Create the a plane using body of 'box' type:
-    ChSharedPtr<ChBody> mrigidBodyB (new ChBodyEasyBox(10, 1, 10, 1000, true, true));
+    auto mrigidBodyB = std::make_shared<ChBodyEasyBox>(10, 1, 10, 1000, true, true);
     mphysicalSystem.Add(mrigidBodyB);
     mrigidBodyB->SetBodyFixed(true);
     mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
     mrigidBodyB->GetMaterialSurface()->SetFriction(0.5);
-    ChSharedPtr<ChColorAsset> mcolor (new ChColorAsset);
+    auto mcolor = std::make_shared<ChColorAsset>();
     mcolor->SetColor(ChColor(0.2f,0.2f,0.2f));
     mrigidBodyB->AddAsset(mcolor);
 }
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
 
     // Create the wheel
 
-    ChSharedPtr<ChBody> mwheelBody = create_wheel(ChVector<>(0, 1, 0), application);
+    std::shared_ptr<ChBody> mwheelBody = create_wheel(ChVector<>(0, 1, 0), application);
 
 
     // Use this function for adding a ChIrrNodeAsset to all items

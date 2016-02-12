@@ -51,17 +51,17 @@ bool addGroundForces = true;
 bool showVisual = true;
 bool addSingleLoad = false;
 bool addPressureAlessandro = true;
-ChSharedPtr<ChBody> BGround;
-ChSharedPtr<ChBody> SimpChassis;  // Chassis body
 
-ChSharedPtr<ChLinkPointFrame> NodePosRim;
-ChSharedPtr<ChLinkDirFrame> NodeDirRim;
-ChSharedPtr<ChNodeFEAxyzD> ConstrainedNode;
-ChSharedPtr<ChLinkPointFrame> NodePosRim2;
-ChSharedPtr<ChLinkDirFrame> NodeDirRim2;
-ChSharedPtr<ChNodeFEAxyzD> ConstrainedNode2;  // Shared pointers for constraining mesh to hub
+std::shared_ptr<ChBody> BGround;
+std::shared_ptr<ChBodyEasyBox> SimpChassis;  // Chassis body
+std::shared_ptr<ChLinkPointFrame> NodePosRim;
+std::shared_ptr<ChLinkDirFrame> NodeDirRim;
+std::shared_ptr<ChNodeFEAxyzD> ConstrainedNode;
+std::shared_ptr<ChLinkPointFrame> NodePosRim2;
+std::shared_ptr<ChLinkDirFrame> NodeDirRim2;
+std::shared_ptr<ChNodeFEAxyzD> ConstrainedNode2;  // Shared pointers for constraining mesh to hub
 
-ChSharedPtr<ChLoadContainer> MloadcontainerGround(new ChLoadContainer);
+auto MloadcontainerGround = std::make_shared<ChLoadContainer>();
 // Some model parameters
 const double spring_coef = 3e4;  // Springs and dampers for strut
 const double damping_coef = 1e3;
@@ -96,11 +96,11 @@ double dy = CH_C_PI * TorusSmallRadius / numEl_Thread;
 // ChLoadCustomMultiple to include basic node-Ground contact interaction
 class MyLoadCustomMultiple : public ChLoadCustomMultiple {
   public:
-    MyLoadCustomMultiple(std::vector<ChSharedPtr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
+    MyLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) {
-        std::vector<ChSharedPtr<ChLoadable>> NodeList;
+        std::vector<std::shared_ptr<ChLoadable> > NodeList;
         ChVector<> Node1_Pos;
         ChVector<> Node1_Vel;
         ChVector<> Node1_Grad;
@@ -171,17 +171,17 @@ class MyLoadCustomMultiple : public ChLoadCustomMultiple {
 
 void MakeANCFWheel(ChSystem& my_system,
                    const ChVector<> rim_center,
-                   ChSharedPtr<ChMaterialShellANCF>& mat,
-                   ChSharedPtr<ChBody>& Hub_1,
+                   std::shared_ptr<ChMaterialShellANCF> & mat,
+                   std::shared_ptr<ChBody> & Hub_1,
                    int N_Diameter,
                    int N_Thread,
                    double TorusRadius,
                    double TorusSmallRadius,
                    double TirePressure,
-                   double ForVelocity) {
+                   double ForVelocity, int Ident) {
     // Create rim for this mesh
     my_system.AddBody(Hub_1);
-    Hub_1->SetIdentifier(2);
+    Hub_1->SetIdentifier(Ident);
     Hub_1->SetBodyFixed(false);
     Hub_1->SetCollide(false);
     Hub_1->SetMass(10);
@@ -191,14 +191,13 @@ void MakeANCFWheel(ChSystem& my_system,
     Hub_1->SetWvel_par(ChVector<>(-ForVelocity / (TorusRadius + TorusSmallRadius), 0, 0));
 
     // Create tire mesh
-    ChSharedPtr<ChMesh> TireMesh(new ChMesh);
+    auto TireMesh = std::make_shared<ChMesh>();
     //  Fixing constraints, initial coordinates and velocities
     double thethaTorus = 0.0;
     double phiTorus = 0.0;
     double loc_x = 0.0;
     double loc_y = 0.0;
     double loc_z = 0.0;
-
     for (int j = 0; j < N_Diameter; j++) {
         for (int i = 0; i < N_Thread; i++) {
             thethaTorus = -CH_C_PI / 2 + CH_C_PI * i / (N_Thread - 1);
@@ -216,8 +215,7 @@ void MakeANCFWheel(ChSystem& my_system,
             double vel_z = 0;
 
             // Create the node
-            ChSharedPtr<ChNodeFEAxyzD> node(
-                new ChNodeFEAxyzD(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z)));
+            auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
             node->SetMass(0);
             // Add node to mesh
             TireMesh->AddNode(node);
@@ -240,19 +238,18 @@ void MakeANCFWheel(ChSystem& my_system,
                 node3 = i + 1 + j * (numEl_Thread + 1);
             }
             // Create the element and set its nodes.
-            ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
-            element->SetNodes(TireMesh->GetNode(node2).DynamicCastTo<ChNodeFEAxyzD>(),
-                              TireMesh->GetNode(node1).DynamicCastTo<ChNodeFEAxyzD>(),
-                              TireMesh->GetNode(node3).DynamicCastTo<ChNodeFEAxyzD>(),
-                              TireMesh->GetNode(node0).DynamicCastTo<ChNodeFEAxyzD>());
+            auto element = std::make_shared<ChElementShellANCF>();
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node2)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node1)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node3)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node0)));
             // Set element dimensions
             element->SetDimensions(dx, dy);
-
             // Add a single layers with a fiber angle of 0 degrees.
             element->AddLayer(dz, 0.0 * CH_C_DEG_TO_RAD, mat);
 
             // Set other element properties
-            element->SetAlphaDamp(0.02);  // Structural damping for this element
+            element->SetAlphaDamp(0.005);  // Structural damping for this element
             element->SetGravityOn(true);  // gravitational forces
 
             // Add element to mesh
@@ -262,11 +259,11 @@ void MakeANCFWheel(ChSystem& my_system,
 
     // Add initial velocity to the nodes (for rolling)
     for (unsigned int i = 0; i < TireMesh->GetNnodes(); ++i) {
-        ChVector<> node_pos = TireMesh->GetNode(i).DynamicCastTo<ChNodeFEAxyzD>()->GetPos();
+        ChVector<> node_pos = std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(i))->GetPos();
         double tang_vel =
             ForVelocity * (node_pos.y + TorusRadius + TorusSmallRadius) / (TorusRadius + TorusSmallRadius);
         ChVector<> NodeVel(0, 0, tang_vel);
-        TireMesh->GetNode(i).DynamicCastTo<ChNodeFEAxyzD>()->SetPos_dt(NodeVel);
+        std::dynamic_pointer_cast<ChNodeXYZ>(TireMesh->GetNode(i))->SetPos_dt(NodeVel);
     }
 
     // Switch off mesh class gravity
@@ -274,13 +271,12 @@ void MakeANCFWheel(ChSystem& my_system,
 
     // Add the mesh to the system
     my_system.Add(TireMesh);
+    auto Mloadcontainer = std::make_shared<ChLoadContainer>();
 
-    ChSharedPtr<ChLoadContainer> Mloadcontainer(new ChLoadContainer);
-    // Add constant pressure using ChLoaderPressure (preferred for simple, constant pressure)
     if (addPressureAlessandro) {
         for (int NoElmPre = 0; NoElmPre < TotalNumElements; NoElmPre++) {
-            ChSharedPtr<ChLoad<ChLoaderPressure>> faceload(
-                new ChLoad<ChLoaderPressure>(TireMesh->GetElement(NoElmPre).StaticCastTo<ChElementShellANCF>()));
+            auto ElementPre = std::static_pointer_cast<ChElementShellANCF>(TireMesh->GetElement(NoElmPre));
+            auto faceload = std::make_shared<ChLoad<ChLoaderPressure > >(ElementPre);
             faceload->loader.SetPressure(-TirePressure);
             faceload->loader.SetStiff(false);
             faceload->loader.SetIntegrationPoints(2);
@@ -300,24 +296,21 @@ void MakeANCFWheel(ChSystem& my_system,
                 int indexConst = (i + j * N_Thread) % N_Thread;
                 if (indexConst == 0) {
                     // First node to be constrained (one side of the rim)
-                    ConstrainedNode =
-                        ChSharedPtr<ChNodeFEAxyzD>(TireMesh->GetNode(ConstNodeInx).DynamicCastTo<ChNodeFEAxyzD>());
-                    NodePosRim = ChSharedPtr<ChLinkPointFrame>(new ChLinkPointFrame);
+                    ConstrainedNode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(ConstNodeInx));
+                    NodePosRim = std::make_shared<ChLinkPointFrame>();
                     NodePosRim->Initialize(ConstrainedNode, Hub_1);
                     my_system.Add(NodePosRim);
-                    NodeDirRim = ChSharedPtr<ChLinkDirFrame>(new ChLinkDirFrame);
+                    NodeDirRim = std::make_shared<ChLinkDirFrame>();
                     NodeDirRim->Initialize(ConstrainedNode, Hub_1);
                     NodeDirRim->SetDirectionInAbsoluteCoords(ConstrainedNode->D);
                     my_system.Add(NodeDirRim);
 
                     // Second node to be constrained (other side of the rim)
-                    ConstrainedNode2 = ChSharedPtr<ChNodeFEAxyzD>(
-                        TireMesh->GetNode(ConstNodeInx + N_Thread - 1).DynamicCastTo<ChNodeFEAxyzD>());
-
-                    NodePosRim2 = ChSharedPtr<ChLinkPointFrame>(new ChLinkPointFrame);
+                    ConstrainedNode2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(ConstNodeInx + N_Thread - 1));
+                    NodePosRim2 = std::make_shared<ChLinkPointFrame>();
                     NodePosRim2->Initialize(ConstrainedNode2, Hub_1);
                     my_system.Add(NodePosRim2);
-                    NodeDirRim2 = ChSharedPtr<ChLinkDirFrame>(new ChLinkDirFrame);
+                    NodeDirRim2 = std::make_shared<ChLinkDirFrame>();
                     NodeDirRim2->Initialize(ConstrainedNode2, Hub_1);
                     NodeDirRim2->SetDirectionInAbsoluteCoords(ConstrainedNode2->D);
                     my_system.Add(NodeDirRim2);
@@ -325,33 +318,33 @@ void MakeANCFWheel(ChSystem& my_system,
             }
         }
     }
-    ChSharedPtr<ChLoadContainer> mloadcontainerGround(new ChLoadContainer);
+    auto mloadcontainerGround = std::make_shared<ChLoadContainer>();
     if (addGroundForces) {
         // Select on which nodes we are going to apply a load
-        std::vector<ChSharedPtr<ChLoadable>> NodeList1;
+        std::vector<std::shared_ptr<ChLoadable> > NodeList1;
         for (int iNode = 0; iNode < TotalNumNodes; iNode++) {
-            ChSharedPtr<ChNodeFEAxyzD> NodeLoad1(TireMesh->GetNode(iNode).DynamicCastTo<ChNodeFEAxyzD>());
+            auto NodeLoad1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(iNode));
             NodeList1.push_back(NodeLoad1);
         }
-        ChSharedPtr<MyLoadCustomMultiple> Mloadcustommultiple1(new MyLoadCustomMultiple(NodeList1));
+        auto Mloadcustommultiple1 = std::make_shared<MyLoadCustomMultiple>(NodeList1);
         mloadcontainerGround->Add(Mloadcustommultiple1);
 
     }  // End loop over tires
     my_system.Add(mloadcontainerGround);
 
     if (showVisual) {
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(TireMesh.get_ptr())));
+        auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(TireMesh.get()));
         mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
         mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
         mvisualizemeshC->SetSymbolsThickness(0.008);
         TireMesh->AddAsset(mvisualizemeshC);
 
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshwire(new ChVisualizationFEAmesh(*(TireMesh.get_ptr())));
+        auto mvisualizemeshwire = std::make_shared<ChVisualizationFEAmesh>(*(TireMesh.get()));
         mvisualizemeshwire->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
         mvisualizemeshwire->SetWireframe(true);
         TireMesh->AddAsset(mvisualizemeshwire);
 
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(TireMesh.get_ptr())));
+        auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(TireMesh.get()));
         mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
         mvisualizemesh->SetColorscaleMinMax(0.0, 30);
         mvisualizemesh->SetSmoothFaces(true);
@@ -378,7 +371,7 @@ int main(int argc, char* argv[]) {
     // Main loop for the definition of 4 meshes
 
     // Body 1: Ground
-    BGround = ChSharedPtr<ChBody>(new ChBody);
+    BGround = std::make_shared<ChBody>();
     my_system.AddBody(BGround);
     BGround->SetIdentifier(1);
     BGround->SetBodyFixed(true);
@@ -390,42 +383,41 @@ int main(int argc, char* argv[]) {
     BGround->SetRot(rot);
 
     // Create hubs and tire meshes for 4 wheels
-    ChSharedPtr<ChBody> Hub_1(new ChBody);
-    ChSharedPtr<ChBody> Hub_2(new ChBody);
-    ChSharedPtr<ChBody> Hub_3(new ChBody);
-    ChSharedPtr<ChBody> Hub_4(new ChBody);
+    auto Hub_1 = std::make_shared<ChBody>();
+    auto Hub_2 = std::make_shared<ChBody>();
+    auto Hub_3 = std::make_shared<ChBody>();
+    auto Hub_4 = std::make_shared<ChBody>();
 
     ChVector<> rim_center_1(-Lwx, 0, Lwz);
     ChVector<> rim_center_2(Lwx, 0, Lwz);
     ChVector<> rim_center_3(Lwx, 0, -Lwz);
     ChVector<> rim_center_4(-Lwx, 0, -Lwz);
 
-    ChSharedPtr<ChMaterialShellANCF> mat(new ChMaterialShellANCF(500, 9.0e7, 0.3));
+    auto mat = std::make_shared<ChMaterialShellANCF>(500, 9.0e7, 0.3);
 
     MakeANCFWheel(my_system, rim_center_1, mat, Hub_1, N_Diameter, N_Thread, TorusRadius, TorusSmallRadius,
-                  TirePressure, ForVelocity);
+                  TirePressure, ForVelocity, 2);
     MakeANCFWheel(my_system, rim_center_2, mat, Hub_2, N_Diameter, N_Thread, TorusRadius, TorusSmallRadius,
-                  TirePressure, ForVelocity);
+                  TirePressure, ForVelocity, 3);
     MakeANCFWheel(my_system, rim_center_3, mat, Hub_3, N_Diameter, N_Thread, TorusRadius, TorusSmallRadius,
-                  TirePressure, ForVelocity);
+                  TirePressure, ForVelocity, 4);
     MakeANCFWheel(my_system, rim_center_4, mat, Hub_4, N_Diameter, N_Thread, TorusRadius, TorusSmallRadius,
-                  TirePressure, ForVelocity);
+                  TirePressure, ForVelocity, 5);
 
-    ChSharedPtr<ChMaterialSurface> mmaterial(new ChMaterialSurface);
+    auto mmaterial = std::make_shared<ChMaterialSurface>();
     mmaterial->SetFriction(0.4f);
     mmaterial->SetCompliance(0.0000005f);
     mmaterial->SetComplianceT(0.0000005f);
     mmaterial->SetDampingF(0.2f);
 
-    // SimpChassis = ChSharedPtr<ChBody>(new ChBody);
-    ChSharedPtr<ChBodyEasyBox> SimpChassis(new ChBodyEasyBox(1.1, 0.2, 2.4,  // x,y,z size
-                                                             100,            // density
-                                                             false,          // collide enable?
-                                                             true));         // visualization?
+    SimpChassis = std::make_shared<ChBodyEasyBox>(1.1, 0.2, 2.4,  // x,y,z size
+                                                  100,            // density
+                                                  false,          // collide enable?
+                                                  true);
     my_system.AddBody(SimpChassis);
     SimpChassis->SetMaterialSurface(mmaterial);  // use shared surface properties
     // optional, attach a texture for better visualization
-    ChSharedPtr<ChTexture> mtexturebox(new ChTexture());
+    auto mtexturebox = std::make_shared<ChTexture>();
     mtexturebox->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
     SimpChassis->SetPos(ChVector<>(0, 0, 0));
     SimpChassis->SetPos_dt(ChVector<>(0, 0, ForVelocity));
@@ -433,46 +425,43 @@ int main(int argc, char* argv[]) {
     SimpChassis->SetBodyFixed(false);
 
     // Create joints between chassis and hubs
-    ChSharedPtr<ChLinkRevoluteTranslational> RevTr_1(new ChLinkRevoluteTranslational);
+    auto RevTr_1 = std::make_shared<ChLinkRevoluteTranslational>();
     my_system.AddLink(RevTr_1);
     RevTr_1->Initialize(Hub_1, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), ChVector<>(-Lwx, 0.1, Lwz),
                         ChVector<>(0, 0, 1), ChVector<>(0, 1, 0), true);
-
-    ChSharedPtr<ChLinkRevoluteTranslational> RevTr_2(new ChLinkRevoluteTranslational);
+    auto RevTr_2 = std::make_shared<ChLinkRevoluteTranslational>();
     my_system.AddLink(RevTr_2);
     RevTr_2->Initialize(Hub_2, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), ChVector<>(Lwx, 0.1, Lwz),
                         ChVector<>(0, 0, 1), ChVector<>(0, 1, 0), true);
-
-    ChSharedPtr<ChLinkRevoluteTranslational> RevTr_3(new ChLinkRevoluteTranslational);
+    auto RevTr_3 = std::make_shared<ChLinkRevoluteTranslational>();
     my_system.AddLink(RevTr_3);
     RevTr_3->Initialize(Hub_3, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), ChVector<>(Lwx, 0.1, -Lwz),
                         ChVector<>(0, 0, 1), ChVector<>(0, 1, 0), true);
-
-    ChSharedPtr<ChLinkRevoluteTranslational> RevTr_4(new ChLinkRevoluteTranslational);
+    auto RevTr_4 = std::make_shared<ChLinkRevoluteTranslational>();
     my_system.AddLink(RevTr_4);
     RevTr_4->Initialize(Hub_4, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), ChVector<>(-Lwx, 0.1, -Lwz),
                         ChVector<>(0, 0, 1), ChVector<>(0, 1, 0), true);
 
     // Spring and damper for secondary suspension: True position vectors are relative
-    ChSharedPtr<ChLinkSpring> spring1 = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+    auto spring1 = std::make_shared<ChLinkSpring>();
     spring1->Initialize(Hub_1, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(-Lwx, 0, Lwz), true);
     spring1->Set_SpringK(spring_coef);
     spring1->Set_SpringR(damping_coef);
     my_system.AddLink(spring1);
 
-    ChSharedPtr<ChLinkSpring> spring2 = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+    auto spring2 = std::make_shared<ChLinkSpring>();
     spring2->Initialize(Hub_2, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(Lwx, 0, Lwz), true);
     spring2->Set_SpringK(spring_coef);
     spring2->Set_SpringR(damping_coef);
     my_system.AddLink(spring2);
 
-    ChSharedPtr<ChLinkSpring> spring3 = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+    auto spring3 = std::make_shared<ChLinkSpring>();
     spring3->Initialize(Hub_3, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(Lwx, 0, -Lwz), true);
     spring3->Set_SpringK(spring_coef);
     spring3->Set_SpringR(damping_coef);
     my_system.AddLink(spring3);
 
-    ChSharedPtr<ChLinkSpring> spring4 = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+    auto spring4 = std::make_shared<ChLinkSpring>();
     spring4->Initialize(Hub_4, SimpChassis, true, ChVector<>(0, 0, 0), ChVector<>(-Lwx, 0, -Lwz), true);
     spring4->Set_SpringK(spring_coef);
     spring4->Set_SpringR(damping_coef);
@@ -480,22 +469,18 @@ int main(int argc, char* argv[]) {
 
     
     // Create a large cube as a floor.
+    auto mrigidBody = std::make_shared<ChBodyEasyBox>(10, 0.00001, 10, 1000,
+        false, // no collide
+        true); // visualize
 
-    ChSharedPtr<ChBodyEasyBox> mrigidBody( new ChBodyEasyBox(10,0.00001, 10, 1000,
-                                                        false, // no collide
-                                                        true)); // visualize
     my_system.Add(mrigidBody);
     mrigidBody->SetPos(ChVector<>(0, GroundLoc, 0));
     mrigidBody->SetBodyFixed(true);
     mrigidBody->GetMaterialSurface()->SetFriction(0.0);
-
-    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
+    auto mtexture = std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg").c_str());
     mrigidBody->AddAsset(mtexture);
-    
-
 
     my_system.Set_G_acc(ChVector<>(0, -9.81, 0));
-
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;  // MKL Solver option
     ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
@@ -505,10 +490,10 @@ int main(int argc, char* argv[]) {
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);
     // my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.3);  // Important for convergence
     mystepper->SetMaxiters(11);
-    mystepper->SetAbsTolerances(5e-03);
+    mystepper->SetAbsTolerances(5e-06, 5e-03);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);  //
     mystepper->SetVerbose(true);
@@ -518,7 +503,7 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 2, 1> Cd;  // Matrices for storing constraint violations
 
     // Visualization
-    /*ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
+    /*auto mobjmesh = std::make_shared<ChObjShapeFile>();
     mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
     Hub_1->AddAsset(mobjmesh);
     Hub_2->AddAsset(mobjmesh);
@@ -541,28 +526,14 @@ int main(int argc, char* argv[]) {
     application.SetStepManage(true);
     application.SetTimestep(time_step);
     application.SetTryRealtime(false);
-    double ChTime = 0.0;
 
-    const double VerForce = 0;
-    const double HorForce = 80;
-    const double tini = 0.1;
-    const double tend = 0.2;
-    const double interval = tend - tini;
+    my_system.Setup();
+    my_system.Update();
+    my_system.SetupInitial();
+
     while (application.GetDevice()->run()) {
-        /*Hub_1->Empty_forces_accumulators();
-        Hub_2->Empty_forces_accumulators();
-        // Hub_1->Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
-        if (my_system.GetChTime() >= tini && my_system.GetChTime() <= tend) {
-            Hub_1->Set_Scr_torque(ChVector<>(HorForce * (my_system.GetChTime() - tini) / interval, 0, 0));
-            Hub_2->Set_Scr_torque(ChVector<>(HorForce * (my_system.GetChTime() - tini) / interval, 0, 0));
-        } else if (my_system.GetChTime() > tend) {
-            Hub_1->Set_Scr_torque(ChVector<>(HorForce, 0, 0));
-            Hub_2->Set_Scr_torque(ChVector<>(HorForce, 0, 0));
-        }*/
-
         application.BeginScene();
         application.DrawAll();
-        // If time is larger than 0.015s, doapplicationsetstep(smallertimestep)
         application.DoStep();
         application.EndScene();
         if (!application.GetPaused()) {
@@ -583,27 +554,5 @@ int main(int argc, char* argv[]) {
     chrono::GetLog() << "Computation Time: " << duration;
     system("pause");
 
-    /*my_system.Setup();
-    my_system.Update();
-    my_system.SetupInitial();
-    for (unsigned int it = 0; it < num_steps; it++) {
-        my_system.DoStepDynamics(time_step);
-        std::cout << "Time t = " << my_system.GetChTime() << "s \n";
-        // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
-        // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
-        if (addConstRim) {
-            Cp = NodePosRim->GetC();
-            printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp.GetElement(0, 0),
-                   Cp.GetElement(1, 0), Cp.GetElement(2, 0));
-            Cd = NodeDirRim->GetC();
-            printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd.GetElement(0, 0), Cd.GetElement(1, 0));
-
-            printf("Vertical position of the rim:  %12.4e m  %12.4e m  %12.4e m  %12.4e m\n", Hub_1->coord.pos.y,
-                   Hub_2->coord.pos.y, Hub_3->coord.pos.y, Hub_4->coord.pos.y);
-        }
-    }
-    double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    chrono::GetLog() << "Computation Time: " << duration;
-    system("pause");*/
     return 0;
 }

@@ -126,18 +126,18 @@ void ODEModel::WriteData(double step, const std::string& filename) {
 class ChronoModel {
   public:
     ChronoModel();
-    ChSharedPtr<ChSystem> GetSystem() const { return m_system; }
+    std::shared_ptr<ChSystem> GetSystem() const { return m_system; }
     void Simulate(double step, int num_steps);
     const utils::Data& GetData() const { return m_data; }
     const utils::Data& GetCnstrData() const { return m_cnstr_data; }
     void WriteData(double step, const std::string& filename);
 
   private:
-    ChSharedPtr<ChSystem> m_system;
-    ChSharedPtr<ChBody> m_pend1;
-    ChSharedPtr<ChBody> m_pend2;
-    ChSharedPtr<ChLinkLockRevolute> m_revolute1;
-    ChSharedPtr<ChLinkLockRevolute> m_revolute2;
+    std::shared_ptr<ChSystem> m_system;
+    std::shared_ptr<ChBody> m_pend1;
+    std::shared_ptr<ChBody> m_pend2;
+    std::shared_ptr<ChLinkLockRevolute> m_revolute1;
+    std::shared_ptr<ChLinkLockRevolute> m_revolute2;
     utils::Data m_data;
     utils::Data m_cnstr_data;
 };
@@ -145,19 +145,19 @@ class ChronoModel {
 ChronoModel::ChronoModel() {
     // Create the Chrono physical system
     // ---------------------------------
-    m_system = ChSharedPtr<ChSystem>(new ChSystem);
+    m_system = std::make_shared<ChSystem>();
     m_system->Set_G_acc(ChVector<>(0, -g, 0));
 
     // Create the ground body
     // ----------------------
-    ChSharedPtr<ChBody> ground(new ChBody);
+    auto ground = std::make_shared<ChBody>();
     m_system->AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
 
     // Create the first pendulum body
     // ------------------------------
-    m_pend1 = ChSharedPtr<ChBody>(new ChBody);
+    m_pend1 = std::make_shared<ChBody>();
     m_system->AddBody(m_pend1);
     m_pend1->SetIdentifier(1);
     m_pend1->SetMass(m1);
@@ -166,7 +166,7 @@ ChronoModel::ChronoModel() {
 
     // Create the second pendulum body
     // -------------------------------
-    m_pend2 = ChSharedPtr<ChBody>(new ChBody);
+    m_pend2 = std::make_shared<ChBody>();
     m_system->AddBody(m_pend2);
     m_pend2->SetIdentifier(2);
     m_pend2->SetMass(m2);
@@ -175,13 +175,13 @@ ChronoModel::ChronoModel() {
 
     // Revolute joint ground-pendulum
     // ------------------------------
-    m_revolute1 = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute1 = std::make_shared<ChLinkLockRevolute>();
     m_revolute1->Initialize(ground, m_pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     m_system->AddLink(m_revolute1);
 
     // Revolute joint pendulum-pendulum
     // --------------------------------
-    m_revolute2 = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute2 = std::make_shared<ChLinkLockRevolute>();
     m_revolute2->Initialize(m_pend1, m_pend2, ChCoordsys<>(ChVector<>(l1, 0, 0), QUNIT));
     m_system->AddLink(m_revolute2);
 
@@ -244,7 +244,7 @@ bool test_EULER_IMPLICIT_LINEARIZED(double step,
 
     // Create Chrono model.
     ChronoModel model;
-    ChSharedPtr<ChSystem> system = model.GetSystem();
+    std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set integrator and modify parameters.
     system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
@@ -281,7 +281,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
 
     // Create Chrono model.
     ChronoModel model;
-    ChSharedPtr<ChSystem> system = model.GetSystem();
+    std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set solver and modify parameters.
     ////system->SetIterLCPmaxItersSpeed(200);
@@ -293,7 +293,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
 
     // Set integrator and modify parameters.
     system->SetIntegrationType(ChSystem::INT_HHT);
-    ChSharedPtr<ChTimestepperHHT> integrator = system->GetTimestepper().StaticCastTo<ChTimestepperHHT>();
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(0);
     integrator->SetMaxiters(20);
     integrator->SetAbsTolerances(1e-6);

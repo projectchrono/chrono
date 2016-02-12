@@ -44,8 +44,7 @@ ChWheeledVehicleIrrApp::ChWheeledVehicleIrrApp(ChVehicle* vehicle,
 void ChWheeledVehicleIrrApp::renderOtherStats(int left, int top) {
     char msg[100];
 
-    if (ChSharedPtr<ChShaftsDriveline2WD> driveline =
-            m_wvehicle->GetDriveline().DynamicCastTo<ChShaftsDriveline2WD>()) {
+    if (auto driveline = std::dynamic_pointer_cast<ChShaftsDriveline2WD>(m_wvehicle->GetDriveline())) {
         double torque;
         int axle = driveline->GetDrivenAxleIndexes()[0];
 
@@ -56,8 +55,7 @@ void ChWheeledVehicleIrrApp::renderOtherStats(int left, int top) {
         torque = driveline->GetWheelTorque(WheelID(axle, RIGHT));
         sprintf(msg, "Torque wheel R: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20, 120, 15);
-    } else if (ChSharedPtr<ChShaftsDriveline4WD> driveline =
-                   m_wvehicle->GetDriveline().DynamicCastTo<ChShaftsDriveline4WD>()) {
+    } else if (auto driveline = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
         double torque;
         std::vector<int> axles = driveline->GetDrivenAxleIndexes();
 

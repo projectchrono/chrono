@@ -287,7 +287,7 @@ namespace VehicleEnvironment {
 		wheelLB->getChBody()->SetRot_dt(chrono::QUNIT);
 	}
 
-	chrono::ChSharedBodyPtr VEHumvee::getChassis() {
+    chrono::ChSharedPtr<ChBody> VEHumvee::getChassis() {
 		return truss->getChBody();
 	}
 

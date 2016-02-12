@@ -24,9 +24,9 @@ class ChLoaderUVW : public ChLoader {
   public:
     typedef ChLoadableUVW type_loadable;
 
-    ChSharedPtr<ChLoadableUVW> loadable;
+    std::shared_ptr<ChLoadableUVW> loadable;
 
-    ChLoaderUVW(ChSharedPtr<ChLoadableUVW> mloadable) : loadable(mloadable){};
+    ChLoaderUVW(std::shared_ptr<ChLoadableUVW> mloadable) : loadable(mloadable){};
 
     /// Children classes must provide this function that evaluates F = F(u,v,w)
     /// This will be evaluated during ComputeQ() to perform integration over the domain.
@@ -38,9 +38,9 @@ class ChLoaderUVW : public ChLoader {
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) = 0;
 
-    void SetLoadable(ChSharedPtr<ChLoadableUVW> mloadable) { loadable = mloadable; }
-    virtual ChSharedPtr<ChLoadable> GetLoadable() { return loadable; }
-    ChSharedPtr<ChLoadableUVW> GetLoadableUVW() { return loadable; }
+    void SetLoadable(std::shared_ptr<ChLoadableUVW> mloadable) { loadable = mloadable; }
+    virtual std::shared_ptr<ChLoadable> GetLoadable() { return loadable; }
+    std::shared_ptr<ChLoadableUVW> GetLoadableUVW() { return loadable; }
 };
 
 /// Class of loaders for ChLoadableUVW objects (which support
@@ -49,7 +49,7 @@ class ChLoaderUVW : public ChLoader {
 
 class ChLoaderUVWdistributed : public ChLoaderUVW {
   public:
-    ChLoaderUVWdistributed(ChSharedPtr<ChLoadableUVW> mloadable) : ChLoaderUVW(mloadable){};
+    ChLoaderUVWdistributed(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVW(mloadable){};
 
     virtual int GetIntegrationPointsU() = 0;
     virtual int GetIntegrationPointsV() = 0;
@@ -130,7 +130,7 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
     double Pv;
     double Pw;
 
-    ChLoaderUVWatomic(ChSharedPtr<ChLoadableUVW> mloadable, const double mU, const double mV, const double mW)
+    ChLoaderUVWatomic(std::shared_ptr<ChLoadableUVW> mloadable, const double mU, const double mV, const double mW)
         : ChLoaderUVW(mloadable){};
 
     /// Computes Q = N'*F
@@ -165,7 +165,7 @@ class ChLoaderGravity : public ChLoaderUVWdistributed {
     int num_int_points;
 
   public:
-    ChLoaderGravity(ChSharedPtr<ChLoadableUVW> mloadable)
+    ChLoaderGravity(std::shared_ptr<ChLoadableUVW> mloadable)
         : ChLoaderUVWdistributed(mloadable), G_acc(0, -9.8, 0), num_int_points(1){};
 
     virtual void ComputeF(const double U,        ///< parametric coordinate in volume

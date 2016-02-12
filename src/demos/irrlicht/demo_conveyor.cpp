@@ -49,7 +49,7 @@ using namespace irr::gui;
 
 double STATIC_flow = 100;
 double STATIC_speed = 2;
-std::vector<ChSharedPtr<ChBody> > particlelist;
+std::vector<std::shared_ptr<ChBody> > particlelist;
 
 // Define a MyEventReceiver class which will be used to manage input
 // from the GUI graphical user interface
@@ -139,15 +139,15 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
         double rand_fract = ChRandom();
 
         if (rand_fract < box_fraction) {
-            ChSharedPtr<ChBodyEasySphere> mrigidBody(new ChBodyEasySphere(sphrad,  // size
-                                                                          1,       // density
-                                                                          true,    // collide enable?
-                                                                          true));  // visualization?
+            auto mrigidBody = std::make_shared<ChBodyEasySphere>(sphrad,  // size
+                                                                 1000,    // density
+                                                                 true,    // collide enable?
+                                                                 true);   // visualization?
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
             mrigidBody->GetMaterialSurface()->SetFriction(0.2f);
             mrigidBody->GetMaterialSurface()->SetRestitution(0.8f);
-            mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("bluwhite.png"))));
+            mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
 
@@ -159,19 +159,19 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
         }
 
         if ((rand_fract > box_fraction) && (rand_fract < box_fraction + cyl_fraction)) {
-            double xscale = 1.3 * (1 - 0.8 * ChRandom());  // for oddly-shaped boxes..
-            double yscale = 1.3 * (1 - 0.8 * ChRandom());
-            double zscale = 1.3 * (1 - 0.8 * ChRandom());
+            double xscale = 1.3 * (1 - 0.4 * ChRandom());  // for oddly-shaped boxes..
+            double yscale = 1.3 * (1 - 0.4 * ChRandom());
+            double zscale = 1.3 * (1 - 0.4 * ChRandom());
 
-            ChSharedPtr<ChBodyEasyBox> mrigidBody(new ChBodyEasyBox(sphrad * 2 * xscale, sphrad * 2 * yscale,
-                                                                    sphrad * 2 * zscale,
-                                                                    1,       // density
-                                                                    true,    // collide enable?
-                                                                    true));  // visualization?
+            auto mrigidBody =
+                std::make_shared<ChBodyEasyBox>(sphrad * 2 * xscale, sphrad * 2 * yscale, sphrad * 2 * zscale,
+                                                1000,   // density
+                                                true,   // collide enable?
+                                                true);  // visualization?
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
             mrigidBody->GetMaterialSurface()->SetFriction(0.4f);
-            mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("cubetexture_bluwhite.png"))));
+            mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
 
@@ -183,14 +183,14 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
         }
 
         if (rand_fract > box_fraction + cyl_fraction) {
-            ChSharedPtr<ChBodyEasyCylinder> mrigidBody(new ChBodyEasyCylinder(sphrad, sphrad * 2,  // rad, height
-                                                                              1,                   // density
-                                                                              true,                // collide enable?
-                                                                              true));              // visualization?
+            auto mrigidBody = std::make_shared<ChBodyEasyCylinder>(sphrad, sphrad * 2,  // rad, height
+                                                                   1000,                // density
+                                                                   true,                // collide enable?
+                                                                   true);               // visualization?
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
             mrigidBody->GetMaterialSurface()->SetFriction(0.2f);
-            mrigidBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("pinkwhite.png"))));
+            mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
 
@@ -239,13 +239,13 @@ int main(int argc, char* argv[]) {
 
     // Create two conveyor fences
    
-    ChSharedPtr<ChBodyEasyBox> mfence1 (new ChBodyEasyBox(2, 0.11, 0.04, 1000, true, true));
+    auto mfence1 = std::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true);
     mphysicalSystem.Add(mfence1);
     mfence1->SetPos(ChVector<>(0, 0, -0.325));
     mfence1->SetBodyFixed(true);
     mfence1->GetMaterialSurface()->SetFriction(0.1f);
     
-    ChSharedPtr<ChBodyEasyBox> mfence2 (new ChBodyEasyBox(2, 0.11, 0.04, 1000, true, true));
+    auto mfence2 = std::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true);
     mphysicalSystem.Add(mfence2);
     mfence2->SetPos(ChVector<>(0, 0,  0.325));
     mfence2->SetBodyFixed(true);
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     // Create the conveyor belt (this is a pure Chrono::Engine object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
 
-    ChSharedPtr<ChConveyor> mconveyor(new ChConveyor(2, 0.05, 0.6));
+    auto mconveyor = std::make_shared<ChConveyor>(2, 0.05, 0.6);
     mconveyor->SetBodyFixed(true);
     mconveyor->GetMaterialSurface()->SetFriction(0.35f);
     mconveyor->SetConveyorSpeed(STATIC_speed);

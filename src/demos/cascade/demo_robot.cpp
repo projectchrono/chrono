@@ -95,15 +95,15 @@ int main(int argc, char* argv[]) {
     // syntax and * or ? wldcards, etc.
     //
 
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_base;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_turret;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_bicep;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_elbow;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_forearm;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_wrist;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_hand;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_cylinder;
-    ChSharedPtr<ChBodyEasyCascade> mrigidBody_rod;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_base;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_turret;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_bicep;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_elbow;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_forearm;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_wrist;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_hand;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_cylinder;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_rod;
 
     // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_base;
         if (mydoc.GetNamedShape(shape_base, "Assem10/Assem8")) {
 
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_base, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_base, 1000, false, true));
             mrigidBody_base = mbody;
 
             my_system.Add(mrigidBody_base);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_turret;
         if (mydoc.GetNamedShape(shape_turret, "Assem10/Assem4")) {
 
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_turret, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_turret, 1000, false, true));
             mrigidBody_turret = mbody;
 
             my_system.Add(mrigidBody_turret);
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_bicep;
         if (mydoc.GetNamedShape(shape_bicep, "Assem10/Assem1")) {
 
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_bicep, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_bicep, 1000, false, true));
             mrigidBody_bicep = mbody;
 
             my_system.Add(mrigidBody_bicep);
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_elbow;
         if (mydoc.GetNamedShape(shape_elbow, "Assem10/Assem5")) {
             
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_elbow, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_elbow, 1000, false, true));
             mrigidBody_elbow = mbody;
 
             my_system.Add(mrigidBody_elbow);
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_forearm;
         if (mydoc.GetNamedShape(shape_forearm, "Assem10/Assem7")) {
 
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_forearm, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_forearm, 1000, false, true));
             mrigidBody_forearm = mbody;
 
             my_system.Add(mrigidBody_forearm);
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_wrist;
         if (mydoc.GetNamedShape(shape_wrist, "Assem10/Assem6")) {
             
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_wrist, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_wrist, 1000, false, true));
             mrigidBody_wrist = mbody;
 
             my_system.Add(mrigidBody_wrist);
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_hand;
         if (mydoc.GetNamedShape(shape_hand, "Assem10/Assem9")) {
 
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_hand, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_hand, 1000, false, true));
             mrigidBody_hand = mbody;
 
             my_system.Add(mrigidBody_hand);
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_cylinder;
         if (mydoc.GetNamedShape(shape_cylinder, "Assem10/Assem3")) {
             
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_cylinder, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_cylinder, 1000, false, true));
             mrigidBody_cylinder = mbody;
 
             my_system.Add(mrigidBody_cylinder);
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
         TopoDS_Shape shape_rod;
         if (mydoc.GetNamedShape(shape_rod, "Assem10/Assem2")) {
 
-            ChSharedPtr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_rod, 1000, false, true));
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_rod, 1000, false, true));
             mrigidBody_rod = mbody;
 
             my_system.Add(mrigidBody_rod);
@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
     // Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
     frame_marker_base_turret %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link1(new ChLinkLockRevolute);
+    std::shared_ptr<ChLinkLockRevolute> my_link1(new ChLinkLockRevolute);
     my_link1->Initialize(mrigidBody_base, mrigidBody_turret, frame_marker_base_turret.GetCoord());
     my_system.AddLink(my_link1);
 
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_turret_bicep %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link2(new ChLinkLockRevolute);
+    std::shared_ptr<ChLinkLockRevolute> my_link2(new ChLinkLockRevolute);
     my_link2->Initialize(mrigidBody_turret, mrigidBody_bicep, frame_marker_turret_bicep.GetCoord());
     my_system.AddLink(my_link2);
 
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_bicep_elbow %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link3(new ChLinkLockRevolute);
+    std::shared_ptr<ChLinkLockRevolute> my_link3(new ChLinkLockRevolute);
     my_link3->Initialize(mrigidBody_bicep, mrigidBody_elbow, frame_marker_bicep_elbow.GetCoord());
     my_system.AddLink(my_link3);
 
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_elbow_forearm %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link4(new ChLinkLockRevolute);
+    std::shared_ptr<ChLinkLockRevolute> my_link4(new ChLinkLockRevolute);
     my_link4->Initialize(mrigidBody_elbow, mrigidBody_forearm, frame_marker_elbow_forearm.GetCoord());
     my_system.AddLink(my_link4);
 
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_forearm_wrist %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link5(new ChLinkLockRevolute);
+    std::shared_ptr<ChLinkLockRevolute> my_link5(new ChLinkLockRevolute);
     my_link5->Initialize(mrigidBody_forearm, mrigidBody_wrist, frame_marker_forearm_wrist.GetCoord());
     my_system.AddLink(my_link5);
 
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_wrist_hand %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link6(new ChLinkLockRevolute);
+    std::shared_ptr<ChLinkLockRevolute> my_link6(new ChLinkLockRevolute);
     my_link6->Initialize(mrigidBody_wrist, mrigidBody_hand, frame_marker_wrist_hand.GetCoord());
     my_system.AddLink(my_link6);
 
@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_turret_cylinder %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link7(new ChLinkLockRevolute);
+    std::shared_ptr<ChLinkLockRevolute> my_link7(new ChLinkLockRevolute);
     my_link7->Initialize(mrigidBody_turret, mrigidBody_cylinder, frame_marker_turret_cylinder.GetCoord());
     my_system.AddLink(my_link7);
 
@@ -337,7 +337,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_cylinder_rod %= root_frame;
 
-    ChSharedPtr<ChLinkLockCylindrical> my_link8(new ChLinkLockCylindrical);
+    std::shared_ptr<ChLinkLockCylindrical> my_link8(new ChLinkLockCylindrical);
     my_link8->Initialize(mrigidBody_cylinder, mrigidBody_rod, frame_marker_cylinder_rod.GetCoord());
     my_system.AddLink(my_link8);
 
@@ -348,7 +348,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_rod_bicep %= root_frame;
 
-    ChSharedPtr<ChLinkLockCylindrical> my_link9(new ChLinkLockCylindrical);
+    std::shared_ptr<ChLinkLockCylindrical> my_link9(new ChLinkLockCylindrical);
     my_link9->Initialize(mrigidBody_rod, mrigidBody_bicep, frame_marker_rod_bicep.GetCoord());
     my_system.AddLink(my_link9);
 
@@ -356,8 +356,8 @@ int main(int argc, char* argv[]) {
     // absolute reference: when we will move the marker in absolute reference, the
     // hand will follow it.
 
-    ChSharedMarkerPtr my_marker_hand(new ChMarker);
-    ChSharedMarkerPtr my_marker_move(new ChMarker);
+    std::shared_ptr<ChMarker> my_marker_hand(new ChMarker);
+    std::shared_ptr<ChMarker> my_marker_move(new ChMarker);
 
     mrigidBody_hand->AddMarker(my_marker_hand);
     mrigidBody_base->AddMarker(my_marker_move);
@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
     my_marker_hand->Impose_Abs_Coord(frame_marker_wrist_hand.GetCoord());
     my_marker_move->Impose_Abs_Coord(frame_marker_move.GetCoord());
 
-    ChSharedPtr<ChLinkLockLock> my_link_teacher(new ChLinkLockLock);
+    std::shared_ptr<ChLinkLockLock> my_link_teacher(new ChLinkLockLock);
     my_link_teacher->Initialize(my_marker_hand, my_marker_move);
     my_system.AddLink(my_link_teacher);
 
@@ -378,15 +378,15 @@ int main(int argc, char* argv[]) {
     // motion for Z coordinate and four for Y coordinate, we join them with
     // ChFunction_Sequence and we repeat sequence by ChFunction_Repeat
 
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_z1 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_z1 (new ChFunction_ConstAcc);
     motlaw_z1->Set_h(-0.7);
     motlaw_z1->Set_end(1);
-    ChSharedPtr<ChFunction_Const> motlaw_z2 (new ChFunction_Const);
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_z3 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const> motlaw_z2 (new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_z3 (new ChFunction_ConstAcc);
     motlaw_z3->Set_h(0.7);
     motlaw_z3->Set_end(1);
-    ChSharedPtr<ChFunction_Const> motlaw_z4 (new ChFunction_Const);
-    ChSharedPtr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
+    std::shared_ptr<ChFunction_Const> motlaw_z4 (new ChFunction_Const);
+    std::shared_ptr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
     motlaw_z_seq->InsertFunct(motlaw_z1, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_z_seq->InsertFunct(motlaw_z3, 1, 1, true);
@@ -395,15 +395,15 @@ int main(int argc, char* argv[]) {
     motlaw_z->Set_fa(motlaw_z_seq);
     motlaw_z->Set_window_length(4);
 
-    ChSharedPtr<ChFunction_Const>    motlaw_y1 (new ChFunction_Const);
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_y2 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const>    motlaw_y1 (new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_y2 (new ChFunction_ConstAcc);
     motlaw_y2->Set_h(-0.6);
     motlaw_y2->Set_end(1);
-    ChSharedPtr<ChFunction_Const>    motlaw_y3(new ChFunction_Const);
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_y4(new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const>    motlaw_y3(new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_y4(new ChFunction_ConstAcc);
     motlaw_y4->Set_h(0.6);
     motlaw_y4->Set_end(1);
-    ChSharedPtr<ChFunction_Sequence> motlaw_y_seq(new ChFunction_Sequence);
+    std::shared_ptr<ChFunction_Sequence> motlaw_y_seq(new ChFunction_Sequence);
     motlaw_y_seq->InsertFunct(motlaw_y1, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_y_seq->InsertFunct(motlaw_y3, 1, 1, true);
@@ -418,11 +418,11 @@ int main(int argc, char* argv[]) {
     
     // Create a large cube as a floor.
 
-    ChSharedPtr<ChBodyEasyBox> mfloor( new ChBodyEasyBox(20,1,20,1000,true,true));
+    std::shared_ptr<ChBodyEasyBox> mfloor( new ChBodyEasyBox(20,1,20,1000,true,true));
     my_system.Add(mfloor);
     mfloor->SetBodyFixed(true);
 
-    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("blu.png").c_str()));
+    std::shared_ptr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("blu.png").c_str()));
     mfloor->AddAsset(mtexture);
 
 

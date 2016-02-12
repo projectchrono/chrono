@@ -15,10 +15,10 @@
 
 //#define BEAM_VERBOSE
 
-#include "ChElementBeam.h"
-#include "ChBeamSection.h"
-#include "ChNodeFEAxyzrot.h"
-#include "ChElementCorotational.h"
+#include "chrono_fea/ChElementBeam.h"
+#include "chrono_fea/ChBeamSection.h"
+#include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono_fea/ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {
@@ -35,9 +35,9 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                     public ChLoadableUVW,
                                     public ChElementCorotational {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyzrot> > nodes;
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
-    ChSharedPtr<ChBeamSectionAdvanced> section;
+    std::shared_ptr<ChBeamSectionAdvanced> section;
 
     ChMatrixDynamic<> StiffnessMatrix;  // undeformed local stiffness matrix
 
@@ -72,11 +72,11 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual int GetNcoords() { return 2 * 6; }
     virtual int GetNdofs() { return 2 * 6; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyzrot> nodeA, ChSharedPtr<ChNodeFEAxyzrot> nodeB) {
-        assert(!nodeA.IsNull());
-        assert(!nodeB.IsNull());
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
+        assert(nodeA);
+        assert(nodeB);
 
         nodes[0] = nodeA;
         nodes[1] = nodeB;
@@ -92,15 +92,15 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(ChSharedPtr<ChBeamSectionAdvanced> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section = my_material; }
     /// Get the section & material of the element
-    ChSharedPtr<ChBeamSectionAdvanced> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionAdvanced> GetSection() { return section; }
 
     /// Get the first node (beginning)
-    ChSharedPtr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
+    std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
 
     /// Get the second node (ending)
-    ChSharedPtr<ChNodeFEAxyzrot> GetNodeB() { return nodes[1]; }
+    std::shared_ptr<ChNodeFEAxyzrot> GetNodeB() { return nodes[1]; }
 
     /// Set the reference rotation of nodeA respect to the element rotation.
     void SetNodeAreferenceRot(ChQuaternion<> mrot) { q_refrotA = mrot; }
@@ -290,7 +290,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed, so the explicit result of quadrature is used.
     virtual void ComputeStiffnessMatrix() {
-        assert(!section.IsNull());
+        assert(section);
 
         double Area = section->Area;
         double E = section->E;
@@ -425,7 +425,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
 
     virtual void SetupInitial(ChSystem* system) override {
-        assert(!section.IsNull());
+        assert(section);
 
         // Compute rest length, mass:
         this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
@@ -446,7 +446,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
         assert((H.GetRows() == 12) && (H.GetColumns() == 12));
-        assert(!section.IsNull());
+        assert(section);
 
         // Corotational K stiffness:
         ChMatrixDynamic<> CK(12, 12);
@@ -689,7 +689,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
-        assert(!section.IsNull());
+        assert(section);
 
         // set up vector of nodal displacements and small rotations (in local element system)
         ChMatrixDynamic<> displ(12, 1);
@@ -915,7 +915,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                             const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) {
-        assert(!section.IsNull());
+        assert(section);
 
         double Jpolar = section->J;
 

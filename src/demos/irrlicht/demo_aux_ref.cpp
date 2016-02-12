@@ -57,20 +57,20 @@ int main(int argc, char* argv[]) {
     // Create the ground body with two visualization cylinders
     // -------------------------------------------------------
 
-    ChSharedPtr<ChBody> ground(new ChBody);
+    auto ground = std::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
     {
-        ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
+        auto cyl_1 = std::make_shared<ChCylinderShape>();
         cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, 0, 1.2);
         cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0.8);
         cyl_1->GetCylinderGeometry().rad = 0.2;
         ground->AddAsset(cyl_1);
 
-        ChSharedPtr<ChCylinderShape> cyl_2(new ChCylinderShape);
+        auto cyl_2 = std::make_shared<ChCylinderShape>();
         cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, 0, -1.2);
         cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, 0, -0.8);
         cyl_2->GetCylinderGeometry().rad = 0.2;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // Create a pendulum modeled using ChBody
     // --------------------------------------
 
-    ChSharedPtr<ChBody> pend_1(new ChBody);
+    auto pend_1 = std::make_shared<ChBody>();
     system.AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetBodyFixed(false);
@@ -91,12 +91,12 @@ int main(int argc, char* argv[]) {
     // Attach a visualization asset. Note that the cylinder is defined with
     // respect to the centroidal reference frame (which is the body reference
     // frame for a ChBody).
-    ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
+    auto cyl_1 = std::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(-1, 0, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(1, 0, 0);
     cyl_1->GetCylinderGeometry().rad = 0.2;
     pend_1->AddAsset(cyl_1);
-    ChSharedPtr<ChColorAsset> col_1(new ChColorAsset);
+    auto col_1 = std::make_shared<ChColorAsset>();
     col_1->SetColor(ChColor(0.6f, 0, 0));
     pend_1->AddAsset(col_1);
 
@@ -107,14 +107,14 @@ int main(int argc, char* argv[]) {
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
-    ChSharedPtr<ChLinkLockRevolute> rev_1 = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    auto rev_1 = std::make_shared<ChLinkLockRevolute>();
     rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     system.AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
     // --------------------------------------------
 
-    ChSharedPtr<ChBodyAuxRef> pend_2(new ChBodyAuxRef);
+    auto pend_2 = std::make_shared<ChBodyAuxRef>();
     system.Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetBodyFixed(false);
@@ -125,12 +125,12 @@ int main(int argc, char* argv[]) {
 
     // Attach a visualization asset. Note that now the cylinder is defined with
     // respect to the body reference frame.
-    ChSharedPtr<ChCylinderShape> cyl_2(new ChCylinderShape);
+    auto cyl_2 = std::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(2, 0, 0);
     cyl_2->GetCylinderGeometry().rad = 0.2;
     pend_2->AddAsset(cyl_2);
-    ChSharedPtr<ChColorAsset> col_2(new ChColorAsset);
+    auto col_2 = std::make_shared<ChColorAsset>();
     col_2->SetColor(ChColor(0, 0, 0.6f));
     pend_2->AddAsset(col_2);
 
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
-    ChSharedPtr<ChLinkLockRevolute> rev_2 = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    auto rev_2 = std::make_shared<ChLinkLockRevolute>();
     rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector<>(0, 0, -1), ChQuaternion<>(1, 0, 0, 0)));
     system.AddLink(rev_2);
 

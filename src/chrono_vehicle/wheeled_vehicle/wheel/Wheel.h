@@ -37,7 +37,7 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     Wheel(const rapidjson::Document& d);
     ~Wheel() {}
 
-    virtual void Initialize(ChSharedPtr<ChBody> spindle) override;
+    virtual void Initialize(std::shared_ptr<ChBody> spindle) override;
 
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }

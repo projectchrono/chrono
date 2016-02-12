@@ -6,7 +6,8 @@
 using namespace chrono;
 
 %}
- 
+
+
 /* Parse the header file to generate wrappers */
  %include "../chrono/core/ChFrameMoving.h"    
 

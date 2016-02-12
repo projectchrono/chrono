@@ -38,11 +38,11 @@ ChOgreBodyHandle& ChOgreBodyHandle::operator=(ChOgreBodyHandle&& other) {
     return *this;
 }
 
-chrono::ChSharedBodyPtr ChOgreBodyHandle::operator->() {
+chrono::ChSharedPtr<ChBody> ChOgreBodyHandle::operator->() {
     return m_pBody->getChBody();
 }
 
-chrono::ChSharedBodyPtr ChOgreBodyHandle::ChBody() {
+chrono::ChSharedPtr<ChBody> ChOgreBodyHandle::ChBody() {
     return m_pBody->getChBody();
 }
 

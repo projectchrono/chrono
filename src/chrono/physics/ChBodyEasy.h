@@ -37,7 +37,6 @@ namespace chrono {
 /// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
-
 class ChBodyEasySphere : public ChBody {
   public:
     /// Creates a ChBody plus adds a visualization shape and, optionally,
@@ -59,7 +58,7 @@ class ChBodyEasySphere : public ChBody {
             SetCollide(true);
         }
         if (visual_asset) {
-            ChSharedPtr<ChSphereShape> vshape(new ChSphereShape());
+            std::shared_ptr<ChSphereShape> vshape(new ChSphereShape());
             vshape->GetSphereGeometry().rad = radius;
             this->AddAsset(vshape);
         }
@@ -74,7 +73,6 @@ class ChBodyEasySphere : public ChBody {
 /// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
-
 class ChBodyEasyCylinder : public ChBody {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally,
@@ -96,7 +94,7 @@ class ChBodyEasyCylinder : public ChBody {
             SetCollide(true);
         }
         if (visual_asset) {
-            ChSharedPtr<ChCylinderShape> vshape(new ChCylinderShape());
+            auto vshape = std::make_shared<ChCylinderShape>();
             vshape->GetCylinderGeometry().p1 = ChVector<>(0, -height * 0.5, 0);
             vshape->GetCylinderGeometry().p2 = ChVector<>(0, height * 0.5, 0);
             vshape->GetCylinderGeometry().rad = radius;
@@ -113,7 +111,6 @@ class ChBodyEasyCylinder : public ChBody {
 /// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
-
 class ChBodyEasyBox : public ChBody {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally,
@@ -140,7 +137,7 @@ class ChBodyEasyBox : public ChBody {
             SetCollide(true);
         }
         if (visual_asset) {
-            ChSharedPtr<ChBoxShape> vshape(new ChBoxShape());
+            auto vshape = std::make_shared<ChBoxShape>();
             vshape->GetBoxGeometry().SetLengths(ChVector<>(Xsize, Ysize, Zsize));
             this->AddAsset(vshape);
         }
@@ -157,7 +154,6 @@ class ChBodyEasyBox : public ChBody {
 /// - mass and moment of inertia is automatically set, according to the geometry.
 /// Note that the convex hull points are automatically displaced so that the
 /// baricenter of the hull is the body reference coordsys.
-
 class ChBodyEasyConvexHull : public ChBody {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally,
@@ -168,7 +164,7 @@ class ChBodyEasyConvexHull : public ChBody {
                          double mdensity,
                          bool collide = false,
                          bool visual_asset = true) {
-        ChSharedPtr<ChTriangleMeshShape> vshape(new ChTriangleMeshShape());
+        auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
         if (visual_asset) {
@@ -217,7 +213,6 @@ class ChBodyEasyConvexHull : public ChBody {
 /// the body reference (REF) in two different positions. So the REF will remain unchanged,
 /// while the COG reference is moved to the computed barycenter of convex hull and its rotation
 /// is automatically aligned to the main inertia axes of the tensor of inertia.
-
 class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally,
@@ -228,7 +223,7 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                          double mdensity,
                          bool collide = false,
                          bool visual_asset = true) {
-        ChSharedPtr<ChTriangleMeshShape> vshape(new ChTriangleMeshShape());
+        auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
         if (visual_asset) {
@@ -282,7 +277,6 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
 /// the body reference (REF) in two different positions. So the REF will remain unchanged,
 /// while the COG reference is moved to the computed barycenter of convex hull and its rotation
 /// is automatically aligned to the main inertia axes of the tensor of inertia.
-
 class ChBodyEasyMesh : public ChBodyAuxRef {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally,
@@ -295,7 +289,7 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
                          double sphere_swept = 0.001, ///< radius of 'inflating' of mesh, leads to more robust collision detection
                          bool visual_asset = true) {
 
-        ChSharedPtr<ChTriangleMeshShape> vshape(new ChTriangleMeshShape());
+        auto vshape = std::make_shared<ChTriangleMeshShape>();
         vshape->GetMesh().LoadWavefrontMesh(filename,true, true);
         this->AddAsset(vshape); // assets are respect to REF c.sys
 
@@ -338,7 +332,6 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
 /// NOTE! mass and inertia are computed as if spheres are not intersecting! If you
 /// need a more precise mass/inertia estimation when spheres are intersecting, change
 /// mass and inertia after creation using more advanced formulas.
-
 class ChBodyEasyClusterOfSpheres : public ChBody {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally,
@@ -398,7 +391,7 @@ class ChBodyEasyClusterOfSpheres : public ChBody {
         }
         if (visual_asset) {
             for (unsigned int i = 0; i < positions.size(); ++i) {
-                ChSharedPtr<ChSphereShape> vshape(new ChSphereShape());
+                auto vshape = std::make_shared<ChSphereShape>();
                 vshape->GetSphereGeometry().rad = radii[i];
                 vshape->GetSphereGeometry().center = offset_positions[i];
                 this->AddAsset(vshape);

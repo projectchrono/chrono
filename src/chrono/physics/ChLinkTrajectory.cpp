@@ -34,10 +34,10 @@ ChLinkTrajectory::ChLinkTrajectory() {
     type = LNK_TRAJECTORY;  // initializes type
 
     // default s(t) function. User will provide better fx.
-    space_fx = ChSharedPtr<ChFunction>(new ChFunction_Ramp(0, 1.));
+    space_fx = std::make_shared<ChFunction_Ramp>(0, 1.);
 
     // default trajectory is a segment
-    trajectory_line = ChSharedPtr<ChLine>(new ChLineSegment());
+    trajectory_line = std::make_shared<ChLineSegment>();
 
     modulo_s = false;
 
@@ -60,9 +60,9 @@ void ChLinkTrajectory::Copy(ChLinkTrajectory* source) {
 
     // copy own data
 
-    space_fx = ChSharedPtr<ChFunction>(source->space_fx->new_Duplicate());  // deep copy
+    space_fx = std::shared_ptr<ChFunction>(source->space_fx->new_Duplicate());  // deep copy
 
-    trajectory_line = ChSharedPtr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
+    trajectory_line = std::shared_ptr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
 }
 
 ChLink* ChLinkTrajectory::new_Duplicate() {
@@ -72,11 +72,11 @@ ChLink* ChLinkTrajectory::new_Duplicate() {
     return (m_l);
 }
 
-void ChLinkTrajectory::Set_space_fx(ChSharedPtr<ChFunction> m_funct) {
+void ChLinkTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {
     space_fx = m_funct;
 }
 
-void ChLinkTrajectory::Set_trajectory_line(ChSharedPtr<geometry::ChLine> mline) {
+void ChLinkTrajectory::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
     trajectory_line = mline;
 }
 
@@ -129,10 +129,10 @@ void ChLinkTrajectory::UpdateTime(double time) {
 }
 
 void ChLinkTrajectory::Initialize(
-    ChSharedPtr<ChBody> mbody1,  ///< first  body to join (the one that follows the trajectory)
-    ChSharedPtr<ChBody> mbody2,  ///< second body to join (the one that contains the trajectory)
+    std::shared_ptr<ChBody> mbody1,  ///< first  body to join (the one that follows the trajectory)
+    std::shared_ptr<ChBody> mbody2,  ///< second body to join (the one that contains the trajectory)
     const ChVector<>& mpos1,     ///< position of the 'following point' on body1, relative to coordinate of body1.
-    ChSharedPtr<geometry::ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
+    std::shared_ptr<geometry::ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
     ) {
     ChLinkMarkers::Initialize(mbody1, mbody2, true, ChCoordsys<>(mpos1), ChCoordsys<>());
     this->Set_trajectory_line(mline);

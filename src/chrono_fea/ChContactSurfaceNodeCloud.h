@@ -13,89 +13,79 @@
 #ifndef CHCONTACTSURFACENODECLOUD_H
 #define CHCONTACTSURFACENODECLOUD_H
 
+#include "chrono/collision/ChCCollisionModel.h"
 #include "chrono_fea/ChContactSurface.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
-#include "collision/ChCCollisionModel.h"
-
 
 namespace chrono {
 
 namespace fea {
 
-
-
-
-/// Proxy to FEA nodes, to grant them the features 
+/// Proxy to FEA nodes, to grant them the features
 /// needed for collision detection.
-
-class ChApiFea ChContactNodeXYZ : 
-              public ChContactable_1vars<3>,
-              public ChShared {
-
+class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChContactNodeXYZ, ChShared);
+    CH_RTTI_ROOT(ChContactNodeXYZ);
 
 public:
+  ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
+      mnode = anode;
+      container = acontainer;
+  }
 
-    ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
-        mnode = anode;
-        container = acontainer;
-    }
+  //
+  // FUNCTIONS
+  //
 
-    //
-    // FUNCTIONS
-    //
+  /// Access the FEA node to whom this is is a proxy
+  ChNodeFEAxyz* GetNode() { return mnode; }
+  /// Set the FEA node to whom this is a proxy
+  void SetNode(ChNodeFEAxyz* mn) { mnode = mn; }
 
-        /// Access the FEA node to whom this is is a proxy
-    ChNodeFEAxyz* GetNode() {return mnode;} 
-        /// Set the FEA node to whom this is a proxy
-    void SetNode(ChNodeFEAxyz* mn) {mnode = mn;} 
+  /// Get the contact surface container
+  ChContactSurface* GetContactSurface() const { return container; }
+  /// Set the contact surface container
+  void GetContactSurface(ChContactSurface* mc) { container = mc; }
 
-        /// Get the contact surface container
-    ChContactSurface* GetContactSurface() const {return container;}
-        /// Set the contact surface container
-    void GetContactSurface(ChContactSurface* mc) { container = mc;}
+  //
+  // INTERFACE TO ChContactable
+  //
 
+  /// Access variables
+  virtual ChLcpVariables* GetVariables1() { return &mnode->Variables(); }
 
-    //
-    // INTERFACE TO ChContactable
-    //
+  /// Tell if the object must be considered in collision detection
+  virtual bool IsContactActive() { return true; }
 
-        /// Access variables
-    virtual ChLcpVariables* GetVariables1() {return &mnode->Variables(); }
+  /// Get the absolute speed of point abs_point if attached to the
+  /// surface. Easy in this case because there are no roations..
+  virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) { return this->mnode->pos_dt; };
 
-        /// Tell if the object must be considered in collision detection
-    virtual bool IsContactActive() { return true; }
+  /// ChCollisionModel might call this to get the position of the
+  /// contact model (when rigid) and sync it
+  virtual ChCoordsys<> GetCsysForCollisionModel() { return ChCoordsys<>(this->mnode->pos, QNULL); }
 
-        /// Get the absolute speed of point abs_point if attached to the 
-        /// surface. Easy in this case because there are no roations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) {return this->mnode->pos_dt;};
+  /// Apply the force, expressed in absolute reference, applied in pos, to the
+  /// coordinates of the variables. Force for example could come from a penalty model.
+  virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R);
 
-        /// ChCollisionModel might call this to get the position of the 
-        /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->mnode->pos, QNULL);}
+  /// Compute the jacobian(s) part(s) for this contactable item. For example,
+  /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+  virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                             ChMatrix33<>& contact_plane,
+                                             type_constraint_tuple& jacobian_tuple_N,
+                                             type_constraint_tuple& jacobian_tuple_U,
+                                             type_constraint_tuple& jacobian_tuple_V,
+                                             bool second);
 
-        /// Apply the force, expressed in absolute reference, applied in pos, to the 
-        /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                         ChVectorDynamic<>& R);
-
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second);
-
-    virtual double GetContactableMass()  {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
-        return 1;
-        //return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
+  virtual double GetContactableMass() {
+      //***TODO***!!!!!!!!!!!!!!!!!!!!
+      return 1;
+      // return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
 
     /// Return the pointer to the surface material. 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem();
@@ -107,10 +97,8 @@ private:
 };
 
 
-
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud 
 /// type of collisions.
-
 class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
 
     // Chrono simulation of RTTI, needed for serialization
@@ -132,7 +120,6 @@ private:
 /// in the FEA model are used as contact items for the collision detection.
 /// Might be an efficient option in case of dense tesselations (but misses the FEAnodes-vs-FEAfaces
 /// cases, and misses FEAedge-vs-edges)
-
 class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
 
     // Chrono simulation of RTTI, needed for serialization
@@ -145,38 +132,27 @@ class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
 
     virtual ~ChContactSurfaceNodeCloud(){};
 
-
-    // 
+    //
     // FUNCTIONS
     //
 
-        /// Add a specific node to this collision cloud
-    void AddNode(ChSharedPtr< ChNodeFEAxyz > mnode, const double point_radius = 0.001); 
+    /// Add a specific node to this collision cloud
+    void AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, const double point_radius = 0.001);
 
-        /// Add all nodes of the mesh to this collision cloud
+    /// Add all nodes of the mesh to this collision cloud
     void AddAllNodes(const double point_radius = 0.001);
 
-        /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
-    void AddFacesFromNodeSet( std::vector<ChSharedPtr<ChNodeFEAbase> >& node_set, const double point_radius = 0.001);
+    /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
+    void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set, const double point_radius = 0.001);
 
+    // Functions to interface this with ChPhysicsItem container
+    virtual void SurfaceSyncCollisionModels();
+    virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys);
+    virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys);
 
-        // Functions to interface this with ChPhysicsItem container 
-	virtual void SurfaceSyncCollisionModels(); 
-	virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys); 
-	virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys); 
-
- private:
-
-    // 
-    // DATA
-    //
-
-    std::vector<ChSharedPtr<ChContactNodeXYZsphere> > vnodes;     //  nodes
-
+  private:
+    std::vector<std::shared_ptr<ChContactNodeXYZsphere> > vnodes;  //  nodes
 };
-
-
-
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
 
     /// To be called after creation, to create all the wrapped ChShaft objects
     /// and their constraints, torques etc.
-    void Initialize(ChSharedPtr<ChBody> chassis, ChSharedPtr<ChShaft> driveshaft);
+    void Initialize(std::shared_ptr<ChBody> chassis, std::shared_ptr<ChShaft> driveshaft);
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_crankshaft->GetPos_dt(); }
@@ -120,27 +120,27 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     virtual double GetIngearShaftInertia() const = 0;
 
     /// Engine speed-torque map.
-    virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
     /// Engine speed-torque braking effect because of losses.
-    virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
 
     /// Set the capacity factor map.
     /// Specify the capacity factor as a function of the speed ratio.
-    virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
  
     /// Set the torque ratio map.
     /// Specify torque ratio as a function of the speed ratio.
-    virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) = 0;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
 
   private:
-    ChSharedPtr<ChShaftsBody> m_motorblock_to_body;
-    ChSharedPtr<ChShaft> m_motorblock;
-    ChSharedPtr<ChShaftsThermalEngine> m_engine;
-    ChSharedPtr<ChShaftsThermalEngine> m_engine_losses;
-    ChSharedPtr<ChShaft> m_crankshaft;
-    ChSharedPtr<ChShaftsTorqueConverter> m_torqueconverter;
-    ChSharedPtr<ChShaft> m_shaft_ingear;
-    ChSharedPtr<ChShaftsGearbox> m_gears;
+    std::shared_ptr<ChShaftsBody> m_motorblock_to_body;
+    std::shared_ptr<ChShaft> m_motorblock;
+    std::shared_ptr<ChShaftsThermalEngine> m_engine;
+    std::shared_ptr<ChShaftsThermalEngine> m_engine_losses;
+    std::shared_ptr<ChShaft> m_crankshaft;
+    std::shared_ptr<ChShaftsTorqueConverter> m_torqueconverter;
+    std::shared_ptr<ChShaft> m_shaft_ingear;
+    std::shared_ptr<ChShaftsGearbox> m_gears;
 
     int m_current_gear;
     std::vector<double> m_gear_ratios;

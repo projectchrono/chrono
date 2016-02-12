@@ -373,19 +373,19 @@ void RigidPendulums() {
     system.Set_G_acc(ChVector<>(0, -g, 0));
 
     // Bodies
-    ChSharedPtr<ChBody> ground(new ChBody);
+    auto ground = std::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     system.AddBody(ground);
 
-    ChSharedPtr<ChBody> pend1(new ChBody);
+    auto pend1 = std::make_shared<ChBody>();
     pend1->SetIdentifier(1);
     pend1->SetMass(m1);
     pend1->SetInertiaXX(ChVector<>(1, 1, J1));
     pend1->SetPos(ChVector<>(l1 / 2, 0, 0));
     system.AddBody(pend1);
 
-    ChSharedPtr<ChBody> pend2(new ChBody);
+    auto pend2 = std::make_shared<ChBody>();
     if (double_pend) {
         pend2->SetIdentifier(2);
         pend2->SetMass(m2);
@@ -395,11 +395,11 @@ void RigidPendulums() {
     }
 
     // Joints
-    ChSharedPtr<ChLinkLockRevolute> revolute1(new ChLinkLockRevolute);
+    auto revolute1 = std::make_shared<ChLinkLockRevolute>();
     revolute1->Initialize(ground, pend1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     system.AddLink(revolute1);
 
-    ChSharedPtr<ChLinkLockRevolute> revolute2(new ChLinkLockRevolute);
+    auto revolute2 = std::make_shared<ChLinkLockRevolute>();
     if (double_pend) {
         revolute2->Initialize(pend1, pend2, ChCoordsys<>(ChVector<>(l1, 0, 0), QUNIT));
         system.AddLink(revolute2);
@@ -417,7 +417,7 @@ void RigidPendulums() {
 
     // Set integrator and modify parameters.
     system.SetIntegrationType(ChSystem::INT_HHT);
-    ChSharedPtr<ChTimestepperHHT> integrator = system.GetTimestepper().StaticCastTo<ChTimestepperHHT>();
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system.GetTimestepper());
     integrator->SetMode(mode);
     integrator->SetVerbose(true);
     integrator->SetAlpha(-0.2);

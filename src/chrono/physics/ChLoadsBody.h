@@ -28,16 +28,16 @@ namespace chrono {
 // Or just look at these classes and learn how to implement some special type of load.
 //
 // Example: 
-//    ChSharedPtr<ChBodyEasyBox> body_test(new ChBodyEasyBox(8,4,4,1000));
+//    std::shared_ptr<ChBodyEasyBox> body_test(new ChBodyEasyBox(8,4,4,1000));
 //    mphysicalSystem.Add(body_test);
 //   
-//    ChSharedPtr<ChLoadContainer> mforcecontainer (new ChLoadContainer);
+//    std::shared_ptr<ChLoadContainer> mforcecontainer (new ChLoadContainer);
 //    mphysicalSystem.Add(mforcecontainer);
 //
-//    ChSharedPtr<ChLoadBodyForce> mforce (new ChLoadBodyForce(body_test, ChVector<>(0,80000,0), false, ChVector<>(8,0,0),true));
+//    std::shared_ptr<ChLoadBodyForce> mforce (new ChLoadBodyForce(body_test, ChVector<>(0,80000,0), false, ChVector<>(8,0,0),true));
 //    mforcecontainer->Add(mforce);
 //
-//    ChSharedPtr<ChLoadBodyTorque> mtorque (new ChLoadBodyTorque(body_test, ChVector<>(0,0,-80000*8), true));
+//    std::shared_ptr<ChLoadBodyTorque> mtorque (new ChLoadBodyTorque(body_test, ChVector<>(0,0,-80000*8), true));
 //    mforcecontainer->Add(mtorque);
 
 
@@ -54,7 +54,7 @@ private:
     bool local_force;
     bool local_application;
 public:
-    ChLoadBodyForce(ChSharedPtr<ChBody> mbody,      ///< object to apply load to
+    ChLoadBodyForce(std::shared_ptr<ChBody> mbody,      ///< object to apply load to
                     const ChVector<> mforce,        ///< force to apply
                     bool mlocal_force,              ///< force is in body local coords
                     const ChVector<> mapplication,  ///< application point for the force
@@ -73,7 +73,7 @@ public:
     virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           )  {
-        ChSharedPtr<ChBody> mbody = this->loadable.DynamicCastTo<ChBody>();
+        auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
         double detJ;  // not used btw
         
         ChVector<> abs_force;
@@ -126,39 +126,34 @@ private:
     ChVector<> torque;
     bool local_torque;
 public:
-    ChLoadBodyTorque(   ChSharedPtr<ChBody> mbody, ///< object to apply load to
-                        const ChVector<> torque,   ///< torque to apply
-                        bool mlocal_torque         ///< torque is in body local coords
-                        ) 
-        : ChLoadCustom(mbody), 
-           torque(torque),
-           local_torque (mlocal_torque)
-        {
-            
-        }
+  ChLoadBodyTorque(std::shared_ptr<ChBody> mbody,  ///< object to apply load to
+                   const ChVector<> torque,        ///< torque to apply
+                   bool mlocal_torque              ///< torque is in body local coords
+                   )
+      : ChLoadCustom(mbody), torque(torque), local_torque(mlocal_torque) {}
 
-        /// Compute Q, the generalized load. 
-        /// Called automatically at each Update().
-    virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
-                          ChStateDelta* state_w  ///< state speed to evaluate Q
-                          )  {
-        ChSharedPtr<ChBody> mbody = this->loadable.DynamicCastTo<ChBody>();
-        double detJ;  // not used btw
+  /// Compute Q, the generalized load.
+  /// Called automatically at each Update().
+  virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
+                        ChStateDelta* state_w  ///< state speed to evaluate Q
+                        ) {
+      auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
+      double detJ;  // not used btw
 
-        ChVector<> abs_torque;
-        if (this->local_torque)
-            abs_torque = mbody->TransformDirectionLocalToParent(this->torque);
-        else
-            abs_torque =this->torque;
+      ChVector<> abs_torque;
+      if (this->local_torque)
+          abs_torque = mbody->TransformDirectionLocalToParent(this->torque);
+      else
+          abs_torque = this->torque;
 
-        // ChBody assumes F={force_abs, torque_abs}
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF(3) = this->torque.x;
-        mF(4) = this->torque.y;
-        mF(5) = this->torque.z;
+      // ChBody assumes F={force_abs, torque_abs}
+      ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+      mF(3) = this->torque.x;
+      mF(4) = this->torque.y;
+      mF(5) = this->torque.z;
 
-        // Compute Q = N(u,v,w)'*F
-        mbody->ComputeNF(0,0,0, load_Q, detJ, mF, state_x, state_w);
+      // Compute Q = N(u,v,w)'*F
+      mbody->ComputeNF(0, 0, 0, load_Q, detJ, mF, state_x, state_w);
     }
 
     virtual bool IsStiff() {return false;}
@@ -184,8 +179,8 @@ private:
     ChVector<> loc_application_A;
     ChVector<> loc_application_B;
 public:
-    ChLoadBodyBushing(ChSharedPtr<ChBody> mbodyA,       ///< object A
-                      ChSharedPtr<ChBody> mbodyB,       ///< object B
+    ChLoadBodyBushing(std::shared_ptr<ChBody> mbodyA,       ///< object A
+                      std::shared_ptr<ChBody> mbodyB,       ///< object B
                       const ChVector<> abs_application, ///< create the bushing here, in abs. coordinates
                       const double mstiffness,          ///< radial stiffness
                       const double mdamping             ///< radial damping
@@ -203,8 +198,8 @@ public:
     virtual void ComputeQ(ChState*      state_x, ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           )  {
-        ChSharedPtr<ChBody> mbodyA = this->loadables[0].DynamicCastTo<ChBody>();
-        ChSharedPtr<ChBody> mbodyB = this->loadables[1].DynamicCastTo<ChBody>();
+        auto mbodyA = std::dynamic_pointer_cast<ChBody>(this->loadables[0]);
+        auto mbodyB = std::dynamic_pointer_cast<ChBody>(this->loadables[1]);
     
         ChCoordsys<> bodycoordA, bodycoordB;
         if(state_x) {

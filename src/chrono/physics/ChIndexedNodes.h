@@ -65,7 +65,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     virtual unsigned int GetNnodes() = 0;
 
     /// Access the N-th node
-    virtual ChSharedPtr<ChNodeBase> GetNode(unsigned int n) = 0;
+    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) = 0;
 
     /// Add a new node to the particle cluster, passing a
     /// vector as initial position.
@@ -88,8 +88,6 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChIndexedNodes> ChSharedIndexedNodesPtr;
 
 }  // END_OF_NAMESPACE____
 

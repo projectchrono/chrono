@@ -142,10 +142,10 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
     // of type ChMaterialSurface, trying to downcast from ChMaterialSurfaceBase.
     // If not DVI vs DVI, just bailout (ex it could be that this was a DEM vs DEM contact)
 
-    ChSharedPtr<ChMaterialSurface> mmatA( mcontact.modelA->GetContactable()->GetMaterialSurfaceBase().DynamicCastTo<ChMaterialSurface>() );
-    ChSharedPtr<ChMaterialSurface> mmatB( mcontact.modelB->GetContactable()->GetMaterialSurfaceBase().DynamicCastTo<ChMaterialSurface>() );
+    auto mmatA = std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
+    auto mmatB = std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
 
-    if (mmatA.IsNull() || mmatB.IsNull())
+    if (!mmatA || !mmatB)
         return;
 
     // Bail out if any of the two contactable objects is 

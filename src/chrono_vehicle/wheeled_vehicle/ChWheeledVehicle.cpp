@@ -55,7 +55,7 @@ void ChWheeledVehicle::Update(double time,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSharedPtr<ChBody> ChWheeledVehicle::GetWheelBody(const WheelID& wheel_id) const {
+std::shared_ptr<ChBody> ChWheeledVehicle::GetWheelBody(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
 }
 

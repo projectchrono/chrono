@@ -75,13 +75,13 @@ ChLink* ChLinkRevoluteSpherical::new_Duplicate() {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-                                         ChSharedPtr<ChBodyFrame> body2,  // second frame (spherical side)
+void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
+                                         std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
                                          const ChCoordsys<>& csys,        // joint coordinate system (in absolute frame)
                                          double distance)                 // imposed distance
 {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
@@ -98,8 +98,8 @@ void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // fir
     m_cur_dot = 0;
 }
 
-void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-                                         ChSharedPtr<ChBodyFrame> body2,  // second frame (spherical side)
+void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
+                                         std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
                                          bool local,                      // true if data given in body local frames
                                          const ChVector<>& pos1,          // point on first frame
                                          const ChVector<>& dir1,          // direction of revolute on first frame
@@ -107,8 +107,8 @@ void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // fir
                                          bool auto_distance,  // true if imposed distance equal to |pos1 - po2|
                                          double distance)     // imposed distance (used only if auto_distance = false)
 {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());

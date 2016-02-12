@@ -32,12 +32,12 @@ ChClassRegister<ChBodyAuxRef> a_registration_ChBodyAuxRef;
 // Hierarchy-handling shortcuts
 
 #define MARKpointer (*imarker)
-#define HIER_MARKER_INIT std::vector<ChSharedPtr<ChMarker> >::iterator imarker = marklist.begin();
+#define HIER_MARKER_INIT std::vector<std::shared_ptr<ChMarker> >::iterator imarker = marklist.begin();
 #define HIER_MARKER_NOSTOP (imarker != marklist.end())
 #define HIER_MARKER_NEXT imarker++;
 
 #define FORCEpointer (*iforce)
-#define HIER_FORCE_INIT std::vector<ChSharedPtr<ChForce> >::iterator iforce = forcelist.begin();
+#define HIER_FORCE_INIT std::vector<std::shared_ptr<ChForce> >::iterator iforce = forcelist.begin();
 #define HIER_FORCE_NOSTOP (iforce != forcelist.end())
 #define HIER_FORCE_NEXT iforce++;
 

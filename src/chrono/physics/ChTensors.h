@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "core/ChLinearAlgebra.h"
 
 namespace chrono {

@@ -40,7 +40,7 @@ class ChApi ChChaseCamera {
   public:
     enum State { Chase, Follow, Track, Inside };
 
-    ChChaseCamera(const ChSharedBodyPtr chassis);
+    ChChaseCamera(std::shared_ptr<ChBody> chassis);
     ~ChChaseCamera() {}
 
     void Initialize(const ChVector<>& ptOnChassis,
@@ -72,7 +72,7 @@ class ChApi ChChaseCamera {
 
     State m_state;
 
-    ChSharedBodyPtr m_chassis;
+    std::shared_ptr<ChBody> m_chassis;
     ChVector<> m_ptOnChassis;
     ChCoordsys<> m_driverCsys;
     double m_dist;

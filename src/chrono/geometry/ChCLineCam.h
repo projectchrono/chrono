@@ -55,7 +55,7 @@ class ChApi ChLineCam : public ChLine {
     //
 
     eChCamType type;  // see codes
-    ChSharedPtr<ChFunction> law;
+    std::shared_ptr<ChFunction> law;
     double phase;     // 0..2PI  phase (rotation). Def=0, neutral position
 
     double Rb;  // base radius
@@ -116,21 +116,22 @@ class ChApi ChLineCam : public ChLine {
     double Get_Rb() { return Rb; }
 
     /// Radius of contact wheel
-    void Set_Rr(double mrr) { Rr = mrr; };
+    void Set_Rr(double mrr) { Rr = mrr; }
     double Get_Rr() { return Rr; }
 
     /// The motion law, as a ChFunction.
-    void Set_motion_law(ChSharedPtr<ChFunction> mlaw) {
+    void Set_motion_law(std::shared_ptr<ChFunction> mlaw) {
         law = mlaw;
-    };
-    ChSharedPtr<ChFunction> Get_motion_law() { return law; };
+    }
+
+    std::shared_ptr<ChFunction> Get_motion_law() { return law; }
 
     /// Type of cam (see the eChCamType enum values below).
-    void Set_type(eChCamType mt) { type = mt; };
+    void Set_type(eChCamType mt) { type = mt; }
     eChCamType Get_type() { return type; }
 
     /// position of center of cam in 3d space.
-    void Set_center(Vector mc) { center = mc; };
+    void Set_center(Vector mc) { center = mc; }
     Vector Get_center() { return center; }
 
     /// If true, creates a negative cam.

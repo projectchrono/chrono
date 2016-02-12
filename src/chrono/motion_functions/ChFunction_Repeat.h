@@ -29,7 +29,6 @@
 
 #include "ChFunction_Base.h"
 #include "ChFunction_Const.h"
-#include "core/ChSmartpointers.h"
 
 namespace chrono {
 
@@ -44,14 +43,14 @@ class ChApi ChFunction_Repeat : public ChFunction {
     CH_RTTI(ChFunction_Repeat, ChFunction);
 
   private:
-    ChSharedPtr<ChFunction> fa;
+    std::shared_ptr<ChFunction> fa;
     double window_start;   // window begin position
     double window_length;  // window length
   public:
     ChFunction_Repeat() {
         window_start = 0;
         window_length = 1;
-        fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);  // default
+        fa = std::make_shared<ChFunction_Const>(); // default
     }
     ~ChFunction_Repeat(){};
     void Copy(ChFunction_Repeat* source);
@@ -62,8 +61,8 @@ class ChApi ChFunction_Repeat : public ChFunction {
     void Set_window_length(double m_v) { window_length = m_v; }
     double Get_window_length() { return window_length; }
 
-    void Set_fa(ChSharedPtr<ChFunction> m_fa) { fa = m_fa; }
-    ChSharedPtr<ChFunction> Get_fa() { return fa; }
+    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
+    std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
     double Get_y(double x);
 

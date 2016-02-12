@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the axles of the
     /// specified suspension subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,          ///< handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
                             const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
@@ -95,15 +95,15 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     virtual double GetCentralDifferentialRatio() const = 0;
 
   private:
-    ChSharedPtr<ChShaftsPlanetary> m_central_differential;
-    ChSharedPtr<ChShaft> m_front_shaft;
-    ChSharedPtr<ChShaft> m_rear_shaft;
-    ChSharedPtr<ChShaftsGearboxAngled> m_rear_conicalgear;
-    ChSharedPtr<ChShaftsPlanetary> m_rear_differential;
-    ChSharedPtr<ChShaft> m_rear_differentialbox;
-    ChSharedPtr<ChShaftsGearboxAngled> m_front_conicalgear;
-    ChSharedPtr<ChShaftsPlanetary> m_front_differential;
-    ChSharedPtr<ChShaft> m_front_differentialbox;
+    std::shared_ptr<ChShaftsPlanetary> m_central_differential;
+    std::shared_ptr<ChShaft> m_front_shaft;
+    std::shared_ptr<ChShaft> m_rear_shaft;
+    std::shared_ptr<ChShaftsGearboxAngled> m_rear_conicalgear;
+    std::shared_ptr<ChShaftsPlanetary> m_rear_differential;
+    std::shared_ptr<ChShaft> m_rear_differentialbox;
+    std::shared_ptr<ChShaftsGearboxAngled> m_front_conicalgear;
+    std::shared_ptr<ChShaftsPlanetary> m_front_differential;
+    std::shared_ptr<ChShaft> m_front_differentialbox;
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;

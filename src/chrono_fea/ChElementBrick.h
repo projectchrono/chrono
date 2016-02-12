@@ -8,7 +8,7 @@
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 // =============================================================================
-// Authors: Bryan Peterson, Antonio Recuero
+// Authors: Bryan Peterson, Antonio Recuero, Radu Serban
 // =============================================================================
 // Brick element with 8 nodes (with EAS)
 // =============================================================================
@@ -264,16 +264,16 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Get number of degrees of freedom of this element
     virtual int GetNdofs() override { return 8 * 3; }
     /// Access the n-th node of this element.
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
     /// Specify the nodes of this element.
-    void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
-                  ChSharedPtr<ChNodeFEAxyz> nodeB,
-                  ChSharedPtr<ChNodeFEAxyz> nodeC,
-                  ChSharedPtr<ChNodeFEAxyz> nodeD,
-                  ChSharedPtr<ChNodeFEAxyz> nodeE,
-                  ChSharedPtr<ChNodeFEAxyz> nodeF,
-                  ChSharedPtr<ChNodeFEAxyz> nodeG,
-                  ChSharedPtr<ChNodeFEAxyz> nodeH);
+    void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                  std::shared_ptr<ChNodeFEAxyz> nodeB,
+                  std::shared_ptr<ChNodeFEAxyz> nodeC,
+                  std::shared_ptr<ChNodeFEAxyz> nodeD,
+                  std::shared_ptr<ChNodeFEAxyz> nodeE,
+                  std::shared_ptr<ChNodeFEAxyz> nodeF,
+                  std::shared_ptr<ChNodeFEAxyz> nodeG,
+                  std::shared_ptr<ChNodeFEAxyz> nodeH);
     /// Set the element number
     void SetElemNum(int kb) { m_elementnumber = kb; }
     /// Set EAS internal parameters (stored values)
@@ -290,21 +290,21 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Get initial position of the element in matrix form
     const ChMatrixNM<double, 8, 3>& GetInitialPos() const { return m_d0; }
 
-    ChSharedPtr<ChNodeFEAxyz> GetNodeA() const { return m_nodes[0]; }
-    ChSharedPtr<ChNodeFEAxyz> GetNodeB() const { return m_nodes[1]; }
-    ChSharedPtr<ChNodeFEAxyz> GetNodeC() const { return m_nodes[2]; }
-    ChSharedPtr<ChNodeFEAxyz> GetNodeD() const { return m_nodes[3]; }
-    ChSharedPtr<ChNodeFEAxyz> GetNodeE() const { return m_nodes[4]; }
-    ChSharedPtr<ChNodeFEAxyz> GetNodeF() const { return m_nodes[5]; }
-    ChSharedPtr<ChNodeFEAxyz> GetNodeG() const { return m_nodes[6]; }
-    ChSharedPtr<ChNodeFEAxyz> GetNodeH() const { return m_nodes[7]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeA() const { return m_nodes[0]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeB() const { return m_nodes[1]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeC() const { return m_nodes[2]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeD() const { return m_nodes[3]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeE() const { return m_nodes[4]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeF() const { return m_nodes[5]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeG() const { return m_nodes[6]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeH() const { return m_nodes[7]; }
 
     double GetLengthX() const { return m_InertFlexVec(0); }
     double GetLengthY() const { return m_InertFlexVec(1); }
     double GetLengthZ() const { return m_InertFlexVec(2); }
 
-    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { m_Material = my_material; }
-    ChSharedPtr<ChContinuumElastic> GetMaterial() const { return m_Material; }
+    void SetMaterial(std::shared_ptr<ChContinuumElastic> my_material) { m_Material = my_material; }
+    std::shared_ptr<ChContinuumElastic> GetMaterial() const { return m_Material; }
     /// Turn gravity on/off.
     void SetGravityOn(bool val) { m_gravity_on = val; }
     /// Set whether material is Mooney-Rivlin (Otherwise linear elastic isotropic)
@@ -439,10 +439,10 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     enum JacobianType { ANALYTICAL, NUMERICAL };
 
     // Private Data
-    std::vector<ChSharedPtr<ChNodeFEAxyz> > m_nodes;  ///< Element nodes
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > m_nodes;  ///< Element nodes
 
     double m_thickness;
-    ChSharedPtr<ChContinuumElastic> m_Material;  ///< Elastic Material
+    std::shared_ptr<ChContinuumElastic> m_Material;  ///< Elastic Material
 
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< Stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< Mass matrix

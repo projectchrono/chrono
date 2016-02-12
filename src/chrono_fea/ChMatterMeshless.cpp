@@ -13,11 +13,11 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "ChMatterMeshless.h"
-#include "ChProximityContainerMeshless.h"
-#include "physics/ChSystem.h"
-#include "collision/ChCModelBullet.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono_fea/ChMatterMeshless.h"
+#include "chrono_fea/ChProximityContainerMeshless.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 namespace fea {
@@ -142,13 +142,11 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point, 
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-ChSharedPtr<ChMaterialSurfaceBase>& ChNodeMeshless::GetMaterialSurfaceBase()
-{
+std::shared_ptr<ChMaterialSurfaceBase>& ChNodeMeshless::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
-ChPhysicsItem* ChNodeMeshless::GetPhysicsItem()
-{
+ChPhysicsItem* ChNodeMeshless::GetPhysicsItem() {
     return container;
 }
 
@@ -161,7 +159,7 @@ ChMatterMeshless::ChMatterMeshless() {
     this->do_collide = false;
 
     // By default, make a VonMises material
-    ChSharedPtr<ChContinuumPlasticVonMises> defaultmaterial(new ChContinuumPlasticVonMises);
+    std::shared_ptr<ChContinuumPlasticVonMises> defaultmaterial(new ChContinuumPlasticVonMises);
     this->material = defaultmaterial;
 
     this->viscosity = 0.0;
@@ -169,7 +167,7 @@ ChMatterMeshless::ChMatterMeshless() {
     this->nodes.clear();
 
     // default DVI material
-    matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+    matsurface = std::make_shared<ChMaterialSurface>();
 
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
@@ -190,7 +188,7 @@ void ChMatterMeshless::Copy(ChMatterMeshless* source) {
     ResizeNnodes(source->GetNnodes());
 }
 
-void ChMatterMeshless::ReplaceMaterial(ChSharedPtr<ChContinuumElastoplastic> newmaterial) {
+void ChMatterMeshless::ReplaceMaterial(std::shared_ptr<ChContinuumElastoplastic> newmaterial) {
     this->material = newmaterial;
 }
 
@@ -209,7 +207,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
     this->nodes.resize(newsize);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        this->nodes[j] = ChSharedPtr<ChNodeMeshless>(new ChNodeMeshless);
+        this->nodes[j] = std::make_shared<ChNodeMeshless>();
 
         this->nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
 
@@ -221,7 +219,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
 }
 
 void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
-    ChSharedPtr<ChNodeMeshless> newp(new ChNodeMeshless);
+    auto newp = std::make_shared<ChNodeMeshless>();
 
     newp->SetPos(initial_state);
     newp->SetPosReference(initial_state);
@@ -277,8 +275,8 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
 
     for (unsigned int ip = 0; ip < this->GetNnodes(); ip++) {
         // downcasting
-        ChSharedPtr<ChNodeMeshless> mnode(this->nodes[ip]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeMeshless> mnode(this->nodes[ip]);
+        assert(mnode);
 
         mnode->SetKernelRadius(kernelrad);
         mnode->SetCollisionRadius(spacing * 0.1);
@@ -339,10 +337,10 @@ void ChMatterMeshless::IntLoadResidual_F(
     // First, find if any ChProximityContainerMeshless object is present
     // in the system,
 
-    ChSharedPtr<ChProximityContainerMeshless> edges;
-    std::vector<ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+    std::shared_ptr<ChProximityContainerMeshless> edges;
+    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerMeshless>())
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics))
             break;
         iterotherphysics++;
     }
@@ -366,8 +364,8 @@ void ChMatterMeshless::IntLoadResidual_F(
     // 3- Per-node inversion of A and computation of strain stress
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChSharedPtr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density > 0)
@@ -440,8 +438,8 @@ void ChMatterMeshless::IntLoadResidual_F(
         ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
         ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
 
-        ChSharedPtr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
+        assert(mnode);
 
         R.PasteSumVector(TotForce * c, off + 3 * j, 0);
     }
@@ -500,10 +498,10 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
     // First, find if any ChProximityContainerMeshless object is present
     // in the system,
 
-    ChSharedPtr<ChProximityContainerMeshless> edges;
-    std::vector<ChSharedPtr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
+    std::shared_ptr<ChProximityContainerMeshless> edges;
+    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = (*iterotherphysics).DynamicCastTo<ChProximityContainerMeshless>())
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics))
             break;
         iterotherphysics++;
     }
@@ -527,8 +525,8 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
     // 3- Per-node inversion of A and computation of strain stress
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChSharedPtr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
+        assert(mnode);
 
         // node volume is v=mass/density
         if (mnode->density > 0)
@@ -601,8 +599,8 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
         ChVector<> Gforce = GetSystem()->Get_G_acc() * this->nodes[j]->GetMass();
         ChVector<> TotForce = this->nodes[j]->UserForce + Gforce;
 
-        ChSharedPtr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
+        assert(mnode);
 
         mnode->variables.Get_fb().PasteSumVector(TotForce * factor, 0, 0);
     }
@@ -641,8 +639,8 @@ void ChMatterMeshless::VariablesQbIncrementPosition(double dt_step) {
     //	return;
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        ChSharedPtr<ChNodeMeshless> mnode(this->nodes[j]);
-        assert(!mnode.IsNull());
+        std::shared_ptr<ChNodeMeshless> mnode(this->nodes[j]);
+        assert(mnode);
 
         // Integrate plastic flow
         ChStrainTensor<> strainplasticflow;
@@ -763,7 +761,7 @@ void ChMatterMeshless::StreamOUT(ChStreamOutBinary& mstream) {
     ChIndexedNodes::StreamOUT(mstream);
 
     // stream out all member data
-    mstream.AbstractWrite(this->material.get_ptr());
+    mstream.AbstractWrite(this->material.get());
     */
 
     //***TO DO*** stream nodes
@@ -780,7 +778,7 @@ void ChMatterMeshless::StreamIN(ChStreamInBinary& mstream) {
     // stream in all member data
     ChContinuumElastoplastic* mmat;
     mstream.AbstractReadCreate(&mmat);
-    this->material = ChSharedPtr<ChContinuumElastoplastic>(mmat);
+    this->material = std::shared_ptr<ChContinuumElastoplastic>(mmat);
     */
 
     //***TO DO*** unstream nodes

@@ -19,7 +19,6 @@
 #ifndef CH_DRIVELINE_H
 #define CH_DRIVELINE_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChShaft.h"
 
@@ -40,7 +39,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a driveline subsystem.
-class CH_VEHICLE_API ChDriveline : public ChShared {
+class CH_VEHICLE_API ChDriveline {
   public:
     ChDriveline();
     virtual ~ChDriveline() {}
@@ -51,7 +50,7 @@ class CH_VEHICLE_API ChDriveline : public ChShared {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the axles of the
     /// specified suspension subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,          ///< handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
                             const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) = 0;
@@ -59,7 +58,7 @@ class CH_VEHICLE_API ChDriveline : public ChShared {
     /// Get a handle to the driveshaft.
     /// Return a shared pointer to the shaft that connects this driveline to a
     /// powertrain system (i.e., right after the transmission box).
-    ChSharedPtr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
+    std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
 
     /// Get the angular speed of the driveshaft.
     /// This represents the output from the driveline subsystem that is passed to
@@ -80,7 +79,7 @@ class CH_VEHICLE_API ChDriveline : public ChShared {
     virtual double GetWheelTorque(const WheelID& wheel_id) const = 0;
 
   protected:
-    ChSharedPtr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
+    std::shared_ptr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
 
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };
