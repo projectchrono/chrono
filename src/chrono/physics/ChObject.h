@@ -94,9 +94,6 @@ class ChApi ChObj {
     /// Sets the numerical identifier of the object.
     void SetIdentifier(int id) { identifier = id; }
 
-    /// Given a fast list of ChObj, returns the address of the first matching the ID.
-    ChObj* GetAddrFromID(ChObj** ChList, int myID);
-
     /// Gets the simulation time of this object
     double GetChTime() const { return ChTime; }
     /// Sets the simulation time of this object.
