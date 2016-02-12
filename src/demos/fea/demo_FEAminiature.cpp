@@ -92,12 +92,11 @@ int main(int argc, char* argv[]) {
     my_system.AddBody(body_truss);
 
     /*
-                // Attach a 'box' shape asset for visualization.
-    ChSharedPtr<ChBoxShape> mboxtruss(new ChBoxShape);
+    // Attach a 'box' shape asset for visualization.
+    auto mboxtruss = std::make_shared<ChBoxShape>();
     mboxtruss->GetBoxGeometry().Pos  = ChVector<>(-0.01, 0,0);
     mboxtruss->GetBoxGeometry().SetLengths( ChVector<>(0.02, 0.2, 0.1) );
     body_truss->AddAsset(mboxtruss);
-
     */
 
     // Create a FEM mesh, that is a container for groups
