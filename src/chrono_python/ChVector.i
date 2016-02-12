@@ -5,7 +5,8 @@
 #include "core/ChVector.h"
 
 %}
- 
+
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/core/ChVector.h"  
 

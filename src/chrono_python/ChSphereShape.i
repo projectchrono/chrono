@@ -7,9 +7,6 @@ using namespace chrono;
 
 %}
 
-// Enable shared pointer 
-%shared_ptr(chrono::ChSphereShape)
-
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChSphereShape.h"    
 

@@ -39,7 +39,7 @@
 %inline %{
   std::shared_ptr<__CHTYPE__> CastTo ## __CHTYPE__ ## Shared (std::shared_ptr<__CHTYPE_BASE__> in_obj) 
   {
-	  return (dynamic_pointer_cast<__CHTYPE__>(in_obj));
+	  return (std::dynamic_pointer_cast<__CHTYPE__>(in_obj));
   }
 %}
 %enddef

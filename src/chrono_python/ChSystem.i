@@ -107,7 +107,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  std::shared_ptr<ChBody> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<chrono::ChBody> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -119,7 +119,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  std::shared_ptr<ChLink> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<chrono::ChLink> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -131,7 +131,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  std::shared_ptr<ChPhysicsItem> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<chrono::ChPhysicsItem> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -143,7 +143,7 @@ class ChCustomComputeCollisionCallbackP
 			++mynext;
 			return mynext;
 	  }
-	  std::shared_ptr<ChPhysicsItem> Ref()   // note the chrono:: namespace
+	  std::shared_ptr<chrono::ChPhysicsItem> Ref()   // note the chrono:: namespace
 	  {
 			return $self->operator*();
 	  }
@@ -219,13 +219,8 @@ class ChCustomComputeCollisionCallbackP
 %ignore chrono::ChSystem::SetCustomComputeCollisionCallback();
 
 
-
-// Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApi 
-
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChSystem.h" 
-
 
 
 //

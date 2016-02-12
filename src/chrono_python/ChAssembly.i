@@ -1,14 +1,13 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "assets/ChObjShapeFile.h"
+#include "physics/ChAssembly.h"
 
 using namespace chrono;
 
 %}
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/assets/ChObjShapeFile.h"    
-
+%include "../chrono/physics/ChAssembly.h"    
 
 

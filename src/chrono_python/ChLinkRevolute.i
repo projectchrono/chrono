@@ -9,13 +9,6 @@
 //%import "ChLink.i"
 
 
-
-// Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApi 
-
-// Define also the shared pointer 
-%shared_ptr(chrono::ChLinkRevolute)
-
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChLinkRevolute.h"  
 

@@ -7,14 +7,12 @@
  
 
 // Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApi 
+//#define ChApi 
 
 // Forward ref
 %import "ChMaterialSurface.i"
 %import "ChCollisionModel.i"
 
-// Enable shared pointer
-%shared_ptr(chrono::ChParticlesClones)
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/physics/ChParticlesClones.h"  
