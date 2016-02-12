@@ -18,7 +18,7 @@ SET(FEA_DEMOS_IRR
     demo_FEAcables
     demo_FEAancfShell
     demo_FEAbrick
-	demo_FEAcosimulate_load
+    demo_FEAcosimulate_load
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
@@ -31,13 +31,14 @@ SET(FEA_DEMOS_IRR_MATLAB
 # List all FEA demos that use both Irrlicht and MKL
 SET(FEA_DEMOS_IRR_MKL
     demo_FEAbeams
-	demo_FEAbeamsconstr
+    demo_FEAbeamsconstr
     demo_FEAcablesMKL
     demo_ToroidalTire
-	demo_FEAabaqus_wheel
-	demo_FEAabaqus_wheel4
-demo_4ToroidalTires
-demo_4HumveeTires
+    demo_FEAabaqus_wheel
+    demo_FEAabaqus_wheel4
+    demo_4ToroidalTires
+    demo_4HumveeTires
+    demo_FEA_HMMWVLuGre
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL

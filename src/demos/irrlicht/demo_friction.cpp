@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     double density = 1000;
 
     // Create a texture asset. It can be shared between bodies.
-    ChSharedPtr<ChTexture> textureasset(new ChTexture(GetChronoDataFile("bluwhite.png")));
+    auto textureasset = std::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png"));
 
     // Create some spheres that roll horizontally,
     // with increasing rolling friction values
@@ -76,10 +76,10 @@ int main(int argc, char* argv[]) {
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
 
-        ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(mradius,  // radius size
-                                                                       1000,     // density
-                                                                       true,     // collide enable?
-                                                                       true));   // visualization?
+        auto msphereBody = std::make_shared<ChBodyEasySphere>(mradius,           // radius size
+                                                              1000,              // density
+                                                              true,              // collide enable?
+                                                              true);             // visualization?
         // Set some properties
         msphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
         msphereBody->GetMaterialSurface()->SetFriction(0.4f);
@@ -99,10 +99,10 @@ int main(int argc, char* argv[]) {
     // Create some spheres that spin on place, for a 'drilling friction' case,
     // with increasing spinning friction values
     for (int bi = 0; bi < 10; bi++) {
-        ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(mradius,  // radius size
-                                                                       1000,     // density
-                                                                       true,     // collide enable?
-                                                                       true));   // visualization?
+        auto msphereBody = std::make_shared<ChBodyEasySphere>(mradius,           // radius size
+            1000,              // density
+            true,              // collide enable?
+            true);             // visualization?
         // Set some properties
         msphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
         msphereBody->GetMaterialSurface()->SetFriction(0.4f);
@@ -130,10 +130,10 @@ int main(int argc, char* argv[]) {
 
     // floor:
 
-    ChSharedPtr<ChBodyEasyBox> mfloorBody(new ChBodyEasyBox(20, 1, 20,  // x,y,z size
-                                                            2000,       // density
-                                                            true,       // collide enable?
-                                                            true));     // visualization?
+    auto mfloorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20,  // x,y,z size
+                                                      2000,       // density
+                                                      true,       // collide enable?
+                                                      true);      // visualization?
     mfloorBody->SetPos(ChVector<>(0, -1, 0));
     mfloorBody->SetBodyFixed(true);
     mfloorBody->GetMaterialSurface()->SetRollingFriction(
@@ -141,46 +141,46 @@ int main(int argc, char* argv[]) {
     mfloorBody->GetMaterialSurface()->SetSpinningFriction(
         1);  // the min. of the two coeff. of the two contact surfaces will be used
 
-    mfloorBody->AddAsset(ChSharedPtr<ChTexture>(new ChTexture(GetChronoDataFile("blu.png"))));
+    mfloorBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
 
     mphysicalSystem.Add(mfloorBody);
 
     // four walls:
 
-    ChSharedPtr<ChBodyEasyBox> mwallBody1(new ChBodyEasyBox(1, 2, 20.99,  // x,y,z size
-                                                            2000,         // density
-                                                            true,         // collide enable?
-                                                            true));       // visualization?
+    auto mwallBody1 = std::make_shared<ChBodyEasyBox>(1, 2, 20.99,  // x,y,z size
+        2000,         // density
+        true,         // collide enable?
+        true);       // visualization?
     mwallBody1->SetPos(ChVector<>(-10, 0, 0));
     mwallBody1->SetBodyFixed(true);
-    mwallBody1->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
+    mwallBody1->AddAsset(std::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
     mphysicalSystem.Add(mwallBody1);
 
-    ChSharedPtr<ChBodyEasyBox> mwallBody2(new ChBodyEasyBox(1, 2, 20.99,  // x,y,z size
-                                                            2000,         // density
-                                                            true,         // collide enable?
-                                                            true));       // visualization?
+    auto mwallBody2 = std::make_shared<ChBodyEasyBox>(1, 2, 20.99,  // x,y,z size
+        2000,         // density
+        true,         // collide enable?
+        true);       // visualization?
     mwallBody2->SetPos(ChVector<>(10, 0, 0));
     mwallBody2->SetBodyFixed(true);
-    mwallBody2->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
+    mwallBody2->AddAsset(std::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
     mphysicalSystem.Add(mwallBody2);
 
-    ChSharedPtr<ChBodyEasyBox> mwallBody3(new ChBodyEasyBox(20.99, 2, 1,  // x,y,z size
-                                                            2000,         // density
-                                                            true,         // collide enable?
-                                                            true));       // visualization?
+    auto mwallBody3 = std::make_shared<ChBodyEasyBox>(20.99, 2, 1,  // x,y,z size
+        2000,         // density
+        true,         // collide enable?
+        true);       // visualization?
     mwallBody3->SetPos(ChVector<>(0, 0, -10));
     mwallBody3->SetBodyFixed(true);
-    mwallBody3->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
+    mwallBody3->AddAsset(std::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
     mphysicalSystem.Add(mwallBody3);
 
-    ChSharedPtr<ChBodyEasyBox> mwallBody4(new ChBodyEasyBox(20.99, 2, 1,  // x,y,z size
-                                                            2000,         // density
-                                                            true,         // collide enable?
-                                                            true));       // visualization?
+    auto mwallBody4 = std::make_shared<ChBodyEasyBox>(20.99, 2, 1,  // x,y,z size
+        2000,         // density
+        true,         // collide enable?
+        true);       // visualization?
     mwallBody4->SetPos(ChVector<>(0, 0, 10));
     mwallBody4->SetBodyFixed(true);
-    mwallBody4->AddAsset(ChSharedPtr<ChColorAsset>(new ChColorAsset(0.6f, 0.3f, 0.0f)));
+    mwallBody4->AddAsset(std::make_shared<ChColorAsset>(0.6f, 0.3f, 0.0f));
     mphysicalSystem.Add(mwallBody4);
 
 

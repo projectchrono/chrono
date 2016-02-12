@@ -118,9 +118,9 @@ class ParticleGenerator {
             this->simTime_lastPcreated = msys->GetChTime();
 
             // generate some dirt in the bin
-            ChSharedPtr<ChTexture> cubeMap(new ChTexture());
+            auto cubeMap = std::make_shared<ChTexture>();
             cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
-            ChSharedPtr<ChTexture> rockMap(new ChTexture());
+            auto rockMap = std::make_shared<ChTexture>();
             rockMap->SetTextureFilename(GetChronoDataFile("rock.jpg"));
 
             // I should really check these
@@ -143,7 +143,7 @@ class ParticleGenerator {
                 ChVector<> currPos = ChVector<>(-0.5 * bedWidth + ChRandom() * bedWidth,
                                                 stackHeight + 2 * pSize * ((double)bi / (20.0 * ChRandom() + 50.0)),
                                                 -0.5 * bedLength + ChRandom() * bedLength);
-                auto currRigidBody = ChSharedPtr<ChBodyEasySphere>(new ChBodyEasySphere(sphrad, this->sphDens, true, true));
+                auto currRigidBody = std::make_shared<ChBodyEasySphere>(sphrad, this->sphDens, true, true);
                 currRigidBody->SetPos(currPos);
                 currRigidBody->GetMaterialSurface()->SetFriction(this->mu);
                 currRigidBody->SetRot(randrot);
@@ -175,8 +175,7 @@ class ParticleGenerator {
                 ChQuaternion<> randrot(ChRandom(), ChRandom(), ChRandom(), ChRandom());
                 randrot.Normalize();
                 // create the body object
-                auto currRigidBody = ChSharedPtr<ChBodyEasyBox>(
-                    new ChBodyEasyBox(pSize * xscale, pSize * yscale, pSize * zscale, this->boxDens, true, true));
+                auto currRigidBody = std::make_shared<ChBodyEasyBox>(pSize * xscale, pSize * yscale, pSize * zscale, this->boxDens, true, true);
                 currRigidBody->SetPos(currPos);
                 currRigidBody->SetRot(randrot);
                 currRigidBody->GetMaterialSurface()->SetFriction(0.5);
@@ -249,7 +248,7 @@ class ParticleGenerator {
 
 class SoilbinWheel {
   public:
-    ChSharedPtr<ChBody> wheel;
+    std::shared_ptr<ChBody> wheel;
 
     // Use convex decomposition for collision detection with the Trelleborg tire
     SoilbinWheel(ChSystem* system, ChVector<> mposition, double mass, ChVector<>& inertia) {
@@ -257,7 +256,7 @@ class SoilbinWheel {
         ChCollisionModel::SetDefaultSuggestedMargin(0.004);
 
         // Create the wheel body
-        wheel = ChSharedPtr<ChBody>(new ChBody);
+        wheel = std::make_shared<ChBody>();
         wheel->SetPos(mposition);
         wheel->SetMass(mass);
         wheel->SetInertiaXX(inertia);
@@ -267,7 +266,7 @@ class SoilbinWheel {
         // Visualization mesh
         ChTriangleMeshConnected tireMesh;
         tireMesh.LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"), true, true);
-        ChSharedPtr<ChTriangleMeshShape> tireMesh_asset(new ChTriangleMeshShape());
+        auto tireMesh_asset = std::make_shared<ChTriangleMeshShape>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddAsset(tireMesh_asset);
 
@@ -301,16 +300,16 @@ class SoilbinWheel {
 class TestMech {
   public:
     // data
-    ChSharedPtr<ChBodyEasyBox> truss;       // spindle truss
-    ChSharedPtr<ChBodyEasyBox> suspweight;  // suspended weight
-    ChSharedPtr<ChBodyEasyBox> floor;
-    ChSharedPtr<ChBodyEasyBox> wall1;
-    ChSharedPtr<ChBodyEasyBox> wall2;
-    ChSharedPtr<ChBodyEasyBox> wall3;
-    ChSharedPtr<ChBodyEasyBox> wall4;
-    ChSharedPtr<ChLinkSpring> spring;
-    ChSharedPtr<ChLinkEngine> torqueDriver;
-    ChSharedPtr<ChLinkLockRevolute> spindle;
+    std::shared_ptr<ChBodyEasyBox> truss;       // spindle truss
+    std::shared_ptr<ChBodyEasyBox> suspweight;  // suspended weight
+    std::shared_ptr<ChBodyEasyBox> floor;
+    std::shared_ptr<ChBodyEasyBox> wall1;
+    std::shared_ptr<ChBodyEasyBox> wall2;
+    std::shared_ptr<ChBodyEasyBox> wall3;
+    std::shared_ptr<ChBodyEasyBox> wall4;
+    std::shared_ptr<ChLinkSpring> spring;
+    std::shared_ptr<ChLinkEngine> torqueDriver;
+    std::shared_ptr<ChLinkLockRevolute> spindle;
 
     // GUI-tweaked data
     bool isTorqueApplied;
@@ -318,7 +317,7 @@ class TestMech {
 
     // functions
     TestMech(ChSystem* system,
-             ChSharedPtr<ChBody> wheelBody,
+             std::shared_ptr<ChBody> wheelBody,
              double binWidth = 1.0,
              double binLength = 2.0,
              double weightMass = 100.0,
@@ -338,11 +337,10 @@ class TestMech {
         double wallWidth = std::min<double>(binWidth, binLength) / 10.0;  // wall width = 1/10 of min of bin dims
 
         // create the floor
-        ChSharedPtr<ChTexture> cubeMap(new ChTexture());
+        auto cubeMap = std::make_shared<ChTexture>();
         cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
 
-        floor = ChSharedPtr<ChBodyEasyBox>(
-            new ChBodyEasyBox(binWidth + wallWidth / 2.0, wallWidth, binLength + wallWidth / 2.0, 1.0, true, true));
+        floor = std::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, wallWidth, binLength + wallWidth / 2.0, 1.0, true, true);
         floor->SetPos(ChVector<>(0, -0.5 - wallWidth / 2.0, 0));
         floor->SetBodyFixed(true);
         floor->GetMaterialSurface()->SetFriction(0.5);
@@ -350,25 +348,23 @@ class TestMech {
         system->AddBody(floor);
 
         // add some transparent walls to the soilBin, w.r.t. width, length of bin
-        wall1 = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(wallWidth, binHeight, binLength, 1.0, true, true));
+        wall1 = std::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, true, true);
         wall1->SetPos(ChVector<>(-binWidth / 2.0 - wallWidth / 2.0, 0, 0));
         wall1->SetBodyFixed(true);
         system->AddBody(wall1);
 
-        wall2 = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(wallWidth, binHeight, binLength, 1.0, true, false));
+        wall2 = std::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, true, false);
         wall2->SetPos(ChVector<>(binWidth / 2.0 + wallWidth / 2.0, 0, 0));
         wall2->SetBodyFixed(true);
         system->AddBody(wall2);
 
-        wall3 = ChSharedPtr<ChBodyEasyBox>(
-            new ChBodyEasyBox(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true, false));
+        wall3 = std::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true, false);
         wall3->SetPos(ChVector<>(0, 0, -binLength / 2.0 - wallWidth / 2.0));
         wall3->SetBodyFixed(true);
         system->AddBody(wall3);
 
         // wall 4
-        wall4 = ChSharedPtr<ChBodyEasyBox>(
-            new ChBodyEasyBox(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true, true));
+        wall4 = std::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true, true);
         wall4->SetPos(ChVector<>(0, 0, binLength / 2.0 + wallWidth / 2.0));
         wall4->SetBodyFixed(true);
         system->AddBody(wall4);
@@ -377,23 +373,23 @@ class TestMech {
         // make a truss, connect it to the wheel via revolute joint
         // single rotational DOF will be driven with a user-input for torque
         // *****
-        ChSharedPtr<ChTexture> bluMap(new ChTexture());
+        auto bluMap = std::make_shared<ChTexture>();
         bluMap->SetTextureFilename(GetChronoDataFile("blu.png"));
         ChVector<> trussCM = wheelBody->GetPos();
 
-        truss = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(0.2, 0.2, 0.4, 300.0, false, true));
+        truss = std::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.4, 300.0, false, true);
         truss->SetPos(trussCM);
         truss->SetMass(5.0);
         truss->AddAsset(bluMap);
         system->AddBody(truss);
 
         // create the revolute joint between the wheel and spindle
-        spindle = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+        spindle = std::make_shared<ChLinkLockRevolute>();
         spindle->Initialize(truss, wheelBody, ChCoordsys<>(trussCM, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         system->AddLink(spindle);
 
         // create a torque between the truss and wheel
-        torqueDriver = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);
+        torqueDriver = std::make_shared<ChLinkEngine>();
         torqueDriver->Initialize(truss, wheelBody, ChCoordsys<>(trussCM, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         torqueDriver->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
         system->AddLink(torqueDriver);
@@ -403,27 +399,27 @@ class TestMech {
         ChVector<> weightCM = ChVector<>(trussCM);
         weightCM.y += 1.0;  // note: this will determine the spring free length
 
-        suspweight = ChSharedPtr<ChBodyEasyBox>(new ChBodyEasyBox(0.2, 0.4, 0.2, 5000.0, false, true));
+        suspweight = std::make_shared<ChBodyEasyBox>(0.2, 0.4, 0.2, 5000.0, false, true);
         suspweight->SetPos(weightCM);
         suspweight->SetMass(weightMass);
         suspweight->AddAsset(bluMap);
         system->AddBody(suspweight);
 
         // create the translational joint between the truss and weight load
-        ChSharedPtr<ChLinkLockPrismatic> translational(new ChLinkLockPrismatic);
+        auto translational = std::make_shared<ChLinkLockPrismatic>();
         translational->Initialize(truss, suspweight,
                                   ChCoordsys<>(trussCM, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X)));
         system->AddLink(translational);
 
         // create a spring between spindle truss and weight
-        spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring);
+        spring = std::make_shared<ChLinkSpring>();
         spring->Initialize(truss, suspweight, false, trussCM, suspweight->GetPos());
         spring->Set_SpringK(springK);
         spring->Set_SpringR(springD);
         system->AddLink(spring);
 
         // create a prismatic constraint between the weight and the ground
-        ChSharedPtr<ChLinkLockOldham> weightLink(new ChLinkLockOldham);
+        auto weightLink = std::make_shared<ChLinkLockOldham>();
         weightLink->Initialize(suspweight, floor,
                                ChCoordsys<>(weightCM, chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y)));
         system->AddLink(weightLink);
@@ -438,7 +434,7 @@ class TestMech {
     // for now, just use the slider value as directly as the torque
     void applyTorque() {
         // note: negative sign is to get Trelleborg tire to spin in the correct direction
-        if (ChSharedPtr<ChFunction_Const> mfun = torqueDriver->Get_tor_funct().DynamicCastTo<ChFunction_Const>())
+        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(torqueDriver->Get_tor_funct()))
             mfun->Set_yconst(-this->currTorque);
     }
 
@@ -777,7 +773,7 @@ class MyEventReceiver : public IEventReceiver {
         // .. draw the spring constraints as simplified spring helix
         iterlink = mapp->GetSystem()->Get_linklist()->begin();
         while (iterlink != mapp->GetSystem()->Get_linklist()->end()) {
-            if (ChLinkSpring* mylinkspri = dynamic_cast<ChLinkSpring*>((*iterlink).get_ptr()))
+            if (ChLinkSpring* mylinkspri = dynamic_cast<ChLinkSpring*>((*iterlink).get()))
                 ChIrrTools::drawSpring(mapp->GetVideoDriver(), 0.05, mylinkspri->GetEndPoint1Abs(),
                                        mylinkspri->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
             iterlink++;
