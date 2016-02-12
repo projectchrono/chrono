@@ -167,11 +167,12 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
     /// that are not shared (ie. the faces on the boundary 'skin').
     /// Supported solids that generate boundary skin:
     /// - tetrahedrons
+    /// - ANCF shells (only one side)
     /// - more will follow in future
     void AddFacesFromBoundary(double sphere_swept = 0.0);
 
     /// As AddFacesFromBoundary, but only for faces containing selected nodes in node_set.
-    void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set);
+    //void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set); ***TODO***
 
     std::vector<std::shared_ptr<ChContactTriangleXYZ> >& GetTriangleList() { return vfaces; }
 
