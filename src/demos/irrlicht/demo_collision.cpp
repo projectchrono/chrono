@@ -163,7 +163,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     /// as in the alternative approach:
 
         // create a plain ChBody (no colliding shape nor visualization mesh is used yet)
-    ChSharedPtr<ChBodyEasyBox> mrigidBody(new ChBody);
+    auto mrigidBody = std::make_shared<ChBody>();
 
         // set the ChBodySceneNode as fixed body, and turn collision ON, otherwise no collide by default
     mrigidBody->SetBodyFixed(true);
@@ -181,7 +181,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     mrigidBody->GetCollisionModel()->BuildModel();
 
         // Attach some visualization shapes if needed:
-    ChSharedPtr<ChBoxShape> vshape (new ChBoxShape() );
+    auto vshape = std::make_shared<ChBoxShape>();
     vshape->GetBoxGeometry().SetLengths( ChVector<> (20,1,20) );
     vshape->GetBoxGeometry().Pos = ChVector<> (0,-5,0);
     this->AddAsset( vshape );

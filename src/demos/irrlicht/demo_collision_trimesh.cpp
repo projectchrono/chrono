@@ -75,18 +75,6 @@ int main(int argc, char* argv[]) {
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // - Create a floor
-
-    /*
-    ChSharedPtr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(2, 0.1, 2, 1000, true, true));
-    mfloor->SetPos(ChVector<>(0, -0.1, 0));
-    mfloor->SetBodyFixed(true);
-
-    mphysicalSystem.Add(mfloor);
-
-    ChSharedPtr<ChTexture> masset_texture(new ChTexture());
-    masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
-    mfloor->AddAsset(masset_texture);  // note: most assets can be shared
-    */
     
     auto mfloor2 = std::make_shared<ChBody>();
     mfloor2->SetPos(ChVector<>(0, -1, 0));

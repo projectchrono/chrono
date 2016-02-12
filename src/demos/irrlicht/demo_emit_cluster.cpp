@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 
     /*
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
-    ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
+    auto mcreator_spheres = std::make_shared<ChRandomShapeCreatorSpheres>();
     mcreator_spheres->SetDiameterDistribution(std::make_shared<ChZhangDistribution>(0.6, 0.23));
     mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
