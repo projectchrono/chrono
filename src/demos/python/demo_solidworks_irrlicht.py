@@ -88,13 +88,8 @@ myapplication.AssetUpdateAll();
 #  Run the simulation
 #
 
- # Configure the solver, if needed
-my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_BARZILAIBORWEIN)
-my_system.SetIterLCPmaxItersSpeed(40)
-my_system.SetMaxPenetrationRecoverySpeed(0.002)
-my_system.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))
 
- # Perform a short simulation
+myapplication.GetSystem().SetMaxPenetrationRecoverySpeed(0.002);
 myapplication.SetTimestep(0.002)
 
 
