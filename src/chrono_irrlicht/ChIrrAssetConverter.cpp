@@ -188,6 +188,7 @@ void ChIrrAssetConverter::mflipSurfacesOnX(IMesh* mesh) const {
         }
         const u32 vertcnt = buffer->getVertexCount();
         for (u32 i = 0; i < vertcnt; i++) {
+            buffer->getPosition(i).X = -buffer->getPosition(i).X; // mirror vertex
             core::vector3df oldnorm = buffer->getNormal(i);
             buffer->getNormal(i).X = -oldnorm.X;  // mirrors normal on X
         }
@@ -215,9 +216,13 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
 
                         // mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
 
-                        // mchildnode->setScale(irr::core::vector3df(1, 1, 1));  // because of Irrlicht being left handed!!! NO-ACCEPT IRRLICHT IS MIRRORED
-                        mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING,true);  // because of Irrlicht being left handed!!!
-                        // mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh());  // this wold be better than disabling back culling, but it does not work!
+                        // Note: the Irrlicht loader of .OBJ files flips the X to correct its left-handed nature, but
+                        // this goes wrong with our assemblies and links. So we rather accept that the display is X mirrored, and we
+                        // restore the X flipping of the mesh (also the normals and triangle indexes ordering must be flipped otherwise 
+                        // back culling is not working):
+                        mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh()); 
+
+                        mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING,true);  
                     }
                 } else if (auto mytrimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset)) {
                     CDynamicMeshBuffer* buffer =

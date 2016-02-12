@@ -96,8 +96,8 @@ class MySimpleForklift {
         lift = 0;
 
         ChVector<> COG_truss(0, 0.4, 0.5);
-        ChVector<> COG_wheelRF(0.566, 0.282, 1.608);
-        ChVector<> COG_wheelLF(-0.566, 0.282, 1.608);
+        ChVector<> COG_wheelRF(-0.566, 0.282, 1.608);
+        ChVector<> COG_wheelLF(0.566, 0.282, 1.608);
         ChVector<> COG_arm(0, 1.300, 1.855);
         ChVector<> COG_fork(0, 0.362, 2.100);
         ChVector<> COG_wheelB(0, 0.282, 0.003);
