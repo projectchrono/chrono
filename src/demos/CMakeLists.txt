@@ -132,6 +132,3 @@ if(ENABLE_MODULE_VEHICLE)
   		add_subdirectory(vehicle)
   	endif()
 endif()
-
-# TODO: this will be soon removed...
-add_subdirectory(trackVehicle)
