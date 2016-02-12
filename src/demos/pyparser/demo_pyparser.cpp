@@ -111,12 +111,12 @@ int main(int argc, char* argv[]) {
         // In case you want to fetch an item, remember that they got the
         // names that you see in the CAD interface, for example suppose you know that
         // a ChBodyAuxRef has the name "capital-2":
-        ChSharedPtr<ChBodyAuxRef> mbody;
+        std::shared_ptr<ChBodyAuxRef> mbody;
         ChSystem::IteratorBodies myiterp = my_system.IterBeginBodies();
         while (myiterp != my_system.IterEndBodies()) {
             GetLog() << (*myiterp)->GetNameString().c_str() << "\n";
             if ((*myiterp)->GetNameString() == "capital-2") 
-                mbody = (*myiterp).DynamicCastTo<ChBodyAuxRef>();
+                mbody = std::dynamic_pointer_cast<ChBodyAuxRef>(*myiterp);
 
             ++myiterp;
         }
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
 
             GetLog() << " t=" << my_system.GetChTime();
 
-            if (!mbody.IsNull())
+            if (mbody)
                 GetLog() << "  body x=" << mbody->GetPos().x << "\n";
         }
 
