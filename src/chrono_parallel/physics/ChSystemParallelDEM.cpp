@@ -63,7 +63,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
     // material properties in a thread-safe manner (we cannot use the function
     // ChBody::GetMaterialSurfaceDEM since that returns a copy of the reference
     // counted shared pointer).
-    ChSharedPtr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
+    std::shared_ptr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
     ChMaterialSurfaceDEM* mat_ptr = static_cast<ChMaterialSurfaceDEM*>(mat.get());
 
     mass[index] = body->GetMass();

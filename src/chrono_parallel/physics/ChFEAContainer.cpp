@@ -72,7 +72,7 @@ void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
     data_manager->num_fea_tets = tet_indices.size();
 }
 
-void ChFEAContainer::AddConstraint(const uint node, ChSharedBodyPtr& body) {
+void ChFEAContainer::AddConstraint(const uint node, std::shared_ptr<ChBody>& body) {
     // Creates constraints between a 3dof node and a 6dof rigid body
     // point is the nodal point
     int body_a = body->GetId();

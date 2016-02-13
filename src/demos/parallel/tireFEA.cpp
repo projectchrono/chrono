@@ -37,7 +37,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     int mixerId = -201;
 
     // Create a common material
-    ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+    auto mat = std::make_shared<ChMaterialSurface>();
     mat->SetFriction(0.4f);
 
     ChVector<> hdim(2.5, 2.5, 2.5);
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     fea_container->material_density = 1200;
     fea_container->contact_mu = 1;
     fea_container->contact_cohesion = 0;
-    fea_container->youngs_modulus = 5e5;//2e8;
+    fea_container->youngs_modulus = 5e5;  // 2e8;
     fea_container->poisson_ratio = .2;
     fea_container->contact_recovery_speed = 10000000;
     my_system.GetSettings()->solver.solver_mode = SLIDING;
@@ -81,29 +81,14 @@ int main(int argc, char* argv[]) {
     my_system.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
     my_system.SetLoggingLevel(LOG_TRACE, true);
     my_system.SetLoggingLevel(LOG_INFO, true);
-    double gravity =  9.81;
+    double gravity = 9.81;
     my_system.Set_G_acc(ChVector<>(0, 0, -gravity));
 
-     AddContainer(&my_system);
+    AddContainer(&my_system);
 
     //
     // CREATE THE PHYSICAL SYSTEM
     //
-
-    // Create the surface material, containing information
-    // about friction etc.
-
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial(new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetYoungModulus(10e4);
-    mysurfmaterial->SetFriction(0.3f);
-    mysurfmaterial->SetRestitution(0.2f);
-    mysurfmaterial->SetAdhesion(0);
-
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial2(new ChMaterialSurfaceDEM);
-    mysurfmaterial->SetYoungModulus(30e4);
-    mysurfmaterial->SetFriction(0.3f);
-    mysurfmaterial->SetRestitution(0.2f);
-    mysurfmaterial->SetAdhesion(0);
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
@@ -112,12 +97,11 @@ int main(int argc, char* argv[]) {
     // Create a mesh, that is a container for groups
     // of FEA elements and their referenced nodes.
 
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
-
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.4);
     mmaterial->Set_RayleighDampingK(0.004);
@@ -128,21 +112,21 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
 
-    std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+    //std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
 
     //    my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial, node_sets,
     //                                tire_center, tire_alignment);
-//Ruota_V3_Piena.INP
-    my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tire.INP").c_str(), mmaterial, node_sets, tire_center,
-                                tire_alignment);
-
-    // Apply initial speed and angular speed
-//    double speed_x0 = 0.5;
-    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
-        ChVector<> node_pos = my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->GetPos();
-        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
-        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
-    }
+    // Ruota_V3_Piena.INP
+//    my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tire.INP").c_str(), mmaterial, node_sets, tire_center,
+//                                tire_alignment);
+//
+//    // Apply initial speed and angular speed
+//    //    double speed_x0 = 0.5;
+//    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
+//        ChVector<> node_pos = my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+//        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
+//        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
+//    }
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -241,10 +225,9 @@ int main(int argc, char* argv[]) {
 
     my_system.Initialize();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
+//
+// THE SOFT-REAL-TIME CYCLE
+//
 
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();

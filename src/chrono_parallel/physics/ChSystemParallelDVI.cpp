@@ -56,7 +56,7 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
     // material properties in a thread-safe manner (we cannot use the function
     // ChBody::GetMaterialSurface since that returns a copy of the reference
     // counted shared pointer).
-    ChSharedPtr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
+    std::shared_ptr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
     ChMaterialSurface* mat_ptr = static_cast<ChMaterialSurface*>(mat.get());
 
     friction[index] = real3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());
@@ -139,12 +139,12 @@ void ChSystemParallelDVI::AssembleSystem() {
     this->contact_container->EndAddContact();
 
     {
-        std::vector<ChSharedPtr<ChLink> >::iterator iterlink = linklist.begin();
+        std::vector<std::shared_ptr<ChLink> >::iterator iterlink = linklist.begin();
         while (iterlink != linklist.end()) {
             (*iterlink)->ConstraintsBiReset();
             iterlink++;
         }
-        std::vector<ChSharedPtr<ChBody> >::iterator ibody = bodylist.begin();
+        std::vector<std::shared_ptr<ChBody> >::iterator ibody = bodylist.begin();
         while (ibody != bodylist.end()) {
             (*ibody)->VariablesFbReset();
             ibody++;
@@ -168,7 +168,7 @@ void ChSystemParallelDVI::AssembleSystem() {
     for (int i = 0; i < bodylist.size(); i++) {
         bodylist[i]->InjectVariables(*this->LCP_descriptor);
     }
-    std::vector<ChSharedPtr<ChLink> >::iterator it;
+    std::vector<std::shared_ptr<ChLink> >::iterator it;
     for (it = linklist.begin(); it != linklist.end(); it++) {
         (*it)->InjectConstraints(*this->LCP_descriptor);
     }

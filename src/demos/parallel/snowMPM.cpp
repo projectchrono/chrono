@@ -57,11 +57,11 @@ void AddContainer(ChSystemParallelDVI* sys) {
     int mixerId = -201;
 
     // Create a common material
-    ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+    auto mat = std::make_shared<ChMaterialSurface>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
+    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -73,7 +73,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     ChVector<> hdim(.15, .15, 0.05);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, -hdim.z));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, -hdim.z));
     // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, hdim.z*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);

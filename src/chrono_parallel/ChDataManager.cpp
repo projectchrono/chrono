@@ -122,17 +122,14 @@ void ChParallelDataManager::PrintMatrix(CompressedMatrix<real> src) {
 }
 
 void ChParallelDataManager::Add3DOFContainer(Ch3DOFContainer* container) {
-    container->AddRef();
     delete node_container;
     node_container = container;
 }
 void ChParallelDataManager::AddFEAContainer(ChFEAContainer* container) {
-    container->AddRef();
     delete fea_container;
     fea_container = container;
 }
 void ChParallelDataManager::AddMPMContainer(ChMPMContainer* container) {
-    container->AddRef();
     delete mpm_container;
     mpm_container = container;
 }

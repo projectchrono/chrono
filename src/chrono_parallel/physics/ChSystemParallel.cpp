@@ -21,11 +21,10 @@ using namespace chrono::collision;
 INITIALIZE_EASYLOGGINGPP
 #endif
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
-
     data_manager = new ChParallelDataManager();
 
     LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
-    contact_container = std::make_shared<ChContactContainerParallel>(new ChContactContainerParallel(data_manager));
+    contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
     collision_system = new ChCollisionSystemParallel(data_manager);
 
     collision_system_type = COLLSYS_PARALLEL;
@@ -64,7 +63,6 @@ ChSystemParallel::~ChSystemParallel() {
 }
 
 int ChSystemParallel::Integrate_Y() {
-
     LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ChTime;
     // Get the pointer for the system descriptor and store it into the data manager
     data_manager->lcp_system_descriptor = this->LCP_descriptor;
@@ -262,7 +260,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     uint current_nodes = data_manager->num_fea_nodes;
 
     for (int i = 0; i < num_nodes; i++) {
-        if (ChSharedPtr<fea::ChNodeFEAxyz> node = mesh->GetNode(i).DynamicCastTo<fea::ChNodeFEAxyz>()) {
+        if (auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(mesh->GetNode(i))) {
             positions[i] = real3(node->GetPos().x, node->GetPos().y, node->GetPos().z);
             velocities[i] = real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
             // Offset the element index by the current number of nodes at the start
@@ -276,7 +274,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     std::vector<uint4> elements(num_elements);
 
     for (int i = 0; i < num_elements; i++) {
-        if (ChSharedPtr<fea::ChElementTetra_4> tet = mesh->GetElement(i).DynamicCastTo<fea::ChElementTetra_4>()) {
+        if (auto tet = std::dynamic_pointer_cast<fea::ChElementTetra_4>(mesh->GetElement(i))) {
             uint4 elem;
 
             elem.x = tet->GetNodeN(0)->GetIndex();  //

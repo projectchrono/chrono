@@ -70,11 +70,12 @@ void AddContainer(ChSystemParallelDVI* sys) {
     int binId = -200;
 
     // Create a common material
-    ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
+    auto mat = std::make_shared<ChMaterialSurface>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (4 x 4 x 1)
-    ChSharedBodyPtr bin(new ChBody(new ChCollisionModelParallel));
+    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -95,7 +96,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallel* sys) {
     // Common material
-    ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
+    auto ballMat = std::make_shared<ChMaterialSurface>();
     ballMat->SetFriction(0.4f);
 
     // Create the falling balls
@@ -109,8 +110,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
 
     for (int i = 0; i < points.size(); i++) {
         ChVector<> pos = points[i] + ChVector<>(0, 0, 15);
-
-        ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+        auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel);
         ball->SetMaterialSurface(ballMat);
 
         ball->SetIdentifier(ballId++);
@@ -122,7 +122,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
         ball->SetCollide(true);
 
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get_ptr(), radius);
+        utils::AddSphereGeometry(ball.get(), radius);
         ball->GetCollisionModel()->BuildModel();
 
         sys->AddBody(ball);

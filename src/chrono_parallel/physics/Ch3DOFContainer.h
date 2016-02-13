@@ -223,7 +223,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     ~ChFEAContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void AddElements(const std::vector<uint4>& indices);
-    void AddConstraint(const uint node, ChSharedBodyPtr& body);
+    void AddConstraint(const uint node, std::shared_ptr<ChBody>& body);
     // Compute initial shape matrix
     void Initialize();
     void Setup(int start_constraint);
