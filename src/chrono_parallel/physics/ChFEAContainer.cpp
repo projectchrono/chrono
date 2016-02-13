@@ -407,14 +407,14 @@ void ChFEAContainer::Build_D() {
         // This helps to scale jacboian so boundaries aren't ignored
         real cf = 2 * volSqrt;  // 2 * volSqrt;
         // diagonal elements of strain matrix
-        Mat33 A1 = cf * Mat33(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
-        Mat33 A2 = cf * Mat33(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
-        Mat33 A3 = cf * Mat33(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
-        Mat33 A4 = cf * Mat33(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
-                                            //        A1 = A1 * (1.0 / Determinant(A1));
-                                            //        A2 = A2 * (1.0 / Determinant(A2));
-                                            //        A3 = A3 * (1.0 / Determinant(A3));
-                                            //        A4 = A4 * (1.0 / Determinant(A4));
+        Mat33 A1 = cf * Mat33(y[0]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
+        Mat33 A2 = cf * Mat33(y[1]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
+        Mat33 A3 = cf * Mat33(y[2]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
+        Mat33 A4 = cf * Mat33(y[3]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
+        //        A1 = A1 * (1.0 / Determinant(A1));
+        //        A2 = A2 * (1.0 / Determinant(A2));
+        //        A3 = A3 * (1.0 / Determinant(A3));
+        //        A4 = A4 * (1.0 / Determinant(A4));
 
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
@@ -436,13 +436,13 @@ void ChFEAContainer::Build_D() {
         /////==================================================================================================================================
         // Off diagonal strain elements
         Mat33 B1 =
-            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
         Mat33 B2 =
-            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
         Mat33 B3 =
-            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
         Mat33 B4 =
-            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr;  //+ vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
 
         //        B1 = B1 * (1.0 / Determinant(B1));
         //        B2 = B2 * (1.0 / Determinant(B2));
@@ -561,8 +561,8 @@ void ChFEAContainer::Build_D() {
             //                Jrb = Jrb * (1.0 / dJrb);
             //            }
             //
-            Arw = Arw * .2;
-            Jrb = Jrb * .2;
+            Arw = Arw * .8;
+            Jrb = Jrb * .8;
             //            //=======
 
             SetRow6Check(D_T, start_rigid + index * 3 + 0, body_a * 6, -Arw.row(0), Jrb.row(0));

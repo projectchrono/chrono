@@ -405,8 +405,7 @@ void ChFluidContainer::Build_b() {
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
-
-                real bi = std::max(real(1.0) / dt * depth, -data_manager->node_container->contact_recovery_speed);
+                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
                 b[start_boundary + index + 0] = bi;
                 b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
                 b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;

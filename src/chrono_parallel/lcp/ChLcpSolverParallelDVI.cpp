@@ -161,8 +161,8 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     LOG(TRACE) << "ChLcpSolverParallelDVI::RunTimeStep E solve: "
                << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve")
                << " shur: " << data_manager->system_timer.GetTime("ShurProduct")
-               << " residual: " << data_manager->measures.solver.residual
-               << " objective: " << data_manager->measures.solver.maxdeltalambda_hist.back()
+               //<< " residual: " << data_manager->measures.solver.residual
+               //<< " objective: " << data_manager->measures.solver.maxdeltalambda_hist.back()
                << " iterations: " << tot_iterations;
 }
 

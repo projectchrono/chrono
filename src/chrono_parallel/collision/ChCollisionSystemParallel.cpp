@@ -54,7 +54,6 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
 
             switch (pmodel->mData[j].type) {
                 case chrono::collision::SPHERE:
-                	printf("RRRAD: %f\n", obB.x);
                     start = data_manager->shape_data.sphere_rigid.size();
                     data_manager->shape_data.sphere_rigid.push_back(obB.x);
                     break;
