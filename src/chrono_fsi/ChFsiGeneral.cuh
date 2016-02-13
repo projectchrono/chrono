@@ -26,6 +26,14 @@
 namespace chrono {
 namespace fsi {
 
+#ifdef __CUDACC__
+// #define CUDA_CALLABLE_MEMBER __host__ __device__
+#define CUDA_CALLABLE_MEMBER __device__
+#else
+#define CUDA_CALLABLE_MEMBER
+#endif 
+
+// editor stuff
 #ifdef __CDT_PARSER__
 #define __host__
 #define __device__
@@ -36,6 +44,7 @@ namespace fsi {
 #else
 #define CUDA_KERNEL_DIM(...) << <__VA_ARGS__>>>
 #endif
+// end editor stuff
 
 typedef unsigned int uint;
 
@@ -225,7 +234,7 @@ __device__ inline Real3 Distance(Real3 a, Real3 b) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
-__device__ __host__ inline void RotationMatirixFromQuaternion(Real3& AD1,
+CUDA_CALLABLE_MEMBER inline void RotationMatirixFromQuaternion(Real3& AD1,
 		Real3& AD2, Real3& AD3, const Real4& q) {
 	AD1 = 2
 			* mR3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w,
@@ -238,41 +247,13 @@ __device__ __host__ inline void RotationMatirixFromQuaternion(Real3& AD1,
 					0.5f - q.y * q.y - q.z * q.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ __host__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(
+CUDA_CALLABLE_MEMBER inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(
 		const Real3& A1, const Real3& A2, const Real3& A3, const Real3& r3) {
 	return mR3(A1.x * r3.x + A2.x * r3.y + A3.x * r3.z,
 			A1.y * r3.x + A2.y * r3.y + A3.y * r3.z,
 			A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
 }
 
-/**
- * @brief calcGridHash
- * @details  See SDKCollisionSystem.cuh
- */
-__device__ int3 calcGridPos(Real3 p) {
-	int3 gridPos;
-	gridPos.x = floor((p.x - paramsD.worldOrigin.x) / paramsD.cellSize.x);
-	gridPos.y = floor((p.y - paramsD.worldOrigin.y) / paramsD.cellSize.y);
-	gridPos.z = floor((p.z - paramsD.worldOrigin.z) / paramsD.cellSize.z);
-	return gridPos;
-}
-
-/**
- * @brief calcGridHash
- * @details  See SDKCollisionSystem.cuh
- */
-__device__ uint calcGridHash(int3 gridPos) {
-	gridPos.x -= ((gridPos.x >= paramsD.gridSize.x) ? paramsD.gridSize.x : 0);
-	gridPos.y -= ((gridPos.y >= paramsD.gridSize.y) ? paramsD.gridSize.y : 0);
-	gridPos.z -= ((gridPos.z >= paramsD.gridSize.z) ? paramsD.gridSize.z : 0);
-
-	gridPos.x += ((gridPos.x < 0) ? paramsD.gridSize.x : 0);
-	gridPos.y += ((gridPos.y < 0) ? paramsD.gridSize.y : 0);
-	gridPos.z += ((gridPos.z < 0) ? paramsD.gridSize.z : 0);
-
-	return __umul24(__umul24(gridPos.z, paramsD.gridSize.y), paramsD.gridSize.x)
-			+ __umul24(gridPos.y, paramsD.gridSize.x) + gridPos.x;
-}
 //--------------------------------------------------------------------------------------------------------------------------------
 
 class CH_FSI_API ChFsiGeneral {
@@ -296,6 +277,9 @@ public:
 
 protected:
 	uint iDivUp(uint a, uint b);
+	CUDA_CALLABLE_MEMBER int3 calcGridPos(Real3 p);
+	CUDA_CALLABLE_MEMBER uint calcGridHash(int3 gridPos);
+
 private:
 	SimParams* paramsH;
 	NumberOfObjects* numObjectsH;

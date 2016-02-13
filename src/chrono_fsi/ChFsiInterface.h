@@ -17,6 +17,8 @@
 #ifndef CH_FSIINTERFACE_H_
 #define CH_FSIINTERFACE_H_
 
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 

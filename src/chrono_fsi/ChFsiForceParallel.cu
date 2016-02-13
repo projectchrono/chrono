@@ -388,8 +388,7 @@ void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_X
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
-		thrust::device_vector<uint>& cellEnd, uint numAllMarkers,
-		uint numCells) {
+		thrust::device_vector<uint>& cellEnd) {
 
 	bool *isErrorH, *isErrorD;
 	isErrorH = (bool *)malloc(sizeof(bool));
@@ -399,13 +398,13 @@ void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_X
 	//------------------------------------------------------------------------
 	/* thread per particle */
 	uint numThreads, numBlocks;
-	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
+	computeGridSize(numObjectsH->numAllMarkers, 64, numBlocks, numThreads);
 
 	/* Execute the kernel */
 	newVel_XSPH_D<<<numBlocks, numThreads>>>(mR3CAST(vel_XSPH_Sorted_D),
 			mR3CAST(sortedPosRad), mR3CAST(sortedVelMas),
 			mR4CAST(sortedRhoPreMu), U1CAST(gridMarkerIndex), U1CAST(cellStart),
-			U1CAST(cellEnd), numAllMarkers, isErrorD);
+			U1CAST(cellEnd), numObjectsH->numAllMarkers, isErrorD);
 
 	cudaThreadSynchronize();
 	cudaCheckError();
@@ -421,12 +420,11 @@ void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_X
 
 void ChFsiForceParallel::CalculateXSPH_velocity() {	
 	/* Calculate vel_XSPH */
-	if (vel_XSPH_Sorted_D.size() != numAllMarkers) {
+	if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
 		throw std::runtime_error ("Error! size error vel_XSPH_Sorted_D Thrown from CalculateXSPH_velocity!\n");
 	}
 	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD,
-			sortedSphMarkersD->rhoPresMuD, ProximityDataD->gridMarkerIndexD, ProximityDataD->cellStartD, ProximityDataD->cellEndD,
-			paramsH.numAllMarkers, paramsH.m_numGridCells);
+			sortedSphMarkersD->rhoPresMuD, markersProximityD->gridMarkerIndexD, markersProximityD->cellStartD, markersProximityD->cellEndD);
 
 	/* Collide */
 	/* Initialize derivVelRhoD with zero. NECESSARY. */
@@ -451,7 +449,7 @@ void ChFsiForceParallel::collide(thrust::device_vector<Real4>& sortedDerivVelRho
 
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
-		thrust::device_vector<uint>& cellEnd, uint numAllMarkers, uint numCells) {
+		thrust::device_vector<uint>& cellEnd) {
 
 	bool *isErrorH, *isErrorD;
 	isErrorH = (bool *)malloc(sizeof(bool));
@@ -461,7 +459,7 @@ void ChFsiForceParallel::collide(thrust::device_vector<Real4>& sortedDerivVelRho
 	//------------------------------------------------------------------------
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(numAllMarkers, 64, numBlocks, numThreads);
+	computeGridSize(numObjectsH->numAllMarkers, 64, numBlocks, numThreads);
 
 	// execute the kernel
 	collideD<<<numBlocks, numThreads>>>(mR4CAST(sortedDerivVelRho_fsi_D),
@@ -469,7 +467,7 @@ void ChFsiForceParallel::collide(thrust::device_vector<Real4>& sortedDerivVelRho
 			mR3CAST(vel_XSPH_Sorted_D), mR4CAST(sortedRhoPreMu),
 			mR3CAST(velMas_ModifiedBCE), mR4CAST(rhoPreMu_ModifiedBCE), U1CAST(gridMarkerIndex),
 			U1CAST(cellStart), U1CAST(cellEnd),
-			numAllMarkers, isErrorD);
+			numObjectsH->numAllMarkers, isErrorD);
 
 	cudaThreadSynchronize();
 	cudaCheckError();
@@ -492,16 +490,15 @@ void ChFsiForceParallel::collide(thrust::device_vector<Real4>& sortedDerivVelRho
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiForceParallel::CollideWrapper() {
-	thrust::device_vector<Real4> m_dSortedDerivVelRho_fsi_D(numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
+	thrust::device_vector<Real4> m_dSortedDerivVelRho_fsi_D(numObjectsH->numAllMarkers); // Store Rho, Pressure, Mu of each particle in the device memory
 	thrust::fill(m_dSortedDerivVelRho_fsi_D.begin(), m_dSortedDerivVelRho_fsi_D.end(), mR4(0));
 
 	collide(m_dSortedDerivVelRho_fsi_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, vel_XSPH_Sorted_D,
-			sortedSphMarkersD->rhoPresMuD, bceWorker->velMas_ModifiedBCE, bceWorker->rhoPreMu_ModifiedBCE, ProximityDataD->gridMarkerIndexD, 
-			ProximityDataD->cellStartD, ProximityDataD->cellEndD,
-			paramsH.numAllMarkers, paramsH.m_numGridCells);
+			sortedSphMarkersD->rhoPresMuD, bceWorker->velMas_ModifiedBCE, bceWorker->rhoPreMu_ModifiedBCE, markersProximityD->gridMarkerIndexD, 
+			markersProximityD->cellStartD, markersProximityD->cellEndD);
 
-	CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, ProximityDataD->gridMarkerIndexD);
-	CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD, m_dSortedDerivVelRho_fsi_D, ProximityDataD->gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, markersProximityD->gridMarkerIndexD);
+	CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD, m_dSortedDerivVelRho_fsi_D, markersProximityD->gridMarkerIndexD);
 
 	m_dSortedDerivVelRho_fsi_D.clear();
 	// vel_XSPH_Sorted_D.clear();
@@ -510,8 +507,8 @@ void ChFsiForceParallel::CollideWrapper() {
 void ChFsiForceParallel::AddGravityToFluid() {
 	// add gravity to fluid markers
 	/* Add outside forces. Don't add gravity to rigids, BCE, and boundaries, it is added in ChSystem */
-	Real3 totalFluidBodyForce3 = paramsH.bodyForce3 + paramsH.gravity;
-	thrust::device_vector<Real4> bodyForceD(numAllMarkers);
+	Real3 totalFluidBodyForce3 = paramsH->bodyForce3 + paramsH->gravity;
+	thrust::device_vector<Real4> bodyForceD(numObjectsH->numAllMarkers);
 	thrust::fill(bodyForceD.begin(), bodyForceD.end(), mR4(totalFluidBodyForce3));
 	thrust::transform(fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x, fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].y,
 			bodyForceD.begin(), fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x, thrust::plus<Real4>());
@@ -526,7 +523,7 @@ void ChFsiForceParallel::ForceSPH(
 	sphMarkersD = otherSphMarkersD;
 
 	fsiCollisionSystem->ArrangeData(sphMarkersD);
-	bceWorker->ModifyBceVelocity(otherFsiBodiesD);
+	bceWorker->ModifyBceVelocity(sphMarkersD, otherFsiBodiesD);
 	CalculateXSPH_velocity();
 	CollideWrapper();
 	AddGravityToFluid();

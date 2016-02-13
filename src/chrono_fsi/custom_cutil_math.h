@@ -16,12 +16,6 @@
 ////////Define Real, either float or double
 // #include <cuda_runtime.h>
 
-namespace chrono{
-namespace fsi {
-
-typedef unsigned int uint;
-typedef unsigned short ushort;
-
 #define DOUBLEPRECISION 1
 #if DOUBLEPRECISION
 typedef double Real;
@@ -29,13 +23,29 @@ typedef double Real;
 typedef float Real;
 #endif
 
-// decide if you want to include helper math stuff, i.e. float uint int stuff, by changing the following def
-#define INCLUDECUTILMATHSTUFF 1
-#if INCLUDECUTILMATHSTUFF
+// // Arman: alternative solution check later:
+// #ifdef __CUDACC__
+// #include <cuda_runtime.h> // for __host__ __device__ flags
+// #define CUDA_CALLABLE_MEMBER __host__ __device__
+// #else
+// #define CUDA_CALLABLE_MEMBER
+// #include <math.h>
+// #endif 
+// // then remove the following four lines. replace all __host__ __device__ 
+// // with CUDA_CALLABLE_MEMBER. also remove the block defined about from the 
+// // ChFsiGeneral since this file is included there anyway. Or alternatively,
+// // add the lines above in a thernary file and include it both in here and there
+
+#include <cuda_runtime.h> // for __host__ __device__ flags
 #ifndef __CUDACC__
-#include <cmath>
+#include <math.h>
 #endif
 
+namespace chrono{
+namespace fsi {
+
+typedef unsigned int uint;
+typedef unsigned short ushort;
 
 ////////////////////////////////////////////////////////////////////////////////
 // host implementations of CUDA functions
@@ -998,99 +1008,6 @@ inline __device__  __host__ float4 lerp(float4 a, float4 b, float t) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// clamp
-// - clamp the value v to be in the range [a, b]
-////////////////////////////////////////////////////////////////////////////////
-//
-// inline __device__ __host__ float clamp(float f, float a, float b)
-//{
-//    return fmaxf(a, fminf(f, b));
-//}
-// inline __device__ __host__ int clamp(int f, int a, int b)
-//{
-//    return max(a, min(f, b));
-//}
-// inline __device__ __host__ uint clamp(uint f, uint a, uint b)
-//{
-//    return max(a, min(f, b));
-//}
-//
-// inline __device__ __host__ float2 clamp(float2 v, float a, float b)
-//{
-//    return make_float2(clamp(v.x, a, b), clamp(v.y, a, b));
-//}
-// inline __device__ __host__ float2 clamp(float2 v, float2 a, float2 b)
-//{
-//    return make_float2(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y));
-//}
-// inline __device__ __host__ float3 clamp(float3 v, float a, float b)
-//{
-//    return make_float3(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b));
-//}
-// inline __device__ __host__ float3 clamp(float3 v, float3 a, float3 b)
-//{
-//    return make_float3(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z));
-//}
-// inline __device__ __host__ float4 clamp(float4 v, float a, float b)
-//{
-//    return make_float4(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b), clamp(v.w, a, b));
-//}
-// inline __device__ __host__ float4 clamp(float4 v, float4 a, float4 b)
-//{
-//    return make_float4(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z), clamp(v.w, a.w, b.w));
-//}
-//
-// inline __device__ __host__ int2 clamp(int2 v, int a, int b)
-//{
-//    return make_int2(clamp(v.x, a, b), clamp(v.y, a, b));
-//}
-// inline __device__ __host__ int2 clamp(int2 v, int2 a, int2 b)
-//{
-//    return make_int2(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y));
-//}
-// inline __device__ __host__ int3 clamp(int3 v, int a, int b)
-//{
-//    return make_int3(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b));
-//}
-// inline __device__ __host__ int3 clamp(int3 v, int3 a, int3 b)
-//{
-//    return make_int3(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z));
-//}
-// inline __device__ __host__ int4 clamp(int4 v, int a, int b)
-//{
-//    return make_int4(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b), clamp(v.w, a, b));
-//}
-// inline __device__ __host__ int4 clamp(int4 v, int4 a, int4 b)
-//{
-//    return make_int4(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z), clamp(v.w, a.w, b.w));
-//}
-//
-// inline __device__ __host__ uint2 clamp(uint2 v, uint a, uint b)
-//{
-//    return make_uint2(clamp(v.x, a, b), clamp(v.y, a, b));
-//}
-// inline __device__ __host__ uint2 clamp(uint2 v, uint2 a, uint2 b)
-//{
-//    return make_uint2(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y));
-//}
-// inline __device__ __host__ uint3 clamp(uint3 v, uint a, uint b)
-//{
-//    return make_uint3(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b));
-//}
-// inline __device__ __host__ uint3 clamp(uint3 v, uint3 a, uint3 b)
-//{
-//    return make_uint3(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z));
-//}
-// inline __device__ __host__ uint4 clamp(uint4 v, uint a, uint b)
-//{
-//    return make_uint4(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b), clamp(v.w, a, b));
-//}
-// inline __device__ __host__ uint4 clamp(uint4 v, uint4 a, uint4 b)
-//{
-//    return make_uint4(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z), clamp(v.w, a.w, b.w));
-//}
-
-////////////////////////////////////////////////////////////////////////////////
 // dot product
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1164,36 +1081,6 @@ inline __host__  __device__ float3 cross(float3 a, float3 b) {
 			a.x * b.y - a.y * b.x);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// smoothstep
-// - returns 0 if x < a
-// - returns 1 if x > b
-// - otherwise returns smooth interpolation between 0 and 1 based on x
-////////////////////////////////////////////////////////////////////////////////
-
-// inline __device__ __host__ float smoothstep(float a, float b, float x)
-//{
-//    float y = clamp((x - a) / (b - a), 0.0f, 1.0f);
-//    return (y*y*(3.0f - (2.0f*y)));
-//}
-// inline __device__ __host__ float2 smoothstep(float2 a, float2 b, float2 x)
-//{
-//    float2 y = clamp((x - a) / (b - a), 0.0f, 1.0f);
-//    return (y*y*(make_float2(3.0f) - (make_float2(2.0f)*y)));
-//}
-// inline __device__ __host__ float3 smoothstep(float3 a, float3 b, float3 x)
-//{
-//    float3 y = clamp((x - a) / (b - a), 0.0f, 1.0f);
-//    return (y*y*(make_float3(3.0f) - (make_float3(2.0f)*y)));
-//}
-// inline __device__ __host__ float4 smoothstep(float4 a, float4 b, float4 x)
-//{
-//    float4 y = clamp((x - a) / (b - a), 0.0f, 1.0f);
-//    return (y*y*(make_float4(3.0f) - (make_float4(2.0f)*y)));
-//}
-#endif
-//
-//// end of helper_math stuff. start of my own stuff
 
 ////////////////////////////////////////////////////////////////////////////////
 // function definitions for the Real type
@@ -1599,36 +1486,6 @@ __host__ __device__ inline Real4 lerp(Real4 a, Real4 b, Real t) {
 	return a + t * (b - a);
 }
 
-//#if DOUBLEPRECISION
-//__host__ __device__ inline Real clamp(Real f, Real a, Real b)
-//{
-//    return rmaxr(a, rminr(f, b));
-//}
-//#endif
-//__host__ __device__ inline Real2 clamp(Real2 v, Real a, Real b)
-//{
-//    return make_Real2(clamp(v.x, a, b), clamp(v.y, a, b));
-//}
-//__host__ __device__ inline Real2 clamp(Real2 v, Real2 a, Real2 b)
-//{
-//    return make_Real2(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y));
-//}
-//__host__ __device__ inline Real3 clamp(Real3 v, Real a, Real b)
-//{
-//    return make_Real3(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b));
-//}
-//__host__ __device__ inline Real3 clamp(Real3 v, Real3 a, Real3 b)
-//{
-//    return make_Real3(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z));
-//}
-//__host__ __device__ inline Real4 clamp(Real4 v, Real a, Real b)
-//{
-//    return make_Real4(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b), clamp(v.w, a, b));
-//}
-//__host__ __device__ inline Real4 clamp(Real4 v, Real4 a, Real4 b)
-//{
-//    return make_Real4(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z), clamp(v.w, a.w, b.w));
-//}
 
 __host__ __device__ inline Real dot(Real2 a, Real2 b) {
 	return a.x * b.x + a.y * b.y;
@@ -1668,33 +1525,6 @@ __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
 	return make_Real3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
 			a.x * b.y - a.y * b.x);
 }
-
-//#if DOUBLEPRECISION
-//__host__ __device__ inline Real smoothstep(Real a, Real b, Real x)
-//{
-//	Real y = clamp((x - a) / (b - a), 0.0, 1.0);
-//	return (y*y*(3.0 - (2.0*y)));
-//}
-//#endif
-//__host__ __device__ inline Real2 smoothstep(Real2 a, Real2 b, Real2 x)
-//{
-//	Real2 y = clamp((x - a) / (b - a), 0.0, 1.0);
-//	return (y*y*(make_Real2(3.0) - (make_Real2(2.0)*y)));
-//}
-//__host__ __device__ inline Real3 smoothstep(Real3 a, Real3 b, Real3 x)
-//{
-//	Real3 y = clamp((x - a) / (b - a), 0.0, 1.0);
-//	return (y*y*(make_Real3(3.0) - (make_Real3(2.0)*y)));
-//}
-//__host__ __device__ inline Real4 smoothstep(Real4 a, Real4 b, Real4 x)
-//{
-//	Real4 y = clamp((x - a) / (b - a), 0.0, 1.0);
-//	return (y*y*(make_Real4(3.0) - (make_Real4(2.0)*y)));
-//}
-////**** some other useful operators
-//__host__ __device__ inline bool operator== (const int2 & a , const int2 & b){
-//	return (a.x==b.x&&a.y==b.y);
-//}
 
 } // end namespace fsi
 } // end namespace chrono

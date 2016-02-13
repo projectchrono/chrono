@@ -21,6 +21,7 @@
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChBce.cuh"
 #include "chrono_fsi/ChCollisionSystemFsi.cuh"
 
 namespace chrono {
@@ -79,7 +80,6 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 
 		thrust::device_vector<Real3> vel_XSPH_Sorted_D;
 
-
 		void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
 		thrust::device_vector<Real3>& sortedPosRad,
 		thrust::device_vector<Real3>& sortedVelMas,
@@ -90,8 +90,7 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
-		thrust::device_vector<uint>& cellEnd, uint numAllMarkers, uint numCells,
-		Real dT);
+		thrust::device_vector<uint>& cellEnd);
 
 		void RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
 		thrust::device_vector<Real3>& sortedPosRad,
@@ -99,8 +98,9 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 		thrust::device_vector<Real4>& sortedRhoPreMu,
 		thrust::device_vector<uint>& gridMarkerIndex,
 		thrust::device_vector<uint>& cellStart,
-		thrust::device_vector<uint>& cellEnd, uint numAllMarkers,
-		uint numCells);
+		thrust::device_vector<uint>& cellEnd);
+
+		void AddGravityToFluid();
 
 
 

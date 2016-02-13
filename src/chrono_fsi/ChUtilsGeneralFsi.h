@@ -60,28 +60,6 @@ namespace fsi {
 // ----------------------------------------------------------------------------
 #define LARGE_NUMBER 99999999
 #define SMALL_NUMBER -99999999
-// ----------------------------------------------------------------------------
-// MULT    multiplication of signed integers
-// UMULT   multiplication of unsigned integers
-//
-// These macros are architecture-dependent: on architectures prior to Fermi
-// it uses the 24-bit intrinsics; on Fermi and above (32-bit) simply use the
-// native multiplication.
-// ----------------------------------------------------------------------------
-#if __CUDA_ARCH__ >= 200
-#define MULT(X, Y) ((X) * (Y))
-#define UMULT(X, Y) ((X) * (Y))
-#else
-#define MULT(X, Y) __mul24((X), (Y))
-#define UMULT(X, Y) __umul24((X), (Y))
-#endif
-
-//#define DOUBLEPRECISION true
-//#if DOUBLEPRECISION
-//#define FLOAT double
-//#else
-//#define FLOAT Real
-//#endif
 
 // ----------------------------------------------------------------------------
 // cutilSafeCall
