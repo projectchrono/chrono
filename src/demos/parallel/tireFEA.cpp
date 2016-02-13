@@ -8,6 +8,7 @@
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
@@ -42,14 +43,14 @@ void AddContainer(ChSystemParallelDVI* sys) {
 
     ChVector<> hdim(2.5, 2.5, 2.5);
 
-    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.2, Vector(0, 0, -1), QUNIT, true, false, true, true);
+    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.2, Vector(0, 0, -.7), QUNIT, true, false, true, true);
 }
 
 int main(int argc, char* argv[]) {
     // Global parameter for tire:
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
-    ChVector<> tire_center(0, 0, .3);
+    ChVector<> tire_center(.23, 0, 0);
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180� on y
 
     double tire_w0 = tire_vel_z0 / tire_rad;
@@ -59,11 +60,12 @@ int main(int argc, char* argv[]) {
     fea_container = new ChFEAContainer(&my_system);
     fea_container->kernel_radius = .05;
     fea_container->material_density = 1200;
-    fea_container->contact_mu = 1;
+    fea_container->contact_mu = .1;
     fea_container->contact_cohesion = 0;
-    fea_container->youngs_modulus = 5e5;  // 2e8;
+    fea_container->youngs_modulus = 1e5;  // 2e8;
     fea_container->poisson_ratio = .2;
     fea_container->contact_recovery_speed = 10000000;
+    fea_container->rigid_constraint_recovery_speed = .1;
     my_system.GetSettings()->solver.solver_mode = SLIDING;
     my_system.GetSettings()->solver.max_iteration_normal = 0;
     my_system.GetSettings()->solver.max_iteration_sliding = 40;
@@ -90,125 +92,79 @@ int main(int argc, char* argv[]) {
     // CREATE THE PHYSICAL SYSTEM
     //
 
+    // Create the surface material, containing information
+    // about friction etc.
+
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
 
     // FINITE ELEMENT MESH
     // Create a mesh, that is a container for groups
     // of FEA elements and their referenced nodes.
+    {
+        auto my_mesh = std::make_shared<ChMesh>();
 
-    auto my_mesh = std::make_shared<ChMesh>();
+        // Create a material, that must be assigned to each solid element in the mesh,
+        // and set its parameters
 
-    // Create a material, that must be assigned to each solid element in the mesh,
-    // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.4);
-    mmaterial->Set_RayleighDampingK(0.004);
-    mmaterial->Set_density(1000);
+        auto mmaterial = std::make_shared<ChContinuumElastic>();
+        mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
+        mmaterial->Set_v(0.4);
+        mmaterial->Set_RayleighDampingK(0.004);
+        mmaterial->Set_density(1000);
 
-    // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
-    // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
-    // This is much easier than creating all nodes and elements via C++ programming.
-    // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
+        // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
+        // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
+        // This is much easier than creating all nodes and elements via C++ programming.
+        // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
 
-    //std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+        std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
 
-    //    my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial, node_sets,
-    //                                tire_center, tire_alignment);
-    // Ruota_V3_Piena.INP
-//    my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tire.INP").c_str(), mmaterial, node_sets, tire_center,
-//                                tire_alignment);
-//
-//    // Apply initial speed and angular speed
-//    //    double speed_x0 = 0.5;
-//    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
-//        ChVector<> node_pos = my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->GetPos();
-//        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
-//        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
-//    }
+        //    my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
+        //    node_sets,
+        //                                tire_center, tire_alignment);
+        // Ruota_V3_Piena.INP
+        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tire_3.INP").c_str(), mmaterial, node_sets,
+                                         tire_center, tire_alignment);
 
-    // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
-    // std::vector<real3> pn(4);
-    // std::vector<real3> vn(4);
+        //
+        uint num_nodes = my_mesh->GetNnodes();
+        uint num_elements = my_mesh->GetNelements();
+        //
+        //    printf("Mesh Stats: Nodes: %d, Elements %d\n", num_nodes, num_elements);
+        //
+        //    // Apply initial speed and angular speed
+        //    //    double speed_x0 = 0.5;
+        for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
+            auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
+            ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
+        }
 
+        my_system.Add(my_mesh);
+    }
+    //    {
+    //        ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    //        ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    //        mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
+    //        mmaterial->Set_v(0.4);
+    //        mmaterial->Set_RayleighDampingK(0.004);
+    //        mmaterial->Set_density(1000);
+    //        std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+    //        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tire_3.INP").c_str(), mmaterial, node_sets,
+    //                                    ChVector<>(.8, 0, 0), tire_alignment);
+    //        my_system.Add(my_mesh);
+    //    }
     //
-    //    pn[0] = real3(1.000000, -0.180000, 1.500000);
-    //    pn[1] = real3(1.000000, -0.180000, -0.500000);
-    //    pn[2] = real3(1.000000, 1.820000, -0.500000);
-    //    pn[3] = real3(1.000000, 1.820000, 1.500000);
-    //    pn[4] = real3(-1.000000, -0.180000, -0.500000);
-    //    pn[5] = real3(-1.000000, 1.820000, -0.500000);
-    //    pn[6] = real3(-1.000000, -0.180000, 1.500000);
-    //    pn[7] = real3(-1.000000, 1.820000, 1.500000);
-    //    pn[8] = real3(-0.053533, 0.891667, 0.474167);
-
-    // pn[0] = real3(1.000000, 1.820000, -0.500000);
-    // pn[1] = real3(-0.053533, 0.891667, 0.474167);
-    // pn[2] = real3(-1.000000, 1.820000, 1.500000);
-    // pn[3] = real3(1.000000, 1.820000, 1.500000);
-
-    // std::vector<uint4> elements(1);
-    // elements[0] = _make_uint4(2, 8, 7, 3);
-    // elements[0] = _make_uint4(0, 1, 2, 3);
-    /// printf("%d %d %d %d \n", elements[0].x, elements[0].y, elements[0].z, elements[0].w);
-    // elements[0] = Sort(elements[0]);
-
-    // printf("%d %d %d %d \n",elements[0].x,elements[0].y,elements[0].z,elements[0].w);
-
+    //    for (int i = 0; i < node_sets.size(); i++) {
+    //        printf("Node sets: %d\n", node_sets[i].size());
     //
-    //    pn[0] = real3(-1, -1, -1);
-    //    pn[1] = real3(1., -1, -1);
-    //    pn[2] = real3(1., 1., -1);
-    //    pn[3] = real3(-1, 1., -1);
-    //
-    //    pn[4] = real3(-1, -1, 1.);
-    //    pn[5] = real3(1., -1, 1.);
-    //    pn[6] = real3(1., 1., 1.);
-    //    pn[7] = real3(-1, 1., 1.);
-    //
-    // std::fill(vn.begin(), vn.end(), real3(0));
-    //    std::vector<uint4> elements(4);
-    //    elements[0] = _make_uint4(0, 1, 2, 5);
-    //    elements[1] = _make_uint4(0, 2, 3, 7);
-    //    elements[2] = _make_uint4(0, 4, 5, 7);
-    //    elements[3] = _make_uint4(2, 5, 6, 7);
-    //    vn[0] = real3(0, 0, -10);
-    //    vn[1] = real3(0, 0, -10);
-    //    vn[2] = real3(0, 0, -10);
-    //    vn[3] = real3(0, 0, -10);
-    //    vn[4] = real3(0, 0, 10);
-    //    vn[5] = real3(0, 0, 10);
-    //    vn[6] = real3(0, 0, 10);
-    //    vn[7] = real3(0, 0, 10);
-    // fea_container->AddNodes(pn, vn);
-    // fea_container->AddElements(elements);
-
-    //    real3 c1, c2, c3;
-    //    c1 = pn[elements[0].y] - pn[elements[0].x];
-    //    c2 = pn[elements[0].z] - pn[elements[0].x];
-    //    c3 = pn[elements[0].w] - pn[elements[0].x];
-    //    Mat33 Ds = Mat33(c1, c2, c3);
-    //
-    //    real det = Determinant(Ds);
-    //    if (det < 0) {
-    //        Swap(pn[0], pn[1]);
-    //        c1 = pn[elements[0].y] - pn[elements[0].x];
-    //        c2 = pn[elements[0].z] - pn[elements[0].x];
-    //        c3 = pn[elements[0].w] - pn[elements[0].x];
-    //        Ds = Mat33(c1, c2, c3);
+    //        for (int j = 0; j < node_sets[i].size(); j++) {
+    //            fea_container->AddConstraint(node_sets[i][j]->GetIndex() + current_nodes, mwheel_rim);
+    //        }
     //    }
 
     // Add a rim
-    //    ChSharedPtr<ChBody> mwheel_rim(new ChBody);
-    //    mwheel_rim->SetMass(80);
-    //    mwheel_rim->SetInertiaXX(ChVector<>(60, 60, 60));
-    //    mwheel_rim->SetPos(tire_center);
-    //    mwheel_rim->SetRot(tire_alignment);
-    //    mwheel_rim->SetPos_dt(ChVector<>(0, 0, tire_vel_z0));
-    //    mwheel_rim->SetWvel_par(ChVector<>(tire_w0, 0, 0));
-    //    my_system.Add(mwheel_rim);
 
     // ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
     // mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
@@ -222,8 +178,13 @@ int main(int argc, char* argv[]) {
     //        mlink->Initialize(node_sets[nodeset_index][i].DynamicCastTo<ChNodeFEAxyz>(), mwheel_rim);
     //        my_system.Add(mlink);
     //    }
+    // fea_container->FindSurface();
 
     my_system.Initialize();
+
+    printf("Surface: %d %d %d %d %d\n", my_system.data_manager->num_fea_nodes, my_system.data_manager->num_fea_tets,
+           fea_container->num_boundary_triangles, fea_container->num_boundary_nodes,
+           fea_container->num_boundary_elements);
 
 //
 // THE SOFT-REAL-TIME CYCLE
