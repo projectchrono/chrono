@@ -51,6 +51,37 @@ ChMPMContainer* mpm_container;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
+void AddBody(ChSystemParallelDVI* sys) {
+    // IDs for the two bodies
+    int binId = -200;
+    int mixerId = -201;
+
+    // Create a common material
+    auto mat = std::make_shared<ChMaterialSurface>();
+    mat->SetFriction(0.4f);
+
+    // Create the containing bin (2 x 2 x 1)
+    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    bin->SetMaterialSurface(mat);
+    bin->SetIdentifier(binId);
+    bin->SetMass(100);
+    bin->SetPos(ChVector<>(0, 0, .5));
+    bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    bin->SetCollide(true);
+    bin->SetBodyFixed(false);
+
+    ChVector<> hdim(.15, .15, 0.05);
+
+    bin->GetCollisionModel()->ClearModel();
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, -hdim.z));
+    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, hdim.z*10));
+    bin->GetCollisionModel()->SetFamily(1);
+    bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
+    bin->GetCollisionModel()->BuildModel();
+
+    sys->AddBody(bin);
+}
+
 void AddContainer(ChSystemParallelDVI* sys) {
     // IDs for the two bodies
     int binId = -200;
@@ -99,10 +130,10 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->hardening_coefficient = 10.0;
 
     real initial_density = 4e2;
-    mpm_container->mass = .001;
+    mpm_container->mass = .01;
     mpm_container->max_iterations = 20;
     mpm_container->kernel_radius = .01;
-    mpm_container->contact_recovery_speed = 10000;
+    mpm_container->contact_recovery_speed = 1000;
 
     real radius = mpm_container->kernel_radius * 8;  //*5
     real dens = 30;
@@ -118,27 +149,27 @@ void AddFluid(ChSystemParallelDVI* sys) {
     vol = dist * dist * dist;
     mpm_container->mass = initial_density * vol;
 
-    utils::GridSampler<> sampler(dist);
-    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(-.2, radius, 0), ChVector<>(15,4,.3));
+    utils::PDSampler<> sampler(dist);
+    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, 0), ChVector<>(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(6, 0, 0);
+        vel_fluid[i] = real3(0, 0, -1);
     }
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
-//    points = sampler.SampleBox(ChVector<>(.2, 0, 0), ChVector<>(radius,radius,radius));
-//
-//    pos_fluid.resize(points.size());
-//    vel_fluid.resize(points.size());
-//    for (int i = 0; i < points.size(); i++) {
-//        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-//        vel_fluid[i] = real3(-6, 0, 0);
-//    }
-//    mpm_container->AddNodes(pos_fluid, vel_fluid);
+    points = sampler.SampleBox(ChVector<>(0, 0, 0), ChVector<>(radius, radius, radius));
+
+    pos_fluid.resize(points.size());
+    vel_fluid.resize(points.size());
+    for (int i = 0; i < points.size(); i++) {
+        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+        vel_fluid[i] = real3(-6, 0, 0);
+    }
+// mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
     std::ifstream ifile("state_0.029.dat");
@@ -174,7 +205,7 @@ int main(int argc, char* argv[]) {
     // ---------------------
 
     double gravity = 9.81;
-    double time_step = 1e-3;
+    double time_step = 2e-3;
     double time_end = 1;
 
     double out_fps = 50;
@@ -222,7 +253,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     AddContainer(&msystem);
-
+    AddBody(&msystem);
     // This initializes all of the MPM stuff
     msystem.Initialize();
 // Perform the simulation
