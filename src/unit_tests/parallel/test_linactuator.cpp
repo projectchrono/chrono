@@ -44,179 +44,180 @@ ChVector<> gravity(0, 0, -9.80665);
 // -----------------------------------------------------------------------------
 // Verify simulation results against analytical solution at the specified time.
 // -----------------------------------------------------------------------------
-bool VerifySolution(double time,                                 // current time
-                    const ChQuaternion<>& rot,                   // translation along Z axis
-                    double speed,                                // imposed translation speed
-                    ChSharedPtr<ChBody> plate,                   // handle to plate body
-                    ChSharedPtr<ChLinkLockPrismatic> prismatic,  // handle to prismatic joint
-                    ChSharedPtr<ChLinkLinActuator> actuator)     // handle to linear actuator
+bool VerifySolution(double time,                                     // current time
+                    const ChQuaternion<>& rot,                       // translation along Z axis
+                    double speed,                                    // imposed translation speed
+                    std::shared_ptr<ChBody> plate,                   // handle to plate body
+                    std::shared_ptr<ChLinkLockPrismatic> prismatic,  // handle to prismatic joint
+                    std::shared_ptr<ChLinkLinActuator> actuator)     // handle to linear actuator
 {
-  // Tolerances
-  double pos_tol = 1e-6;
-  double vel_tol = 1e-6;
-  double acc_tol = 1e-5;
+    // Tolerances
+    double pos_tol = 1e-6;
+    double vel_tol = 1e-6;
+    double acc_tol = 1e-5;
 
-  double quat_tol = 1e-6;
-  double avel_tol = 1e-6;
-  double aacc_tol = 1e-5;
+    double quat_tol = 1e-6;
+    double avel_tol = 1e-6;
+    double aacc_tol = 1e-5;
 
-  double rforce_tol = 1e-5;
-  double rtorque_tol = 5e-3;
+    double rforce_tol = 1e-5;
+    double rtorque_tol = 5e-3;
 
-  double cnstr_tol = 1e-10;
+    double cnstr_tol = 1e-10;
 
-  // Unit vector along translation axis, expressed in global frame
-  ChVector<> axis = rot.GetZaxis();
+    // Unit vector along translation axis, expressed in global frame
+    ChVector<> axis = rot.GetZaxis();
 
-  // Position, velocity, and acceleration (expressed in global frame)
-  // ----------------------------------------------------------------
+    // Position, velocity, and acceleration (expressed in global frame)
+    // ----------------------------------------------------------------
 
-  ChVector<> pos = plate->GetPos();
-  ChVector<> vel = plate->GetPos_dt();
-  ChVector<> acc = plate->GetPos_dtdt();
+    ChVector<> pos = plate->GetPos();
+    ChVector<> vel = plate->GetPos_dt();
+    ChVector<> acc = plate->GetPos_dtdt();
 
-  // The motion must be constant speed along the translation axis.
-  ChVector<> pos_an = time * speed * axis;
-  ChVector<> vel_an = speed * axis;
-  ChVector<> acc_an = ChVector<>(0, 0, 0);
+    // The motion must be constant speed along the translation axis.
+    ChVector<> pos_an = time * speed * axis;
+    ChVector<> vel_an = speed * axis;
+    ChVector<> acc_an = ChVector<>(0, 0, 0);
 
-  ChVector<> pos_delta = pos - pos_an;
-  if (pos_delta.Length() > pos_tol) {
-    std::cout << "   at t = " << time << "   pos - pos_an = " << pos_delta.x << "  " << pos_delta.y << "  "
-              << pos_delta.z << std::endl;
-    return false;
-  }
-
-  ChVector<> vel_delta = vel - vel_an;
-  if (vel_delta.Length() > vel_tol) {
-    std::cout << "   at t = " << time << "   vel - vel_an = " << vel_delta.x << "  " << vel_delta.y << "  "
-              << vel_delta.z << std::endl;
-    return false;
-  }
-
-  ChVector<> acc_delta = acc - acc_an;
-  if (acc_delta.Length() > acc_tol) {
-    std::cout << "   at t = " << time << "   acc - acc_an = " << acc_delta.x << "  " << acc_delta.y << "  "
-              << acc_delta.z << std::endl;
-    return false;
-  }
-
-  // Orientation and angular velocity / acceleration (expressed in global frame)
-  // ---------------------------------------------------------------------------
-
-  ChQuaternion<> quat = plate->GetRot();
-  ChVector<> avel = plate->GetWvel_par();
-  ChVector<> aacc = plate->GetWacc_par();
-
-  // The motion must maintain constant orientation of the plate body.
-  ChQuaternion<> quat_an = rot;
-  ChVector<> avel_an = ChVector<>(0, 0, 0);
-  ChVector<> aacc_an = ChVector<>(0, 0, 0);
-
-  ChQuaternion<> quat_delta = quat - quat_an;
-  if (quat_delta.Length() > quat_tol) {
-    std::cout << "   at t = " << time << "   quat - quat_an = " << quat_delta.e0 << "  " << quat_delta.e1 << "  "
-              << quat_delta.e2 << "  " << quat_delta.e3 << std::endl;
-    return false;
-  }
-
-  ChVector<> avel_delta = avel - avel_an;
-  if (avel_delta.Length() > avel_tol) {
-    std::cout << "   at t = " << time << "   avel - avel_an = " << avel_delta.x << "  " << avel_delta.y << "  "
-              << avel_delta.z << std::endl;
-    return false;
-  }
-
-  ChVector<> aacc_delta = aacc - aacc_an;
-  if (aacc_delta.Length() > aacc_tol) {
-    std::cout << "   at t = " << time << "   aacc - aacc_an = " << aacc_delta.x << "  " << aacc_delta.y << "  "
-              << aacc_delta.z << std::endl;
-    return false;
-  }
-
-  // Reaction force and torque in prismatic joint
-  // --------------------------------------------
-
-  // These are expressed in the link coordinate system. We convert them to
-  // the coordinate system of Body2 (in our case this is the ground).
-  ChCoordsys<> linkCoordsysP = prismatic->GetLinkRelativeCoords();
-  ChVector<> rforceP = prismatic->Get_react_force();
-  ChVector<> rforceP_ground = linkCoordsysP.TransformDirectionLocalToParent(rforceP);
-
-  ChVector<> rtorqueP = prismatic->Get_react_torque();
-  ChVector<> rtorqueP_ground = linkCoordsysP.TransformDirectionLocalToParent(rtorqueP);
-
-  // The reaction force in the prismatic joint is perpendicular to the
-  // translation direction. This can be obtained from a force diagram.
-  ChVector<> rforceP_an = gravity - Vdot(gravity, axis) * axis;
-  ChVector<> rforceP_delta = rforceP_ground - rforceP_an;
-  if (rforceP_delta.Length() > rforce_tol) {
-    std::cout << "   at t = " << time << "   rforceP - rforceP_an = " << rforceP_delta.x << "  " << rforceP_delta.y
-              << "  " << rforceP_delta.z << std::endl;
-    return false;
-  }
-
-  // The reaction torque at the joint location on ground has a non-zero
-  // component in the y direction only.
-  ChVector<> rtorqueP_an = Vcross(pos_an, rforceP_an);
-  ChVector<> rtorqueP_delta = rtorqueP_ground - rtorqueP_an;
-  if (rtorqueP_delta.Length() > rtorque_tol) {
-    std::cout << "   at t = " << time << "   rtorqueP - rtorqueP_an = " << rtorqueP_delta.x << "  " << rtorqueP_delta.y
-              << "  " << rtorqueP_delta.z << std::endl;
-    return false;
-  }
-
-  // Reaction force and torque in linear actuator
-  // --------------------------------------------
-
-  // These are expressed in the link coordinate system. The reaction force
-  // represents the force that needs to be applied to the plate in order to
-  // maintain the prescribed constant velocity.
-  ChCoordsys<> linkCoordsysA = actuator->GetLinkRelativeCoords();
-  ChVector<> rforceA = actuator->Get_react_force();
-  ChVector<> rtorqueA = actuator->Get_react_torque();
-
-  // Analytically, the driving force can be obtained from a force diagram along
-  // the translation axis.
-  double rforceA_an = mass * Vdot(acc_an - gravity, axis);
-  double rforceA_delta = (-rforceA.x) - rforceA_an;
-  if (std::abs(rforceA_delta) > rforce_tol) {
-    std::cout << "   at t = " << time << "   rforceA = " << -rforceA.x << "  "
-              << "   rforceA_an = " << rforceA_an << "  "
-              << "   rforceA - rforceA_an = " << rforceA_delta << std::endl;
-    return false;
-  }
-
-  ChVector<> rtorqueA_an = ChVector<>(0, 0, 0);
-  ChVector<> rtorqueA_delta = rtorqueA - rtorqueA_an;
-  if (rtorqueA_delta.Length() > rtorque_tol) {
-    std::cout << "   at t = " << time << "   rtorqueA - rtorqueA_an = " << rtorqueA_delta.x << "  " << rtorqueA_delta.y
-              << "  " << rtorqueA_delta.z << std::endl;
-    return false;
-  }
-
-  // Constraint violations in prismatic joint
-  // ----------------------------------------
-
-  ChMatrix<>* CP = prismatic->GetC();
-  for (int i = 0; i < 5; i++) {
-    if (std::abs(CP->GetElement(i, 0)) > cnstr_tol) {
-      std::cout << "   at t = " << time << "  constraint violation (prismatic " << i << ") = " << CP->GetElement(i, 0)
-                << std::endl;
-      return false;
+    ChVector<> pos_delta = pos - pos_an;
+    if (pos_delta.Length() > pos_tol) {
+        std::cout << "   at t = " << time << "   pos - pos_an = " << pos_delta.x << "  " << pos_delta.y << "  "
+                  << pos_delta.z << std::endl;
+        return false;
     }
-  }
 
-  // Constraint violations in linear actuator
-  // ----------------------------------------
+    ChVector<> vel_delta = vel - vel_an;
+    if (vel_delta.Length() > vel_tol) {
+        std::cout << "   at t = " << time << "   vel - vel_an = " << vel_delta.x << "  " << vel_delta.y << "  "
+                  << vel_delta.z << std::endl;
+        return false;
+    }
 
-  ChMatrix<>* CA = actuator->GetC();
-  if (std::abs(CA->GetElement(0, 0)) > cnstr_tol) {
-    std::cout << "   at t = " << time << "  constraint violation (actuator) = " << CA->GetElement(0, 0) << std::endl;
-    return false;
-  }
+    ChVector<> acc_delta = acc - acc_an;
+    if (acc_delta.Length() > acc_tol) {
+        std::cout << "   at t = " << time << "   acc - acc_an = " << acc_delta.x << "  " << acc_delta.y << "  "
+                  << acc_delta.z << std::endl;
+        return false;
+    }
 
-  return true;
+    // Orientation and angular velocity / acceleration (expressed in global frame)
+    // ---------------------------------------------------------------------------
+
+    ChQuaternion<> quat = plate->GetRot();
+    ChVector<> avel = plate->GetWvel_par();
+    ChVector<> aacc = plate->GetWacc_par();
+
+    // The motion must maintain constant orientation of the plate body.
+    ChQuaternion<> quat_an = rot;
+    ChVector<> avel_an = ChVector<>(0, 0, 0);
+    ChVector<> aacc_an = ChVector<>(0, 0, 0);
+
+    ChQuaternion<> quat_delta = quat - quat_an;
+    if (quat_delta.Length() > quat_tol) {
+        std::cout << "   at t = " << time << "   quat - quat_an = " << quat_delta.e0 << "  " << quat_delta.e1 << "  "
+                  << quat_delta.e2 << "  " << quat_delta.e3 << std::endl;
+        return false;
+    }
+
+    ChVector<> avel_delta = avel - avel_an;
+    if (avel_delta.Length() > avel_tol) {
+        std::cout << "   at t = " << time << "   avel - avel_an = " << avel_delta.x << "  " << avel_delta.y << "  "
+                  << avel_delta.z << std::endl;
+        return false;
+    }
+
+    ChVector<> aacc_delta = aacc - aacc_an;
+    if (aacc_delta.Length() > aacc_tol) {
+        std::cout << "   at t = " << time << "   aacc - aacc_an = " << aacc_delta.x << "  " << aacc_delta.y << "  "
+                  << aacc_delta.z << std::endl;
+        return false;
+    }
+
+    // Reaction force and torque in prismatic joint
+    // --------------------------------------------
+
+    // These are expressed in the link coordinate system. We convert them to
+    // the coordinate system of Body2 (in our case this is the ground).
+    ChCoordsys<> linkCoordsysP = prismatic->GetLinkRelativeCoords();
+    ChVector<> rforceP = prismatic->Get_react_force();
+    ChVector<> rforceP_ground = linkCoordsysP.TransformDirectionLocalToParent(rforceP);
+
+    ChVector<> rtorqueP = prismatic->Get_react_torque();
+    ChVector<> rtorqueP_ground = linkCoordsysP.TransformDirectionLocalToParent(rtorqueP);
+
+    // The reaction force in the prismatic joint is perpendicular to the
+    // translation direction. This can be obtained from a force diagram.
+    ChVector<> rforceP_an = gravity - Vdot(gravity, axis) * axis;
+    ChVector<> rforceP_delta = rforceP_ground - rforceP_an;
+    if (rforceP_delta.Length() > rforce_tol) {
+        std::cout << "   at t = " << time << "   rforceP - rforceP_an = " << rforceP_delta.x << "  " << rforceP_delta.y
+                  << "  " << rforceP_delta.z << std::endl;
+        return false;
+    }
+
+    // The reaction torque at the joint location on ground has a non-zero
+    // component in the y direction only.
+    ChVector<> rtorqueP_an = Vcross(pos_an, rforceP_an);
+    ChVector<> rtorqueP_delta = rtorqueP_ground - rtorqueP_an;
+    if (rtorqueP_delta.Length() > rtorque_tol) {
+        std::cout << "   at t = " << time << "   rtorqueP - rtorqueP_an = " << rtorqueP_delta.x << "  "
+                  << rtorqueP_delta.y << "  " << rtorqueP_delta.z << std::endl;
+        return false;
+    }
+
+    // Reaction force and torque in linear actuator
+    // --------------------------------------------
+
+    // These are expressed in the link coordinate system. The reaction force
+    // represents the force that needs to be applied to the plate in order to
+    // maintain the prescribed constant velocity.
+    ChCoordsys<> linkCoordsysA = actuator->GetLinkRelativeCoords();
+    ChVector<> rforceA = actuator->Get_react_force();
+    ChVector<> rtorqueA = actuator->Get_react_torque();
+
+    // Analytically, the driving force can be obtained from a force diagram along
+    // the translation axis.
+    double rforceA_an = mass * Vdot(acc_an - gravity, axis);
+    double rforceA_delta = (-rforceA.x) - rforceA_an;
+    if (std::abs(rforceA_delta) > rforce_tol) {
+        std::cout << "   at t = " << time << "   rforceA = " << -rforceA.x << "  "
+                  << "   rforceA_an = " << rforceA_an << "  "
+                  << "   rforceA - rforceA_an = " << rforceA_delta << std::endl;
+        return false;
+    }
+
+    ChVector<> rtorqueA_an = ChVector<>(0, 0, 0);
+    ChVector<> rtorqueA_delta = rtorqueA - rtorqueA_an;
+    if (rtorqueA_delta.Length() > rtorque_tol) {
+        std::cout << "   at t = " << time << "   rtorqueA - rtorqueA_an = " << rtorqueA_delta.x << "  "
+                  << rtorqueA_delta.y << "  " << rtorqueA_delta.z << std::endl;
+        return false;
+    }
+
+    // Constraint violations in prismatic joint
+    // ----------------------------------------
+
+    ChMatrix<>* CP = prismatic->GetC();
+    for (int i = 0; i < 5; i++) {
+        if (std::abs(CP->GetElement(i, 0)) > cnstr_tol) {
+            std::cout << "   at t = " << time << "  constraint violation (prismatic " << i
+                      << ") = " << CP->GetElement(i, 0) << std::endl;
+            return false;
+        }
+    }
+
+    // Constraint violations in linear actuator
+    // ----------------------------------------
+
+    ChMatrix<>* CA = actuator->GetC();
+    if (std::abs(CA->GetElement(0, 0)) > cnstr_tol) {
+        std::cout << "   at t = " << time << "  constraint violation (actuator) = " << CA->GetElement(0, 0)
+                  << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -290,13 +291,12 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   }
 
   // Create the ground body.
-
-  ChSharedPtr<ChBody> ground(msystem->NewBody());
+  std::shared_ptr<ChBody> ground(msystem->NewBody());
 
   msystem->AddBody(ground);
   ground->SetBodyFixed(true);
 
-  ChSharedPtr<ChBoxShape> box_g(new ChBoxShape);
+  auto box_g = std::make_shared<ChBoxShape>();
   box_g->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 5));
   box_g->Pos = 2.5 * axis;
   box_g->Rot = rot;
@@ -304,7 +304,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
 
   // Create the plate body.
 
-  ChSharedPtr<ChBody> plate(msystem->NewBody());
+  std::shared_ptr<ChBody> plate(msystem->NewBody());
 
   msystem->AddBody(plate);
   plate->SetPos(ChVector<>(0, 0, 0));
@@ -313,7 +313,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   plate->SetMass(mass);
   plate->SetInertiaXX(inertiaXX);
 
-  ChSharedPtr<ChBoxShape> box_p(new ChBoxShape);
+  auto box_p = std::make_shared<ChBoxShape>();
   box_p->GetBoxGeometry().SetLengths(ChVector<>(1, 1, 0.2));
   plate->AddAsset(box_p);
 
@@ -321,7 +321,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   // We set the ground as the "master" body (second one in the initialization
   // call) so that the link coordinate system is expressed in the ground frame.
 
-  ChSharedPtr<ChLinkLockPrismatic> prismatic(new ChLinkLockPrismatic);
+  auto prismatic = std::make_shared<ChLinkLockPrismatic>();
   prismatic->Initialize(plate, ground, ChCoordsys<>(ChVector<>(0, 0, 0), rot));
   msystem->AddLink(prismatic);
 
@@ -329,14 +329,14 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   //   y(t) = 0 + t * speed
   //   y'(t) = speed
 
-  ChSharedPtr<ChFunction_Ramp> actuator_fun(new ChFunction_Ramp(0.0, speed));
+  auto actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, speed);
 
   // Create the linear actuator, connecting the plate to the ground.
   // Here, we set the plate as the master body (second one in the initialization
   // call) so that the link coordinate system is expressed in the plate body
   // frame.
 
-  ChSharedPtr<ChLinkLinActuator> actuator(new ChLinkLinActuator);
+  auto actuator = std::make_shared<ChLinkLinActuator>();
   ChVector<> pt1 = ChVector<>(0, 0, 0);
   ChVector<> pt2 = axis;
   actuator->Initialize(ground, plate, false, ChCoordsys<>(pt1, rot), ChCoordsys<>(pt2, rot));

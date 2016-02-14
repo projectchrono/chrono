@@ -96,14 +96,14 @@ double rho_g = 1000;  // [kg/m^3] density of granules
 float mu_g = 0.5f;
 
 void CreateMechanismBodies(ChSystemParallel* system) {
-  ChSharedPtr<ChMaterialSurface> mat_walls(new ChMaterialSurface);
+  auto mat_walls = std::make_shared<ChMaterialSurface>();
   mat_walls->SetFriction(mu_walls);
 
-  ChSharedPtr<ChBody> container(new ChBody(
+  auto container = std::make_shared<ChBody>(
 #ifndef BULLET
       new ChCollisionModelParallel
 #endif
-      ));
+      );
   container->SetMaterialSurface(mat_walls);
   container->SetIdentifier(Id_container);
   container->SetBodyFixed(true);
@@ -112,20 +112,20 @@ void CreateMechanismBodies(ChSystemParallel* system) {
 
   // Attach geometry of the containing bin
   container->GetCollisionModel()->ClearModel();
-  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick));
-  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hthick, hdimY, hdimZ), ChVector<>(-hdimX - hthick, 0, hdimZ));
-  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hthick, hdimY, hdimZ), ChVector<>(hdimX + hthick, 0, hdimZ));
-  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hdimX, hthick, hdimZ), ChVector<>(0, -hdimY - hthick, hdimZ));
-  utils::AddBoxGeometry(container.get_ptr(), ChVector<>(hdimX, hthick, hdimZ), ChVector<>(0, hdimY + hthick, hdimZ));
+  utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick));
+  utils::AddBoxGeometry(container.get(), ChVector<>(hthick, hdimY, hdimZ), ChVector<>(-hdimX - hthick, 0, hdimZ));
+  utils::AddBoxGeometry(container.get(), ChVector<>(hthick, hdimY, hdimZ), ChVector<>(hdimX + hthick, 0, hdimZ));
+  utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hthick, hdimZ), ChVector<>(0, -hdimY - hthick, hdimZ));
+  utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hthick, hdimZ), ChVector<>(0, hdimY + hthick, hdimZ));
   container->GetCollisionModel()->BuildModel();
 
   system->AddBody(container);
 
-  ChSharedPtr<ChBody> ground(new ChBody(
+  auto ground = std::make_shared<ChBody>(
 #ifndef BULLET
       new ChCollisionModelParallel
 #endif
-      ));
+      );
   ground->SetMaterialSurface(mat_walls);
   ground->SetIdentifier(Id_ground);
   ground->SetBodyFixed(true);
@@ -137,7 +137,7 @@ void CreateMechanismBodies(ChSystemParallel* system) {
 
 void CreateGranularMaterial(ChSystemParallel* sys) {
   // Common material
-  ChSharedPtr<ChMaterialSurface> ballMat(new ChMaterialSurface);
+  auto ballMat = std::make_shared<ChMaterialSurface>();
   ballMat->SetFriction(1.0);
 
   // Create the falling balls
@@ -153,7 +153,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
         ChVector<> rnd(rand() % 1000 / 100000.0, rand() % 1000 / 100000.0, rand() % 1000 / 100000.0);
         ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
-        ChSharedBodyPtr ball(new ChBody(new ChCollisionModelParallel));
+        auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel);
         ball->SetMaterialSurface(ballMat);
 
         ball->SetIdentifier(ballId++);
@@ -165,7 +165,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
         ball->SetCollide(true);
 
         ball->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(ball.get_ptr(), radius);
+        utils::AddSphereGeometry(ball.get(), radius);
         ball->GetCollisionModel()->BuildModel();
 
         sys->AddBody(ball);

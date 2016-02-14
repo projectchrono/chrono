@@ -53,29 +53,26 @@ ChIrrAssetConverter::~ChIrrAssetConverter() {
         cylinderMesh->drop();
 }
 
-ChSharedPtr<ChIrrNodeAsset> ChIrrAssetConverter::GetIrrNodeAsset(
-    ChSharedPtr<ChPhysicsItem> mitem) {
-    ChSharedPtr<ChIrrNodeAsset> myirrasset;  // default: IsNull() will return true
-    std::vector<ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
+std::shared_ptr<ChIrrNodeAsset> ChIrrAssetConverter::GetIrrNodeAsset(std::shared_ptr<ChPhysicsItem> mitem) {
+    std::shared_ptr<ChIrrNodeAsset> myirrasset;
+    std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
 
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        ChSharedPtr<ChAsset> k_asset = assetlist[k];
+        std::shared_ptr<ChAsset> k_asset = assetlist[k];
         // asset k of object i references a proxy to an irrlicht node?
-        if (k_asset.IsType<ChIrrNodeAsset>()) {
-            myirrasset = k_asset.DynamicCastTo<ChIrrNodeAsset>();
-        }
+        myirrasset = std::dynamic_pointer_cast<ChIrrNodeAsset>(k_asset);
     }
+
     return myirrasset;
 }
 
-void ChIrrAssetConverter::Bind(ChSharedPtr<ChPhysicsItem> mitem) {
+void ChIrrAssetConverter::Bind(std::shared_ptr<ChPhysicsItem> mitem) {
     // find a ChIrrNodeAsset if there is already one...
-    ChSharedPtr<ChIrrNodeAsset> irrasset;
-    irrasset = GetIrrNodeAsset(mitem);
+    std::shared_ptr<ChIrrNodeAsset> irrasset = GetIrrNodeAsset(mitem);
 
-    if (irrasset.IsNull()) {
+    if (!irrasset) {
         // add the ChIrrNodeAsset because it was not already there
-        ChSharedPtr<ChIrrNodeAsset> mirr_assetpart(new ChIrrNodeAsset);
+        auto mirr_assetpart = std::make_shared<ChIrrNodeAsset>();
         mirr_assetpart->Bind(mitem, *minterface);
         mitem->AddAsset(mirr_assetpart);
     }
@@ -101,7 +98,7 @@ void ChIrrAssetConverter::BindAll() {
     }
 }
 
-void ChIrrAssetConverter::Update(ChSharedPtr<ChPhysicsItem> mitem) {
+void ChIrrAssetConverter::Update(std::shared_ptr<ChPhysicsItem> mitem) {
     CleanIrrlicht(mitem);
     PopulateIrrlicht(mitem);
 }
@@ -126,20 +123,19 @@ void ChIrrAssetConverter::UpdateAll() {
     }
 }
 
-void ChIrrAssetConverter::CleanIrrlicht(ChSharedPtr<ChPhysicsItem> mitem) {
-    ChSharedPtr<ChIrrNodeAsset> irrasset;
-    irrasset = GetIrrNodeAsset(mitem);
+void ChIrrAssetConverter::CleanIrrlicht(std::shared_ptr<ChPhysicsItem> mitem) {
+    std::shared_ptr<ChIrrNodeAsset> irrasset = GetIrrNodeAsset(mitem);
 
-    if (!irrasset.IsNull()) {
+    if (irrasset) {
         irrasset->GetIrrlichtNode()->removeAll();
     }
 }
 
-void ChIrrAssetConverter::PopulateIrrlicht(ChSharedPtr<ChPhysicsItem> mitem) {
+void ChIrrAssetConverter::PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem) {
     camera_found_in_assets = 0;
     mcamera = 0;
-    std::vector<ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
-    ChSharedPtr<ChIrrNodeAsset> myirrasset;
+    std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
+    std::shared_ptr<ChIrrNodeAsset> myirrasset;
 
     // 1- Clean the ChIrrNode
     CleanIrrlicht(mitem);
@@ -147,7 +143,7 @@ void ChIrrAssetConverter::PopulateIrrlicht(ChSharedPtr<ChPhysicsItem> mitem) {
     // 2- Find the ChIrrNodeAsset proxy
     myirrasset = GetIrrNodeAsset(mitem);
 
-    if (myirrasset.IsNull())
+    if (!myirrasset)
         return;
 
     // 3- If shapes must be 'clones', put all them inside an intermediate level
@@ -192,180 +188,170 @@ void ChIrrAssetConverter::mflipSurfacesOnX(IMesh* mesh) const {
         }
         const u32 vertcnt = buffer->getVertexCount();
         for (u32 i = 0; i < vertcnt; i++) {
+            buffer->getPosition(i).X = -buffer->getPosition(i).X; // mirror vertex
             core::vector3df oldnorm = buffer->getNormal(i);
             buffer->getNormal(i).X = -oldnorm.X;  // mirrors normal on X
         }
     }
 }
 
-void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAsset> >& assetlist,
+void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                                    ChFrame<> parentframe,
                                                    ISceneNode* mnode) {
-    ChSharedPtr<ChTexture> mtexture;   // def no texture in level
-    ChSharedPtr<ChColorAsset> mcolor;  // def no visualiz. settings in level
+    std::shared_ptr<ChTexture> mtexture;   // def no texture in level
+    std::shared_ptr<ChColorAsset> mcolor;  // def no visualiz. settings in level
 
     // Scan assets in object and copy them as Irrlicht meshes in the ISceneNode
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        ChSharedPtr<ChAsset> k_asset = assetlist[k];
+        std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
-        if (k_asset.IsType<ChObjShapeFile>()) {
-            ChSharedPtr<ChObjShapeFile> myobj(k_asset.DynamicCastTo<ChObjShapeFile>());
-            IAnimatedMesh* genericMesh = scenemanager->getMesh(myobj->GetFilename().c_str());
-            if (genericMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(myobj, mnode);
-                ISceneNode* mchildnode = scenemanager->addAnimatedMeshSceneNode(genericMesh, mproxynode);
-                mproxynode->drop();
+        if (auto v_asset = std::dynamic_pointer_cast<ChVisualization>(k_asset)) {
+            if (v_asset->IsVisible()) {
+                if (auto myobj = std::dynamic_pointer_cast<ChObjShapeFile>(k_asset)) {
+                    IAnimatedMesh* genericMesh = scenemanager->getMesh(myobj->GetFilename().c_str());
+                    if (genericMesh) {
+                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(myobj, mnode);
+                        ISceneNode* mchildnode = scenemanager->addAnimatedMeshSceneNode(genericMesh, mproxynode);
+                        mproxynode->drop();
 
-                // mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
+                        // mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, false);
 
-                mchildnode->setScale(irr::core::vector3df(-1, 1, 1));  // because of Irrlicht being left handed!!!
-                mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING,
-                                            true);  // because of Irrlicht being left handed!!!
-                mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh());  // this wold be better than disabling back culling, but it does not work!
-            }
+                        // Note: the Irrlicht loader of .OBJ files flips the X to correct its left-handed nature, but
+                        // this goes wrong with our assemblies and links. So we rather accept that the display is X mirrored, and we
+                        // restore the X flipping of the mesh (also the normals and triangle indexes ordering must be flipped otherwise 
+                        // back culling is not working):
+                        mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh()); 
+
+                        mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING,true);  
+                    }
+                } else if (auto mytrimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset)) {
+                    CDynamicMeshBuffer* buffer =
+                        new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+                    //	SMeshBuffer* buffer = new SMeshBuffer();
+                    SMesh* newmesh = new SMesh;
+                    newmesh->addMeshBuffer(buffer);
+                    buffer->drop();
+
+                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(mytrimesh, mnode);
+                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    newmesh->drop();
+                    mproxynode->Update();  // force syncing of triangle positions & face indexes
+                    mproxynode->drop();
+
+                    mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mytrimesh->IsWireframe());
+                    mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull());
+                } else if (auto myglyphs = std::dynamic_pointer_cast<ChGlyphs>(k_asset)) {
+                    CDynamicMeshBuffer* buffer =
+                        new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+                    //  SMeshBuffer* buffer = new SMeshBuffer();
+                    SMesh* newmesh = new SMesh;
+                    newmesh->addMeshBuffer(buffer);
+                    buffer->drop();
+
+                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(myglyphs, mnode);
+                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    newmesh->drop();
+                    mproxynode->Update();  // force syncing of triangle positions & face indexes
+                    mproxynode->drop();
+
+                    // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
+                    // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
+                } else if (std::dynamic_pointer_cast<ChPathShape>(k_asset) || std::dynamic_pointer_cast<ChLineShape>(k_asset)) {
+                    CDynamicMeshBuffer* buffer =
+                        new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+                    SMesh* newmesh = new SMesh;
+                    newmesh->addMeshBuffer(buffer);
+                    buffer->drop();
+
+                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(k_asset, mnode);
+                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    newmesh->drop();
+                    mproxynode->Update();  // force syncing of triangle positions & face indexes
+                    mproxynode->drop();
+
+                    // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
+                    // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
+                } else if (auto mysphere = std::dynamic_pointer_cast<ChSphereShape>(k_asset)) {
+                    if (sphereMesh) {
+                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mysphere, mnode);
+                        ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh, mproxynode);
+                        mproxynode->drop();
+
+                        // Calculate transform from node to geometry
+                        // (concatenate node - asset and asset - geometry)
+                        ChVector<> pos = mysphere->Pos + mysphere->Rot * mysphere->GetSphereGeometry().center;
+                        ChCoordsys<> irrspherecoords(pos, mysphere->Rot.Get_A_quaternion());
+
+                        double mradius = mysphere->GetSphereGeometry().rad;
+                        mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
+                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                        mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                    }
+                } else if (auto mycylinder = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
+                    if (cylinderMesh) {
+                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycylinder, mnode);
+                        ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cylinderMesh, mproxynode);
+                        mproxynode->drop();
+
+                        double rad = mycylinder->GetCylinderGeometry().rad;
+                        ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
+                        double height = dir.Length();
+
+                        // Calculate transform from asset to geometry
+                        dir.Normalize();
+                        ChVector<> mx, my, mz;
+                        dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+                        ChMatrix33<> mrot;
+                        mrot.Set_A_axis(mx, my, mz);
+                        ChVector<> mpos =
+                            0.5 * (mycylinder->GetCylinderGeometry().p2 + mycylinder->GetCylinderGeometry().p1);
+
+                        // Calculate transform from node to geometry
+                        // (concatenate node - asset and asset - geometry)
+                        ChVector<> pos = mycylinder->Pos + mycylinder->Rot * mpos;
+                        ChMatrix33<> rot = mycylinder->Rot * mrot;
+                        ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
+
+                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
+                        core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
+                        mchildnode->setScale(irrsize);
+                        mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                    }
+                }
+                else if (auto mybox = std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
+                    if (cubeMesh) {
+                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybox, mnode);
+                        ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cubeMesh, mproxynode);
+                        mproxynode->drop();
+
+                        // Calculate transform from node to geometry
+                        // (concatenate node - asset and asset - geometry)
+                        ChVector<> pos = mybox->Pos + mybox->Rot * mybox->GetBoxGeometry().Pos;
+                        ChMatrix33<> rot = mybox->Rot * mybox->GetBoxGeometry().Rot;
+                        ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
+
+                        mchildnode->setScale(core::vector3dfCH(mybox->GetBoxGeometry().Size));
+                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
+                        mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                    }
+                } else if (auto mycamera = std::dynamic_pointer_cast<ChCamera>(k_asset)) {
+                    camera_found_in_assets = true;
+                    ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycamera, mnode);
+                    RTSCamera* irrcamera = new RTSCamera(mdevice, mproxynode, scenemanager, -1, -160.0f, 1.0f, 0.003f);
+                    mproxynode->drop();
+
+                    irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
+                    irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
+                    double fov_rad = mycamera->GetAngle() * CH_C_DEG_TO_RAD;
+                    irrcamera->setFOV((irr::f32)fov_rad);
+                    irrcamera->setNearValue(0.3f);
+                    irrcamera->setMinZoom(0.6f);
+                }
+            }  // end if visible asset
         }
-        if (k_asset.IsType<ChTriangleMeshShape>()) {
-            ChSharedPtr<ChTriangleMeshShape> mytrimesh(
-                k_asset.DynamicCastTo<ChTriangleMeshShape>());
 
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
-            //	SMeshBuffer* buffer = new SMeshBuffer();
-            SMesh* newmesh = new SMesh;
-            newmesh->addMeshBuffer(buffer);
-            buffer->drop();
-
-            ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(mytrimesh, mnode);
-            ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
-            newmesh->drop();
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
-
-            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mytrimesh->IsWireframe());
-            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull());
-        }
-        if (k_asset.IsType<ChGlyphs>()) {
-            ChSharedPtr<ChGlyphs> myglyphs(k_asset.DynamicCastTo<ChGlyphs>());
-
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
-            //  SMeshBuffer* buffer = new SMeshBuffer();
-            SMesh* newmesh = new SMesh;
-            newmesh->addMeshBuffer(buffer);
-            buffer->drop();
-
-            ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(myglyphs, mnode);
-            ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
-            newmesh->drop();
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
-
-            // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
-            // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
-        }
-        if (k_asset.IsType<ChPathShape>() || k_asset.IsType<ChLineShape>()) {
-            // ChSharedPtr<ChA> mypath(k_asset.DynamicCastTo<ChPathShape>());
-
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
-            SMesh* newmesh = new SMesh;
-            newmesh->addMeshBuffer(buffer);
-            buffer->drop();
-
-            ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(k_asset, mnode);
-            ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
-            newmesh->drop();
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
-
-            // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
-            // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
-        }
-        if (k_asset.IsType<ChSphereShape>() && sphereMesh) {
-            ChSharedPtr<ChSphereShape> mysphere(k_asset.DynamicCastTo<ChSphereShape>());
-            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mysphere, mnode);
-            ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh, mproxynode);
-            mproxynode->drop();
-
-            // Calculate transform from node to geometry
-            // (concatenate node - asset and asset - geometry)
-            ChVector<> pos = mysphere->Pos + mysphere->Rot * mysphere->GetSphereGeometry().center;
-            ChCoordsys<> irrspherecoords(pos, mysphere->Rot.Get_A_quaternion());
-
-            double mradius = mysphere->GetSphereGeometry().rad;
-            mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
-            ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
-            mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-        }
-        if (k_asset.IsType<ChCylinderShape>() && cylinderMesh) {
-            ChSharedPtr<ChCylinderShape> mycylinder(k_asset.DynamicCastTo<ChCylinderShape>());
-            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycylinder, mnode);
-            ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cylinderMesh, mproxynode);
-            mproxynode->drop();
-
-            double rad = mycylinder->GetCylinderGeometry().rad;
-            ChVector<> dir = mycylinder->GetCylinderGeometry().p2 - mycylinder->GetCylinderGeometry().p1;
-            double height = dir.Length();
-
-            // Calculate transform from asset to geometry
-            dir.Normalize();
-            ChVector<> mx, my, mz;
-            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            ChMatrix33<> mrot;
-            mrot.Set_A_axis(mx, my, mz);
-            ChVector<> mpos =
-                0.5 * (mycylinder->GetCylinderGeometry().p2 + mycylinder->GetCylinderGeometry().p1);
-
-            // Calculate transform from node to geometry
-            // (concatenate node - asset and asset - geometry)
-            ChVector<> pos = mycylinder->Pos + mycylinder->Rot * mpos;
-            ChMatrix33<> rot = mycylinder->Rot * mrot;
-            ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
-
-            ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
-            core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
-            mchildnode->setScale(irrsize);
-            mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-        }
-        if (k_asset.IsType<ChBoxShape>() && cubeMesh) {
-            ChSharedPtr<ChBoxShape> mybox(k_asset.DynamicCastTo<ChBoxShape>());
-            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybox, mnode);
-            ISceneNode* mchildnode = scenemanager->addMeshSceneNode(cubeMesh, mproxynode);
-            mproxynode->drop();
-
-            // Calculate transform from node to geometry
-            // (concatenate node - asset and asset - geometry)
-            ChVector<> pos = mybox->Pos + mybox->Rot * mybox->GetBoxGeometry().Pos;
-            ChMatrix33<> rot = mybox->Rot * mybox->GetBoxGeometry().Rot;
-            ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
-
-            mchildnode->setScale(core::vector3dfCH(mybox->GetBoxGeometry().Size));
-            ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
-            mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-        }
-
-        if (k_asset.IsType<ChTexture>()) {
-            mtexture = k_asset.DynamicCastTo<ChTexture>();
-        }
-        if (k_asset.IsType<ChColorAsset>()) {
-            mcolor = k_asset.DynamicCastTo<ChColorAsset>();
-        }
-
-        if (k_asset.IsType<ChCamera>()) {
-            camera_found_in_assets = true;
-            ChSharedPtr<ChCamera> mycamera(k_asset.DynamicCastTo<ChCamera>());
-            ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mycamera, mnode);
-            RTSCamera* irrcamera =
-                new RTSCamera(mdevice, mproxynode, scenemanager, -1, -160.0f, 1.0f, 0.003f);
-            mproxynode->drop();
-
-            irrcamera->setPosition(core::vector3dfCH(mycamera->GetPosition()));
-            irrcamera->setTarget(core::vector3dfCH(mycamera->GetAimPoint()));
-            double fov_rad = mycamera->GetAngle() * CH_C_DEG_TO_RAD;
-            irrcamera->setFOV((irr::f32)fov_rad);
-            irrcamera->setNearValue(0.3f);
-            irrcamera->setMinZoom(0.6f);
-        }
-        if (k_asset.IsType<ChAssetLevel>()) {
-            ChSharedPtr<ChAssetLevel> mylevel(k_asset.DynamicCastTo<ChAssetLevel>());
-            std::vector<ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
+        if (auto mylevel = std::dynamic_pointer_cast<ChAssetLevel>(k_asset)) {
+            std::vector<std::shared_ptr<ChAsset> >& subassetlist = mylevel->GetAssets();
             ChFrame<> subassetframe = mylevel->GetFrame();
             ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mylevel, mnode);
             ISceneNode* subassetnode = scenemanager->addEmptySceneNode(mproxynode);
@@ -374,10 +360,16 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             _recursePopulateIrrlicht(subassetlist, subassetframe, subassetnode);
         }
 
+        if (std::dynamic_pointer_cast<ChTexture>(k_asset))
+            mtexture = std::static_pointer_cast<ChTexture>(k_asset);
+
+        if (std::dynamic_pointer_cast<ChColorAsset>(k_asset))
+            mcolor = std::static_pointer_cast<ChColorAsset>(k_asset);
+
     }  // end loop on assets
 
     // if a texture has been found, apply it to all nodes of this level
-    if (!mtexture.IsNull()) {
+    if (mtexture) {
         video::ITexture* mtextureMap = mdevice->getVideoDriver()->getTexture(mtexture->GetTextureFilename().c_str());
         ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
         for (; it != mnode->getChildren().end(); ++it) {
@@ -385,13 +377,14 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
             ISceneNode* meshnode = *(mproxynode->getChildren().begin());  // ..one child ISceneNode with a mesh
             if (meshnode) {
                 meshnode->setMaterialTexture(0, mtextureMap);
-                meshnode->getMaterial(0).getTextureMatrix(0).setTextureScale(mtexture->GetTextureScaleX(), mtexture->GetTextureScaleY());
+                meshnode->getMaterial(0).getTextureMatrix(0).setTextureScale(mtexture->GetTextureScaleX(),
+                                                                             mtexture->GetTextureScaleY());
             }
         }
     }
 
     // if a visualization setting (color) has been set, apply it to all nodes of this level
-    if (!mcolor.IsNull()) {
+    if (mcolor) {
         ISceneNodeList::ConstIterator it = mnode->getChildren().begin();
         for (; it != mnode->getChildren().end(); ++it) {
             ISceneNode* mproxynode = (*it);                               // the ChIrrNodeProxyToAsset contains..
@@ -407,11 +400,10 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAss
     }
 
     // if a visualization setting (color) has been set, force the color attribute of all assets in same level
-    if (!mcolor.IsNull()) {
+    if (mcolor) {
         for (unsigned int k = 0; k < assetlist.size(); k++) {
-            if (ChSharedPtr<ChVisualization> k_visasset = assetlist[k].DynamicCastTo<ChVisualization>()) {
+            if (auto k_visasset = std::dynamic_pointer_cast<ChVisualization>(assetlist[k]))
                 k_visasset->SetColor(mcolor->GetColor());
-            }
         }
     }
 

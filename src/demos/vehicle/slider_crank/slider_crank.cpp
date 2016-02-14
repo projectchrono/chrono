@@ -74,7 +74,7 @@ void OutputData(ChSystem*             system,
   ofile << time << ", ";
 
   for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-    ChBody* body = (ChBody*) system->Get_bodylist()->at(i);
+      ChSharedPtr<ChBody> body = system->Get_bodylist()->at(i);
 
     if (!body->IsActive())
       continue;
@@ -135,7 +135,7 @@ int main(int   argc,
   z2y.Q_from_AngAxis(-CH_C_PI/2, ChVector<>(1, 0, 0));
 
   // Ground
-  ChSharedBodyPtr  ground(new ChBody);
+  ChSharedPtr<ChBody>  ground(new ChBody);
   system.AddBody(ground);
   ground->SetIdentifier(-1);
   ground->SetBodyFixed(true);
@@ -145,7 +145,7 @@ int main(int   argc,
   ground->GetCollisionModel()->BuildModel();
 
   // Crank
-  ChSharedBodyPtr  crank(new ChBody);
+  ChSharedPtr<ChBody>  crank(new ChBody);
   system.AddBody(crank);
   crank->SetIdentifier(1);
   crank->SetPos(ChVector<>(1,0,0));
@@ -156,7 +156,7 @@ int main(int   argc,
   crank->GetCollisionModel()->BuildModel();
 
   // Rod
-  ChSharedBodyPtr  rod(new ChBody);
+  ChSharedPtr<ChBody>  rod(new ChBody);
   system.AddBody(rod);
   rod->SetIdentifier(2);
   rod->SetPos(ChVector<>(4,0,0));

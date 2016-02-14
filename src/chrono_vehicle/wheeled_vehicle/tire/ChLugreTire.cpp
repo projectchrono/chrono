@@ -56,7 +56,7 @@ void ChLugreTire::Initialize() {
     }
 }
 
-void ChLugreTire::Initialize(ChSharedPtr<ChBody> wheel) {
+void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel) {
     // Perform the actual initialization
     Initialize();
 
@@ -66,14 +66,14 @@ void ChLugreTire::Initialize(ChSharedPtr<ChBody> wheel) {
     const double* disc_locs = getDiscLocations();
 
     for (int id = 0; id < getNumDiscs(); id++) {
-        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().rad = disc_radius;
         cyl->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
         cyl->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
         wheel->AddAsset(cyl);
     }
 
-    ChSharedPtr<ChTexture> tex(new ChTexture);
+    auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     wheel->AddAsset(tex);
 }

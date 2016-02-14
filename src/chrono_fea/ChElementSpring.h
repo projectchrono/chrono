@@ -13,8 +13,8 @@
 #ifndef CHELEMENTSPRING_H
 #define CHELEMENTSPRING_H
 
-#include "ChElementGeneric.h"
-#include "ChNodeFEAxyz.h"
+#include "chrono_fea/ChElementGeneric.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -28,7 +28,7 @@ namespace fea {
 /// the two nodes must be set with non-zero point mass.
 class ChApiFea ChElementSpring : public ChElementGeneric {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
+      std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     double spring_k;
     double damper_r;
 
@@ -40,9 +40,9 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     virtual int GetNcoords() { return 2 * 3; }
     virtual int GetNdofs() { return 2 * 3; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA, ChSharedPtr<ChNodeFEAxyz> nodeB) {
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
         std::vector<ChLcpVariables*> mvars;

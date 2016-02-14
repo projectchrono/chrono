@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the
     /// associated wheel body.
-    void Initialize(ChSharedPtr<ChBody> wheel  ///< handle to the associated wheel body
+    void Initialize(std::shared_ptr<ChBody> wheel  ///< handle to the associated wheel body
                     );
 
   protected:

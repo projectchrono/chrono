@@ -13,11 +13,12 @@
 #ifndef CHRANDOMPARTICLEPOSITION_H
 #define CHRANDOMPARTICLEPOSITION_H
 
-#include "core/ChMathematics.h"
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChDistribution.h"
-#include "core/ChSmartpointers.h"
+#include <memory>
+
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChDistribution.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -25,7 +26,7 @@ namespace particlefactory {
 /// BASE class for generators of random particle positions.
 /// By default it simply always returns Pxyz={0,0,0}, so it
 /// it is up to sub-classes to implement more sophisticated randomizations.
-class ChRandomParticlePosition : public ChShared {
+class ChRandomParticlePosition {
   public:
     ChRandomParticlePosition() {}
 
@@ -75,8 +76,7 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
     ChRandomParticlePositionOnGeometry() {
         // defaults
-        geometry = ChSmartPtr<geometry::ChGeometry>(
-            new geometry::ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1, 0.1, 0.1)));
+        geometry = std::make_shared<geometry::ChBox>(VNULL, ChMatrix33<>(QUNIT), ChVector<>(0.1, 0.1, 0.1));
     }
 
     /// Function that creates a random position each
@@ -90,10 +90,10 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     /// Set the parametric surface used for this outlet.
     /// The surface will be sampled uniformly over its U,V parametric
     /// coordinaters. In cas of lines, oly U is used, in case of parametric volumes, U,V,W.
-    void SetGeometry(ChSmartPtr<geometry::ChGeometry> mgeometry) { this->geometry = mgeometry; }
+    void SetGeometry(std::shared_ptr<geometry::ChGeometry> mgeometry) { this->geometry = mgeometry; }
 
   private:
-    ChSmartPtr<geometry::ChGeometry> geometry;
+    std::shared_ptr<geometry::ChGeometry> geometry;
 };
 
 }  // end of namespace particlefactory

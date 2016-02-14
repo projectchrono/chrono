@@ -74,14 +74,13 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material, containing information
     // about friction etc.
-
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
 
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial2 (new ChMaterialSurfaceDEM);
+    auto mysurfmaterial2 = std::make_shared<ChMaterialSurfaceDEM>();
     mysurfmaterial->SetYoungModulus(30e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -89,20 +88,19 @@ int main(int argc, char* argv[]) {
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
-
-    ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(2,0.2,6,2700, true));
+    auto mfloor = std::make_shared<ChBodyEasyBox>(2,0.2,6,2700, true);
     mfloor->SetBodyFixed(true);
     mfloor->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mfloor);
 
-    ChSharedPtr<ChTexture> mtexture(new ChTexture);
+    auto mtexture = std::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor->AddAsset(mtexture);
 
 
     // Create a step
     if (false) {
-        ChSharedPtr<ChBodyEasyBox> mfloor_step (new ChBodyEasyBox(1,0.2,0.5,2700, true));
+        auto mfloor_step = std::make_shared<ChBodyEasyBox>(1,0.2,0.5,2700, true);
         mfloor_step->SetPos( ChVector<>(0,0.1,-0.2));
         mfloor_step->SetBodyFixed(true);
         mfloor_step->SetMaterialSurface(mysurfmaterial);
@@ -112,7 +110,7 @@ int main(int argc, char* argv[]) {
     // Create some bent rectangular fixed slabs
     if (false) {
         for (int i=0; i<50; ++i) {
-            ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.25,0.2,0.25,2700, true));
+            auto mcube = std::make_shared<ChBodyEasyBox>(0.25,0.2,0.25,2700, true);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom()*CH_C_2PI, VECT_Y);
             mcube->Move( ChCoordsys<>(VNULL,vrot) );
@@ -122,7 +120,7 @@ int main(int argc, char* argv[]) {
             mcube->SetBodyFixed(true);
             mcube->SetMaterialSurface(mysurfmaterial);
             my_system.Add(mcube);
-            ChSharedPtr<ChColorAsset> mcubecol(new ChColorAsset);
+            auto mcubecol = std::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             mcube->AddAsset(mcubecol);
 
@@ -132,14 +130,14 @@ int main(int argc, char* argv[]) {
     // Create some stones / obstacles on the ground
     if (true) {
         for (int i=0; i<150; ++i) {
-            ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.18,0.04,0.18,2700, true));
+            auto mcube = std::make_shared<ChBodyEasyBox>(0.18,0.04,0.18,2700, true);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom()*CH_C_2PI, VECT_Y);
             mcube->Move( ChCoordsys<>(VNULL,vrot) );
             mcube->SetPos(ChVector<>((ChRandom()-0.5)*1.4, ChRandom()*0.2+0.05,-ChRandom()*2.6+0.2));
             mcube->SetMaterialSurface(mysurfmaterial2);
             my_system.Add(mcube);
-            ChSharedPtr<ChColorAsset> mcubecol(new ChColorAsset);
+            auto mcubecol = std::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             mcube->AddAsset(mcubecol);
         }
@@ -149,14 +147,11 @@ int main(int argc, char* argv[]) {
     // FINITE ELEMENT MESH
     // Create a mesh, that is a container for groups
     // of FEA elements and their referenced nodes.
-
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
-
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.4);
     mmaterial->Set_RayleighDampingK(0.004);
@@ -168,7 +163,7 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
 
-    std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
 
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
@@ -181,12 +176,9 @@ int main(int argc, char* argv[]) {
     // Create the contact surface(s). 
     // In this case it is a ChContactSurfaceNodeCloud, so just pass 
     // all nodes to it.
-
-    ChSharedPtr<ChContactSurfaceNodeCloud> mcontactsurf (new ChContactSurfaceNodeCloud);
+    auto mcontactsurf = std::make_shared<ChContactSurfaceNodeCloud>();
     my_mesh->AddContactSurface(mcontactsurf);
-    
     mcontactsurf->AddAllNodes();
-
     mcontactsurf->SetMaterialSurface(mysurfmaterial);
 
  
@@ -194,9 +186,9 @@ int main(int argc, char* argv[]) {
     // Apply initial speed and angular speed
     double speed_x0 = 0.5;
     for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i) {
-        ChVector<> node_pos = my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+        ChVector<> node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
         ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos-tire_center);
-        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0 , 0, tire_vel_z0) +  tang_vel);
+        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0 , 0, tire_vel_z0) +  tang_vel);
     }
 
     // Remember to add the mesh to the system!
@@ -204,7 +196,7 @@ int main(int argc, char* argv[]) {
 
 
     // Add a rim
-    ChSharedPtr<ChBody> mwheel_rim(new ChBody);
+    auto mwheel_rim = std::make_shared<ChBody>();
     mwheel_rim->SetMass(80);
     mwheel_rim->SetInertiaXX(ChVector<>(60,60,60));
     mwheel_rim->SetPos(tire_center);
@@ -213,7 +205,7 @@ int main(int argc, char* argv[]) {
     mwheel_rim->SetWvel_par(ChVector<>( tire_w0, 0, 0));
     application.GetSystem()->Add(mwheel_rim);
 
-    ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
+    auto mobjmesh = std::make_shared<ChObjShapeFile>();
     mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
     mwheel_rim->AddAsset(mobjmesh);
 
@@ -222,15 +214,14 @@ int main(int argc, char* argv[]) {
     // Do these constraints where the 2nd node set has been marked in the .INP file.
     int nodeset_index =1;
     for (int i=0; i< node_sets[nodeset_index].size(); ++i) {
-        ChSharedPtr< ChLinkPointFrame > mlink(new ChLinkPointFrame);
-        mlink->Initialize(node_sets[nodeset_index][i].DynamicCastTo<ChNodeFEAxyz>(), mwheel_rim );
+        auto mlink = std::make_shared<ChLinkPointFrame>();
+        mlink->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyz>(node_sets[nodeset_index][i]), mwheel_rim );
         my_system.Add(mlink);
     }
 
 
     /// Create a mesh surface, for applying loads:
-
-    ChSharedPtr<ChMeshSurface> mmeshsurf (new ChMeshSurface);
+    auto mmeshsurf = std::make_shared<ChMeshSurface>();
     my_mesh->AddMeshSurface(mmeshsurf);
     
       // In the .INP file there are two additional NSET nodesets, the 1st is used to mark load surface:
@@ -238,13 +229,12 @@ int main(int argc, char* argv[]) {
 
 
     /// Apply load to all surfaces in the mesh surface
-
-    ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+    auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
     for (int i= 0; i< mmeshsurf->GetFacesList().size(); ++i) {
-        ChSharedPtr<ChLoadableUV> aface = mmeshsurf->GetFacesList()[i];
-        ChSharedPtr<ChLoad< ChLoaderPressure > >  faceload (new ChLoad< ChLoaderPressure >(aface));
+        auto aface = std::shared_ptr<ChLoadableUV>(mmeshsurf->GetFacesList()[i]);
+        auto faceload = std::make_shared<ChLoad< ChLoaderPressure > >(aface);
         faceload->loader.SetPressure(10000); // low pressure... the tire has no ply!
         mloadcontainer->Add(faceload);
     }
@@ -262,27 +252,25 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a coloured ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
-
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh); 
-    
-/*
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-    mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemeshB->SetWireframe(true);
-    my_mesh->AddAsset(mvisualizemeshB); 
+    my_mesh->AddAsset(mvisualizemesh);
+
+    /*
+        auto mvisualizemeshB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+        mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+        mvisualizemeshB->SetWireframe(true);
+        my_mesh->AddAsset(mvisualizemeshB);
     */
-/*
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.006);
-    my_mesh->AddAsset(mvisualizemeshC);
- */
- 
+    /*
+        auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+        mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+        mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+        mvisualizemeshC->SetSymbolsThickness(0.006);
+        my_mesh->AddAsset(mvisualizemeshC);
+     */
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -331,7 +319,8 @@ int main(int argc, char* argv[]) {
     // my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
-    if (ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>()) {
+    
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxiters(2);
         mystepper->SetAbsTolerances(1e-6);

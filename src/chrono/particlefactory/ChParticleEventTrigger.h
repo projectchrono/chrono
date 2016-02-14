@@ -24,12 +24,12 @@ namespace particlefactory {
 /// You can directly use the ready-to-use triggers for common
 /// triggering (particle collides with some object, particle inside
 /// a box, etc.), or inherit your own class with custom triggering.
-class ChParticleEventTrigger : public ChShared {
+class ChParticleEventTrigger {
   public:
     /// Children classes MUST implement this.
     /// Return true means that a ChParticleProcessEvent must
     /// be done, return false means that no ChParticleProcessEvent must be done.
-    virtual bool TriggerEvent(ChSharedPtr<ChBody> mbody, ChSystem& msystem) = 0;
+    virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) = 0;
 
     /// Children classes might optionally implement this.
     /// The ChParticleProcessor will call this once, before each ProcessParticles()
@@ -43,7 +43,7 @@ class ChParticleEventTrigger : public ChShared {
 class ChParticleEventTriggerNever : public ChParticleEventTrigger {
   public:
     /// Never trig events
-    virtual bool TriggerEvent(ChSharedPtr<ChBody> mbody, ChSystem& msystem) { return false; }
+    virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) { return false; }
 };
 
 /// This can be used to trigger events when particles are
@@ -59,7 +59,7 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
     /// This function triggers the a particle event according to the fact
     /// the the particle is inside a box.
     /// If SetTriggerOutside(true), viceversa triggers event outside the box.
-    virtual bool TriggerEvent(ChSharedPtr<ChBody> mbody, ChSystem& msystem) {
+    virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
         ChVector<> particle_pos = mbody->GetPos();
 
         ChVector<> localpos = mbox.Pos + mbox.Rot * particle_pos;
@@ -83,9 +83,9 @@ class _particle_last_pos {
   public:
     _particle_last_pos();
     _particle_last_pos(const _particle_last_pos& source) { mbody = source.mbody, mpos = source.mpos; }
-    _particle_last_pos(ChSharedPtr<ChBody> mb, ChVector<> mp) : mbody(mb), mpos(mp){};
+    _particle_last_pos(std::shared_ptr<ChBody> mb, ChVector<> mp) : mbody(mb), mpos(mp){};
 
-    ChSharedPtr<ChBody> mbody;
+    std::shared_ptr<ChBody> mbody;
     ChVector<> mpos;
 };
 
@@ -106,7 +106,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
 
     /// This function triggers the a particle event according to the fact
     /// the the particle is crossing a rectangle.
-    virtual bool TriggerEvent(ChSharedPtr<ChBody> mbody, ChSystem& msystem) {
+    virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
         ChVector<> particle_pos = mbody->GetPos();
         ChVector<> localpos = rectangle_csys.TransformParentToLocal(mbody->GetPos());
 
@@ -114,7 +114,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
         if ((localpos.z <= 0) && (-localpos.z < margin) && (fabs(localpos.x) < 0.5 * Xsize + margin) &&
             (fabs(localpos.y) < 0.5 * Ysize + margin)) {
             // Was it in the upper part, at last iteration?
-            ChHashTable<size_t, _particle_last_pos>::iterator mcached = last_positions.find((size_t)mbody.get_ptr());
+            ChHashTable<size_t, _particle_last_pos>::iterator mcached = last_positions.find((size_t)mbody.get());
             if (mcached != last_positions.end()) {
                 ChVector<> pA = (*mcached).second.mpos;
                 ChVector<> pB = localpos;
@@ -149,7 +149,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
                 // ok, was in the upper part Z>0 of the triangle.. store in hash table for next
                 // run, so that one will know if the particle crossed the rectangle into Z<0
                 _particle_last_pos mlastpos((*myiter), localpos);
-                last_positions.insert((size_t)(*myiter).get_ptr(), mlastpos);
+                last_positions.insert((size_t)(*myiter).get(), mlastpos);
             }
 
             ++myiter;

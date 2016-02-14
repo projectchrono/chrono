@@ -163,10 +163,10 @@ ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
         mRoller->GetBody()->ConcatenatePreTransformation(f3);
 
         // Make the revolute joint between the roller and the central wheel
-        // (preconcatenate rotation 90°on X, to set axis of revolute joint)
+        // (preconcatenate rotation 90 degrees on X, to set axis of revolute joint)
         ChFrameMoving<> fr(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2.0, ChVector<>(1, 0, 0)));
         ChFrameMoving<> frabs = fr >> f3;
-        ChSharedPtr<ChLinkLockRevolute> my_link_roller(new ChLinkLockRevolute);
+        auto my_link_roller = std::make_shared<ChLinkLockRevolute>();
         my_link_roller->Initialize(mRoller->GetBody(), mCentralWheel->GetBody(), frabs.GetCoord());
         mphysicalSystem.AddLink(my_link_roller);
     }
@@ -237,10 +237,10 @@ int main(int argc, char* argv[]) {
                              0.1,                     // mass of single roller
                              0.2);                    // mass of the spindle
 
-    ChSharedPtr<ChLinkEngine> my_link_shaftA(new ChLinkEngine);
+    auto my_link_shaftA = std::make_shared<ChLinkEngine>();
     my_link_shaftA->Initialize(spindle_A->GetBody(), mTrussPlatform->GetBody(), (f1 >> f2_wA).GetCoord());
     my_link_shaftA->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = my_link_shaftA->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftA->Get_spe_funct()))
         mfun->Set_yconst(0.0);
     mphysicalSystem.AddLink(my_link_shaftA);
 
@@ -255,10 +255,10 @@ int main(int argc, char* argv[]) {
                              0.65,                    // max rad. of roller
                              0.1,                     // mass of single roller
                              0.2);                    // mass of the spindle
-    ChSharedPtr<ChLinkEngine> my_link_shaftB(new ChLinkEngine);
+    auto my_link_shaftB = std::make_shared<ChLinkEngine>();
     my_link_shaftB->Initialize(spindle_B->GetBody(), mTrussPlatform->GetBody(), (f1 >> f2_wB).GetCoord());
     my_link_shaftB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = my_link_shaftB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftB->Get_spe_funct()))
         mfun->Set_yconst(0.0);
     mphysicalSystem.AddLink(my_link_shaftB);
 
@@ -273,17 +273,17 @@ int main(int argc, char* argv[]) {
                              0.65,                    // max rad. of roller
                              0.1,                     // mass of single roller
                              0.2);                    // mass of the spindle
-    ChSharedPtr<ChLinkEngine> my_link_shaftC(new ChLinkEngine);
+    auto my_link_shaftC = std::make_shared<ChLinkEngine>();
     my_link_shaftC->Initialize(spindle_C->GetBody(), mTrussPlatform->GetBody(), (f1 >> f2_wC).GetCoord());
     my_link_shaftC->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = my_link_shaftC->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftC->Get_spe_funct()))
         mfun->Set_yconst(0.0);
     mphysicalSystem.AddLink(my_link_shaftC);
 
     // Create the ground for the collision
     ChBodySceneNode* ground = (ChBodySceneNode*)addChBodySceneNode_easyBox(
         &mphysicalSystem, application.GetSceneManager(), 100.0, ChVector<>(0, -5, 0), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(80, 1, 80));
+        ChVector<>(200, 1, 200));
     ground->GetBody()->SetBodyFixed(true);
     ground->GetBody()->GetMaterialSurface()->SetFriction(STATIC_wheelfriction);
 
@@ -332,11 +332,11 @@ int main(int argc, char* argv[]) {
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wC.GetA().MatrT_x_Vect(imposed_speed)).x / sin(roller_angle)) / wheel_radius;
 
-        if (ChSharedPtr<ChFunction_Const> mfun = my_link_shaftA->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftA->Get_spe_funct()))
             mfun->Set_yconst(wheel_A_rotspeed);
-        if (ChSharedPtr<ChFunction_Const> mfun = my_link_shaftB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftB->Get_spe_funct()))
             mfun->Set_yconst(wheel_B_rotspeed);
-        if (ChSharedPtr<ChFunction_Const> mfun = my_link_shaftC->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftC->Get_spe_funct()))
             mfun->Set_yconst(wheel_C_rotspeed);
 
         application.GetVideoDriver()->endScene();

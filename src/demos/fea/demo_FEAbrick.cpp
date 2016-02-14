@@ -57,15 +57,14 @@ int main(int argc, char* argv[]) {
     // The physical system: it contains all physical objects.
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-    int numFlexBody = 1;
+    auto my_mesh = std::make_shared<ChMesh>();
     // Geometry of the plate
     double plate_lenght_x = 1;
-    double plate_lenght_y = 0.2;
-    double plate_lenght_z = 0.1;  // small thickness
+    double plate_lenght_y = 1;
+    double plate_lenght_z = 0.05;  // small thickness
     // Specification of the mesh
-    int numDiv_x = 10;
-    int numDiv_y = 1;
+    int numDiv_x = 4;
+    int numDiv_y = 4;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
@@ -77,9 +76,9 @@ int main(int argc, char* argv[]) {
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
-    int MaxMNUM = 0;
-    int MTYPE = 0;
-    int MaxLayNum = 0;
+    int MaxMNUM = 1;
+    int MTYPE = 1;
+    int MaxLayNum = 1;
 
     ChMatrixDynamic<double> COORDFlex(TotalNumNodes, 3);
     ChMatrixDynamic<double> VELCYFlex(TotalNumNodes, 3);
@@ -95,11 +94,10 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < MaxMNUM; i++) {
         MPROP(i, 0) = 500;      // Density [kg/m3]
-        MPROP(i, 1) = 2.1E+07;  // H(m)
-        MPROP(i, 3) = 0.3;      // nu
+        MPROP(i, 1) = 2.1E+05;  // H(m)
+        MPROP(i, 2) = 0.3;      // nu
     }
-
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
     mmaterial->Set_RayleighDampingK(0.0);
     mmaterial->Set_RayleighDampingM(0.0);
     mmaterial->Set_density(MPROP(0, 0));
@@ -127,15 +125,14 @@ int main(int argc, char* argv[]) {
         NumNodes(i, 5) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 1);
         NumNodes(i, 6) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 2);
         NumNodes(i, 7) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 3);
-
         // Let's keep the element length a fixed number in both direction. (uniform
         // distribution of nodes in both direction)
 
         ElemLengthXY(i, 0) = dx;
         ElemLengthXY(i, 1) = dy;
-        ElemLengthXY(i, 1) = dz;
+        ElemLengthXY(i, 2) = dz;
 
-        if (MaxLayNum < LayNum(i, 0)) {
+        if (MaxLayNum < LayNum(i, 0)) { 
             MaxLayNum = LayNum(i, 0);
         }
     }
@@ -169,7 +166,7 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        ChSharedPtr<ChNodeFEAxyz> node(new ChNodeFEAxyz(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2))));
+        auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -177,30 +174,30 @@ int main(int argc, char* argv[]) {
         }
         i++;
     }
-
-    ChSharedPtr<ChNodeFEAxyz> nodetip(my_mesh->GetNode(TotalNumNodes - 1).DynamicCastTo<ChNodeFEAxyz>());
+    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(TotalNumNodes - 1));
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        ChSharedPtr<ChElementBrick> element(new ChElementBrick);
+        auto element = std::make_shared<ChElementBrick>();
         ChMatrixNM<double, 3, 1> InertFlexVec;  // read element length, used in ChElementBrick
         InertFlexVec.Reset();
         InertFlexVec(0, 0) = ElemLengthXY(elemcount, 0);
         InertFlexVec(1, 0) = ElemLengthXY(elemcount, 1);
         InertFlexVec(2, 0) = ElemLengthXY(elemcount, 2);
         element->SetInertFlexVec(InertFlexVec);
-
-        element->SetNodes(my_mesh->GetNode(NumNodes(elemcount, 0)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 1)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 2)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 3)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 4)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 5)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 6)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 7)).DynamicCastTo<ChNodeFEAxyz>());
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 2))),
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 3))),
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 4))),
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 5))),
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 6))),
+            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 7))));
 
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);            // for EAS
+        element->SetGravityOn(true);     // turn gravity on/off from within the element
+        element->SetMooneyRivlin(false);  // turn on/off Mooney Rivlin (Linear Isotropic by default)
         ChMatrixNM<double, 9, 1> stock_alpha_EAS;  //
         stock_alpha_EAS.Reset();
         element->SetStockAlpha(stock_alpha_EAS(0, 0), stock_alpha_EAS(1, 0), stock_alpha_EAS(2, 0),
@@ -209,35 +206,34 @@ int main(int argc, char* argv[]) {
         my_mesh->AddElement(element);
         elemcount++;
     }
-
+    // Deactivate automatic gravity in mesh
+    my_mesh->SetAutomaticGravity(false);
+    my_system.Set_G_acc(ChVector<>(0,0,-9.81));
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
     // Options for visualization in irrlicht
-
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);
     mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
+    mvisualizemesh->SetSmoothFaces(false);
     my_mesh->AddAsset(mvisualizemesh);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshref(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.004);
+    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizemeshC->SetSymbolsThickness(0.015);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshD(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-    // mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NONE);
+    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshD->SetSymbolsScale(1);
     mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
@@ -254,17 +250,17 @@ int main(int argc, char* argv[]) {
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
-    my_system.SetTolForce(1e-10);
+    my_system.SetIterLCPmaxItersSpeed(1000);
+    my_system.SetTolForce(1e-08);
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(100);
     mystepper->SetAbsTolerances(1e-5);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
-    application.SetTimestep(0.001);
+    application.SetTimestep(0.004);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

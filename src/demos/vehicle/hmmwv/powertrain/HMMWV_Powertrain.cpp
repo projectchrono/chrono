@@ -59,7 +59,7 @@ void HMMWV_Powertrain::SetGearRatios(std::vector<double>& gear_ratios) {
 // (3) TC torque ratio map
 //
 // -----------------------------------------------------------------------------
-void HMMWV_Powertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void HMMWV_Powertrain::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-100 * rpm_to_radsec, 300);  // to start engine
@@ -84,7 +84,7 @@ void HMMWV_Powertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map)
     map->AddPoint(2700 * rpm_to_radsec, -400);  // fading out of engine torque
 }
 
-void HMMWV_Powertrain::SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void HMMWV_Powertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..
@@ -95,7 +95,7 @@ void HMMWV_Powertrain::SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map)
     map->AddPoint(3000 * rpm_to_radsec, -90);
 }
 
-void HMMWV_Powertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void HMMWV_Powertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
     map->AddPoint(0.0, 15);
     map->AddPoint(0.25, 15);
     map->AddPoint(0.50, 15);
@@ -118,7 +118,7 @@ void HMMWV_Powertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunctio
     */
 }
 
-void HMMWV_Powertrain::SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void HMMWV_Powertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
     map->AddPoint(0.0, 2.00);
     map->AddPoint(0.25, 1.80);
     map->AddPoint(0.50, 1.50);

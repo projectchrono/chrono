@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "core/ChVectorDynamic.h"
 #include "timestepper/ChState.h"
 #include "timestepper/ChIntegrable.h"
@@ -29,9 +28,9 @@ namespace chrono {
 /// Base class for timesteppers, that is
 /// a time integrator which can advance a system state.
 /// It operates on systems inherited from ChIntegrable.
-class ChApi ChTimestepper : public ChShared {
+class ChApi ChTimestepper {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChTimestepper, ChShared);
+    CH_RTTI_ROOT(ChTimestepper);
 
   protected:
     ChIntegrable* integrable;

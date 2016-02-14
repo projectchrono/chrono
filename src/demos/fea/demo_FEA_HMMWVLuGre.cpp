@@ -18,6 +18,7 @@
 // [LuGre contact formulation needs to be modified for other cases]
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
@@ -47,7 +48,7 @@ using namespace irr::scene;
 
 class ChCoulombFriction : public ChLoadCustomMultiple {
   public:
-    ChCoulombFriction(std::vector<ChSharedPtr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
+    ChCoulombFriction(std::vector<std::shared_ptr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
 
     int NumContact;
     const double Mu0 = 0.6;
@@ -58,8 +59,8 @@ class ChCoulombFriction : public ChLoadCustomMultiple {
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) {
-        ChMatrixDynamic<double> FlexPos(6, loadables.size());
-        ChMatrixDynamic<double> FlexVel(6, loadables.size());
+        ChMatrixDynamic<double> FlexPos(6, (int)loadables.size());
+        ChMatrixDynamic<double> FlexVel(6, (int)loadables.size());
         double Kg;
         double Cg;
         double DeltaDis;
@@ -153,9 +154,9 @@ class ChCoulombFriction : public ChLoadCustomMultiple {
 // revisited for other scenarios: Integration in vehicle, changes of direction, etc.
 class ChLoaderLuGre : public ChLoadCustomMultiple {
   public:
-    ChLoaderLuGre(std::vector<ChSharedPtr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
+    ChLoaderLuGre(std::vector<std::shared_ptr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
 
-    ChSharedPtr<ChBody> mRim;
+    std::shared_ptr<ChBody> mRim;
     int NumContact;
     const int NumDofRigid = 14;    // 1 rim, 1 ground, 7 Dofs each
     const int NumDofFlex = 18000;  // 3000 nodes x 6 Dofs each
@@ -267,7 +268,6 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
                            double Vec3x,
                            double Vec3y,
                            double& Length) {
-        int i, ii, j, jj, kk;
         double TempR;
         double TempR1;
         ChVectorDynamic<double> TempVecR(2);
@@ -902,15 +902,14 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) {
-        ChMatrixDynamic<double> FlexPos(6, loadables.size());  // Matrix of nodal coordinates
-        ChMatrixDynamic<double> FlexVel(6, loadables.size());  // Matrix of nodal velocities
+        ChMatrixDynamic<double> FlexPos(6, (int)loadables.size());  // Matrix of nodal coordinates
+        ChMatrixDynamic<double> FlexVel(6, (int)loadables.size());  // Matrix of nodal velocities
         ChMatrixDynamic<double> RigidPos(7, 2);                // Matrix for rigid body positions (includes ground body)
         ChMatrixDynamic<double> RigidVel(7, 2);  // Matrix for rigid body velocities (includes ground body)
-        ChMatrixDynamic<int> TempCJN(loadables.size(), 1);
-        ChMatrixDynamic<double> TempContactFRCE(3, loadables.size());
-        ChMatrixDynamic<double> TempSlipVel(6, loadables.size());
+        ChMatrixDynamic<int> TempCJN((int)loadables.size(), 1);
+        ChMatrixDynamic<double> TempContactFRCE(3, (int)loadables.size());
+        ChMatrixDynamic<double> TempSlipVel(6, (int)loadables.size());
         double TempROMG = 0.0;
-        double CL;
 
         NetContactForce.x = 0.0;
         NetContactForce.y = 0.0;
@@ -972,7 +971,7 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
             }
 
             // Function for LuGre force calculation
-            LuGre_SteadyState(loadables.size(), 24, RigidPos, RigidVel, FlexPos, FlexVel, TempContactFRCE, TempSlipVel,
+            LuGre_SteadyState((int)loadables.size(), 24, RigidPos, RigidVel, FlexPos, FlexVel, TempContactFRCE, TempSlipVel,
                               TempROMG);
 
             for (int ie = 0; ie < loadables.size(); ie++)  // Loop over all nodes in the circumferential direction
@@ -984,7 +983,7 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
 
                 // Load the contact force to be written to a file
                 NodeContactForce(0, ie) = TempContactFRCE(0, ie);
-                NodeContactForce(1, ie) = TempContactFRCE(1, ie);
+                NodeContactForce(1, ie) = TempContactFRCE(1, ie); 
                 NodeContactForce(2, ie) = TempContactFRCE(2, ie);
                 NodeContactForce(3, ie) = 0.0;
                 NodeContactForce(4, ie) = 0.0;
@@ -1028,7 +1027,6 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6>& COORDFlex,
     int dummy;
     int count;
 
-    double LayPROP[10][7][2];
     int NDR[4000][6];
     int NumLayer[10];
     int MaxSectionNumber = 0;
@@ -1225,8 +1223,7 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-
+    auto my_mesh = std::make_shared<ChMesh>();
     // Visualization:
     ChIrrApp application(&my_system, L"ANCF Rolling Tire", core::dimension2d<u32>(1080, 800), false);
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
@@ -1284,20 +1281,19 @@ int main(int argc, char* argv[]) {
     // i=1: Steel belt in rubber matrix
     // i=2: Rubber
 
-    std::vector<ChSharedPtr<ChMaterialShellANCF>> MaterialList(MPROP.GetRows());
+    std::vector<std::shared_ptr<ChMaterialShellANCF>> MaterialList(MPROP.GetRows());
     for (int i = 0; i < MPROP.GetRows(); i++) {
         double rho = MPROP(i, 0);
         ChVector<double> E(MPROP(i, 1), MPROP(i, 2), MPROP(i, 3));
         ChVector<double> nu(MPROP(i, 4), MPROP(i, 5), MPROP(i, 6));
         ChVector<double> G(MPROP(i, 7), MPROP(i, 8), MPROP(i, 9));
-        MaterialList[i] = ChSharedPtr<ChMaterialShellANCF>(new ChMaterialShellANCF(rho, E, nu, G));
+        MaterialList[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
     }
 
     // Create a set of nodes for the tire based on the input data
     for (int i = 0; i < TotalNumNodes; i++) {
-        ChSharedPtr<ChNodeFEAxyzD> node(
-            new ChNodeFEAxyzD(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)),
-                              ChVector<>(COORDFlex(i, 3), COORDFlex(i, 4), COORDFlex(i, 5))));
+        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)),
+                              ChVector<>(COORDFlex(i, 3), COORDFlex(i, 4), COORDFlex(i, 5)));
         node->SetPos_dt(ChVector<>(VELCYFlex(i, 0), VELCYFlex(i, 1), VELCYFlex(i, 2)));
         node->SetD_dt(ChVector<>(VELCYFlex(i, 3), VELCYFlex(i, 4), VELCYFlex(i, 5)));
         node->SetPos_dtdt(ChVector<>(ACCELFlex(i, 0), ACCELFlex(i, 1), ACCELFlex(i, 2)));
@@ -1311,7 +1307,7 @@ int main(int argc, char* argv[]) {
     }
     // Check position of the bottom node
     GetLog() << "TotalNumNodes: " << TotalNumNodes << "\n\n";
-    ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((TotalNumElements / 2)).DynamicCastTo<ChNodeFEAxyzD>());
+    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode((TotalNumElements / 2)));
     GetLog() << "X : " << nodetip->GetPos().x << " Y : " << nodetip->GetPos().y << " Z : " << nodetip->GetPos().z
              << "\n\n";
     GetLog() << "dX : " << nodetip->GetD().x << " dY : " << nodetip->GetD().y << " dZ : " << nodetip->GetD().z
@@ -1322,11 +1318,12 @@ int main(int argc, char* argv[]) {
 
     // Create all elements of the tire
     for (int i = 0; i < TotalNumElements; i++) {
-        ChSharedPtr<ChElementShellANCF> element(new ChElementShellANCF);
-        element->SetNodes(my_mesh->GetNode(NodesPerElement(i, 0) - 1).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NodesPerElement(i, 1) - 1).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NodesPerElement(i, 2) - 1).DynamicCastTo<ChNodeFEAxyzD>(),
-                          my_mesh->GetNode(NodesPerElement(i, 3) - 1).DynamicCastTo<ChNodeFEAxyzD>());
+        auto element = std::make_shared<ChElementShellANCF>();
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(NodesPerElement(i, 0) - 1)),
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(NodesPerElement(i, 1) - 1)),
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(NodesPerElement(i, 2) - 1)),
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(NodesPerElement(i, 3) - 1)));
+         
         element->SetDimensions(ElemLength(i, 0), ElemLength(i, 1));
 
         // Determine the section in which the current element resides
@@ -1359,7 +1356,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create rim body
-    ChSharedPtr<ChBody> Rim(new ChBody);
+    auto Rim = std::make_shared<ChBody>();
     my_system.Add(Rim);
     Rim->SetBodyFixed(false);
     Rim->SetPos(ChVector<>(0.0, 0.0, 0.4673));
@@ -1379,7 +1376,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create ground body
-    ChSharedPtr<ChBody> Ground(new ChBody);
+    auto Ground = std::make_shared<ChBody>();
     Ground->SetBodyFixed(true);
     Ground->SetPos(ChVector<>(0.0, 0.0, -0.02));
     Ground->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
@@ -1391,19 +1388,18 @@ int main(int argc, char* argv[]) {
 
     // First: loads must be added to "load containers",
     // and load containers must be added to your ChSystem
-    ChSharedPtr<ChLoadContainer> Mloadcontainer(new ChLoadContainer);
+    auto Mloadcontainer = std::make_shared<ChLoadContainer>();
 
     ////// LuGre Load Class initialization
-    std::vector<ChSharedPtr<ChLoaderLuGre>> LoadList(NumElements_y + 1);
+    std::vector<std::shared_ptr<ChLoaderLuGre>> LoadList(NumElements_y + 1);
     for (int i = 0; i < NumElements_y + 1; i++) {
-        std::vector<ChSharedPtr<ChLoadable>> mnodelist;
+        std::vector<std::shared_ptr<ChLoadable>> mnodelist;
         for (int inode = 0; inode < (TotalNumNodes / (NumElements_y + 1)); inode++) {
-            ChSharedPtr<ChNodeFEAxyzD> FrictionNode(
-                my_mesh->GetNode((i * TotalNumNodes / (NumElements_y + 1)) + inode).DynamicCastTo<ChNodeFEAxyzD>());
+            auto FrictionNode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode((i * TotalNumNodes / (NumElements_y + 1)) + inode));
             mnodelist.push_back(FrictionNode);
         }
 
-        LoadList[i] = ChSharedPtr<ChLoaderLuGre>(new ChLoaderLuGre(mnodelist));
+        LoadList[i] = std::make_shared<ChLoaderLuGre>(mnodelist);
         LoadList[i]->ContactLine = ContactZ;
         LoadList[i]->NumContact = NumCont;
         LoadList[i]->mRim = Rim;
@@ -1412,12 +1408,12 @@ int main(int argc, char* argv[]) {
 
     class MyPressureLoad : public ChLoaderUVdistributed {
       private:
-        ChSharedPtr<ChElementShellANCF> m_element;
+        std::shared_ptr<ChElementShellANCF> m_element;
 
       public:
         // Useful: a constructor that also sets ChLoadable
-        MyPressureLoad(ChSharedPtr<ChLoadableUV> element) : ChLoaderUVdistributed(element) {
-            m_element = element.StaticCastTo<ChElementShellANCF>();
+        MyPressureLoad(std::shared_ptr<ChLoadableUV> element) : ChLoaderUVdistributed(element) {
+            m_element = std::static_pointer_cast<ChElementShellANCF>(element);
         };
         virtual bool IsStiff() override { return true; }
         virtual int GetIntegrationPointsU() { return 2; }
@@ -1508,49 +1504,43 @@ int main(int argc, char* argv[]) {
     // It is created using templates, that is instancing a ChLoad<a_loader_class>()
     // initiate for loop for all the elements
     for (int NoElmPre = 0; NoElmPre < TotalNumElements; NoElmPre++) {
-        ChSharedPtr<ChLoad<MyPressureLoad>> PressureElement(
-            new ChLoad<MyPressureLoad>(my_mesh->GetElement(NoElmPre).StaticCastTo<ChElementShellANCF>()));
+        auto PressureElement = std::make_shared<ChLoad<MyPressureLoad > >(std::static_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(NoElmPre)));
         Mloadcontainer->Add(PressureElement);  // do not forget to add the load to the load container.
     }
 
     my_system.Add(Mloadcontainer);
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
     // Create constraints for the tire and rim
-    ChSharedPtr<ChLinkPointFrame> constraint;
-    ChSharedPtr<ChLinkDirFrame> constraintD;
-    ChSharedPtr<ChNodeFEAxyzD> ConstrainedNode;
-    ChSharedPtr<ChLinkLockPlanePlane> constraintRim;
-    ChSharedPtr<ChLinkLockPointPlane> constraintLateral;
+    std::shared_ptr<ChLinkPointFrame> constraint;
+    std::shared_ptr<ChLinkDirFrame> constraintD;
+    std::shared_ptr<ChNodeFEAxyzD> ConstrainedNode;
+    std::shared_ptr<ChLinkLockPlanePlane> constraintRim;
+    std::shared_ptr<ChLinkLockPointPlane> constraintLateral;
 
     // Constrain the flexible tire to the rigid rim body.
     for (int i = 0; i < TotalNumNodes; i++) {
         if (i < NumElements_x ||
             i >= TotalNumNodes - NumElements_x) {  // Only constrain the nodes at the ends of the bead section
 
-            ConstrainedNode = ChSharedPtr<ChNodeFEAxyzD>(my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyzD>());
+            ConstrainedNode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(i));
 
             // Add position constraints
-            constraint = ChSharedPtr<ChLinkPointFrame>(new ChLinkPointFrame);
+            constraint = std::make_shared<ChLinkPointFrame>(); 
             constraint->Initialize(ConstrainedNode, Rim);
             my_system.Add(constraint);
 
             // Add rotation constraints
-            constraintD = ChSharedPtr<ChLinkDirFrame>(new ChLinkDirFrame);
+            constraintD = std::make_shared<ChLinkDirFrame>();
             constraintD->Initialize(ConstrainedNode, Rim);
             constraintD->SetDirectionInAbsoluteCoords(ConstrainedNode->GetD());
             my_system.Add(constraintD);
         }
     }
-    // Constrain the Rim to the X-Z plane
-    // constraintRim = ChSharedPtr<ChLinkLockPlanePlane>(new ChLinkLockPlanePlane);
-    // my_system.AddLink(constraintRim);
-    // constraintRim->Initialize(Rim, Ground, ChCoordsys<>(ChVector<>(0.0, 0.0, 0.0), Q_from_AngX(CH_C_PI_2)));
 
     // Constrain only the lateral displacement of the Rim
-    constraintLateral = ChSharedPtr<ChLinkLockPointPlane>(new ChLinkLockPointPlane);
+    constraintLateral = std::make_shared<ChLinkLockPointPlane>(); 
     my_system.AddLink(constraintLateral);
     constraintLateral->Initialize(Rim, Ground, ChCoordsys<>(Rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
 
@@ -1568,48 +1558,49 @@ int main(int argc, char* argv[]) {
 
     // Set the time integrator parameters
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
-    mystepper->SetTolerance(4e-4);
+    mystepper->SetAbsTolerances(4e-4, 1e-1);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetVerbose(true);
     mystepper->SetScaling(true);
 
     // Visualization
-    // ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
+    // auto mobjmesh = std::make_shared<ChObjShapeFile>();
     // mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
     // Rim->AddAsset(mobjmesh);
+
     double start = std::clock();
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.003);
     my_mesh->AddAsset(mvisualizemeshC);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshwire(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshwire = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshwire->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshwire->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshwire);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 30);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
+
+
+    // Create the a plane using body of 'box' type:
+    auto mrigidBody = std::make_shared<ChBodyEasyBox>(10, 10, 0.000001, 1000, false, true);
+    my_system.Add(mrigidBody);
+    mrigidBody->SetPos(ChVector<>(0, 0, ContactZ));
+    mrigidBody->SetBodyFixed(true);
+    mrigidBody->GetMaterialSurface()->SetFriction(0.5);
+
+
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-    video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("concrete.jpg").c_str());
-    video::ITexture* rockMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("rock.jpg").c_str());
-    // Create the a plane using body of 'box' type:
-    ChBodySceneNode* mrigidBody;
-    mrigidBody = (ChBodySceneNode*)addChBodySceneNode_easyBox(&my_system, application.GetSceneManager(), 100.0,
-                                                              ChVector<>(0, 0, ContactZ), ChQuaternion<>(1, 0, 0, 0),
-                                                              ChVector<>(10, 10, 0.000001));
-    mrigidBody->GetBody()->SetBodyFixed(true);
-    mrigidBody->GetBody()->GetMaterialSurface()->SetFriction(0.5);
-    mrigidBody->setMaterialTexture(0, cubeMap);
     ///////
 
     my_system.Setup();
@@ -1636,7 +1627,7 @@ int main(int argc, char* argv[]) {
 
         // Nodal coordinates for each node
         for (int ii = 0; ii < TotalNumNodes; ii++) {
-            ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+            auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ii));
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
@@ -1647,7 +1638,7 @@ int main(int argc, char* argv[]) {
 
         // Nodal velocities for each node
         for (int ii = 0; ii < TotalNumNodes; ii++) {
-            ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+            auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode((ii)));
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().x);
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().y);
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().z);
@@ -1735,7 +1726,7 @@ int main(int argc, char* argv[]) {
 
                 // Loop over nodes to determine total number of contact nodes
                 for (int ii = 0; ii < TotalNumNodes; ii++) {
-                    ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+                    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ii));
                     if (nodetip->GetPos().z < ContactZ) {
                         NumCont++;
                     }
@@ -1751,7 +1742,7 @@ int main(int argc, char* argv[]) {
                 if (output) {
                     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
                     for (int ii = 0; ii < TotalNumNodes; ii++) {
-                        ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+                        auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ii));
                         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
                         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
                         fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
@@ -1761,7 +1752,7 @@ int main(int argc, char* argv[]) {
                     }
 
                     for (int ii = 0; ii < TotalNumNodes; ii++) {
-                        ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+                        auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ii));
                         fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().x);
                         fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().y);
                         fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().z);
@@ -1861,7 +1852,7 @@ int main(int argc, char* argv[]) {
 
             // Loop over nodes to determine total number of contact nodes
             for (int ii = 0; ii < TotalNumNodes; ii++) {
-                ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+                auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ii));
                 if (nodetip->GetPos().z < ContactZ) {
                     NumCont++;
                 }
@@ -1877,7 +1868,7 @@ int main(int argc, char* argv[]) {
             if (output) {
                 fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
                 for (int ii = 0; ii < TotalNumNodes; ii++) {
-                    ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+                    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ii));
                     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
                     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
                     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
@@ -1887,7 +1878,7 @@ int main(int argc, char* argv[]) {
                 }
 
                 for (int ii = 0; ii < TotalNumNodes; ii++) {
-                    ChSharedPtr<ChNodeFEAxyzD> nodetip(my_mesh->GetNode((ii)).DynamicCastTo<ChNodeFEAxyzD>());
+                    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(ii));
                     fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().x);
                     fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().y);
                     fprintf(outputfile, "%15.7e  ", nodetip->GetPos_dt().z);
@@ -1967,8 +1958,7 @@ int main(int argc, char* argv[]) {
     }
 
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-
-    ChSharedPtr<ChTimestepperHHT> mystepper1 = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    auto mystepper1 = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     GetLog() << "Simulation Time: " << duration << "\n";
     fprintf(outputfile3, "%15.7e  ", duration);
     fprintf(outputfile3, "%d  ", mystepper1->GetNumIterations());

@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     // Create the floor:
 
-    ChSharedPtr<ChBodyEasyBox> floorBody(new ChBodyEasyBox(20, 1, 20, 1000, true, true));
+    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
@@ -85,13 +85,13 @@ int main(int argc, char* argv[]) {
 //    floorBody->GetCollisionModel()->AddBox(10,12,1,ChVector<>( 0,0,5));
     floorBody->GetCollisionModel()->BuildModel();
 
-    ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+    auto mvisual = std::make_shared<ChColorAsset>();
     mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
     floorBody->AddAsset(mvisual);
 
     #if defined USE_POSTPROCESSING_MODULE
     // Custom rendering in POVray:
-    ChSharedPtr<ChPovRayAssetCustom> mPOVcustom(new ChPovRayAssetCustom);
+    auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
     mPOVcustom->SetCommands("texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     floorBody->AddAsset(mPOVcustom);
 
      // Attach asset for marking it as renderable in PovRay
-    ChSharedPtr<ChPovRayAsset> mpov_asset(new ChPovRayAsset);
+    auto mpov_asset = std::make_shared<ChPovRayAsset>();
     floorBody->AddAsset(mpov_asset);
     #endif
 
@@ -116,18 +116,18 @@ int main(int argc, char* argv[]) {
         double phase = CH_C_2PI * ((double)i/6.0);
 
         // Create a rigid body :
-        ChSharedPtr<ChBodyEasyBox> movingBody(new ChBodyEasyBox(1.2,0.4,1.2,3000,false));
+        auto movingBody = std::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, false);
         movingBody->SetPos(ChVector<>(stonehenge_rad*cos(phase),1,stonehenge_rad*sin(phase)));
         movingBody->SetPos_dt(ChVector<>(1.1*cos(phase),4,1.1*sin(phase)));
         movingBody->SetWvel_par(ChVector<>(2*cos(phase),2,2*sin(phase)));
         mphysicalSystem.Add(movingBody);
 
-        ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+        auto mvisual = std::make_shared<ChColorAsset>();
         mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
         movingBody->AddAsset(mvisual);
 
         // Create a  emitter asset, that contains a ChParticleEmitter, and that will follow the body:
-        ChSharedPtr<ChEmitterAsset> emitter_asset(new ChEmitterAsset);
+        auto emitter_asset = std::make_shared<ChEmitterAsset>();
 
         // Attach the emitter asset to the moving body:
         movingBody->AddAsset(emitter_asset);
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 
  
         // ---Initialize the randomizer for positions
-        ChSharedPtr<ChRandomParticlePositionRectangleOutlet> emitter_positions(new ChRandomParticlePositionRectangleOutlet);
+        auto emitter_positions = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
         emitter_positions->Outlet() = ChCoordsys<>(ChVector<>(0, 0.2, 0),    // position, respect to owner moving body
                                         Q_from_AngAxis(CH_C_PI_2, VECT_X));  // rotation, respect to owner moving body
         emitter_positions->OutletWidth() = 1.2;
@@ -150,20 +150,20 @@ int main(int argc, char* argv[]) {
         emitter_asset->Emitter().SetParticlePositioner(emitter_positions);
 
         // ---Initialize the randomizer for alignments
-        ChSharedPtr<ChRandomParticleAlignmentUniform> emitter_rotations(new ChRandomParticleAlignmentUniform);
+        auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
         emitter_asset->Emitter().SetParticleAligner(emitter_rotations);
 
         // ---Initialize the randomizer for velocities, with statistical distribution
-        ChSharedPtr<ChRandomParticleVelocityConstantDirection> mvelo(new ChRandomParticleVelocityConstantDirection);
+        auto mvelo = std::make_shared<ChRandomParticleVelocityConstantDirection>();
         mvelo->SetDirection(VECT_Y);
         mvelo->SetModulusDistribution(5.0);
         emitter_asset->Emitter().SetParticleVelocity(mvelo);
 
     
         // ---Initialize a ChRandomShapeCreator object (ex. here for sphere particles)
-        ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
-        mcreator_spheres->SetDiameterDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.05, 0.15))); 
-        mcreator_spheres->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+        auto mcreator_spheres = std::make_shared<ChRandomShapeCreatorSpheres>();
+        mcreator_spheres->SetDiameterDistribution(std::make_shared<ChMinMaxDistribution>(0.05, 0.15)); 
+        mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
         mcreator_spheres->SetAddCollisionShape(false);
 
         // Finally, tell to the emitter that it must use the creator above:
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
         // a- define a class that implement your custom PostCreation method...
         class MyCreatorForAll : public ChCallbackPostCreation {
           public:
-            virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+            virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
 
                 // Enable Irrlicht visualization for all particles
                 airrlicht_application->AssetBind(mbody);
@@ -181,11 +181,11 @@ int main(int argc, char* argv[]) {
 
                 #if defined USE_POSTPROCESSING_MODULE
                     // Enable PovRay rendering
-                    ChSharedPtr<ChPovRayAsset> mpov_asset(new ChPovRayAsset);
+                    auto mpov_asset = std::make_shared<ChPovRayAsset>();
                     mbody->AddAsset(mpov_asset);
                 
                     // Add custom POVray material..
-                    ChSharedPtr<ChPovRayAssetCustom> mPOVcustom(new ChPovRayAssetCustom);
+                    auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
                     mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.5,0.55>} }  \n");
                     mbody->AddAsset(mPOVcustom);
                 
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
                 // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
                 mbody->SetNoGyroTorque(true);
             }
-            irr::ChIrrApp* airrlicht_application;
+            irrlicht::ChIrrApp* airrlicht_application;
         };
         // b- create the callback object...
         MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
@@ -222,7 +222,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
 
     // ---Initialize the randomizer for positions
     double xpos = (ie -0.5*num_emitters)*2.2;
-    ChSharedPtr<ChRandomParticlePositionRectangleOutlet> emitter_positions(new ChRandomParticlePositionRectangleOutlet);
+    auto emitter_positions = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
         ChCoordsys<>(ChVector<>(xpos, -4, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 1.2;
@@ -230,20 +230,20 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     emitters[ie].SetParticlePositioner(emitter_positions);
 
     // just for visualizing outlet
-    ChSharedPtr<ChBodyEasyBox> boxbody(new ChBodyEasyBox(1.2,0.4,1.2,3000,false));
+    auto boxbody = std::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, false);
     boxbody->SetPos(ChVector<>(xpos,-4.1,0));
     boxbody->SetBodyFixed(true);
     mphysicalSystem.Add(boxbody);
-    ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+    auto mvisual = std::make_shared<ChColorAsset>();
     mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
     boxbody->AddAsset(mvisual);
 
     // ---Initialize the randomizer for alignments
-    ChSharedPtr<ChRandomParticleAlignmentUniform> emitter_rotations(new ChRandomParticleAlignmentUniform);
+    auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
     emitters[ie].SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for velocities, with statistical distribution
-    ChSharedPtr<ChRandomParticleVelocityConstantDirection> mvelo(new ChRandomParticleVelocityConstantDirection);
+    auto mvelo = std::make_shared<ChRandomParticleVelocityConstantDirection>();
     mvelo->SetDirection(VECT_Y);
     mvelo->SetModulusDistribution(8.0);
 
@@ -252,21 +252,21 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     // A)  
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
-    ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
-    mcreator_spheres->SetDiameterDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.20, 0.06))); 
-    mcreator_spheres->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    auto mcreator_spheres = std::make_shared<ChRandomShapeCreatorSpheres>();
+    mcreator_spheres->SetDiameterDistribution(std::make_shared<ChMinMaxDistribution>(0.20, 0.06));
+    mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_spheres : public ChCallbackPostCreation {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
             // Ex.: attach some optional assets, ex for visualization
-            ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+            auto mvisual = std::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
             mbody->AddAsset(mvisual);
 
-            ChSharedPtr<ChPovRayAssetCustom> mPOVcustom(new ChPovRayAssetCustom);
+            auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
             mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.8,0.5,0.3>} }  \n");
             mbody->AddAsset(mPOVcustom);
         }
@@ -277,21 +277,21 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     // B)  
     // Create a ChRandomShapeCreator object (ex. here for hull particles)
 
-    ChSharedPtr<ChRandomShapeCreatorConvexHulls> mcreator_hulls(new ChRandomShapeCreatorConvexHulls);
-    mcreator_hulls->SetChordDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.68, 0.15))); 
-    mcreator_hulls->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    auto mcreator_hulls = std::make_shared<ChRandomShapeCreatorConvexHulls>();
+    mcreator_hulls->SetChordDistribution(std::make_shared<ChMinMaxDistribution>(0.68, 0.15));
+    mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
     class MyCreator_hulls : public ChCallbackPostCreation {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
             // Ex.: attach some optional assets, ex for visualization
-            ChSharedPtr<ChColorAsset> mvisual(new ChColorAsset);
+            auto mvisual = std::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
             mbody->AddAsset(mvisual);
 
-            ChSharedPtr<ChPovRayAssetCustom> mPOVcustom(new ChPovRayAssetCustom);
+            auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
             mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
             mbody->AddAsset(mPOVcustom);
         }
@@ -303,7 +303,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
     // mixing them with a given percentual:
 
-    ChSharedPtr<ChRandomShapeCreatorFromFamilies> mcreatorTot(new ChRandomShapeCreatorFromFamilies);
+    auto mcreatorTot = std::make_shared<ChRandomShapeCreatorFromFamilies>();
     mcreatorTot->AddFamily(mcreator_spheres,     (double)ie/(double)(num_emitters-1));    // 1st creator family, with percentual
     mcreatorTot->AddFamily(mcreator_hulls,   1.0-(double)ie/(double)(num_emitters-1));    // nth creator family, with percentual
     mcreatorTot->Setup();
@@ -318,14 +318,14 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     // a- define a class that implement your custom PostCreation method...
     class MyCreatorForAll : public ChCallbackPostCreation {
       public:
-        virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
             // Enable Irrlicht visualization for all particles
             airrlicht_application->AssetBind(mbody);
             airrlicht_application->AssetUpdate(mbody);
 
             // Enable PovRay rendering
             #if defined USE_POSTPROCESSING_MODULE
-            ChSharedPtr<ChPovRayAsset> mpov_asset(new ChPovRayAsset);
+            auto mpov_asset = std::make_shared<ChPovRayAsset>();
             mbody->AddAsset(mpov_asset);
             #endif
 

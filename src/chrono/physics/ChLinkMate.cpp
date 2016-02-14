@@ -307,16 +307,16 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
 }
 
 void ChLinkMateGeneric::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChFrame<> mpos1,        ///< mate frame (slave), for 1st body (rel. or abs., see flag above)
     ChFrame<> mpos2         ///< mate frame (master), for 2nd body (rel. or abs., see flag above)
     ) {
-    assert(mbody1.get_ptr() != mbody2.get_ptr());
+    assert(mbody1.get() != mbody2.get());
 
-    this->Body1 = mbody1.get_ptr();
-    this->Body2 = mbody2.get_ptr();
+    this->Body1 = mbody1.get();
+    this->Body2 = mbody2.get();
     // this->SetSystem(mbody1->GetSystem());
 
     this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
@@ -587,17 +587,17 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
 }
 
 void ChLinkMateGeneric::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpt1,
     ChVector<> mpt2,
     ChVector<> mnorm1,
     ChVector<> mnorm2) {
-    assert(mbody1.get_ptr() != mbody2.get_ptr());
+    assert(mbody1.get() != mbody2.get());
 
-    this->Body1 = mbody1.get_ptr();
-    this->Body2 = mbody2.get_ptr();
+    this->Body1 = mbody1.get();
+    this->Body2 = mbody2.get();
     // this->SetSystem(mbody1->GetSystem());
 
     this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
@@ -759,8 +759,8 @@ void ChLinkMatePlane::SetFlipped(bool doflip) {
 }
 
 void ChLinkMatePlane::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpt1,        ///< point on slave plane, for 1st body (rel. or abs., see flag above)
     ChVector<> mpt2,        ///< point on master plane, for 2nd body (rel. or abs., see flag above)
@@ -848,8 +848,8 @@ void ChLinkMateCoaxial::SetFlipped(bool doflip) {
 }
 
 void ChLinkMateCoaxial::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpt1,
     ChVector<> mpt2,
@@ -913,8 +913,8 @@ ChLink* ChLinkMateSpherical::new_Duplicate() {
 }
 
 void ChLinkMateSpherical::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpt1,
     ChVector<> mpt2) {
@@ -945,8 +945,8 @@ ChLink* ChLinkMateXdistance::new_Duplicate() {
 }
 
 void ChLinkMateXdistance::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpt1,
     ChVector<> mpt2,
@@ -1019,8 +1019,8 @@ void ChLinkMateParallel::SetFlipped(bool doflip) {
 }
 
 void ChLinkMateParallel::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpt1,
     ChVector<> mpt2,
@@ -1087,8 +1087,8 @@ ChLink* ChLinkMateOrthogonal::new_Duplicate() {
 }
 
 void ChLinkMateOrthogonal::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
     bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpt1,
     ChVector<> mpt2,
@@ -1106,8 +1106,8 @@ void ChLinkMateOrthogonal::Initialize(
     }
 
     // do this asap otherwise the following Update() won't work..
-    this->Body1 = mbody1.get_ptr();
-    this->Body2 = mbody2.get_ptr();
+    this->Body1 = mbody1.get();
+    this->Body2 = mbody2.get();
 
     // Force the alignment of frames so that the X axis is cross product of two dirs, etc.
     // by calling the custom update function of ChLinkMateOrthogonal.

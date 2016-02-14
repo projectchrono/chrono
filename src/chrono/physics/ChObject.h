@@ -32,12 +32,11 @@
 #include <string>
 #include <math.h>
 #include <float.h>
-#include <memory.h>
+#include <memory>
 
 #include "core/ChLog.h"
 #include "core/ChMath.h"
 #include "core/ChLists.h"
-#include "core/ChShared.h"
 
 #include <vector>
 
@@ -50,26 +49,16 @@ namespace chrono {
 class ChVar;
 class ChTag;
 
-/// Base class for items which can be named, deleted,
-/// copied. etc. as in the editor of a 3d modeler.
+/// Base class for items which can be named, deleted, copied. etc. as in the editor of a 3d modeler.
 ///
+/// Each ChObject has a pointer to user data (for example, the user data can be the encapsulating
+/// object in case of implementation as a plugin for 3D modeling software.
 ///
-/// This class inherits the features of the reference-countable
-/// ChShared class, so that  ChObj  instances can be managed
-/// easily with the 'intrusive smart pointers' ChSharedPtr
-/// (with minimal overhead in performance, yet providing the
-/// safe and comfortable automatic deallocation mechanism of
-/// shared/smart pointers).
-///
-/// Each ChObject also has a pointer to user data (for example,
-/// the user data can be the encapsulating object in case of
-/// implementation as a plugin for 3D modeling software.
-///
-/// Also, each ChObj object has a 32 bit identifier, in case
-/// unique identifiers are used (hash algorithms, etc.)
-class ChApi ChObj : public virtual ChShared {
+/// Also, each ChObj object has a 32 bit identifier, in case unique identifiers are used
+/// (hash algorithms, etc.)
+class ChApi ChObj {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChObj, ChShared);
+    CH_RTTI_ROOT(ChObj);
 
   private:
     //
@@ -104,9 +93,6 @@ class ChApi ChObj : public virtual ChShared {
     int GetIdentifier() const { return identifier; }
     /// Sets the numerical identifier of the object.
     void SetIdentifier(int id) { identifier = id; }
-
-    /// Given a fast list of ChObj, returns the address of the first matching the ID.
-    ChObj* GetAddrFromID(ChObj** ChList, int myID);
 
     /// Gets the simulation time of this object
     double GetChTime() const { return ChTime; }

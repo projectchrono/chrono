@@ -17,7 +17,7 @@
 #ifndef CHMESH_FILE_LOADER_H
 #define CHMESH_FILE_LOADER_H
 
-#include "ChMesh.h"
+#include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
 
 namespace chrono {
@@ -43,35 +43,34 @@ class ChApiFea ChMeshFileLoader {
     /// If you pass a material inherited by ChContinuumPoisson3D, nodes with scalar field are used (ex. thermal,
     /// electrostatics, etc)
     static void FromTetGenFile(
-        ChSharedPtr<ChMesh> mesh,                      ///< destination mesh
-        const char* filename_node,                     ///< name of the .node file
-        const char* filename_ele,                      ///< name of the .ele  file
-        ChSharedPtr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
-        ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1)   ///< optional rotation/scaling of imported mesh
+        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
+        const char* filename_node,                         ///< name of the .node file
+        const char* filename_ele,                          ///< name of the .ele  file
+        std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
+        ChVector<> pos_transform = VNULL,                  ///< optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1)       ///< optional rotation/scaling of imported mesh
         );
 
     /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
     static void FromAbaqusFile(
-        ChSharedPtr<ChMesh> mesh,                                           ///< destination mesh
-        const char* filename,                                               ///< input file name
-        ChSharedPtr<ChContinuumMaterial> my_material,                       ///< material for the created tetahedrons
-        std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes
-        ChVector<> pos_transform = VNULL,                                   ///< optional displacement of imported mesh
+        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
+        const char* filename,                              ///< input file name
+        std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
+        std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes
+        ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
         bool discard_unused_nodes =
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
         );
 
     static void ANCFShellFromGMFFile(
-        ChSharedPtr<ChMesh> mesh,  ///< destination mesh
+        std::shared_ptr<ChMesh> mesh,  ///< destination mesh
         const char* filename,
-        ChSharedPtr<ChMaterialShellANCF> my_material,
+        std::shared_ptr<ChMaterialShellANCF> my_material,
         std::vector<int>& BC_nodes,
         ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
         double scaleFactor = 1,
-        bool printBC = false,
         bool printNodes = false,
         bool printElements = false);
 };

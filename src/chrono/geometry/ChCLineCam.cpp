@@ -31,7 +31,7 @@ ChLineCam::ChLineCam() {
     center = VNULL;
     e = 0;
     s = Rb;
-    law = ChSharedPtr<ChFunction_Const>(new ChFunction_Const(0)); // default law = no follower motion
+    law = std::make_shared<ChFunction_Const>(0); // default law = no follower motion
     negative = FALSE;
     internal = FALSE;
 }

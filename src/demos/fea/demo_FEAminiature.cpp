@@ -85,28 +85,27 @@ int main(int argc, char* argv[]) {
     ChVector<> vP(0, -Rpinion - hbarW * 0.5, 0);
 
     // Create a truss:
-    ChSharedPtr<ChBody> body_truss(new ChBody);
+    auto body_truss = std::make_shared<ChBody>();
 
     body_truss->SetBodyFixed(true);
 
     my_system.AddBody(body_truss);
 
     /*
-                // Attach a 'box' shape asset for visualization.
-    ChSharedPtr<ChBoxShape> mboxtruss(new ChBoxShape);
+    // Attach a 'box' shape asset for visualization.
+    auto mboxtruss = std::make_shared<ChBoxShape>();
     mboxtruss->GetBoxGeometry().Pos  = ChVector<>(-0.01, 0,0);
     mboxtruss->GetBoxGeometry().SetLengths( ChVector<>(0.02, 0.2, 0.1) );
     body_truss->AddAsset(mboxtruss);
-
     */
 
     // Create a FEM mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create the horizontal beams
 
-    ChSharedPtr<ChBeamSectionAdvanced> msectionH(new ChBeamSectionAdvanced);
+    auto msectionH = std::make_shared<ChBeamSectionAdvanced>();
 
     msectionH->SetDensity(7000);  //***TEST*** must be 7k
     msectionH->SetYoungModulus(200.0e9);
@@ -124,8 +123,8 @@ int main(int argc, char* argv[]) {
                       ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam
-    ChSharedPtr<ChNodeFEAxyzrot> node_Ah = builder.GetLastBeamNodes().front();
-    ChSharedPtr<ChNodeFEAxyzrot> node_Bh = builder.GetLastBeamNodes().back();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Ah = builder.GetLastBeamNodes().front();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Bh = builder.GetLastBeamNodes().back();
 
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msectionH,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
@@ -135,7 +134,7 @@ int main(int argc, char* argv[]) {
                       ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam
-    ChSharedPtr<ChNodeFEAxyzrot> node_Ch = builder.GetLastBeamNodes().back();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Ch = builder.GetLastBeamNodes().back();
 
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msectionH,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
@@ -145,11 +144,11 @@ int main(int argc, char* argv[]) {
                       ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam
-    ChSharedPtr<ChNodeFEAxyzrot> node_Dh = builder.GetLastBeamNodes().back();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Dh = builder.GetLastBeamNodes().back();
 
     // Create the vertical flexible beams
 
-    ChSharedPtr<ChBeamSectionAdvanced> msectionV(new ChBeamSectionAdvanced);
+    auto msectionV = std::make_shared<ChBeamSectionAdvanced>();
 
     msectionV->SetDensity(7000);  //***TEST*** must be 7k
     msectionV->SetYoungModulus(200.0e9);
@@ -165,7 +164,7 @@ int main(int argc, char* argv[]) {
                       ChVector<>(1, 0, 0));  // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam
-    ChSharedPtr<ChNodeFEAxyzrot> node_Al = builder.GetLastBeamNodes().back();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Al = builder.GetLastBeamNodes().back();
 
     node_Al->SetFixed(true);
 
@@ -177,7 +176,7 @@ int main(int argc, char* argv[]) {
                       ChVector<>(1, 0, 0));  // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam
-    ChSharedPtr<ChNodeFEAxyzrot> node_Dl = builder.GetLastBeamNodes().back();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Dl = builder.GetLastBeamNodes().back();
 
     node_Dl->SetFixed(true);
 
@@ -191,7 +190,7 @@ int main(int argc, char* argv[]) {
                       ChVector<>(1, 0, 0));  // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam
-    ChSharedPtr<ChNodeFEAxyzrot> node_Bl = builder.GetLastBeamNodes().back();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Bl = builder.GetLastBeamNodes().back();
 
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msectionV,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
@@ -201,7 +200,7 @@ int main(int argc, char* argv[]) {
                       ChVector<>(1, 0, 0));  // the 'Y' up direction of the section for the beam
 
     // After having used BuildBeam(), you can retrieve the nodes used for the beam
-    ChSharedPtr<ChNodeFEAxyzrot> node_Cl = builder.GetLastBeamNodes().back();
+    std::shared_ptr<ChNodeFEAxyzrot> node_Cl = builder.GetLastBeamNodes().back();
 
     // Create the rack
 
@@ -229,14 +228,14 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a coloured ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamA(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);  // E_PLOT_ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-30, 30);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizebeamC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.001);
@@ -249,48 +248,48 @@ int main(int argc, char* argv[]) {
     //
 
     if (!simple_rack) {
-        ChSharedPtr<ChBodyEasyBox> rack(new ChBodyEasyBox(hbarL2, hbarW, thickZ, 7000, false));
+        auto rack = std::make_shared<ChBodyEasyBox>(hbarL2, hbarW, thickZ, 7000, false);
         rack->SetPos(0.5 * (vBl + vCl));
         my_system.Add(rack);
 
-        ChSharedPtr<ChLinkMateGeneric> constr_B(new ChLinkMateGeneric);
+        auto constr_B = std::make_shared<ChLinkMateGeneric>();
         constr_B->Initialize(node_Bl, rack, false, node_Bl->Frame(), node_Bl->Frame());
         my_system.Add(constr_B);
 
-        ChSharedPtr<ChLinkMateGeneric> constr_C(new ChLinkMateGeneric);
+        auto constr_C = std::make_shared<ChLinkMateGeneric>();
         constr_C->Initialize(node_Cl, rack, false, node_Cl->Frame(), node_Cl->Frame());
         my_system.Add(constr_C);
 
-        ChSharedPtr<ChBodyEasyCylinder> balance(new ChBodyEasyCylinder(Rbalance, Wbalance, 7000, false));
+        auto balance = std::make_shared<ChBodyEasyCylinder>(Rbalance, Wbalance, 7000, false);
         balance->SetPos(vP + ChVector<>(0, 0, -OffPin));
         balance->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
         for (int i = 0; i < 6; ++i) {
             double phi = CH_C_2PI * (i / 6.0);
-            ChSharedPtr<ChCylinderShape> vshape(new ChCylinderShape());
+            auto vshape = std::make_shared<ChCylinderShape>();
             vshape->GetCylinderGeometry().p1 =
                 ChVector<>(sin(phi) * Rbalance * 0.8, Wbalance, cos(phi) * Rbalance * 0.8);
             vshape->GetCylinderGeometry().p2 = vshape->GetCylinderGeometry().p1 + ChVector<>(0, 2 * Wbalance, 0);
             vshape->GetCylinderGeometry().rad = Rbalance * 0.1;
             balance->AddAsset(vshape);
         }
-        ChSharedPtr<ChCylinderShape> vshaft(new ChCylinderShape());
+        auto vshaft = std::make_shared<ChCylinderShape>();
         vshaft->GetCylinderGeometry().p1 = vP + ChVector<>(0, -OffPin * 10, 0);
         vshaft->GetCylinderGeometry().p2 = vP + ChVector<>(0, OffPin * 10, 0);
         vshaft->GetCylinderGeometry().rad = Rpinion;
         balance->AddAsset(vshaft);
-        ChSharedPtr<ChColorAsset> mcol(new ChColorAsset());
+        auto mcol = std::make_shared<ChColorAsset>();
         mcol->SetColor(ChColor(0.5f, 0.9f, 0.9f));
         balance->AddAsset(mcol);
 
         my_system.Add(balance);
 
-        ChSharedPtr<ChLinkLockRevolute> revolute(new ChLinkLockRevolute());
-        ChSharedPtr<ChBody> mbalance = balance;
+        auto revolute = std::make_shared<ChLinkLockRevolute>();
+        std::shared_ptr<ChBody> mbalance = balance;
         revolute->Initialize(mbalance, body_truss, ChCoordsys<>(vP + ChVector<>(0, 0, -0.01)));
 
         my_system.Add(revolute);
 
-        ChSharedPtr<ChLinkRackpinion> constr_rack(new ChLinkRackpinion);
+        auto constr_rack = std::make_shared<ChLinkRackpinion>();
         constr_rack->Initialize(balance, rack, false, ChFrame<>(), ChFrame<>());
 
         ChFrameMoving<> f_pin_abs(vP);

@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual ~ChBrakeSimple() {}
 
     /// Initialize the brake by providing the wheel's revolute link.
-    virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub) override;
+    virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) override;
 
     /// Update the brake subsystem: set the brake modulation, in 0..1 range,
     /// when = 0 it is completely free,
@@ -64,7 +64,7 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual double GetMaxBrakingTorque() = 0;
 
     double m_modulation;
-    ChSharedPtr<ChLinkBrake> m_brake;
+    std::shared_ptr<ChLinkBrake> m_brake;
 };
 
 /// @} vehicle_wheeled_brake

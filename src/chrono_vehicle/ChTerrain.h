@@ -19,7 +19,6 @@
 #ifndef CH_TERRAIN_H
 #define CH_TERRAIN_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/core/ChVector.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -38,7 +37,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a terrain system.
-class CH_VEHICLE_API ChTerrain : public ChShared {
+class CH_VEHICLE_API ChTerrain {
   public:
     ChTerrain() {}
     virtual ~ChTerrain() {}

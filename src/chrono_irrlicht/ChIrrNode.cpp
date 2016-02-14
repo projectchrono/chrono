@@ -19,17 +19,14 @@ namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNode::ChIrrNode(ChSharedPtr<ChPhysicsItem> mphysicsitem,
+ChIrrNode::ChIrrNode(std::shared_ptr<ChPhysicsItem> mphysicsitem,
                      scene::ISceneNode* parent,
                      scene::ISceneManager* mgr,
                      s32 id)
-    : ISceneNode(parent, mgr, id), ChronoControlled(true) {
+    : ISceneNode(parent, mgr, id), physicsitem(mphysicsitem), ChronoControlled(true) {
 #ifdef _DEBUG
     setDebugName("ChIrrNode");
 #endif
-
-    // Set the shared pointer to the owner ChBody
-    physicsitem = mphysicsitem.get_ptr();
 
     // set an unique identifier
     // static_item_identifier++;
@@ -50,10 +47,7 @@ scene::ISceneNode* ChIrrNode::clone(scene::ISceneNode* newParent, scene::ISceneM
     if (!newManager)
         newManager = SceneManager;
 
-    ChSharedPtr<ChPhysicsItem> shphysicsitem(this->physicsitem);
-    shphysicsitem->AddRef();  // trick because shphysicsitem ctor took raw this->physicsitem that is not a new()
-
-    ChIrrNode* nb = new ChIrrNode(shphysicsitem, newParent, newManager, this->ID);
+    ChIrrNode* nb = new ChIrrNode(this->physicsitem, newParent, newManager, this->ID);
 
     nb->cloneMembers(this, newManager);
     nb->Box = this->Box;
@@ -124,12 +118,6 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
     }
 
     ISceneNode::OnAnimate(timeMs);
-}
-
-ChSharedPtr<ChPhysicsItem> ChIrrNode::GetPhysicsItem() {
-    ChSharedPtr<ChPhysicsItem> shphysicsitem(this->physicsitem);
-    shphysicsitem->AddRef();  // trick because shphysicsitem ctor took raw this->physicsitem that is not a new()
-    return shphysicsitem;
 }
 
 void ChIrrNode::UpdateAssetsProxies() {

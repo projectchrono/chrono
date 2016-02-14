@@ -1,0 +1,48 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+@charset "utf-8";
+
+// Using media queries with like this:
+// @include media-query($on-palm) {
+//     .wrapper {
+//         padding-right: $spacing-unit / 2;
+//         padding-left: $spacing-unit / 2;
+//     }
+// }
+@mixin media-query($device) {
+    @media screen and (max-width: $device) {
+        @content;
+    }
+}
+
+// Import partials from `sass_dir` (defaults to `_sass`)
+@import
+		
+		"syntax-highlighting",
+        "bootstrap",
+        "base"
+;
+
+.container-narrow {
+  margin: 0 auto;
+  max-width: 900px;
+}
+.container-narrow > hr {
+  margin: 30px 0;
+}
+
+.logo {
+    font-family: 'Exo 2', sans-serif;
+    letter-spacing: -.1rem;
+}
+
+.first {
+    font-weight: lighter;
+}
+
+.second {
+    font-weight: bold;
+    margin-right: 5px; 
+}
+

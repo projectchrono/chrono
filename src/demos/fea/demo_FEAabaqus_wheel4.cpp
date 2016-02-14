@@ -50,20 +50,19 @@ void MakeWheel( ChSystem& my_system,
                 const double tire_scale_W,
                 const double tire_w0,
                 const double tire_vel_z0,
-                ChSharedPtr<ChMaterialSurfaceBase> mysurfmaterial,
-                ChSharedPtr<ChContinuumElastic>    mmaterial,
-                ChSharedPtr<ChBody>& mrim ) {
+                std::shared_ptr<ChMaterialSurfaceBase> mysurfmaterial,
+                std::shared_ptr<ChContinuumElastic>    mmaterial,
+                std::shared_ptr<ChBody>& mrim) {
     
     ChMatrix33<> malign(tire_alignment);
     ChMatrix33<> mscale; mscale(0,0)=tire_scale_W; mscale(1,1)=tire_scale_R; mscale(2,2)=tire_scale_R;
 
     // Create a mesh, that is a container for groups
     // of FEA elements and their referenced nodes.
-
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
-    std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
 
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
@@ -76,8 +75,7 @@ void MakeWheel( ChSystem& my_system,
     // Create the contact surface(s). 
     // In this case it is a ChContactSurfaceNodeCloud, so just pass 
     // all nodes to it.
-
-    ChSharedPtr<ChContactSurfaceNodeCloud> mcontactsurf (new ChContactSurfaceNodeCloud);
+    auto mcontactsurf = std::make_shared<ChContactSurfaceNodeCloud>();
     my_mesh->AddContactSurface(mcontactsurf);
     
     mcontactsurf->AddAllNodes();
@@ -88,9 +86,9 @@ void MakeWheel( ChSystem& my_system,
     // Apply initial speed and angular speed
     double speed_x0 = 0.5;
     for (unsigned int i = 0; i< my_mesh->GetNnodes(); ++i) {
-        ChVector<> node_pos = my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->GetPos();
+        auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
         ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos-tire_center);
-        my_mesh->GetNode(i).DynamicCastTo<ChNodeFEAxyz>()->SetPos_dt(ChVector<>(0 , 0, tire_vel_z0) +  tang_vel);
+        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0 , 0, tire_vel_z0) +  tang_vel);
     }
 
     // Remember to add the mesh to the system!
@@ -98,7 +96,7 @@ void MakeWheel( ChSystem& my_system,
 
 
     // Add a rim
-    ChSharedPtr<ChBody> mwheel_rim(new ChBody);
+    auto mwheel_rim = std::make_shared<ChBody>();
     mwheel_rim->SetMass(80);
     mwheel_rim->SetInertiaXX(ChVector<>(60,60,60));
     mwheel_rim->SetPos(tire_center);
@@ -107,7 +105,7 @@ void MakeWheel( ChSystem& my_system,
     mwheel_rim->SetWvel_par(ChVector<>( tire_w0, 0, 0));
     my_system.Add(mwheel_rim);
 
-    ChSharedPtr<ChTriangleMeshShape> mobjmesh(new ChTriangleMeshShape);
+    auto mobjmesh = std::make_shared<ChTriangleMeshShape>();
     mobjmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("fea/tractor_wheel_rim.obj"));   
     mobjmesh->GetMesh().Transform(VNULL, mscale);
     mwheel_rim->AddAsset(mobjmesh);
@@ -118,15 +116,14 @@ void MakeWheel( ChSystem& my_system,
     // Do these constraints where the 2nd node set has been marked in the .INP file.
     int nodeset_index =1;
     for (int i=0; i< node_sets[nodeset_index].size(); ++i) {
-        ChSharedPtr< ChLinkPointFrame > mlink(new ChLinkPointFrame);
-        mlink->Initialize(node_sets[nodeset_index][i].DynamicCastTo<ChNodeFEAxyz>(), mwheel_rim );
+        auto mlink = std::make_shared<ChLinkPointFrame>();
+        mlink->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyz>(node_sets[nodeset_index][i]), mwheel_rim);
         my_system.Add(mlink);
     }
 
 
     /// Create a mesh surface, for applying loads:
-
-    ChSharedPtr<ChMeshSurface> mmeshsurf (new ChMeshSurface);
+    auto mmeshsurf = std::make_shared<ChMeshSurface>();
     my_mesh->AddMeshSurface(mmeshsurf);
     
       // In the .INP file there are two additional NSET nodesets, the 1st is used to mark load surface:
@@ -134,20 +131,17 @@ void MakeWheel( ChSystem& my_system,
 
 
     /// Apply load to all surfaces in the mesh surface
-
-    ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+    auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
     for (int i= 0; i< mmeshsurf->GetFacesList().size(); ++i) {
-        ChSharedPtr<ChLoadableUV> aface = mmeshsurf->GetFacesList()[i];
-        ChSharedPtr<ChLoad< ChLoaderPressure > >  faceload (new ChLoad< ChLoaderPressure >(aface));
+        auto aface = std::shared_ptr<ChLoadableUV>(mmeshsurf->GetFacesList()[i]);
+        auto faceload = std::make_shared<ChLoad< ChLoaderPressure > >(aface);
         faceload->loader.SetPressure(10000); // low pressure... the tire has no ply!
         mloadcontainer->Add(faceload);
     }
-
-
     // ==Asset== attach a visualization of the FEM mesh.
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
@@ -200,14 +194,12 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material, containing information
     // about friction etc.
-
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
-
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial2 (new ChMaterialSurfaceDEM);
+    auto mysurfmaterial2 = std::make_shared<ChMaterialSurfaceDEM>();
     mysurfmaterial->SetYoungModulus(26e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -215,19 +207,17 @@ int main(int argc, char* argv[]) {
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
-
-    ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(15,0.2,15,2700, true));
+    auto mfloor = std::make_shared<ChBodyEasyBox>(15,0.2,15,2700, true);
     mfloor->SetBodyFixed(true);
     mfloor->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mfloor);
-
-    ChSharedPtr<ChTexture> mtexture(new ChTexture);
+    auto mtexture = std::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor->AddAsset(mtexture);
 
 
     // Create the car truss
-    ChSharedPtr<ChBodyAuxRef> mtruss (new ChBodyAuxRef);
+    auto mtruss = std::make_shared<ChBodyAuxRef>();
     mtruss->SetPos(vehicle_center);
     mtruss->SetPos_dt(ChVector<>( 0, 0, tire_vel_z0));
     mtruss->SetBodyFixed(false);
@@ -235,16 +225,14 @@ int main(int argc, char* argv[]) {
     mtruss->SetInertiaXX(ChVector<>(100,100,100));
     my_system.Add(mtruss);
 
-    ChSharedPtr<ChTriangleMeshShape> mtrussmesh(new ChTriangleMeshShape);
+    auto mtrussmesh = std::make_shared<ChTriangleMeshShape>();
     mtrussmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis_simple.obj"));
     mtrussmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI_2, VECT_Z) % Q_from_AngAxis(CH_C_PI_2, VECT_Y) );
     mtruss->AddAsset(mtrussmesh);
-  
-
 
     // Create a step
     if (true) {
-        ChSharedPtr<ChBodyEasyBox> mfloor_step (new ChBodyEasyBox(3,0.2,0.5,2700, true));
+        auto mfloor_step = std::make_shared<ChBodyEasyBox>(3,0.2,0.5,2700, true);
         mfloor_step->SetPos( ChVector<>(2,0.1,-1.7));
         mfloor_step->SetBodyFixed(true);
         mfloor_step->SetMaterialSurface(mysurfmaterial);
@@ -254,7 +242,7 @@ int main(int argc, char* argv[]) {
     // Create some bent rectangular fixed slabs
     if (false) {
         for (int i=0; i<50; ++i) {
-            ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.25,0.2,0.25,2700, true));
+            auto mcube = std::make_shared<ChBodyEasyBox>(0.25,0.2,0.25,2700, true);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom()*CH_C_2PI, VECT_Y);
             mcube->Move( ChCoordsys<>(VNULL,vrot) );
@@ -264,7 +252,7 @@ int main(int argc, char* argv[]) {
             mcube->SetBodyFixed(true);
             mcube->SetMaterialSurface(mysurfmaterial);
             my_system.Add(mcube);
-            ChSharedPtr<ChColorAsset> mcubecol(new ChColorAsset);
+            auto mcubecol = std::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             mcube->AddAsset(mcubecol);
 
@@ -274,14 +262,14 @@ int main(int argc, char* argv[]) {
     // Create some stones / obstacles on the ground
     if (false) {
         for (int i=0; i<150; ++i) {
-            ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.18,0.04,0.18,2700, true));
+            auto mcube = std::make_shared<ChBodyEasyBox>(0.18,0.04,0.18,2700, true);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom()*CH_C_2PI, VECT_Y);
             mcube->Move( ChCoordsys<>(VNULL,vrot) );
             mcube->SetPos(ChVector<>((ChRandom()-0.5)*1.4, ChRandom()*0.2+0.05,-ChRandom()*2.6+0.2));
             mcube->SetMaterialSurface(mysurfmaterial2);
             my_system.Add(mcube);
-            ChSharedPtr<ChColorAsset> mcubecol(new ChColorAsset);
+            auto mcubecol = std::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             mcube->AddAsset(mcubecol);
         }
@@ -293,44 +281,44 @@ int main(int argc, char* argv[]) {
     //
 
     // Create a material, that must be assigned to rubber of tires
-    ChSharedPtr<ChContinuumElastic> mtirematerial(new ChContinuumElastic);
+    auto mtirematerial = std::make_shared<ChContinuumElastic>();
     mtirematerial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
     mtirematerial->Set_v(0.4);
     mtirematerial->Set_RayleighDampingK(0.004);
     mtirematerial->Set_density(1000);
 
     // Make a wheel and connect it to truss:
-    ChSharedPtr<ChBody> mrim_BL;
+    std::shared_ptr<ChBody> mrim_BL;
     MakeWheel(my_system, tire_center_BL, tire_alignment, tire_scaleR, tire_scaleW, tire_w0, tire_vel_z0, mysurfmaterial, mtirematerial, mrim_BL);
 
-    ChSharedPtr<ChLinkLockRevolute> mrevolute_BL (new ChLinkLockRevolute);
+    auto mrevolute_BL = std::make_shared<ChLinkLockRevolute>();
     my_system.Add(mrevolute_BL);
     mrevolute_BL->Initialize(mtruss, mrim_BL, ChCoordsys<>(tire_center_BL, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
 
 
     // Make a wheel and connect it to truss:
-    ChSharedPtr<ChBody> mrim_FL;
+    std::shared_ptr<ChBody> mrim_FL;
     MakeWheel(my_system, tire_center_FL, tire_alignment, tire_scaleR, tire_scaleW, tire_w0, tire_vel_z0, mysurfmaterial, mtirematerial, mrim_FL);
-
-    ChSharedPtr<ChLinkLockRevolute> mrevolute_FL (new ChLinkLockRevolute);
+    auto mrevolute_FL = std::make_shared<ChLinkLockRevolute>();
     my_system.Add(mrevolute_FL);
     mrevolute_FL->Initialize(mtruss, mrim_FL, ChCoordsys<>(tire_center_FL, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
 
-/* for MKL solver we should deactivate at least 1 wheel on four... max 3 wheels can run, 4 will hang.. ***TO BE FIXED***
+    //// TODO
+    //// for MKL solver we should deactivate at least 1 wheel on four... max 3 wheels can run, 4 will hang..
+    /*
     // Make a wheel and connect it to truss:
-    ChSharedPtr<ChBody> mrim_BR;
+    std::shared_ptr<ChBody> mrim_BR;
     MakeWheel(my_system, tire_center_BR, tire_alignment, tire_scaleR, tire_scaleW, tire_w0, tire_vel_z0, mysurfmaterial, mtirematerial, mrim_BR);
-
-    ChSharedPtr<ChLinkLockRevolute> mrevolute_BR (new ChLinkLockRevolute);
+    auto mrevolute_BR = std::make_shared<ChLinkLockRevolute>();
     my_system.Add(mrevolute_BR);
     mrevolute_BR->Initialize(mtruss, mrim_BR, ChCoordsys<>(tire_center_BR, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
-*/
+    */
 
     // Make a wheel and connect it to truss:
-    ChSharedPtr<ChBody> mrim_FR;
+    std::shared_ptr<ChBody> mrim_FR;
     MakeWheel(my_system, tire_center_FR, tire_alignment, tire_scaleR, tire_scaleW, tire_w0, tire_vel_z0, mysurfmaterial, mtirematerial, mrim_FR);
 
-    ChSharedPtr<ChLinkLockRevolute> mrevolute_FR (new ChLinkLockRevolute);
+    auto mrevolute_FR = std::make_shared<ChLinkLockRevolute>();
     my_system.Add(mrevolute_FR);
     mrevolute_FR->Initialize(mtruss, mrim_FR, ChCoordsys<>(tire_center_FR, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
 
@@ -385,7 +373,7 @@ int main(int argc, char* argv[]) {
     // my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
-    if (ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>()) {
+    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper()))  {
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxiters(2);
         mystepper->SetAbsTolerances(1e-6);

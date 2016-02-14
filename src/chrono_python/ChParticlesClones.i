@@ -7,7 +7,7 @@
  
 
 // Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApi 
+//#define ChApi 
 
 // Forward ref
 %import "ChMaterialSurface.i"
@@ -19,8 +19,5 @@
 
 
 
-// Define also the shared pointer chrono::ChShared<ChXxxx> 
-// (renamed as 'ChXxxxShared' in python)
 
-%DefChSharedPtr(chrono::,ChParticlesClones)
 

@@ -446,12 +446,12 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
 
 
 /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-ChSharedPtr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
+std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
                 const TopoDS_Shape& mshape,   ///< pass the shape here
                 const double density          ///< pass the density here
                 )
 {
-    ChSharedPtr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
+    std::shared_ptr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
     
     chrono::ChFrame<> frame_ref_to_abs;
 
@@ -472,7 +472,7 @@ ChSharedPtr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
 
     //mbody->SetFrame_COG_to_REF(frame_ref_to_abs.Invert() * mcog );
 
-    chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody.get_ptr();
+    chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody.get();
     frame_cog_to_ref->SetPos(mcog);
     frame_cog_to_ref->SetRot(chrono::QUNIT);
 

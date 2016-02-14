@@ -29,7 +29,7 @@ ChClassRegister<ChFunction_Integrate> a_registration_integrate;
 
 ChFunction_Integrate::ChFunction_Integrate() {
     order = 1;
-    fa = ChSharedPtr<ChFunction_Const>(new ChFunction_Const);  // default
+    fa = std::make_shared<ChFunction_Const>(); // default
     C_start = x_start = 0;
     x_end = 1;
     num_samples = 2000;
@@ -38,7 +38,7 @@ ChFunction_Integrate::ChFunction_Integrate() {
 
 void ChFunction_Integrate::Copy(ChFunction_Integrate* source) {
     // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+    fa = std::shared_ptr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
     order = source->order;
     C_start = source->C_start;
     x_start = source->x_start;

@@ -6,12 +6,10 @@
 using namespace chrono;
 
 %}
- 
+
+
 /* Parse the header file to generate wrappers */
- %include "../chrono/assets/ChVisualization.h"    
+%include "../chrono/assets/ChVisualization.h"    
 
 
-// Define also the shared pointer chrono::ChShared<ChVisualization> 
-// (renamed as 'ChVisualizationShared' in python)
 
-%DefChSharedPtr(chrono::,ChVisualization)

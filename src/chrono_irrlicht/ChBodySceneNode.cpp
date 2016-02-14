@@ -46,7 +46,7 @@ ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
     // pointer. Creating dynamically the shared pointer from heap is not nice
     // to see, but it must be managed dynamically in this wrapper node.
 
-    bodyp = new ChSharedPtr<ChBody>(new ChBody);
+    bodyp = new std::shared_ptr<ChBody>(new ChBody);
 
     // set an unique identifier
     body_identifier++;
@@ -78,7 +78,7 @@ ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
     if (child_mesh)
         child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
 
-    bodyp = new ChSharedPtr<ChBody>(new ChBody);
+    bodyp = new std::shared_ptr<ChBody>(new ChBody);
 
     body_identifier++;
     GetBody()->SetIdentifier(body_identifier);

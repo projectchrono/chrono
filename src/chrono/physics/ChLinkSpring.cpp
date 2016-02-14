@@ -23,11 +23,11 @@ ChLinkSpring::ChLinkSpring() {
     spr_r = 5;
     spr_f = 0;
 
-    mod_f_time = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
-    mod_k_d = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
-    mod_k_speed = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
-    mod_r_d = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
-    mod_r_speed = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
+    mod_f_time = std::make_shared<ChFunction_Const>(1);
+    mod_k_d = std::make_shared<ChFunction_Const>(1);
+    mod_k_speed = std::make_shared<ChFunction_Const>(1);
+    mod_r_d = std::make_shared<ChFunction_Const>(1);
+    mod_r_speed = std::make_shared<ChFunction_Const>(1);
 
     spr_react = 0.0;
 }
@@ -46,11 +46,11 @@ void ChLinkSpring::Copy(ChLinkSpring* source) {
     spr_r = source->spr_r;
     spr_react = source->spr_react;
 
-    mod_f_time = ChSharedPtr<ChFunction>(source->mod_f_time->new_Duplicate());
-    mod_k_d = ChSharedPtr<ChFunction>(source->mod_k_d->new_Duplicate());
-    mod_k_speed = ChSharedPtr<ChFunction>(source->mod_k_speed->new_Duplicate());
-    mod_r_d = ChSharedPtr<ChFunction>(source->mod_r_d->new_Duplicate());
-    mod_r_speed = ChSharedPtr<ChFunction>(source->mod_r_speed->new_Duplicate());
+    mod_f_time = std::shared_ptr<ChFunction>(source->mod_f_time->new_Duplicate());
+    mod_k_d = std::shared_ptr<ChFunction>(source->mod_k_d->new_Duplicate());
+    mod_k_speed = std::shared_ptr<ChFunction>(source->mod_k_speed->new_Duplicate());
+    mod_r_d = std::shared_ptr<ChFunction>(source->mod_r_d->new_Duplicate());
+    mod_r_speed = std::shared_ptr<ChFunction>(source->mod_r_speed->new_Duplicate());
 }
 
 ChLink* ChLinkSpring::new_Duplicate() {
@@ -61,8 +61,8 @@ ChLink* ChLinkSpring::new_Duplicate() {
 }
 
 void ChLinkSpring::Initialize(
-    ChSharedPtr<ChBody> mbody1,  // first body to link
-    ChSharedPtr<ChBody> mbody2,  // second body to link
+    std::shared_ptr<ChBody> mbody1,  // first body to link
+    std::shared_ptr<ChBody> mbody2,  // second body to link
     bool pos_are_relative,       // true: following posit. are considered relative to bodies. false: pos.are absolute
     ChVector<> mpos1,            // position of distance endpoint, for 1st body (rel. or abs., see flag above)
     ChVector<> mpos2,            // position of distance endpoint, for 2nd body (rel. or abs., see flag above)

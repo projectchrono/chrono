@@ -11,8 +11,8 @@
 //
 
 #include "chrono_fea/ChLinkPointPoint.h"
-#include "physics/ChSystem.h"
-#include "physics/ChIndexedNodes.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChIndexedNodes.h"
 
 using namespace chrono;
 using namespace fea;
@@ -50,10 +50,10 @@ ChCoordsys<> ChLinkPointPoint::GetLinkAbsoluteCoords() {
 }
 
 
-int ChLinkPointPoint::Initialize(ChSharedPtr<ChNodeFEAxyz> anodeA,  ///< node to join
-						         ChSharedPtr<ChNodeFEAxyz> anodeB  ///< node to join
+int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< node to join
+						         std::shared_ptr<ChNodeFEAxyz> anodeB  ///< node to join
                                  ) {
-	assert(!anodeA.IsNull() && !anodeB.IsNull());
+	assert(anodeA && anodeB);
 
 	this->mnodeA = anodeA;
     this->mnodeB = anodeB;

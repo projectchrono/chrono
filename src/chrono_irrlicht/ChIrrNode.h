@@ -51,10 +51,10 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     /// scene, use the remove() function from the Irrlicht side (it won't delete
     /// the C::E body, though), or better delete the corresponding ChIrrlichtObj
     /// asset from the C::E side, or delete the full C::E body.
-      ChIrrNode(ChSharedPtr<ChPhysicsItem> mphysicsitem,  ///< pointer to the Chrono::Engine item (es. rigid body)
-          irr::scene::ISceneNode* parent,                 ///< the parent node in Irrlicht hierarchy
-          irr::scene::ISceneManager* mgr,                 ///< the Irrlicht scene manager
-          irr::s32 id                                     ///< the Irrlicht identifier
+      ChIrrNode(std::shared_ptr<ChPhysicsItem> mphysicsitem,  ///< pointer to the Chrono::Engine item (es. rigid body)
+          irr::scene::ISceneNode* parent,                     ///< the parent node in Irrlicht hierarchy
+          irr::scene::ISceneManager* mgr,                     ///< the Irrlicht scene manager
+          irr::s32 id                                         ///< the Irrlicht identifier
           );
 
     /// Destructor.
@@ -86,7 +86,7 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
 
     /// Returns reference to the shared pointer which references the ChPhysicsItem
     /// (ex. a ChBody) wrapped by this scene node.
-    ChSharedPtr<ChPhysicsItem> GetPhysicsItem();
+    std::shared_ptr<ChPhysicsItem> GetPhysicsItem() { return physicsitem; }
 
     /// Returns true if the node is moved by Chrono::Engine simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
@@ -105,7 +105,7 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     void _recurse_update_asset_proxies(irr::scene::ISceneNode* mnode);
 
     irr::core::aabbox3d<irr::f32> Box;
-    ChPhysicsItem* physicsitem;
+    std::shared_ptr<ChPhysicsItem> physicsitem;
     bool ChronoControlled;
 };
 

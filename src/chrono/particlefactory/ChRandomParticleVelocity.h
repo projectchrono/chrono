@@ -13,11 +13,12 @@
 #ifndef CHRANDOMPARTICLEVELOCITY_H
 #define CHRANDOMPARTICLEVELOCITY_H
 
-#include "core/ChMathematics.h"
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChDistribution.h"
-#include "core/ChSmartpointers.h"
+#include <memory>
+
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChDistribution.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -25,7 +26,7 @@ namespace particlefactory {
 /// BASE class for generators of random particle velocities.
 /// By default it simply always returns Vxyz={0,0,0}, so it
 /// it is up to sub-classes to implement more sophisticated randomizations.
-class ChRandomParticleVelocity : public ChShared {
+class ChRandomParticleVelocity {
   public:
     ChRandomParticleVelocity() {}
 
@@ -43,7 +44,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
   public:
     ChRandomParticleVelocityConstantDirection() {
         direction = VECT_X;
-        modulus = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.1));
+        modulus = std::make_shared<ChConstantDistribution>(0.1);
     }
 
     /// Function that creates a random velocity each
@@ -54,15 +55,15 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
     void SetDirection(ChVector<> mdir) { direction = mdir.GetNormalized(); }
 
     /// Set the statistical distribution for the modulus of velocities
-    void SetModulusDistribution(ChSmartPtr<ChDistribution> mdistr) { modulus = mdistr; }
+    void SetModulusDistribution(std::shared_ptr<ChDistribution> mdistr) { modulus = mdistr; }
     /// Set the modulus of velocities as a constant value
     void SetModulusDistribution(double mval) {
-        modulus = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(mval));
+        modulus = std::make_shared<ChConstantDistribution>(mval);
     }
 
   private:
     ChVector<> direction;
-    ChSmartPtr<ChDistribution> modulus;
+    std::shared_ptr<ChDistribution> modulus;
 };
 
 /// Generator of random particle velocities with any direction.
@@ -71,7 +72,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
 class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
   public:
     ChRandomParticleVelocityAnyDirection() {
-        modulus = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(0.1));
+        modulus = std::make_shared<ChConstantDistribution>(0.1);
     }
 
     /// Function that creates a random velocity each
@@ -84,14 +85,14 @@ class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
     }
 
     /// Set the statistical distribution for the modulus of velocities
-    void SetModulusDistribution(ChSmartPtr<ChDistribution> mdistr) { modulus = mdistr; }
+    void SetModulusDistribution(std::shared_ptr<ChDistribution> mdistr) { modulus = mdistr; }
     /// Set the modulus of velocities as a constant value
     void SetModulusDistribution(double mval) {
-        modulus = ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(mval));
+        modulus = std::make_shared<ChConstantDistribution>(mval);
     }
 
   private:
-    ChSmartPtr<ChDistribution> modulus;
+    std::shared_ptr<ChDistribution> modulus;
 };
 
 }  // end of namespace particlefactory

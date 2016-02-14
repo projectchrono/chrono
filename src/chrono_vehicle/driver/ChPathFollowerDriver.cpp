@@ -61,12 +61,12 @@ void ChPathFollowerDriver::Create() {
     m_speedPID.Reset(m_vehicle);
 
     // Create a fixed body to carry a visualization asset for the path
-    ChSharedPtr<ChBody> road(new ChBody);
+    auto road = std::make_shared<ChBody>();
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
-    ChSharedPtr<ChLineShape> path_asset(new ChLineShape);
-    path_asset->SetLineGeometry(
-        ChSharedPtr<geometry::ChLineBezier>(new geometry::ChLineBezier(m_steeringPID.GetPath())));
+
+    auto path_asset = std::make_shared<ChLineShape>();
+    path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(m_steeringPID.GetPath()));
     path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     road->AddAsset(path_asset);

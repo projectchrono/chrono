@@ -36,7 +36,6 @@
 
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "physics/ChFilePS.h"
 #include "physics/ChProplist.h"
 
@@ -70,9 +69,9 @@ namespace chrono {
 ///  This base class just represent a constant function of
 /// the type y= C.  Inherited classes must override at least the
 /// Get_y() method, in order to represent more complex functions.
-class ChApi ChFunction : public ChShared {
+class ChApi ChFunction {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChFunction_base, ChShared);
+    CH_RTTI_ROOT(ChFunction_base);
 
   public:
     ChFunction(){};

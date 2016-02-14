@@ -79,7 +79,7 @@ class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
 
     /// Returns reference to the shared pointer which references the rigid body
     /// wrapped by this scene node.
-    ChSharedPtr<ChParticlesClones>& GetParticles() { return *particlep; }
+    std::shared_ptr<ChParticlesClones>& GetParticles() { return *particlep; }
 
     /// Returns true if the node is moved by Chrono::Engine simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
@@ -105,7 +105,7 @@ class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
     irr::s32 Nchildren;
 
     // Chrono Engine specific data
-    ChSharedPtr<ChParticlesClones>* particlep;
+    std::shared_ptr<ChParticlesClones>* particlep;
     bool ChronoControlled;
 
     static int particles_identifier;

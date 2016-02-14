@@ -28,7 +28,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChFunction_Base.h"
-#include "core/ChSmartpointers.h"
 #include <list>
 
 namespace chrono {
@@ -40,7 +39,7 @@ namespace chrono {
 
 class ChApi ChFseqNode {
   public:
-    ChSharedPtr<ChFunction> fx;
+    std::shared_ptr<ChFunction> fx;
     double duration;
     double weight;
     double t_start;
@@ -61,7 +60,7 @@ class ChApi ChFseqNode {
     };
 
     ChFseqNode();
-    ChFseqNode(ChSharedPtr<ChFunction> myfx, double mdur);
+    ChFseqNode(std::shared_ptr<ChFunction> myfx, double mdur);
     ChFseqNode(const ChFseqNode& other){
         this->Copy(&other);
     }
@@ -154,13 +153,13 @@ class ChApi ChFunction_Sequence : public ChFunction {
     /// Set c0=true if you want to force C0 continuity with previous function (an offset
     /// will be implicitly added to the function, as y=f(x)+Offset). Same for C1 and C2 continuity,
     /// using c1 and c2 flags.
-    int InsertFunct(ChSharedPtr<ChFunction> myfx,  // the function to insert (Note! do not make circular dependencies)
-                    double duration,               // duration of the time segment for this function
-                    double weight = 1,             // optional weight scalar
+    int InsertFunct(std::shared_ptr<ChFunction> myfx,  ///< the function to insert (Note! do not make circular dependencies)
+                    double duration,                   ///< duration of the time segment for this function
+                    double weight = 1,                 ///< optional weight scalar
                     bool c0 = false,
                     bool c1 = false,
-                    bool c2 = false,     // impose continuity to previous f() by offsetting/slanting
-                    int position = -1);  // position index, 0,1,2,3.. (if -1 insert at the end)
+                    bool c2 = false,                   ///< impose continuity to previous f() by offsetting/slanting
+                    int position = -1);                ///< position index, 0,1,2,3.. (if -1 insert at the end)
 
     /// Remove and deletes function with defined "position", and returns TRUE.
     ///	 - If position = 0, removes always head (beginning),
@@ -172,7 +171,7 @@ class ChApi ChFunction_Sequence : public ChFunction {
     ///  - If position = 0, returns always head (beginning),
     ///  - If position = -1 returns tail (end).
     ///  - If position > max number of current nodes, returns tail fx anyway.
-    ChSharedPtr<ChFunction> GetNthFunction(int position);
+    std::shared_ptr<ChFunction> GetNthFunction(int position);
 
     /// As above, but returns the function node (containing function pointer,
     /// function duration, continuity flags with previous node, etc.)

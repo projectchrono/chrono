@@ -72,12 +72,12 @@ void ChShaftsPlanetary::Copy(ChShaftsPlanetary* source) {
     this->shaft3 = 0;
 }
 
-int ChShaftsPlanetary::Initialize(ChSharedPtr<ChShaft> mshaft1,
-                                  ChSharedPtr<ChShaft> mshaft2,
-                                  ChSharedPtr<ChShaft> mshaft3) {
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
-    ChShaft* mm3 = mshaft3.get_ptr();
+int ChShaftsPlanetary::Initialize(std::shared_ptr<ChShaft> mshaft1,
+                                  std::shared_ptr<ChShaft> mshaft2,
+                                  std::shared_ptr<ChShaft> mshaft3) {
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
+    ChShaft* mm3 = mshaft3.get();
     assert(mm1 && mm2 && mm3);
     assert(mm1 != mm2);
     assert(mm1 != mm3);

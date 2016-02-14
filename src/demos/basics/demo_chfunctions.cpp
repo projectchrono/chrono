@@ -120,15 +120,15 @@ int main(int argc, char* argv[]) {
 
     ChFunction_Sequence f_sequence;
 
-    ChSharedPtr<ChFunction_ConstAcc> f_constacc1(new ChFunction_ConstAcc);
+    auto f_constacc1 = std::make_shared<ChFunction_ConstAcc>();
     f_constacc1->Set_end(0.5);  // length of ramp
     f_constacc1->Set_h(0.3);    // height of ramp
     f_sequence.InsertFunct(f_constacc1, 0.5, 1, false, false, false, 0);
 
-    ChSharedPtr<ChFunction_Const> f_const(new ChFunction_Const);
+    auto f_const = std::make_shared<ChFunction_Const>();
     f_sequence.InsertFunct(f_const, 0.4, 1, true, false, false, -1);
 
-    ChSharedPtr<ChFunction_ConstAcc> f_constacc2(new ChFunction_ConstAcc);
+    auto f_constacc2 = std::make_shared<ChFunction_ConstAcc>();
     f_constacc2->Set_end(0.6);  // length of ramp
     f_constacc2->Set_av(0.3);   // acceleration ends after 30% length
     f_constacc2->Set_aw(0.7);   // deceleration starts after 70% length

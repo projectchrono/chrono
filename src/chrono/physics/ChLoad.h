@@ -57,9 +57,10 @@ public:
 /// It implements functionalities to perform automatic differentiation of
 /// the load so it optionally can compute the jacobian (the tangent stiffness
 /// matrix of the load) that can be used in implicit integrators, statics, etc.
+class ChLoadBase {
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI_ROOT(ChLoadBase);
 
-class ChLoadBase : public ChShared {
-   
 protected:
     ChLoadJacobians* jacobians;
 
@@ -187,7 +188,7 @@ class ChLoad : public ChLoadBase  {
 public:
     Tloader loader;
 
-    ChLoad(ChSharedPtr<typename Tloader::type_loadable> mloadable) :
+    ChLoad(std::shared_ptr<typename Tloader::type_loadable> mloadable) :
         loader(mloadable)
     {
     }
@@ -295,10 +296,10 @@ public:
 class ChLoadCustom : public ChLoadBase  {
     
 public:
-    ChSharedPtr<ChLoadable> loadable;
+    std::shared_ptr<ChLoadable> loadable;
     ChVectorDynamic<> load_Q;
 
-    ChLoadCustom(ChSharedPtr<ChLoadable> mloadable) :
+    ChLoadCustom(std::shared_ptr<ChLoadable> mloadable) :
         loadable(mloadable)
     {
         load_Q.Reset(this->LoadGet_ndof_w());
@@ -411,21 +412,21 @@ public:
 class ChLoadCustomMultiple : public ChLoadBase  {
     
 public:
-    std::vector< ChSharedPtr<ChLoadable> > loadables;
+    std::vector< std::shared_ptr<ChLoadable> > loadables;
     ChVectorDynamic<> load_Q;
 
-    ChLoadCustomMultiple(std::vector< ChSharedPtr<ChLoadable> >& mloadables) :
+    ChLoadCustomMultiple(std::vector< std::shared_ptr<ChLoadable> >& mloadables) :
         loadables(mloadables)
     {
         load_Q.Reset(this->LoadGet_ndof_w());
     }
-    ChLoadCustomMultiple(ChSharedPtr<ChLoadable> mloadableA, ChSharedPtr<ChLoadable> mloadableB) 
+    ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadableA, std::shared_ptr<ChLoadable> mloadableB)
     {
         loadables.push_back(mloadableA);
         loadables.push_back(mloadableB);
         load_Q.Reset(this->LoadGet_ndof_w());
     }
-    ChLoadCustomMultiple(ChSharedPtr<ChLoadable> mloadableA, ChSharedPtr<ChLoadable> mloadableB, ChSharedPtr<ChLoadable> mloadableC) 
+    ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadableA, std::shared_ptr<ChLoadable> mloadableB, std::shared_ptr<ChLoadable> mloadableC)
     {
         loadables.push_back(mloadableA);
         loadables.push_back(mloadableB);

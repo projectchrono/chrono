@@ -100,8 +100,8 @@ class ChContactDVIrolling :
         // Compute the 'average' material
 
           // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get_ptr());
-        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get_ptr());
+        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get());
+        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get());
 
         ChMaterialCouple mat;
         mat.rolling_friction  = (float)ChMin(mmatA->rolling_friction,  mmatB->rolling_friction);

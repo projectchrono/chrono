@@ -24,7 +24,7 @@ namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNodeProxyToAsset::ChIrrNodeProxyToAsset(ChSharedPtr<ChAsset> myvisualization, ISceneNode* parent)
+ChIrrNodeProxyToAsset::ChIrrNodeProxyToAsset(std::shared_ptr<ChAsset> myvisualization, ISceneNode* parent)
     : ISceneNode(parent, parent->getSceneManager(), 0), do_update(true) {
 #ifdef _DEBUG
     setDebugName("ChIrrNodeProxyToAsset");
@@ -56,13 +56,10 @@ void ChIrrNodeProxyToAsset::Update() {
     if (!do_update)
         return;
 
-    if (visualization_asset.IsNull())
+    if (!visualization_asset)
         return;
 
-    if (visualization_asset.IsType<ChTriangleMeshShape>()) {
-        ChSharedPtr<ChTriangleMeshShape> trianglemesh =
-            visualization_asset.DynamicCastTo<ChTriangleMeshShape>();
-
+    if (auto trianglemesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(visualization_asset)) {
         // Fetch the 1st child, i.e. the mesh
         ISceneNode* mchildnode = *(getChildren().begin());
         if (!mchildnode)
@@ -171,9 +168,7 @@ void ChIrrNodeProxyToAsset::Update() {
         meshnode->setMaterialFlag(irr::video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
     }
 
-    if (visualization_asset.IsType<ChGlyphs>()) {
-        ChSharedPtr<ChGlyphs> mglyphs = visualization_asset.DynamicCastTo<ChGlyphs>();
-
+    if (auto mglyphs = std::dynamic_pointer_cast<ChGlyphs>(visualization_asset)) {
         // Fetch the 1st child, i.e. the mesh
         ISceneNode* mchildnode = *(getChildren().begin());
         if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
@@ -379,17 +374,17 @@ void ChIrrNodeProxyToAsset::Update() {
         meshnode->setMaterialFlag(irr::video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
     }
 
-    if (visualization_asset.IsType<ChPathShape>() || visualization_asset.IsType<ChLineShape>()) {
-        ChSharedPtr<geometry::ChLine> mline;
-
-        if (visualization_asset.IsType<ChPathShape>())
-            mline = visualization_asset.DynamicCastTo<ChPathShape>()->GetPathGeometry();
-
-        if (visualization_asset.IsType<ChLineShape>())
-            mline = visualization_asset.DynamicCastTo<ChLineShape>()->GetLineGeometry();
+    auto path_shape = std::dynamic_pointer_cast<ChPathShape>(visualization_asset);
+    auto line_shape = std::dynamic_pointer_cast<ChLineShape>(visualization_asset);
+    if (path_shape || line_shape) {
+        std::shared_ptr<geometry::ChLine> mline;
+        if (path_shape)
+            mline = path_shape->GetPathGeometry();
+        if (line_shape)
+            mline = line_shape->GetLineGeometry();
 
         // Set color.
-        ChSharedPtr<ChVisualization> vis = visualization_asset.StaticCastTo<ChVisualization>();
+        auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
         ChColor col = vis->GetColor();
         irr::video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
 
@@ -427,9 +422,8 @@ void ChIrrNodeProxyToAsset::Update() {
         irrmesh->getVertexBuffer()[0] = irr::video::S3DVertex((f32)t1.x, (f32)t1.y, (f32)t1.z, 1, 0, 0, clr, 0, 0);
 
         double maxU = 1;
-
-        if (mline.IsType<geometry::ChLinePath>())
-            maxU = mline.DynamicCastTo<geometry::ChLinePath>()->GetPathDuration();
+        if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
+            maxU = mline_path->GetPathDuration();
 
         for (unsigned int ig = 0; ig < ntriangles; ++ig) {
             double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscyssa

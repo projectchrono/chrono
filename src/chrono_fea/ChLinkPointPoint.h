@@ -13,12 +13,9 @@
 #ifndef CHLINKPOINTPOINT_H
 #define CHLINKPOINTPOINT_H
 
-
-
-#include "physics/ChLinkBase.h"
+#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChLinkBase.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
-
 
 namespace chrono {
 
@@ -53,8 +50,8 @@ private:
 	ChVector<> cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
 	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
 
-	ChSharedPtr<fea::ChNodeFEAxyz> mnodeA;
-    ChSharedPtr<fea::ChNodeFEAxyz> mnodeB;
+    std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
+    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
 
 public:
 
@@ -128,15 +125,15 @@ public:
 				/// the two nodes join. 
 				/// The attachment position is the actual position of the node.
 				/// Note, mnodes must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
-						   ChSharedPtr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
+						   std::shared_ptr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
 						   );
 
 				/// Get the 1st connected xyz node (point)
-	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNodeA() { return this->mnodeA;}
+    virtual std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() { return this->mnodeA; }
 
     			/// Get the 2nd connected xyz node (point)
-	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNodeB() { return this->mnodeB;}
+    virtual std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() { return this->mnodeB; }
 				
 				/// Get the reaction force considered as applied to ChShaft.
 	ChVector<> GetReactionOnNode() {return -(react);}

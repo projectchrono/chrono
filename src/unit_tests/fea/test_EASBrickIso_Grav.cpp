@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     ChSystem my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Dimensions of the plate
     double plate_lenght_x = 1;
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         MPROP(i, 2) = 0.3;      // nu
     }
 
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    std::shared_ptr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
     mmaterial->Set_RayleighDampingK(0.0);
     mmaterial->Set_RayleighDampingM(0.0);
     mmaterial->Set_density(MPROP(0, 0));
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        ChSharedPtr<ChNodeFEAxyz> node(new ChNodeFEAxyz(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2))));
+        auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -179,11 +179,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a node at the tip by dynamic casting
-    ChSharedPtr<ChNodeFEAxyz> nodetip(my_mesh->GetNode(TotalNumNodes - 1).DynamicCastTo<ChNodeFEAxyz>());
+    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(TotalNumNodes - 1));
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        ChSharedPtr<ChElementBrick> element(new ChElementBrick);
+        auto element = std::make_shared<ChElementBrick>();
         ChMatrixNM<double, 3, 1> InertFlexVec;  // Read element length, used in ChElementBrick
         InertFlexVec.Reset();
         InertFlexVec(0, 0) = ElemLengthXY(elemcount, 0);
@@ -191,15 +191,14 @@ int main(int argc, char* argv[]) {
         InertFlexVec(2, 0) = ElemLengthXY(elemcount, 2);
         element->SetInertFlexVec(InertFlexVec);
         // Note we change the order of the nodes to comply with the arrangement of shape functions
-        element->SetNodes(my_mesh->GetNode(NumNodes(elemcount, 0)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 1)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 3)).DynamicCastTo<ChNodeFEAxyz>(),  //
-                          my_mesh->GetNode(NumNodes(elemcount, 2)).DynamicCastTo<ChNodeFEAxyz>(),  //
-                          my_mesh->GetNode(NumNodes(elemcount, 4)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 5)).DynamicCastTo<ChNodeFEAxyz>(),
-                          my_mesh->GetNode(NumNodes(elemcount, 7)).DynamicCastTo<ChNodeFEAxyz>(),   //
-                          my_mesh->GetNode(NumNodes(elemcount, 6)).DynamicCastTo<ChNodeFEAxyz>());  //
-
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 3))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 2))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 4))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 5))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 7))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 6))));
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);
         element->SetGravityOn(true);      // Turn gravity on/off from within the element
@@ -229,7 +228,7 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-09);
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-    ChSharedPtr<ChTimestepperHHT> mystepper = my_system.GetTimestepper().DynamicCastTo<ChTimestepperHHT>();
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.01);
     mystepper->SetMaxiters(10000);
     mystepper->SetAbsTolerances(1e-09);

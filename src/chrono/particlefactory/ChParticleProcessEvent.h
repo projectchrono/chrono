@@ -23,14 +23,14 @@ namespace particlefactory {
 /// You can directly use the ready-to-use processor for basic
 /// behaviors (remove particle, count particle, etc.),
 /// or inherit your own class with custom event processing.
-class ChParticleProcessEvent : public ChShared {
+class ChParticleProcessEvent {
   public:
     /// Children class MUST implement this function according to their
     /// desired behavior. For example, one class might be used to delete the
     /// particles when event is triggered, so here it will remove the particle, etc.
-    virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody,
+    virtual void ParticleProcessEvent(std::shared_ptr<ChBody> mbody,
                                       ChSystem& msystem,
-                                      ChSharedPtr<ChParticleEventTrigger> mprocessor) = 0;
+                                      std::shared_ptr<ChParticleEventTrigger> mprocessor) = 0;
 
     /// Children classes might optionally implement this.
     /// The ChParticleProcessor will call this once, before each ProcessParticles()
@@ -45,9 +45,9 @@ class ChParticleProcessEvent : public ChShared {
 class ChParticleProcessEventDoNothing : public ChParticleProcessEvent {
   public:
     /// Do nothing on process
-    virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody,
+    virtual void ParticleProcessEvent(std::shared_ptr<ChBody> mbody,
                                       ChSystem& msystem,
-                                      ChSharedPtr<ChParticleEventTrigger> mprocessor){};
+                                      std::shared_ptr<ChParticleEventTrigger> mprocessor){};
 };
 
 /// Processed particle will be removed.
@@ -56,13 +56,13 @@ class ChParticleProcessEventDoNothing : public ChParticleProcessEvent {
 /// referenced only by the ChSystem, this also leads to deletion.
 class ChParticleProcessEventRemove : public ChParticleProcessEvent {
   private:
-    std::list<ChSharedPtr<ChBody> > to_delete;
+    std::list<std::shared_ptr<ChBody> > to_delete;
 
   public:
     /// Remove the particle from the system.
-    virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody,
+    virtual void ParticleProcessEvent(std::shared_ptr<ChBody> mbody,
                                       ChSystem& msystem,
-                                      ChSharedPtr<ChParticleEventTrigger> mprocessor) {
+                                      std::shared_ptr<ChParticleEventTrigger> mprocessor) {
         // msystem.Remove(mbody);
         to_delete.push_back(mbody);
     }
@@ -70,7 +70,7 @@ class ChParticleProcessEventRemove : public ChParticleProcessEvent {
     virtual void SetupPreProcess(ChSystem& msystem) { to_delete.clear(); }
 
     virtual void SetupPostProcess(ChSystem& msystem) {
-        std::list<ChSharedPtr<ChBody> >::iterator ibody = to_delete.begin();
+        std::list<std::shared_ptr<ChBody> >::iterator ibody = to_delete.begin();
         while (ibody != to_delete.end()) {
             msystem.Remove((*ibody));
             ++ibody;
@@ -88,9 +88,9 @@ class ChParticleProcessEventCount : public ChParticleProcessEvent {
     ChParticleProcessEventCount() { counter = 0; }
 
     /// Remove the particle from the system.
-    virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody,
+    virtual void ParticleProcessEvent(std::shared_ptr<ChBody> mbody,
                                       ChSystem& msystem,
-                                      ChSharedPtr<ChParticleEventTrigger> mprocessor) {
+                                      std::shared_ptr<ChParticleEventTrigger> mprocessor) {
         ++counter;
     }
 
@@ -107,9 +107,9 @@ class ChParticleProcessEventMassCount : public ChParticleProcessEvent {
     ChParticleProcessEventMassCount() { counted_mass = 0; }
 
     /// Remove the particle from the system.
-    virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody,
+    virtual void ParticleProcessEvent(std::shared_ptr<ChBody> mbody,
                                       ChSystem& msystem,
-                                      ChSharedPtr<ChParticleEventTrigger> mprocessor) {
+                                      std::shared_ptr<ChParticleEventTrigger> mprocessor) {
         counted_mass += mbody->GetMass();
     }
 
@@ -127,13 +127,12 @@ class ChParticleProcessEventMassDistribution : public ChParticleProcessEvent {
     ChParticleProcessEventMassDistribution(int u_sects = 10, int v_sects = 10) { mmass.Reset(u_sects, v_sects); }
 
     /// Remove the particle from the system.
-    virtual void ParticleProcessEvent(ChSharedPtr<ChBody> mbody,
+    virtual void ParticleProcessEvent(std::shared_ptr<ChBody> mbody,
                                       ChSystem& msystem,
-                                      ChSharedPtr<ChParticleEventTrigger> mprocessor) {
-        assert(mprocessor.IsType<ChParticleEventFlowInRectangle>());
-        if (mprocessor.IsType<ChParticleEventFlowInRectangle>()) {
-            ChSharedPtr<ChParticleEventFlowInRectangle> mrectangleprocessor =
-                mprocessor.DynamicCastTo<ChParticleEventFlowInRectangle>();
+                                      std::shared_ptr<ChParticleEventTrigger> mprocessor) {
+        assert(std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor));
+
+        if (auto mrectangleprocessor = std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor)) {
             int irow = (int)floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x);
             if (irow >= mmass.GetRows())
                 irow = mmass.GetRows() - 1;

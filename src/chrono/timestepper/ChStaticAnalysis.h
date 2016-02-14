@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "core/ChVectorDynamic.h"
 #include "timestepper/ChState.h"
 #include "timestepper/ChIntegrable.h"
@@ -24,7 +23,7 @@ namespace chrono {
 
 /// Base class for static analysis
 
-class ChStaticAnalysis : public ChShared {
+class ChStaticAnalysis {
   protected:
     ChIntegrableIIorder* integrable;
 

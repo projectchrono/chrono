@@ -21,12 +21,12 @@ int main() {
     ChSystem dynamics_system;
 
     for (int i = 0; i < num_bodies; i++) {
-        ChSharedBodyPtr body(new ChBody());
+        auto body = std::make_shared<ChBody>();
         body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
         dynamics_system.AddBody(body);
     }
 
-    std::vector<ChSharedPtr<ChBody> >* body_list = dynamics_system.Get_bodylist();
+    std::vector<std::shared_ptr<ChBody> >* body_list = dynamics_system.Get_bodylist();
 
     full.start();
 

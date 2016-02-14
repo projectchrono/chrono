@@ -60,11 +60,11 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.3);
     mmaterial->Set_RayleighDampingK(0.001);
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Apply a force to a node
-    ChSharedPtr<ChNodeFEAxyz> mnodelast = (my_mesh->GetNode(my_mesh->GetNnodes()-1)).DynamicCastTo<ChNodeFEAxyz>();
+    auto mnodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(my_mesh->GetNnodes() - 1));
     mnodelast->SetForce( ChVector<>(50,0,50));
 
     //
@@ -103,24 +103,24 @@ int main(int argc, char* argv[]) {
         hexpos.x = 0.3 * sin(angle);
         ChMatrix33<> hexrot(Q_from_AngAxis(angle, VECT_Y));
 
-        ChSharedPtr<ChNodeFEAxyz> hnode1_lower;
-        ChSharedPtr<ChNodeFEAxyz> hnode2_lower;
-        ChSharedPtr<ChNodeFEAxyz> hnode3_lower;
-        ChSharedPtr<ChNodeFEAxyz> hnode4_lower;
+        std::shared_ptr<ChNodeFEAxyz> hnode1_lower;
+        std::shared_ptr<ChNodeFEAxyz> hnode2_lower;
+        std::shared_ptr<ChNodeFEAxyz> hnode3_lower;
+        std::shared_ptr<ChNodeFEAxyz> hnode4_lower;
 
         for (int ilayer = 0; ilayer < 6; ++ilayer) {
             double hy = ilayer * sz;
-            ChSharedPtr<ChNodeFEAxyz> hnode1(new ChNodeFEAxyz(hexpos + hexrot * ChVector<>(0, hy, 0)));
-            ChSharedPtr<ChNodeFEAxyz> hnode2(new ChNodeFEAxyz(hexpos + hexrot * ChVector<>(0, hy, sz)));
-            ChSharedPtr<ChNodeFEAxyz> hnode3(new ChNodeFEAxyz(hexpos + hexrot * ChVector<>(sx, hy, sz)));
-            ChSharedPtr<ChNodeFEAxyz> hnode4(new ChNodeFEAxyz(hexpos + hexrot * ChVector<>(sx, hy, 0)));
+            auto hnode1 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, 0));
+            auto hnode2 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, sz));
+            auto hnode3 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, sz));
+            auto hnode4 = std::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, 0));
             my_mesh->AddNode(hnode1);
             my_mesh->AddNode(hnode2);
             my_mesh->AddNode(hnode3);
             my_mesh->AddNode(hnode4);
 
             if (ilayer > 0) {
-                ChSharedPtr<ChElementHexa_8> helement1(new ChElementHexa_8);
+                auto helement1 = std::make_shared<ChElementHexa_8>();
                 helement1->SetNodes(hnode1_lower, hnode2_lower, hnode3_lower, hnode4_lower, hnode1, hnode2, hnode3,
                                     hnode4);
                 helement1->SetMaterial(mmaterial);
@@ -149,22 +149,21 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
+    auto truss = std::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create constraints between nodes and truss
     // (for example, fix to ground all nodes which are near y=0
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
-        if (my_mesh->GetNode(inode).IsType<ChNodeFEAxyz>()) {
-            ChSharedPtr<ChNodeFEAxyz> mnode(my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyz>());  // downcast
+        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().y < 0.01) {
-                ChSharedPtr<ChLinkPointFrame> constraint(new ChLinkPointFrame);
+                auto constraint = std::make_shared<ChLinkPointFrame>();
                 constraint->Initialize(mnode, truss);
                 my_system.Add(constraint);
 
                 // For example, attach small cube to show the constraint
-                ChSharedPtr<ChBoxShape> mboxfloor(new ChBoxShape);
+                auto mboxfloor = std::make_shared<ChBoxShape>();
                 mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
                 constraint->AddAsset(mboxfloor);
 
@@ -184,40 +183,24 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a coloured ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh);
-    /*
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-        mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_STRAIN_HYDROSTATIC);
-        mvisualizemeshB->SetColorscaleMinMax(-0.02,0.02);
-        //mvisualizemeshB->SetWireframe(true);
-        my_mesh->AddAsset(mvisualizemeshB);
-    */
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshref(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+
+    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddAsset(mvisualizemeshref);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetSymbolsThickness(0.006);
     my_mesh->AddAsset(mvisualizemeshC);
-    /*
-        ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshD(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
-        //mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-        mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-        mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-        mvisualizemeshD->SetSymbolsScale(1);
-        mvisualizemeshD->SetColorscaleMinMax(-0.15,0.15);
-        mvisualizemeshD->SetZbufferHide(false);
-        my_mesh->AddAsset(mvisualizemeshD);
-    */
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

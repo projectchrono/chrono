@@ -46,13 +46,13 @@ void test_1() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    ChSharedPtr<ChNodeFEAxyz> mnodeA(new ChNodeFEAxyz(ChVector<>(0, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnodeB(new ChNodeFEAxyz(ChVector<>(0, 1, 0)));
+    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -72,7 +72,7 @@ void test_1() {
 
     // Create some elements of 'spring-damper' type, each connecting
     // two 3D nodes:
-    ChSharedPtr<ChElementSpring> melementA(new ChElementSpring);
+    auto melementA = std::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSpringK(2000);
     melementA->SetDamperR(0);
@@ -84,12 +84,12 @@ void test_1() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
+    auto truss = std::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
+    auto constraintA = std::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -129,13 +129,13 @@ void test_2() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    ChSharedPtr<ChNodeFEAxyz> mnodeA(new ChNodeFEAxyz(ChVector<>(0, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnodeB(new ChNodeFEAxyz(ChVector<>(0, 1, 0)));
+    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
@@ -153,7 +153,7 @@ void test_2() {
 
     // Create some elements of 'bar' type, each connecting
     // two 3D nodes:
-    ChSharedPtr<ChElementBar> melementA(new ChElementBar);
+    auto melementA = std::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -168,12 +168,12 @@ void test_2() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
+    auto truss = std::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
+    auto constraintA = std::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -216,13 +216,13 @@ void test_2b() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    ChSharedPtr<ChNodeFEAxyz> mnodeA(new ChNodeFEAxyz(ChVector<>(0, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnodeB(new ChNodeFEAxyz(ChVector<>(0, 1, 0)));
+    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -242,7 +242,7 @@ void test_2b() {
 
     // Create some elements of 'spring-damper' type, each connecting
     // two 3D nodes:
-    ChSharedPtr<ChElementSpring> melementA(new ChElementSpring);
+    auto melementA = std::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSpringK(20000);
     melementA->SetDamperR(200);
@@ -254,12 +254,12 @@ void test_2b() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
+    auto truss = std::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
+    auto constraintA = std::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -299,11 +299,11 @@ void test_3() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.3);
     mmaterial->Set_RayleighDampingK(0.01);
@@ -312,10 +312,10 @@ void test_3() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0, 0, 1)));
-    ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(0, 1, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(1, 0, 0)));
+    auto mnode1 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnode2 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
+    auto mnode3 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnode4 = std::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
 
     // For example, set a point-like mass at a node:
     mnode1->SetMass(200);
@@ -333,7 +333,7 @@ void test_3() {
 
     // Create the tetrahedron element, and assign
     // nodes and material
-    ChSharedPtr<ChElementTetra_4> melement1(new ChElementTetra_4);
+    auto melement1 = std::make_shared<ChElementTetra_4>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
     melement1->SetMaterial(mmaterial);
 
@@ -344,14 +344,14 @@ void test_3() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
+    auto truss = std::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    ChSharedPtr<ChLinkPointFrame> constraint1(new ChLinkPointFrame);
-    ChSharedPtr<ChLinkPointFrame> constraint2(new ChLinkPointFrame);
-    ChSharedPtr<ChLinkPointFrame> constraint3(new ChLinkPointFrame);
+    auto constraint1 = std::make_shared<ChLinkPointFrame>();
+    auto constraint2 = std::make_shared<ChLinkPointFrame>();
+    auto constraint3 = std::make_shared<ChLinkPointFrame>();
 
     constraint1->Initialize(mnode1,  // node
                             truss);  // body to be connected to
@@ -397,14 +397,14 @@ void test_4() {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    ChSharedPtr<ChNodeFEAxyz> mnodeA(new ChNodeFEAxyz(ChVector<>(0, 0, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnodeB(new ChNodeFEAxyz(ChVector<>(0, 1, 0)));
-    ChSharedPtr<ChNodeFEAxyz> mnodeC(new ChNodeFEAxyz(ChVector<>(0, 2, 0)));
+    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeC = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 2, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
@@ -426,14 +426,14 @@ void test_4() {
 
     // Create some elements of 'bar' type, each connecting
     // two 3D nodes:
-    ChSharedPtr<ChElementBar> melementA(new ChElementBar);
+    auto melementA = std::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
     melementA->SetBarRaleyghDamping(0.01);
     melementA->SetBarDensity(2. * 0.1 / (melementA->GetBarArea() * 1.0));
 
-    ChSharedPtr<ChElementBar> melementB(new ChElementBar);
+    auto melementB = std::make_shared<ChElementBar>();
     melementB->SetNodes(mnodeB, mnodeC);
     melementB->SetBarArea(0.1 * 0.02);
     melementB->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -448,12 +448,12 @@ void test_4() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    ChSharedPtr<ChBody> truss(new ChBody);
+    auto truss = std::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    ChSharedPtr<ChLinkPointFrame> constraintA(new ChLinkPointFrame);
+    auto constraintA = std::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -490,6 +490,5 @@ void test_4() {
 int main(int argc, char* argv[]) {
     test_3();
 	
-    system("pause");
     return 0;
 }

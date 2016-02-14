@@ -35,12 +35,12 @@ ChClassRegister<ChBody> a_registration_ChBody;
 // Hierarchy-handling shortcuts
 
 #define MARKpointer (*imarker)
-#define HIER_MARKER_INIT std::vector<ChSharedPtr<ChMarker>>::iterator imarker = marklist.begin();
+#define HIER_MARKER_INIT std::vector<std::shared_ptr<ChMarker>>::iterator imarker = marklist.begin();
 #define HIER_MARKER_NOSTOP (imarker != marklist.end())
 #define HIER_MARKER_NEXT imarker++;
 
 #define FORCEpointer (*iforce)
-#define HIER_FORCE_INIT std::vector<ChSharedPtr<ChForce>>::iterator iforce = forcelist.begin();
+#define HIER_FORCE_INIT std::vector<std::shared_ptr<ChForce>>::iterator iforce = forcelist.begin();
 #define HIER_FORCE_NOSTOP (iforce != forcelist.end())
 #define HIER_FORCE_NEXT iforce++;
 
@@ -67,10 +67,10 @@ ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
 
     switch (contact_method) {
         case ChMaterialSurfaceBase::DVI:
-            matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+            matsurface = std::make_shared<ChMaterialSurface>();
             break;
         case ChMaterialSurfaceBase::DEM:
-            matsurface = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
+            matsurface = std::make_shared<ChMaterialSurfaceDEM>();
             break;
     }
 
@@ -113,10 +113,10 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::Con
 
     switch (contact_method) {
         case ChMaterialSurfaceBase::DVI:
-            matsurface = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+            matsurface = std::make_shared<ChMaterialSurface>();
             break;
         case ChMaterialSurfaceBase::DEM:
-            matsurface = ChSharedPtr<ChMaterialSurfaceDEM>(new ChMaterialSurfaceDEM);
+            matsurface = std::make_shared<ChMaterialSurfaceDEM>();
             break;
     }
 
@@ -553,42 +553,44 @@ bool ChBody::TrySleeping() {
     return false;
 }
 
-void ChBody::AddMarker(ChSharedPtr<ChMarker> amarker) {
+void ChBody::AddMarker(std::shared_ptr<ChMarker> amarker) {
     // don't allow double insertion of same object
-    assert(std::find<std::vector< ChSharedPtr<ChMarker> >::iterator>(marklist.begin(), marklist.end(), amarker) ==
+    assert(std::find<std::vector<std::shared_ptr<ChMarker>>::iterator>(marklist.begin(), marklist.end(), amarker) ==
            marklist.end());
 
     amarker->SetBody(this);
     marklist.push_back(amarker);
 }
 
-void ChBody::AddForce(ChSharedPtr<ChForce> aforce) {
+void ChBody::AddForce(std::shared_ptr<ChForce> aforce) {
     // don't allow double insertion of same object
-    assert(std::find<std::vector< ChSharedPtr<ChForce> >::iterator>(forcelist.begin(), forcelist.end(), aforce) ==
+    assert(std::find<std::vector<std::shared_ptr<ChForce>>::iterator>(forcelist.begin(), forcelist.end(), aforce) ==
            forcelist.end());
 
     aforce->SetBody(this);
     forcelist.push_back(aforce);
 }
 
-void ChBody::RemoveForce(ChSharedPtr<ChForce> mforce) {
+void ChBody::RemoveForce(std::shared_ptr<ChForce> mforce) {
     // trying to remove objects not previously added?
-    assert(std::find<std::vector<ChSharedPtr<ChForce> >::iterator>(forcelist.begin(), forcelist.end(), mforce) !=
+    assert(std::find<std::vector<std::shared_ptr<ChForce>>::iterator>(forcelist.begin(), forcelist.end(), mforce) !=
            forcelist.end());
 
     // warning! linear time search
-    forcelist.erase(std::find<std::vector<ChSharedPtr<ChForce> >::iterator>(forcelist.begin(), forcelist.end(), mforce));
+    forcelist.erase(
+        std::find<std::vector<std::shared_ptr<ChForce>>::iterator>(forcelist.begin(), forcelist.end(), mforce));
 
     mforce->SetBody(0);
 }
 
-void ChBody::RemoveMarker(ChSharedPtr<ChMarker> mmarker) {
+void ChBody::RemoveMarker(std::shared_ptr<ChMarker> mmarker) {
     // trying to remove objects not previously added?
-    assert(std::find<std::vector<ChSharedPtr<ChMarker> >::iterator>(marklist.begin(), marklist.end(), mmarker) !=
+    assert(std::find<std::vector<std::shared_ptr<ChMarker>>::iterator>(marklist.begin(), marklist.end(), mmarker) !=
            marklist.end());
 
     // warning! linear time search
-    marklist.erase(std::find<std::vector<ChSharedPtr<ChMarker> >::iterator>(marklist.begin(), marklist.end(), mmarker));
+    marklist.erase(
+        std::find<std::vector<std::shared_ptr<ChMarker>>::iterator>(marklist.begin(), marklist.end(), mmarker));
 
     mmarker->SetBody(0);
 }
@@ -612,11 +614,14 @@ void ChBody::RemoveAllMarkers() {
     marklist.clear();
 }
 
-ChSharedPtr<ChMarker> ChBody::SearchMarker(const char* m_name) {
-    return ChContainerSearchFromName<ChSharedPtr<ChMarker>, std::vector<ChSharedPtr<ChMarker>>::iterator>(m_name, marklist.begin(), marklist.end());
+std::shared_ptr<ChMarker> ChBody::SearchMarker(const char* m_name) {
+    return ChContainerSearchFromName<std::shared_ptr<ChMarker>, std::vector<std::shared_ptr<ChMarker>>::iterator>(
+        m_name, marklist.begin(), marklist.end());
 }
-ChSharedPtr<ChForce> ChBody::SearchForce(const char* m_name) {
-    return ChContainerSearchFromName<ChSharedPtr<ChForce>, std::vector<ChSharedPtr<ChForce>>::iterator>(m_name, forcelist.begin(), forcelist.end());
+
+std::shared_ptr<ChForce> ChBody::SearchForce(const char* m_name) {
+    return ChContainerSearchFromName<std::shared_ptr<ChForce>, std::vector<std::shared_ptr<ChForce>>::iterator>(
+        m_name, forcelist.begin(), forcelist.end());
 }
 
 // These are the members used to UPDATE
@@ -974,7 +979,7 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
     size_t nummarkers;
     marchive.in_array_pre("markers", nummarkers);
     for (int i = 0; i < nummarkers; i++) {
-        ChSharedPtr<ChMarker> a_marker;
+        std::shared_ptr<ChMarker> a_marker;
         marchive >> CHNVP(a_marker,"");
         this->AddMarker(a_marker);
         marchive.in_array_between("markers");
@@ -987,7 +992,7 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
     size_t numforces;
     marchive.in_array_pre("forces", numforces);
     for (int i = 0; i < numforces; i++) {
-        ChSharedPtr<ChForce> a_force;
+        std::shared_ptr<ChForce> a_force;
         marchive >> CHNVP(a_force,"");
         this->AddForce(a_force);
         marchive.in_array_between("forces");

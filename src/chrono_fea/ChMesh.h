@@ -16,13 +16,13 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "physics/ChIndexedNodes.h"
-#include "physics/ChContinuumMaterial.h"
-#include "physics/ChMaterialSurface.h"
-#include "ChNodeFEAbase.h"
-#include "ChElementBase.h"
-#include "ChContactSurface.h"
-#include "ChMeshSurface.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono_fea/ChContactSurface.h"
+#include "chrono_fea/ChElementBase.h"
+#include "chrono_fea/ChMeshSurface.h"
+#include "chrono_fea/ChNodeFEAbase.h"
 
 /**
     @defgroup fea Chrono::FEA
@@ -50,14 +50,14 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     CH_RTTI(ChMesh, ChIndexedNodes);
 
   private:
-    std::vector<ChSharedPtr<ChNodeFEAbase> > vnodes;     //  nodes
-    std::vector<ChSharedPtr<ChElementBase> > velements;  //  elements
+    std::vector<std::shared_ptr<ChNodeFEAbase> > vnodes;     ///<  nodes
+    std::vector<std::shared_ptr<ChElementBase> > velements;  ///<  elements
 
-    unsigned int n_dofs;    // total degrees of freedom
-    unsigned int n_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
+    unsigned int n_dofs;    ///< total degrees of freedom
+    unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 
-    std::vector<ChSharedPtr<ChContactSurface> > vcontactsurfaces;  //  contact surfaces
-    std::vector<ChSharedPtr<ChMeshSurface> >    vmeshsurfaces;     //  mesh surfaces, ex.for loads
+    std::vector<std::shared_ptr<ChContactSurface> > vcontactsurfaces;  ///<  contact surfaces
+    std::vector<std::shared_ptr<ChMeshSurface> >    vmeshsurfaces;     ///<  mesh surfaces, ex.for loads
     
     bool automatic_gravity_load;
 	int num_points_gravity;
@@ -71,15 +71,15 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     };
     ~ChMesh(){};
 
-    void AddNode(ChSharedPtr<ChNodeFEAbase> m_node);
-    void AddElement(ChSharedPtr<ChElementBase> m_elem);
+    void AddNode(std::shared_ptr<ChNodeFEAbase> m_node);
+    void AddElement(std::shared_ptr<ChElementBase> m_elem);
     void ClearNodes();
     void ClearElements();
 
     /// Access the N-th node
-    virtual ChSharedPtr<ChNodeBase> GetNode(unsigned int n) { return vnodes[n]; };
+    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) { return vnodes[n]; };
     /// Access the N-th element
-    virtual ChSharedPtr<ChElementBase> GetElement(unsigned int n) { return velements[n]; };
+    virtual std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; };
 
     unsigned int GetNnodes() { return (unsigned int)vnodes.size(); }
     unsigned int GetNelements() { return (unsigned int)velements.size(); }
@@ -90,10 +90,10 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual bool GetCollide() { return true; };
 
     /// Add a contact surface
-    void AddContactSurface(ChSharedPtr<ChContactSurface> m_surf);
+    void AddContactSurface(std::shared_ptr<ChContactSurface> m_surf);
 
     /// Access the N-th contact surface
-    virtual ChSharedPtr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; };
+    virtual std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; };
 
     /// Get number of added contact surfaces
     unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
@@ -103,10 +103,10 @@ class ChApiFea ChMesh : public ChIndexedNodes {
 
 
     /// Add a mesh surface (set of ChLoadableUV items that support area loads such as pressure, etc.)
-    void AddMeshSurface(ChSharedPtr<ChMeshSurface> m_surf);
+    void AddMeshSurface(std::shared_ptr<ChMeshSurface> m_surf);
 
     /// Access the N-th mesh surface
-    virtual ChSharedPtr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; };
+    virtual std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; };
 
     /// Get number of added mesh surfaces
     unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }

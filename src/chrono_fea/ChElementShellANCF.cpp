@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChUtilsFEA.h"
+#include <cmath>
 
 namespace chrono {
 namespace fea {
@@ -41,14 +42,14 @@ ChElementShellANCF::ChElementShellANCF() : m_gravity_on(false), m_numLayers(0), 
 // Set element nodes
 // ------------------------------------------------------------------------------
 
-void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
-                                  ChSharedPtr<ChNodeFEAxyzD> nodeB,
-                                  ChSharedPtr<ChNodeFEAxyzD> nodeC,
-                                  ChSharedPtr<ChNodeFEAxyzD> nodeD) {
-    assert(!nodeA.IsNull());
-    assert(!nodeB.IsNull());
-    assert(!nodeC.IsNull());
-    assert(!nodeD.IsNull());
+void ChElementShellANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
+                                  std::shared_ptr<ChNodeFEAxyzD> nodeB,
+                                  std::shared_ptr<ChNodeFEAxyzD> nodeC,
+                                  std::shared_ptr<ChNodeFEAxyzD> nodeD) {
+    assert(nodeA);
+    assert(nodeB);
+    assert(nodeC);
+    assert(nodeD);
 
     m_nodes[0] = nodeA;
     m_nodes[1] = nodeB;
@@ -74,7 +75,7 @@ void ChElementShellANCF::SetNodes(ChSharedPtr<ChNodeFEAxyzD> nodeA,
 // Add a layer.
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::AddLayer(double thickness, double theta, ChSharedPtr<ChMaterialShellANCF> material) {
+void ChElementShellANCF::AddLayer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF> material) {
     m_layers.push_back(Layer(this, thickness, theta, material));
 }
 
@@ -586,7 +587,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     CalcCoordMatrix(m_d);
     CalcCoordDerivMatrix(m_d_dt);
     m_ddT.MatrMultiplyT(m_d, m_d);
-
     // Assumed Natural Strain (ANS):  Calculate m_strainANS and m_strainANS_D
     CalcStrainANSbilinearShell();
 
@@ -1564,8 +1564,8 @@ void ChElementShellANCF::Inverse55_Numerical(ChMatrixNM<double, 5, 5>& a, int n)
         count = 0;
         preValue = 0.0;
         for (int ii = k; ii < n; ii++) {
-            if (preValue < abs(b(ii, k))) {
-                preValue = abs(b(ii, k));
+            if (preValue < std::abs(b(ii, k))) {
+                preValue = std::abs(b(ii, k));
                 count = count + 1;
             }
             imax(1) = count + k;
@@ -1894,7 +1894,7 @@ void ChMaterialShellANCF::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, 
 ChElementShellANCF::Layer::Layer(ChElementShellANCF* element,
                                  double thickness,
                                  double theta,
-                                 ChSharedPtr<ChMaterialShellANCF> material)
+                                 std::shared_ptr<ChMaterialShellANCF> material)
     : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
 
 // Initial setup for this layer: calculate T0 and detJ0 at the element center.

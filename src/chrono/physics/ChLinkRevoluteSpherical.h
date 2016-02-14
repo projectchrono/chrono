@@ -82,8 +82,8 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     /// direction of the revolute joint is aligned with the z axis of the specified
     /// coordinate system and the spherical joint is at the specified distance
     /// along the x axis.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second frame (spherical side)
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (spherical side)
                     const ChCoordsys<>& csys,        ///< joint coordinate system (in absolute frame)
                     double distance                  ///< imposed distance
                     );
@@ -95,8 +95,8 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     /// it is assumed that they are specified in the absolute frame. The imposed
     /// distance between the two points can be either inferred from the provided
     /// configuration (auto_distance = true) or specified explicitly.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second frame (spherical side)
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (spherical side)
                     bool local,                      ///< true if data given in body local frames
                     const ChVector<>& pos1,          ///< point on first frame (center of revolute)
                     const ChVector<>& dir1,          ///< direction of revolute on first frame

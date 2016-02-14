@@ -32,7 +32,7 @@ class HMMWV_Wheel : public chrono::vehicle::ChWheel {
     virtual double GetMass() const override { return m_mass; }
     virtual chrono::ChVector<> GetInertia() const override { return m_inertia; }
 
-    virtual void Initialize(chrono::ChSharedPtr<chrono::ChBody> spindle) override;
+    virtual void Initialize(std::shared_ptr<chrono::ChBody> spindle) override;
 
     virtual const std::string& getMeshName() const = 0;
     virtual const std::string& getMeshFile() const = 0;

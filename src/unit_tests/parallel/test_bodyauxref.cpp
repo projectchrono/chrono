@@ -46,7 +46,7 @@ using namespace chrono;
 using namespace chrono::collision;
 
 // Function declarations.
-bool VerifySolution(double time, ChSharedPtr<ChBody> pend_1, ChSharedPtr<ChBodyAuxRef> pend_2);
+bool VerifySolution(double time, std::shared_ptr<ChBody> pend_1, std::shared_ptr<ChBodyAuxRef> pend_2);
 
 // -----------------------------------------------------------------------------
 // Main driver function for running the simulation and validating the results.
@@ -109,19 +109,19 @@ int main(int argc, char* argv[]) {
   // Create the ground body
   // ----------------------
 
-  ChSharedPtr<ChBody> ground(new ChBody(new ChCollisionModelParallel));
+  auto ground = std::make_shared<ChBody>(new ChCollisionModelParallel);
   ground->SetBodyFixed(true);
   system->AddBody(ground);
 
   // Attach a visualization asset representing the Y axis.
-  ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+  auto box = std::make_shared<ChBoxShape>();
   box->GetBoxGeometry().Size = ChVector<>(0.02, 3, 0.02);
   ground->AddAsset(box);
 
   // Create a pendulum modeled using ChBody
   // --------------------------------------
 
-  ChSharedPtr<ChBody> pend_1(new ChBody(new ChCollisionModelParallel));
+  auto pend_1 = std::make_shared<ChBody>(new ChCollisionModelParallel);
   system->AddBody(pend_1);
   pend_1->SetIdentifier(1);
   pend_1->SetBodyFixed(false);
@@ -132,14 +132,14 @@ int main(int argc, char* argv[]) {
   // Attach a visualization asset. Note that the cylinder is defined with
   // respect to the centroidal reference frame (which is the body reference
   // frame for a ChBody).
-  ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
+  auto cyl_1 = std::make_shared<ChCylinderShape>();
   cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, -1, 0);
   cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, 1, 0);
   cyl_1->GetCylinderGeometry().rad = 0.2;
   cyl_1->Pos = ChVector<>(0, 0, 0);
   cyl_1->Rot = y2x;
   pend_1->AddAsset(cyl_1);
-  ChSharedPtr<ChColorAsset> col_1(new ChColorAsset);
+  auto col_1 = std::make_shared<ChColorAsset>();
   col_1->SetColor(ChColor(0.6f, 0, 0));
   pend_1->AddAsset(col_1);
 
@@ -150,14 +150,14 @@ int main(int argc, char* argv[]) {
 
   // Create a revolute joint to connect pendulum to ground. We specify the link
   // coordinate frame in the absolute frame.
-  ChSharedPtr<ChLinkLockRevolute> rev_1 = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  auto rev_1 = std::make_shared<ChLinkLockRevolute>();
   rev_1->Initialize(ground, pend_1, ChCoordsys<>(ChVector<>(0, 1, 0), z2y));
   system->AddLink(rev_1);
 
   // Create a pendulum modeled using ChBodyAuxRef
   // --------------------------------------------
 
-  ChSharedPtr<ChBodyAuxRef> pend_2(new ChBodyAuxRef(new ChCollisionModelParallel));
+  auto pend_2 = std::make_shared<ChBodyAuxRef>(new ChCollisionModelParallel);
   system->Add(pend_2);
   pend_2->SetIdentifier(2);
   pend_2->SetBodyFixed(false);
@@ -168,14 +168,14 @@ int main(int argc, char* argv[]) {
 
   // Attach a visualization asset. Note that now the cylinder is defined with
   // respect to the body reference frame.
-  ChSharedPtr<ChCylinderShape> cyl_2(new ChCylinderShape);
+  auto cyl_2 = std::make_shared<ChCylinderShape>();
   cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -1, 0);
   cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, 1, 0);
   cyl_2->GetCylinderGeometry().rad = 0.2;
   cyl_2->Pos = ChVector<>(1, 0, 0);
   cyl_2->Rot = y2x;
   pend_2->AddAsset(cyl_2);
-  ChSharedPtr<ChColorAsset> col_2(new ChColorAsset);
+  auto col_2 = std::make_shared<ChColorAsset>();
   col_2->SetColor(ChColor(0, 0, 0.6f));
   pend_2->AddAsset(col_2);
 
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
 
   // Create a revolute joint to connect pendulum to ground. We specify the link
   // coordinate frame in the absolute frame.
-  ChSharedPtr<ChLinkLockRevolute> rev_2 = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+  auto rev_2 = std::make_shared<ChLinkLockRevolute>();
   rev_2->Initialize(ground, pend_2, ChCoordsys<>(ChVector<>(0, -1, 0), z2y));
   system->AddLink(rev_2);
 
@@ -230,9 +230,9 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Verify simulation results against analytical solution at the specified time.
 // -----------------------------------------------------------------------------
-bool VerifySolution(double time,                       // current time
-                    ChSharedPtr<ChBody> pend_1,        // handle to ChBody pendulum
-                    ChSharedPtr<ChBodyAuxRef> pend_2)  // handle to ChBodyAuxRef pendulum
+bool VerifySolution(double time,                           // current time
+                    std::shared_ptr<ChBody> pend_1,        // handle to ChBody pendulum
+                    std::shared_ptr<ChBodyAuxRef> pend_2)  // handle to ChBodyAuxRef pendulum
 {
   // Tolerances
   double pos_tol = 1e-6;

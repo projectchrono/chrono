@@ -31,12 +31,12 @@ namespace chrono {
 ///////////////////////////////////////////////////
 // QUATERNION OPERATIONS
 
-double Qlength(const Quaternion& q) {
+double Qlength(const ChQuaternion<double>& q) {
     return (sqrt(pow(q.e0, 2) + pow(q.e1, 2) + pow(q.e2, 2) + pow(q.e3, 2)));
 }
 
-Quaternion Qscale(const Quaternion& q, double fact) {
-    Quaternion result;
+ChQuaternion<double> Qscale(const ChQuaternion<double>& q, double fact) {
+    ChQuaternion<double> result;
     result.e0 = q.e0 * fact;
     result.e1 = q.e1 * fact;
     result.e2 = q.e2 * fact;
@@ -44,8 +44,8 @@ Quaternion Qscale(const Quaternion& q, double fact) {
     return result;
 }
 
-Quaternion Qadd(const Quaternion& qa, const Quaternion& qb) {
-    Quaternion result;
+ChQuaternion<double> Qadd(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb) {
+    ChQuaternion<double> result;
     result.e0 = qa.e0 + qb.e0;
     result.e1 = qa.e1 + qb.e1;
     result.e2 = qa.e2 + qb.e2;
@@ -53,8 +53,8 @@ Quaternion Qadd(const Quaternion& qa, const Quaternion& qb) {
     return result;
 }
 
-Quaternion Qsub(const Quaternion& qa, const Quaternion& qb) {
-    Quaternion result;
+ChQuaternion<double> Qsub(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb) {
+    ChQuaternion<double> result;
     result.e0 = qa.e0 - qb.e0;
     result.e1 = qa.e1 - qb.e1;
     result.e2 = qa.e2 - qb.e2;
@@ -63,7 +63,7 @@ Quaternion Qsub(const Quaternion& qa, const Quaternion& qb) {
 }
 // returns the norm two of the quaternion. Eulero's parameters have norm = 1
 
-Quaternion Qnorm(const Quaternion& q) {
+ChQuaternion<double> Qnorm(const ChQuaternion<double>& q) {
     double invlength;
     invlength = 1 / (Qlength(q));
     return Qscale(q, invlength);
@@ -71,8 +71,8 @@ Quaternion Qnorm(const Quaternion& q) {
 
 // The conjugate of the quaternion [s,v1,v2,v3] is [s,-v1,-v2,-v3]
 
-Quaternion Qconjugate(const Quaternion& q) {
-    Quaternion res;
+ChQuaternion<double> Qconjugate(const ChQuaternion<double>& q) {
+    ChQuaternion<double> res;
     res.e0 = q.e0;
     res.e1 = -q.e1;
     res.e2 = -q.e2;
@@ -83,8 +83,8 @@ Quaternion Qconjugate(const Quaternion& q) {
 // Returns the product of two quaternions. It is NONcommutative! (like cross
 // product in vectors.
 
-Quaternion Qcross(const Quaternion& qa, const Quaternion& qb) {
-    Quaternion res;
+ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb) {
+    ChQuaternion<double> res;
     res.e0 = qa.e0 * qb.e0 - qa.e1 * qb.e1 - qa.e2 * qb.e2 - qa.e3 * qb.e3;
     res.e1 = qa.e0 * qb.e1 + qa.e1 * qb.e0 - qa.e3 * qb.e2 + qa.e2 * qb.e3;
     res.e2 = qa.e0 * qb.e2 + qa.e2 * qb.e0 + qa.e3 * qb.e1 - qa.e1 * qb.e3;
@@ -96,8 +96,8 @@ Quaternion Qcross(const Quaternion& qa, const Quaternion& qb) {
 // defined in _abs_ coords. The axis is supposed to be fixed, i.e.
 // it is constant during rotation! And must be normalized!
 
-Quaternion Q_from_AngAxis(double angle, const Vector& axis) {
-    Quaternion quat;
+ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) {
+    ChQuaternion<double> quat;
     double halfang;
     double sinhalf;
 
@@ -111,18 +111,18 @@ Quaternion Q_from_AngAxis(double angle, const Vector& axis) {
     return (quat);
 }
 
-Quaternion Q_from_AngZ(double angleZ) {
+ChQuaternion<double> Q_from_AngZ(double angleZ) {
     return Q_from_AngAxis(angleZ, VECT_Z);
 }
-Quaternion Q_from_AngX(double angleX) {
+ChQuaternion<double> Q_from_AngX(double angleX) {
     return Q_from_AngAxis(angleX, VECT_X);
 }
-Quaternion Q_from_AngY(double angleY) {
+ChQuaternion<double> Q_from_AngY(double angleY) {
     return Q_from_AngAxis(angleY, VECT_Y);
 }
 
-Quaternion Q_from_NasaAngles(const Vector& mang) {
-    Quaternion mq;
+ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& mang) {
+    ChQuaternion<double> mq;
     double c1 = cos(mang.z / 2);
     double s1 = sin(mang.z / 2);
     double c2 = cos(mang.x / 2);
@@ -137,8 +137,8 @@ Quaternion Q_from_NasaAngles(const Vector& mang) {
     mq.e3 = s1 * c2 * c3 - c1 * s2 * s3;
     return mq;
 }
-Vector Q_to_NasaAngles(const Quaternion& q1) {
-    Vector mnasa;
+ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
+    ChVector<double> mnasa;
     double sqw = q1.e0 * q1.e0;
     double sqx = q1.e1 * q1.e1;
     double sqy = q1.e2 * q1.e2;
@@ -152,9 +152,9 @@ Vector Q_to_NasaAngles(const Quaternion& q1) {
     return mnasa;
 }
 
-void Q_to_AngAxis(Quaternion* quat, double* a_angle, Vector* a_axis) {
+void Q_to_AngAxis(ChQuaternion<double>* quat, double* a_angle, ChVector<double>* a_axis) {
     double arg, invsine;
-    Vector vtemp;
+    ChVector<double> vtemp;
 
     if (quat->e0 < 0.99999999) {
         arg = acos(quat->e0);
@@ -175,8 +175,8 @@ void Q_to_AngAxis(Quaternion* quat, double* a_angle, Vector* a_axis) {
 //	Gets the four quaternion dq/dt from the vector of angular speed,
 // with w specified in _absolute_ coords.
 
-Quaternion Qdt_from_Wabs(const Vector& w, const Quaternion& q) {
-    Quaternion qw;
+ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const ChQuaternion<double>& q) {
+    ChQuaternion<double> qw;
     double half = 0.5;
 
     qw.e0 = 0;
@@ -190,8 +190,8 @@ Quaternion Qdt_from_Wabs(const Vector& w, const Quaternion& q) {
 //	Gets the four quaternion dq/dt from the vector of angular speed,
 // with w specified in _local_ coords.
 
-Quaternion Qdt_from_Wrel(const Vector& w, const Quaternion& q) {
-    Quaternion qw;
+ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const ChQuaternion<double>& q) {
+    ChQuaternion<double> qw;
     double half = 0.5;
 
     qw.e0 = 0;
@@ -205,8 +205,8 @@ Quaternion Qdt_from_Wrel(const Vector& w, const Quaternion& q) {
 //	Gets the quaternion ddq/dtdt from the vector of angular acceleration
 //  with a specified in _absolute_ coords.
 
-Quaternion Qdtdt_from_Aabs(const Vector& a, const Quaternion& q, const Quaternion& q_dt) {
-    Quaternion ret;
+ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt) {
+    ChQuaternion<double> ret;
     ret.Qdtdt_from_Aabs(a, q, q_dt);
     return ret;
 }
@@ -214,8 +214,8 @@ Quaternion Qdtdt_from_Aabs(const Vector& a, const Quaternion& q, const Quaternio
 //	Gets the quaternion ddq/dtdt from the vector of angular acceleration
 //  with a specified in _relative_ coords.
 
-Quaternion Qdtdt_from_Arel(const Vector& a, const Quaternion& q, const Quaternion& q_dt) {
-    Quaternion ret;
+ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt) {
+    ChQuaternion<double> ret;
     ret.Qdtdt_from_Arel(a, q, q_dt);
     return ret;
 }
@@ -223,8 +223,8 @@ Quaternion Qdtdt_from_Arel(const Vector& a, const Quaternion& q, const Quaternio
 // Gets the dquaternion/dt from a quaternion, a speed of
 // rotation and an axis, defined in _abs_ coords.
 
-Quaternion Qdt_from_AngAxis(const Quaternion& quat, double angle_dt, const Vector& axis) {
-    Vector W;
+ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector<double>& axis) {
+    ChVector<double> W;
 
     W = Vmul(axis, angle_dt);
 
@@ -234,8 +234,8 @@ Quaternion Qdt_from_AngAxis(const Quaternion& quat, double angle_dt, const Vecto
 // Gets the ddquaternion/dtdt from a quaternion, an angular
 // acceleration and an axis, defined in _abs_ coords.
 
-Quaternion Qdtdt_from_AngAxis(double angle_dtdt, const Vector& axis, const Quaternion& q, const Quaternion& q_dt) {
-    Vector Acc;
+ChQuaternion<double> Qdtdt_from_AngAxis(double angle_dtdt, const ChVector<double>& axis, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt) {
+    ChVector<double> Acc;
 
     Acc = Vmul(axis, angle_dtdt);
 
@@ -244,13 +244,13 @@ Quaternion Qdtdt_from_AngAxis(double angle_dtdt, const Vector& axis, const Quate
 
 // Returns TRUE if two quaternions are equal
 
-bool Qequal(const Quaternion& qa, const Quaternion& qb) {
+bool Qequal(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb) {
     return qa == qb;
 }
 
 // Returns TRUE if quaternion is not null;
 
-bool Qnotnull(const Quaternion& qa) {
+bool Qnotnull(const ChQuaternion<double>& qa) {
     return (qa.e0 != 0) || (qa.e1 != 0) || (qa.e2 != 0) || (qa.e3 != 0);
 }
 
@@ -258,8 +258,8 @@ bool Qnotnull(const Quaternion& qa) {
 // entire quaternion q = {e0, e1, e2, e3}. Also for q_dt and q_dtdt
 // Note: singularities may happen!
 
-Quaternion ImmQ_complete(Vector* qimm) {
-    Quaternion mq;
+ChQuaternion<double> ImmQ_complete(ChVector<double>* qimm) {
+    ChQuaternion<double> mq;
     mq.e1 = qimm->x;
     mq.e2 = qimm->y;
     mq.e3 = qimm->z;
@@ -267,8 +267,8 @@ Quaternion ImmQ_complete(Vector* qimm) {
     return (mq);
 }
 
-Quaternion ImmQ_dt_complete(Quaternion* mq, Vector* qimm_dt) {
-    Quaternion mqdt;
+ChQuaternion<double> ImmQ_dt_complete(ChQuaternion<double>* mq, ChVector<double>* qimm_dt) {
+    ChQuaternion<double> mqdt;
     mqdt.e1 = qimm_dt->x;
     mqdt.e2 = qimm_dt->y;
     mqdt.e3 = qimm_dt->z;
@@ -276,8 +276,8 @@ Quaternion ImmQ_dt_complete(Quaternion* mq, Vector* qimm_dt) {
     return (mqdt);
 }
 
-Quaternion ImmQ_dtdt_complete(Quaternion* mq, Quaternion* mqdt, Vector* qimm_dtdt) {
-    Quaternion mqdtdt;
+ChQuaternion<double> ImmQ_dtdt_complete(ChQuaternion<double>* mq, ChQuaternion<double>* mqdt, ChVector<double>* qimm_dtdt) {
+    ChQuaternion<double> mqdtdt;
     mqdtdt.e1 = qimm_dtdt->x;
     mqdtdt.e2 = qimm_dtdt->y;
     mqdtdt.e3 = qimm_dtdt->z;
@@ -290,8 +290,8 @@ Quaternion ImmQ_dtdt_complete(Quaternion* mq, Quaternion* mqdt, Vector* qimm_dtd
 ////////////////////////////////////////////////////////////
 //  ANGLE CONVERSION UTILITIES
 
-Quaternion Angle_to_Quat(int angset, const Vector& mangles) {
-    Quaternion res;
+ChQuaternion<double> Angle_to_Quat(int angset, const ChVector<double>& mangles) {
+    ChQuaternion<double> res;
     ChMatrix33<> Acoord;
 
     switch (angset) {
@@ -315,8 +315,8 @@ Quaternion Angle_to_Quat(int angset, const Vector& mangles) {
     return res;
 }
 
-Vector Quat_to_Angle(int angset, const Quaternion& mquat) {
-    Vector res;
+ChVector<double> Quat_to_Angle(int angset, const ChQuaternion<double>& mquat) {
+    ChVector<double> res;
     ChMatrix33<> Acoord;
 
     Acoord.Set_A_quaternion(mquat);
@@ -341,10 +341,10 @@ Vector Quat_to_Angle(int angset, const Quaternion& mquat) {
     return res;
 }
 
-Quaternion AngleDT_to_QuatDT(int angset, const Vector& mangles, const Quaternion& q) {
-    Quaternion res;
-    Quaternion q2;
-    Vector ang1, ang2;
+ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q) {
+    ChQuaternion<double> res;
+    ChQuaternion<double> q2;
+    ChVector<double> ang1, ang2;
 
     ang1 = Quat_to_Angle(angset, q);
     ang2 = Vadd(ang1, Vmul(mangles, CH_LOWTOL));
@@ -354,10 +354,10 @@ Quaternion AngleDT_to_QuatDT(int angset, const Vector& mangles, const Quaternion
     return res;
 }
 
-Quaternion AngleDTDT_to_QuatDTDT(int angset, const Vector& mangles, const Quaternion& q) {
-    Quaternion res;
-    Quaternion qa, qb;
-    Vector ang0, angA, angB;
+ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q) {
+    ChQuaternion<double> res;
+    ChQuaternion<double> qa, qb;
+    ChVector<double> ang0, angA, angB;
     double hsquared = CH_LOWTOL;
 
     ang0 = Quat_to_Angle(angset, q);
@@ -370,8 +370,8 @@ Quaternion AngleDTDT_to_QuatDTDT(int angset, const Vector& mangles, const Quater
     return res;
 }
 
-Vector Angle_to_Angle(int setfrom, int setto, const Vector& mangles) {
-    Vector res;
+ChVector<double> Angle_to_Angle(int setfrom, int setto, const ChVector<double>& mangles) {
+    ChVector<double> res;
     ChMatrix33<> Acoord;
 
     switch (setfrom) {
@@ -414,8 +414,8 @@ Vector Angle_to_Angle(int setfrom, int setto, const Vector& mangles) {
 
 // Get the X axis of a coordsystem, given the quaternion which
 // represents the alignment of the coordsystem.
-Vector VaxisXfromQuat(const Quaternion& quat) {
-    Vector res;
+ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat) {
+    ChVector<double> res;
     res.x = (pow(quat.e0, 2) + pow(quat.e1, 2)) * 2 - 1;
     res.y = ((quat.e1 * quat.e2) + (quat.e0 * quat.e3)) * 2;
     res.z = ((quat.e1 * quat.e3) - (quat.e0 * quat.e2)) * 2;

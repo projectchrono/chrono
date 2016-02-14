@@ -13,31 +13,27 @@
 #ifndef CHFACETETRA4_H
 #define CHFACETETRA4_H
 
-#include "ChElementTetra_4.h"
-
+#include "chrono_fea/ChElementTetra_4.h"
 
 namespace chrono {
 namespace fea {
 
-
-/// Face of a linear ChElementTetra_4 tetrahedron. 
+/// Face of a linear ChElementTetra_4 tetrahedron.
 /// This is a proxy to the tetrahedron. It can be used to apply pressure loads.
 /// Note, face_id is the number of the vertex to whom it is opposed: 0,1,2,3.
 /// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
-
 class ChApiFea ChFaceTetra_4 : public ChLoadableUV {
-protected:
-    char face_id; 
-    ChSharedPtr< ChElementTetra_4 > melement;
-public:
-    ChFaceTetra_4 ( ChSharedPtr< ChElementTetra_4 > mel, char mid) :
-                melement(mel),
-                face_id(mid) {}
+  protected:
+    char face_id;
+    std::shared_ptr<ChElementTetra_4> melement;
+
+  public:
+    ChFaceTetra_4(std::shared_ptr<ChElementTetra_4> mel, char mid) : melement(mel), face_id(mid) {}
 
     virtual ~ChFaceTetra_4() {}
 
     // Get the node 'i' of face , with i=0,1,2
-    ChSharedPtr<ChNodeFEAxyz> GetNodeN(int i) {
+    std::shared_ptr<ChNodeFEAxyz> GetNodeN(int i) {
 
         int iface0[] = {2,1,3};
         int iface1[] = {3,0,2};
@@ -45,15 +41,15 @@ public:
         int iface3[] = {0,1,2};
         switch (face_id) {
             case 0:
-                return melement->GetNodeN(iface0[i]).DynamicCastTo<ChNodeFEAxyz>();
+                return std::dynamic_pointer_cast<ChNodeFEAxyz>(melement->GetNodeN(iface0[i]));
             case 1:
-                return melement->GetNodeN(iface1[i]).DynamicCastTo<ChNodeFEAxyz>();
+                return std::dynamic_pointer_cast<ChNodeFEAxyz>(melement->GetNodeN(iface1[i]));
             case 2:
-                return melement->GetNodeN(iface2[i]).DynamicCastTo<ChNodeFEAxyz>();
+                return std::dynamic_pointer_cast<ChNodeFEAxyz>(melement->GetNodeN(iface2[i]));
             case 3:
-                return melement->GetNodeN(iface3[i]).DynamicCastTo<ChNodeFEAxyz>();
+                return std::dynamic_pointer_cast<ChNodeFEAxyz>(melement->GetNodeN(iface3[i]));
         }
-        ChSharedPtr<ChNodeFEAxyz> foo_null;
+        std::shared_ptr<ChNodeFEAxyz> foo_null;
         return foo_null;
     }
 

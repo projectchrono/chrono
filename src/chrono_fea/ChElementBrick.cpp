@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Bryan Peterson, Antonio Recuero
+// Authors: Bryan Peterson, Antonio Recuero, Radu Serban
 // =============================================================================
 // Brick element with 8 nodes (with EAS)
 // =============================================================================
@@ -29,22 +29,22 @@ ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
     m_nodes.resize(8);
 }
 // -----------------------------------------------------------------------------
-void ChElementBrick::SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
-                              ChSharedPtr<ChNodeFEAxyz> nodeB,
-                              ChSharedPtr<ChNodeFEAxyz> nodeC,
-                              ChSharedPtr<ChNodeFEAxyz> nodeD,
-                              ChSharedPtr<ChNodeFEAxyz> nodeE,
-                              ChSharedPtr<ChNodeFEAxyz> nodeF,
-                              ChSharedPtr<ChNodeFEAxyz> nodeG,
-                              ChSharedPtr<ChNodeFEAxyz> nodeH) {
-    assert(!nodeA.IsNull());
-    assert(!nodeB.IsNull());
-    assert(!nodeC.IsNull());
-    assert(!nodeD.IsNull());
-    assert(!nodeE.IsNull());
-    assert(!nodeF.IsNull());
-    assert(!nodeG.IsNull());
-    assert(!nodeH.IsNull());
+void ChElementBrick::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                              std::shared_ptr<ChNodeFEAxyz> nodeB,
+                              std::shared_ptr<ChNodeFEAxyz> nodeC,
+                              std::shared_ptr<ChNodeFEAxyz> nodeD,
+                              std::shared_ptr<ChNodeFEAxyz> nodeE,
+                              std::shared_ptr<ChNodeFEAxyz> nodeF,
+                              std::shared_ptr<ChNodeFEAxyz> nodeG,
+                              std::shared_ptr<ChNodeFEAxyz> nodeH) {
+    assert(nodeA);
+    assert(nodeB);
+    assert(nodeC);
+    assert(nodeD);
+    assert(nodeE);
+    assert(nodeF);
+    assert(nodeG);
+    assert(nodeH);
 
     m_nodes[0] = nodeA;
     m_nodes[1] = nodeB;

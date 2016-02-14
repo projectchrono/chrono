@@ -103,36 +103,29 @@ int main(int argc, char* argv[]) {
         // This is the instruction that loads the .py (as saved from SolidWorks) and
         // fills the system:
 
-        my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/collisions").c_str(), 
+        my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/swiss_escapement").c_str(), 
                                          my_system);  // note, don't type the .py suffic in filename..
 
         my_system.ShowHierarchy(GetLog());
 
         // In case you want to fetch an item, remember that they got the
         // names that you see in the CAD interface, for example suppose you know that
-        // a ChBodyAuxRef has the name "capital-2":
-        ChSharedPtr<ChBodyAuxRef> mbody;
+        // a ChBodyAuxRef has the name "escape_wheel^escapement-1":
+        std::shared_ptr<ChBodyAuxRef> mbody;
         ChSystem::IteratorBodies myiterp = my_system.IterBeginBodies();
         while (myiterp != my_system.IterEndBodies()) {
             GetLog() << (*myiterp)->GetNameString().c_str() << "\n";
-            if ((*myiterp)->GetNameString() == "capital-2") 
-                mbody = (*myiterp).DynamicCastTo<ChBodyAuxRef>();
+            if ((*myiterp)->GetNameString() == "escape_wheel^escapement-1") 
+                mbody = std::dynamic_pointer_cast<ChBodyAuxRef>(*myiterp);
 
             ++myiterp;
         }
 
         if (!mbody) 
-            throw ChException("Error. Could not find mbody from its name in SolidWorks exported file");
+            throw ChException("Error. Could not find body from its name in SolidWorks exported file");
+        else
+            GetLog() << "Found body  its name in SolidWorks exported file, pos.x=" << mbody->GetPos().x << "\n";
 
-        // perform a small simulation and outputs the coords of brick:
-        while (my_system.GetChTime() < 0.8) {
-            my_system.DoStepDynamics(0.01);
-
-            GetLog() << " t=" << my_system.GetChTime();
-
-            if (!mbody.IsNull())
-                GetLog() << "  body x=" << mbody->GetPos().x << "\n";
-        }
 
     } catch (ChException myerror) {
         GetLog() << myerror.what();
