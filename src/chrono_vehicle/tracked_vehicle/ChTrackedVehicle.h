@@ -60,13 +60,13 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Get the specified suspension subsystem.
-    ChSharedPtr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
+    std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
-    ChSharedPtr<ChTrackDriveline> GetDriveline() const { return m_driveline; }
+    std::shared_ptr<ChTrackDriveline> GetDriveline() const { return m_driveline; }
 
     /// Get a handle to the vehicle's driveshaft body.
-    virtual ChSharedPtr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
     /// Get the angular speed of the driveshaft.
     /// This function provides the interface between a vehicle system and a
@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual double GetDriveshaftSpeed() const override { return m_driveline->GetDriveshaftSpeed(); }
 
     /// Get a handle to the specified track shoe.
-    ChSharedPtr<ChTrackShoe> GetTrackShoe(VehicleSide side, size_t id) const {
+    std::shared_ptr<ChTrackShoe> GetTrackShoe(VehicleSide side, size_t id) const {
         return m_tracks[side]->GetTrackShoe(id);
     }
 
@@ -126,8 +126,8 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
   protected:
     std::string m_name;  ///< name of the vehicle system
 
-    ChSharedPtr<ChTrackAssembly> m_tracks[2];   ///< handles to the track assemblies (left/right)
-    ChSharedPtr<ChTrackDriveline> m_driveline;  ///< handle to the driveline subsystem
+    std::shared_ptr<ChTrackAssembly> m_tracks[2];   ///< handles to the track assemblies (left/right)
+    std::shared_ptr<ChTrackDriveline> m_driveline;  ///< handle to the driveline subsystem
 
     ChTrackContactManager* m_contacts;  ///< manager for internal contacts
 

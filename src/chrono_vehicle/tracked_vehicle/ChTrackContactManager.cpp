@@ -92,14 +92,14 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
 
     // Extract contacts on sprockets.
     if (IsFlagSet(TrackCollide::SPROCKET_LEFT)) {
-        if (modA == m_sprocket_L->GetGearBody().get_ptr()) {
+        if (modA == m_sprocket_L->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
             info.m_torque = react_torques;
             m_sprocket_L_contacts.push_back(info);
         }
-        if (modB == m_sprocket_L->GetGearBody().get_ptr()) {
+        if (modB == m_sprocket_L->GetGearBody().get()) {
             info.m_point = pB;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
@@ -109,14 +109,14 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
     }
 
     if (IsFlagSet(TrackCollide::SPROCKET_RIGHT)) {
-        if (modA == m_sprocket_R->GetGearBody().get_ptr()) {
+        if (modA == m_sprocket_R->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
             info.m_torque = react_torques;
             m_sprocket_R_contacts.push_back(info);
         }
-        if (modB == m_sprocket_R->GetGearBody().get_ptr()) {
+        if (modB == m_sprocket_R->GetGearBody().get()) {
             info.m_point = pB;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
@@ -127,14 +127,14 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
 
     // Extract contacts on track shoes (discard contacts with sprockets)
     if (IsFlagSet(TrackCollide::SHOES_LEFT)) {
-        if (modA == m_shoe_L->GetShoeBody().get_ptr() && modB != m_sprocket_L->GetGearBody().get_ptr()) {
+        if (modA == m_shoe_L->GetShoeBody().get() && modB != m_sprocket_L->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
             info.m_torque = react_torques;
             m_shoe_L_contacts.push_back(info);
         }
-        if (modB == m_shoe_L->GetShoeBody().get_ptr() && modA != m_sprocket_L->GetGearBody().get_ptr()) {
+        if (modB == m_shoe_L->GetShoeBody().get() && modA != m_sprocket_L->GetGearBody().get()) {
             info.m_point = pB;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
@@ -144,14 +144,14 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
     }
 
     if (IsFlagSet(TrackCollide::SHOES_RIGHT)) {
-        if (modA == m_shoe_R->GetShoeBody().get_ptr() && modB != m_sprocket_R->GetGearBody().get_ptr()) {
+        if (modA == m_shoe_R->GetShoeBody().get() && modB != m_sprocket_R->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
             info.m_torque = react_torques;
             m_shoe_R_contacts.push_back(info);
         }
-        if (modB == m_shoe_R->GetShoeBody().get_ptr() && modA != m_sprocket_R->GetGearBody().get_ptr()) {
+        if (modB == m_shoe_R->GetShoeBody().get() && modA != m_sprocket_R->GetGearBody().get()) {
             info.m_point = pB;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
@@ -162,14 +162,14 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
 
     // Extract contacts on idler wheels.
     if (IsFlagSet(TrackCollide::IDLER_LEFT)) {
-        if (modA == m_idler_L->GetWheelBody().get_ptr()) {
+        if (modA == m_idler_L->GetWheelBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
             info.m_torque = react_torques;
             m_idler_L_contacts.push_back(info);
         }
-        if (modB == m_idler_L->GetWheelBody().get_ptr()) {
+        if (modB == m_idler_L->GetWheelBody().get()) {
             info.m_point = pB;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
@@ -179,14 +179,14 @@ bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
     }
 
     if (IsFlagSet(TrackCollide::IDLER_RIGHT)) {
-        if (modA == m_idler_R->GetWheelBody().get_ptr()) {
+        if (modA == m_idler_R->GetWheelBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
             info.m_force = react_forces;
             info.m_torque = react_torques;
             m_idler_R_contacts.push_back(info);
         }
-        if (modB == m_idler_R->GetWheelBody().get_ptr()) {
+        if (modB == m_idler_R->GetWheelBody().get()) {
             info.m_point = pB;
             info.m_csys = plane_coord;
             info.m_force = react_forces;

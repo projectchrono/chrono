@@ -69,22 +69,22 @@ class CH_VEHICLE_API ChTrackAssembly {
     size_t GetNumTrackShoes() const { return m_shoes.size(); }
 
     /// Get a handle to the sprocket.
-    ChSharedPtr<ChSprocket> GetSprocket() const { return m_sprocket; }
+    std::shared_ptr<ChSprocket> GetSprocket() const { return m_sprocket; }
 
     /// Get a handle to the idler subsystem.
-    ChSharedPtr<ChIdler> GetIdler() const { return m_idler; }
+    std::shared_ptr<ChIdler> GetIdler() const { return m_idler; }
 
     /// Get a handle to the brake subsystem.
-    ChSharedPtr<ChTrackBrake> GetBrake() const { return m_brake; }
+    std::shared_ptr<ChTrackBrake> GetBrake() const { return m_brake; }
 
     /// Get a handle to the specified suspension subsystem.
-    ChSharedPtr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
+    std::shared_ptr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
 
     /// Get a handle to the specified road wheel subsystem.
-    ChSharedPtr<ChRoadWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
+    std::shared_ptr<ChRoadWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
 
     /// Get a handle to the specified track shoe subsystem.
-    ChSharedPtr<ChTrackShoe> GetTrackShoe(size_t id) const { return m_shoes[id]; }
+    std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const { return m_shoes[id]; }
 
     /// Get the global location of the specified track shoe.
     const ChVector<>& GetTrackShoePos(size_t id) const { return m_shoes[id]->m_shoe->GetPos(); }
@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChTrackAssembly {
     /// to and expressed in the reference frame of the chassis).  All subsystem reference
     /// frames are assumed to be aligned with the chassis reference frame.
     void Initialize(
-        ChSharedPtr<ChBodyAuxRef> chassis,               ///< [in] handle to the chassis body
+        std::shared_ptr<ChBodyAuxRef> chassis,           ///< [in] handle to the chassis body
         const ChVector<>& sprocket_loc,                  ///< [in] sprocket location relative to the chassis frame
         const ChVector<>& idler_loc,                     ///< [in] idler location relative to the chassis frame
         const std::vector<ChVector<> >& suspension_locs  ///< [in] suspension locations relative to the chassis frame
@@ -131,19 +131,19 @@ class CH_VEHICLE_API ChTrackAssembly {
     void LogConstraintViolations();
 
   protected:
-    std::string m_name;                     ///< name of the subsystem
-    VehicleSide m_side;                     ///< assembly on left/right vehicle side
-    ChSharedPtr<ChSprocket> m_sprocket;     ///< sprocket subsystem
-    ChSharedPtr<ChIdler> m_idler;           ///< idler (and tensioner) subsystem
-    ChSharedPtr<ChTrackBrake> m_brake;      ///< sprocket brake
-    ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
-    ChTrackShoeList m_shoes;                ///< track shoes
+    std::string m_name;                      ///< name of the subsystem
+    VehicleSide m_side;                      ///< assembly on left/right vehicle side
+    std::shared_ptr<ChSprocket> m_sprocket;  ///< sprocket subsystem
+    std::shared_ptr<ChIdler> m_idler;        ///< idler (and tensioner) subsystem
+    std::shared_ptr<ChTrackBrake> m_brake;   ///< sprocket brake
+    ChRoadWheelAssemblyList m_suspensions;   ///< road-wheel assemblies
+    ChTrackShoeList m_shoes;                 ///< track shoes
 
   private:
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
-    bool Assemble(ChSharedPtr<ChBodyAuxRef> chassis);
+    bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis);
 };
 
 }  // end namespace vehicle

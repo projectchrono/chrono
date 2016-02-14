@@ -53,10 +53,10 @@ class CH_VEHICLE_API ChRoadWheel {
     virtual TrackShoeType GetType() const = 0;
 
     /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheelBody() const { return m_wheel; }
+    std::shared_ptr<ChBody> GetWheelBody() const { return m_wheel; }
 
     /// Get a handle to the revolute joint.
-    ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
+    std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
     /// Get the radius of the road wheel.
     virtual double GetWheelRadius() const = 0;
@@ -79,9 +79,9 @@ class CH_VEHICLE_API ChRoadWheel {
     /// reference frame is always aligned with the chassis reference frame.
     /// A derived road wheel subsystem template class must extend this default
     /// implementation and specify contact geometry for the road wheel.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            ChSharedPtr<ChBody> carrier,        ///< [in] handle to the carrier body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            std::shared_ptr<ChBody> carrier,        ///< [in] handle to the carrier body
+                            const ChVector<>& location              ///< [in] location relative to the chassis frame
                             );
 
     /// Log current constraint violations.
@@ -93,9 +93,9 @@ class CH_VEHICLE_API ChRoadWheel {
     /// Return the moments of inertia of the road wheel body.
     virtual const ChVector<>& GetWheelInertia() = 0;
 
-    std::string m_name;                          ///< name of the subsystem
-    ChSharedPtr<ChBody> m_wheel;                 ///< handle to the road wheel body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel revolute joint
+    std::string m_name;                              ///< name of the subsystem
+    std::shared_ptr<ChBody> m_wheel;                 ///< handle to the road wheel body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel revolute joint
 
     float m_friction;
     float m_restitution;

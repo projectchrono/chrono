@@ -52,7 +52,7 @@ void ChIdler::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // Express the idler reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(location);
     idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -66,7 +66,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
     }
 
     // Create and initialize the wheel body.
-    m_wheel = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_wheel = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
     m_wheel->SetNameString(m_name + "_wheel");
     m_wheel->SetPos(points[WHEEL]);
     m_wheel->SetRot(idler_to_abs.GetRot());
@@ -75,7 +75,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
     chassis->GetSystem()->AddBody(m_wheel);
 
     // Create and initialize the carrier body.
-    m_carrier = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_carrier = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
     m_carrier->SetNameString(m_name + "_carrier");
     m_carrier->SetPos(points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
@@ -86,7 +86,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
 
     // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the idler reference frame.
-    m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute = std::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_carrier, m_wheel,
                            ChCoordsys<>(points[WHEEL], idler_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
@@ -95,7 +95,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
     // Create and initialize the prismatic joint between carrier and chassis.
     // The axis of translation is pitched by the specified angle from the x axis
     // of the idler reference frame.
-    m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+    m_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_carrier,
                             ChCoordsys<>(points[CARRIER_CHASSIS],
@@ -103,7 +103,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
     chassis->GetSystem()->AddLink(m_prismatic);
 
     // Create and initialize the tensioner force element.
-    m_tensioner = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+    m_tensioner = std::make_shared<ChLinkSpringCB>();
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->Set_SpringCallback(GetTensionerForceCallback());
@@ -112,7 +112,7 @@ void ChIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& lo
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIdler::AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
+void ChIdler::AddVisualizationCarrier(std::shared_ptr<ChBody> carrier,
                                       const ChVector<>& pt_W,
                                       const ChVector<>& pt_C,
                                       const ChVector<>& pt_T) {
@@ -125,7 +125,7 @@ void ChIdler::AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
     ChVector<> p_T = carrier->TransformPointParentToLocal(pt_T);
 
     if ((p_W - p_C).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = p_W;
         cyl->GetCylinderGeometry().p2 = p_C;
         cyl->GetCylinderGeometry().rad = radius;
@@ -133,20 +133,20 @@ void ChIdler::AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
     }
 
     if ((p_C - p_T).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = p_C;
         cyl->GetCylinderGeometry().p2 = p_T;
         cyl->GetCylinderGeometry().rad = radius;
         carrier->AddAsset(cyl);
     }
 
-    ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+    auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
     box->GetBoxGeometry().Pos = p_T;
     box->GetBoxGeometry().Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
     carrier->AddAsset(box);
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     carrier->AddAsset(col);
 }

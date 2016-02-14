@@ -62,10 +62,10 @@ class CH_VEHICLE_API ChIdler {
     virtual TrackShoeType GetType() const = 0;
 
     /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheelBody() const { return m_wheel; }
+    std::shared_ptr<ChBody> GetWheelBody() const { return m_wheel; }
 
     /// Get a handle to the revolute joint.
-    ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
+    std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
     /// Get the radius of the idler wheel.
     virtual double GetWheelRadius() const = 0;
@@ -88,8 +88,8 @@ class CH_VEHICLE_API ChIdler {
     /// reference frame is always aligned with the chassis reference frame.
     /// A derived idler subsystem template class must extend this default implementation
     /// and specify contact geometry for the idler wheel.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location              ///< [in] location relative to the chassis frame
                             );
 
     /// Log current constraint violations.
@@ -129,11 +129,11 @@ class CH_VEHICLE_API ChIdler {
     virtual ChSpringForceCallback* GetTensionerForceCallback() const = 0;
 
     std::string m_name;                            ///< name of the subsystem
-    ChSharedPtr<ChBody> m_wheel;                   ///< handle to the idler wheel body
-    ChSharedPtr<ChBody> m_carrier;                 ///< handle to the carrier body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;    ///< handle to wheel-carrier revolute joint
-    ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< handle to carrier-chassis translational joint
-    ChSharedPtr<ChLinkSpringCB> m_tensioner;       ///< handle to the TSDA tensioner element
+    std::shared_ptr<ChBody> m_wheel;                   ///< handle to the idler wheel body
+    std::shared_ptr<ChBody> m_carrier;                 ///< handle to the carrier body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;    ///< handle to wheel-carrier revolute joint
+    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to carrier-chassis translational joint
+    std::shared_ptr<ChLinkSpringCB> m_tensioner;       ///< handle to the TSDA tensioner element
 
     float m_friction;
     float m_restitution;
@@ -141,7 +141,7 @@ class CH_VEHICLE_API ChIdler {
     float m_poisson_ratio;
 
   private:
-    void AddVisualizationCarrier(ChSharedPtr<ChBody> carrier,
+    void AddVisualizationCarrier(std::shared_ptr<ChBody> carrier,
                                  const ChVector<>& pt_W,
                                  const ChVector<>& pt_C,
                                  const ChVector<>& pt_T);

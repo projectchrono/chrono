@@ -54,7 +54,7 @@ class CH_VEHICLE_API ChTrackShoe {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the shoe body.
-    ChSharedPtr<ChBody> GetShoeBody() const { return m_shoe; }
+    std::shared_ptr<ChBody> GetShoeBody() const { return m_shoe; }
 
     /// Return the height of the track shoe.
     virtual double GetHeight() const = 0;
@@ -82,23 +82,23 @@ class CH_VEHICLE_API ChTrackShoe {
     /// at the specified location and orientation (expressed in the global frame).
     /// All actual work is deferred to derived classes (subsystem templates) which
     /// must create the bodies, joints, etc.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after all track shoes have been initialized.
-    virtual void Connect(ChSharedPtr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) = 0;
 
   protected:
     /// Set the index of this track shoe within its containing track assembly.
     void SetIndex(size_t index) { m_index = index; }
 
-    std::string m_name;          ///< name of the subsystem
-    size_t m_index;              ///< index of this track shoe within its containing track assembly
-    ChSharedPtr<ChBody> m_shoe;  ///< handle to the shoe body
+    std::string m_name;              ///< name of the subsystem
+    size_t m_index;                  ///< index of this track shoe within its containing track assembly
+    std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body
 
     float m_friction;       ///< coefficient of friction
     float m_restitution;    ///< coefficient of restitution
@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChTrackShoe {
 };
 
 /// Vector of handles to track shoe subsystems.
-typedef std::vector<ChSharedPtr<ChTrackShoe> > ChTrackShoeList;
+typedef std::vector<std::shared_ptr<ChTrackShoe> > ChTrackShoeList;
 
 }  // end namespace vehicle
 }  // end namespace chrono

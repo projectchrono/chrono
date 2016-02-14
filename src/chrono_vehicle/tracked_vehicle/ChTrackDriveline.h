@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChTrackDriveline {
     /// Get a handle to the driveshaft.
     /// Return a shared pointer to the shaft that connects this driveline to a
     /// powertrain system (i.e., right after the transmission box).
-    ChSharedPtr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
+    std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
 
     /// Get the angular speed of the driveshaft.
     /// This represents the output from the driveline subsystem that is passed to
@@ -71,9 +71,9 @@ class CH_VEHICLE_API ChTrackDriveline {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the
     /// two track assembly subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,              ///< handle to the chassis body
-                            ChSharedPtr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            ChSharedPtr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
                             ) = 0;
 
     /// Update the driveline subsystem.
@@ -85,9 +85,9 @@ class CH_VEHICLE_API ChTrackDriveline {
     virtual void Update(double steering, double torque) { m_driveshaft->SetAppliedTorque(torque); }
 
   protected:
-    std::string m_name;                 ///< name of the subsystem
-    bool m_gyration_mode;               ///< flag indicating if in gyration mode (turn in place)
-    ChSharedPtr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
+    std::string m_name;                     ///< name of the subsystem
+    bool m_gyration_mode;                   ///< flag indicating if in gyration mode (turn in place)
+    std::shared_ptr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
 };
 
 }  // end namespace vehicle

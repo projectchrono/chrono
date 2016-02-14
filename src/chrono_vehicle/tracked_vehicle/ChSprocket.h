@@ -77,13 +77,13 @@ class CH_VEHICLE_API ChSprocket {
     virtual double GetAssemblyRadius() const = 0;
 
     /// Get a handle to the gear body.
-    ChSharedPtr<ChBody> GetGearBody() const { return m_gear; }
+    std::shared_ptr<ChBody> GetGearBody() const { return m_gear; }
 
     /// Get a handle to the axle shaft.
-    ChSharedPtr<ChShaft> GetAxle() const { return m_axle; }
+    std::shared_ptr<ChShaft> GetAxle() const { return m_axle; }
 
     /// Get a handle to the revolute joint.
-    ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
+    std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
     /// Get the angular speed of the axle.
     double GetAxleSpeed() const { return m_axle->GetPos_dt(); }
@@ -103,9 +103,9 @@ class CH_VEHICLE_API ChSprocket {
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis).
-    void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                    ChTrackAssembly* track              ///< [in] pointer to containing track assembly
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                    const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                    ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
                     );
 
     /// Apply the provided motor torque.
@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChSprocket {
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual ChSharedPtr<geometry::ChLinePath> GetProfile() = 0;
+    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() = 0;
 
     /// Return the custom collision callback object.
     /// Note that the derived need not delete this object (it is deleted in the
@@ -148,11 +148,11 @@ class CH_VEHICLE_API ChSprocket {
     /// The default implementation renders the gear tooth profiles as a line path.
     virtual void AddGearVisualization();
 
-    std::string m_name;                           ///< name of the subsystem
-    ChSharedPtr<ChBody> m_gear;                   ///< handle to the sprocket gear body
-    ChSharedPtr<ChShaft> m_axle;                  ///< handle to gear shafts
-    ChSharedPtr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
+    std::string m_name;                               ///< name of the subsystem
+    std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body
+    std::shared_ptr<ChShaft> m_axle;                  ///< handle to gear shafts
+    std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
 
     ChSystem::ChCustomComputeCollisionCallback* m_callback;  ///< custom collision functor object
 
@@ -163,7 +163,7 @@ class CH_VEHICLE_API ChSprocket {
 };
 
 /// Vector of handles to sprocket subsystems.
-typedef std::vector<ChSharedPtr<ChSprocket> > ChSprocketList;
+typedef std::vector<std::shared_ptr<ChSprocket> > ChSprocketList;
 
 }  // end namespace vehicle
 }  // end namespace chrono

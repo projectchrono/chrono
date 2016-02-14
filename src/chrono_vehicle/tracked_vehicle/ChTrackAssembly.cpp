@@ -47,7 +47,7 @@ BodyState ChTrackAssembly::GetTrackShoeState(size_t id) const {
 // -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                  const ChVector<>& sprocket_loc,
                                  const ChVector<>& idler_loc,
                                  const std::vector<ChVector<> >& suspension_locs) {
@@ -66,7 +66,7 @@ void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     // Loop over all track shoes and allow them to connect themselves to their
     // neighbor.
     size_t num_shoes = m_shoes.size();
-    ChSharedPtr<ChTrackShoe> next;
+    std::shared_ptr<ChTrackShoe> next;
     for (size_t i = 0; i < num_shoes; ++i) {
         if (ccw)
             next = (i == num_shoes - 1) ? m_shoes[0] : m_shoes[i + 1];
@@ -92,7 +92,7 @@ void ChTrackAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 // TODO: may need fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-bool ChTrackAssembly::Assemble(ChSharedPtr<ChBodyAuxRef> chassis) {
+bool ChTrackAssembly::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Number of track shoes and road wheels.
     size_t num_shoes = m_shoes.size();
     size_t num_wheels = m_suspensions.size();

@@ -56,16 +56,16 @@ class CH_VEHICLE_API ChRoadWheelAssembly {
     TrackShoeType GetType() const { return m_type; }
 
     /// Return a handle to the road wheel subsystem.
-    ChSharedPtr<ChRoadWheel> GetRoadWheel() const { return m_road_wheel; }
+    std::shared_ptr<ChRoadWheel> GetRoadWheel() const { return m_road_wheel; }
 
     /// Return a handle to the carrier body.
-    virtual ChSharedPtr<ChBody> GetCarrierBody() const = 0;
+    virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
 
     /// Get a handle to the road wheel body.
-    ChSharedPtr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
+    std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
 
     /// Get a handle to the revolute joint.
-    ChSharedPtr<ChLinkLockRevolute> GetRevolute() const { return m_road_wheel->GetRevolute(); }
+    std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_road_wheel->GetRevolute(); }
 
     /// Get the radius of the road wheel.
     double GetWheelRadius() const { return m_road_wheel->GetWheelRadius(); }
@@ -78,21 +78,21 @@ class CH_VEHICLE_API ChRoadWheelAssembly {
     /// aligned with the chassis reference frame.
     /// Derived classes must call this base class implementation (which only
     /// initializes the road wheel).
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location              ///< [in] location relative to the chassis frame
                             );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() = 0;
 
   protected:
-    std::string m_name;                     ///< name of the subsystem
-    TrackShoeType m_type;                   ///< type of the track shoe matching this road wheel
-    ChSharedPtr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
+    std::string m_name;                         ///< name of the subsystem
+    TrackShoeType m_type;                       ///< type of the track shoe matching this road wheel
+    std::shared_ptr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
 };
 
 /// Vector of handles to road wheel assembly subsystems.
-typedef std::vector<ChSharedPtr<ChRoadWheelAssembly> > ChRoadWheelAssemblyList;
+typedef std::vector<std::shared_ptr<ChRoadWheelAssembly> > ChRoadWheelAssemblyList;
 
 }  // end namespace vehicle
 }  // end namespace chrono

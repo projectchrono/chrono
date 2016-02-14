@@ -74,12 +74,12 @@ class ChTrackContactManager : public chrono::ChReportContactCallback2 {
 
     utils::CSV_writer m_csv;
 
-    ChSharedPtr<ChSprocket> m_sprocket_L;
-    ChSharedPtr<ChSprocket> m_sprocket_R;
-    ChSharedPtr<ChIdler> m_idler_L;
-    ChSharedPtr<ChIdler> m_idler_R;
-    ChSharedPtr<ChTrackShoe> m_shoe_L;
-    ChSharedPtr<ChTrackShoe> m_shoe_R;
+    std::shared_ptr<ChSprocket> m_sprocket_L;
+    std::shared_ptr<ChSprocket> m_sprocket_R;
+    std::shared_ptr<ChIdler> m_idler_L;
+    std::shared_ptr<ChIdler> m_idler_R;
+    std::shared_ptr<ChTrackShoe> m_shoe_L;
+    std::shared_ptr<ChTrackShoe> m_shoe_R;
 
     size_t m_shoe_index_L;                                ///< index of monitored track shoe on left track
     size_t m_shoe_index_R;                                ///< index of monitored track shoe on right track

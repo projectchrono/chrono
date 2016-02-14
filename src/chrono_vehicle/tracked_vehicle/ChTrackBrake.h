@@ -37,7 +37,7 @@ class CH_VEHICLE_API ChTrackBrake {
     virtual ~ChTrackBrake() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.
-    virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub) = 0;
+    virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) = 0;
 
     /// Update the brake subsystem for the given braking driver input.
     ///   braking = 0 : completely free,
@@ -49,7 +49,7 @@ class CH_VEHICLE_API ChTrackBrake {
 };
 
 /// Vector of handles to brake subsystems.
-typedef std::vector<ChSharedPtr<ChTrackBrake> > ChTrackBrakeList;
+typedef std::vector<std::shared_ptr<ChTrackBrake> > ChTrackBrakeList;
 
 }  // end namespace vehicle
 }  // end namespace chrono

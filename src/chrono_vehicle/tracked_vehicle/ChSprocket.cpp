@@ -58,7 +58,7 @@ void ChSprocket::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
     // The sprocket reference frame is aligned with that of the chassis and centered at the
     // specified location.
     ////ChFrame<> sprocket_to_abs(location);
@@ -69,7 +69,7 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
     ChMatrix33<> rot_y2z(y2z);
 
     // Create and initialize the gear body (same orientation as the chassis).
-    m_gear = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_gear = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
     m_gear->SetNameString(m_name + "_gear");
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);
@@ -79,19 +79,19 @@ void ChSprocket::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>&
 
     // Create and initialize the revolute joint between chassis and gear.
     ChCoordsys<> rev_csys(loc, chassisRot * y2z);
-    m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute = std::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_gear, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the
     // gear rotates about the Y axis.
-    m_axle = ChSharedPtr<ChShaft>(new ChShaft);
+    m_axle = std::make_shared<ChShaft>();
     m_axle->SetNameString(m_name + "_axle");
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->Add(m_axle);
 
-    m_axle_to_spindle = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+    m_axle_to_spindle = std::make_shared<ChShaftsBody>();
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
@@ -126,16 +126,16 @@ void ChSprocket::AddGearVisualization() {
     ChMatrix33<> rot_y2z(y2z);
 
     double sep = GetSeparation();
-    ChSharedPtr<geometry::ChLinePath> profile = GetProfile();
+    std::shared_ptr<geometry::ChLinePath> profile = GetProfile();
 
-    ChSharedPtr<ChLineShape> asset_1(new ChLineShape);
+    auto asset_1 = std::make_shared<ChLineShape>();
     asset_1->SetLineGeometry(profile);
     asset_1->Pos = ChVector<>(0, sep / 2, 0);
     asset_1->Rot = rot_y2z;
     asset_1->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_1);
 
-    ChSharedPtr<ChLineShape> asset_2(new ChLineShape);
+    auto asset_2 = std::make_shared<ChLineShape>();
     asset_2->SetLineGeometry(profile);
     asset_2->Pos = ChVector<>(0, -sep / 2, 0);
     asset_2->Rot = rot_y2z;
