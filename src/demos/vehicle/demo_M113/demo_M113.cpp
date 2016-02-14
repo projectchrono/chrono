@@ -265,23 +265,23 @@ void AddFixedObstacles(ChSystem* system) {
     float young_modulus = 2e7f;
     float poisson_ratio = 0.3f;
 
-    ChSharedPtr<ChBody> obstacle(new ChBody(system->GetContactMethod()));
+    auto obstacle = std::make_shared<ChBody>(system->GetContactMethod());
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
-    ChSharedPtr<ChCylinderShape> shape(new ChCylinderShape());
+    auto shape = std::make_shared<ChCylinderShape>();
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
     obstacle->AddAsset(shape);
 
-    ChSharedPtr<ChColorAsset> color(new ChColorAsset);
+    auto color = std::make_shared<ChColorAsset>();
     color->SetColor(ChColor(1, 1, 1));
     obstacle->AddAsset(color);
 
-    ChSharedPtr<ChTexture> texture(new ChTexture);
+    auto texture = std::make_shared<ChTexture>();
     texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     texture->SetTextureScale(10, 10);
     obstacle->AddAsset(texture);
