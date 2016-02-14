@@ -88,103 +88,38 @@ int main(int argc, char* argv[]) {
 
     AddContainer(&my_system);
 
+    auto my_mesh = std::make_shared<ChMesh>();
+
+    // Create a material, that must be assigned to each solid element in the mesh,
+    // and set its parameters
+
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->Set_v(0.4);
+    mmaterial->Set_RayleighDampingK(0.004);
+    mmaterial->Set_density(1000);
+
+    // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
+    // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
+    // This is much easier than creating all nodes and elements via C++ programming.
+    // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
+
+    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
+    ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tire_3.INP").c_str(), mmaterial, node_sets,
+                                     tire_center, tire_alignment);
+
     //
-    // CREATE THE PHYSICAL SYSTEM
-    //
+    uint num_nodes = my_mesh->GetNnodes();
+    uint num_elements = my_mesh->GetNelements();
 
-    // Create the surface material, containing information
-    // about friction etc.
-
-    // RIGID BODIES
-    // Create some rigid bodies, for instance a floor:
-
-    // FINITE ELEMENT MESH
-    // Create a mesh, that is a container for groups
-    // of FEA elements and their referenced nodes.
-    {
-        auto my_mesh = std::make_shared<ChMesh>();
-
-        // Create a material, that must be assigned to each solid element in the mesh,
-        // and set its parameters
-
-        auto mmaterial = std::make_shared<ChContinuumElastic>();
-        mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
-        mmaterial->Set_v(0.4);
-        mmaterial->Set_RayleighDampingK(0.004);
-        mmaterial->Set_density(1000);
-
-        // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
-        // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
-        // This is much easier than creating all nodes and elements via C++ programming.
-        // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
-
-        std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
-
-        //    my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
-        //    node_sets,
-        //                                tire_center, tire_alignment);
-        // Ruota_V3_Piena.INP
-        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tire_3.INP").c_str(), mmaterial, node_sets,
-                                         tire_center, tire_alignment);
-
-        //
-        uint num_nodes = my_mesh->GetNnodes();
-        uint num_elements = my_mesh->GetNelements();
-        //
-        //    printf("Mesh Stats: Nodes: %d, Elements %d\n", num_nodes, num_elements);
-        //
-        //    // Apply initial speed and angular speed
-        //    //    double speed_x0 = 0.5;
-        for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
-            auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
-            ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
-        }
-
-        my_system.Add(my_mesh);
+    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
+        auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
+        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
+        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
     }
-    //    {
-    //        ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-    //        ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-    //        mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
-    //        mmaterial->Set_v(0.4);
-    //        mmaterial->Set_RayleighDampingK(0.004);
-    //        mmaterial->Set_density(1000);
-    //        std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
-    //        my_mesh->LoadFromAbaqusFile(GetChronoDataFile("fea/tire_3.INP").c_str(), mmaterial, node_sets,
-    //                                    ChVector<>(.8, 0, 0), tire_alignment);
-    //        my_system.Add(my_mesh);
-    //    }
-    //
-    //    for (int i = 0; i < node_sets.size(); i++) {
-    //        printf("Node sets: %d\n", node_sets[i].size());
-    //
-    //        for (int j = 0; j < node_sets[i].size(); j++) {
-    //            fea_container->AddConstraint(node_sets[i][j]->GetIndex() + current_nodes, mwheel_rim);
-    //        }
-    //    }
 
-    // Add a rim
-
-    // ChSharedPtr<ChObjShapeFile> mobjmesh(new ChObjShapeFile);
-    // mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
-    // mwheel_rim->AddAsset(mobjmesh);
-
-    // Conect rim and tire using constraints.
-    // Do these constraints where the 2nd node set has been marked in the .INP file.
-    //    int nodeset_index = 1;
-    //    for (int i = 0; i < node_sets[nodeset_index].size(); ++i) {
-    //        ChSharedPtr<ChLinkPointFrame> mlink(new ChLinkPointFrame);
-    //        mlink->Initialize(node_sets[nodeset_index][i].DynamicCastTo<ChNodeFEAxyz>(), mwheel_rim);
-    //        my_system.Add(mlink);
-    //    }
-    // fea_container->FindSurface();
-
+    my_system.Add(my_mesh);
     my_system.Initialize();
-
-    printf("Surface: %d %d %d %d %d\n", my_system.data_manager->num_fea_nodes, my_system.data_manager->num_fea_tets,
-           fea_container->num_boundary_triangles, fea_container->num_boundary_nodes,
-           fea_container->num_boundary_elements);
 
 //
 // THE SOFT-REAL-TIME CYCLE
