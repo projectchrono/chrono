@@ -79,6 +79,22 @@ inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding
     node_location.z = k * bin_edge + min_bounding_point.z;
     return node_location;
 }
+
+#define LOOPOVERNODESY(X, Y)                                                                           \
+    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                            \
+    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
+    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                            \
+                                                                                                   \
+    for (int i = cx - Y; i <= cx + Y; ++i) {                                                       \
+        for (int j = cy - Y; j <= cy + Y; ++j) {                                                   \
+            for (int k = cz - Y; k <= cz + Y; ++k) {                                               \
+                const int current_node = GridHash(i, j, k, bins_per_axis);                         \
+                real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
+                X                                                                                  \
+            }                                                                                      \
+        }                                                                                          \
+    }
+
 #define LOOPOVERNODES(X)                                                                           \
     const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                            \
     const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
