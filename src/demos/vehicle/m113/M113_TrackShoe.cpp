@@ -65,47 +65,47 @@ void M113_TrackShoe::AddShoeContact() {
 void M113_TrackShoe::AddShoeVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES: {
-            ChSharedPtr<ChCylinderShape> rev_axis(new ChCylinderShape);
+            auto rev_axis = std::make_shared<ChCylinderShape>();
             rev_axis->GetCylinderGeometry().p1 = ChVector<>(0.077, -0.15, 0);
             rev_axis->GetCylinderGeometry().p2 = ChVector<>(0.077, 0.15, 0);
             rev_axis->GetCylinderGeometry().rad = 0.01;
             m_shoe->AddAsset(rev_axis);
 
-            ChSharedPtr<ChCylinderShape> cyl_FR(new ChCylinderShape);
+            auto cyl_FR = std::make_shared<ChCylinderShape>();
             cyl_FR->GetCylinderGeometry().p1 = ChVector<>(m_front_cyl_loc, -0.1402, 0);
             cyl_FR->GetCylinderGeometry().p2 = ChVector<>(m_front_cyl_loc, -0.0512, 0);
             cyl_FR->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_FR);
 
-            ChSharedPtr<ChCylinderShape> cyl_RR(new ChCylinderShape);
+            auto cyl_RR = std::make_shared<ChCylinderShape>();
             cyl_RR->GetCylinderGeometry().p1 = ChVector<>(m_rear_cyl_loc, -0.1402, 0);
             cyl_RR->GetCylinderGeometry().p2 = ChVector<>(m_rear_cyl_loc, -0.0512, 0);
             cyl_RR->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_RR);
 
-            ChSharedPtr<ChCylinderShape> cyl_FL(new ChCylinderShape);
+            auto cyl_FL = std::make_shared<ChCylinderShape>();
             cyl_FL->GetCylinderGeometry().p1 = ChVector<>(m_front_cyl_loc, 0.1402, 0);
             cyl_FL->GetCylinderGeometry().p2 = ChVector<>(m_front_cyl_loc, 0.0512, 0);
             cyl_FL->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_FL);
 
-            ChSharedPtr<ChCylinderShape> cyl_RL(new ChCylinderShape);
+            auto cyl_RL = std::make_shared<ChCylinderShape>();
             cyl_RL->GetCylinderGeometry().p1 = ChVector<>(m_rear_cyl_loc, 0.1402, 0);
             cyl_RL->GetCylinderGeometry().p2 = ChVector<>(m_rear_cyl_loc, 0.0512, 0);
             cyl_RL->GetCylinderGeometry().rad = m_cyl_radius;
             m_shoe->AddAsset(cyl_RL);
 
-            ChSharedPtr<ChBoxShape> box_shoe(new ChBoxShape);
+            auto box_shoe = std::make_shared<ChBoxShape>();
             box_shoe->GetBoxGeometry().SetLengths(ChVector<>(0.11, 0.19, 0.06));
             box_shoe->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
             m_shoe->AddAsset(box_shoe);
 
-            ChSharedPtr<ChBoxShape> box_pin(new ChBoxShape);
+            auto box_pin = std::make_shared<ChBoxShape>();
             box_pin->GetBoxGeometry().SetLengths(ChVector<>(0.0284, 0.0114, 0.075));
             box_pin->GetBoxGeometry().Pos = ChVector<>(0.045, 0, 0.0375);
             m_shoe->AddAsset(box_pin);
 
-            ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+            auto col = std::make_shared<ChColorAsset>();
             if (m_index == 0)
                 col->SetColor(ChColor(0.6f, 0.3f, 0.3f));
             else if (m_index % 2 == 0)
@@ -120,7 +120,7 @@ void M113_TrackShoe::AddShoeVisualization() {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(m_meshFile, false, false);
 
-            ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(m_meshName);
             m_shoe->AddAsset(trimesh_shape);

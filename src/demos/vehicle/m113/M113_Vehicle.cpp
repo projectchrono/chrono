@@ -54,7 +54,7 @@ const ChCoordsys<> M113_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 M113_Vehicle::M113_Vehicle(bool fixed, ChMaterialSurfaceBase::ContactMethod contactMethod)
     : ChTrackedVehicle("M113 Vehicle", contactMethod), m_chassisVisType(PRIMITIVES) {
     // Create the chassis body
-    m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
+    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
 
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("chassis");
@@ -66,12 +66,12 @@ M113_Vehicle::M113_Vehicle(bool fixed, ChMaterialSurfaceBase::ContactMethod cont
     m_system->Add(m_chassis);
 
     // Create the track assembly subsystems
-    m_tracks[0] = ChSharedPtr<ChTrackAssembly>(new M113_TrackAssembly(LEFT));
-    m_tracks[1] = ChSharedPtr<ChTrackAssembly>(new M113_TrackAssembly(RIGHT));
+    m_tracks[0] = std::make_shared<M113_TrackAssembly>(LEFT);
+    m_tracks[1] = std::make_shared<M113_TrackAssembly>(RIGHT);
 
     // Create the driveline
-    m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_SimpleDriveline);
-    ////m_driveline = ChSharedPtr<ChTrackDriveline>(new M113_DrivelineBDS);
+    m_driveline = std::make_shared<M113_SimpleDriveline>();
+    ////m_driveline = std::make_shared<M113_DrivelineBDS>();
 }
 
 // -----------------------------------------------------------------------------
@@ -81,27 +81,27 @@ void M113_Vehicle::SetChassisVisType(chrono::vehicle::VisualizationType vis) {
 }
 
 void M113_Vehicle::SetSprocketVisType(chrono::vehicle::VisualizationType vis) {
-    m_tracks[0]->GetSprocket().StaticCastTo<M113_Sprocket>()->SetVisType(vis);
-    m_tracks[1]->GetSprocket().StaticCastTo<M113_Sprocket>()->SetVisType(vis);
+    std::static_pointer_cast<M113_Sprocket>(m_tracks[0]->GetSprocket())->SetVisType(vis);
+    std::static_pointer_cast<M113_Sprocket>(m_tracks[1]->GetSprocket())->SetVisType(vis);
 }
 
 void M113_Vehicle::SetIdlerVisType(chrono::vehicle::VisualizationType vis) {
-    m_tracks[0]->GetIdler().StaticCastTo<M113_Idler>()->SetVisType(vis);
-    m_tracks[1]->GetIdler().StaticCastTo<M113_Idler>()->SetVisType(vis);
+    std::static_pointer_cast<M113_Idler>(m_tracks[0]->GetIdler())->SetVisType(vis);
+    std::static_pointer_cast<M113_Idler>(m_tracks[1]->GetIdler())->SetVisType(vis);
 }
 
 void M113_Vehicle::SetRoadWheelVisType(chrono::vehicle::VisualizationType vis) {
     for (size_t is = 0; is < 5; is++) {
-        m_tracks[0]->GetRoadWheel(is).StaticCastTo<M113_RoadWheel>()->SetVisType(vis);
-        m_tracks[1]->GetRoadWheel(is).StaticCastTo<M113_RoadWheel>()->SetVisType(vis);
+        std::static_pointer_cast<M113_RoadWheel>(m_tracks[0]->GetRoadWheel(is))->SetVisType(vis);
+        std::static_pointer_cast<M113_RoadWheel>(m_tracks[1]->GetRoadWheel(is))->SetVisType(vis);
     }
 }
 
 void M113_Vehicle::SetTrackShoeVisType(chrono::vehicle::VisualizationType vis) {
     for (size_t is = 0; is < m_tracks[0]->GetNumTrackShoes(); is++)
-        m_tracks[0]->GetTrackShoe(is).StaticCastTo<M113_TrackShoe>()->SetVisType(vis);
+        std::static_pointer_cast<M113_TrackShoe>(m_tracks[0]->GetTrackShoe(is))->SetVisType(vis);
     for (size_t is = 0; is < m_tracks[1]->GetNumTrackShoes(); is++)
-        m_tracks[1]->GetTrackShoe(is).StaticCastTo<M113_TrackShoe>()->SetVisType(vis);
+        std::static_pointer_cast<M113_TrackShoe>(m_tracks[1]->GetTrackShoe(is))->SetVisType(vis);
 }
 
 // -----------------------------------------------------------------------------
@@ -112,7 +112,7 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 
     switch (m_chassisVisType) {
         case PRIMITIVES: {
-            ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+            auto sphere = std::make_shared<ChSphereShape>();
             sphere->GetSphereGeometry().rad = 0.1;
             sphere->Pos = m_chassisCOM;
             m_chassis->AddAsset(sphere);
@@ -121,7 +121,7 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
-            ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(m_chassisMeshName);
             m_chassis->AddAsset(trimesh_shape);

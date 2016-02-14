@@ -69,8 +69,10 @@ M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock)
     m_torsion_force->Set_iforce(m_torsion_t);
 
     // Create the associated road wheel.
-    m_road_wheel = (side == LEFT) ? ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelLeft())
-                                  : ChSharedPtr<M113_RoadWheel>(new M113_RoadWheelRight());
+    if (side == LEFT)
+        m_road_wheel = std::make_shared<M113_RoadWheelLeft>();
+    else
+        m_road_wheel = std::make_shared<M113_RoadWheelRight>();
 }
 
 M113_Suspension::~M113_Suspension() {

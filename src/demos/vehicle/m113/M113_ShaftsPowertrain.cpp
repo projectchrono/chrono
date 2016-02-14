@@ -58,7 +58,7 @@ void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& gear_ratios) {
 // (3) TC torque ratio map
 //
 // -----------------------------------------------------------------------------
-void M113_ShaftsPowertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void M113_ShaftsPowertrain::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-100 * rpm_to_radsec, 300);  // to start engine
@@ -83,7 +83,7 @@ void M113_ShaftsPowertrain::SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>&
     map->AddPoint(2700 * rpm_to_radsec, -400);  // fading out of engine torque
 }
 
-void M113_ShaftsPowertrain::SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void M113_ShaftsPowertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
     double rpm_to_radsec = CH_C_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..
@@ -94,7 +94,7 @@ void M113_ShaftsPowertrain::SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>&
     map->AddPoint(3000 * rpm_to_radsec, -90);
 }
 
-void M113_ShaftsPowertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void M113_ShaftsPowertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
     map->AddPoint(0.0, 15);
     map->AddPoint(0.25, 15);
     map->AddPoint(0.50, 15);
@@ -117,7 +117,7 @@ void M113_ShaftsPowertrain::SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFu
     */
 }
 
-void M113_ShaftsPowertrain::SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) {
+void M113_ShaftsPowertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
     map->AddPoint(0.0, 2.00);
     map->AddPoint(0.25, 1.80);
     map->AddPoint(0.50, 1.50);

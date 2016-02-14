@@ -60,7 +60,7 @@ void M113_RoadWheel::AddWheelVisualization() {
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-            ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(GetMeshName());
             m_wheel->AddAsset(trimesh_shape);
