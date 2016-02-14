@@ -34,8 +34,8 @@ ChDoubleRoadWheel::ChDoubleRoadWheel(const std::string& name) : ChRoadWheel(name
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleRoadWheel::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
-                                   ChSharedPtr<ChBody> carrier,
+void ChDoubleRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                   std::shared_ptr<ChBody> carrier,
                                    const ChVector<>& location) {
     // Invoke the base class method
     ChRoadWheel::Initialize(chassis, carrier, location);
@@ -79,19 +79,19 @@ void ChDoubleRoadWheel::AddWheelVisualization() {
     double width = GetWheelWidth();
     double gap = GetWheelGap();
 
-    ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
+    auto cyl_1 = std::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
     cyl_1->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl_1);
 
-    ChSharedPtr<ChCylinderShape> cyl_2(new ChCylinderShape);
+    auto cyl_2 = std::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
     cyl_2->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl_2);
 
-    chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);
+    auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(tex);
 }

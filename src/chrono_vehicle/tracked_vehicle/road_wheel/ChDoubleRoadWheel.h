@@ -42,9 +42,9 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
     virtual TrackShoeType GetType() const override { return CENTRAL_PIN; }
 
     /// Initialize this road wheel subsystem.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            ChSharedPtr<ChBody> carrier,        ///< [in] handle to the carrier body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            std::shared_ptr<ChBody> carrier,        ///< [in] handle to the carrier body
+                            const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
 
   protected:

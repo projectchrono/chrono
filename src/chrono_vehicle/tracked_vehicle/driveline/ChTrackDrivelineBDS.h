@@ -56,9 +56,9 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChTrackDriveline {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the
     /// two track assembly subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,              ///< handle to the chassis body
-                            ChSharedPtr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            ChSharedPtr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
                             ) override;
 
     /// Get the motor torque to be applied to the specified sprocket.
@@ -79,9 +79,9 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChTrackDriveline {
     virtual double GetDifferentialRatio() const = 0;
 
   private:
-    ChSharedPtr<ChShaftsGearboxAngled> m_conicalgear;
-    ChSharedPtr<ChShaft> m_differentialbox;
-    ChSharedPtr<ChShaftsPlanetary> m_differential;
+    std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;
+    std::shared_ptr<ChShaft> m_differentialbox;
+    std::shared_ptr<ChShaftsPlanetary> m_differential;
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;

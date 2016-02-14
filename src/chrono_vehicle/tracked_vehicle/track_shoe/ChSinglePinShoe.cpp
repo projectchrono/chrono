@@ -33,13 +33,13 @@ ChSinglePinShoe::ChSinglePinShoe(const std::string& name) : ChTrackShoe(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void ChSinglePinShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                  const ChVector<>& location,
                                  const ChQuaternion<>& rotation) {
     // Create the shoe body.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    m_shoe = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_shoe = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
     m_shoe->SetNameString(m_name + "_shoe");
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
@@ -71,12 +71,12 @@ void ChSinglePinShoe::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSinglePinShoe::Connect(ChSharedPtr<ChTrackShoe> next) {
+void ChSinglePinShoe::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Create and initialize the revolute joint.
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
     ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
-    m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute = std::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
     m_shoe->GetSystem()->AddLink(m_revolute);

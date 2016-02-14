@@ -41,14 +41,14 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     /// at the specified location and orientation (expressed in the global frame).
     /// A derived class must extend this default implementation and specify the contact
     /// geometry for the track shoe body.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after both track shoes have been initialized.
-    virtual void Connect(ChSharedPtr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
     /// Return the location of the front contact cylinder.
@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     /// This contact geometry does not affect contact with the sprocket.
     virtual void AddShoeContact() = 0;
 
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
 };
 
 }  // end namespace vehicle

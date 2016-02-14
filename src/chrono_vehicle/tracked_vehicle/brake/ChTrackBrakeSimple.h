@@ -34,7 +34,7 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     ~ChTrackBrakeSimple() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.
-    virtual void Initialize(ChSharedPtr<ChLinkLockRevolute> hub) override;
+    virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) override;
 
     /// Update the brake subsystem for the given braking driver input.
     ///   braking = 0 : completely free,
@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     virtual double GetMaxBrakingTorque() = 0;
 
     double m_braking;
-    ChSharedPtr<ChLinkBrake> m_brake;
+    std::shared_ptr<ChLinkBrake> m_brake;
 };
 
 }  // end namespace vehicle

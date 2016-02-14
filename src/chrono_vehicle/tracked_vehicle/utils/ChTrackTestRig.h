@@ -55,10 +55,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Construct a test rig using the specified track assembly and subsystem locations.
     ChTrackTestRig(
-        ChSharedPtr<ChTrackAssembly> assembly,     ///< [in] handle to the track assembly
-        const ChVector<>& sprocketLoc,             ///< [in] sprocket location
-        const ChVector<>& idlerLoc,                ///< [in] idler location
-        const std::vector<ChVector<> >& suspLocs,  ///< [in] suspension locations
+        std::shared_ptr<ChTrackAssembly> assembly,     ///< [in] handle to the track assembly
+        const ChVector<>& sprocketLoc,                 ///< [in] sprocket location
+        const ChVector<>& idlerLoc,                    ///< [in] idler location
+        const std::vector<ChVector<> >& suspLocs,      ///< [in] suspension locations
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
         );
 
@@ -66,7 +66,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ~ChTrackTestRig() {}
 
     /// Set the actuator function
-    void SetActuator_func(const ChSharedPtr<ChFunction>& func) { m_actuator = func; }
+    void SetActuator_func(const std::shared_ptr<ChFunction>& func) { m_actuator = func; }
 
     double GetActuatorDisp();
     double GetActuatorForce();
@@ -80,7 +80,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
 
     /// Get a handle to the vehicle's driveshaft body.
-    virtual ChSharedPtr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
 
     /// Get the angular speed of the driveshaft.
     virtual double GetDriveshaftSpeed() const override { return 0; }
@@ -106,24 +106,24 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     virtual void LogConstraintViolations() override;
 
   private:
-    static void AddVisualize_post(ChSharedPtr<ChBody> post_body,
-                                  ChSharedPtr<ChBody> chassis_body,
+    static void AddVisualize_post(std::shared_ptr<ChBody> post_body,
+                                  std::shared_ptr<ChBody> chassis_body,
                                   double length,
                                   double width,
                                   double height,
                                   const ChColor& color);
 
-    ChSharedPtr<ChTrackAssembly> m_track;  ///< handle to the track assembly
+    std::shared_ptr<ChTrackAssembly> m_track;  ///< handle to the track assembly
 
-    ChSharedPtr<ChShaft> m_dummy_shaft;  ///< dummy driveshaft
+    std::shared_ptr<ChShaft> m_dummy_shaft;  ///< dummy driveshaft
 
-    ChVector<> m_post_pos;                              ///< location of the shaker post
-    ChSharedPtr<ChBody> m_post;                         ///< shaker post
-    ChSharedPtr<ChLinkLockPrismatic> m_post_prismatic;  ///< post prismatic joint
-    ChSharedPtr<ChLinkLinActuator> m_post_linact;       ///< actuate post
-    ChSharedPtr<ChLinkLockPointPlane> m_post_ptPlane;   ///< actuate track to a specified height
+    ChVector<> m_post_pos;                                  ///< location of the shaker post
+    std::shared_ptr<ChBody> m_post;                         ///< shaker post
+    std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic;  ///< post prismatic joint
+    std::shared_ptr<ChLinkLinActuator> m_post_linact;       ///< actuate post
+    std::shared_ptr<ChLinkLockPointPlane> m_post_ptPlane;   ///< actuate track to a specified height
 
-    ChSharedPtr<ChFunction> m_actuator;  ///< actuator function applied to post
+    std::shared_ptr<ChFunction> m_actuator;  ///< actuator function applied to post
 
     double m_displ;  ///< cached left post displacement
 

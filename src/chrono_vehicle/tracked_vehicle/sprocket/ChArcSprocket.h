@@ -42,7 +42,7 @@ class CH_VEHICLE_API ChArcSprocket : public ChSprocket {
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual ChSharedPtr<geometry::ChLinePath> GetProfile() override;
+    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() override;
 
     /// Return the custom collision callback object.
     virtual ChSystem::ChCustomComputeCollisionCallback* GetCollisionCallback(

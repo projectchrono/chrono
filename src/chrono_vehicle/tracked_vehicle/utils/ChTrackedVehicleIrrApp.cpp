@@ -44,8 +44,7 @@ ChTrackedVehicleIrrApp::ChTrackedVehicleIrrApp(ChVehicle* vehicle,
 void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
     char msg[100];
 
-    if (ChSharedPtr<ChSimpleTrackDriveline> driveline =
-            m_tvehicle->GetDriveline().DynamicCastTo<ChSimpleTrackDriveline>()) {
+    if (auto driveline = std::dynamic_pointer_cast<ChSimpleTrackDriveline>(m_tvehicle->GetDriveline())) {
         double toRPM = 30 / CH_C_PI;
 
         double shaft_speed = driveline->GetDriveshaftSpeed() * toRPM;

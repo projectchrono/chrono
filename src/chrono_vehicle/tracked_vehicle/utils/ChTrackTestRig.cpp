@@ -84,13 +84,13 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     assert(d.HasMember("Name"));
 
     // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
+    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
     m_chassis->SetBodyFixed(true);
 
-    ChSharedPtr<ChColorAsset> blue(new ChColorAsset);
+    auto blue = std::make_shared<ChColorAsset>();
     blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
     m_chassis->AddAsset(blue);
 
@@ -123,13 +123,13 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename, ChMaterialSurfaceBas
     assert(d.HasMember("Name"));
 
     // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
+    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
     m_chassis->SetBodyFixed(true);
 
-    ChSharedPtr<ChColorAsset> blue(new ChColorAsset);
+    auto blue = std::make_shared<ChColorAsset>();
     blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
     m_chassis->AddAsset(blue);
 
@@ -140,7 +140,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename, ChMaterialSurfaceBas
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-ChTrackTestRig::ChTrackTestRig(ChSharedPtr<ChTrackAssembly> assembly,
+ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
                                const ChVector<>& sprocketLoc,
                                const ChVector<>& idlerLoc,
                                const std::vector<ChVector<> >& suspLocs,
@@ -151,17 +151,17 @@ ChTrackTestRig::ChTrackTestRig(ChSharedPtr<ChTrackAssembly> assembly,
       m_idlerLoc(idlerLoc),
       m_suspLocs(suspLocs) {
     // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
+    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
     m_chassis->SetBodyFixed(true);
 
-    ChSharedPtr<ChBoxShape> box(new ChBoxShape);
+    auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
     m_chassis->AddAsset(box);
 
-    ChSharedPtr<ChColorAsset> blue(new ChColorAsset);
+    auto blue = std::make_shared<ChColorAsset>();
     blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
     m_chassis->AddAsset(blue);
 
@@ -201,7 +201,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m_post_pos = 0.5 * (sprocket_pos + idler_pos);
     m_post_pos.z = zmin - (rw_radius + shoe_height + post_height / 2.0);
 
-    m_post = ChSharedPtr<ChBody>(new ChBody(m_system->GetContactMethod()));
+    m_post = std::make_shared<ChBody>(m_system->GetContactMethod());
     m_post->SetPos(m_post_pos);
     m_system->Add(m_post);
     ////AddVisualize_post(m_post, m_chassis, post_length, post_width, post_height, ChColor(0.1f, 0.8f, 0.15f));
@@ -211,7 +211,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // ------------------------------------------
 
     // Prismatic joint to force vertical translation
-    m_post_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+    m_post_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_post_prismatic->SetNameString("L_post_prismatic");
     m_post_prismatic->Initialize(m_chassis, m_post, ChCoordsys<>(ChVector<>(m_post_pos), QUNIT));
     m_system->AddLink(m_post_prismatic);
@@ -219,17 +219,17 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Post actuator
     ChVector<> m1 = m_post_pos;
     m1.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
-    m_post_linact = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
+    m_post_linact = std::make_shared<ChLinkLinActuator>();
     m_post_linact->SetNameString("Post_linActuator");
     m_post_linact->Initialize(m_chassis, m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
     m_post_linact->Set_lin_offset(1.0);
-    ChSharedPtr<ChFunction_Const> func(new ChFunction_Const(0));
+    auto func = std::make_shared<ChFunction_Const>(0);
     m_post_linact->Set_dist_funct(func);
     m_system->AddLink(m_post_linact);
 
     /*
     // Constrain in a horizontal plane (based on current post location)
-    m_post_ptPlane = ChSharedPtr<ChLinkLockPointPlane>(new ChLinkLockPointPlane());
+    m_post_ptPlane = std::make_shared<ChLinkLockPointPlane>();
     m_post_ptPlane->SetNameString("Post_pointPlane");
     m_post_ptPlane->Initialize(m_suspension->GetSpindle(LEFT), m_post, ChCoordsys<>(spindle_L_pos, QUNIT));
     m_system->AddLink(m_post_ptPlane);
@@ -255,7 +255,7 @@ double ChTrackTestRig::GetActuatorMarkerDist() {
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::Update(double time, double disp, const TrackShoeForces& shoe_forces) {
     // Apply the displacements to the left/right post actuators
-    if (ChSharedPtr<ChFunction_Const> func = m_post_linact->Get_dist_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto func = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact->Get_dist_funct()))
         func->Set_yconst(disp);
 
     // Apply contact forces to track shoe bodies.
@@ -296,30 +296,30 @@ void ChTrackTestRig::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackTestRig::AddVisualize_post(ChSharedPtr<ChBody> post_body,
-                                       ChSharedPtr<ChBody> chassis_body,
+void ChTrackTestRig::AddVisualize_post(std::shared_ptr<ChBody> post_body,
+                                       std::shared_ptr<ChBody> chassis_body,
                                        double length,
                                        double width,
                                        double height,
                                        const ChColor& color) {
     // Platform (on post body)
-    ChSharedPtr<ChBoxShape> base_box(new ChBoxShape);
+    auto base_box = std::make_shared<ChBoxShape>();
     base_box->GetBoxGeometry().SetLengths(ChVector<>(length, width, height));
     post_body->AddAsset(base_box);
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = std::make_shared<ChColorAsset>();
     col->SetColor(color);
     post_body->AddAsset(col);
 
     // Piston (on post body)
-    ChSharedPtr<ChCylinderShape> piston(new ChCylinderShape);
+    auto piston = std::make_shared<ChCylinderShape>();
     piston->GetCylinderGeometry().rad = width / 6.0;
     piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -height / 2.0);
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -height * 12.0);
     post_body->AddAsset(piston);  // add asset to post body
 
     // Post sleve (on chassis/ground body)
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = width / 4.0;
     cyl->GetCylinderGeometry().p1 = post_body->GetPos() - ChVector<>(0, 0, 8 * height);
     cyl->GetCylinderGeometry().p2 = post_body->GetPos() - ChVector<>(0, 0, 16 * height);

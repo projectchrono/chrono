@@ -34,7 +34,7 @@ ChDoubleIdler::ChDoubleIdler(const std::string& name) : ChIdler(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChDoubleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // Invoke the base class method
     ChIdler::Initialize(chassis, location);
 
@@ -77,19 +77,19 @@ void ChDoubleIdler::AddWheelVisualization() {
     double width = GetWheelWidth();
     double gap = GetWheelGap();
 
-    ChSharedPtr<ChCylinderShape> cyl_1(new ChCylinderShape);
+    auto cyl_1 = std::make_shared<ChCylinderShape>();
     cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
     cyl_1->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl_1);
 
-    ChSharedPtr<ChCylinderShape> cyl_2(new ChCylinderShape);
+    auto cyl_2 = std::make_shared<ChCylinderShape>();
     cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
     cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
     cyl_2->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl_2);
 
-    chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);
+    auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
     m_wheel->AddAsset(tex);
 }

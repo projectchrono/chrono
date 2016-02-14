@@ -42,8 +42,8 @@ class CH_VEHICLE_API ChSingleIdler : public ChIdler {
     virtual TrackShoeType GetType() const override { return LATERAL_PIN; }
 
     /// Initialize this idler subsystem.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
 
   protected:

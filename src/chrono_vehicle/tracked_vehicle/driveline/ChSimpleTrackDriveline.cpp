@@ -36,9 +36,9 @@ ChSimpleTrackDriveline::ChSimpleTrackDriveline(const std::string& name) : ChTrac
 // This function connects this driveline subsystem to the sprockets of the
 // two track assembly subsystems.
 // -----------------------------------------------------------------------------
-void ChSimpleTrackDriveline::Initialize(ChSharedPtr<ChBody> chassis,
-                                        ChSharedPtr<ChTrackAssembly> track_left,
-                                        ChSharedPtr<ChTrackAssembly> track_right) {
+void ChSimpleTrackDriveline::Initialize(std::shared_ptr<ChBody> chassis,
+                                        std::shared_ptr<ChTrackAssembly> track_left,
+                                        std::shared_ptr<ChTrackAssembly> track_right) {
     // Grab handles to the sprocket shafts.
     m_shaft_left = track_left->GetSprocket()->GetAxle();
     m_shaft_right = track_right->GetSprocket()->GetAxle();

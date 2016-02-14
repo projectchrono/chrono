@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual ~ChLinearDamperRWAssembly() {}
 
     /// Return a handle to the carrier body.
-    virtual ChSharedPtr<ChBody> GetCarrierBody() const override { return m_arm; }
+    virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
@@ -51,8 +51,8 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// the reference frame of the chassis). It is assumed that the suspension
     /// reference frame is always centered at the location of the road wheel and
     /// aligned with the chassis reference frame.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location          ///< [in] location relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
 
     /// Log current constraint violations.
@@ -86,10 +86,10 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return the callback function for shock force.
     virtual ChSpringForceCallback* GetShockForceCallback() const = 0;
 
-    bool m_has_shock;                            ///< specifies whether or not the suspension has a damper
-    ChSharedPtr<ChBody> m_arm;                   ///< handle to the trailing arm body
-    ChSharedPtr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
-    ChSharedPtr<ChLinkSpringCB> m_shock;         ///< handle to the shock link
+    bool m_has_shock;                                ///< specifies whether or not the suspension has a damper
+    std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
+    std::shared_ptr<ChLinkSpringCB> m_shock;         ///< handle to the shock link
 
   private:
     void AddVisualizationArm(const ChVector<>& pt_O,   ///< wheel center (in global frame)

@@ -38,9 +38,9 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the
     /// two track assembly subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,              ///< handle to the chassis body
-                            ChSharedPtr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            ChSharedPtr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
                             ) override;
 
     /// Get the angular speed of the driveshaft.
@@ -65,8 +65,8 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
     virtual double GetDifferentialMaxBias() const = 0;
 
   private:
-      ChSharedPtr<ChShaft> m_shaft_left;
-      ChSharedPtr<ChShaft> m_shaft_right;
+      std::shared_ptr<ChShaft> m_shaft_left;
+      std::shared_ptr<ChShaft> m_shaft_right;
 };
 
 }  // end namespace vehicle

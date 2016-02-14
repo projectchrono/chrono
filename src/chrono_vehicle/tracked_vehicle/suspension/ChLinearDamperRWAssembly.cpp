@@ -33,7 +33,7 @@ ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name, bool
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -60,7 +60,7 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
     ChMatrix33<> rot;
     rot.Set_A_axis(u, v, w);
 
-    m_arm = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_arm = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
     m_arm->SetNameString(m_name + "_arm");
     m_arm->SetPos(points[ARM]);
     m_arm->SetRot(rot);
@@ -71,7 +71,7 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
 
     // Create and initialize the revolute joint between arm and chassis.
     // The axis of rotation is the y axis of the suspension reference frame.
-    m_revolute = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute = std::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_arm,
                            ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
@@ -81,7 +81,7 @@ void ChLinearDamperRWAssembly::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, con
 
     // Create and initialize the shock force element.
     if (m_has_shock) {
-        m_shock = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+        m_shock = std::make_shared<ChLinkSpringCB>();
         m_shock->SetNameString(m_name + "_shock");
         m_shock->Initialize(chassis, m_arm, false, points[SHOCK_C], points[SHOCK_A]);
         m_shock->Set_SpringCallback(GetShockForceCallback());
@@ -111,7 +111,7 @@ void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
     ChVector<> p_AS = m_arm->TransformPointParentToLocal(pt_AS);
 
     if ((p_A - p_AW).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = p_A;
         cyl->GetCylinderGeometry().p2 = p_AW;
         cyl->GetCylinderGeometry().rad = radius;
@@ -119,7 +119,7 @@ void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
     }
 
     if ((p_A - p_AC).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = p_A;
         cyl->GetCylinderGeometry().p2 = p_AC;
         cyl->GetCylinderGeometry().rad = radius;
@@ -127,7 +127,7 @@ void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
     }
 
     if ((p_A - p_AS).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = p_A;
         cyl->GetCylinderGeometry().p2 = p_AS;
         cyl->GetCylinderGeometry().rad = 0.75 * radius;
@@ -135,7 +135,7 @@ void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
     }
 
     if ((p_O - p_AW).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+        auto cyl = std::make_shared<ChCylinderShape>();
         double len = (p_O - p_AW).Length();
         cyl->GetCylinderGeometry().p1 = p_O;
         cyl->GetCylinderGeometry().p2 = p_AW + (p_AW - p_O) * radius/len;
@@ -143,7 +143,7 @@ void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
         m_arm->AddAsset(cyl);
     }
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.6f, 0.3f));
     m_arm->AddAsset(col);
 }

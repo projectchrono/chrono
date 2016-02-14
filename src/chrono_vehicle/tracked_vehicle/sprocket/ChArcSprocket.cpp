@@ -65,24 +65,24 @@ class ArcSprocketContactCB : public ChSystem::ChCustomComputeCollisionCallback {
   private:
     // Test collision of a shoe contact cylinder with the sprocket's gear profiles.
     // This may introduce up to two contacts (one with each gear plane).
-    void CheckCylinderSprocket(ChSharedPtr<ChBody> shoe,    // shoe body
-                               const ChVector<>& locC_abs,  // center of shoe contact cylinder (global frame)
-                               const ChVector<>& dirC_abs,  // direction of shoe contact cylinder (global frame)
-                               const ChVector<> locS_abs    // center of sprocket (global frame)
+    void CheckCylinderSprocket(std::shared_ptr<ChBody> shoe,  // shoe body
+                               const ChVector<>& locC_abs,    // center of shoe contact cylinder (global frame)
+                               const ChVector<>& dirC_abs,    // direction of shoe contact cylinder (global frame)
+                               const ChVector<> locS_abs      // center of sprocket (global frame)
                                );
 
     // Test collision of a shoe contact circle with a gear plane profile.
     // This may introduce one contact.
-    void CheckCircleProfile(ChSharedPtr<ChBody> shoe,  // shoe body
-                            const ChVector<>& loc      // shoe contact circle center (sprocket frame)
+    void CheckCircleProfile(std::shared_ptr<ChBody> shoe,  // shoe body
+                            const ChVector<>& loc          // shoe contact circle center (sprocket frame)
                             );
 
     // Find the center of the profile arc that is closest to the specified location.
     // The calculation is performed in the (x-z) plane.
     ChVector<> FindClosestArc(const ChVector<>& loc);
 
-    ChTrackAssembly* m_track;            // pointer to containing track assembly
-    ChSharedPtr<ChSprocket> m_sprocket;  // handle to the sprocket
+    ChTrackAssembly* m_track;                // pointer to containing track assembly
+    std::shared_ptr<ChSprocket> m_sprocket;  // handle to the sprocket
 
     double m_envelope;  // collision detection envelope
 
@@ -113,7 +113,7 @@ void ArcSprocketContactCB::PerformCustomCollision(ChSystem* system) {
 
     // Loop over all shoes in the associated track.
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
-        ChSharedPtr<ChTrackShoe> shoe = m_track->GetTrackShoe(is);
+        std::shared_ptr<ChTrackShoe> shoe = m_track->GetTrackShoe(is);
 
         // Calculate locations of the centers of the shoe's contact cylinders
         // (expressed in the global frame)
@@ -133,7 +133,7 @@ void ArcSprocketContactCB::PerformCustomCollision(ChSystem* system) {
 
 // Perform collision test between one of the shoe's contact cylinders and the
 // sprocket gear profiles.
-void ArcSprocketContactCB::CheckCylinderSprocket(ChSharedPtr<ChBody> shoe,
+void ArcSprocketContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> shoe,
                                                  const ChVector<>& locC_abs,
                                                  const ChVector<>& dirC_abs,
                                                  const ChVector<> locS_abs) {
@@ -165,7 +165,7 @@ void ArcSprocketContactCB::CheckCylinderSprocket(ChSharedPtr<ChBody> shoe,
 
 // Working in the (x-z) plane of the gear, perform a 2D collision test between the
 // gear profile and a circle centered at the specified location.
-void ArcSprocketContactCB::CheckCircleProfile(ChSharedPtr<ChBody> shoe, const ChVector<>& loc) {
+void ArcSprocketContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe, const ChVector<>& loc) {
     // No contact if the circle center is too far from the gear center.
     if (loc.x * loc.x + loc.z * loc.z > m_gear_RC * m_gear_RC)
         return;
@@ -236,7 +236,7 @@ ChArcSprocket::ChArcSprocket(const std::string& name) : ChSprocket(name) {
 ChSystem::ChCustomComputeCollisionCallback* ChArcSprocket::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
-    ChSharedPtr<ChSinglePinShoe> shoe = track->GetTrackShoe(0).DynamicCastTo<ChSinglePinShoe>();
+    auto shoe = std::dynamic_pointer_cast<ChSinglePinShoe>(track->GetTrackShoe(0));
     assert(shoe);
 
     // Extract parameterization of gear profile
@@ -258,8 +258,8 @@ ChSystem::ChCustomComputeCollisionCallback* ChArcSprocket::GetCollisionCallback(
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-ChSharedPtr<geometry::ChLinePath> ChArcSprocket::GetProfile() {
-    ChSharedPtr<geometry::ChLinePath> profile(new geometry::ChLinePath);
+std::shared_ptr<geometry::ChLinePath> ChArcSprocket::GetProfile() {
+    auto profile = std::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();
     double R_T = GetOuterRadius();

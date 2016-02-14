@@ -34,7 +34,7 @@ ChSingleIdler::ChSingleIdler(const std::string& name) : ChIdler(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleIdler::Initialize(ChSharedPtr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     // Invoke the base class method
     ChIdler::Initialize(chassis, location);
 
@@ -74,13 +74,13 @@ void ChSingleIdler::AddWheelVisualization() {
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     cyl->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl);
 
-    chrono::ChSharedPtr<chrono::ChTexture> tex(new chrono::ChTexture);
+    auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
     m_wheel->AddAsset(tex);
 }
