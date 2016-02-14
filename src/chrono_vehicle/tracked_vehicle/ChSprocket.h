@@ -32,7 +32,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -55,7 +54,7 @@ class ChTrackAssembly;
 ///
 ///
 ///
-class CH_VEHICLE_API ChSprocket : public ChShared {
+class CH_VEHICLE_API ChSprocket {
   public:
     ChSprocket(const std::string& name  ///< [in] name of the subsystem
                );

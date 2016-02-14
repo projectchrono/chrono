@@ -22,7 +22,6 @@
 #ifndef CH_TRACK_DRIVELINE_H
 #define CH_TRACK_DRIVELINE_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -36,7 +35,7 @@ namespace vehicle {
 ///
 ///
 ///
-class CH_VEHICLE_API ChTrackDriveline : public ChShared {
+class CH_VEHICLE_API ChTrackDriveline {
   public:
     ChTrackDriveline(const std::string& name  ///< [in] name of the subsystem
                      );

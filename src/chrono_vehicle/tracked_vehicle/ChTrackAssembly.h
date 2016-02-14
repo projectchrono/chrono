@@ -26,7 +26,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
@@ -45,7 +44,7 @@ namespace vehicle {
 ///
 ///
 ///
-class CH_VEHICLE_API ChTrackAssembly : public ChShared {
+class CH_VEHICLE_API ChTrackAssembly {
   public:
     ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
                     VehicleSide side          ///< [in] assembly on left/right vehicle side

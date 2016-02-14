@@ -22,7 +22,6 @@
 #ifndef CH_TRACK_SHOE_H
 #define CH_TRACK_SHOE_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -36,7 +35,7 @@ namespace vehicle {
 ///
 ///
 ///
-class CH_VEHICLE_API ChTrackShoe : public ChShared {
+class CH_VEHICLE_API ChTrackShoe {
   public:
     ChTrackShoe(const std::string& name  ///< [in] name of the subsystem
                 );

@@ -22,7 +22,6 @@
 #ifndef CH_ROAD_WHEEL_H
 #define CH_ROAD_WHEEL_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -37,7 +36,7 @@ namespace vehicle {
 ///
 ///
 ///
-class CH_VEHICLE_API ChRoadWheel : public ChShared {
+class CH_VEHICLE_API ChRoadWheel {
   public:
     ChRoadWheel(const std::string& name  ///< [in] name of the subsystem
                 );

@@ -21,7 +21,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -32,7 +31,7 @@ namespace vehicle {
 ///
 /// Base class for a brake subsystem
 ///
-class CH_VEHICLE_API ChTrackBrake : public ChShared {
+class CH_VEHICLE_API ChTrackBrake {
   public:
     ChTrackBrake();
     virtual ~ChTrackBrake() {}

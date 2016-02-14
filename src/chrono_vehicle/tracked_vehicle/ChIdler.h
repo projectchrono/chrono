@@ -30,7 +30,6 @@
 #ifndef CH_IDLER_H
 #define CH_IDLER_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -46,7 +45,7 @@ namespace vehicle {
 ///
 ///
 ///
-class CH_VEHICLE_API ChIdler : public ChShared {
+class CH_VEHICLE_API ChIdler {
   public:
     ChIdler(const std::string& name  ///< [in] name of the subsystem
             );
