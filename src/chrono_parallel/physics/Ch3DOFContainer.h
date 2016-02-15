@@ -303,4 +303,52 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
   private:
     uint body_offset;
 };
+
+class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
+  public:
+	ChFLIPContainer(ChSystemParallelDVI* system);
+    ~ChFLIPContainer();
+    void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
+    void ComputeDOF();
+    void Update(double ChTime);
+    void UpdatePosition(double ChTime);
+    void Setup(int start_constraint);
+    void Initialize();
+    void PreSolve();
+    void Build_D();
+    void Build_b();
+    void Build_E();
+    void UpdateRhs();
+    void Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma);
+    void Project(real* gamma) {}
+    void GenerateSparsity();
+    void ComputeInvMass(int offset);
+    void ComputeMass(int offset);
+    void PostSolve();
+    int GetNumConstraints();
+    int GetNumNonZeros();
+
+    DynamicVector<real> rhs;
+    DynamicVector<real> grid_vel;
+
+    uint start_node;
+    uint num_mpm_constraints;
+    real mass;
+    real mu;
+    real hardening_coefficient;
+    real lambda;
+    real theta_s;
+    real theta_c;
+    real alpha;
+
+    real3 min_bounding_point;
+    real3 max_bounding_point;
+    int3 bins_per_axis;
+    real bin_edge;
+    real inv_bin_edge;
+    uint body_offset;
+    real rho;
+
+    ChSolverParallel* solver;
+};
 }

@@ -21,7 +21,7 @@
 
 namespace chrono {
 // Interpolation Functions
-real N(const real x) {
+static real N(const real x) {
     if (Abs(x) < real(1.0)) {
         return real(0.5) * Cube(Abs(x)) - Sqr(x) + two_thirds;
     } else if (Abs(x) < real(2.0)) {
@@ -30,11 +30,11 @@ real N(const real x) {
     return real(0.0);
 }
 
-real N(const real3& X, real inv_grid_dx) {
+static real N(const real3& X, real inv_grid_dx) {
     return N(X.x * inv_grid_dx) * N(X.y * inv_grid_dx) * N(X.z * inv_grid_dx);
 }
 
-real dN(const real x) {
+static real dN(const real x) {
     if (Abs(x) < real(1.0)) {
         return real(1.5) * Sign(x) * Sqr(x) - real(2.0) * x;
     } else if (abs(x) < real(2.0)) {
@@ -43,7 +43,7 @@ real dN(const real x) {
     return real(0.0);
 }
 
-real3 dN(const real3& X, real inv_grid_dx) {
+static real3 dN(const real3& X, real inv_grid_dx) {
     real3 val = real3(0);
     real3 T = X * inv_grid_dx;
     val.x = dN(T.x) * inv_grid_dx * N(T.y) * N(T.z);
@@ -63,16 +63,24 @@ real3 dN(const real3& X, real inv_grid_dx) {
     return val;
 }
 
-inline int GridCoord(real x, real inv_bin_edge, real minimum) {
+static inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     real l = x - minimum;
     int c = Round(l * inv_bin_edge);
     return c;
 }
 
-inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
+static inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
-inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding_point) {
+static inline int3 GridDecode(int hash, const int3& bins_per_axis) {
+    int3 decoded_hash;
+    decoded_hash.x = hash % (bins_per_axis.x * bins_per_axis.y) % bins_per_axis.x;
+    decoded_hash.y = (hash % (bins_per_axis.x * bins_per_axis.y)) / bins_per_axis.x;
+    decoded_hash.z = hash / (bins_per_axis.x * bins_per_axis.y);
+    return decoded_hash;
+}
+
+static inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding_point) {
     real3 node_location;
     node_location.x = i * bin_edge + min_bounding_point.x;
     node_location.y = j * bin_edge + min_bounding_point.y;
@@ -80,7 +88,7 @@ inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding
     return node_location;
 }
 
-#define LOOPOVERNODESY(X, Y)                                                                           \
+#define LOOPOVERNODESY(X, Y)                                                                       \
     const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                            \
     const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
     const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                            \
@@ -125,7 +133,11 @@ inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding
         }                                                                                          \
     }
 
-Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, real lambda, real hardening_coefficient) {
+static Mat33 Potential_Energy_Derivative(const Mat33& FE,
+                                         const Mat33& FP,
+                                         real mu,
+                                         real lambda,
+                                         real hardening_coefficient) {
     real JP = Determinant(FP);
     real JE = Determinant(FE);
     // Paper: Equation 2
@@ -140,7 +152,7 @@ Mat33 Potential_Energy_Derivative(const Mat33& FE, const Mat33& FP, real mu, rea
     // Tech report middle of Page 2
     return real(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
 }
-Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
+static Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
     Mat33 A;
     real3 b;
     // setup 3x3 system
@@ -168,7 +180,7 @@ Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
     Mat33 dR = R * rx;
     return dR;
 }
-Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
+static Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     Mat33 U, V, R, S, W;
     real3 E;
     SVD(F, U, E, V);
@@ -181,13 +193,13 @@ Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     return Solve_dR(R, S, W);
 }
 
-void SplitPotential_Energy_Derivative(const Mat33& FE,
-                                      const Mat33& FP,
-                                      real mu,
-                                      real lambda,
-                                      real hardening_coefficient,
-                                      Mat33& Deviatoric,
-                                      Mat33& Dilational) {
+static void SplitPotential_Energy_Derivative(const Mat33& FE,
+                                             const Mat33& FP,
+                                             real mu,
+                                             real lambda,
+                                             real hardening_coefficient,
+                                             Mat33& Deviatoric,
+                                             Mat33& Dilational) {
     real JP = Determinant(FP);
     real JE = Determinant(FE);
     // Paper: Equation 2
@@ -204,13 +216,13 @@ void SplitPotential_Energy_Derivative(const Mat33& FE,
     Dilational = current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
 }
 
-void SplitPotential_Energy(const Mat33& FE,
-                           const Mat33& FP,
-                           real mu,
-                           real lambda,
-                           real hardening_coefficient,
-                           real& Deviatoric,
-                           real& Dilational) {
+static void SplitPotential_Energy(const Mat33& FE,
+                                  const Mat33& FP,
+                                  real mu,
+                                  real lambda,
+                                  real hardening_coefficient,
+                                  real& Deviatoric,
+                                  real& Dilational) {
     real JP = Determinant(FP);
     real JE = Determinant(FE);
     // Paper: Equation 2

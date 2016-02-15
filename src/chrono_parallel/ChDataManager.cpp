@@ -133,3 +133,7 @@ void ChParallelDataManager::AddMPMContainer(ChMPMContainer* container) {
     delete mpm_container;
     mpm_container = container;
 }
+void ChParallelDataManager::AddFLIPContainer(ChFLIPContainer* container) {
+    delete mpm_container;
+    mpm_container = container;
+}

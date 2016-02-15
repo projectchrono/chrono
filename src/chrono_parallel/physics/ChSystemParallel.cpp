@@ -578,7 +578,7 @@ void ChSystemParallel::Setup() {
     // for each shaft element).
     data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts +
                             data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3 +
-                            data_manager->num_mpm_markers * 3;
+                            data_manager->num_mpm_nodes * 3;
 
     // Set variables that are stored in the ChSystem class
     nbodies = data_manager->num_rigid_bodies;
