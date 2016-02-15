@@ -15,7 +15,7 @@
 // Class for performing handling fsi system.
 // =============================================================================
 
-#include "chrono_fsi/ChSystemFsi.cuh"
+#include "chrono_fsi/ChSystemFsi.h"
 
 namespace chrono {
 namespace fsi {

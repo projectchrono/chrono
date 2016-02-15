@@ -29,6 +29,10 @@ SET(CHRONO_INCLUDE_DIRS
     	"${CUDA_SDK_ROOT_DIR}/common/inc")
 
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
+#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --device-c")
+SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20")
+#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_20")
+
 option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
 ENDIF()
 # ----------------------------------------------------------------------------

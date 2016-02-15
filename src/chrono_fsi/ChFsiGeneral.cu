@@ -37,34 +37,5 @@ void ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks,
 	numBlocks = iDivUp(n2, numThreads);
 }
 
-/**
- * @brief calcGridHash
- * @details  See SDKCollisionSystem.cuh
- */
-CUDA_CALLABLE_MEMBER int3 ChFsiGeneral::calcGridPos(Real3 p) {
-	int3 gridPos;
-	gridPos.x = floor((p.x - paramsD.worldOrigin.x) / paramsD.cellSize.x);
-	gridPos.y = floor((p.y - paramsD.worldOrigin.y) / paramsD.cellSize.y);
-	gridPos.z = floor((p.z - paramsD.worldOrigin.z) / paramsD.cellSize.z);
-	return gridPos;
-}
-
-/**
- * @brief calcGridHash
- * @details  See SDKCollisionSystem.cuh
- */
-CUDA_CALLABLE_MEMBER uint ChFsiGeneral::calcGridHash(int3 gridPos) {
-	gridPos.x -= ((gridPos.x >= paramsD.gridSize.x) ? paramsD.gridSize.x : 0);
-	gridPos.y -= ((gridPos.y >= paramsD.gridSize.y) ? paramsD.gridSize.y : 0);
-	gridPos.z -= ((gridPos.z >= paramsD.gridSize.z) ? paramsD.gridSize.z : 0);
-
-	gridPos.x += ((gridPos.x < 0) ? paramsD.gridSize.x : 0);
-	gridPos.y += ((gridPos.y < 0) ? paramsD.gridSize.y : 0);
-	gridPos.z += ((gridPos.z < 0) ? paramsD.gridSize.z : 0);
-
-	return __umul24(__umul24(gridPos.z, paramsD.gridSize.y), paramsD.gridSize.x)
-			+ __umul24(gridPos.y, paramsD.gridSize.x) + gridPos.x;
-}
-
 } // end namespace fsi
 } // end namespace chrono

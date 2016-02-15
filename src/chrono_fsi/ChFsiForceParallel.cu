@@ -83,7 +83,7 @@ __device__ __inline__ void modifyPressure(Real4& rhoPresMuB,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 /**
- * @brief calcGridHash
+ * @brief DifVelocityRho
  * @details  See SDKCollisionSystem.cuh
  */
 __device__ inline Real4 DifVelocityRho(Real3& dist3, Real& d, Real3 posRadA, Real3 posRadB,
@@ -217,7 +217,7 @@ __global__ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocity
 		Real3* sortedVelMas,       // input: sorted velocities
 		Real4* sortedRhoPreMu, uint* gridMarkerIndex, // input: sorted particle indices
 		uint* cellStart, uint* cellEnd, uint numAllMarkers, volatile bool *isErrorD) {
-	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numAllMarkers)
 		return;
 
@@ -270,7 +270,7 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 		Real3* velMas_ModifiedBCE, Real4* rhoPreMu_ModifiedBCE, uint* gridMarkerIndex,
 		uint* cellStart, uint* cellEnd, uint numAllMarkers, volatile bool *isErrorD) {
 
-	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numAllMarkers)
 		return;
 

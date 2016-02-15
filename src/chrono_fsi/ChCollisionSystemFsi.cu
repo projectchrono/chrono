@@ -41,7 +41,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // output
 		uint numAllMarkers, volatile bool *isErrorD) {
 
 	/* Calculate the index of where the particle is stored in posRad. */
-	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numAllMarkers)
 		return;
 
@@ -97,7 +97,7 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD, // output: cell s
 		Real4* rhoPresMuD, uint numAllMarkers) {
 	extern __shared__ uint sharedHash[];  // blockSize + 1 elements
 	/* Get the particle index the current thread is supposed to be looking at. */
-	uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	uint hash;
 	/* handle case when no. of particles not multiple of block size */
 	if (index < numAllMarkers) {

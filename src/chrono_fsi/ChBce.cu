@@ -147,7 +147,7 @@ __global__ void calcBceAcceleration_kernel(
 		Real3* omegaAccLRF_fsiBodies_D,
 		Real3* rigidSPH_MeshPos_LRF_D,
 		const uint* rigidIdentifierD) {
-	uint bceIndex = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
 		return;
 	}
