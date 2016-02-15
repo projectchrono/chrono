@@ -76,12 +76,12 @@ DeformableTerrain::DeformableTerrain(ChSystem* system) {
     this->SetSystem(system);
 
     // Create the default mesh asset
-    m_color = ChSharedPtr<ChColorAsset>(new ChColorAsset);
+    m_color = std::shared_ptr<ChColorAsset>(new ChColorAsset);
     m_color->SetColor(ChColor(0.3, 0.3, 0.3));
     this->AddAsset(m_color);
 
     // Create the default triangle mesh asset
-    m_trimesh_shape = ChSharedPtr<ChTriangleMeshShape>(new ChTriangleMeshShape);
+    m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
     this->AddAsset(m_trimesh_shape);
     m_trimesh_shape->SetWireframe(false);
 
@@ -113,7 +113,7 @@ void DeformableTerrain::SetColor(ChColor color) {
 // Set the texture and texture scaling
 // -----------------------------------------------------------------------------
 void DeformableTerrain::SetTexture(const std::string tex_file, float tex_scale_x, float tex_scale_y) {
-    ChSharedPtr<ChTexture> texture(new ChTexture);
+    std::shared_ptr<ChTexture> texture(new ChTexture);
     texture->SetTextureFilename(tex_file);
     texture->SetTextureScale(tex_scale_x, tex_scale_y);
     this->AddAsset(texture);
@@ -443,11 +443,11 @@ void DeformableTerrain::UpdateInternalForces() {
             Ft = T * p_area[i] * p_tau[i];
 
             if (ChBody* rigidbody = dynamic_cast<ChBody*>(mrayhit_result.hitModel->GetPhysicsItem())) {
-                // Trick, since 'rigidbody' was not a new ChBody() object, but an already used pointer because
-                // mrayhit_result.hitModel->GetPhysicsItem() cannot return it as shared ptr, just raw ptr..
-                ChSharedPtr<ChBody> srigidbody(rigidbody); 
-                srigidbody->AddRef(); // avoid deleting when out of the if() scope
-                ChSharedPtr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn+Ft, false, vertices[i], false));
+                // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody() 
+                // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem() 
+                // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
+                std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*){}); 
+                std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn+Ft, false, vertices[i], false));
                 this->Add(mload);
             }
         }

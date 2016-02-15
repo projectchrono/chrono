@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// Rigid terrain
+// Deformable terrain
 //
 // =============================================================================
 
@@ -167,8 +167,8 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     */
 
   private:
-    ChSharedPtr<ChColorAsset> m_color;
-    ChSharedPtr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChColorAsset> m_color;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
     double m_height;
 
     std::vector<ChVector<>> p_vertices_initial;

@@ -57,12 +57,12 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1, (f32)1.4, -1.2), core::vector3df(0, tire_rad, 0));
-    application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                                   video::SColorf(0.8, 0.8, 1));
+    application.AddTypicalCamera(core::vector3df(1.0f, 1.4f, -1.2f), core::vector3df(0, (f32)tire_rad, 0));
+    application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+                                   video::SColorf(0.8f, 0.8f, 1.0f));
 
  
-    ChSharedPtr<ChBody> mtruss (new ChBody);
+    std::shared_ptr<ChBody> mtruss (new ChBody);
     mtruss->SetBodyFixed(true);
     my_system.Add(mtruss);
  
@@ -74,13 +74,13 @@ int main(int argc, char* argv[]) {
     // this time the ChLoadContactSurfaceMesh cannot be used as in the FEA case, so we
     // will use the ChLoadBodyMesh class:
 
-    ChSharedPtr<ChBody> mrigidbody (new ChBody);
+    std::shared_ptr<ChBody> mrigidbody (new ChBody);
     my_system.Add(mrigidbody);
     mrigidbody->SetMass(200);
     mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
     mrigidbody->SetPos(tire_center + ChVector<>(0,0.3,0));
 
-    ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+    std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
     mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
     mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
     mrigidbody->AddAsset(mrigidmesh);
@@ -90,14 +90,14 @@ int main(int argc, char* argv[]) {
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
-    ChSharedPtr<ChColorAsset> mcol(new ChColorAsset);
+    std::shared_ptr<ChColorAsset> mcol(new ChColorAsset);
     mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     mrigidbody->AddAsset(mcol);
     
-    ChSharedPtr<ChLinkEngine> myengine(new ChLinkEngine);
+    std::shared_ptr<ChLinkEngine> myengine(new ChLinkEngine);
     myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);
     myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = myengine->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(myengine->Get_spe_funct()) )
         mfun->Set_yconst(CH_C_PI / 4.0);
     myengine->Initialize(mrigidbody, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2,VECT_Y)));
     my_system.Add(myengine);
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 
 
     // Create the 'deformable terrain' object
-    ChSharedPtr<vehicle::DeformableTerrain> mterrain (new vehicle::DeformableTerrain(&my_system));
+    std::shared_ptr<vehicle::DeformableTerrain> mterrain (new vehicle::DeformableTerrain(&my_system));
     my_system.Add(mterrain);
 
     // Optionally, displace/tilt/rotate the terrain reference plane:
