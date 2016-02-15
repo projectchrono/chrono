@@ -19,7 +19,7 @@ namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNode::ChIrrNode(std::shared_ptr<ChPhysicsItem> mphysicsitem,
+ChIrrNode::ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,
                      scene::ISceneNode* parent,
                      scene::ISceneManager* mgr,
                      s32 id)
@@ -60,7 +60,7 @@ scene::ISceneNode* ChIrrNode::clone(scene::ISceneNode* newParent, scene::ISceneM
 }
 
 bool ChIrrNode::SetupClones() {
-    unsigned int needed_clones = physicsitem->GetAssetsFrameNclones();
+    unsigned int needed_clones = physicsitem.lock()->GetAssetsFrameNclones();
 
     if (needed_clones) {
         unsigned int actual_clones = this->getChildren().getSize();
@@ -96,20 +96,20 @@ bool ChIrrNode::SetupClones() {
 void ChIrrNode::OnAnimate(u32 timeMs) {
     if (IsVisible && ChronoControlled) {
         // reorient/reposition the scene node every frame
-        if (physicsitem) {
-            if (!physicsitem->GetAssetsFrameNclones()) {
-                ChIrrTools::alignIrrlichtNodeToChronoCsys(this, physicsitem->GetAssetsFrame().GetCoord());
+        if (!physicsitem.expired()) {
+            if (!physicsitem.lock()->GetAssetsFrameNclones()) {
+                ChIrrTools::alignIrrlichtNodeToChronoCsys(this, physicsitem.lock()->GetAssetsFrame().GetCoord());
             } else {
                 // check that children clones are already as many as
                 // assets frame clones, and adjust it if not:
                 if (SetupClones()) {
                     // make each clone node match the corresponding asset frame :
-                    unsigned int nclones = physicsitem->GetAssetsFrameNclones();
+                    unsigned int nclones = physicsitem.lock()->GetAssetsFrameNclones();
                     unsigned int iclone = 0;
                     irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                     for (; it != Children.end(); ++it) {
                         ChIrrTools::alignIrrlichtNodeToChronoCsys((*it),
-                                                                  physicsitem->GetAssetsFrame(iclone).GetCoord());
+                                                                  physicsitem.lock()->GetAssetsFrame(iclone).GetCoord());
                         ++iclone;
                     }
                 }
