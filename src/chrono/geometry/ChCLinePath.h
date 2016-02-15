@@ -15,7 +15,6 @@
 #include <math.h>
 
 #include "ChCLine.h"
-#include "core/ChSmartpointers.h"
 
 namespace chrono {
 namespace geometry {
@@ -37,7 +36,7 @@ class ChApi ChLinePath : public ChLine {
     //
     // DATA
     //
-    std::vector<ChSharedPtr<ChLine> > lines;
+    std::vector<std::shared_ptr<ChLine> > lines;
     std::vector<double> end_times;
     std::vector<double> durations;
 
@@ -129,7 +128,7 @@ class ChApi ChLinePath : public ChLine {
     size_t GetSubLinesCount() { return lines.size(); }
 
     /// Access the nth line
-    ChSharedPtr<ChLine> GetSubLineN(size_t n) { return lines[n]; }
+    std::shared_ptr<ChLine> GetSubLineN(size_t n) { return lines[n]; }
 
     /// Get the nth line duration
     double GetSubLineDurationN(size_t n) { return durations[n]; }
@@ -148,8 +147,8 @@ class ChApi ChLinePath : public ChLine {
     }
 
     /// Queue a line (push it back to the array of lines)
-    void AddSubLine(ChSharedPtr<ChLine> mline,  //<<< line to add
-                    double duration = 1)        //<<< duration of the abscyssa when calling the Evaluate() function
+    void AddSubLine(std::shared_ptr<ChLine> mline,  ///< line to add
+                    double duration = 1)            ///< duration of the abscyssa when calling the Evaluate() function
     {
         lines.push_back(mline);
         durations.push_back(0);
@@ -157,18 +156,18 @@ class ChApi ChLinePath : public ChLine {
         SetSubLineDurationN(lines.size() - 1, duration);
     }
     /// Queue a line (push it back to the array of lines)
-    void AddSubLine(ChLine& mline,        //<<< line to add
-                    double duration = 1)  //<<< duration of the abscyssa when calling the Evaluate() function
+    void AddSubLine(ChLine& mline,        ///< line to add
+                    double duration = 1)  ///< duration of the abscyssa when calling the Evaluate() function
     {
-        ChSharedPtr<ChLine> pline((ChLine*)mline.Duplicate());
+        std::shared_ptr<ChLine> pline((ChLine*)mline.Duplicate());
         AddSubLine(pline, duration);
     }
 
     /// Insert a line at a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
-    void InsertSubLine(size_t n,                   //<<< index of line, 0 is first, etc.
-                       ChSharedPtr<ChLine> mline,  //<<< line to add
-                       double duration = 1)        //<<< duration of the abscyssa when calling the Evaluate() function
+    void InsertSubLine(size_t n,                       ///< index of line, 0 is first, etc.
+                       std::shared_ptr<ChLine> mline,  ///< line to add
+                       double duration = 1)            ///< duration of the abscyssa when calling the Evaluate() function
     {
         lines.insert(lines.begin() + n, mline);
         durations.push_back(0);
@@ -179,11 +178,11 @@ class ChApi ChLinePath : public ChLine {
 
     /// Insert a line at a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
-    void InsertSubLine(size_t n,             //<<< index of line, 0 is first, etc.
-                       ChLine& mline,        //<<< line to add
-                       double duration = 1)  //<<< duration of the abscyssa when calling the Evaluate() function
+    void InsertSubLine(size_t n,             ///< index of line, 0 is first, etc.
+                       ChLine& mline,        ///< line to add
+                       double duration = 1)  ///< duration of the abscyssa when calling the Evaluate() function
     {
-        ChSharedPtr<ChLine> pline((ChLine*)mline.Duplicate());
+        std::shared_ptr<ChLine> pline((ChLine*)mline.Duplicate());
         InsertSubLine(n, pline, duration);
     }
 
@@ -227,8 +226,8 @@ class ChApi ChLinePath : public ChLine {
     double GetContinuityMaxError() {
         double maxerr = 0;
         for (size_t i = 1; i < lines.size(); ++i) {
-            ChSharedPtr<ChLine> prec_line = lines[i - 1];
-            ChSharedPtr<ChLine> next_line = lines[i];
+            std::shared_ptr<ChLine> prec_line = lines[i - 1];
+            std::shared_ptr<ChLine> next_line = lines[i];
             double gap = (prec_line->GetEndB() - next_line->GetEndA()).Length();
             if (gap > maxerr)
                 maxerr = gap;

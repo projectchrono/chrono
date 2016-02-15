@@ -92,8 +92,8 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// The revolute joint rotates about the z axis, the translational joint moves
     /// along the y axis, and the translation axis is at the specified distance
     /// along the x axis.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second frame (translational side)
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (translational side)
                     const ChCoordsys<>& csys,        ///< joint coordinate system (in absolute frame)
                     double distance                  ///< imposed distance
                     );
@@ -105,8 +105,8 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// Otherwise, it is assumed that they are specified in the absolute frame. The
     /// imposed distance between the two points can be either inferred from the provided
     /// configuration (auto_distance = true) or specified explicitly.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second frame (spherical side)
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (spherical side)
                     bool local,                      ///< true if data given in body local frames
                     const ChVector<>& p1,            ///< point on first frame (revolute side)
                     const ChVector<>& dirZ1,         ///< direction of revolute on first frame

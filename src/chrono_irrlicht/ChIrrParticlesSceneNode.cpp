@@ -62,7 +62,7 @@ ChIrrParticlesSceneNode::ChIrrParticlesSceneNode(ChSystem* msystem,
     // Creating dynamically the shared pointer from heap is not
     // nice to see, but it must be managed dynamically in this wrapper node..
 
-    particlep = new ChSharedPtr<ChParticlesClones>(new ChParticlesClones);
+    particlep = new std::shared_ptr<ChParticlesClones>(new ChParticlesClones);
 
     // set an unique identifier
     particles_identifier++;

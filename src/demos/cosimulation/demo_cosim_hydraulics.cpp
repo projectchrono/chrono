@@ -43,11 +43,11 @@ int main(int argc, char* argv[]) {
         ChSystem my_system;
 
         // Create rigid bodies and add them to the system:
-        ChSharedBodyPtr my_body_A(new ChBody);  // truss
+        auto my_body_A = std::make_shared<ChBody>();  // truss
         my_body_A->SetBodyFixed(true);          // truss does not move!
         my_system.AddBody(my_body_A);
 
-        ChSharedBodyPtr my_body_B(new ChBody);  // moving body
+        auto my_body_B = std::make_shared<ChBody>();  // moving body
         my_body_B->SetMass(114);
         my_body_B->SetInertiaXX(ChVector<>(50, 50, 50));
         my_body_B->SetPos(ChVector<>(1, 1, 0));
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 
         // Now create a mechanical link (a revolute joint in 0,0,0)
         // between these two markers, and insert in system:
-        ChSharedPtr<ChLinkLockRevolute> my_link_BA(new ChLinkLockRevolute);
+        auto my_link_BA = std::make_shared<ChLinkLockRevolute>();
         my_link_BA->Initialize(my_body_B, my_body_A, ChCoordsys<>(ChVector<>(0, 1, 0)));
         my_system.AddLink(my_link_BA);
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
         // ChLinkSpring with zero stiffness and damping. This will
         // be used to apply the force between the two bodies as a
         // cylinder with spherical ball ends.
-        ChSharedPtr<ChLinkSpring> my_link_actuator(new ChLinkSpring);
+        auto my_link_actuator = std::make_shared<ChLinkSpring>();
         my_link_actuator->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
         my_link_actuator->Set_SpringK(0);
         my_link_actuator->Set_SpringR(0);
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
         my_system.AddLink(my_link_actuator);
 
         // Create also a spring-damper to have some load when moving:
-        ChSharedPtr<ChLinkSpring> my_link_springdamper(new ChLinkSpring);
+        auto my_link_springdamper = std::make_shared<ChLinkSpring>();
         my_link_springdamper->Initialize(my_body_B, my_body_A, false, ChVector<>(1, 0, 0), ChVector<>(1, 1, 0));
         my_link_springdamper->Set_SpringK(4450);
         my_link_springdamper->Set_SpringR(284);

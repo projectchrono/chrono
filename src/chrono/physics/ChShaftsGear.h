@@ -134,8 +134,8 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Use this function after gear creation, to initialize it, given
     /// two shafts to join.
     /// Each shaft must belong to the same ChSystem.
-    virtual bool Initialize(ChSharedPtr<ChShaft> mshaft1,  ///< first  shaft to join
-                            ChSharedPtr<ChShaft> mshaft2   ///< second shaft to join
+    virtual bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
+                            std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join
                             );
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
@@ -171,8 +171,6 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChShaftsGear> ChSharedShaftsGearPtr;
 
 }  // END_OF_NAMESPACE____
 

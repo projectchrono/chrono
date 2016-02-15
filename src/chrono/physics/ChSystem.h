@@ -47,9 +47,6 @@ namespace chrono {
 
 // forward references & shortcuts..
 
-typedef ChSharedPtr<ChLink> ChSharedLinkPtr;
-typedef ChSharedPtr<ChProbe> ChSharedProbePtr;
-typedef ChSharedPtr<ChControls> ChSharedControlsPtr;
 class ChLcpSolver;
 class ChLcpSystemDescriptor;
 class ChContactContainerBase;
@@ -187,10 +184,10 @@ class ChApi ChSystem : public ChAssembly,
     /// Set the timestepper to be used for time integration.
     /// This is more powerful than SetIntegrationType, because you can provide your own object.
     /// Also sets the mode to INT_CUSTOM__ , should you ever call GetIntegrationType() later.
-    void SetTimestepper(ChSharedPtr<ChTimestepper> mstepper) { this->timestepper = mstepper; integration_type = INT_CUSTOM__; }
+    void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) { this->timestepper = mstepper; integration_type = INT_CUSTOM__; }
 
     /// Get the timestepper currently used for time integration
-    ChSharedPtr<ChTimestepper> GetTimestepper() { return this->timestepper; }
+    std::shared_ptr<ChTimestepper> GetTimestepper() { return this->timestepper; }
 
 
     /// Sets outer iteration limit for assembly constraints. When trying to keep constraints together,
@@ -383,9 +380,9 @@ class ChApi ChSystem : public ChAssembly,
     virtual ChBody* NewBody() { return new ChBody(ChMaterialSurfaceBase::DVI); }
 
     /// Attach a probe to this system.
-    void AddProbe(ChSharedPtr<ChProbe>& newprobe);
+    void AddProbe(std::shared_ptr<ChProbe>& newprobe);
     /// Attach a control to this system.
-    void AddControls(ChSharedPtr<ChControls>& newcontrols);
+    void AddControls(std::shared_ptr<ChControls>& newcontrols);
 
     /// Remove all probes from this system.
     void RemoveAllProbes();
@@ -397,10 +394,10 @@ class ChApi ChSystem : public ChAssembly,
     /// custom contact container (suffice it is inherited from ChContactContainerBase) and plug
     /// it into the system using this function. The replaced container is automatically deleted.
     /// When the system is deleted, the custom container that you plugged will be automatically deleted.
-    virtual void ChangeContactContainer(ChSharedPtr<ChContactContainerBase> newcontainer);
+    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer);
 
     /// Get the contact container
-    ChSharedPtr<ChContactContainerBase> GetContactContainer() { return contact_container; }
+    std::shared_ptr<ChContactContainerBase> GetContactContainer() { return contact_container; }
 
 
     /// Given inserted markers and links, restores the
@@ -941,14 +938,14 @@ public:
 
     // list of 'probes' (variable-recording objects, exp. for
     // 3rd party apps)
-    std::vector< ChSharedPtr<ChProbe> > probelist;
+    std::vector<std::shared_ptr<ChProbe> > probelist;
 
     // list of 'controls' script objects (objects containing
     // scripting programs and GUI panels, exp. for 3rd party apps)
-    std::vector< ChSharedPtr<ChControls> > controlslist;
+    std::vector<std::shared_ptr<ChControls> > controlslist;
 
     // the container of contacts
-    ChSharedPtr< ChContactContainerBase > contact_container;
+    std::shared_ptr<ChContactContainerBase> contact_container;
 
     ChVector<> G_acc;  // gravitational acceleration
 
@@ -1024,7 +1021,7 @@ public:
     ChTimer<double> timer_collision_narrow;
     ChTimer<double> timer_update;
 
-    ChSharedPtr<ChTimestepper> timestepper;
+    std::shared_ptr<ChTimestepper> timestepper;
 };
 
 //////////////////////////////////////

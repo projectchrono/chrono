@@ -22,7 +22,6 @@
 
 #include <string>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -45,7 +44,7 @@ namespace vehicle {
 /// A driver system must be able to report the current values of the inputs
 /// (throttle, steering, braking). A concrete driver class must set the member
 /// variables m_throttle, m_steering, and m_braking.
-class CH_VEHICLE_API ChDriver : public ChShared {
+class CH_VEHICLE_API ChDriver {
   public:
     ChDriver(ChVehicle& vehicle  ///< associated vehicle
              );

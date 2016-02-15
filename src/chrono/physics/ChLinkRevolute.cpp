@@ -65,12 +65,12 @@ ChLink* ChLinkRevolute::new_Duplicate() {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::Initialize(ChSharedPtr<ChBodyFrame> body1,  // first body frame
-                                ChSharedPtr<ChBodyFrame> body2,  // second body frame
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first body frame
+                                std::shared_ptr<ChBodyFrame> body2,  // second body frame
                                 const ChFrame<>& frame)          // joint frame (in absolute frame)
 {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_x.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_y.SetVariables(&Body1->Variables(), &Body2->Variables());
@@ -89,14 +89,14 @@ void ChLinkRevolute::Initialize(ChSharedPtr<ChBodyFrame> body1,  // first body f
         m_C->SetElement(i, 0, 0.0);
 }
 
-void ChLinkRevolute::Initialize(ChSharedPtr<ChBodyFrame> body1,  // first body frame
-                                ChSharedPtr<ChBodyFrame> body2,  // second body frame
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first body frame
+                                std::shared_ptr<ChBodyFrame> body2,  // second body frame
                                 bool local,                      // true if data given in body local frames
                                 const ChFrame<>& frame1,         // joint frame on body 1
                                 const ChFrame<>& frame2)         // joint frame on body 2
 {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_x.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_y.SetVariables(&Body1->Variables(), &Body2->Variables());

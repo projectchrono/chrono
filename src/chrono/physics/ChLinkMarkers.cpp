@@ -114,9 +114,9 @@ bool ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2) {
     return mark1 && mark2;
 }
 
-void ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarker> mmark2) {
-    ChMarker* mm1 = mmark1.get_ptr();
-    ChMarker* mm2 = mmark2.get_ptr();
+void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mmark1, std::shared_ptr<ChMarker> mmark2) {
+    ChMarker* mm1 = mmark1.get();
+    ChMarker* mm2 = mmark2.get();
     assert(mm1 && mm2);
     assert(mm1 != mm2);
     assert(mm1->GetBody() && mm2->GetBody());
@@ -125,26 +125,26 @@ void ChLinkMarkers::Initialize(ChSharedPtr<ChMarker> mmark1, ChSharedPtr<ChMarke
     ReferenceMarkers(mm1, mm2);
 }
 
-void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1, ChSharedPtr<ChBody> mbody2, const ChCoordsys<>& mpos) {
+void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1, std::shared_ptr<ChBody> mbody2, const ChCoordsys<>& mpos) {
     return Initialize(mbody1, mbody2, false, mpos, mpos);
 }
 
-void ChLinkMarkers::Initialize(ChSharedPtr<ChBody> mbody1,
-                               ChSharedPtr<ChBody> mbody2,
+void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
+                               std::shared_ptr<ChBody> mbody2,
                                bool pos_are_relative,
                                const ChCoordsys<>& mpos1,
                                const ChCoordsys<>& mpos2) {
-    assert(mbody1.get_ptr() != mbody2.get_ptr());
+    assert(mbody1.get() != mbody2.get());
     assert(mbody1->GetSystem() == mbody2->GetSystem());
 
     // create markers to add to the two bodies
-    ChSharedPtr<ChMarker> mmark1(new ChMarker);
-    ChSharedPtr<ChMarker> mmark2(new ChMarker);
+    std::shared_ptr<ChMarker> mmark1(new ChMarker);
+    std::shared_ptr<ChMarker> mmark2(new ChMarker);
     mbody1->AddMarker(mmark1);
     mbody2->AddMarker(mmark2);
 
-    ChMarker* mm1 = mmark1.get_ptr();
-    ChMarker* mm2 = mmark2.get_ptr();
+    ChMarker* mm1 = mmark1.get();
+    ChMarker* mm2 = mmark2.get();
     ReferenceMarkers(mm1, mm2);
 
     if (pos_are_relative) {

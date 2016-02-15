@@ -75,7 +75,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                     );
 
     /// Return a handle to the ground body.
-    ChSharedPtr<ChBody> GetGroundBody() { return m_ground; }
+    std::shared_ptr<ChBody> GetGroundBody() { return m_ground; }
 
     /// Initialize the terrain system (flat).
     /// This version uses a rigid box of specified dimensions and with specified
@@ -114,8 +114,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
   private:
     Type m_type;
-    ChSharedPtr<ChBody> m_ground;
-    ChSharedPtr<ChColorAsset> m_color;
+    std::shared_ptr<ChBody> m_ground;
+    std::shared_ptr<ChColorAsset> m_color;
     geometry::ChTriangleMeshConnected m_trimesh;
     std::string m_mesh_name;
     double m_height;

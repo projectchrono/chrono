@@ -67,7 +67,7 @@ find_package(Chrono
 #--------------------------------------------------------------
 
 if (NOT Chrono_FOUND)
-  message("Could not find requirements for FEA projects")
+  message("Could not find Chrono or one of its required modules")
   return()
 endif()
 
@@ -78,6 +78,17 @@ endif()
 #--------------------------------------------------------------
 
 include_directories(${CHRONO_INCLUDE_DIRS})
+
+#--------------------------------------------------------------
+# Tweaks to disable some warnings with MSVC
+#--------------------------------------------------------------
+if(MSVC)
+    add_definitions("-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
+    add_definitions("-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
+    set(EXTRA_COMPILE_FLAGS "/wd4275")             # disable warnings triggered by Irrlicht
+else()
+    set(EXTRA_COMPILE_FLAGS "")
+endif()
 
 #--------------------------------------------------------------
 # === 3 ===
@@ -97,9 +108,9 @@ add_executable(myexe my_example.cpp)
 #--------------------------------------------------------------
 
 set_target_properties(myexe PROPERTIES 
-	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS}"
+	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}"
 	    COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
-	    LINK_FLAGS "${CHRONO_CXX_FLAGS}")
+	    LINK_FLAGS "${CHRONO_LINKER_FLAGS}")
 
 #--------------------------------------------------------------
 # Link to Chrono libraries and dependency libraries

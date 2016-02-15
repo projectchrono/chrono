@@ -21,13 +21,13 @@ ChClassRegister<ChLinkEngine> a_registration_ChLinkEngine;
 ChLinkEngine::ChLinkEngine() {
     type = LNK_ENGINE;  // initializes type
 
-    rot_funct = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    spe_funct = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    tor_funct = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    torque_w = ChSharedPtr<ChFunction>(new ChFunction_Const(1));
+    rot_funct = std::make_shared<ChFunction_Const>(0);
+    spe_funct = std::make_shared<ChFunction_Const>(0);
+    tor_funct = std::make_shared<ChFunction_Const>(0);
+    torque_w = std::make_shared<ChFunction_Const>(1);
 
-    rot_funct_x = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
-    rot_funct_y = ChSharedPtr<ChFunction>(new ChFunction_Const(0));
+    rot_funct_x = std::make_shared<ChFunction_Const>(0);
+    rot_funct_y = std::make_shared<ChFunction_Const>(0);
 
     mot_rot = mot_rot_dt = mot_rot_dtdt = 0.0;
     mot_rerot = mot_rerot_dt = mot_rerot_dtdt = 0.0;
@@ -92,13 +92,13 @@ void ChLinkEngine::Copy(ChLinkEngine* source) {
     last_r3relm_rot_dt = source->last_r3relm_rot_dt;
     keyed_polar_rotation = source->keyed_polar_rotation;
 
-    rot_funct = ChSharedPtr<ChFunction>(source->rot_funct->new_Duplicate());
-    spe_funct = ChSharedPtr<ChFunction>(source->spe_funct->new_Duplicate());
-    tor_funct = ChSharedPtr<ChFunction>(source->tor_funct->new_Duplicate());
-    torque_w = ChSharedPtr<ChFunction>(source->torque_w->new_Duplicate());
+    rot_funct = std::shared_ptr<ChFunction>(source->rot_funct->new_Duplicate());
+    spe_funct = std::shared_ptr<ChFunction>(source->spe_funct->new_Duplicate());
+    tor_funct = std::shared_ptr<ChFunction>(source->tor_funct->new_Duplicate());
+    torque_w = std::shared_ptr<ChFunction>(source->torque_w->new_Duplicate());
 
-    rot_funct_x = ChSharedPtr<ChFunction>(source->rot_funct_x->new_Duplicate());
-    rot_funct_y = ChSharedPtr<ChFunction>(source->rot_funct_y->new_Duplicate());
+    rot_funct_x = std::shared_ptr<ChFunction>(source->rot_funct_x->new_Duplicate());
+    rot_funct_y = std::shared_ptr<ChFunction>(source->rot_funct_y->new_Duplicate());
 
     mot_tau = source->mot_tau;
     mot_eta = source->mot_eta;
@@ -145,10 +145,10 @@ void ChLinkEngine::Set_learn(int mset) {
     }
 
     if (eng_mode == ENG_MODE_ROTATION && rot_funct->Get_Type() != FUNCT_RECORDER)
-        rot_funct = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+        rot_funct = std::make_shared<ChFunction_Recorder>();
 
     if (eng_mode == ENG_MODE_SPEED && spe_funct->Get_Type() != FUNCT_RECORDER)
-        spe_funct = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+        spe_funct = std::make_shared<ChFunction_Recorder>();
 }
 
 void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
@@ -174,10 +174,10 @@ void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
                 break;
             case ENG_MODE_TO_POWERTRAIN_SHAFT:
                 ((ChLinkMaskLF*)mask)->Constr_E3().SetMode(CONSTRAINT_FREE);
-                this->innershaft1 = ChSharedPtr<ChShaft>(new ChShaft);
-                this->innershaft2 = ChSharedPtr<ChShaft>(new ChShaft);
-                this->innerconstraint1 = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
-                this->innerconstraint2 = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+                this->innershaft1 = std::make_shared<ChShaft>();
+                this->innershaft2 = std::make_shared<ChShaft>();
+                this->innerconstraint1 = std::make_shared<ChShaftsBody>();
+                this->innerconstraint2 = std::make_shared<ChShaftsBody>();
                 this->SetUpMarkers(this->marker1, this->marker2);  // to initialize innerconstraint1 innerconstraint2
                 break;
         }
@@ -186,15 +186,15 @@ void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
     }
 
     if (eng_mode == ENG_MODE_KEY_ROTATION && rot_funct->Get_Type() != FUNCT_CONST)
-        rot_funct = ChSharedPtr<ChFunction>(new ChFunction_Const);
+        rot_funct = std::make_shared<ChFunction_Const>();
 
     if (eng_mode == ENG_MODE_KEY_POLAR) {
         if (rot_funct->Get_Type() != FUNCT_CONST)
-            rot_funct = ChSharedPtr<ChFunction>(new ChFunction_Const);
+            rot_funct = std::make_shared<ChFunction_Const>();
         if (rot_funct_x->Get_Type() != FUNCT_CONST)
-            rot_funct_x = ChSharedPtr<ChFunction>(new ChFunction_Const);
+            rot_funct_x = std::make_shared<ChFunction_Const>();
         if (rot_funct_y->Get_Type() != FUNCT_CONST)
-            rot_funct_y = ChSharedPtr<ChFunction>(new ChFunction_Const);
+            rot_funct_y = std::make_shared<ChFunction_Const>();
     }
 }
 
@@ -271,24 +271,24 @@ void ChLinkEngine::UpdateTime(double mytime) {
 
         if (eng_mode == ENG_MODE_ROTATION) {
             if (rot_funct->Get_Type() != FUNCT_RECORDER)
-                rot_funct = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+                rot_funct = std::make_shared<ChFunction_Recorder>();
 
             // record point
             double rec_rot = relAngle;  // ***TO DO*** compute also rotations with cardano mode?
             if (impose_reducer)
                 rec_rot = rec_rot / mot_tau;
-            rot_funct.StaticCastTo<ChFunction_Recorder>()->AddPoint(mytime, rec_rot, 1);  // x=t
+            std::static_pointer_cast<ChFunction_Recorder>(rot_funct)->AddPoint(mytime, rec_rot, 1);  // x=t
         }
 
         if (eng_mode == ENG_MODE_SPEED) {
             if (spe_funct->Get_Type() != FUNCT_RECORDER)
-                spe_funct = ChSharedPtr<ChFunction>(new ChFunction_Recorder);
+                spe_funct = std::make_shared<ChFunction_Recorder>();
 
             // record point
             double rec_spe = Vlength(relWvel);  // ***TO DO*** compute also with cardano mode?
             if (impose_reducer)
                 rec_spe = rec_spe / mot_tau;
-            spe_funct.StaticCastTo<ChFunction_Recorder>()->AddPoint(mytime, rec_spe, 1);  //  x=t
+            std::static_pointer_cast<ChFunction_Recorder>(spe_funct)->AddPoint(mytime, rec_spe, 1);  //  x=t
         }
     }
 
@@ -393,10 +393,11 @@ void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMasked::SetUpMarkers(mark1, mark2);
 
     if (Body1 && Body2) {
-        ChSharedPtr<ChBodyFrame> b1(Body1);
-        b1->AddRef();  // trick because acquiring raw ptr
-        ChSharedPtr<ChBodyFrame> b2(Body2);
-        b2->AddRef();  // trick because acquiring raw ptr
+        // Note: we wrap Body1 and Body2 in shared_ptr with custom no-op destructors
+        // so that the two objects are not destroyed when these shared_ptr go out of
+        // scope (since Body1 and Body2 are still managed through other shared_ptr).
+        std::shared_ptr<ChBodyFrame> b1(Body1, [](ChBodyFrame*){});
+        std::shared_ptr<ChBodyFrame> b2(Body2, [](ChBodyFrame*){});
         if (innerconstraint1)
             innerconstraint1->Initialize(innershaft1, b1, VECT_Z);
         if (innerconstraint2)

@@ -30,9 +30,10 @@
 ///////////////////////////////////////////////////
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChCTriangleMeshSoup.h"
 
@@ -66,19 +67,19 @@ class MySimpleTank {
     // The parts making the tank, as 3d Irrlicht scene nodes, each containing
     // the ChBody object
     // .. truss:
-    ChBodySceneNode* truss;
+    std::shared_ptr<ChBody> truss;
     // .. right front suspension:
-    ChBodySceneNode* wheelRF;
-    ChSharedPtr<ChLinkLockRevolute> link_revoluteRF;
+    std::shared_ptr<ChBody> wheelRF;
+    std::shared_ptr<ChLinkLockRevolute> link_revoluteRF;
     // .. left front suspension:
-    ChBodySceneNode* wheelLF;
-    ChSharedPtr<ChLinkLockRevolute> link_revoluteLF;
+    std::shared_ptr<ChBody> wheelLF;
+    std::shared_ptr<ChLinkLockRevolute> link_revoluteLF;
     // .. right back suspension:
-    ChBodySceneNode* wheelRB;
-    ChSharedPtr<ChLinkEngine> link_revoluteRB;
+    std::shared_ptr<ChBody> wheelRB;
+    std::shared_ptr<ChLinkEngine> link_revoluteRB;
     // .. left back suspension:
-    ChBodySceneNode* wheelLB;
-    ChSharedPtr<ChLinkEngine> link_revoluteLB;
+    std::shared_ptr<ChBody> wheelLB;
+    std::shared_ptr<ChLinkEngine> link_revoluteLB;
 
     // THE FUNCTIONS
 
@@ -112,12 +113,11 @@ class MySimpleTank {
 
         // --- The tank body ---
 
-        IAnimatedMesh* bulldozer_bodyMesh = msceneManager->getMesh(GetChronoDataFile("bulldozerB10.obj").c_str());
-        truss = (ChBodySceneNode*)addChBodySceneNode(&my_system, msceneManager, bulldozer_bodyMesh, 350.0,
-                                                     ChVector<>(mx + passo / 2, my + radiustrack, rlwidth / 2), QUNIT);
-        truss->GetBody()->SetInertiaXX(ChVector<>(13.8, 13.5, 10));
-        truss->GetBody()->SetBodyFixed(false);
-        // truss->addShadowVolumeSceneNode();
+        truss = std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("bulldozerB10.obj").c_str(), 1000, false, false, 0, true);
+        my_system.Add(truss);
+        truss->SetPos(ChVector<>(mx + passo / 2, my + radiustrack, rlwidth / 2));
+        truss->SetMass(350);
+        truss->SetInertiaXX(ChVector<>(13.8, 13.5, 10));
 
         // --- Right Front suspension ---
 
@@ -125,26 +125,27 @@ class MySimpleTank {
         IAnimatedMesh* irmesh_wheel_view = msceneManager->getMesh(GetChronoDataFile("wheel_view.obj").c_str());
 
         // ..the tank right-front wheel
-        wheelRF = (ChBodySceneNode*)addChBodySceneNode(&my_system, msceneManager, irmesh_wheel_view, 9.0,
-                                                       ChVector<>(mx + passo, my + radiustrack, 0),
-                                                       chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelRF = std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        my_system.Add(wheelRF);
+        wheelRF->SetPos(ChVector<>(mx + passo, my + radiustrack, 0));
+        wheelRF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelRF->SetMass(9.0);
+        wheelRF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
+        wheelRF->GetMaterialSurface()->SetFriction(1.0);
 
-        wheelRF->GetBody()->GetCollisionModel()->ClearModel();
-        wheelRF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displA);
-        wheelRF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displB);
-        wheelRF->GetBody()->GetCollisionModel()->BuildModel();  // Creates the collision model
-        wheelRF->GetBody()->SetCollide(true);
-        wheelRF->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRF->GetBody()->GetMaterialSurface()->SetFriction(1.0);
-        video::ITexture* cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
-        wheelRF->setMaterialTexture(0, cylinderMap);
-        wheelRF->addShadowVolumeSceneNode();
-
+        wheelRF->GetCollisionModel()->ClearModel();
+        wheelRF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
+        wheelRF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelRF->GetCollisionModel()->BuildModel();  
+        wheelRF->SetCollide(true);
+ 
+        auto color_wheel = std::make_shared<ChColorAsset>();
+        color_wheel->SetColor(ChColor(0.2f,0.2f,0.2f));
+        wheelRF->AddAsset(color_wheel);
+        
         // .. create the revolute joint between the wheel and the truss
-        link_revoluteRF = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);  // right, front, upper, 1
-        link_revoluteRF->Initialize(wheelRF->GetBody(), truss->GetBody(),
+        link_revoluteRF = std::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
+        link_revoluteRF->Initialize(wheelRF, truss,
                                     ChCoordsys<>(ChVector<>(mx + passo, my + radiustrack, 0), QUNIT));
         my_system.AddLink(link_revoluteRF);
 
@@ -152,25 +153,24 @@ class MySimpleTank {
 
         // ..the tank left-front wheel
 
-        wheelLF = (ChBodySceneNode*)addChBodySceneNode(&my_system, msceneManager, irmesh_wheel_view, 9.0,
-                                                       ChVector<>(mx + passo, my + radiustrack, rlwidth),
-                                                       chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelLF = std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        my_system.Add(wheelLF);
+        wheelLF->SetPos(ChVector<>(mx + passo, my + radiustrack, rlwidth));
+        wheelLF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelLF->SetMass(9.0);
+        wheelLF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
+        wheelLF->GetMaterialSurface()->SetFriction(1.0);
+        wheelLF->AddAsset(color_wheel);
 
-        wheelLF->GetBody()->GetCollisionModel()->ClearModel();
-        wheelLF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displA);
-        wheelLF->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displB);
-        wheelLF->GetBody()->GetCollisionModel()->BuildModel();  // Creates the collision model
-        wheelLF->GetBody()->SetCollide(true);
-        wheelLF->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLF->GetBody()->GetMaterialSurface()->SetFriction(1.0);
-        wheelLF->setMaterialTexture(0, cylinderMap);
-        wheelLF->addShadowVolumeSceneNode();
+        wheelLF->GetCollisionModel()->ClearModel();
+        wheelLF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
+        wheelLF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelLF->GetCollisionModel()->BuildModel();
+        wheelLF->SetCollide(true);
 
         // .. create the revolute joint between the wheel and the truss
-        link_revoluteLF = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);  // left, front, upper, 1
-        link_revoluteLF->Initialize(wheelLF->GetBody(), truss->GetBody(),
+        link_revoluteLF = std::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
+        link_revoluteLF->Initialize(wheelLF, truss,
                                     ChCoordsys<>(ChVector<>(mx + passo, my + radiustrack, rlwidth), QUNIT));
         my_system.AddLink(link_revoluteLF);
 
@@ -178,26 +178,24 @@ class MySimpleTank {
 
         // ..the tank right-back wheel
 
-        wheelRB = (ChBodySceneNode*)addChBodySceneNode(&my_system, msceneManager, irmesh_wheel_view, 9.0,
-                                                       ChVector<>(mx, my + radiustrack, 0),
-                                                       chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelRB = std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        my_system.Add(wheelRB);
+        wheelRB->SetPos(ChVector<>(mx, my + radiustrack, 0));
+        wheelRB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelRB->SetMass(9.0);
+        wheelRB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
+        wheelRB->GetMaterialSurface()->SetFriction(1.0);
+        wheelRB->AddAsset(color_wheel);
 
-        wheelRB->GetBody()->GetCollisionModel()->ClearModel();
-        wheelRB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displA);
-        wheelRB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displB);
-        wheelRB->GetBody()->GetCollisionModel()->BuildModel();  // Creates the collision model
-        wheelRB->GetBody()->SetCollide(true);
-        wheelRB->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRB->GetBody()->GetMaterialSurface()->SetFriction(1.0);
-        cylinderMap = mdriver->getTexture(GetChronoDataFile("bluwhite.png").c_str());
-        wheelRB->setMaterialTexture(0, cylinderMap);
-        wheelRB->addShadowVolumeSceneNode();
+        wheelRB->GetCollisionModel()->ClearModel();
+        wheelRB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
+        wheelRB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelRB->GetCollisionModel()->BuildModel();
+        wheelRB->SetCollide(true);
 
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
-        link_revoluteRB = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);  // right, back, upper, 1
-        link_revoluteRB->Initialize(wheelRB->GetBody(), truss->GetBody(),
+        link_revoluteRB = std::make_shared<ChLinkEngine>();  // right, back, upper, 1
+        link_revoluteRB->Initialize(wheelRB, truss,
                                     ChCoordsys<>(ChVector<>(mx, my + radiustrack, 0), QUNIT));
         link_revoluteRB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
         my_system.AddLink(link_revoluteRB);
@@ -206,43 +204,40 @@ class MySimpleTank {
 
         // ..the tank left-back wheel
 
-        wheelLB = (ChBodySceneNode*)addChBodySceneNode(&my_system, msceneManager, irmesh_wheel_view, 9.0,
-                                                       ChVector<>(mx, my + radiustrack, rlwidth),
-                                                       chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelLB = std::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        my_system.Add(wheelLB);
+        wheelLB->SetPos(ChVector<>(mx, my + radiustrack, rlwidth));
+        wheelLB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelLB->SetMass(9.0);
+        wheelLB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
+        wheelLB->GetMaterialSurface()->SetFriction(1.0);
+        wheelLB->AddAsset(color_wheel);
 
-        wheelLB->GetBody()->GetCollisionModel()->ClearModel();
-        wheelLB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displA);
-        wheelLB->GetBody()->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                             cyl_displB);
-        wheelLB->GetBody()->GetCollisionModel()->BuildModel();  // Creates the collision model
-        wheelLB->GetBody()->SetCollide(true);
-        wheelLB->GetBody()->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLB->GetBody()->GetMaterialSurface()->SetFriction(1.0);
-        wheelLB->setMaterialTexture(0, cylinderMap);
-        wheelLB->addShadowVolumeSceneNode();
+        wheelLB->GetCollisionModel()->ClearModel();
+        wheelLB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
+        wheelLB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelLB->GetCollisionModel()->BuildModel(); 
+        wheelLB->SetCollide(true);
+
 
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
-        link_revoluteLB = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);  // left, back, upper, 1
-        link_revoluteLB->Initialize(wheelLB->GetBody(), truss->GetBody(),
+        link_revoluteLB = std::make_shared<ChLinkEngine>();  // left, back, upper, 1
+        link_revoluteLB->Initialize(wheelLB, truss,
                                     ChCoordsys<>(ChVector<>(mx, my + radiustrack, rlwidth), QUNIT));
         link_revoluteLB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
         my_system.AddLink(link_revoluteLB);
 
-        //--- TRACKS ---
 
-        // Load a triangle mesh for visualization
-        IAnimatedMesh* irmesh_shoe_view = msceneManager->getMesh(GetChronoDataFile("shoe_view.obj").c_str());
+        //--- TRACKS ---
 
         // Load a triangle mesh for collision
         IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("shoe_collision.obj").c_str());
         ChTriangleMeshSoup temp_trianglemesh;
         fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, irmesh_shoe_collision->getMesh(0));
 
-        chrono::ChVector<> mesh_displacement(shoelength * 0.5, 0,
-                                             0);  // since mesh origin is not in body center of mass
-        chrono::ChVector<> joint_displacement(-shoelength * 0.5, 0,
-                                              0);  // position of shoe-shoe constraint, relative to COG.
+        ChVector<> mesh_displacement(shoelength * 0.5, 0, 0);  // as mesh origin is not in body center of mass
+        ChVector<> joint_displacement(-shoelength * 0.5, 0, 0);  // pos. of shoe-shoe constraint, relative to COG.
+        ChVector<> pin_displacement = mesh_displacement + ChVector<>(0, 0.05, 0);
 
         chrono::ChVector<> position;
         chrono::ChQuaternion<> rotation;
@@ -261,56 +256,55 @@ class MySimpleTank {
             position.Set(mx, my, mz);
             rotation = QUNIT;
 
+
             // Create sample body (with empty collision shape; later create the collision model by adding the
             // coll.shapes)
-            ChBodySceneNode* firstBodyShoe =
-                (ChBodySceneNode*)addChBodySceneNode(&my_system, msceneManager, 0, shoemass, position, rotation);
-            // Creates the collision model with a (simplified) mesh
-            ChVector<> pin_displacement = mesh_displacement + ChVector<>(0, 0.05, 0);
-            firstBodyShoe->GetBody()->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin
-            firstBodyShoe->GetBody()->GetCollisionModel()->SetEnvelope(
-                0.010);  // distance of the outward "collision envelope"
-            firstBodyShoe->GetBody()->GetCollisionModel()->ClearModel();
-            // ...try to use a concave (simplified) mesh plus automatic convex decomposition?? ...
-            firstBodyShoe->GetBody()->GetCollisionModel()->AddTriangleMesh(
-                temp_trianglemesh, false, false, mesh_displacement);  // not static, not convex
-            // .. or rather use few 'primitive' shapes to approximate with cubes/etc??
-            // firstBodyShoe->GetBody()->GetCollisionModel()->AddBox(shoelength/2, shoethickness/2, shoewidth/2,
-            // mesh_displacement);
-            // firstBodyShoe->GetBody()->GetCollisionModel()->AddBox(0.04, 0.02, 0.02, pin_displacement);
-            firstBodyShoe->GetBody()->GetCollisionModel()->BuildModel();  // Creates the collision model
-            firstBodyShoe->GetBody()->SetCollide(true);
+            auto firstBodyShoe = std::make_shared<ChBody>();
+            my_system.Add(firstBodyShoe);
+            firstBodyShoe->SetMass(shoemass);
+            firstBodyShoe->SetPos(position);
+            firstBodyShoe->SetRot(rotation);
+            firstBodyShoe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
 
-            /*  // alternative: use box as a collision geometry (but wheels will slip..)
-            ChBodySceneNode* firstBodyShoe =  (ChBodySceneNode*)addChBodySceneNode_easyBox(
-                                                    &my_system, msceneManager,
-                                                    shoemass,
-                                                    position,
-                                                    rotation,
-                                                    ChVector<>(shoelength, 0.02, 0.2) );
-            */
+            // Visualization:
+            auto shoe_mesh = std::make_shared<ChTriangleMeshShape>();
+            firstBodyShoe->AddAsset(shoe_mesh);
+            shoe_mesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
+            shoe_mesh->GetMesh().Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_mesh->SetVisible(true);
 
-            // Add a mesh for visualization purposes
-            msceneManager->addAnimatedMeshSceneNode(irmesh_shoe_view, firstBodyShoe, -1,
-                                                    vector3dfCH(mesh_displacement));
+            // Mesh for collision - NOTE: DO NOT USE THIS - TEST: USE OLD temp_trianglemesh AS IT TRIGGERS FASTER CONVEXDECOMPOSITION
+            auto shoe_coll_mesh = std::make_shared<ChTriangleMeshShape>();
+            firstBodyShoe->AddAsset(shoe_coll_mesh);
+            shoe_coll_mesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
+            shoe_coll_mesh->GetMesh().Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_coll_mesh->SetVisible(false);
+
+            // Collision:
+            firstBodyShoe->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin
+            firstBodyShoe->GetCollisionModel()->SetEnvelope(0.010);  // distance of the outward "collision envelope"
+            firstBodyShoe->GetCollisionModel()->ClearModel();
+            firstBodyShoe->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement, ChMatrix33<>(1), 0.005);  
+            firstBodyShoe->GetCollisionModel()->BuildModel();  // Creates the collision model
+            firstBodyShoe->SetCollide(true);
 
             // Avoid creation of contacts with neighbouring shoes, using
             // a collision family (=3) that does not collide with itself
-            firstBodyShoe->GetBody()->GetCollisionModel()->SetFamily(3);
-            firstBodyShoe->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(3);
+            firstBodyShoe->GetCollisionModel()->SetFamily(3);
+            firstBodyShoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(3);
 
-            // Other settings
-            firstBodyShoe->GetBody()->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
+            
+            
 
-            ChBodySceneNode* previous_rigidBodyShoe = firstBodyShoe;
+            std::shared_ptr<ChBody> previous_rigidBodyShoe;
+            previous_rigidBodyShoe = firstBodyShoe;
 
             for (int nshoe = 1; nshoe < ntiles; nshoe++) {
                 mx += shoelength;
                 position.Set(mx, my, mz);
 
-                ChBodySceneNode* rigidBodyShoe =
-                    MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, irmesh_shoe_view, my_system,
-                             msceneManager, mdriver, mesh_displacement, joint_displacement, shoemass);
+                auto rigidBodyShoe =
+                    MakeShoe(previous_rigidBodyShoe,firstBodyShoe, position, rotation, my_system, joint_displacement);
 
                 previous_rigidBodyShoe = rigidBodyShoe;
             }
@@ -321,18 +315,16 @@ class MySimpleTank {
                 double ly = my + radiustrack - radiustrack * cos(alpha);
                 position.Set(lx, ly, mz);
                 rotation = chrono::Q_from_AngAxis(alpha, ChVector<>(0, 0, 1));
-                ChBodySceneNode* rigidBodyShoe =
-                    MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, irmesh_shoe_view, my_system,
-                             msceneManager, mdriver, mesh_displacement, joint_displacement, shoemass);
+                auto rigidBodyShoe =
+                    MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, my_system, joint_displacement);
 
                 previous_rigidBodyShoe = rigidBodyShoe;
             }
             for (int nshoe = (ntiles - 1); nshoe >= 0; nshoe--) {
                 position.Set(mx, my + 2 * radiustrack, mz);
 
-                ChBodySceneNode* rigidBodyShoe =
-                    MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, irmesh_shoe_view, my_system,
-                             msceneManager, mdriver, mesh_displacement, joint_displacement, shoemass);
+                auto rigidBodyShoe =
+                    MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, my_system, joint_displacement);
 
                 previous_rigidBodyShoe = rigidBodyShoe;
 
@@ -345,16 +337,15 @@ class MySimpleTank {
                 double ly = my + radiustrack - radiustrack * cos(alpha);
                 position.Set(lx, ly, mz);
                 rotation = chrono::Q_from_AngAxis(alpha, ChVector<>(0, 0, 1));
-                ChBodySceneNode* rigidBodyShoe =
-                    MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, irmesh_shoe_view, my_system,
-                             msceneManager, mdriver, mesh_displacement, joint_displacement, shoemass);
+                auto rigidBodyShoe =
+                    MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, my_system, joint_displacement);
 
                 previous_rigidBodyShoe = rigidBodyShoe;
             }
             // close track
-            ChVector<> linkpos = firstBodyShoe->GetBody()->Point_Body2World(joint_displacement);
-            ChSharedPtr<ChLinkLockRevolute> link_revolute_shoeshoe(new ChLinkLockRevolute);
-            link_revolute_shoeshoe->Initialize(firstBodyShoe->GetBody(), previous_rigidBodyShoe->GetBody(),
+            ChVector<> linkpos = firstBodyShoe->Point_Body2World(joint_displacement);
+            auto link_revolute_shoeshoe = std::make_shared<ChLinkLockRevolute>();
+            link_revolute_shoeshoe->Initialize(firstBodyShoe, previous_rigidBodyShoe,
                                                ChCoordsys<>(linkpos, QUNIT));
             my_system.AddLink(link_revolute_shoeshoe);
         }
@@ -364,58 +355,52 @@ class MySimpleTank {
     // the various parts and removing them from the physical system.  Also
     // removes constraints from the system.
     ~MySimpleTank() {
-        ChSystem* mysystem = truss->GetBody()->GetSystem();  // trick to get the system here
-        // When a ChBodySceneNode is removed via ->remove() from Irrlicht 3D scene manager,
-        // it is also automatically removed from the ChSystem (the ChSystem::RemoveBody() is
-        // automatically called at Irrlicht node deletion - see ChBodySceneNode.h ).
+        ChSystem* mysystem = truss->GetSystem();  // trick to get the system here
 
-        // For links, just remove them from the ChSystem using ChSystem::RemoveLink()
-        mysystem->RemoveLink(link_revoluteRF);
-        mysystem->RemoveLink(link_revoluteLF);
-        mysystem->RemoveLink(link_revoluteRB);
-        mysystem->RemoveLink(link_revoluteLB);
-
-        truss->remove();
-        wheelRF->remove();
-        wheelLF->remove();
-        wheelRB->remove();
-        wheelLB->remove();
+        mysystem->Remove(link_revoluteRF);
+        mysystem->Remove(link_revoluteLF);
+        mysystem->Remove(link_revoluteRB);
+        mysystem->Remove(link_revoluteLB);
+        mysystem->Remove(truss);
+        mysystem->Remove(wheelRF);
+        mysystem->Remove(wheelLF);
+        mysystem->Remove(wheelRB);
+        mysystem->Remove(wheelLB);
     }
 
     // Utility function to create quickly a track shoe connected to the previous one
-    ChBodySceneNode* MakeShoe(
-        ChBodySceneNode* previous_shoe,  ///< will be linked with this one with revolute joint
-        ChBodySceneNode*
-            template_collision_shape,  ///< collision geometry will be shared with this body, to save memory&cpu time.
+    std::shared_ptr<ChBody> MakeShoe(
+      std::shared_ptr<ChBody> previous_shoe,  ///< will be linked with this one with revolute joint
+      std::shared_ptr<ChBody> template_shoe,  ///< collision geometry will be shared with this body, to save memory&cpu time.
         ChVector<> position,
         ChQuaternion<> rotation,                /// pos. and rotation
-        IAnimatedMesh* irmesh_shoe_view,        ///< detailed mesh of the shoe
         ChSystem& my_system,                    ///< the chrono::engine physical system
-        ISceneManager* msceneManager,           ///< the Irrlicht scene manager for 3d shapes
-        IVideoDriver* mdriver,                  ///< the Irrlicht video driver
-        chrono::ChVector<> mesh_displacement,   // since mesh origin is not in body center of mass
-        chrono::ChVector<> joint_displacement,  // position of shoe-shoe constraint, relative to COG.
-        double shoemass) {
-        // Create 'track shoe' body with increasing position and rotation, along the track
-        ChBodySceneNode* rigidBodyShoe = (ChBodySceneNode*)addChBodySceneNode_easyClone(
-            &my_system, msceneManager, template_collision_shape, position, rotation);
-        rigidBodyShoe->addShadowVolumeSceneNode();
+        chrono::ChVector<> joint_displacement  // position of shoe-shoe constraint, relative to COG.
+        ) 
+                        {
 
-        // Add a mesh for visualization purposes
-        msceneManager->addAnimatedMeshSceneNode(irmesh_shoe_view, rigidBodyShoe, -1, vector3dfCH(mesh_displacement));
+      std::shared_ptr<ChBody> rigidBodyShoe(new ChBody);
+        my_system.Add(rigidBodyShoe);
+        rigidBodyShoe->Copy(template_shoe.get());  // copy all settings from the template body
+        rigidBodyShoe->SetSystem(template_shoe->GetSystem());  // because Copy() set system to null..
+        rigidBodyShoe->SetPos(position);              // because Copy() changed it
+        rigidBodyShoe->SetRot(rotation);              // because Copy() changed it
 
-        // Avoid creation of contacts with neighbouring shoes
+        rigidBodyShoe->GetCollisionModel()->ClearModel();
+        rigidBodyShoe->GetCollisionModel()->AddCopyOfAnotherModel(template_shoe->GetCollisionModel());
+        rigidBodyShoe->GetCollisionModel()->BuildModel();
+        rigidBodyShoe->SetCollide(true);
 
-        rigidBodyShoe->GetBody()->GetCollisionModel()->SetFamily(3);
-        rigidBodyShoe->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(3);
-
-        // Other settings are already copied from   template_collision_shape, except for family and mask.
+        // Other settings are already copied from template_shoe, except for family and mask.
+        // Avoid creation of contacts with neighbouring shoes:
+        rigidBodyShoe->GetCollisionModel()->SetFamily(3);
+        rigidBodyShoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(3);
 
         // Create revolute constraint
         if (previous_shoe) {
-            ChVector<> linkpos = rigidBodyShoe->GetBody()->Point_Body2World(joint_displacement);
-            ChSharedPtr<ChLinkLockRevolute> link_revolute_shoeshoe(new ChLinkLockRevolute);
-            link_revolute_shoeshoe->Initialize(rigidBodyShoe->GetBody(), previous_shoe->GetBody(),
+            ChVector<> linkpos = rigidBodyShoe->Point_Body2World(joint_displacement);
+            auto link_revolute_shoeshoe = std::make_shared<ChLinkLockRevolute>();
+            link_revolute_shoeshoe->Initialize(rigidBodyShoe, previous_shoe,
                                                ChCoordsys<>(linkpos, QUNIT));
             my_system.AddLink(link_revolute_shoeshoe);
         }
@@ -467,8 +452,7 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newthrottle = ((double)(pos)-50) / 50.0;
                         this->mtank->throttleL = newthrottle;
-                        if (ChSharedPtr<ChFunction_Const> mfun =
-                                mtank->link_revoluteLB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mtank->link_revoluteLB->Get_spe_funct()))
                             mfun->Set_yconst(newthrottle * 6);
                         return true;
                     }
@@ -477,8 +461,7 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newthrottle = ((double)(pos)-50) / 50.0;
                         this->mtank->throttleR = newthrottle;
-                        if (ChSharedPtr<ChFunction_Const> mfun =
-                                mtank->link_revoluteRB->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mtank->link_revoluteRB->Get_spe_funct()))
                             mfun->Set_yconst(newthrottle * 6);
                         return true;
                     }
@@ -510,8 +493,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrAppInterface application(&my_system, L"Modeling a simplified   tank", core::dimension2d<u32>(800, 600), false,
-                                  true);
+    ChIrrApp application(&my_system, L"Modeling a simplified   tank", core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
@@ -544,6 +526,15 @@ int main(int argc, char* argv[]) {
 
     // ..the tank (this class - see above - is a 'set' of bodies and links, automatically added at creation)
     MySimpleTank* mytank = new MySimpleTank(my_system, application.GetSceneManager(), application.GetVideoDriver());
+
+
+
+    // Use this function for adding a ChIrrNodeAsset to all items
+    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    application.AssetBindAll();
+
+    // Use this function for 'converting' assets into Irrlicht meshes
+    application.AssetUpdateAll();
 
     //
     // USER INTERFACE

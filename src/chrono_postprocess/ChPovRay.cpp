@@ -77,20 +77,20 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
     this->contacts_do_colormap = true;
 }
 
-void ChPovRay::Add(ChSharedPtr<ChPhysicsItem> mitem) {
+void ChPovRay::Add(std::shared_ptr<ChPhysicsItem> mitem) {
     // flag as renderable by adding a ChPovAsset into assets of the item
     if (!this->IsAdded(mitem)) {
-        ChSharedPtr<ChPovRayAsset> mpov_asset(new ChPovRayAsset);
+        auto mpov_asset = std::make_shared<ChPovRayAsset>();
         mitem->AddAsset(mpov_asset);
     }
 }
 
-void ChPovRay::Remove(ChSharedPtr<ChPhysicsItem> mitem) {
+void ChPovRay::Remove(std::shared_ptr<ChPhysicsItem> mitem) {
     // unflag as renderable by removing the ChPovAsset from assets of the item
-    std::vector<ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
-    std::vector<ChSharedPtr<ChAsset> >::iterator iasset = assetlist.begin();
+    std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
+    std::vector<std::shared_ptr<ChAsset> >::iterator iasset = assetlist.begin();
     while (iasset != assetlist.end()) {
-        if ((*iasset).IsType<ChPovRayAsset>()) {
+        if (std::dynamic_pointer_cast<ChPovRayAsset>(*iasset)) {
             assetlist.erase(iasset);
             return;
         }
@@ -134,12 +134,12 @@ void ChPovRay::RemoveAll() {
     }
 }
 
-bool ChPovRay::IsAdded(ChSharedPtr<ChPhysicsItem> mitem) {
-    std::vector<ChSharedPtr<ChAsset> > assetlist = mitem->GetAssets();
+bool ChPovRay::IsAdded(std::shared_ptr<ChPhysicsItem> mitem) {
+    std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
 
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        ChSharedPtr<ChAsset> k_asset = assetlist[k];
-        if (k_asset.IsType<ChPovRayAsset>()) {
+        std::shared_ptr<ChAsset> k_asset = assetlist[k];
+        if (std::dynamic_pointer_cast<ChPovRayAsset>(k_asset)) {
             return true;
         }
     }
@@ -152,9 +152,9 @@ void ChPovRay::SetupLists() {
 
     // See if some asset in exporter cache is not used anymore (except for 1 reference from this cache),
     // this would mean that the body/bodies that owned such asset have been removed.
-    ChHashTable<size_t, ChSharedPtr<ChAsset> >::iterator mcachedasset = pov_assets.begin();
+    ChHashTable<size_t, std::shared_ptr<ChAsset> >::iterator mcachedasset = pov_assets.begin();
     while (mcachedasset != pov_assets.end()) {
-        if (mcachedasset->second.ReferenceCounter() == 1) {
+        if (mcachedasset->second.use_count() == 1) {
             // cached asset not used anymore! remove from hashtable...
             size_t keytodelete = mcachedasset->first;
             mcachedasset++;
@@ -429,27 +429,29 @@ void ChPovRay::ExportScript(const std::string& filename) {
     this->ExportAssets();
 }
 
-void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file) {
+void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file) {
     // Scan assets
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        ChSharedPtr<ChAsset> k_asset = assetlist[k];
+        std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
-        ChHashTable<size_t, ChSharedPtr<ChAsset> >::iterator mcached = pov_assets.find((size_t)k_asset.get_ptr());
+        ChHashTable<size_t, std::shared_ptr<ChAsset> >::iterator mcached = pov_assets.find((size_t)k_asset.get());
         if (mcached == pov_assets.end()) {
             // Ok, add the asset in POV file, it was not already saved.
             // Otherwise it was a shared asset.
-            pov_assets.insert((size_t)k_asset.get_ptr(), k_asset);
+            pov_assets.insert((size_t)k_asset.get(), k_asset);
 
             // Do dynamic casting of the shared pointer to see which type
             // of asset is contained...
 
             // *) asset k of object i references an .obj wavefront mesh?
-            if ((k_asset.IsType<ChObjShapeFile>()) || (k_asset.IsType<ChTriangleMeshShape>())) {
+            auto myobjshapeasset = std::dynamic_pointer_cast<ChObjShapeFile>(k_asset);
+            auto mytrimeshshapeasset = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset);
+
+            if (myobjshapeasset || mytrimeshshapeasset) {
                 ChTriangleMeshConnected* mytrimesh = 0;
                 ChTriangleMeshConnected* temp_allocated_loadtrimesh = 0;
 
-                if (k_asset.IsType<ChObjShapeFile>()) {
-                    ChSharedPtr<ChObjShapeFile> myobjshapeasset(k_asset.DynamicCastTo<ChObjShapeFile>());
+                if (myobjshapeasset) {
                     try {
                         temp_allocated_loadtrimesh = new (ChTriangleMeshConnected);
 
@@ -468,14 +470,13 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
                         throw(ChException(error));
                     }
                 }
-                if (k_asset.IsType<ChTriangleMeshShape>()) {
-                    ChSharedPtr<ChTriangleMeshShape> mytrimeshshapeasset(k_asset.DynamicCastTo<ChTriangleMeshShape>());
 
+                if (mytrimeshshapeasset) {
                     mytrimesh = &mytrimeshshapeasset->GetMesh();
                 }
 
                 // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get_ptr()
+                assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
                 // Create mesh
@@ -542,11 +543,9 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
             }
 
             // *) asset k of object i is a sphere ?
-            if (k_asset.IsType<ChSphereShape>()) {
-                ChSharedPtr<ChSphereShape> myobjshapeasset(k_asset.DynamicCastTo<ChSphereShape>());
-
+            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChSphereShape>(k_asset)) {
                 // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get_ptr()
+                assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
                 // POV will make the sphere
@@ -564,11 +563,9 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
             }
 
             // *) asset k of object i is a cylinder ?
-            if (k_asset.IsType<ChCylinderShape>()) {
-                ChSharedPtr<ChCylinderShape> myobjshapeasset(k_asset.DynamicCastTo<ChCylinderShape>());
-
+            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
                 // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get_ptr()
+                assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
                 // POV will make the sphere
@@ -589,11 +586,9 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
             }
 
             // *) asset k of object i is a box ?
-            if (k_asset.IsType<ChBoxShape>()) {
-                ChSharedPtr<ChBoxShape> myobjshapeasset(k_asset.DynamicCastTo<ChBoxShape>());
-
+            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
                 // POV macro to build the asset - begin
-                assets_file << "#macro sh_" << (size_t)k_asset.get_ptr()
+                assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
                 // POV will make the box
@@ -625,11 +620,9 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
             }
 
             // *) asset k of object i is a custom POV ray command ?
-            if (k_asset.IsType<ChPovRayAssetCustom>()) {
-                ChSharedPtr<ChPovRayAssetCustom> myobjcommandasset(k_asset.DynamicCastTo<ChPovRayAssetCustom>());
-
+            if (auto myobjcommandasset = std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset)) {
                 // POV macro to build the asset - begin
-                assets_file << "#macro cm_" << (size_t)k_asset.get_ptr() << "()\n";
+                assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
 
                 // add POV custom commands
                 assets_file << myobjcommandasset->GetCommands().c_str() << "\n";
@@ -639,11 +632,9 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
             }
 
             // *) asset k of object i is a texture ?
-            if (k_asset.IsType<ChTexture>()) {
-                ChSharedPtr<ChTexture> myobjtextureasset(k_asset.DynamicCastTo<ChTexture>());
-
+            if (auto myobjtextureasset = std::dynamic_pointer_cast<ChTexture>(k_asset)) {
                 // POV macro to build the asset - begin
-                assets_file << "#macro cm_" << (size_t)k_asset.get_ptr() << "()\n";
+                assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
 
                 // add POV  texture
                 assets_file << "texture { uv_mapping pigment { image_map {";
@@ -663,11 +654,9 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
             }
 
             // *) asset k of object i is a color ?
-            if (k_asset.IsType<ChColorAsset>()) {
-                ChSharedPtr<ChColorAsset> myobjasset(k_asset.DynamicCastTo<ChColorAsset>());
-
+            if (auto myobjasset = std::dynamic_pointer_cast<ChColorAsset>(k_asset)) {
                 // POV macro to build the asset - begin
-                assets_file << "#macro cm_" << (size_t)k_asset.get_ptr() << "()\n";
+                assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
 
                 // add POV  pigment
                 assets_file << " pigment {color rgbt <" << myobjasset->GetColor().R << "," << myobjasset->GetColor().G
@@ -678,11 +667,9 @@ void ChPovRay::_recurseExportAssets(std::vector<ChSharedPtr<ChAsset> >& assetlis
             }
 
             // *) asset k of object i is a level with sub assets? ?
-            if (k_asset.IsType<ChAssetLevel>()) {
-                ChSharedPtr<ChAssetLevel> mylevel(k_asset.DynamicCastTo<ChAssetLevel>());
-
+            if (auto mylevel = std::dynamic_pointer_cast<ChAssetLevel>(k_asset)) {
                 // recurse level...
-                std::vector<ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
+                std::vector<std::shared_ptr<ChAsset> >& subassetlist = mylevel->GetAssets();
                 _recurseExportAssets(subassetlist, assets_file);
             }
         }
@@ -705,27 +692,27 @@ void ChPovRay::ExportAssets() {
     }  // end loop on objects
 }
 
-void ChPovRay::_recurseExportObjData(std::vector<ChSharedPtr<ChAsset> >& assetlist,
+void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                      ChFrame<> parentframe,
                                      ChStreamOutAsciiFile& mfilepov) {
     mfilepov << "union{\n";  // begin union
 
     // Scan assets in object and write the macro to set their position
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        ChSharedPtr<ChAsset> k_asset = assetlist[k];
+        std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
         // asset k of object i references a mesh, a box, a sphere, i.e. any exported shape?
-        if (k_asset.IsType<ChObjShapeFile>() || 
-            k_asset.IsType<ChTriangleMeshShape>() ||
-            k_asset.IsType<ChSphereShape>() || 
-            k_asset.IsType<ChCylinderShape>() || 
-            k_asset.IsType<ChBoxShape>()) {
-            mfilepov << "sh_" << (size_t)k_asset.get_ptr() << "()\n";
-        }    
+        if (std::dynamic_pointer_cast<ChObjShapeFile>(k_asset) ||
+            std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset) ||
+            std::dynamic_pointer_cast<ChSphereShape>(k_asset) ||
+            std::dynamic_pointer_cast<ChCylinderShape>(k_asset) ||
+            std::dynamic_pointer_cast<ChBoxShape>(k_asset)
+            ) {
+            mfilepov << "sh_" << (size_t)k_asset.get() << "()\n";
+        }
 
-        if (k_asset.IsType<ChCamera>()) {
+        if (auto mycamera = std::dynamic_pointer_cast<ChCamera>(k_asset)) {
             this->camera_found_in_assets = true;
-            ChSharedPtr<ChCamera> mycamera(k_asset.DynamicCastTo<ChCamera>());
 
             this->camera_location = mycamera->GetPosition() >> parentframe;
             this->camera_aim = mycamera->GetAimPoint() >> parentframe;
@@ -734,13 +721,12 @@ void ChPovRay::_recurseExportObjData(std::vector<ChSharedPtr<ChAsset> >& assetli
             this->camera_orthographic = mycamera->GetOrthographic();
         }
 
-        if (k_asset.IsType<ChAssetLevel>()) {
-            ChSharedPtr<ChAssetLevel> mylevel(k_asset.DynamicCastTo<ChAssetLevel>());
+        if (auto mylevel = std::dynamic_pointer_cast<ChAssetLevel>(k_asset)) {
             // recurse level...
             ChFrame<> composedframe = mylevel->GetFrame() >> parentframe;
             ChFrame<> subassetframe = mylevel->GetFrame();
 
-            std::vector<ChSharedPtr<ChAsset> >& subassetlist = mylevel->GetAssets();
+            std::vector<std::shared_ptr<ChAsset> >& subassetlist = mylevel->GetAssets();
             _recurseExportObjData(subassetlist, subassetframe, mfilepov);
         }
 
@@ -749,12 +735,13 @@ void ChPovRay::_recurseExportObjData(std::vector<ChSharedPtr<ChAsset> >& assetli
     // Scan again assets in object and write the macros for setting color/texture etc.
     // (this because the pigments must be last in the POV union{}
     for (unsigned int k = 0; k < assetlist.size(); k++) {
-        ChSharedPtr<ChAsset> k_asset = assetlist[k];
+        std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
-        if (k_asset.IsType<ChPovRayAssetCustom>() || 
-            k_asset.IsType<ChTexture>() || 
-            k_asset.IsType<ChColorAsset>()) {
-            mfilepov << "cm_" << (size_t)k_asset.get_ptr() << "()\n";
+        if (std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset) ||
+            std::dynamic_pointer_cast<ChTexture>(k_asset) ||
+            std::dynamic_pointer_cast<ChColorAsset>(k_asset)
+            ) {
+            mfilepov << "cm_" << (size_t)k_asset.get() << "()\n";
         }
     }
 
@@ -819,9 +806,7 @@ void ChPovRay::ExportData(const std::string& filename) {
 
         for (unsigned int i = 0; i < this->mdata.size(); i++) {
             // #) saving a body ?
-            if (mdata[i].IsType<ChBody>()) {
-                ChSharedPtr<ChBody> mybody(mdata[i].DynamicCastTo<ChBody>());
-
+            if (auto mybody = std::dynamic_pointer_cast<ChBody>(mdata[i])) {
                 // Get the current coordinate frame of the i-th object
                 ChCoordsys<> assetcsys = CSYSNORM;
                 const ChFrame<>& bodyframe = mybody->GetFrame_REF_to_abs();
@@ -850,9 +835,7 @@ void ChPovRay::ExportData(const std::string& filename) {
             }
 
             // #) saving a cluster of particles ?  (NEW method that uses a POV '#while' loop and a .dat file)
-            if (mdata[i].IsType<ChParticlesClones>()) {
-                ChSharedPtr<ChParticlesClones> myclones(mdata[i].DynamicCastTo<ChParticlesClones>());
-
+            if (auto myclones = std::dynamic_pointer_cast<ChParticlesClones>(mdata[i])) {
                 mfilepov << " \n";
                 // mfilepov << "union{\n";
                 mfilepov << "#declare Index = 0; \n";
@@ -884,33 +867,8 @@ void ChPovRay::ExportData(const std::string& filename) {
                 }  // end loop on particles
             }
 
-            /*
-            // OBSOLETE method of saving particle clones: just save
-            // in mfilepov the shared asset(s) for N times, for all N particles. The .pov file
-            // can eat a lot of space on disk...
-            if (mdata[i].IsType<ChParticlesClones>() )
-            {
-                ChSharedPtr<ChParticlesClones> myclones(mdata[i]);
-
-                // Loop on all particle clones
-                for (unsigned int m = 0; m < myclones->GetNparticles() ; ++m)
-                {
-                    // Get the current coordinate frame of the i-th particle
-                    ChCoordsys<> assetcsys = CSYSNORM;
-                    assetcsys = myclones->GetParticle(m).GetCoord();
-
-                    // Dump the POV macro that generates the contained asset(s) tree!!!
-                    ChFrame<> particleframe(assetcsys);
-                    _recurseExportObjData (mdata[i]->GetAssets(), particleframe, mfilepov);
-
-
-                } // end loop on particles
-            }
-            */
-
             // #) saving a ChLinkMateGeneric constraint ?
-            if (mdata[i].IsType<ChLinkMateGeneric>()) {
-                ChSharedPtr<ChLinkMateGeneric> mylinkmate(mdata[i].DynamicCastTo<ChLinkMateGeneric>());
+            if (auto mylinkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(mdata[i])) {
                 if (mylinkmate->GetBody1() && mylinkmate->GetBody2() && this->links_show) {
                     ChFrame<> frAabs = mylinkmate->GetFrame1() >> *mylinkmate->GetBody1();
                     ChFrame<> frBabs = mylinkmate->GetFrame2() >> *mylinkmate->GetBody2();

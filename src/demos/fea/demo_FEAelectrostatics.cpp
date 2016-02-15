@@ -60,13 +60,12 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
-
+    auto my_mesh = std::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    ChSharedPtr<ChContinuumElectrostatics> mmaterial(new ChContinuumElectrostatics);
+    auto mmaterial = std::make_shared<ChContinuumElectrostatics>();
     mmaterial->SetPermittivity(1);
     // mmaterial->SetRelativePermettivity(1000.01);
 
@@ -78,7 +77,7 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from SolidWorks simulation.
 
-    std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
 
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial,
@@ -95,8 +94,7 @@ int main(int argc, char* argv[]) {
     // Impose potential on all nodes of 1st nodeset (see *NSET section in .imp file)
     int nboundary = 0;
     for (unsigned int inode = 0; inode < node_sets[nboundary].size(); ++inode) {
-        if (node_sets[nboundary][inode].IsType<ChNodeFEAxyzP>()) {
-            ChSharedPtr<ChNodeFEAxyzP> mnode(node_sets[nboundary][inode].DynamicCastTo<ChNodeFEAxyzP>());  // downcast
+        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(node_sets[nboundary][inode])) {
             mnode->SetFixed(true);
             mnode->SetP(0);  // field: potential [V]
         }
@@ -104,8 +102,7 @@ int main(int argc, char* argv[]) {
     // Impose potential on all nodes of 2nd nodeset (see *NSET section in .imp file)
     nboundary = 1;
     for (unsigned int inode = 0; inode < node_sets[nboundary].size(); ++inode) {
-        if (node_sets[nboundary][inode].IsType<ChNodeFEAxyzP>()) {
-            ChSharedPtr<ChNodeFEAxyzP> mnode(node_sets[nboundary][inode].DynamicCastTo<ChNodeFEAxyzP>());  // downcast
+        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(node_sets[nboundary][inode])) {
             mnode->SetFixed(true);
             mnode->SetP(21);  // field: potential [V]
         }
@@ -125,20 +122,20 @@ int main(int argc, char* argv[]) {
     // This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson
     // problem)
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);  // plot V, potential field
     mvisualizemesh->SetColorscaleMinMax(-0.1, 24);
     my_mesh->AddAsset(mvisualizemesh);
 
     // This will paint the wireframe
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshB(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshB->SetColorscaleMinMax(-0.1, 24);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshB);
 
     // This will paint the E vector field as line vectors
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshC(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.00002);
@@ -198,8 +195,7 @@ int main(int argc, char* argv[]) {
 
     // Print some node potentials V..
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
-        if (my_mesh->GetNode(inode).IsType<ChNodeFEAxyzP>()) {
-            ChSharedPtr<ChNodeFEAxyzP> mnode(my_mesh->GetNode(inode).DynamicCastTo<ChNodeFEAxyzP>());  // downcast
+        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetP() < 6.2) {
                 // GetLog() << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << "\n";
             }

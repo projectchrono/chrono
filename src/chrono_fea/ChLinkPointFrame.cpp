@@ -11,8 +11,8 @@
 //
 
 #include "chrono_fea/ChLinkPointFrame.h"
-#include "physics/ChSystem.h"
-#include "physics/ChIndexedNodes.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChIndexedNodes.h"
 
 using namespace chrono;
 using namespace fea;
@@ -55,25 +55,25 @@ ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
 	return CSYSNORM;
 }
 
-int ChLinkPointFrame::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
-						   unsigned int mnode_index, ///< index of the node to join
-						   ChSharedPtr<ChBodyFrame>  mbody,   ///< body to join 
+int ChLinkPointFrame::Initialize(std::shared_ptr<ChIndexedNodes> mnodes,  ///< nodes container
+                                 unsigned int mnode_index,                ///< index of the node to join
+                                 std::shared_ptr<ChBodyFrame> mbody,      ///< body to join
                                  ChVector<>* mattach) {
-	assert(!mnodes.IsNull());
+    assert(mnodes);
 
-	ChSharedPtr<ChNodeFEAxyz> anode(mnodes->GetNode(mnode_index).DynamicCastTo<ChNodeFEAxyz>() ); // downcasting
+    std::shared_ptr<ChNodeFEAxyz> anode(std::dynamic_pointer_cast<ChNodeFEAxyz>(mnodes->GetNode(mnode_index))); // downcasting
 	
-	if (anode.IsNull()) 
+	if (!anode) 
         return false;  // downcasting wasn't successfull (in a ChIndexedNodes, different types of nodes could be
                        // present..)
 
 	return this->Initialize(anode, mbody, mattach);
 }
 
-int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to join
-						   ChSharedPtr<ChBodyFrame>  mbody,		///< body to join 
+int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> anode,  ///< node to join
+						         std::shared_ptr<ChBodyFrame>  mbody,  ///< body to join 
                                  ChVector<>* mattach) {
-	assert(!anode.IsNull() && !mbody.IsNull());
+	assert(anode && mbody);
 
 	this->body = mbody;
 	this->mnode = anode;
@@ -88,7 +88,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to 
 		this->attach_reference.pos = body->TransformPointParentToLocal(*mattach);
     } else {
 		// downcasting
-        if (mnode.IsNull())
+        if (!mnode)
             return false;
 
 		ChVector<> temp= mnode->GetPos(); 
@@ -218,7 +218,7 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 	//if (!this->IsActive())
 	//	return;
 
-	if (mnode.IsNull()) 
+	if (!mnode) 
 		return;
 
 	ChMatrix33<> Arw (attach_reference.rot >> body->GetRot());

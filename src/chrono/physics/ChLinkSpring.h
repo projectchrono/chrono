@@ -29,11 +29,11 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     double spr_k;
     double spr_r;
     double spr_f;
-    ChSharedPtr<ChFunction> mod_f_time;   // f(t)
-    ChSharedPtr<ChFunction> mod_k_d;      // k(d)
-    ChSharedPtr<ChFunction> mod_r_d;      // r(d)
-    ChSharedPtr<ChFunction> mod_r_speed;  // k(speed)
-    ChSharedPtr<ChFunction> mod_k_speed;  // r(speed)
+    std::shared_ptr<ChFunction> mod_f_time;   // f(t)
+    std::shared_ptr<ChFunction> mod_k_d;      // k(d)
+    std::shared_ptr<ChFunction> mod_r_d;      // r(d)
+    std::shared_ptr<ChFunction> mod_r_speed;  // k(speed)
+    std::shared_ptr<ChFunction> mod_k_speed;  // r(speed)
     double spr_react;                     // resulting force in dist. coord / readonly
 
   public:
@@ -64,17 +64,17 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     void Set_SpringR(double m_r) { spr_r = m_r; }
     void Set_SpringF(double m_r) { spr_f = m_r; }
 
-    ChSharedPtr<ChFunction> Get_mod_f_time() const { return mod_f_time; }
-    ChSharedPtr<ChFunction> Get_mod_k_d() const { return mod_k_d; }
-    ChSharedPtr<ChFunction> Get_mod_r_d() const { return mod_r_d; }
-    ChSharedPtr<ChFunction> Get_mod_k_speed() const { return mod_k_speed; }
-    ChSharedPtr<ChFunction> Get_mod_r_speed() const { return mod_r_speed; }
+    std::shared_ptr<ChFunction> Get_mod_f_time() const { return mod_f_time; }
+    std::shared_ptr<ChFunction> Get_mod_k_d() const { return mod_k_d; }
+    std::shared_ptr<ChFunction> Get_mod_r_d() const { return mod_r_d; }
+    std::shared_ptr<ChFunction> Get_mod_k_speed() const { return mod_k_speed; }
+    std::shared_ptr<ChFunction> Get_mod_r_speed() const { return mod_r_speed; }
 
-    void Set_mod_f_time(ChSharedPtr<ChFunction> mf) { mod_f_time = mf; }
-    void Set_mod_k_d(ChSharedPtr<ChFunction> mf) { mod_k_d = mf; }
-    void Set_mod_r_d(ChSharedPtr<ChFunction> mf) { mod_r_d = mf; }
-    void Set_mod_k_speed(ChSharedPtr<ChFunction> mf) { mod_k_speed = mf; }
-    void Set_mod_r_speed(ChSharedPtr<ChFunction> mf) { mod_r_speed = mf; }
+    void Set_mod_f_time(std::shared_ptr<ChFunction> mf) { mod_f_time = mf; }
+    void Set_mod_k_d(std::shared_ptr<ChFunction> mf) { mod_k_d = mf; }
+    void Set_mod_r_d(std::shared_ptr<ChFunction> mf) { mod_r_d = mf; }
+    void Set_mod_k_speed(std::shared_ptr<ChFunction> mf) { mod_k_speed = mf; }
+    void Set_mod_r_speed(std::shared_ptr<ChFunction> mf) { mod_r_speed = mf; }
 
     /// Specialized initialization for springs, given the two bodies to be connected,
     /// the positions of the two anchor endpoints of the spring (each expressed
@@ -82,8 +82,8 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     /// NOTE! As in ChLinkMarkers::Initialize(), the two markers are automatically
     /// created and placed inside the two connected bodies.
     void Initialize(
-        ChSharedPtr<ChBody> mbody1,  ///< first body to link
-        ChSharedPtr<ChBody> mbody2,  ///< second body to link
+        std::shared_ptr<ChBody> mbody1,  ///< first body to link
+        std::shared_ptr<ChBody> mbody2,  ///< second body to link
         bool pos_are_relative,  ///< true: following pos. are considered relative to bodies. false: pos.are absolute
         ChVector<> mpos1,       ///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
         ChVector<> mpos2,       ///< position of spring endpoint, for 2nd body (rel. or abs., see flag above)

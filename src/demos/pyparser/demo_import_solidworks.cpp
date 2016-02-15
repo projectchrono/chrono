@@ -34,6 +34,7 @@
 
 using namespace chrono;
 using namespace chrono::collision;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -93,24 +94,23 @@ int main(int argc, char* argv[]) {
 
     // Fetch some bodies, given their names,
     // and apply forces/constraints/etc
-    ChSharedPtr<ChPhysicsItem> myitemE = mphysicalSystem.Search("escape_wheel^escapement-1");
-    ChSharedPtr<ChPhysicsItem> myitemA = mphysicalSystem.Search("truss^escapement-1");
-    ChSharedPtr<ChPhysicsItem> myitemB = mphysicalSystem.Search("balance^escapement-1");
-    ChSharedPtr<ChPhysicsItem> myitemC = mphysicalSystem.Search("anchor^escapement-1");
-    if ((!myitemE.IsNull() && myitemE.IsType<ChBody>()) && (!myitemA.IsNull() && myitemA.IsType<ChBody>()) &&
-        (!myitemB.IsNull() && myitemB.IsType<ChBody>()) && (!myitemC.IsNull() && myitemC.IsType<ChBody>())) {
-        // Downcast to specialized type (after we checked with IsType<...> this is safe)
-        ChSharedPtr<ChBody> mescape_wheel = myitemE.DynamicCastTo<ChBody>();
-        ChSharedPtr<ChBody> mtruss = myitemA.DynamicCastTo<ChBody>();
-        ChSharedPtr<ChBody> mbalance = myitemB.DynamicCastTo<ChBody>();
-        ChSharedPtr<ChBody> manchor = myitemC.DynamicCastTo<ChBody>();
+    std::shared_ptr<ChPhysicsItem> myitemE = mphysicalSystem.Search("escape_wheel^escapement-1");
+    std::shared_ptr<ChPhysicsItem> myitemA = mphysicalSystem.Search("truss^escapement-1");
+    std::shared_ptr<ChPhysicsItem> myitemB = mphysicalSystem.Search("balance^escapement-1");
+    std::shared_ptr<ChPhysicsItem> myitemC = mphysicalSystem.Search("anchor^escapement-1");
+    auto mescape_wheel = std::dynamic_pointer_cast<ChBody>(myitemE);
+    auto mtruss        = std::dynamic_pointer_cast<ChBody>(myitemA);
+    auto mbalance      = std::dynamic_pointer_cast<ChBody>(myitemB);
+    auto manchor       = std::dynamic_pointer_cast<ChBody>(myitemC);
+
+    if (mescape_wheel && mtruss && mbalance && manchor ) {
 
         // Set a constant torque to escape wheel, in a
         // very simple way:
         mescape_wheel->Set_Scr_torque(ChVector<>(0, -0.03, 0));
 
         // Add a torsional spring
-        ChSharedPtr<ChLinkLockFree> mspring(new ChLinkLockFree);
+        std::shared_ptr<ChLinkLockFree> mspring(new ChLinkLockFree);
         mspring->Initialize(mtruss, mbalance, CSYSNORM);  // origin does not matter, it's only torque
         mspring->GetForce_Ry()->Set_K(0.24);
         mspring->GetForce_Ry()->Set_active(1);

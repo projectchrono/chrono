@@ -28,7 +28,6 @@
 ///////////////////////////////////////////////////
 
 #include "ChFunction_Base.h"
-#include "core/ChSmartpointers.h"
 
 namespace chrono {
 
@@ -43,7 +42,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
     CH_RTTI(ChFunction_Integrate, ChFunction);
 
   private:
-    ChSharedPtr<ChFunction> fa;
+    std::shared_ptr<ChFunction> fa;
     int order;  // 1= Integrate one time, 2= two times, etc.
     double C_start;
     double x_start;
@@ -87,11 +86,12 @@ class ChApi ChFunction_Integrate : public ChFunction {
     double Get_x_end() { return x_end; }
 
     /// Set the function to be integrated
-    void Set_fa(ChSharedPtr<ChFunction> m_fa) {
+    void Set_fa(std::shared_ptr<ChFunction> m_fa) {
         fa = m_fa;
         ComputeIntegral();
     }
-    ChSharedPtr<ChFunction> Get_fa() { return fa; }
+
+    std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
     double Get_y(double x);
 

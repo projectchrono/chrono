@@ -1,0 +1,61 @@
+main:
+    - title: Waste processing
+      url: 'FXKg1KFTKc0'
+      description: 'Simulation of a CES Corona Electrostatic Separator. This is part of a device for waste processing (it separates plastic particles from metal particles using high-potential electric fields). Particles are created from statistical distributions of size, density, shape, etc. The Chrono::Engine simulation is rendered with POVray.'
+      host: 'youtube'
+    - title: Tower collapse
+      url: '37532106'
+      description: ' Tower composed of boxes collapses due to buckling while a continuous flow of particles flows onto the collapsed tower. Simulated on an NVIDIA GPU using CUDA. with over 600k rigid bodies.'
+      host: 'vimeo'
+    - title: Escapement
+      url: 'h-Yri_n9fRI'
+      description: 'Simulation of a `Swiss lever escapement`. Constraints, shapes and collision surfaces have been created using SolidWorks. The Chrono::Engine SolidWorks Add-In tool has been used to export the model to a python file. The model has been imported by a C++ program for the simulation; this is a recording of a real-time visualization, using the Irrlicht unit.'
+      host: 'youtube'
+    - title: Four cylinders engine
+      url: 'ieSk-NLeLx4'
+      description: 'Simulation of a 4 cylinder engine. Constraints and shapes have been created using SolidWorks. The Chrono::Engine SolidWorks Add-In tool has been used to export the model to a python file, for the following simulation. Rendering has been done with POV-Ray.'
+      host: 'youtube'
+    - title: Temple with earthquake
+      url: 'CHNKYMMXdEM'
+      description: 'Simulation of a small building with an earthquake. This is a simple test, where marble pieces are considered to be undeformable and undestructible. The simulation runs in real time.'
+      host: 'youtube'
+    - title: Tire
+      url: 'P-1VZoBnD_c'
+      description: 'Tire interacting with granular material. Particles are created with varying granulometry.'
+      host: 'youtube'
+    - title: Hopper
+      url: 'CVpHUlBJfho'
+      description: 'Granular flow test: simulation of an hopper filled with 50,000 spheres. Note that the container is not 2D, because its width is 5d (where d is the diameter of the spheres). The simulation has been computed using the Chrono::Engine library for mechanical simulations, and it has been rendered with POV-ray.'
+      host: 'youtube'
+    - title: Real-time conveyor
+      url: 'WkgbBvGl5JU'
+      description: 'Test: real-time simulation of a conveyor belt. This is a screen recording of the interface of a small program based on the C++ Chrono::Engine physics library. The purpose is to test a new C++ class for simulating conveyor belts, that I recently implemented in Chrono::Engine. Debris is continuosly created by instancing rigid bodies with various shapes. The conveyor belt is invisible, only two fences are drawn. In this simple executable, the user can interact with two sliders in the graphical user interface in order to see the effect of belt speed and flow (particles/second).'
+      host: 'youtube'
+    - title: Hexapod robot
+      url: 'gcBbd7d1xLM'
+      description: 'Simulation of a robot with 6 legs, 12 motors, 37 parts. This is a benchmark for the simulation software Chrono::Engine. Rendering with Realsoft3D.'
+      host: 'youtube'
+    - title: Robot simulation
+      url: 'UdrVAobDYVE'
+      description: 'Real time inverse kinematics of an ABB IRB 7600 robot using the Chrono::Engine physics simulation library. The robot model is imported in Chrono::Engine using the `CASCADE unit`, that is a module of Chrono::Engine that leverages on the OpenCASCADE library for reading the STEP file format.'
+      host: 'youtube'
+    - title: Hopper and conveyor
+      url: 'LAy-Z48uH8E'
+      description: 'Simulation of a conveyor belt, using Chrono::Engine. Particles have various valuesof sliding and rolling friction. The Chrono::Engine SolidWorks Add-In tool has been used to export the model from SolidWorks, where the user added constraints and collision shapes; whereas the particles have been added later by using a Python script, in PyChrono::Engine.'
+      host: 'youtube'
+    - title: Robot 6-DOF
+      url: 'Sw_iu6gN108'
+      description: 'Simulation of two articulated robots, following straight trajectories in space.'
+      host: 'youtube'
+    - title: Shaker
+      url: 'Nlx3swqE3GA'
+      description: 'Simulation of a shaker, filled with 1000 spheres, which vibrates thank to an articulated mechanism. This is a part of a longer analysis which has been used to study a phenomenon called vibration-induced size-segregation.'
+      host: 'youtube'
+    - title: Reactor
+      url: 'ytVUk6BBv9U'
+      description: 'Simulation of the refueling process of a PBR reactor, using Chrono::Engine (test).  There are about 150,000 pebbles in the simulation, each with an average of 6 contacts, thus leading to the solution of variational inequalities with almost 4 millions of unknowns at each time step.'
+      host: 'youtube'
+    - title: Granit
+      url: 'jug894byu7Q'
+      description: 'Simulation of the GRANIT robot. This automated device has been studied with Chrono::Engine in order to optimize the dynamical performance, then it has been built (hardware design by A.Tasora / controller design by P.Righettini, 2005). Rendering in Realsoft3D, modeling in SolidEdge.'
+      host: 'youtube'

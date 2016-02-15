@@ -38,16 +38,16 @@ ChLinkDistance::~ChLinkDistance() {
 }
 
 int ChLinkDistance::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpos1,       ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
-    ChVector<> mpos2,       ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
-    bool auto_distance,     ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
-    double mdistance        ///< imposed distance (no need to define, if auto_distance=true.)
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+    bool pos_are_relative,                ///< true: following posit. are considered relative to bodies. false: pos.are absolute
+    ChVector<> mpos1,                     ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
+    ChVector<> mpos2,                     ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
+    bool auto_distance,                   ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
+    double mdistance                      ///< imposed distance (no need to define, if auto_distance=true.)
     ) {
-    this->Body1 = mbody1.get_ptr();
-    this->Body2 = mbody2.get_ptr();
+    this->Body1 = mbody1.get();
+    this->Body2 = mbody2.get();
     this->Cx.SetVariables(&this->Body1->Variables(), &this->Body2->Variables());
 
     if (pos_are_relative) {

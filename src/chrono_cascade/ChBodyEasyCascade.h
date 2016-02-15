@@ -91,7 +91,7 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
         this->SetFrame_COG_to_REF(frame_cog_to_ref);
 
         // Add a visualization asset if needed
-        ChSharedPtr<ChTriangleMeshShape> mtrimesh(new ChTriangleMeshShape);
+        auto mtrimesh = std::make_shared<ChTriangleMeshShape>();
         if (visual_asset) {
             ChCascadeMeshTools::fillTriangleMeshFromCascade(mtrimesh->GetMesh(), objshape);
             this->AddAsset(mtrimesh);

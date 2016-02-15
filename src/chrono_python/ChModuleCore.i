@@ -37,9 +37,8 @@
 // For optional downcasting of polimorphic objects:
 %include "chrono_downcast.i" 
 
-// The complete support of smart shared pointers
-%include "chrono_shared_ptr.i" 
-
+// For supporting shared pointers:
+%include <std_shared_ptr.i>
 
 
 
@@ -48,13 +47,17 @@
 %{
 #include <cstddef>
 #include <stddef.h>
+#include "core/ChApiCE.h"
 #include "physics/ChBody.h"
 
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
-
 %}
+
+
+// Undefine ChApi otherwise SWIG gives a syntax error
+#define ChApi 
 
 
 // Include other .i configuration files for SWIG. 
@@ -71,7 +74,107 @@ using namespace chrono::geometry;
 %pointer_class(float,float_ptr);
 
 
-// IMPORTANT!!!
+//
+// For each class, keep updated the  A, B, C sections: 
+// 
+
+
+//
+// A- ENABLE SHARED POINTERS
+//
+// Note that this must be done for almost all objects (not only those that are
+// handled by shered pointers in C++, but all their chidren and parent classes. It
+// is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
+// tree must be promoted to %shared_ptr too).
+
+%shared_ptr(chrono::ChFrame<double>)
+%shared_ptr(chrono::ChFrameMoving<double>)
+
+%shared_ptr(chrono::ChAsset)
+%shared_ptr(chrono::ChVisualization)
+%shared_ptr(chrono::ChColor)
+%shared_ptr(chrono::ChColorAsset)
+%shared_ptr(chrono::ChAssetLevel)
+%shared_ptr(chrono::ChObjShapeFile)
+%shared_ptr(chrono::ChBoxShape) 
+%shared_ptr(chrono::ChSphereShape)
+%shared_ptr(chrono::ChCylinderShape)
+%shared_ptr(chrono::ChTexture)
+%shared_ptr(chrono::ChCamera) 
+
+%shared_ptr(chrono::ChObj)
+%shared_ptr(chrono::ChPhysicsItem)
+%shared_ptr(chrono::ChMaterialSurface)
+%shared_ptr(chrono::ChMaterialSurfaceBase)
+%shared_ptr(chrono::ChBodyFrame)
+%shared_ptr(chrono::ChMarker)
+%shared_ptr(chrono::ChForce)
+%shared_ptr(chrono::ChBody)
+%shared_ptr(chrono::ChBodyAuxRef)
+%shared_ptr(chrono::ChConveyor)
+//%shared_ptr(chrono::ChIndexedParticles)
+//%shared_ptr(chrono::ChParticlesClones)
+%shared_ptr(chrono::ChAssembly)
+%shared_ptr(chrono::ChSystem)
+%shared_ptr(chrono::ChContactContainerBase)
+%shared_ptr(chrono::ChProximityContainerBase)
+
+%shared_ptr(chrono::ChLinkBase)
+%shared_ptr(chrono::ChLink)
+%shared_ptr(chrono::ChLinkMarkers)
+%shared_ptr(chrono::ChLinkMasked)
+%shared_ptr(chrono::ChLinkLimit)
+%shared_ptr(chrono::ChLinkLock)
+%shared_ptr(chrono::ChLinkLockRevolute)
+%shared_ptr(chrono::ChLinkLockLock)
+%shared_ptr(chrono::ChLinkLockSpherical)
+%shared_ptr(chrono::ChLinkLockCylindrical)
+%shared_ptr(chrono::ChLinkLockPrismatic)
+%shared_ptr(chrono::ChLinkLockPointPlane)
+%shared_ptr(chrono::ChLinkLockPointLine)
+%shared_ptr(chrono::ChLinkLockPlanePlane)
+%shared_ptr(chrono::ChLinkLockOldham)
+%shared_ptr(chrono::ChLinkLockFree)
+%shared_ptr(chrono::ChLinkLockAlign)
+%shared_ptr(chrono::ChLinkLockParallel)
+%shared_ptr(chrono::ChLinkLockPerpend)
+%shared_ptr(chrono::ChLinkLockRevolutePrismatic)
+%shared_ptr(chrono::ChLinkDistance)
+%shared_ptr(chrono::ChLinkEngine)
+%shared_ptr(chrono::ChLinkGear)
+%shared_ptr(chrono::ChLinkLinActuator)
+%shared_ptr(chrono::ChLinkMate)
+%shared_ptr(chrono::ChLinkMateGeneric)
+%shared_ptr(chrono::ChLinkMatePlane)
+%shared_ptr(chrono::ChLinkMateCoaxial)
+%shared_ptr(chrono::ChLinkMateSpherical)
+%shared_ptr(chrono::ChLinkMateXdistance)
+%shared_ptr(chrono::ChLinkMateParallel)
+%shared_ptr(chrono::ChLinkMateOrthogonal)
+%shared_ptr(chrono::ChLinkPulley)
+%shared_ptr(chrono::ChLinkRevolute)
+%shared_ptr(chrono::ChLinkRevoluteSpherical)
+%shared_ptr(chrono::ChLinkScrew)
+%shared_ptr(chrono::ChLinkSpring)
+%shared_ptr(chrono::ChLinkUniversal)
+/*
+%shared_ptr(chrono::ChShaft)
+%shared_ptr(chrono::ChShaftsBody)
+%shared_ptr(chrono::ChShaftsClutch
+%shared_ptr(chrono::ChShaftsCouple)
+%shared_ptr(chrono::ChShaftsGear)
+%shared_ptr(chrono::ChShaftsMotor)
+%shared_ptr(chrono::ChShaftsPlanetary)
+%shared_ptr(chrono::ChShaftsThermalEngine)
+%shared_ptr(chrono::ChShaftsTorqueBase)
+%shared_ptr(chrono::ChShaftsTorsionSpring)
+*/
+
+
+//
+// B- INCLUDE HEADERS
+//
+//
 // 1) 
 //    When including with %include all the .i files, make sure that 
 // the .i of a derived class is included AFTER the .i of
@@ -82,15 +185,14 @@ using namespace chrono::geometry;
 //    Then, this said, if one member function in Foo_B.i returns
 // an object of Foo_A.i (or uses it as a parameter) and yet you must %include
 // A before B, ex.because of rule 1), a 'forward reference' to A must be done in
-// B by using the %import keyword that tells Swig that somewhere there's
-// a type B. Otherwise a name mangling is built anyway, but the runtime is not ok.
-// Update: seems that instead than using %import, it is enough to write 
+// B by. Seems that it is enough to write 
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
 %include "ChException.i"
 %include "ChHashFunction.i"
+%include "ChArchive.i"
 %include "ChVector.i" 
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
@@ -104,10 +206,10 @@ using namespace chrono::geometry;
 %include "ChLog.i"
 %include "ChMathematics.i"
 %include "ChMatrix.i"
+%include "ChVectorDynamic.i"
 %include "ChTimer.i"
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
-%include "ChShared.i"
 
 // motion_functions/   classes
 %include "ChFunction_Base.i"
@@ -119,16 +221,17 @@ using namespace chrono::geometry;
 
 // assets
 %include "ChAsset.i"
-%include "ChColor.i"
 %include "ChVisualization.i"
+%include "ChColor.i"
 %include "ChColorAsset.i"
+%include "ChAssetLevel.i"
 %include "ChObjShapeFile.i"
 %include "ChBoxShape.i"
 %include "ChSphereShape.i"
 %include "ChCylinderShape.i"
 %include "ChTexture.i"
 %include "ChCamera.i"
-%include "ChAssetLevel.i"
+
   // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
 %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
 
@@ -144,8 +247,9 @@ using namespace chrono::geometry;
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "ChConveyor.i"
-%include "ChIndexedParticles.i"
-%include "ChParticlesClones.i"
+//%include "ChIndexedParticles.i"
+//%include "ChParticlesClones.i"
+%include "ChAssembly.i"
 %include "ChSystem.i"
 %include "ChContactContainerBase.i"
 %include "ChProximityContainerBase.i"
@@ -167,6 +271,7 @@ using namespace chrono::geometry;
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
 %include "ChLinkUniversal.i"
+
 /*
 %include "ChShaft.i"
 %include "ChShaftsCouple.i"
@@ -180,7 +285,7 @@ using namespace chrono::geometry;
 */
 
 // collision/   classes
-
+/*
 %include "ChCollisionInfo.i"
 
 
@@ -188,94 +293,7 @@ using namespace chrono::geometry;
 
 
 //
-// UPCASTING OF SHARED POINTERS           (custom inheritance)
-//
-// Note: SWIG takes care automatically of how to cast from  
-// FooDerived* to FooBase* given its swig_cast_info inner structures,
-// but this casting does not happen for ChSharedPtr<FooDerived> to
-// ChSharedPtr<FooBase> because shared ptrs are different classes (not inherited
-// one from the other, just templated versions of a ChSharedPtr<> ).
-// A workaround for this problem is using the (undocumented)
-// function %types. (More details in chrono_shared_ptr.i)
-// NOTE that for some strange reason, for some classes it is not enough
-// to link it with the parent, but the macro must be called
-// also for other upper ancestors, see the example of ChBody (maybe
-// because it is in a multiple inheritance class tree?) If this is
-// not done, the pointer conversion will slice vtables and fail.
-
-%DefChSharedPtrCast(chrono::ChBody, chrono::ChBodyFrame)
-%DefChSharedPtrCast(chrono::ChBody, chrono::ChPhysicsItem)
-
-%DefChSharedPtrCast(chrono::ChConveyor, chrono::ChBody)
-%DefChSharedPtrCast(chrono::ChConveyor, chrono::ChBodyFrame)
-
-%DefChSharedPtrCast(chrono::ChBodyAuxRef, chrono::ChBody)
-%DefChSharedPtrCast(chrono::ChBodyAuxRef, chrono::ChBodyFrame)
-
-%DefChSharedPtrCast(chrono::ChIndexedParticles, chrono::ChPhysicsItem)
-%DefChSharedPtrCast(chrono::ChParticlesClones, chrono::ChIndexedParticles)
-%DefChSharedPtrCast(chrono::ChVisualization, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChSphereShape, chrono::ChVisualization)
-%DefChSharedPtrCast(chrono::ChSphereShape, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChCylinderShape, chrono::ChVisualization)
-%DefChSharedPtrCast(chrono::ChCylinderShape, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChBoxShape, chrono::ChVisualization)
-%DefChSharedPtrCast(chrono::ChBoxShape, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChVisualization)
-%DefChSharedPtrCast(chrono::ChObjShapeFile, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChTexture, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChCamera, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChAssetLevel, chrono::ChAsset)
-%DefChSharedPtrCast(chrono::ChLinkBase, chrono::ChPhysicsItem)
-%DefChSharedPtrCast(chrono::ChLink, chrono::ChLinkBase)
-%DefChSharedPtrCast(chrono::ChLinkMarkers, chrono::ChLink)
-%DefChSharedPtrCast(chrono::ChLinkMasked, chrono::ChLinkMarkers)
-%DefChSharedPtrCast(chrono::ChLinkLock, chrono::ChLinkMasked)
-%DefChSharedPtrCast(chrono::ChLinkLockLock, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockRevolute, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockSpherical, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockCylindrical, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockPrismatic, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockPointPlane, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockPointLine, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockOldham, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockFree, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockAlign, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockParallel, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkLockPerpend, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkEngine, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkMate, chrono::ChLink)
-%DefChSharedPtrCast(chrono::ChLinkMateGeneric, chrono::ChLinkMate)
-%DefChSharedPtrCast(chrono::ChLinkMatePlane, chrono::ChLinkMateGeneric)
-%DefChSharedPtrCast(chrono::ChLinkMateCoaxial, chrono::ChLinkMateGeneric)
-%DefChSharedPtrCast(chrono::ChLinkMateSpherical, chrono::ChLinkMateGeneric)
-%DefChSharedPtrCast(chrono::ChLinkMateXdistance, chrono::ChLinkMateGeneric)
-%DefChSharedPtrCast(chrono::ChLinkMateParallel, chrono::ChLinkMateGeneric)
-%DefChSharedPtrCast(chrono::ChLinkMateOrthogonal, chrono::ChLinkMateGeneric)
-%DefChSharedPtrCast(chrono::ChLinkGear, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkDistance, chrono::ChLink)
-%DefChSharedPtrCast(chrono::ChLinkLinActuator, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkPulley, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkScrew, chrono::ChLinkLock)
-%DefChSharedPtrCast(chrono::ChLinkSpring, chrono::ChLinkMarkers)
-%DefChSharedPtrCast(chrono::ChLinkRevolute, chrono::ChLink)
-%DefChSharedPtrCast(chrono::ChLinkRevoluteSpherical, chrono::ChLink)
-%DefChSharedPtrCast(chrono::ChLinkUniversal, chrono::ChLink)
-/*
-%DefChSharedPtrCast(chrono::ChShaft, chrono::ChPhysicsItem)
-%DefChSharedPtrCast(chrono::ChShaftsBody, chrono::ChPhysicsItem)
-%DefChSharedPtrCast(chrono::ChShaftsCouple, chrono::ChPhysicsItem)
-%DefChSharedPtrCast(chrono::ChShaftsClutch, chrono::ChShaftsCouple)
-%DefChSharedPtrCast(chrono::ChShaftsMotor, chrono::ChShaftsCouple)
-%DefChSharedPtrCast(chrono::ChShaftsTorsionSpring, chrono::ChShaftsCouple)
-%DefChSharedPtrCast(chrono::ChShaftsPlanetary, chrono::ChPhysicsItem)
-%DefChSharedPtrCast(chrono::ChShaftsTorqueBase, chrono::ChShaftsCouple)
-%DefChSharedPtrCast(chrono::ChShaftsThermalEngine, chrono::ChShaftsTorqueBase)
-*/
-
-
-//
-// DOWNCASTING OF SHARED POINTERS
+// C- DOWNCASTING OF SHARED POINTERS
 // 
 // This is not automatic in Python + SWIG, except if one uses the 
 // %downcast_output_sharedptr(...) macro, as above, but this causes
@@ -286,7 +304,7 @@ using namespace chrono::geometry;
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
-
+/*
 %DefChSharedPtrDynamicDowncast(ChAsset,ChVisualization)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChObjShapeFile)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChBoxShape)
@@ -335,6 +353,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+*/
 /*
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaft)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsBody)
@@ -426,4 +445,5 @@ def ImportSolidWorksSystem(mpath):
 %}
 
 
-
+//  
+//%shared_ptr(chrono::ChSystem)

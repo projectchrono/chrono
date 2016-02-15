@@ -38,7 +38,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 # share the same mass and collision shape, so they are memory efficient
 # in case you want to simulate granular material)
 
-body_particles = chrono.ChParticlesClonesShared()
+body_particles = chrono.ChParticlesClones()
 body_particles.SetMass(0.01);
 inertia = 2/5*(pow(0.005,2))*0.01;
 body_particles.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
@@ -56,7 +56,7 @@ for ix in range(0,5):
             body_particles.AddParticle(chrono.ChCoordsysD(chrono.ChVectorD(ix/100,0.1+iy/100, iz/100)))
 
 # Visualization shape (shared by all particle clones)
-body_particles_shape = chrono.ChSphereShapeShared()
+body_particles_shape = chrono.ChSphereShape()
 body_particles_shape.GetSphereGeometry().rad = 0.005
 body_particles.GetAssets().push_back(body_particles_shape)
 
@@ -68,8 +68,8 @@ my_system.Add(body_particles)
 # Create the floor: a simple fixed rigid body with a collision shape
 # and a visualization shape
 
-body_floor = chrono.ChBodyShared()
-body_floor.SetBodyFixed(1)
+body_floor = chrono.ChBody()
+body_floor.SetBodyFixed(True)
 
 # Collision shape
 body_floor.GetCollisionModel().ClearModel()
@@ -78,7 +78,7 @@ body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
 # Visualization shape
-body_floor_shape = chrono.ChBoxShapeShared()
+body_floor_shape = chrono.ChBoxShape()
 body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.1, 0.02, 0.1)
 body_floor_shape.SetColor(chrono.ChColor(0.5,0.5,0.5))
 body_floor.GetAssets().push_back(body_floor_shape)
@@ -92,7 +92,7 @@ my_system.Add(body_floor)
 
 for ix in range(0,2):
     for iz in range(0,4):
-        body_brick = chrono.ChBodyShared()
+        body_brick = chrono.ChBody()
         body_brick.SetPos(chrono.ChVectorD(0.05+ix*0.021,0.04,0+iz*0.021))
         body_brick.SetMass(0.02);
         inertia = 2/5*(pow(0.01,2))*0.02;
@@ -105,7 +105,7 @@ for ix in range(0,2):
         body_brick.SetCollide(True)
 
         # Visualization shape
-        body_brick_shape = chrono.ChBoxShapeShared()
+        body_brick_shape = chrono.ChBoxShape()
         body_brick_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.01, 0.01, 0.01)
         body_brick.GetAssets().push_back(body_brick_shape)
 
@@ -122,7 +122,7 @@ for ix in range(0,2):
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../data/_template_POV.pov")
+pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
 pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
 if not os.path.exists("output"):
     os.mkdir("output")

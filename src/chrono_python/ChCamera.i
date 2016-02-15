@@ -6,11 +6,9 @@
 using namespace chrono;
 
 %}
- 
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/assets/ChCamera.h"    
 
-// Define also the shared pointer 
 
-%DefChSharedPtr(chrono::,ChCamera)
 

@@ -29,8 +29,8 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter() {
     this->shaft_stator = 0;
     this->torque_in = 0;
     this->torque_out = 0;
-    this->K = ChSharedPtr<ChFunction>(new ChFunction_Const(0.9));
-    this->T = ChSharedPtr<ChFunction>(new ChFunction_Const(0.9));
+    this->K = std::make_shared<ChFunction_Const>(0.9);
+    this->T = std::make_shared<ChFunction_Const>(0.9);
     this->state_warning_reverseflow = false;
     this->state_warning_wrongimpellerdirection = false;
 
@@ -55,16 +55,16 @@ void ChShaftsTorqueConverter::Copy(ChShaftsTorqueConverter* source) {
     state_warning_reverseflow = source->state_warning_reverseflow;
     state_warning_wrongimpellerdirection = source->state_warning_wrongimpellerdirection;
 
-    this->K = ChSharedPtr<ChFunction>(source->K->new_Duplicate());  // deep copy
-    this->T = ChSharedPtr<ChFunction>(source->T->new_Duplicate());  // deep copy
+    this->K = std::shared_ptr<ChFunction>(source->K->new_Duplicate());  // deep copy
+    this->T = std::shared_ptr<ChFunction>(source->T->new_Duplicate());  // deep copy
 }
 
-int ChShaftsTorqueConverter::Initialize(ChSharedPtr<ChShaft> mshaft1,
-                                        ChSharedPtr<ChShaft> mshaft2,
-                                        ChSharedPtr<ChShaft> mshaft_stator) {
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
-    ChShaft* mm_stator = mshaft_stator.get_ptr();
+int ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,
+                                        std::shared_ptr<ChShaft> mshaft2,
+                                        std::shared_ptr<ChShaft> mshaft_stator) {
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
+    ChShaft* mm_stator = mshaft_stator.get();
     assert(mm1 && mm2 && mm_stator);
     assert((mm1 != mm2) && (mm1 != mm_stator));
     assert((mm1->GetSystem() == mm2->GetSystem()) && (mm1->GetSystem() == mm_stator->GetSystem()));

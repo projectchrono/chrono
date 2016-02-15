@@ -75,7 +75,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual bool IsContactActive() { return true; }
 
      /// Return the pointer to the contact surface material. 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
 
         /// Get the absolute speed of point abs_point if attached to the 
         /// surface. Easy in this case because there are no roations..
@@ -166,7 +166,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     collision::ChCollisionModel* particle_collision_model;
 
     // data for surface contact and impact (can be shared):
-    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+    std::shared_ptr<ChMaterialSurfaceBase> matsurface;
 
     bool do_collide;
     bool do_limit_speed;
@@ -240,10 +240,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
 
 
     /// Set the material surface for contacts
-    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for contacts 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
 
 
 
@@ -384,8 +384,6 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual void ArchiveOUT(ChArchiveOut& marchive);
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChParticlesClones> ChSharedParticlesClonesPtr;
 
 }  // END_OF_NAMESPACE____
 

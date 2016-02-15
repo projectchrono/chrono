@@ -63,13 +63,12 @@ class ChApiIrr ChIrrAssetConverter {
     ~ChIrrAssetConverter();
 
     /// Returns the proxy to the ChIrrNode, by scanning all assets.
-    /// Note, check for the returned pointer, using mnode.IsNull(), just in case a
-    /// proxy has not been added.
-    ChSharedPtr<ChIrrNodeAsset> GetIrrNodeAsset(ChSharedPtr<ChPhysicsItem> mitem);
+    /// Note, check for the returned pointer, just in case a proxy has not been added.
+    std::shared_ptr<ChIrrNodeAsset> GetIrrNodeAsset(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Shortcut to add and bind a ChIrrNodeAsset to an item, if it has not been
     /// added previously.
-    void Bind(ChSharedPtr<ChPhysicsItem> mitem);
+    void Bind(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Shortcut to add and bind a ChIrrNodeAsset to all items in a ChSystem.
     /// If it has been already added, the existing ChIrrNodeAsset is used.
@@ -90,7 +89,7 @@ class ChApiIrr ChIrrAssetConverter {
     /// NOTE. This conversion should be done only if needed (e.g. at the beginning
     /// of an animation or when a shape changes), i.e. not too often, for
     /// performance reasons.
-    void Update(ChSharedPtr<ChPhysicsItem> mitem);
+    void Update(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// For all items in a ChSystem, this function sets up the Irrlicht nodes
     /// corresponding to the geometric assets that have been added to the items.
@@ -102,14 +101,14 @@ class ChApiIrr ChIrrAssetConverter {
 
     /// Clean all Irrlicht stuff that has been put in the ChIrrNode in a previous
     /// Update or PopulateIrrlicht operation.
-    void CleanIrrlicht(ChSharedPtr<ChPhysicsItem> mitem);
+    void CleanIrrlicht(std::shared_ptr<ChPhysicsItem> mitem);
 
   private:
-    void PopulateIrrlicht(ChSharedPtr<ChPhysicsItem> mitem);
+      void PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem);
 
     void mflipSurfacesOnX(irr::scene::IMesh* mesh) const;
 
-    void _recursePopulateIrrlicht(std::vector<ChSharedPtr<ChAsset> >& assetlist,
+    void _recursePopulateIrrlicht(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                   ChFrame<> parentframe,
                                   irr::scene::ISceneNode* mnode);
 };

@@ -45,7 +45,7 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
 
     irr::scene::ISceneNode* GetIrrlichtNode() { return mnode; }
 
-    void Bind(ChSharedPtr<ChPhysicsItem> aitem, ChIrrAppInterface& aapp) {
+    void Bind(std::shared_ptr<ChPhysicsItem> aitem, ChIrrAppInterface& aapp) {
         UnBind();
 
         mnode = new ChIrrNode(aitem, aapp.GetContainer(), aapp.GetSceneManager(), 0);

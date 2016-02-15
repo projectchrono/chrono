@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the axles of the
     /// specified suspension subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,          ///< handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
                             const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
@@ -75,10 +75,10 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
     virtual double GetRearDifferentialMaxBias() const = 0;
 
   private:
-    ChSharedPtr<ChShaft> m_front_left;
-    ChSharedPtr<ChShaft> m_front_right;
-    ChSharedPtr<ChShaft> m_rear_left;
-    ChSharedPtr<ChShaft> m_rear_right;
+    std::shared_ptr<ChShaft> m_front_left;
+    std::shared_ptr<ChShaft> m_front_right;
+    std::shared_ptr<ChShaft> m_rear_left;
+    std::shared_ptr<ChShaft> m_rear_right;
 };
 
 /// @} vehicle_wheeled_driveline

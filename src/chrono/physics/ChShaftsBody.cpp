@@ -60,9 +60,11 @@ void ChShaftsBody::Copy(ChShaftsBody* source) {
     this->body = 0;
 }
 
-bool ChShaftsBody::Initialize(ChSharedPtr<ChShaft> mshaft, ChSharedPtr<ChBodyFrame> mbody, const ChVector<>& mdir) {
-    ChShaft* mm1 = mshaft.get_ptr();
-    ChBodyFrame* mm2 = mbody.get_ptr();
+bool ChShaftsBody::Initialize(std::shared_ptr<ChShaft> mshaft,
+                              std::shared_ptr<ChBodyFrame> mbody,
+                              const ChVector<>& mdir) {
+    ChShaft* mm1 = mshaft.get();
+    ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
 
     this->shaft = mm1;

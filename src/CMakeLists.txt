@@ -175,6 +175,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG
 # For Bullet to use 32 bit math
 add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
 
+#OPTION(USE_BULLET_DOUBLE "Compile Bullet in double precision" ON)
+#if (USE_BULLET_DOUBLE)
+#   add_definitions("-DBT_USE_DOUBLE_PRECISION")
+#endif()
+
+
 #-----------------------------------------------------------------------------
 # Set the base include directories
 #-----------------------------------------------------------------------------
@@ -204,7 +210,7 @@ add_subdirectory(chrono_fea)
 add_subdirectory(chrono_python)
 add_subdirectory(chrono_parallel)
 add_subdirectory(chrono_opengl)
-add_subdirectory(chrono_ogre)
+#add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 
 # Add directories for demo programs, unit test programs, and additional test programs.

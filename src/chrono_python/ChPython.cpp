@@ -282,7 +282,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
 				if (mswigobj) 
 				{
 					void* objptr = mswigobj->ptr;
-					ChSharedPtr<ChPhysicsItem>* pt_to_shp = (ChSharedPtr<ChPhysicsItem>*)objptr;	
+					std::shared_ptr<ChPhysicsItem>* pt_to_shp = (std::shared_ptr<ChPhysicsItem>*)objptr;	
 				
 						/// Add the ChPhysicsItem to the ChSystem
 					msystem.Add( (*pt_to_shp) );

@@ -30,7 +30,7 @@ void ChFunction_Repeat::Copy(ChFunction_Repeat* source) {
     window_start = source->window_start;
     window_length = source->window_length;
     // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+    fa = std::shared_ptr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Repeat::new_Duplicate() {

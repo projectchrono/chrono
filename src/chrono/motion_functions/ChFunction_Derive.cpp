@@ -29,7 +29,7 @@ ChClassRegister<ChFunction_Derive> a_registration_derive;
 void ChFunction_Derive::Copy(ChFunction_Derive* source) {
     order = source->order;
     // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = ChSharedPtr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+    fa = std::shared_ptr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
 }
 
 ChFunction* ChFunction_Derive::new_Duplicate() {

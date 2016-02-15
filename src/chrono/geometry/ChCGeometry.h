@@ -25,8 +25,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
+#include <memory>
+
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "core/ChApiCE.h"
 
 namespace chrono {
@@ -41,9 +42,9 @@ namespace geometry {
 
 /// Base class for geometric objects.
 /// Geometric object are used for collisions and such.
-class ChApi ChGeometry : public ChShared {
+class ChApi ChGeometry {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChGeometry, ChShared);
+    CH_RTTI_ROOT(ChGeometry);
 
   public:
     //
@@ -163,9 +164,6 @@ class ChApi ChGeometry : public ChShared {
     {
         // version number
         marchive.VersionWrite(1);
-        // serialize parent class
-        //ChShared::ArchiveOUT(marchive);
-        // serialize all member data:
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -173,9 +171,6 @@ class ChApi ChGeometry : public ChShared {
     {
         // version number
         int version = marchive.VersionRead();
-        // deserialize parent class
-        //ChShared::ArchiveIN(marchive);
-        // stream in all member data:
     }
 
 };

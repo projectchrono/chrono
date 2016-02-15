@@ -82,14 +82,13 @@ class ChApi ChLinkDistance : public ChLink {
     /// positions of the two anchor endpoints of the distance (each expressed
     /// in body or abs. coordinates) and the imposed distance.
     virtual int Initialize(
-        ChSharedPtr<ChBodyFrame> mbody1,  ///< first frame to link
-        ChSharedPtr<ChBodyFrame> mbody2,  ///< second frame to link
-        bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-        ChVector<> mpos1,       ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
-        ChVector<> mpos2,       ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
-        bool auto_distance = true,  ///< if true, initializes the imposed distance as the distance between mpos1 and
-        /// mpos2
-        double mdistance = 0  ///< imposed distance (no need to define, if auto_distance=true.)
+        std::shared_ptr<ChBodyFrame> mbody1,  ///< first frame to link
+        std::shared_ptr<ChBodyFrame> mbody2,  ///< second frame to link
+        bool pos_are_relative,                ///< true: following posit. are considered relative to bodies. false: pos.are absolute
+        ChVector<> mpos1,                     ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
+        ChVector<> mpos2,                     ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
+        bool auto_distance = true,            ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
+        double mdistance = 0                  ///< imposed distance (no need to define, if auto_distance=true.)
         );
 
     /// Get the number of (bilateral) constraints introduced by this link.

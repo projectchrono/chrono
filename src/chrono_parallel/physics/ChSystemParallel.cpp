@@ -16,12 +16,11 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager = new ChParallelDataManager();
 
   LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
-  contact_container = ChSharedPtr<ChContactContainerParallel>(new ChContactContainerParallel(data_manager));
+  contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
   collision_system = new ChCollisionSystemParallel(data_manager);
 
   collision_system_type = COLLSYS_PARALLEL;
 
-  fluid_container.SetNull();
   counter = 0;
   timer_accumulator.resize(10, 0);
   cd_accumulator.resize(10, 0);
@@ -73,7 +72,7 @@ int ChSystemParallel::Integrate_Y() {
 
   data_manager->system_timer.start("collision");
   collision_system->Run();
-  collision_system->ReportContacts(this->contact_container.get_ptr());
+  collision_system->ReportContacts(this->contact_container.get());
   data_manager->system_timer.stop("collision");
 
   data_manager->system_timer.start("lcp");
@@ -154,7 +153,7 @@ int ChSystemParallel::Integrate_Y() {
 // Space is allocated in system-wide vectors for data corresponding to the
 // body.
 //
-void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
+void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
   // This is only need because bilaterals need to know what bodies to
   // refer to. Not used by contacts
   newbody->SetId(data_manager->num_rigid_bodies);
@@ -189,17 +188,17 @@ void ChSystemParallel::AddBody(ChSharedPtr<ChBody> newbody) {
 // class ChSystem.  For now, users must use AddOtherPhysicsItem in order to
 // properly account for the variables of a shaft elelement in ChSystem::Setup().
 //
-void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
-  if (ChSharedPtr<ChShaft> shaft = newitem.DynamicCastTo<ChShaft>()) {
-    AddShaft(shaft);
-  } else {
-    newitem->SetSystem(this);
-    otherphysicslist.push_back(newitem);
+void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(newitem)) {
+        AddShaft(shaft);
+    } else {
+        newitem->SetSystem(this);
+        otherphysicslist.push_back(newitem);
 
-    if (newitem->GetCollide()) {
-      newitem->AddCollisionModelsToSystem();
+        if (newitem->GetCollide()) {
+            newitem->AddCollisionModelsToSystem();
+        }
     }
-  }
 }
 
 //
@@ -212,12 +211,11 @@ void ChSystemParallel::AddOtherPhysicsItem(ChSharedPtr<ChPhysicsItem> newitem) {
 // it and instead force them to use AddOtherPhysicsItem().  See comment above.
 // Eventually, this should be an override of a virtual function declared by ChSystem.
 //
-void ChSystemParallel::AddShaft(ChSharedPtr<ChShaft> shaft) {
-  shaft->AddRef();
+void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
   shaft->SetId(data_manager->num_shafts);
   shaft->SetSystem(this);
 
-  shaftlist.push_back(shaft.get_ptr());
+  shaftlist.push_back(shaft.get());
   data_manager->num_shafts++;
 
   // Reserve space for this shaft in the system-wide vectors. Not that the
@@ -317,7 +315,7 @@ void ChSystemParallel::UpdateRigidBodies() {
     collide[i] = bodylist[i]->GetCollide();
 
     // Let derived classes set the specific material surface data.
-    UpdateMaterialSurfaceData(i, bodylist[i].get_ptr());
+    UpdateMaterialSurfaceData(i, bodylist[i].get());
 
     bodylist[i]->GetCollisionModel()->SyncPosition();
   }
@@ -431,7 +429,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
     otherphysicslist[i]->VariablesFbLoadForces(GetStep());
     otherphysicslist[i]->VariablesQbLoadSpeed();
 
-    BILATERALTYPE type = GetBilateralType(otherphysicslist[i].get_ptr());
+    BILATERALTYPE type = GetBilateralType(otherphysicslist[i].get());
 
     if (type == UNKNOWN)
       continue;

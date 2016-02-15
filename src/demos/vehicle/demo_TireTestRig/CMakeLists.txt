@@ -4,7 +4,6 @@
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
-	MESSAGE(STATUS "---demo_TireTestRig requires Irrlicht support")
 	RETURN()
 ENDIF()
 

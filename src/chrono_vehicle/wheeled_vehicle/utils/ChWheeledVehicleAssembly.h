@@ -66,9 +66,9 @@ class CH_VEHICLE_API ChTireContactCallback {
     /// append the contact shape(s) to the specified wheel body. Optionally,
     /// this function can first change the collision model type for the
     /// provided wheel body (consistent with the system type).
-    virtual void onCallback(ChSharedPtr<ChBody> wheelBody,  ///< Pointer to the wheel body
-                            double radius,                  ///< wheel radius
-                            double width                    ///< wheel width
+    virtual void onCallback(std::shared_ptr<ChBody> wheelBody,  ///< Pointer to the wheel body
+                            double radius,                      ///< wheel radius
+                            double width                        ///< wheel width
                             ) = 0;
 };
 
@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChChassisContactCallback {
     /// append the contact shape(s) to the provided chassis body. Optionally,
     /// this function can first change the collision model type for the
     /// provided chassis body (consistent with the system type).
-    virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody  ///< Pointer to the chassis body
+    virtual void onCallback(std::shared_ptr<ChBodyAuxRef> chassisBody  ///< Pointer to the chassis body
                             ) = 0;
 };
 
@@ -127,14 +127,14 @@ class CH_VEHICLE_API ChWheeledVehicleAssembly {
     void Update(double time);
 
     /// Get handle to the underlying vehicle subsystem.
-    ChSharedPtr<WheeledVehicle> GetVehicle() const { return m_vehicle; }
+    std::shared_ptr<WheeledVehicle> GetVehicle() const { return m_vehicle; }
 
     /// Get handle to the underlying powertrain subsystem.
-    ChSharedPtr<SimplePowertrain> GetPowertrain() const { return m_powertrain; }
+    std::shared_ptr<SimplePowertrain> GetPowertrain() const { return m_powertrain; }
 
   private:
-    ChSharedPtr<WheeledVehicle> m_vehicle;
-    ChSharedPtr<SimplePowertrain> m_powertrain;
+    std::shared_ptr<WheeledVehicle> m_vehicle;
+    std::shared_ptr<SimplePowertrain> m_powertrain;
     TireForces m_tire_forces;
     ChDriverInputsCallback* m_driver_cb;
     ChTireContactCallback* m_tire_cb;

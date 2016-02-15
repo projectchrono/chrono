@@ -27,7 +27,6 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChShared.h"
 #include "core/ChCoordsys.h"
 #include "serialization/ChArchive.h"
 
@@ -43,10 +42,10 @@ class ChPhysicsItem;
 /// Classes for adding user data (such as rendering
 /// shapes, reference to files) to ChPhysicsItem objects.
 /// User can inherit his classes for custom assets from
-/// this class. A single asset might be shared.
-class ChApi ChAsset : public ChShared {
+/// this class.
+class ChApi ChAsset {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChAsset, ChShared);
+    CH_RTTI_ROOT(ChAsset);
 
   protected:
     //
@@ -79,9 +78,6 @@ class ChApi ChAsset : public ChShared {
     {
         // version number
         marchive.VersionWrite(1);
-        // serialize parent class
-        //ChShared::ArchiveOUT(marchive);
-        // serialize all member data:
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -89,13 +85,8 @@ class ChApi ChAsset : public ChShared {
     {
         // version number
         int version = marchive.VersionRead();
-        // deserialize parent class
-        //ChShared::ArchiveIN(marchive);
-        // stream in all member data:
     }
 };
-
-typedef ChSharedPtr<ChAsset> ChSharedAssetPtr;
 
 /// @} chrono_assets
 

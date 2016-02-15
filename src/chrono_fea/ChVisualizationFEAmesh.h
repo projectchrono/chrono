@@ -13,9 +13,9 @@
 #ifndef CHVISUALIZATIONFEAMESH_H
 #define CHVISUALIZATIONFEAMESH_H
 
-#include "assets/ChAssetLevel.h"
-#include "assets/ChColor.h"
-#include "geometry/ChCTriangleMeshConnected.h"
+#include "chrono/assets/ChAssetLevel.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/geometry/ChCTriangleMeshConnected.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChNodeFEAxyzP.h"
@@ -197,8 +197,8 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
 
   private:
-    double ComputeScalarOutput(ChSharedPtr<ChNodeFEAxyz> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
-    double ComputeScalarOutput(ChSharedPtr<ChNodeFEAxyzP> mnode, int nodeID, ChSharedPtr<ChElementBase> melement);
+    double ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
+    double ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
     ChVector<float> ComputeFalseColor(double in);
     ChColor ComputeFalseColor2(double in);
 };

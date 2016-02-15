@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     void Initialize();
 
     /// Initialize this tire system and enable visualization of the discs.
-    void Initialize(ChSharedPtr<ChBody> wheel  ///< handle to the associated wheel body
+    void Initialize(std::shared_ptr<ChBody> wheel  ///< handle to the associated wheel body
                     );
 
     /// Get the tire force and moment.

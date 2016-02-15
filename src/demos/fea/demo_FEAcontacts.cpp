@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     // It is a DEM-p (penalty) material that we will assign to 
     // all surfaces that might generate contacts.
 
-    ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
     mysurfmaterial->SetYoungModulus(6e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     if(do_mesh_collision_floor) {
 
         // floor as a triangle mesh surface:
-        ChSharedPtr<ChBody> mfloor(new ChBody);
+        auto mfloor = std::make_shared<ChBody>();
         mfloor->SetPos(ChVector<>(0, -1, 0));
         mfloor->SetBodyFixed(true);
         mfloor->SetMaterialSurface(mysurfmaterial);
@@ -105,11 +105,11 @@ int main(int argc, char* argv[]) {
         mfloor->GetCollisionModel()->BuildModel();
         mfloor->SetCollide(true);
 
-        ChSharedPtr<ChTriangleMeshShape> masset_meshbox(new ChTriangleMeshShape());
+        auto masset_meshbox = std::make_shared<ChTriangleMeshShape>();
         masset_meshbox->SetMesh(mmeshbox);
         mfloor->AddAsset(masset_meshbox);
 
-        ChSharedPtr<ChTexture> masset_texture(new ChTexture());
+        auto masset_texture = std::make_shared<ChTexture>();
         masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
         mfloor->AddAsset(masset_texture);
         
@@ -117,12 +117,12 @@ int main(int argc, char* argv[]) {
     else {
         // floor as a simple collision primitive:
 
-        ChSharedPtr<ChBodyEasyBox> mfloor (new ChBodyEasyBox(2,0.1,2,2700, true));
+        auto mfloor = std::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true);
         mfloor->SetBodyFixed(true);
         mfloor->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor);
 
-        ChSharedPtr<ChTexture> masset_texture(new ChTexture());
+        auto masset_texture = std::make_shared<ChTexture>();
         masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
         mfloor->AddAsset(masset_texture);
     }
@@ -131,12 +131,12 @@ int main(int argc, char* argv[]) {
 
     // two falling objects:
 
-    ChSharedPtr<ChBodyEasyBox> mcube (new ChBodyEasyBox(0.1,0.1,0.1,2700, true));
+    auto mcube = std::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 2700, true);
     mcube->SetPos(ChVector<>(0.6,0.5,0.6));
     mcube->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mcube);
 
-    ChSharedPtr<ChBodyEasySphere> msphere (new ChBodyEasySphere(0.1,2700, true));
+    auto msphere = std::make_shared<ChBodyEasySphere>(0.1, 2700, true);
     msphere->SetPos(ChVector<>(0.8,0.5,0.6));
     msphere->SetMaterialSurface(mysurfmaterial);
     my_system.Add(msphere);
@@ -148,13 +148,13 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh. We will use it for tetahedrons.
 
-    ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+    auto my_mesh = std::make_shared<ChMesh>();
 
     // 1) a FEA tetahedron(s):
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
-    ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+    auto mmaterial = std::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.3);
     mmaterial->Set_RayleighDampingK(0.003);
@@ -166,17 +166,17 @@ int main(int argc, char* argv[]) {
         for (int i=0; i<3; ++i) {
             // Creates the nodes for the tetahedron
             ChVector<> offset(j*0.21, i*0.21, k*0.21);
-            ChSharedPtr<ChNodeFEAxyz> mnode1(new ChNodeFEAxyz(ChVector<>(0,   0.1, 0  )+offset));
-            ChSharedPtr<ChNodeFEAxyz> mnode2(new ChNodeFEAxyz(ChVector<>(0,   0.1, 0.2)+offset));
-            ChSharedPtr<ChNodeFEAxyz> mnode3(new ChNodeFEAxyz(ChVector<>(0,   0.3, 0  )+offset));
-            ChSharedPtr<ChNodeFEAxyz> mnode4(new ChNodeFEAxyz(ChVector<>(0.2, 0.1, 0  )+offset));
+            auto mnode1 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.1, 0) + offset);
+            auto mnode2 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.1, 0.2) + offset);
+            auto mnode3 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.3, 0) + offset);
+            auto mnode4 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0.2, 0.1, 0) + offset);
 
             my_mesh->AddNode(mnode1);
             my_mesh->AddNode(mnode2);
             my_mesh->AddNode(mnode3);
             my_mesh->AddNode(mnode4);
 
-            ChSharedPtr<ChElementTetra_4> melement1(new ChElementTetra_4);
+            auto melement1 = std::make_shared<ChElementTetra_4>();
             melement1->SetNodes(mnode1,
                                 mnode2, 
                                 mnode3, 
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
     // Create the contact surface(s). 
     // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
 
-    ChSharedPtr<ChContactSurfaceMesh> mcontactsurf (new ChContactSurfaceMesh);
+    auto mcontactsurf = std::make_shared<ChContactSurfaceMesh>();
     my_mesh->AddContactSurface(mcontactsurf);
 
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness); // do this after my_mesh->AddContactSurface
@@ -227,11 +227,11 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh. We will use it for beams only. 
 
-    ChSharedPtr<ChMesh> my_mesh_beams(new ChMesh);
+    auto my_mesh_beams = std::make_shared<ChMesh>();
 
     // 2) an ANCF cable:
 
-	ChSharedPtr<ChBeamSectionCable> msection_cable2(new ChBeamSectionCable);
+    auto msection_cable2 = std::make_shared<ChBeamSectionCable>();
 	msection_cable2->SetDiameter(0.05);
 	msection_cable2->SetYoungModulus (0.01e9);
 	msection_cable2->SetBeamRaleyghDamping(0.05);
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
     // In this case it is a ChContactSurfaceNodeCloud, so just pass 
     // all nodes to it.
 
-    ChSharedPtr<ChContactSurfaceNodeCloud> mcontactcloud (new ChContactSurfaceNodeCloud);
+    auto mcontactcloud = std::make_shared<ChContactSurfaceNodeCloud>();
     my_mesh_beams->AddContactSurface(mcontactcloud);
 
     mcontactcloud->AddAllNodes(0.025); // use larger point size to match beam section radius
@@ -274,25 +274,25 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a coloured ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemesh); 
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshcoll(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+    auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1,0.5,0));
     my_mesh->AddAsset(mvisualizemeshcoll); 
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshbeam(new ChVisualizationFEAmesh(*(my_mesh_beams.get_ptr())));
+    auto mvisualizemeshbeam = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh_beams.get()));
     mvisualizemeshbeam->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
     mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
     my_mesh->AddAsset(mvisualizemeshbeam);
 
-    ChSharedPtr<ChVisualizationFEAmesh> mvisualizemeshbeamnodes(new ChVisualizationFEAmesh(*(my_mesh_beams.get_ptr())));
+    auto mvisualizemeshbeamnodes = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh_beams.get()));
     mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizemeshbeamnodes->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshbeamnodes->SetSymbolsThickness(0.008);

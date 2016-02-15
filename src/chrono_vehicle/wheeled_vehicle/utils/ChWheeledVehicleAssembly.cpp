@@ -35,8 +35,8 @@ ChWheeledVehicleAssembly::ChWheeledVehicleAssembly(ChSystem* system,
                                                    const std::string& powertrain_def_filename)
     : m_driver_cb(NULL), m_tire_cb(NULL), m_chassis_cb(NULL) {
     // Create the vehicle and powertrain systems.
-    m_vehicle = ChSharedPtr<WheeledVehicle>(new WheeledVehicle(system, vehicle::GetDataFile(vehicle_def_filename)));
-    m_powertrain = ChSharedPtr<SimplePowertrain>(new SimplePowertrain(vehicle::GetDataFile(powertrain_def_filename)));
+    m_vehicle = std::make_shared<WheeledVehicle>(system, vehicle::GetDataFile(vehicle_def_filename));
+    m_powertrain = std::make_shared<SimplePowertrain>(vehicle::GetDataFile(powertrain_def_filename));
 
     // The vector of tire forces is required by the ChronoVehicle API. Since we
     // use rigid contact for tire-terrain interaction, these are always zero.
@@ -54,7 +54,7 @@ void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQu
     // If provided, invoke the user-specified callback to attach chassis contact
     // geometry.
     if (m_chassis_cb) {
-        ChSharedPtr<ChBodyAuxRef> chassisBody = m_vehicle->GetChassis();
+        std::shared_ptr<ChBodyAuxRef> chassisBody = m_vehicle->GetChassis();
 
         m_chassis_cb->onCallback(chassisBody);
         chassisBody->SetCollide(true);
@@ -64,7 +64,7 @@ void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQu
     // geometry for each wheel of the vehicle.
     if (m_tire_cb) {
         for (int i = 0; i < 2 * m_vehicle->GetNumberAxles(); i++) {
-            ChSharedPtr<ChBody> wheelBody = m_vehicle->GetWheelBody(i);
+            std::shared_ptr<ChBody> wheelBody = m_vehicle->GetWheelBody(i);
             double radius = m_vehicle->GetWheel(i)->GetRadius();
             double width = m_vehicle->GetWheel(i)->GetWidth();
 

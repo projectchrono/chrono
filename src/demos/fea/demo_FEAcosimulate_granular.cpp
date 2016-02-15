@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
   // Create the surface material, containing information
   // about friction etc.
 
-  ChSharedPtr<ChMaterialSurfaceDEM> mysurfmaterial (new ChMaterialSurfaceDEM);
+  auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
   mysurfmaterial->SetYoungModulus(10e4);
   mysurfmaterial->SetFriction(0.3f);
   mysurfmaterial->SetRestitution(0.2f);
@@ -124,12 +124,12 @@ int main(int argc, char* argv[]) {
 
   // Create a mesh, that is a container for groups
   // of FEA elements and their referenced nodes.
-  ChSharedPtr<ChMesh> my_mesh(new ChMesh);
+  auto my_mesh = std::make_shared<ChMesh>();
   my_system.Add(my_mesh);
 
   // Create a material, that must be assigned to each solid element in the mesh,
   // and set its parameters
-  ChSharedPtr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
+  auto mmaterial = std::make_shared<ChContinuumElastic>();
   mmaterial->Set_E(0.003e9);  // rubber 0.01e9, steel 200e9
   mmaterial->Set_v(0.4);
   mmaterial->Set_RayleighDampingK(0.004);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
   // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
   // This is much easier than creating all nodes and elements via C++ programming.
   // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
-  std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > > node_sets;
+  std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
   try {
       ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
                                        node_sets, tire_center, tire_alignment);
@@ -150,23 +150,23 @@ int main(int argc, char* argv[]) {
 
   // Create the contact surface(s).
   // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh:
-  ChSharedPtr<ChContactSurfaceMesh> mcontactsurf (new ChContactSurfaceMesh);
+  auto mcontactsurf = std::make_shared<ChContactSurfaceMesh>();
   my_mesh->AddContactSurface(mcontactsurf);
   mcontactsurf->AddFacesFromBoundary();
   mcontactsurf->SetMaterialSurface(mysurfmaterial); // by the way it is not needed because contacts will be emulated by cosimulation
 
   /// Create a mesh load for cosimulation, acting on the contact surface above
   /// (forces on nodes will be computed by an external procedure)
-  ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+  auto mloadcontainer = std::make_shared<ChLoadContainer>();
   my_system.Add(mloadcontainer);
-  ChSharedPtr<ChLoadContactSurfaceMesh> mrigidmeshload (new ChLoadContactSurfaceMesh(mcontactsurf));
+  auto mrigidmeshload = std::make_shared<ChLoadContactSurfaceMesh>(mcontactsurf);
   mloadcontainer->Add(mrigidmeshload);
 
   // ==Asset== attach a visualization of the FEM mesh.
   // This will automatically update a triangle mesh (a ChTriangleMeshShape
   // asset that is internally managed) by setting  proper
   // coordinates and vertex colours as in the FEM elements.
-  ChSharedPtr<ChVisualizationFEAmesh> mvisualizemesh(new ChVisualizationFEAmesh(*(my_mesh.get_ptr())));
+  auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
   mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
   mvisualizemesh->SetColorscaleMinMax(0.0, 10);
   mvisualizemesh->SetSmoothFaces(true);
@@ -185,29 +185,29 @@ int main(int argc, char* argv[]) {
   // this time the ChLoadContactSurfaceMesh cannot be used as in the FEA case, so we
   // will use the ChLoadBodyMesh class:
 
-  ChSharedPtr<ChBody> mrigidbody (new ChBody);
+  auto mrigidbody = std::make_shared<ChBody>();
   my_system.Add(mrigidbody);
   mrigidbody->SetMass(200);
   mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
   mrigidbody->SetPos(tire_center);
 
-  ChSharedPtr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+  auto mrigidmesh = std::make_shared<ChTriangleMeshShape>();
   mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
   mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
   mrigidbody->AddAsset(mrigidmesh);
 
-  ChSharedPtr<ChColorAsset> mcol(new ChColorAsset);
+  auto mcol = std::make_shared<ChColorAsset>();
   mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
   mrigidbody->AddAsset(mcol);
 
   /// Create a mesh load for cosimulation, acting on the contact surface above
   /// (forces on nodes will be computed by an external procedure)
 
-  ChSharedPtr<ChLoadContainer> mloadcontainer(new ChLoadContainer);
+  auto mloadcontainer = std::make_shared<ChLoadContainer>();
   my_system.Add(mloadcontainer);
 
   // this is used to use the mesh in cosimulation!
-  ChSharedPtr<ChLoadBodyMesh> mrigidmeshload(new ChLoadBodyMesh(mrigidbody, mrigidmesh->GetMesh()));
+  auto mrigidmeshload = std::make_shared<ChLoadBodyMesh>(mrigidbody, mrigidmesh->GetMesh());
   mloadcontainer->Add(mrigidmeshload);
 
   //
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
   systemG->GetSettings()->collision.collision_envelope = 0.01;
   systemG->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
 
-  ChSharedPtr<ChMaterialSurface> triMat(new ChMaterialSurface);
+  auto triMat = std::make_shared<ChMaterialSurface>();
   triMat->SetFriction(0.4f);
 
   // Create the triangles for the tire geometry
@@ -299,29 +299,30 @@ int main(int argc, char* argv[]) {
   ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
   int triId = 0;
-  for(int i=0; i<triangles.size(); i++) {
-    ChSharedBodyPtr triangle(new ChBody(new ChCollisionModelParallel));
-    triangle->SetMaterialSurface(triMat);
-    triangle->SetIdentifier(triId++);
-    triangle->SetMass(mass);
-    triangle->SetInertiaXX(inertia);
-    pos = (vert_pos[triangles[i].x]+vert_pos[triangles[i].y]+vert_pos[triangles[i].z])/3.0;
-    vel = (vert_vel[triangles[i].x]+vert_vel[triangles[i].y]+vert_vel[triangles[i].z])/3.0;
-    triangle->SetPos(pos);
-    triangle->SetPos_dt(vel);
-    triangle->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    triangle->SetCollide(true);
-    triangle->SetBodyFixed(true);
+  for (int i = 0; i < triangles.size(); i++) {
+      auto triangle = std::make_shared<ChBody>(new ChCollisionModelParallel);
+      triangle->SetMaterialSurface(triMat);
+      triangle->SetIdentifier(triId++);
+      triangle->SetMass(mass);
+      triangle->SetInertiaXX(inertia);
+      pos = (vert_pos[triangles[i].x] + vert_pos[triangles[i].y] + vert_pos[triangles[i].z]) / 3.0;
+      vel = (vert_vel[triangles[i].x] + vert_vel[triangles[i].y] + vert_vel[triangles[i].z]) / 3.0;
+      triangle->SetPos(pos);
+      triangle->SetPos_dt(vel);
+      triangle->SetRot(ChQuaternion<>(1, 0, 0, 0));
+      triangle->SetCollide(true);
+      triangle->SetBodyFixed(true);
 
-    triangle->GetCollisionModel()->ClearModel();
-    //utils::AddSphereGeometry(triangle.get_ptr(), radius);
-    std::string name = "tri"+std::to_string(triId);
-    utils::AddTriangle(triangle.get_ptr(),vert_pos[triangles[i].x]-pos,vert_pos[triangles[i].y]-pos,vert_pos[triangles[i].z]-pos,name);
-    triangle->GetCollisionModel()->SetFamily(1);
-    triangle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-    triangle->GetCollisionModel()->BuildModel();
+      triangle->GetCollisionModel()->ClearModel();
+      // utils::AddSphereGeometry(triangle.get(), radius);
+      std::string name = "tri" + std::to_string(triId);
+      utils::AddTriangle(triangle.get(), vert_pos[triangles[i].x] - pos, vert_pos[triangles[i].y] - pos,
+                         vert_pos[triangles[i].z] - pos, name);
+      triangle->GetCollisionModel()->SetFamily(1);
+      triangle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+      triangle->GetCollisionModel()->BuildModel();
 
-    systemG->AddBody(triangle);
+      systemG->AddBody(triangle);
   }
 
   // Add the terrain, MUST BE ADDED AFTER TIRE GEOMETRY (for index assumptions)
@@ -330,8 +331,7 @@ int main(int argc, char* argv[]) {
   double r = 0.1;//0.02;//
   double shapeRatio = 0.4;
   utils::Generator gen(systemG);
-  utils::MixtureIngredientPtr m1;
-  m1 = gen.AddMixtureIngredient(utils::ELLIPSOID, 1.0);
+  std::shared_ptr<utils::MixtureIngredient>& m1 = gen.AddMixtureIngredient(utils::ELLIPSOID, 1.0);
   m1->setDefaultMaterialDVI(triMat);
   m1->setDefaultDensity(2500);
   m1->setDefaultSize(ChVector<>(r,r*shapeRatio,r));
@@ -436,7 +436,7 @@ int main(int argc, char* argv[]) {
       mrigidmeshload->OutputSimpleMesh(vert_pos, vert_vel, triangles);
 
       for(int i=0; i<triangles.size(); i++) {
-        ChSharedPtr<ChBody> triBody = systemG->Get_bodylist()->at(i);
+        std::shared_ptr<ChBody> triBody = systemG->Get_bodylist()->at(i);
         pos = (vert_pos[triangles[i].x]+vert_pos[triangles[i].y]+vert_pos[triangles[i].z])/3.0;
         triBody->SetPos(pos);
         vel = (vert_vel[triangles[i].x]+vert_vel[triangles[i].y]+vert_vel[triangles[i].z])/3.0;
@@ -444,13 +444,13 @@ int main(int argc, char* argv[]) {
 
         //            // Update visual assets TODO: chrono_opengl cannot handle dynamic meshes yet
         //            for (int j = 0; j < triBody->GetAssets().size(); j++) {
-        //              ChSharedPtr<ChAsset> asset = triBody->GetAssets()[j];
-        //              if (asset.IsType<ChTriangleMeshShape>()) {
+        //              std::shared_ptr<ChAsset> asset = triBody->GetAssets()[j];
+        //              if (std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
         //                //std::cout << j << std::endl;
         //                //std::cout << vert_pos[triangles[i].x].x << " " << vert_pos[triangles[i].x].y << " " << vert_pos[triangles[i].x].z << std::endl;
-        //                ((ChTriangleMeshShape*)(asset.get_ptr()))->GetMesh().m_vertices[0] = vert_pos[triangles[i].x];
-        //                ((ChTriangleMeshShape*)(asset.get_ptr()))->GetMesh().m_vertices[1] = vert_pos[triangles[i].y];
-        //                ((ChTriangleMeshShape*)(asset.get_ptr()))->GetMesh().m_vertices[2] = ChVector<>(0);//vert_pos[triangles[i].z];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[0] = vert_pos[triangles[i].x];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[1] = vert_pos[triangles[i].y];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[2] = ChVector<>(0);//vert_pos[triangles[i].z];
         //              }
         //            }
 

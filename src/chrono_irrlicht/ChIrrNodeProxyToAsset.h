@@ -38,14 +38,14 @@ class ChApiIrr ChIrrNodeProxyToAsset : public irr::scene::ISceneNode {
   private:
     irr::core::aabbox3d<irr::f32> Box;
 
-    ChSharedPtr<ChAsset> visualization_asset;
+    std::shared_ptr<ChAsset> visualization_asset;
 
     bool do_update;
 
   public:
     /// Constructor
-    ChIrrNodeProxyToAsset(ChSharedPtr<ChAsset> myvisualization,  ///< pointer to the Chrono::Engine visualization asset
-                          irr::scene::ISceneNode* parent);                       ///< the parent node in Irrlicht hierarchy
+    ChIrrNodeProxyToAsset(std::shared_ptr<ChAsset> myvisualization,  ///< pointer to the Chrono::Engine visualization asset
+                          irr::scene::ISceneNode* parent);           ///< the parent node in Irrlicht hierarchy
 
     /// Destructor.
     ~ChIrrNodeProxyToAsset() {}
@@ -63,7 +63,7 @@ class ChApiIrr ChIrrNodeProxyToAsset : public irr::scene::ISceneNode {
 
     /// Returns a reference to the shared pointer which references the ChAsset to
     /// whom this is a proxy.
-    ChSharedPtr<ChAsset>& GetVisualizationAsset() { return visualization_asset; }
+    std::shared_ptr<ChAsset>& GetVisualizationAsset() { return visualization_asset; }
 
     /// Returns true if the node must recompute the mesh for each time that an
     /// Update is called.

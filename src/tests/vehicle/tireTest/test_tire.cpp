@@ -93,8 +93,7 @@ int main(int argc, char* argv[]) {
 
     // Create the quarter-vehicle chassis
     // ----------------------------------
-
-    ChSharedPtr<ChBody> chassis(new ChBody(contact_method));
+    auto chassis = std::make_shared<ChBody>(contact_method);
     system->AddBody(chassis);
     chassis->SetIdentifier(1);
     chassis->SetName("chassis");
@@ -107,8 +106,7 @@ int main(int argc, char* argv[]) {
 
     // Create the wheel (rim)
     // ----------------------
-
-    ChSharedPtr<ChBody> wheel(new ChBody(contact_method));
+    auto wheel = std::make_shared<ChBody>(contact_method);
     system->AddBody(wheel);
     wheel->SetIdentifier(2);
     wheel->SetName("wheel");
@@ -122,13 +120,13 @@ int main(int argc, char* argv[]) {
     // Create the tire
     // ---------------
 
-    ChSharedPtr<ChTire> tire;
+    std::shared_ptr<ChTire> tire;
     double tire_radius;
     double tire_width;
 
     switch (tire_model) {
         case RIGID: {
-            ChSharedPtr<RigidTire> tire_rigid(new RigidTire(vehicle::GetDataFile(rigidtire_file)));
+            auto tire_rigid = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
             tire_rigid->Initialize(wheel);
             tire_radius = tire_rigid->getRadius();
             tire_width = tire_rigid->getWidth();
@@ -136,7 +134,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case LUGRE: {
-            ChSharedPtr<LugreTire> tire_lugre(new LugreTire(vehicle::GetDataFile(lugretire_file)));
+            auto tire_lugre = std::make_shared<LugreTire>(vehicle::GetDataFile(lugretire_file));
             tire_lugre->Initialize(wheel);
             tire_radius = tire_lugre->getRadius();
             int num_discs = tire_lugre->getNumDiscs();
@@ -145,7 +143,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case FIALA: {
-            ChSharedPtr<FialaTire> tire_fiala(new FialaTire(vehicle::GetDataFile(fialatire_file)));
+            auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
             tire_fiala->Initialize();
             tire_radius = tire_fiala->GetUnloadedRadius();
             tire_width = tire_fiala->GetWidth();
@@ -157,20 +155,20 @@ int main(int argc, char* argv[]) {
     // Add wheel visualization
     // -----------------------
 
-    ChSharedPtr<ChCylinderShape> wheel_cyl(new ChCylinderShape);
+    auto wheel_cyl = std::make_shared<ChCylinderShape>();
     wheel_cyl->GetCylinderGeometry().rad = tire_radius;
     wheel_cyl->GetCylinderGeometry().p1 = ChVector<>(0, tire_width / 2, 0);
     wheel_cyl->GetCylinderGeometry().p2 = ChVector<>(0, -tire_width / 2, 0);
     wheel->AddAsset(wheel_cyl);
 
-    ChSharedPtr<ChTexture> tex(new ChTexture);
+    auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     wheel->AddAsset(tex);
 
     // Create the terrain
     // ------------------
 
-    ChSharedPtr<RigidTerrain> terrain(new RigidTerrain(system));
+    auto terrain = std::make_shared<RigidTerrain>(system);
     terrain->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
     terrain->Initialize(-tire_radius - tire_offset - 0.2, terrain_length, terrain_width);
@@ -180,7 +178,7 @@ int main(int argc, char* argv[]) {
 
     // Connect chassis to ground through a plane-plane joint.
     // The normal to the common plane is along the y global axis.
-    ChSharedPtr<ChLinkLockPlanePlane> plane_plane(new ChLinkLockPlanePlane);
+    auto plane_plane = std::make_shared<ChLinkLockPlanePlane>();
     system->AddLink(plane_plane);
     plane_plane->SetName("plane_plane");
     plane_plane->Initialize(terrain->GetGroundBody(), chassis,
@@ -188,7 +186,7 @@ int main(int argc, char* argv[]) {
 
     // Connect wheel to chassis through a revolute joint.
     // The axis of rotation is along the y global axis.
-    ChSharedPtr<ChLinkLockRevolute> revolute(new ChLinkLockRevolute);
+    auto revolute = std::make_shared<ChLinkLockRevolute>();
     system->AddLink(revolute);
     revolute->SetName("revolute");
     revolute->Initialize(chassis, wheel, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
@@ -228,7 +226,7 @@ int main(int argc, char* argv[]) {
         tire_force = tire->GetTireForce();
 
         // Update tire system
-        tire->Update(system->GetChTime(), wheel_state, *(terrain.get_ptr()));
+        tire->Update(system->GetChTime(), wheel_state, *(terrain.get()));
 
         // Update system (apply tire forces)
         wheel->Empty_forces_accumulators();

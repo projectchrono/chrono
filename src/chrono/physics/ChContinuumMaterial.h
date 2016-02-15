@@ -30,7 +30,6 @@
 
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "physics/ChTensors.h"
 
 namespace chrono {
@@ -39,9 +38,9 @@ namespace fea {
 /// Base class for properties of materials
 /// in a continuum.
 
-class ChApi ChContinuumMaterial : public ChShared {
+class ChApi ChContinuumMaterial {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChContinuumMaterial, ChShared);
+    CH_RTTI_ROOT(ChContinuumMaterial);
 
   protected:
     double density;

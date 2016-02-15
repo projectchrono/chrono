@@ -106,14 +106,14 @@ bool TestMechanism(Options opts, bool animate) {
   // -----------------
 
   // Create the ground body
-  ChSharedPtr<ChBody> ground(new ChBody(new collision::ChCollisionModelParallel));
+  auto ground = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
   ground->SetIdentifier(-1);
   ground->SetBodyFixed(true);
   ground->SetCollide(false);
   system->AddBody(ground);
 
   // Create the sled body
-  ChSharedPtr<ChBody> sled(new ChBody(new collision::ChCollisionModelParallel));
+  auto sled = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
   sled->SetIdentifier(1);
   sled->SetMass(550);
   sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -122,7 +122,7 @@ bool TestMechanism(Options opts, bool animate) {
   sled->SetBodyFixed(false);
   sled->SetCollide(false);
 
-  ChSharedPtr<ChBoxShape> box_sled(new ChBoxShape);
+  auto box_sled = std::make_shared<ChBoxShape>();
   box_sled->GetBoxGeometry().Size = ChVector<>(1, 0.25, 0.25);
   box_sled->Pos = ChVector<>(0, 0, 0);
   box_sled->Rot = ChQuaternion<>(1, 0, 0, 0);
@@ -131,7 +131,7 @@ bool TestMechanism(Options opts, bool animate) {
   system->AddBody(sled);
 
   // Create the wheel body
-  ChSharedPtr<ChBody> wheel(new ChBody(new collision::ChCollisionModelParallel));
+  auto wheel = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
   wheel->SetIdentifier(2);
   wheel->SetMass(350);
   wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -142,7 +142,7 @@ bool TestMechanism(Options opts, bool animate) {
   wheel->SetCollide(true);
 
   wheel->GetCollisionModel()->ClearModel();
-  utils::AddCylinderGeometry(wheel.get_ptr(), 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
+  utils::AddCylinderGeometry(wheel.get(), 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
   wheel->GetCollisionModel()->BuildModel();
 
   system->AddBody(wheel);
@@ -151,12 +151,12 @@ bool TestMechanism(Options opts, bool animate) {
   // -------------
 
   // Create and initialize translational joint ground - sled
-  ChSharedPtr<ChLinkLockPrismatic> prismatic(new ChLinkLockPrismatic);
+  auto prismatic = std::make_shared<ChLinkLockPrismatic>();
   prismatic->Initialize(ground, sled, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
   system->AddLink(prismatic);
 
   // Create and initialize revolute joint sled - wheel
-  ChSharedPtr<ChLinkLockRevolute> revolute(new ChLinkLockRevolute);
+  auto revolute = std::make_shared<ChLinkLockRevolute>();
   revolute->Initialize(wheel, sled, ChCoordsys<>(ChVector<>(1, 0, 0), Q_from_AngX(CH_C_PI_2)));
   system->AddLink(revolute);
 

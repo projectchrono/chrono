@@ -24,24 +24,26 @@ namespace particlefactory {
 class ChParticleRemoverBox : public ChParticleProcessor {
   public:
     ChParticleRemoverBox() {
-        this->SetEventTrigger(ChSharedPtr<ChParticleEventTriggerBox>(new ChParticleEventTriggerBox));
-        this->SetParticleEventProcessor(ChSharedPtr<ChParticleProcessEventRemove>(new ChParticleProcessEventRemove));
+        this->SetEventTrigger(std::shared_ptr<ChParticleEventTriggerBox>(new ChParticleEventTriggerBox));
+        this->SetParticleEventProcessor(std::shared_ptr<ChParticleProcessEventRemove>(new ChParticleProcessEventRemove));
     }
 
     /// easy access to box of trigger
     geometry::ChBox& GetBox() {
-        ChSharedPtr<ChParticleEventTriggerBox> mtrigbox = trigger.DynamicCastTo<ChParticleEventTriggerBox>();
-        if (mtrigbox.IsNull())
+        auto mtrigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger);
+        if (!mtrigbox)
             throw ChException("ChParticleRemoverBox had trigger replaced to non-box type");
+
         return mtrigbox->mbox;
     }
 
     /// easy access to in/out toggle of trigger
     void SetRemoveOutside(bool minvert) {
-        ChSharedPtr<ChParticleEventTriggerBox> mtrigbox = trigger.DynamicCastTo<ChParticleEventTriggerBox>();
-        if (mtrigbox.IsNull())
+        if (auto mtrigbox = std::dynamic_pointer_cast<ChParticleEventTriggerBox>(trigger)) {
+            mtrigbox->SetTriggerOutside(minvert);
+        } else {
             throw ChException("ChParticleRemoverBox had trigger replaced to non-box type");
-        mtrigbox->SetTriggerOutside(minvert);
+        }
     }
 };
 

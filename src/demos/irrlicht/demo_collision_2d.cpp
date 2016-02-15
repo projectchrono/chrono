@@ -59,22 +59,21 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the truss:
-
-    ChSharedPtr<ChBody> mfloor(new ChBody);
+    auto mfloor = std::make_shared<ChBody>();
     mfloor->SetBodyFixed(true);
     application.GetSystem()->Add(mfloor);
 
 
     // Create a ChBody that contains a 2D convex collision shape:
 
-    ChSharedPtr<ChBody> mcoin(new ChBody());
+    auto mcoin = std::make_shared<ChBody>();
     mcoin->SetPos(ChVector<>(5.5, 1, 0));
     application.GetSystem()->Add(mcoin);
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order.
     // Note that the end of one segment must match the beginning of the other. 
     // For arcs, the beginning corresponds to angle1, the second to angle2.
-    ChSharedPtr<ChLinePath> mpathcoin(new ChLinePath);
+    auto mpathcoin = std::make_shared<ChLinePath>();
     ChLineArc     marcol1 (ChCoordsys<>(ChVector<>(0, 0, 0)), 0.5, 0, CH_C_PI);
     ChLineSegment msegcol1(ChVector<>(-0.5, 0, 0), ChVector<>(0.5, 0, 0));
     mpathcoin->AddSubLine(marcol1);
@@ -84,18 +83,18 @@ int main(int argc, char* argv[]) {
     mcoin->GetCollisionModel()->SetSafeMargin(0.1);
     mcoin->SetCollide(true);
     mcoin->GetCollisionModel()->ClearModel();
-    mcoin->GetCollisionModel()->Add2Dpath(*mpathcoin.get_ptr(), VNULL, ChMatrix33<>(1), 0.03); // 0.03 thickness
+    mcoin->GetCollisionModel()->Add2Dpath(*mpathcoin.get(), VNULL, ChMatrix33<>(1), 0.03); // 0.03 thickness
     mcoin->GetCollisionModel()->BuildModel();
 
     // For visualization:create a ChLineShape, a visualization asset for lines.
-    ChSharedPtr<ChLineShape> mcoinasset(new ChLineShape);
+    auto mcoinasset = std::make_shared<ChLineShape>();
     mcoinasset->SetLineGeometry(mpathcoin);
     mcoin->AddAsset(mcoinasset);
     
 
     // Create a ChBody that contains a 2D concave collision shape:
 
-    ChSharedPtr<ChBody> mhole(new ChBody());
+    auto mhole = std::make_shared<ChBody>();
     mhole->SetPos(ChVector<>(4, 0, 0));
     mhole->SetBodyFixed(true);
     application.GetSystem()->Add(mhole);
@@ -105,7 +104,7 @@ int main(int argc, char* argv[]) {
     // arc must be enabled. It will flow from angle1 to angle2 in counterclockwise way: this 
     // means 'concave' because for 2d shapes, the 'solid' part of the shape is always ON THE RIGHT
     // side of the curvilinear abscyssa.
-    ChSharedPtr<ChLinePath> mpathhole(new ChLinePath);
+    auto mpathhole = std::make_shared<ChLinePath>();
     ChLineArc     marcol2(ChCoordsys<>(ChVector<>(0, 0, 0)), 1, -CH_C_PI, 0, true); // true = ccw arc = concave
     ChLineSegment msegcol2(ChVector<>(1, 0, 0), ChVector<>(2, 0.04, 0));
     mpathhole->AddSubLine(marcol2);
@@ -116,11 +115,11 @@ int main(int argc, char* argv[]) {
     mcoin->GetCollisionModel()->SetSafeMargin(0.1);
     mhole->SetCollide(true);
     mhole->GetCollisionModel()->ClearModel();
-    mhole->GetCollisionModel()->Add2Dpath(*mpathhole.get_ptr(), VNULL, ChMatrix33<>(1), 0.03); // 0.01 thickness
+    mhole->GetCollisionModel()->Add2Dpath(*mpathhole.get(), VNULL, ChMatrix33<>(1), 0.03); // 0.01 thickness
     mhole->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
-    ChSharedPtr<ChLineShape> mholeasset(new ChLineShape);
+    auto mholeasset = std::make_shared<ChLineShape>();
     mholeasset->SetLineGeometry(mpathhole);
     mhole->AddAsset(mholeasset);
 
@@ -144,7 +143,7 @@ int main(int argc, char* argv[]) {
     ChVector<> crank_center = ChVector<>(B, R, 0) + geneva_center;
     
     // Create the rotating Gnevawheel:
-    ChSharedPtr<ChBody> mgenevawheel(new ChBody());
+    auto mgenevawheel = std::make_shared<ChBody>();
     mgenevawheel->SetPos(geneva_center);
     mgenevawheel->SetWvel_loc(ChVector<>(0,0,-0.08));
     application.GetSystem()->Add(mgenevawheel);
@@ -152,7 +151,7 @@ int main(int argc, char* argv[]) {
     // Create a ChLinePath geometry that represents the 2D shape of the Geneva wheel.
     // It can be made of ChLineArc or ChLineSegment sub-lines. These must be added in clockwise
     // order, and the end of sub-item i must be coincident with beginning of sub-line i+1.
-    ChSharedPtr<ChLinePath> mpathwheel(new ChLinePath);
+    auto mpathwheel = std::make_shared<ChLinePath>();
     
     for (int i=0; i<nstations; ++i) {
         double alpha = -i*beta; // phase of current station
@@ -192,32 +191,32 @@ int main(int argc, char* argv[]) {
     mgenevawheel->GetCollisionModel()->SetSafeMargin(0.02);
     mgenevawheel->SetCollide(true);
     mgenevawheel->GetCollisionModel()->ClearModel();
-    mgenevawheel->GetCollisionModel()->Add2Dpath(*mpathwheel.get_ptr());
+    mgenevawheel->GetCollisionModel()->Add2Dpath(*mpathwheel.get());
     mgenevawheel->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
-    ChSharedPtr<ChLineShape> mwheelasset(new ChLineShape);
+    auto mwheelasset = std::make_shared<ChLineShape>();
     mwheelasset->SetLineGeometry(mpathwheel);
     mgenevawheel->AddAsset(mwheelasset);
     
     // Revolute constraint 
-    ChSharedPtr<ChLinkLockRevolute> mrevolute (new ChLinkLockRevolute);
+    auto mrevolute = std::make_shared<ChLinkLockRevolute>();
     mrevolute->Initialize(mgenevawheel, mfloor, ChCoordsys<>(geneva_center));
     application.GetSystem()->Add(mrevolute);
 
 
     // Create the crank:
 
-    ChSharedPtr<ChBody> mcrank(new ChBody());
+    auto mcrank = std::make_shared<ChBody>();
     mcrank->SetPos(crank_center);
     application.GetSystem()->Add(mcrank);
 
      // Create a ChLinePath geometry, and insert sub-paths in clockwise order:
-    ChSharedPtr<ChLinePath> mpathcrankpin(new ChLinePath);
+    auto mpathcrankpin = std::make_shared<ChLinePath>();
     ChLineArc mpin(ChCoordsys<>(ChVector<>(-B, 0, 0)), wi/2-0.005, CH_C_2PI, 0);
     mpathcrankpin->AddSubLine(mpin);
 
-    ChSharedPtr<ChLinePath> mpathcrankstopper(new ChLinePath);
+    auto mpathcrankstopper = std::make_shared<ChLinePath>();
     ChLineArc     mstopperarc(ChCoordsys<>(ChVector<>(0, 0, 0)), Ri-0.005, CH_C_PI-gamma/2, -CH_C_PI+gamma/2);
     ChLineSegment mstopperve1(mstopperarc.GetEndB(),ChVector<>(0, 0, 0));
     ChLineSegment mstopperve2(ChVector<>(0, 0, 0), mstopperarc.GetEndA());
@@ -229,23 +228,23 @@ int main(int argc, char* argv[]) {
     mcrank->GetCollisionModel()->SetSafeMargin(0.02);
     mcrank->SetCollide(true);
     mcrank->GetCollisionModel()->ClearModel();
-    mcrank->GetCollisionModel()->Add2Dpath(*mpathcrankpin.get_ptr());
-    mcrank->GetCollisionModel()->Add2Dpath(*mpathcrankstopper.get_ptr());
+    mcrank->GetCollisionModel()->Add2Dpath(*mpathcrankpin.get());
+    mcrank->GetCollisionModel()->Add2Dpath(*mpathcrankstopper.get());
     mcrank->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
-    ChSharedPtr<ChLineShape> mcrankasset(new ChLineShape);
+    auto mcrankasset = std::make_shared<ChLineShape>();
     mcrankasset->SetLineGeometry(mpathcrankpin);
     mcrank->AddAsset(mcrankasset);
-    ChSharedPtr<ChLineShape> mcrankasset2(new ChLineShape);
+    auto mcrankasset2 = std::make_shared<ChLineShape>();
     mcrankasset2->SetLineGeometry(mpathcrankstopper);
     mcrank->AddAsset(mcrankasset2);
 
     // .. an engine between crank and truss
-    ChSharedPtr<ChLinkEngine> my_crankmotor(new ChLinkEngine);
+    auto my_crankmotor = std::make_shared<ChLinkEngine>();
     my_crankmotor->Initialize(mcrank, mfloor, ChCoordsys<>(crank_center));
     my_crankmotor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (ChSharedPtr<ChFunction_Const> mfun = my_crankmotor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_crankmotor->Get_spe_funct()))
         mfun->Set_yconst(CH_C_PI / 8.0);  
     application.GetSystem()->AddLink(my_crankmotor);
 
