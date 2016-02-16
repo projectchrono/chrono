@@ -25,15 +25,13 @@ ChSystemFsi::ChSystemFsi() {
 	fsiBodeisPtr.resize(0);
 	paramsH = new SimParams; // Arman: define a function to set paramsH default values
 	numObjectsH = new NumberOfObjects;
-	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
-	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 
-	bceWorker = new ChBce(fsiData->fsiGeneralData, paramsH, numObjectsH);
+	bceWorker = new ChBce(&(fsiData->fsiGeneralData), paramsH, numObjectsH);
 	fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH);
-	fsiInterface = new ChFsiInterface(fsiData->fsiBodiesH, fsiData->chronoRigidBackup,
+	fsiInterface = new ChFsiInterface(&(fsiData->fsiBodiesH), &(fsiData->chronoRigidBackup),
 		mphysicalSystem, &fsiBodeisPtr,
-		fsiData->fsiGeneralData.rigid_FSI_ForcesD,
-		fsiData->fsiGeneralData.rigid_FSI_TorquesD);
+		&(fsiData->fsiGeneralData.rigid_FSI_ForcesD),
+		&(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::CopyDeviceDataToHalfStep() {	

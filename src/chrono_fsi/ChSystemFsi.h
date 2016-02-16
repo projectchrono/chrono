@@ -24,6 +24,8 @@
 #include "chrono_fsi/ChBce.cuh"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
+
 
 namespace chrono {
 namespace fsi {
@@ -34,12 +36,12 @@ public:
 	ChSystemFsi();
 	~ChSystemFsi();
 
-	DoStepDynamics_FSI();
-	DoStepDynamics_ChronoRK2(); 
-	CopyDeviceDataToHalfStep();
+	void DoStepDynamics_FSI();
+	void DoStepDynamics_ChronoRK2(); 
+	void CopyDeviceDataToHalfStep();
 
 private:
-	DoStepChronoSystem(Real dT,
+	int DoStepChronoSystem(Real dT,
 		double mTime, double time_hold_vehicle, bool haveVehicle);
 
 	ChFsiDataManager* fsiData;

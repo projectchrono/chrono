@@ -85,13 +85,10 @@ namespace fsi {
 		// ----------------
 		// fluidfsiBodeisIndex
 		thrust::host_vector<::int4> referenceArray;
-		thrust::host_vector<uint> bodyIndexH;
-
 		// ----------------
 		//  device
 		// ----------------
 		// fluid
-		thrust::device_vector<uint> bodyIndexD;
 		thrust::device_vector<Real4> derivVelRhoD;
 		thrust::device_vector<Real3> vel_XSPH_D;
 

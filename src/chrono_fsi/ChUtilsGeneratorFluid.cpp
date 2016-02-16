@@ -98,11 +98,6 @@ int2 CreateFluidMarkers(
 
 	int numAllMarkers = num_fluidOrBoundaryMarkers.x
 			+ num_fluidOrBoundaryMarkers.y;
-	fsiGeneralData.bodyIndex.resize(numAllMarkers);
-	thrust::fill(fsiGeneralData.bodyIndex.begin(), fsiGeneralData.bodyIndex.end(), 1);
-	thrust::exclusive_scan(fsiGeneralData.bodyIndex.begin(), fsiGeneralData.bodyIndex.end(),
-			fsiGeneralData.bodyIndex.begin());
-
 	return num_fluidOrBoundaryMarkers;
 }
 

@@ -14,7 +14,7 @@
 //
 // Class for handling time integration in fsi system.//
 // =============================================================================
-#include "ChFsiForceParallel.cuh"
+#include "chrono_fsi/ChFsiForceParallel.cuh"
 #include <thrust/sort.h>
 
 namespace chrono {

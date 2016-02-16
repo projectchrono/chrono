@@ -15,7 +15,7 @@
 // Class for fsi properties and functions.//
 // =============================================================================
 
-#include "ChFsiGeneral.cuh"
+#include "chrono_fsi/ChFsiGeneral.cuh"
 namespace chrono {
 namespace fsi {
 

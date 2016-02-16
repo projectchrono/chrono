@@ -17,7 +17,7 @@
 
 #include <stdexcept>
 #include <thrust/sort.h>
-#include "ChCollisionSystemFsi.cuh"
+#include "chrono_fsi/ChCollisionSystemFsi.cuh"
 
 namespace chrono {
 namespace fsi {

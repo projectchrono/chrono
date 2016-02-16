@@ -18,8 +18,10 @@
 #ifndef CH_UTILSGENERATORBCE__CUH
 #define CH_UTILSGENERATORBCE__CUH
 
+#include <string>
 #include <thrust/host_vector.h>
 #include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/ChParams.cuh"
 
 
 namespace chrono{

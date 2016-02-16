@@ -12,25 +12,29 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Utility class for generating fluid markers.//
+// Utility class for Conversions between Real and ChSystem types such as 
+// (ChVector, ChQuaternion)
 // =============================================================================
 
-#ifndef CH_UTILSGENERATORFLUID_CUH
-#define CH_UTILSGENERATORFLUID_CUH
+#ifndef CH_UTILS_TRANSFORM_FSI_H_
+#define CH_UTILS_TRANSFORM_FSI_H_
 
-#include "chrono_fsi/custom_cutil_math.h"
-#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
 
-namespace chrono{
+
+namespace chrono {
 namespace fsi {
 namespace utils {
-	int2 CreateFluidMarkers(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	SimParams& paramsH);
 
-} // end namespace utils
+ChVector<> ConvertRealToChVector(Real3 p3);
+ChVector<> ConvertRealToChVector(Real4 p4);
+ChQuaternion<> ConvertToChQuaternion(Real4 q4);
+Real3 ConvertChVectorToR3(ChVector<> v3);
+Real4 ConvertChVectorToR4(ChVector<> v3, Real m);
+Real4 ConvertChQuaternionToR4(ChQuaternion<> q4);
+
+} // end utils 
 } // end namespace fsi
 } // end namespace chrono
-
 #endif

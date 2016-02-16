@@ -15,6 +15,21 @@
 // Utility class for generating BCE markers.//
 // =============================================================================
 
+#include "utils/ChUtilsGeometry.h"
+#include "utils/ChUtilsCreators.h"
+#include "utils/ChUtilsGenerators.h"
+
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/ChUtilsGeneratorFsi.h"
+#include "chrono_fsi/ChUtilsTransformFsi.h"
+// #include "chrono/core/ChFrame.h"
+// #include "chrono/core/ChVector.h"
+// #include "chrono/core/ChQuaternion.h"
+// #include "chrono/core/ChMatrix.h"
+
+
+
+
 namespace chrono{
 namespace fsi {
 namespace utils {
@@ -60,13 +75,13 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 	chrono::ChVector<> collisionShapeRelativePos,
 	chrono::ChQuaternion<> collisionShapeRelativeRot,
 	bool isSolid) {
-	if (referenceArray.size() < 1) {
+	if (fsiGeneralData.referenceArray.size() < 1) {
 		printf(
 				"\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
 						"components \n\n\n\n");
 		std::cin.get();
 	}
-	::int4 refSize4 = referenceArray[referenceArray.size() - 1];
+	::int4 refSize4 = fsiGeneralData.referenceArray[fsiGeneralData.referenceArray.size() - 1];
 	int type = 0;
 	if (isSolid) {
 		type = refSize4.w + 1;
@@ -75,7 +90,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 		printf(
 				"\n\n\n\n Error! reference array type is not correct. It does not denote boundary or rigid \n\n\n\n");
 		std::cin.get();
-	} else if (type > 0 && (referenceArray.size() - 1 != type)) {
+	} else if (type > 0 && (fsiGeneralData.referenceArray.size() - 1 != type)) {
 		printf(
 				"\n\n\n\n Error! reference array size does not match type \n\n\n\n");
 		std::cin.get();
@@ -113,36 +128,36 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 	numObjects.numAllMarkers += numBce;
 	if (type == 0) {
 		numObjects.numBoundaryMarkers += numBce;
-		if (referenceArray.size() == 1) {
-			referenceArray.push_back(
+		if (fsiGeneralData.referenceArray.size() == 1) {
+			fsiGeneralData.referenceArray.push_back(
 			mI4(refSize4.y, refSize4.y + numBce, 0, 0));
-		} else if (referenceArray.size() == 2) {
+		} else if (fsiGeneralData.referenceArray.size() == 2) {
 			refSize4.y = refSize4.y + numBce;
-			referenceArray[1] = refSize4;
+			fsiGeneralData.referenceArray[1] = refSize4;
 		} else {
 			printf(
 					"Error! reference array size is greater than 2 while marker type is 0 \n\n");
 			std::cin.get();
 		}
 	} else {
-		if (referenceArray.size() < 2) {
+		if (fsiGeneralData.referenceArray.size() < 2) {
 			printf(
 					"Error! Boundary markers are not initialized while trying to initialize rigid marker!\n\n");
 			std::cin.get();
 		}
 		numObjects.numRigid_SphMarkers += numBce;
 		numObjects.numRigidBodies += 1;
-		numObjects.startRigidMarkers = referenceArray[1].y;
-		referenceArray.push_back(
+		numObjects.startRigidMarkers = fsiGeneralData.referenceArray[1].y;
+		fsiGeneralData.referenceArray.push_back(
 		mI4(refSize4.y, refSize4.y + numBce, 1, type)); // 1: for rigid
-		if (numObjects.numRigidBodies != referenceArray.size() - 2) {
+		if (numObjects.numRigidBodies != fsiGeneralData.referenceArray.size() - 2) {
 			printf(
 					"Error! num rigid bodies does not match reference array size!\n\n");
 			std::cin.get();
 		}
 	}
 
-	//	SetNumObjects(numObjects, referenceArray, numAllMarkers);
+	//	SetNumObjects(numObjects, fsiGeneralData.referenceArray, numAllMarkers);
 }
 // =============================================================================
 void CreateBceGlobalMarkersFromBceLocalPosBoundary(

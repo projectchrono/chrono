@@ -18,7 +18,7 @@
 #ifndef CH_FSIGENERAL_H_
 #define CH_FSIGENERAL_H_
 
-#include "ChApiFsi.h"
+#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/custom_cutil_math.h"
 #include "chrono_fsi/ChParams.cuh"
 #include "chrono_fsi/ChUtilsGeneralFsi.h"

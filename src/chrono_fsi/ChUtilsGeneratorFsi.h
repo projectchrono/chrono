@@ -18,6 +18,10 @@
 #ifndef CH_UTILSGENERATORFSI_CUH
 #define CH_UTILSGENERATORFSI_CUH
 
+#include "chrono_parallel/physics/ChSystemParallel.h"
+
+
+#include "chrono_fsi/ChUtilsGeneratorBce.h"
 #include "chrono_fsi/ChFsiDataManager.cuh"
 
 namespace chrono{
@@ -34,9 +38,9 @@ namespace utils {
 		const SimParams& paramsH,
 		const thrust::host_vector<Real3>& posRadBCE,
 		chrono::ChSharedPtr<chrono::ChBody> body,
-		chrono::ChVector<> collisionShapeRelativePos,
-		chrono::ChQuaternion<> collisionShapeRelativeRot,
-		bool isSolid);
+		chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
+		chrono::ChQuaternion<> collisionShapeRelativeRot =  chrono::QUNIT,
+		bool isSolid = true);
 
 	void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 		SphMarkerDataH& sphMarkersH,
