@@ -106,13 +106,14 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetSystem()->SetIterLCPomega(0.8);
     ////vehicle.GetSystem()->SetIterLCPsharpnessLambda(1.0);
 
+    // Initialize the vehicle at the specified position.
+    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
     // Control internal collisions and contact monitoring.
+    ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT));
     ////vehicle.SetCollide(TrackCollide::NONE);
     ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);
     ////vehicle.SetContactCollection(true);
-
-    // Initialize the vehicle at the specified position.
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // ------------------
     // Create the terrain
