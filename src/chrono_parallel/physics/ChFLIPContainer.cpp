@@ -85,7 +85,7 @@ void ChFLIPContainer::ComputeDOF() {
     printf("Compute DOF [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
            bin_edge, num_mpm_markers);
 
-    num_mpm_constraints = num_mpm_nodes * 3;
+    num_mpm_constraints = num_mpm_nodes;
 }
 
 void ChFLIPContainer::Update(double ChTime) {
@@ -175,7 +175,7 @@ void ChFLIPContainer::UpdatePosition(double ChTime) {
 }
 
 int ChFLIPContainer::GetNumConstraints() {
-    return num_mpm_nodes * 3;
+    return num_mpm_nodes;
 }
 
 int ChFLIPContainer::GetNumNonZeros() {
@@ -190,7 +190,7 @@ void ChFLIPContainer::ComputeInvMass(int offset) {
     for (int i = 0; i < num_mpm_nodes; i++) {
         if (node_mass[i] > 0) {
             // inv_mass = 1.0 / node_mass[i];
-            // real density = node_mass[i] / (bin_edge * bin_edge * bin_edge);
+            real density = node_mass[i] / (bin_edge * bin_edge * bin_edge);
             inv_mass = dt / (rho);
         }
         M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
@@ -269,26 +269,22 @@ void ChFLIPContainer::Build_D() {
     real factor = inv_bin_edge;
 
     for (int n = 0; n < num_mpm_nodes; n++) {
-        int3 grid_index = GridDecode(n, bins_per_axis);
+        int3 g = GridDecode(n, bins_per_axis);
 
-        const int current_node_x = GridHash(grid_index.x + 1, grid_index.y, grid_index.z, bins_per_axis);
-        const int current_node_y = GridHash(grid_index.x, grid_index.y + 1, grid_index.z, bins_per_axis);
-        const int current_node_z = GridHash(grid_index.x, grid_index.y, grid_index.z + 1, bins_per_axis);
-
-        if (current_node_x < num_mpm_nodes) {
-            SetRow3(D_T, start_row + n * 3 + 0, body_offset + n * 3, real3(-factor, 0, 0));
-            SetRow3(D_T, start_row + n * 3 + 0, body_offset + current_node_x * 3, real3(factor, 0, 0));
+        if (g.x >= bins_per_axis.x - 1 || g.y >= bins_per_axis.y - 1 || g.z >= bins_per_axis.z - 1) {
+            continue;
+        }
+        if (g.x == 0 || g.y == 0 || g.z == 0) {
+            continue;
         }
 
-        if (current_node_y < num_mpm_nodes) {
-            SetRow3(D_T, start_row + n * 3 + 1, body_offset + n * 3, real3(0, -factor, 0));
-            SetRow3(D_T, start_row + n * 3 + 1, body_offset + current_node_y * 3, real3(0, factor, 0));
-        }
-
-        if (current_node_z < num_mpm_nodes) {
-            SetRow3(D_T, start_row + n * 3 + 2, body_offset + n * 3, real3(0, 0, -factor));
-            SetRow3(D_T, start_row + n * 3 + 2, body_offset + current_node_z * 3, real3(0, 0, factor));
-        }
+        SetRow3(D_T, start_row + n, body_offset + GridHash(g.x - 1, g.y, g.z, bins_per_axis) * 3, real3(factor, 0, 0));
+        SetRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y - 1, g.z, bins_per_axis) * 3, real3(0, factor, 0));
+        SetRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y, g.z - 1, bins_per_axis) * 3, real3(0, 0, factor));
+        SetRow3(D_T, start_row + n, body_offset + n * 3, 4 * real3(-factor, -factor, -factor));
+        SetRow3(D_T, start_row + n, body_offset + GridHash(g.x + 1, g.y, g.z, bins_per_axis) * 3, real3(factor, 0, 0));
+        SetRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y + 1, g.z, bins_per_axis) * 3, real3(0, factor, 0));
+        SetRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y, g.z + 1, bins_per_axis) * 3, real3(0, 0, factor));
     }
 }
 void ChFLIPContainer::Build_b() {
@@ -298,15 +294,13 @@ void ChFLIPContainer::Build_b() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     const real dt = data_manager->settings.step_size;
 
-    for (int index = 0; index < num_mpm_nodes; index++) {
-        if (data_manager->host_data.node_mass[index] > 0) {
-            real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
-            printf("density: %f\n", density);
-            b_sub[index * 3 + 0] = (density / rho - 1.0);
-            b_sub[index * 3 + 1] = (density / rho - 1.0);
-            b_sub[index * 3 + 2] = (density / rho - 1.0);
+        for (int index = 0; index < num_mpm_nodes; index++) {
+            if (data_manager->host_data.node_mass[index] > 0) {
+                real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
+                // printf("density: %f\n", density);
+                b_sub[index] = (density / rho - 1.0);
+            }
         }
-    }
     // SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
     // b_sub =
     //   b_sub- dt * blaze::submatrix(D_T, start_row, body_offset, num_mpm_nodes * 3, num_mpm_nodes * 3) * v_sub;
@@ -326,30 +320,43 @@ void ChFLIPContainer::GenerateSparsity() {
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
 
     for (int n = 0; n < num_mpm_nodes; n++) {
-        int3 grid_index = GridDecode(n, bins_per_axis);
+        int3 g = GridDecode(n, bins_per_axis);
 
-        const int current_node_x = GridHash(grid_index.x + 1, grid_index.y, grid_index.z, bins_per_axis);
-        const int current_node_y = GridHash(grid_index.x, grid_index.y + 1, grid_index.z, bins_per_axis);
-        const int current_node_z = GridHash(grid_index.x, grid_index.y, grid_index.z + 1, bins_per_axis);
-        // printf("current_node: %d %d %d\n", current_node_x, current_node_y, current_node_z);
-
-        if (current_node_x < num_mpm_nodes) {
-            AppendRow3(D_T, start_row + n * 3 + 0, body_offset + n * 3, 0);
-            AppendRow3(D_T, start_row + n * 3 + 0, body_offset + current_node_x * 3, 0);
+        if (g.x >= bins_per_axis.x - 1 || g.y >= bins_per_axis.y - 1 || g.z >= bins_per_axis.z - 1) {
+            D_T.finalize(start_row + n);
+            continue;
         }
-        D_T.finalize(start_row + n * 3 + 0);
-
-        if (current_node_y < num_mpm_nodes) {
-            AppendRow3(D_T, start_row + n * 3 + 1, body_offset + n * 3, 0);
-            AppendRow3(D_T, start_row + n * 3 + 1, body_offset + current_node_y * 3, 0);
+        if (g.x == 0 || g.y == 0 || g.z == 0) {
+            D_T.finalize(start_row + n);
+            continue;
         }
-        D_T.finalize(start_row + n * 3 + 1);
-
-        if (current_node_z < num_mpm_nodes) {
-            AppendRow3(D_T, start_row + n * 3 + 2, body_offset + n * 3, 0);
-            AppendRow3(D_T, start_row + n * 3 + 2, body_offset + current_node_z * 3, 0);
-        }
-        D_T.finalize(start_row + n * 3 + 2);
+//        printf("current_node: row %d, [%d %d %d] %d [%d %d %d] \n", n,
+//               body_offset + GridHash(g.x, g.y, g.z - 1, bins_per_axis) * 3,
+//               body_offset + GridHash(g.x, g.y - 1, g.z, bins_per_axis) * 3,
+//               body_offset + GridHash(g.x - 1, g.y, g.z, bins_per_axis) * 3, body_offset + n * 3,
+//               body_offset + GridHash(g.x + 1, g.y, g.z, bins_per_axis) * 3,
+//               body_offset + GridHash(g.x, g.y + 1, g.z, bins_per_axis) * 3,
+//               body_offset + GridHash(g.x, g.y, g.z + 1, bins_per_axis) * 3);
+        AppendRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y, g.z - 1, bins_per_axis) * 3, 0);
+        AppendRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y - 1, g.z, bins_per_axis) * 3, 0);
+        AppendRow3(D_T, start_row + n, body_offset + GridHash(g.x - 1, g.y, g.z, bins_per_axis) * 3, 0);
+        AppendRow3(D_T, start_row + n, body_offset + n * 3, 0);
+        AppendRow3(D_T, start_row + n, body_offset + GridHash(g.x + 1, g.y, g.z, bins_per_axis) * 3, 0);
+        AppendRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y + 1, g.z, bins_per_axis) * 3, 0);
+        AppendRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y, g.z + 1, bins_per_axis) * 3, 0);
+        D_T.finalize(start_row + n);
+        //
+        //        if (current_node_y < num_mpm_nodes) {
+        //            AppendRow3(D_T, start_row + n * 3 + 1, body_offset + n * 3, 0);
+        //            AppendRow3(D_T, start_row + n * 3 + 1, body_offset + current_node_y * 3, 0);
+        //        }
+        //        D_T.finalize(start_row + n * 3 + 1);
+        //
+        //        if (current_node_z < num_mpm_nodes) {
+        //            AppendRow3(D_T, start_row + n * 3 + 2, body_offset + n * 3, 0);
+        //            AppendRow3(D_T, start_row + n * 3 + 2, body_offset + current_node_z * 3, 0);
+        //        }
+        //        D_T.finalize(start_row + n * 3 + 2);
     }
 }
 void ChFLIPContainer::PreSolve() {}
