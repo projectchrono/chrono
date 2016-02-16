@@ -131,6 +131,8 @@ set(CV_TERRAIN_FILES
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
+	terrain/DeformableTerrain.h
+    terrain/DeformableTerrain.cpp
 )
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
 

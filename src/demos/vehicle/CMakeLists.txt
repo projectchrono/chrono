@@ -19,6 +19,7 @@ ADD_SUBDIRECTORY(demo_ArticulatedVehicle)
 ADD_SUBDIRECTORY(demo_VehicleAssembly)
 ADD_SUBDIRECTORY(demo_SteeringController)
 ADD_SUBDIRECTORY(demo_TireTestRig)
+ADD_SUBDIRECTORY(demo_DeformableSoil)
 
 ADD_SUBDIRECTORY(demo_M113)
 ADD_SUBDIRECTORY(demo_TrackTestRig)

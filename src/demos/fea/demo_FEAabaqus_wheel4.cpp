@@ -229,11 +229,11 @@ int main(int argc, char* argv[]) {
     mtrussmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis_simple.obj"));
     mtrussmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI_2, VECT_Z) % Q_from_AngAxis(CH_C_PI_2, VECT_Y) );
     mtruss->AddAsset(mtrussmesh);
-
+  
     // Create a step
     if (true) {
         auto mfloor_step = std::make_shared<ChBodyEasyBox>(3,0.2,0.5,2700, true);
-        mfloor_step->SetPos( ChVector<>(2,0.1,-1.7));
+        mfloor_step->SetPos( ChVector<>(2,0.1,-1.8));
         mfloor_step->SetBodyFixed(true);
         mfloor_step->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor_step);
@@ -303,16 +303,14 @@ int main(int argc, char* argv[]) {
     my_system.Add(mrevolute_FL);
     mrevolute_FL->Initialize(mtruss, mrim_FL, ChCoordsys<>(tire_center_FL, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
 
-    //// TODO
-    //// for MKL solver we should deactivate at least 1 wheel on four... max 3 wheels can run, 4 will hang..
-    /*
+
     // Make a wheel and connect it to truss:
     std::shared_ptr<ChBody> mrim_BR;
     MakeWheel(my_system, tire_center_BR, tire_alignment, tire_scaleR, tire_scaleW, tire_w0, tire_vel_z0, mysurfmaterial, mtirematerial, mrim_BR);
     auto mrevolute_BR = std::make_shared<ChLinkLockRevolute>();
     my_system.Add(mrevolute_BR);
     mrevolute_BR->Initialize(mtruss, mrim_BR, ChCoordsys<>(tire_center_BR, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
-    */
+
 
     // Make a wheel and connect it to truss:
     std::shared_ptr<ChBody> mrim_FR;

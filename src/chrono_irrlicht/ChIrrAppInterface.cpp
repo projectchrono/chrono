@@ -107,6 +107,21 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     GetLog() << "Stop saving frames in /video_capture directory.\n";
                 }
                 return true;
+        case irr::KEY_F4:
+                if (app->camera_auto_rotate_speed <=0)
+                    app->camera_auto_rotate_speed = 0.02;
+                else 
+                    app->camera_auto_rotate_speed *= 1.5;
+                return true;
+        case irr::KEY_F3:
+                app->camera_auto_rotate_speed =0;
+                return true;
+        case irr::KEY_F2:
+                if (app->camera_auto_rotate_speed >=0)
+                    app->camera_auto_rotate_speed = -0.02;
+                else 
+                    app->camera_auto_rotate_speed *= 1.5;
+                return true;
         case irr::KEY_ESCAPE:
                 app->GetDevice()->closeDevice();
                 return true;
@@ -353,6 +368,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
       videoframe_num(0),
       videoframe_each(1),
       symbolscale(1.0),
+      camera_auto_rotate_speed(0.0),
       selectedtruss(0),
       selectedspring(0),
       selectedmover(0) {
@@ -547,6 +563,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     hstr += " 'F8' key: dump a .json file.\n";
     hstr += " 'F10' key: non-linear statics.\n";
     hstr += " 'F11' key: linear statics.\n";
+    hstr += " 'F3-F4-F5' key: auto rotate camera.\n";
     gad_textHelp->setText(hstr.c_str());
 
     ///
@@ -597,6 +614,14 @@ void ChIrrAppInterface::SetFonts(const std::string& mfontdir) {
 // Clean canvas at beginning of scene.
 void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SColor color) {
     GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
+
+    if (camera_auto_rotate_speed) {
+        irr::core::vector3df pos   = GetSceneManager()->getActiveCamera()->getPosition();
+        irr::core::vector3df target = GetSceneManager()->getActiveCamera()->getTarget();
+        pos.rotateXZBy(camera_auto_rotate_speed, target);
+        GetSceneManager()->getActiveCamera()->setPosition(pos);
+        GetSceneManager()->getActiveCamera()->setTarget(target);
+    }
 }
 
 // Call this to end the scene draw at the end of each animation frame.
