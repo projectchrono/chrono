@@ -1,5 +1,5 @@
 #=============================================================================
-# CMake configuration file for the SUSPENSION_TEST_RIG demo.
+# CMake configuration file for the DEFORMABLE_SOIL demo.
 # This example program works only with Irrlicht run-time visualization
 #=============================================================================
 
@@ -7,7 +7,7 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add SUSPENSION_TEST_RIG demo")
+MESSAGE(STATUS "...add DEFORMABLE_SOIL demo")
 
 #--------------------------------------------------------------
 # List all model files for this demo
