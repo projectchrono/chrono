@@ -50,9 +50,19 @@ const std::string M113_Vehicle::m_chassisMeshFile = vehicle::GetDataFile("M113/C
 const ChCoordsys<> M113_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
+// Constructors
 // -----------------------------------------------------------------------------
 M113_Vehicle::M113_Vehicle(bool fixed, ChMaterialSurfaceBase::ContactMethod contactMethod)
     : ChTrackedVehicle("M113 Vehicle", contactMethod), m_chassisVisType(PRIMITIVES) {
+    Create(fixed);
+}
+
+M113_Vehicle::M113_Vehicle(bool fixed, ChSystem* system)
+    : ChTrackedVehicle("M113 Vehicle", system), m_chassisVisType(PRIMITIVES) {
+    Create(fixed);
+}
+
+void M113_Vehicle::Create(bool fixed) {
     // Create the chassis body
     m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
 

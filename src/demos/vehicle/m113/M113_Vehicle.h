@@ -32,6 +32,8 @@ class M113_Vehicle : public chrono::vehicle::ChTrackedVehicle {
     M113_Vehicle(bool fixed,
                  chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
+    M113_Vehicle(bool fixed, chrono::ChSystem* system);
+
     ~M113_Vehicle() {}
 
     virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
@@ -47,6 +49,8 @@ class M113_Vehicle : public chrono::vehicle::ChTrackedVehicle {
     void ExportMeshPovray(const std::string& out_dir);
 
   private:
+    void Create(bool fixed);
+
     // Chassis visualization mesh
     static const std::string m_chassisMeshName;
     static const std::string m_chassisMeshFile;
