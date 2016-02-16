@@ -125,6 +125,8 @@ real3 operator-(const real3& a);
 real3 operator*(real lhs, const real3& rhs);
 real3 operator/(real lhs, const real3& rhs);
 
+bool operator<(const real3& lhs, const real3& rhs);
+bool operator>(const real3& lhs, const real3& rhs);
 bool operator==(const real3& lhs, const real3& rhs);
 
 real3 Cross(const real3& b, const real3& c);
