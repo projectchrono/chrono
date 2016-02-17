@@ -52,7 +52,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> link_local(0, GetSteeringLinkCOM(), 0);
     ChVector<> link_abs = steering_to_abs.TransformPointLocalToParent(link_local);
 
-    m_link = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(link_abs);
     m_link->SetRot(steering_to_abs.GetRot());
