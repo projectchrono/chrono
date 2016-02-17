@@ -21,6 +21,13 @@ ChBody* ChSystemParallelDEM::NewBody() {
   return new ChBody(ChMaterialSurfaceBase::DEM);
 }
 
+ChBodyAuxRef* ChSystemParallelDEM::NewBodyAuxRef() {
+    if (collision_system_type == COLLSYS_PARALLEL)
+        return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+
+    return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM);
+}
+
 void ChSystemParallelDEM::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
   assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DEM);
 
