@@ -39,35 +39,6 @@ namespace chrono {
 namespace vehicle {
 
 
-ChColor ComputeFalseColor(double v,double vmin,double vmax)
-{
-   ChColor c = {1.0,1.0,1.0, 0.0}; // default white
-   double dv;
-
-   if (v < vmin)
-      v = vmin;
-   if (v > vmax)
-      v = vmax;
-   dv = vmax - vmin;
-
-   if (v < (vmin + 0.25 * dv)) {
-      c.R = 0;
-      c.G = 4 * (v - vmin) / dv;
-   } else if (v < (vmin + 0.5 * dv)) {
-      c.R = 0;
-      c.B = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
-   } else if (v < (vmin + 0.75 * dv)) {
-      c.R = 4 * (v - vmin - 0.5 * dv) / dv;
-      c.B = 0;
-   } else {
-      c.G = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
-      c.B = 0;
-   }
-
-   return(c);
-}
-
-
 // -----------------------------------------------------------------------------
 // Default constructor.
 // -----------------------------------------------------------------------------
@@ -467,16 +438,40 @@ void DeformableTerrain::UpdateInternalForces() {
             ChColor mcolor;
             switch (plot_type) {
                 case PLOT_SINKAGE:
-                    mcolor = ComputeFalseColor(-p_sinkage[iv], plot_v_min, plot_v_max);
+                    mcolor = ChColor::ComputeFalseColor(p_sinkage[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_SINKAGE_ELASTIC:
+                    mcolor = ChColor::ComputeFalseColor(p_sinkage_elastic[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_SINKAGE_PLASTIC:
+                    mcolor = ChColor::ComputeFalseColor(p_sinkage_plastic[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_STEP_PLASTIC_FLOW:
+                    mcolor = ChColor::ComputeFalseColor(p_step_plastic_flow[iv], plot_v_min, plot_v_max);
                     break;
                 case PLOT_K_JANOSI:
-                    mcolor = ComputeFalseColor(p_kshear[iv], plot_v_min, plot_v_max);
+                    mcolor = ChColor::ComputeFalseColor(p_kshear[iv], plot_v_min, plot_v_max);
                     break;
                 case PLOT_PRESSURE:
-                    mcolor = ComputeFalseColor(p_sigma[iv], plot_v_min, plot_v_max);
+                    mcolor = ChColor::ComputeFalseColor(p_sigma[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_PRESSURE_YELD:
+                    mcolor = ChColor::ComputeFalseColor(p_sigma_yeld[iv], plot_v_min, plot_v_max);
                     break;
                 case PLOT_SHEAR:
-                    mcolor = ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
+                    mcolor = ChColor::ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
+                    break;
+                case PLOT_ISLAND_ID:
+                    if (p_id_island[iv])
+                        mcolor = ChColor::ComputeFalseColor(3 +(p_id_island[iv] % 8), 0, 11);
+                    else
+                        mcolor = ChColor(0,0,1);
+                    break;
+                case PLOT_IS_TOUCHED:
+                    if (p_step_touched[iv])
+                        mcolor = ChColor(1,0,0);
+                    else 
+                        mcolor = ChColor(0,0,1);
                     break;
             }
             colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
