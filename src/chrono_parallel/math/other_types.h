@@ -37,8 +37,31 @@ struct short2 {
     short x, y;
 };
 
-struct int2 {
-    int x, y;
+class int2 {
+  public:
+    inline int2() : x(0), y(0) {}
+    inline int2(int a) : x(a), y(a) {}
+    inline int2(int a, int b, int c) : x(a), y(b) {}
+    inline int2(const int2& v) : x(v.x), y(v.y) {}
+    inline int2(const real2& v) : x(v.x), y(v.y) {}
+    inline int operator[](unsigned int i) const { return array[i]; }
+    inline int& operator[](unsigned int i) { return array[i]; }
+    inline int2& operator=(const int2& rhs) {
+        x = rhs.x;
+        y = rhs.y;
+        return *this;
+    }
+    inline int2& operator=(const real2& rhs) {
+        x = rhs.x;
+        y = rhs.y;
+        return *this;
+    }
+    union {
+        int array[2];
+        struct {
+            int x, y;
+        };
+    };
 };
 
 class int3 {
