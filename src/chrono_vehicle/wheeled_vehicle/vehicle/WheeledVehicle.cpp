@@ -300,8 +300,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     // -------------------------------------------
     // Create the chassis body
     // -------------------------------------------
-
-    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
 
     m_chassisMass = d["Chassis"]["Mass"].GetDouble();
     m_chassisCOM = loadVector(d["Chassis"]["COM"]);
