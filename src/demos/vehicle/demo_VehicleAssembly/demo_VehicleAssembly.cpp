@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     // Ground body
-    auto ground = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
+    auto ground = std::shared_ptr<ChBody>(system->NewBody());
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
