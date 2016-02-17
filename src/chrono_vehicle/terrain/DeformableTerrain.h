@@ -20,6 +20,7 @@
 #define DEFORMABLE_TERRAIN_H
 
 #include <string>
+#include <set>
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColorAsset.h"
@@ -109,7 +110,8 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
                     double mBekker_n,    ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
                     double mMohr_cohesion, ///< Cohesion in, Pa, for shear failure
                     double mMohr_friction, ///< Friction angle (in degrees!), for shear failure
-                    double mJanosi_shear   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
+                    double mJanosi_shear,  ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
+                    double melastic_K      ///< elastic stiffness K (for very high values it tends to the original SCM model)
                     ) {
         Bekker_Kphi = mBekker_Kphi;
         Bekker_Kc = mBekker_Kc;
@@ -117,15 +119,22 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
         Mohr_cohesion = mMohr_cohesion;
         Mohr_friction = mMohr_friction;
         Janosi_shear  = mJanosi_shear;
+        elastic_K  = melastic_K;
     }
 
 
     enum eChSoilDataPlot {
         PLOT_NONE ,
         PLOT_SINKAGE ,
+        PLOT_SINKAGE_ELASTIC ,
+        PLOT_SINKAGE_PLASTIC ,
+        PLOT_STEP_PLASTIC_FLOW,
         PLOT_PRESSURE,
+        PLOT_PRESSURE_YELD,
         PLOT_SHEAR,
-        PLOT_K_JANOSI
+        PLOT_K_JANOSI,
+        PLOT_IS_TOUCHED,
+        PLOT_ISLAND_ID
     };
 
     /// Set the color plot type for the soil mesh. 
@@ -167,6 +176,11 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     */
 
   private:
+
+      // This is called after Initialize(), it precomputes aux.topology 
+      // data structures for the mesh, aux. material data, etc.
+    void SetupAuxData();
+
     std::shared_ptr<ChColorAsset> m_color;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
     double m_height;
@@ -174,11 +188,15 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     std::vector<ChVector<>> p_vertices_initial;
     std::vector<ChVector<>> p_speeds;
     std::vector<double> p_sinkage;
-    std::vector<double> p_step_sinkage;
+    std::vector<double> p_sinkage_plastic;
+    std::vector<double> p_sinkage_elastic;
+    std::vector<double> p_step_plastic_flow;
     std::vector<double> p_kshear; // Janosi-Hanamoto shear accumulator
     std::vector<double> p_area;
     std::vector<double> p_sigma;
+    std::vector<double> p_sigma_yeld;
     std::vector<double> p_tau;
+    std::vector<int>    p_id_island;
     
     double Bekker_Kphi;
     double Bekker_Kc;
@@ -186,12 +204,16 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
     double Mohr_cohesion;
     double Mohr_friction;
     double Janosi_shear;
+    double elastic_K;
 
     eChSoilDataPlot plot_type;
     double plot_v_min;
     double plot_v_max;
 
     ChCoordsys<> plane;
+
+    // aux. topology data
+    std::vector<std::set<int>> connected_vertexes;
 };
 
 /// @} vehicle_terrain
