@@ -120,19 +120,25 @@ int main(int argc, char* argv[]) {
     mterrain->Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 2, 2, 0, 0.3);
 
     // Set the soil terramechanical parameters:
-    mterrain->SetSoilParametersSCM( 0.2e6, // Bekker Kphi
+    mterrain->SetSoilParametersSCM( 1.2e6, // Bekker Kphi
                                     0,   // Bekker Kc
                                     1.1, // Bekker n exponent
                                     0,   // Mohr cohesive limit (Pa)
                                     20,  // Mohr friction limit (degrees)
-                                    0.01 // Janosi shear coefficient (m)
+                                    0.01,// Janosi shear coefficient (m)
+                                    2e7  // Elastic stiffness (Pa/m), before plastic yeld 
                                     );
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    mterrain->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+    //mterrain->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
     //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
+    mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-   
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
 
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
@@ -163,9 +169,6 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-10);  
   */  
 
-    // Change type of integrator:
-    //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-
 
     application.SetTimestep(0.005);
 
@@ -176,8 +179,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-       // ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20,
-       //                         ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X), video::SColor(50, 90, 90, 90), true);
+        ChIrrTools::drawColorbar(0,30000, "Pressure yeld [Pa]", application.GetDevice(),  1180);
 
         application.EndScene();
     }
