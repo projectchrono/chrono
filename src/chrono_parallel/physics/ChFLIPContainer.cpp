@@ -64,13 +64,17 @@ void ChFLIPContainer::ComputeDOF() {
     bbox_reduction binary_op;
     res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
 
-    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + kernel_radius * 6)),
-                               (Ceil(res.second.y), (res.second.y + kernel_radius * 6)),
-                               (Ceil(res.second.z), (res.second.z + kernel_radius * 6)));
+    res.first.x = kernel_radius * Round(res.first.x / kernel_radius);
+    res.first.y = kernel_radius * Round(res.first.y / kernel_radius);
+    res.first.z = kernel_radius * Round(res.first.z / kernel_radius);
 
-    min_bounding_point = real3((Floor(res.first.x), (res.first.x - kernel_radius * 6)),
-                               (Floor(res.first.y), (res.first.y - kernel_radius * 6)),
-                               (Floor(res.first.z), (res.first.z - kernel_radius * 6)));
+    res.second.x = kernel_radius * Round(res.second.x / kernel_radius);
+    res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
+    res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
+
+    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 8;
+
+    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 6;
 
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
@@ -82,6 +86,7 @@ void ChFLIPContainer::ComputeDOF() {
 
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
+    printf("diag [%f %f %f] edge:%f \n", diag.x, diag.y, diag.z, bin_edge);
     printf("Compute DOF [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
            bin_edge, num_mpm_markers);
 
@@ -118,7 +123,7 @@ void ChFLIPContainer::Update(double ChTime) {
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         const real3 vi = vel_marker[p];
-        LOOPOVERNODES(                                                                                   //
+        LOOPONERING(                                                                                     //
             node_mass[current_node] += N(xi - current_node_location, inv_bin_edge) * mass;               //
             real weight_x = N(xi - (current_node_location - real3(.5 * bin_edge, 0, 0)), inv_bin_edge);  //
             real weight_y = N(xi - (current_node_location - real3(0, .5 * bin_edge, 0)), inv_bin_edge);  //
@@ -144,21 +149,21 @@ void ChFLIPContainer::Update(double ChTime) {
         //}
     }
 
-#pragma omp paralle for
-    for (int i = 0; i < num_mpm_nodes; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
-
-        if (g.x == bins_per_axis.x - 1 || g.y == bins_per_axis.y - 1 || g.z == bins_per_axis.z - 1) {
-            data_manager->host_data.v[body_offset + i * 3 + 0] = 0;
-            data_manager->host_data.v[body_offset + i * 3 + 1] = 0;
-            data_manager->host_data.v[body_offset + i * 3 + 2] = 0;
-        }
-        if (g.x == 0 || g.y == 0 || g.z == 0) {
-            data_manager->host_data.hf[body_offset + i * 3 + 0] = 0;
-            data_manager->host_data.hf[body_offset + i * 3 + 1] = 0;
-            data_manager->host_data.hf[body_offset + i * 3 + 2] = 0;
-        }
-    }
+    //#pragma omp paralle for
+    //    for (int i = 0; i < num_mpm_nodes; i++) {
+    //        int3 g = GridDecode(i, bins_per_axis);
+    //
+    //        if (g.x == bins_per_axis.x - 1 || g.y == bins_per_axis.y - 1 || g.z == bins_per_axis.z - 1) {
+    //            data_manager->host_data.v[body_offset + i * 3 + 0] = 0;
+    //            data_manager->host_data.v[body_offset + i * 3 + 1] = 0;
+    //            data_manager->host_data.v[body_offset + i * 3 + 2] = 0;
+    //        }
+    //        if (g.x == 0 || g.y == 0 || g.z == 0) {
+    //            data_manager->host_data.hf[body_offset + i * 3 + 0] = 0;
+    //            data_manager->host_data.hf[body_offset + i * 3 + 1] = 0;
+    //            data_manager->host_data.hf[body_offset + i * 3 + 2] = 0;
+    //        }
+    //    }
 
     // update the position of the markers based on the nodal velocities
 }
@@ -170,13 +175,13 @@ void ChFLIPContainer::UpdatePosition(double ChTime) {
 
     DynamicVector<real>& v = data_manager->host_data.v;
     printf("Update_Particle_Velocities\n");
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         real3 V_flip = vel_marker[p];
 
         real3 V_pic = real3(0.0);
-        LOOPOVERNODES(                                                                                                //
+        LOOPONERING(                                                                                                  //
             real weight_x = N(xi - (current_node_location - real3(.5 * bin_edge, 0, 0)), inv_bin_edge);               //
             real weight_y = N(xi - (current_node_location - real3(0, .5 * bin_edge, 0)), inv_bin_edge);               //
             real weight_z = N(xi - (current_node_location - real3(0, 0, .5 * bin_edge)), inv_bin_edge);               //
@@ -216,7 +221,7 @@ void ChFLIPContainer::ComputeInvMass(int offset) {
         if (node_mass[i] > C_EPSILON) {
             // inv_mass = 1.0 / node_mass[i];
             real density = node_mass[i] / (bin_edge * bin_edge * bin_edge);
-            inv_mass = dt / (rho);
+            inv_mass = 1 / node_mass[i];
         }
         M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
         M_inv.finalize(offset + i * 3 + 0);
@@ -258,7 +263,7 @@ void ChFLIPContainer::Initialize() {
         const real3 xi = pos_marker[p];
         const real3 vi = vel_marker[p];
 
-        LOOPOVERNODES(                                                                //
+        LOOPONERING(                                                                  //
             real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
             data_manager->host_data.node_mass[current_node] += weight;                //
             )
@@ -270,7 +275,7 @@ void ChFLIPContainer::Initialize() {
         const real3 xi = pos_marker[p];
         real particle_density = 0;
 
-        LOOPOVERNODES(                                                                     //
+        LOOPONERING(                                                                       //
             real weight = N(xi - current_node_location, inv_bin_edge);                     //
             particle_density += data_manager->host_data.node_mass[current_node] * weight;  //
             )
@@ -296,8 +301,14 @@ void ChFLIPContainer::Build_D() {
     for (int n = 0; n < num_mpm_nodes; n++) {
         int3 g = GridDecode(n, bins_per_axis);
 
+        if (g.x == 0 || g.y == 0 || g.z == 0) {
+            continue;
+        }
+        if (g.x == bins_per_axis.x - 1 || g.y == bins_per_axis.y - 1 || g.z == bins_per_axis.z - 1) {
+            continue;
+        }
         real3 fvec = real3(-factor, -factor, -factor);
-
+        real3 fvecod = real3(0, 0, 0);
         if (g.x == 0) {
             fvec.x = 0;
         }
@@ -312,15 +323,21 @@ void ChFLIPContainer::Build_D() {
         if (g.x != bins_per_axis.x - 1) {
             SetRow3(D_T, start_row + n, body_offset + GridHash(g.x + 1, g.y, g.z, bins_per_axis) * 3,
                     real3(factor, 0, 0));
+            fvecod.x = factor;
         }
         if (g.y != bins_per_axis.y - 1) {
             SetRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y + 1, g.z, bins_per_axis) * 3,
                     real3(0, factor, 0));
+            fvecod.y = factor;
         }
         if (g.z != bins_per_axis.z - 1) {
             SetRow3(D_T, start_row + n, body_offset + GridHash(g.x, g.y, g.z + 1, bins_per_axis) * 3,
                     real3(0, 0, factor));
+            fvecod.z = factor;
         }
+
+        //        printf("D: [%d %d %d] %f %f %f %f %f %f\n", g.x, g.y, g.z, fvec.x, fvec.y, fvec.z, fvecod.x, fvecod.y,
+        //               fvecod.z);
     }
 }
 void ChFLIPContainer::Build_b() {
@@ -330,15 +347,15 @@ void ChFLIPContainer::Build_b() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     const real dt = data_manager->settings.step_size;
 
-//    for (int index = 0; index < num_mpm_nodes; index++) {
-//        if (data_manager->host_data.node_mass[index] > C_EPSILON) {
-//            real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
-//            // printf("density: %f\n", density);
-//            b_sub[index] = (density / rho - 1.0);
-//        } else {
-//            b_sub[index] = 0;
-//        }
-//    }
+    //        for (int index = 0; index < num_mpm_nodes; index++) {
+    //            if (data_manager->host_data.node_mass[index] > C_EPSILON) {
+    //                real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
+    //                // printf("density: %f\n", density);
+    //                b_sub[index] = (density / rho - 1.0);
+    //            } else {
+    //                b_sub[index] = 0;
+    //            }
+    //        }
     // SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
     // b_sub =
     //   b_sub- dt * blaze::submatrix(D_T, start_row, body_offset, num_mpm_nodes * 3, num_mpm_nodes * 3) * v_sub;
@@ -380,9 +397,17 @@ void ChFLIPContainer::PostSolve() {
     for (int i = 0; i < gamma_sub.size(); i++) {
         int3 g = GridDecode(i, bins_per_axis);
         int hash = GridHash(g.x, g.y, g.z, bins_per_axis);
-        // if (node_mass[i] > C_EPSILON) {
-        printf("gamma: %f [%d %d %d] %.20f [%d %d]\n", gamma_sub[i], g.x, g.y, g.z, node_mass[i], hash, i);
-        //}
+        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
+        if (node_mass[i] > C_EPSILON) {
+            printf("gamma: %f [%d %d %d] %.20f [%d %d] [%f %f %f] \n", gamma_sub[i], g.x, g.y, g.z, node_mass[i], hash,
+                   i, current_node_location.x, current_node_location.y, current_node_location.z);
+        }
+    }
+
+    SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
+
+    for (int i = 0; i < v_sub.size(); i += 3) {
+        printf("v: [%f,%f,%f] [%d] \n", v_sub[i * 3 + 0], v_sub[i * 3 + 1], v_sub[i * 3 + 2], i);
     }
 }
 
