@@ -72,7 +72,7 @@ Project Chrono is a physics-based modeling and simulation infrastructure based o
 </div>
 
 <div class="col-sm-6 media">
-    <a class="media-left" href="#"> <img class="media-object" src="/images/people/125px-PhotoArman.jpg" alt="Antonio Recuero" width = "125px"></a>
+    <a class="media-left" href="#"> <img class="media-object" src="/images/people/125px-PhotoAnonymous.jpg" alt="Antonio Recuero" width = "125px"></a>
     <div class="media-body">
         <h4 class="media-heading"><a href="link= http://sbel.wisc.edu/People/ ">Antonio Recuero</a></h4>
         <h6>University of Wisconsin, Madison </h6>
