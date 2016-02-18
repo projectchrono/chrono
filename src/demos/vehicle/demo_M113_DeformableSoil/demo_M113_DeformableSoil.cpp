@@ -264,7 +264,7 @@ void AddFixedObstacles(ChSystem* system) {
     float young_modulus = 2e7f;
     float poisson_ratio = 0.3f;
 
-    auto obstacle = std::make_shared<ChBody>(system->GetContactMethod());
+    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(0, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
@@ -321,7 +321,7 @@ void AddMovingObstacles(ChSystem* system) {
     material->SetFriction(0.4f);
 
     // Create a ball
-    auto ball = std::make_shared<ChBody>(system->GetContactMethod());
+    auto ball = std::shared_ptr<ChBody>(system->NewBody());
 
     ball->SetMass(mass);
     ball->SetPos(pos);
