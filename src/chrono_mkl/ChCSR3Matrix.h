@@ -132,9 +132,9 @@ namespace chrono{
 		symmetry_type GetSymmetry() const { return symmetry; }
 
 		// Testing functions
-		bool CheckArraysAlignment(int alignment = 0);
-		void GetMemoryInfo();
-		int VerifyMatrix();
+		bool CheckArraysAlignment(int alignment = 0) const;
+		void GetMemoryInfo() const;
+		int VerifyMatrix() const;
 
 		// Import/Export functions
 		void ImportFromDatFile(std::string filepath);
