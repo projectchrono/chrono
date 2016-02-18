@@ -118,12 +118,13 @@ int main(int argc, char* argv[]) {
     auto terrain = std::make_shared<DeformableTerrain>(vehicle.GetSystem());
     vehicle.GetSystem()->Add(terrain);
     terrain->SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    terrain->SetSoilParametersSCM(0.2e9,  // Bekker Kphi
-                                  0,      // Bekker Kc
-                                  1.1,    // Bekker n exponent
-                                  0,      // Mohr cohesive limit (Pa)
-                                  20,     // Mohr friction limit (degrees)
-                                  0.01    // Janosi shear coefficient (m)
+    terrain->SetSoilParametersSCM(2e7,   // Bekker Kphi
+                                  0,     // Bekker Kc
+                                  1.1,   // Bekker n exponent
+                                  0,     // Mohr cohesive limit (Pa)
+                                  20,    // Mohr friction limit (degrees)
+                                  0.01,  // Janosi shear coefficient (m)
+                                  2e8    // Elastic stiffness (Pa/m), before plastic yeld
                                   );
     terrain->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
     ////terrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
