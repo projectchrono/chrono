@@ -320,7 +320,7 @@ class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
     void Build_E();
     void UpdateRhs();
     void Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma);
-    void Project(real* gamma) {}
+    void Project(real* gamma);
     void GenerateSparsity();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);

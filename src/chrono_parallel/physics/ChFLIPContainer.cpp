@@ -290,6 +290,14 @@ void ChFLIPContainer::Initialize() {
 // r = b + D*(v+dt*(dt/rho)*f)
 
 // r = b+D*v + D*dt*Minv*f
+void ChFLIPContainer::Project(real* gamma) {
+    //    for (int i = 0; i < num_mpm_constraints; i++) {
+    //        if (gamma[start_node + i] < 0) {
+    //            gamma[start_node + i] = 0;
+    //        }
+    //    }
+}
+
 void ChFLIPContainer::Build_D() {
     LOG(INFO) << "ChFLIPContainer::Build_D";
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
