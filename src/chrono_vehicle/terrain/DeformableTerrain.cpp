@@ -56,6 +56,7 @@ DeformableTerrain::DeformableTerrain(ChSystem* system) {
     this->AddAsset(m_trimesh_shape);
     m_trimesh_shape->SetWireframe(false);
 
+    do_bulldozing = false;
 
     Bekker_Kphi = 2e6;
     Bekker_Kc = 0;
@@ -381,6 +382,7 @@ void DeformableTerrain::UpdateInternalForces() {
         p_area[idx_normals[it].z] += triangle_area /3.0;
     }
 
+    ChVector<> N    = plane.TransformDirectionLocalToParent(ChVector<>(0,1,0));
 
     //
     // Perform ray-hit test to detect the contact point sinkage
@@ -388,16 +390,12 @@ void DeformableTerrain::UpdateInternalForces() {
     
     collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
 
-    std::vector<bool> p_step_touched;
-    p_step_touched.resize( vertices.size());
-
     for (int i=0; i< vertices.size(); ++i) {
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i]=0;
-
-        ChVector<> N    = plane.TransformDirectionLocalToParent(ChVector<>(0,1,0));
-        ChVector<> to   = p_vertices_initial[i] - (N* p_sinkage_plastic[i]*0.95);
+  
+        ChVector<> to   = vertices[i] +N*0.01; //p_vertices_initial[i] - (N* p_sinkage_plastic[i]*0.95);
         ChVector<> from = to - N*0.5;
 
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
@@ -413,10 +411,7 @@ void DeformableTerrain::UpdateInternalForces() {
             T = plane.TransformDirectionParentToLocal(T);
             T.y=0;
             T = plane.TransformDirectionLocalToParent(T);
-            T.Normalize();
-
-            // accumulate shear for Janosi-Hanamoto
-            p_kshear[i] += Vdot(p_speeds[i],-T) * this->GetSystem()->GetStep();
+            T.Normalize();   
 
             // Compute i-th force:
             ChVector<> Fn;
@@ -425,87 +420,123 @@ void DeformableTerrain::UpdateInternalForces() {
             // Elastic try:
             p_sigma[i] = elastic_K * (test_sinkage - p_sinkage_plastic[i]);
 
+            // Handle unilaterality:
             if (p_sigma[i] <0) {
                 p_sigma[i] =0;
-            }else {
+            }
+            else {
                 p_sinkage[i] = test_sinkage;
-                p_step_touched[i] =true;
-            }
 
-            // Plastic correction:
-            if (p_sigma[i] > p_sigma_yeld[i]) {
-                // Bekker formula, neglecting Bekker_Kc and 'b'
-                p_sigma[i] = this->Bekker_Kphi * pow(p_sinkage[i], this->Bekker_n );
-                p_sigma_yeld[i]= p_sigma[i];
-                double old_sinkage_plastic = p_sinkage_plastic[i];
-                p_sinkage_plastic[i] = p_sinkage[i] - p_sigma[i]/elastic_K;
-                p_step_plastic_flow[i] = (p_sinkage_plastic[i] - old_sinkage_plastic)/this->GetSystem()->GetStep();
-            }
+                // Accumulate shear for Janosi-Hanamoto
+                p_kshear[i] += Vdot(p_speeds[i],-T) * this->GetSystem()->GetStep();
 
-            p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
+                // Plastic correction:
+                if (p_sigma[i] > p_sigma_yeld[i]) {
+                    // Bekker formula, neglecting Bekker_Kc and 'b'
+                    p_sigma[i] = this->Bekker_Kphi * pow(p_sinkage[i], this->Bekker_n );
+                    p_sigma_yeld[i]= p_sigma[i];
+                    double old_sinkage_plastic = p_sinkage_plastic[i];
+                    p_sinkage_plastic[i] = p_sinkage[i] - p_sigma[i]/elastic_K;
+                    p_step_plastic_flow[i] = (p_sinkage_plastic[i] - old_sinkage_plastic)/this->GetSystem()->GetStep();
+                }
 
-            // Mohr-Coulomb
-            double tau_max = this->Mohr_cohesion + p_sigma[i] * tan(this->Mohr_friction*CH_C_DEG_TO_RAD);
+                p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
 
-            // Janosi-Hanamoto
-            p_tau[i] = tau_max * (1.0 - exp(- (p_kshear[i]/this->Janosi_shear)));
+                // Mohr-Coulomb
+                double tau_max = this->Mohr_cohesion + p_sigma[i] * tan(this->Mohr_friction*CH_C_DEG_TO_RAD);
+
+                // Janosi-Hanamoto
+                p_tau[i] = tau_max * (1.0 - exp(- (p_kshear[i]/this->Janosi_shear)));
             
-            Fn = N * p_area[i] * p_sigma[i];
-            Ft = T * p_area[i] * p_tau[i];
+                Fn = N * p_area[i] * p_sigma[i];
+                Ft = T * p_area[i] * p_tau[i];
 
-            if (ChBody* rigidbody = dynamic_cast<ChBody*>(mrayhit_result.hitModel->GetPhysicsItem())) {
-                // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody() 
-                // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem() 
-                // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-                std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*){}); 
-                std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn+Ft, false, vertices[i], false));
-                this->Add(mload);
-            }
+                if (ChBody* rigidbody = dynamic_cast<ChBody*>(mrayhit_result.hitModel->GetPhysicsItem())) {
+                    // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody() 
+                    // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem() 
+                    // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
+                    std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*){}); 
+                    std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn+Ft, false, vertices[i], false));
+                    this->Add(mload);
+                }
 
-            // Update mesh representation
-            vertices[i] = p_vertices_initial[i] - N * p_sinkage[i]; 
-        }
-    }
+                // Update mesh representation
+                vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
+
+            } // end positive contact force
+
+        } // end successfull hit test
+
+    } // end loop on vertexes
+
 
     //
     // Flow material to the side of rut, using heuristics
     // 
-    std::set<int> touched_vertexes;
-    for (int iv = 0; iv< vertices.size(); ++iv) {
-        p_id_island[iv] = 0;
-        if (p_step_touched[iv])
-            touched_vertexes.insert(iv);
-    }
-    int id_island = 0;
-    for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end(); fillseed = touched_vertexes.begin()) {
-        // new island:
-        ++id_island;
-        std::set<int> fill_front;
 
-        int n_vert_island = 1;
-        fill_front.insert(*fillseed);
-        p_id_island[*fillseed] = id_island;
-        touched_vertexes.erase(fillseed);
-        while (fill_front.size() >0) {
-            // fill next front
-            std::set<int> fill_front_2;
-            for (auto ifront = fill_front.begin(); ifront != fill_front.end(); ++ifront) {
-                //GetLog() << "a.  ifront=" << (*ifront) << "\n";
-                for (auto ivconnect = connected_vertexes[*ifront].begin(); ivconnect != connected_vertexes[*ifront].end(); ++ivconnect) {
-                    //GetLog() << " b.   ivconnect=" << (*ivconnect) << "\n";
-                    if ((p_step_touched[*ivconnect]==true) && (p_id_island[*ivconnect]==0)) {
-                        //GetLog() << "  c.\n";
-                        ++n_vert_island;
-                        fill_front_2.insert(*ivconnect);
-                        p_id_island[*ivconnect] = id_island;
-                        touched_vertexes.erase(*ivconnect);
+    if (do_bulldozing) {
+        std::set<int> touched_vertexes;
+        for (int iv = 0; iv< vertices.size(); ++iv) {
+            p_id_island[iv] = 0;
+            if (p_sigma[iv]>0)
+                touched_vertexes.insert(iv);
+        }
+
+        int id_island = 0;
+
+        for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end(); fillseed = touched_vertexes.begin()) {
+            // new island:
+            ++id_island;
+            std::set<int> fill_front;
+
+            std::set<int> boundary;
+            int n_vert_boundary = 0;
+            double tot_area_boundary = 0;
+            double tot_length_boundary = 0;
+
+            int n_vert_island = 1;
+            double tot_step_flow_island = p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
+            double tot_Nforce_island = p_area[*fillseed] * p_sigma[*fillseed];
+            fill_front.insert(*fillseed);
+            p_id_island[*fillseed] = id_island;
+            touched_vertexes.erase(fillseed);
+            while (fill_front.size() >0) {
+                // fill next front
+                std::set<int> fill_front_2;
+                for (auto ifront = fill_front.begin(); ifront != fill_front.end(); ++ifront) {
+                    for (auto ivconnect = connected_vertexes[*ifront].begin(); ivconnect != connected_vertexes[*ifront].end(); ++ivconnect) {
+                        if ((p_sigma[*ivconnect]>0) && (p_id_island[*ivconnect]==0)) {
+                            ++n_vert_island;
+                            tot_step_flow_island += p_area[*ivconnect] * p_step_plastic_flow[*ivconnect] * this->GetSystem()->GetStep();
+                            tot_Nforce_island += p_area[*ivconnect] * p_sigma[*ivconnect];
+                            fill_front_2.insert(*ivconnect);
+                            p_id_island[*ivconnect] = id_island;
+                            touched_vertexes.erase(*ivconnect);
+                        }
+                        if ((p_sigma[*ivconnect]==0) && (p_id_island[*ivconnect]<=0) && (p_id_island[*ivconnect] != -id_island)) {
+                            ++n_vert_boundary;
+                            tot_area_boundary += p_area[*ivconnect];
+                            p_id_island[*ivconnect] = -id_island; // negative to as boundary
+                            boundary.insert(*ivconnect);
+                        }
                     }
                 }
+                // advance to next front
+                fill_front= fill_front_2;
             }
-            // advance to next front
-            fill_front= fill_front_2;
-        }
-    }
+            //GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" << tot_Nforce_island << "\n"; 
+
+            // Raise the boundary because of material flow
+            for (auto ibv : boundary) {
+                double raise_y = ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
+                vertices[ibv]           += N * raise_y;
+                p_vertices_initial[ibv] += N * raise_y;
+            }
+
+        } // end for islands
+
+    } // end bulldozing flow 
+
 
     //
     // Update the visualization colors
@@ -540,13 +571,15 @@ void DeformableTerrain::UpdateInternalForces() {
                     mcolor = ChColor::ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
                     break;
                 case PLOT_ISLAND_ID:
-                    if (p_id_island[iv])
+                    if (p_id_island[iv] >0)
                         mcolor = ChColor::ComputeFalseColor(3 +(p_id_island[iv] % 8), 0, 11);
+                    else if (p_id_island[iv] <0)
+                        mcolor = ChColor(0,0,0);
                     else
                         mcolor = ChColor(0,0,1);
                     break;
                 case PLOT_IS_TOUCHED:
-                    if (p_step_touched[iv])
+                    if (p_sigma[iv]>0)
                         mcolor = ChColor(1,0,0);
                     else 
                         mcolor = ChColor(0,0,1);

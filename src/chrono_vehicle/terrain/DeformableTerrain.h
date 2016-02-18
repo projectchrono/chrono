@@ -111,7 +111,7 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
                     double mMohr_cohesion, ///< Cohesion in, Pa, for shear failure
                     double mMohr_friction, ///< Friction angle (in degrees!), for shear failure
                     double mJanosi_shear,  ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-                    double melastic_K      ///< elastic stiffness K (for very high values it tends to the original SCM model)
+                    double melastic_K      ///< elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
                     ) {
         Bekker_Kphi = mBekker_Kphi;
         Bekker_Kc = mBekker_Kc;
@@ -119,7 +119,7 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
         Mohr_cohesion = mMohr_cohesion;
         Mohr_friction = mMohr_friction;
         Janosi_shear  = mJanosi_shear;
-        elastic_K  = melastic_K;
+        elastic_K  = ChMax(melastic_K, mBekker_Kphi);
     }
 
 
@@ -136,6 +136,10 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
         PLOT_IS_TOUCHED,
         PLOT_ISLAND_ID
     };
+
+    /// If true, enable the creation of lateral effects in ruts, bulldozing the material apart.
+    void SetBulldozingFlow(bool mb) {this->do_bulldozing = mb;}
+    bool GetBulldozingFlow() {return this->do_bulldozing;}
 
     /// Set the color plot type for the soil mesh. 
     /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
@@ -214,6 +218,8 @@ class CH_VEHICLE_API DeformableTerrain : public ChLoadContainer {
 
     // aux. topology data
     std::vector<std::set<int>> connected_vertexes;
+
+    bool do_bulldozing;
 };
 
 /// @} vehicle_terrain
