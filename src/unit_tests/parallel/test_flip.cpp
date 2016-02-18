@@ -28,19 +28,10 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/lcp/MPMUtils.h"
 #include "chrono_parallel/ChDataManager.h"
-// Blaze Includes
-#include <blaze/math/CompressedMatrix.h>
-#include <blaze/math/DynamicVector.h>
-#include <blaze/math/DenseSubvector.h>
 
 using namespace chrono;
 
-using blaze::CompressedMatrix;
 using blaze::DynamicMatrix;
-using blaze::DynamicVector;
-using blaze::SparseSubmatrix;
-using blaze::submatrix;
-using blaze::subvector;
 
 real bin_edge = 1;
 
@@ -54,7 +45,7 @@ uint grid_size = bins_per_axis.x * bins_per_axis.y;
 
 real2 gravity = real2(0, -9.80665);
 real dt = 0.1;
-real rho = 1000;
+real rho = .1;
 DynamicMatrix<real> A;
 ChProjectNone ProjectNone;
 
@@ -64,7 +55,7 @@ void Print(std::ostream& os, const DynamicMatrix<real>& M) {
     for (size_t i = 0UL; i < (~M).rows(); ++i) {
         os << "";
         for (size_t j = 0UL; j < (~M).columns(); ++j) {
-            os << /*std::setw(2) <<*/ (~M)(i, j) << ", ";
+            os << std::setw(2) << (~M)(i, j) << ", ";
         }
         os << "\n";
     }
@@ -113,6 +104,9 @@ int main(int argc, char* argv[]) {
     DynamicVector<real> node_mass(grid_size);
     DynamicVector<real> rhs(grid_size);
     DynamicVector<real> pressure(grid_size);
+    DynamicVector<real> density(grid_size, 0);
+
+    density[5] = rho;
 
     DynamicMatrix<real> M_inv(grid_size * 2, grid_size * 2, 0);
     DynamicMatrix<real> D_T(grid_size, grid_size * 2, 0);
@@ -128,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
-        if (g.x == (bins_per_axis.x - 1) || g.y == (bins_per_axis.y - 1)) {
+        if (density[i] <= 0) {
             v[i * 2 + 0] = 0;
             v[i * 2 + 1] = 0;
 
@@ -147,62 +141,61 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
-        if (g.x == (bins_per_axis.x - 1) || g.y == (bins_per_axis.y - 1)) {
-            continue;
+        if (density[i] > 0) {
+            M_inv(i * 2 + 0, i * 2 + 0) = dt / density[i];
+            M_inv(i * 2 + 1, i * 2 + 1) = dt / density[i];
         }
-        M_inv(i * 2 + 0, i * 2 + 0) = dt / rho;
-        M_inv(i * 2 + 1, i * 2 + 1) = dt / rho;
     }
+
     std::cout << "M_inv:\n";
     Print(std::cout, M_inv);
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
 
-        real2 fx = real2(0, 0);
-        real2 fy = real2(0, 0);
-        // printf("g: [%d %d] [%d %d]\n", g.x, g.y, bins_per_axis.x - 1, bins_per_axis.y - 1);
-        // Do not iterate on the outer edge!
-        if (g.x == (bins_per_axis.x - 1) || g.y == (bins_per_axis.y - 1)) {
-            printf("d: [%d %d] [%f %f] [%f %f]\n", g.x, g.y, 0.0, 0.0, 0.0, 0.0);
+        int g_left = GridHash(g.x - 1, g.y, bins_per_axis);
+        int g_right = GridHash(g.x + 1, g.y, bins_per_axis);
+        int g_up = GridHash(g.x, g.y + 1, bins_per_axis);
+        int g_down = GridHash(g.x, g.y - 1, bins_per_axis);
 
-            D_T(i, i * 2 + 0) = 0;
-            D_T(i, i * 2 + 1) = 0;
+        // Look at mass of cell
+        // Look at mass of cell below and see if it is zero
+        // look at mass of cell above and see if it is zero
 
-            continue;
+        bool cell_active = (density[i] != 0);
+
+        if (cell_active) {
+            D_T(i, i * 2 + 0) = -1;
+            D_T(i, i * 2 + 1) = -1;
+            D_T(i, g_right * 2 + 0) = 1;
+            D_T(i, g_up * 2 + 1) = 1;
         }
-        // Left wall
-        if (g.x == 0) {
-            fx.x = 0;
-        } else {
-            fx.x = -1;
+        if (g.x + 1 < bins_per_axis.x) {
+            if (density[g_right] != 0) {
+                D_T(i, g_right * 2 + 0) = 1;
+                D_T(i, i * 2 + 0) = -1;
+            }
         }
-        // Bottom wall
-        if (g.y == 0) {
-            fy.x = 0;
-        } else {
-            fy.x = -1;
+        if (g.y + 1 < bins_per_axis.y) {
+            if (density[g_up] != 0) {
+                D_T(i, g_up * 2 + 1) = 1;
+                D_T(i, i * 2 + 1) = -1;
+            }
         }
-        // Right wall
-        if (g.x == (bins_per_axis.x - 2)) {
-            fx.y = 0;
-        } else {
-            fx.y = 1;
+        if (g.x - 1 >= 0) {
+            if (density[g_left] != 0) {
+                D_T(i, i * 2 + 0) = -1;
+                D_T(i, g_left * 2 + 0) = 1;
+            }
+        }
+        if (g.y - 1 >= 0) {
+            if (density[g_down] != 0) {
+                D_T(i, i * 2 + 1) = -1;
+                D_T(i, g_down * 2 + 1) = 1;
+            }
         }
 
-        // Top wall
-        // if (g.y == (bins_per_axis.y - 2)) {
-        //fy.y = 0;
-        //} else {
-        fy.y = 1;
-        //}
-
-        D_T(i, i * 2 + 0) = fx.x;
-        D_T(i, i * 2 + 1) = fy.x;
-        D_T(i, GridHash(g.x + 1, g.y, bins_per_axis) * 2 + 0) = fx.y;
-        D_T(i, GridHash(g.x, g.y + 1, bins_per_axis) * 2 + 1) = fy.y;
-
-        printf("D: [%d %d] [%f %f] [%f %f]\n", g.x, g.y, fx.x, fx.y, fy.x, fy.y);
+        // printf("D: [%d %d] [%f %f] [%f %f]\n", g.x, g.y, fx.x, fx.y, fy.x, fy.y);
     }
     D_T = D_T * inv_bin_edge;
 
