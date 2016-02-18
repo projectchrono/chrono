@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChBrake {
     /// The input value is in the range [0,1].<br>
     ///   modulation = 0 indicates no braking<br>
     ///   modulation = 1 indicates that the subsystem should provide maximum braking torque
-    virtual void Update(double modulation) = 0;
+    virtual void Synchronize(double modulation) = 0;
 
     /// Get the current brake torque.
     virtual double GetBrakeTorque() = 0;

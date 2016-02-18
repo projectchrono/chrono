@@ -46,7 +46,7 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChLinkLockRevolute> hub) {
     my_system->AddLink(m_brake);
 }
 
-void ChBrakeSimple::Update(double modulation) {
+void ChBrakeSimple::Synchronize(double modulation) {
     m_modulation = modulation;
     m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
 }
