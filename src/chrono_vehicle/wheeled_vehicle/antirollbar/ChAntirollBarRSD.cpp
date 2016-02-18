@@ -65,7 +65,7 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> P_drop_susp_right = subsystem_to_abs.TransformPointLocalToParent(ChVector<>(W, -L, H));
 
     // Create an initialize the arm_left body
-    m_arm_left = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_arm_left = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_arm_left->SetNameString(m_name + "_arm_left");
     m_arm_left->SetPos(P_arm_left);
     m_arm_left->SetRot(subsystem_to_abs.GetRot());
@@ -76,7 +76,7 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddBody(m_arm_left);
 
     // Create an initialize the arm_right body
-    m_arm_right = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_arm_right = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_arm_right->SetNameString(m_name + "_arm_right");
     m_arm_right->SetPos(P_arm_right);
     m_arm_right->SetRot(subsystem_to_abs.GetRot());

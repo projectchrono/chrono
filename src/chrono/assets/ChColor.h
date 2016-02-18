@@ -48,6 +48,11 @@ class ChApi ChColor {
         return *this;
     }
 
+    /// Compute a false color from a scalar value. Uses a cold-to-hot colormap.
+    /// The 'v' scalar value is mapped in the vmin-vmax range.  
+    /// If out_of_range_as_bw option is true, when v>vmax the color is white and for v<vmin the color is black.
+    static ChColor ComputeFalseColor(double v, double vmin, double vmax, bool out_of_range_as_bw = false);
+
 
     //
     // SERIALIZATION

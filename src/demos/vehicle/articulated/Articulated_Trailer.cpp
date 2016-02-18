@@ -60,7 +60,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
     // -------------------------------------------
     // Create the chassis body
     // -------------------------------------------
-    m_chassis = std::make_shared<ChBodyAuxRef>(mysystem->GetContactMethod());
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(mysystem->NewBodyAuxRef());
 
     m_chassis->SetIdentifier(100);
     m_chassis->SetName("trailer");
@@ -79,7 +79,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
     // -------------------------------------------
     // Create the front steering axle body
     // -------------------------------------------
-    m_frontaxle = std::make_shared<ChBodyAuxRef>(mysystem->GetContactMethod());
+    m_frontaxle = std::shared_ptr<ChBodyAuxRef>(mysystem->NewBodyAuxRef());
 
     m_frontaxle->SetIdentifier(101);
     m_frontaxle->SetMass(m_frontaxleMass);

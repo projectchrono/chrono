@@ -61,7 +61,7 @@ void ChPathFollowerDriver::Create() {
     m_speedPID.Reset(m_vehicle);
 
     // Create a fixed body to carry a visualization asset for the path
-    auto road = std::make_shared<ChBody>();
+    auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 

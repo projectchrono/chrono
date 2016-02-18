@@ -32,6 +32,13 @@ ChBody* ChSystemParallelDVI::NewBody() {
   return new ChBody(ChMaterialSurfaceBase::DVI);
 }
 
+ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
+    if (collision_system_type == COLLSYS_PARALLEL)
+        return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
+
+    return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI);
+}
+
 void ChSystemParallelDVI::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
   assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DVI);
 

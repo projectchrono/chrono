@@ -55,7 +55,7 @@ HMMWV_Vehicle::HMMWV_Vehicle(const bool fixed,
     // -------------------------------------------
     // Create the chassis body
     // -------------------------------------------
-    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
 
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("chassis");
