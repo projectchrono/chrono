@@ -39,7 +39,7 @@ void ChSinglePinShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create the shoe body.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    m_shoe = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_shoe = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_shoe->SetNameString(m_name + "_shoe");
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);

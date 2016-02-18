@@ -52,7 +52,7 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
     // Create and initialize the wheel body.
-    m_wheel = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_wheel->SetNameString(m_name + "_wheel");
     m_wheel->SetPos(wheel_to_abs.GetPos());
     m_wheel->SetRot(wheel_to_abs.GetRot());

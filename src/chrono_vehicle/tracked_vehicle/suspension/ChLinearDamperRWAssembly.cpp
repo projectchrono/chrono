@@ -60,7 +60,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChMatrix33<> rot;
     rot.Set_A_axis(u, v, w);
 
-    m_arm = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_arm = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_arm->SetNameString(m_name + "_arm");
     m_arm->SetPos(points[ARM]);
     m_arm->SetRot(rot);

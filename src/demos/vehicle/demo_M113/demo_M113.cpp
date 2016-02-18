@@ -266,7 +266,7 @@ void AddFixedObstacles(ChSystem* system) {
     float young_modulus = 2e7f;
     float poisson_ratio = 0.3f;
 
-    auto obstacle = std::make_shared<ChBody>(system->GetContactMethod());
+    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);

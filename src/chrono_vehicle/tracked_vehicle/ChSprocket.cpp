@@ -69,7 +69,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     ChMatrix33<> rot_y2z(y2z);
 
     // Create and initialize the gear body (same orientation as the chassis).
-    m_gear = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_gear = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_gear->SetNameString(m_name + "_gear");
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);

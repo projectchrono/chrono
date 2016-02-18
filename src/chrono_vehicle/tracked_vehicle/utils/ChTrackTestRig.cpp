@@ -83,8 +83,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
 
-    // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
+    // Create the chassis (ground) body, fixed, no visualization
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
@@ -123,7 +123,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename, ChMaterialSurfaceBas
     assert(d.HasMember("Name"));
 
     // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
@@ -151,7 +151,7 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_idlerLoc(idlerLoc),
       m_suspLocs(suspLocs) {
     // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
@@ -201,7 +201,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m_post_pos = 0.5 * (sprocket_pos + idler_pos);
     m_post_pos.z = zmin - (rw_radius + shoe_height + post_height / 2.0);
 
-    m_post = std::make_shared<ChBody>(m_system->GetContactMethod());
+    m_post = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post->SetPos(m_post_pos);
     m_system->Add(m_post);
     ////AddVisualize_post(m_post, m_chassis, post_length, post_width, post_height, ChColor(0.1f, 0.8f, 0.15f));

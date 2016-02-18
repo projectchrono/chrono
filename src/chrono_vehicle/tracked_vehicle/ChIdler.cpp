@@ -66,7 +66,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     }
 
     // Create and initialize the wheel body.
-    m_wheel = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_wheel->SetNameString(m_name + "_wheel");
     m_wheel->SetPos(points[WHEEL]);
     m_wheel->SetRot(idler_to_abs.GetRot());
@@ -75,7 +75,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     chassis->GetSystem()->AddBody(m_wheel);
 
     // Create and initialize the carrier body.
-    m_carrier = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_carrier = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_carrier->SetNameString(m_name + "_carrier");
     m_carrier->SetPos(points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
