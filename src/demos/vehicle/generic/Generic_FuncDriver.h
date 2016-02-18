@@ -25,7 +25,7 @@ class Generic_FuncDriver : public chrono::vehicle::ChDriver {
     Generic_FuncDriver(chrono::vehicle::ChVehicle& vehicle) : chrono::vehicle::ChDriver(vehicle) {}
     ~Generic_FuncDriver() {}
 
-    virtual void Update(double time) override {
+    virtual void Synchronize(double time) override {
         if (time < 0.5)
             m_throttle = 0;
         else if (time < 1.5)

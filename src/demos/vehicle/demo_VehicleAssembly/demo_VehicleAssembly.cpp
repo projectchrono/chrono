@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Update vehicle
-        vehicle_assembly.Update(time);
+        vehicle_assembly.Synchronize(time);
 
         // Advance dynamics.
         if (gl_window.Active()) {

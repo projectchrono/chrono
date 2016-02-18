@@ -50,7 +50,7 @@ class Articulated_Trailer {
                             const bool connect_to_puller,
                             std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
 
-    virtual void Update(double time, double braking, const chrono::vehicle::TireForces& tire_forces);
+    virtual void Synchronize(double time, double braking, const chrono::vehicle::TireForces& tire_forces);
 
     // Log debugging information
     void LogHardpointLocations();  /// suspension hardpoints at design

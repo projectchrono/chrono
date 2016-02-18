@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
         tire_force = tire->GetTireForce();
 
         // Update tire system
-        tire->Update(system->GetChTime(), wheel_state, *(terrain.get()));
+        tire->Synchronize(system->GetChTime(), wheel_state, *(terrain.get()));
 
         // Update system (apply tire forces)
         wheel->Empty_forces_accumulators();
