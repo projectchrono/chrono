@@ -458,7 +458,7 @@ int main() {
         wheelstate.omega = wheel->GetWvel_loc().y;  ///< wheel angular speed about its rotation axis
 
         // Advance tire by one step
-        test_tire->Update(simTime, wheelstate, flat_terrain);
+        test_tire->Synchronize(simTime, wheelstate, flat_terrain);
         test_tire->Advance(sim_step);
 
         // Apply the desired veritical force to the system (accounting

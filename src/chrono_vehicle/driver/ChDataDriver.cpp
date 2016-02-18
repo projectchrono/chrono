@@ -67,7 +67,7 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, b
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDataDriver::Update(double time) {
+void ChDataDriver::Synchronize(double time) {
     if (time <= m_data[0].m_time) {
         m_steering = m_data[0].m_steering;
         m_throttle = m_data[0].m_throttle;

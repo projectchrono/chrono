@@ -85,7 +85,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::Update(double time, double steering) {
+void ChRackPinion::Synchronize(double time, double steering) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
     double angle = steering * GetMaxAngle();

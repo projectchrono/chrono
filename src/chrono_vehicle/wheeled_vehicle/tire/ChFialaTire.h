@@ -56,10 +56,10 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel.
-    virtual void Update(double time,                      ///< [in] current time
-                        const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                        const ChTerrain& terrain          ///< [in] reference to the terrain system
-                        ) override;
+    virtual void Synchronize(double time,                    ///< [in] current time
+                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             ) override;
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;

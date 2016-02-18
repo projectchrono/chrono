@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChTerrain {
     virtual ~ChTerrain() {}
 
     /// Update the state of the terrain system at the specified time.
-    virtual void Update(double time) {}
+    virtual void Synchronize(double time) {}
 
     /// Advance the state of the terrain system by the specified duration.
     virtual void Advance(double step) {}

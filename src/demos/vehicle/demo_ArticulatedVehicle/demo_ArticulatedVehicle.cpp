@@ -248,21 +248,21 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
-        driver.Update(time);
+        driver.Synchronize(time);
 
-        terrain.Update(time);
+        terrain.Synchronize(time);
 
-        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()], terrain);
+        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
+        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
+        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
+        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
 
-        powertrain.Update(time, throttle_input, driveshaft_speed);
+        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
-        trailer.Update(time, braking_input, tr_tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        trailer.Synchronize(time, braking_input, tr_tire_forces);
 
-        app.Update(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -337,18 +337,18 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         time = vehicle.GetSystem()->GetChTime();
 
-        driver.Update(time);
+        driver.Synchronize(time);
 
-        terrain.Update(time);
+        terrain.Synchronize(time);
 
-        tire_front_left.Update(time, wheel_states[FRONT_LEFT.id()], terrain);
-        tire_front_right.Update(time, wheel_states[FRONT_RIGHT.id()], terrain);
-        tire_rear_left.Update(time, wheel_states[REAR_LEFT.id()], terrain);
-        tire_rear_right.Update(time, wheel_states[REAR_RIGHT.id()], terrain);
+        tire_front_left.Synchronize(time, wheel_states[FRONT_LEFT.id()], terrain);
+        tire_front_right.Synchronize(time, wheel_states[FRONT_RIGHT.id()], terrain);
+        tire_rear_left.Synchronize(time, wheel_states[REAR_LEFT.id()], terrain);
+        tire_rear_right.Synchronize(time, wheel_states[REAR_RIGHT.id()], terrain);
 
-        powertrain.Update(time, throttle_input, driveshaft_speed);
+        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
 
-        vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

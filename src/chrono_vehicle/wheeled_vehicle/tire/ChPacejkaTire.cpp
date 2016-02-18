@@ -148,7 +148,7 @@ void ChPacejkaTire::Initialize(VehicleSide side, bool driven) {
     m_R0 = m_params->dimension.unloaded_radius;
 
     //// TODO:  why do we have to initialize m_R_l and m_R_eff here?
-    ////        This is done in Update(), when we have a proper wheel state.
+    ////        This is done in Synchronize(), when we have a proper wheel state.
 
     m_R_l = m_R0 - 8000.0 / m_params->vertical.vertical_stiffness;
     double qV1 = 1.5;
@@ -215,9 +215,9 @@ TireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
 // -----------------------------------------------------------------------------
 // Update the internal state of this tire using the specified wheel state. The
 // quantities calculated here will be kept constant until the next call to the
-// Update() function.
+// Synchronize() function.
 // -----------------------------------------------------------------------------
-void ChPacejkaTire::Update(double time, const WheelState& state, const ChTerrain& terrain) {
+void ChPacejkaTire::Synchronize(double time, const WheelState& state, const ChTerrain& terrain) {
     //// TODO: This must be removed from here.  A tire with unspecified or
     ////       incorrect parameters should have been invalidate at initialization.
     // Check that input tire model parameters are defined

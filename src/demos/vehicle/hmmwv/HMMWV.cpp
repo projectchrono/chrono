@@ -188,11 +188,11 @@ void HMMWV::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
-void HMMWV::Update(double time,
-                   double steering_input,
-                   double braking_input,
-                   double throttle_input,
-                   const ChTerrain& terrain) {
+void HMMWV::Synchronize(double time,
+                        double steering_input,
+                        double braking_input,
+                        double throttle_input,
+                        const ChTerrain& terrain) {
     TireForces tire_forces(4);
     WheelState wheel_states[4];
 
@@ -210,14 +210,14 @@ void HMMWV::Update(double time,
 
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
 
-    m_tireFL->Update(time, wheel_states[0], terrain);
-    m_tireFR->Update(time, wheel_states[1], terrain);
-    m_tireRL->Update(time, wheel_states[2], terrain);
-    m_tireRR->Update(time, wheel_states[3], terrain);
+    m_tireFL->Synchronize(time, wheel_states[0], terrain);
+    m_tireFR->Synchronize(time, wheel_states[1], terrain);
+    m_tireRL->Synchronize(time, wheel_states[2], terrain);
+    m_tireRR->Synchronize(time, wheel_states[3], terrain);
 
-    m_powertrain->Update(time, throttle_input, driveshaft_speed);
+    m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
 
-    m_vehicle->Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
+    m_vehicle->Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
 }
 
 // -----------------------------------------------------------------------------

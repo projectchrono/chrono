@@ -80,7 +80,7 @@ void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLugreTire::Update(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
+void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
     double disc_radius = getRadius();
     const double* disc_locs = getDiscLocations();
 
