@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     virtual bool OnEvent(const irr::SEvent& event) override;
 
     /// Update the state of this driver system at the specified time.
-    virtual void Update(double time) override;
+    virtual void Synchronize(double time) override;
 
     /// Set the time response for throttle control.
     void SetThrottleDelta(double delta  ///< time (in seconds) to go from 0 to 1

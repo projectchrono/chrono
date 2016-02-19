@@ -192,7 +192,7 @@ void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chase
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChVehicleIrrApp::Update(const std::string& msg, double steering, double throttle, double braking) {
+void ChVehicleIrrApp::Synchronize(const std::string& msg, double steering, double throttle, double braking) {
     m_driver_msg = msg;
     m_steering = steering;
     m_throttle = throttle;

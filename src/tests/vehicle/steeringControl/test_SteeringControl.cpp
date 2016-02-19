@@ -225,12 +225,12 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();
-        driver.Update(time);
-        powertrain.Update(time, throttle_input, driveshaft_speed);
-        vehicle.Update(time, steering_input, braking_input, powertrain_torque, tire_forces);
-        terrain.Update(time);
+        driver.Synchronize(time);
+        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, tire_forces);
+        terrain.Synchronize(time);
         for (int i = 0; i < num_wheels; i++)
-            tires[i]->Update(time, wheel_states[i], terrain);
+            tires[i]->Synchronize(time, wheel_states[i], terrain);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

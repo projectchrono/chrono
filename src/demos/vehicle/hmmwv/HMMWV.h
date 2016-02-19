@@ -60,11 +60,11 @@ class HMMWV {
 
     void Initialize();
 
-    void Update(double time,
-                double steering_input,
-                double braking_input,
-                double throttle_input,
-                const chrono::vehicle::ChTerrain& terrain);
+    void Synchronize(double time,
+                     double steering_input,
+                     double braking_input,
+                     double throttle_input,
+                     const chrono::vehicle::ChTerrain& terrain);
 
     void Advance(double step);
 

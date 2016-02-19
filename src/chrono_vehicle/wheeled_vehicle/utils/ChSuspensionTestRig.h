@@ -107,12 +107,12 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     /// Update the state at the current time.
     /// steering between -1 and +1, and no force need be applied if using external actuation
-    void Update(double time,                     ///< [in] current time
-                double steering,                 ///< [in] current steering input [-1,+1]
-                double disp_L,                   ///< [in] left post displacement
-                double disp_R,                   ///< [in] right post displacement
-                const TireForces& tire_forces  ///< [in] tires force to apply to wheel
-                );
+    void Synchronize(double time,                   ///< [in] current time
+                     double steering,               ///< [in] current steering input [-1,+1]
+                     double disp_L,                 ///< [in] left post displacement
+                     double disp_R,                 ///< [in] right post displacement
+                     const TireForces& tire_forces  ///< [in] tires force to apply to wheel
+                     );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

@@ -38,7 +38,8 @@ private:
     std::vector< std::shared_ptr<ChLoadBase> > loadlist;
 
 public:
-    ChLoadContainer () {};
+    ChLoadContainer () {}
+    virtual ~ChLoadContainer() {}
 
         /// Add a load to the container list of loads
     void Add(std::shared_ptr<ChLoadBase> newload) {
