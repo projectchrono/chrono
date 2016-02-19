@@ -492,7 +492,6 @@ void DeformableTerrain::UpdateInternalForces() {
             std::set<int> boundary;
             int n_vert_boundary = 0;
             double tot_area_boundary = 0;
-            double tot_length_boundary = 0;
 
             int n_vert_island = 1;
             double tot_step_flow_island = p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
@@ -516,7 +515,7 @@ void DeformableTerrain::UpdateInternalForces() {
                         if ((p_sigma[*ivconnect]==0) && (p_id_island[*ivconnect]<=0) && (p_id_island[*ivconnect] != -id_island)) {
                             ++n_vert_boundary;
                             tot_area_boundary += p_area[*ivconnect];
-                            p_id_island[*ivconnect] = -id_island; // negative to as boundary
+                            p_id_island[*ivconnect] = -id_island; // negative to mark as boundary
                             boundary.insert(*ivconnect);
                         }
                     }
@@ -527,13 +526,53 @@ void DeformableTerrain::UpdateInternalForces() {
             //GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" << tot_Nforce_island << "\n"; 
 
             // Raise the boundary because of material flow
+            double tot_length_boundary = (double)boundary.size() * sqrt(0.5*tot_area_boundary / (double)boundary.size() ); // approx.
+            double tot_width_boundary = tot_area_boundary/tot_length_boundary;
+            
             for (auto ibv : boundary) {
                 double raise_y = ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
                 vertices[ibv]           += N * raise_y;
                 p_vertices_initial[ibv] += N * raise_y;
             }
 
-        } // end for islands
+            // Erosion
+            std::vector<bool> smoothing(vertices.size());
+            std::set<int> smoothdomain= boundary;
+            std::set<int> smoothfront = boundary;
+            for (int iloop = 0; iloop <4; ++iloop) {
+                std::set<int> smoothfront2;
+                for(auto is : smoothfront) {
+                    for (auto ivconnect = connected_vertexes[is].begin(); ivconnect != connected_vertexes[is].end(); ++ivconnect) {
+                        if (((p_id_island[*ivconnect]==0) ||(p_id_island[*ivconnect]==1e10)) && (smoothing[*ivconnect]==0)) {
+                            smoothfront2.insert(*ivconnect);
+                            smoothing[*ivconnect] = true;
+                            p_id_island[*ivconnect] = 1e10;
+                        }
+                    }
+                }
+                smoothdomain.insert(smoothfront2.begin(), smoothfront2.end());
+                smoothfront = smoothfront2;
+            }
+            for (int ismo = 0; ismo <5; ++ismo) {
+                for (auto is : smoothdomain) {
+                    double my = vertices[is].y;
+                    for (auto ivc : connected_vertexes[is]) {
+                        //if (p_sigma_yeld[ivc] == 0) {
+                            ChVector<> vdist = vertices[ivc]-vertices[is];
+                            double ddist = vdist.Length();
+                            double dy = my - vertices[ivc].y;
+                            double dy_lim = ddist * tan(2*Mohr_friction*CH_C_DEG_TO_RAD);
+                            if (dy>dy_lim) {
+                                vertices[is].y  -= (dy-dy_lim)*0.5/(double)connected_vertexes[is].size();
+                                vertices[ivc].y += (dy-dy_lim)*0.5/(double)connected_vertexes[is].size();
+                            }
+                        //}
+                        //my = vertices[is].y 0.5 vertices[ivc].y + 
+                    }
+                }
+            }
+
+        }// end for islands
 
     } // end bulldozing flow 
 

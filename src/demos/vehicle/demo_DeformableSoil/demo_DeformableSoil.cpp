@@ -126,18 +126,19 @@ int main(int argc, char* argv[]) {
                                     0,   // Mohr cohesive limit (Pa)
                                     20,  // Mohr friction limit (degrees)
                                     0.01,// Janosi shear coefficient (m)
-                                    2e17  // Elastic stiffness (Pa/m), before plastic yeld 
+                                    2e7  // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
                                     );
+    mterrain->SetBulldozingFlow(false); // inflate soil at the border of the rut
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
     //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
     //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-    mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
     //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
     //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
-    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
+ //   mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
     //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
 
 
