@@ -39,7 +39,7 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     /// Update the brake subsystem for the given braking driver input.
     ///   braking = 0 : completely free,
     ///   braking = 1 : provide maximum braking torque
-    virtual void Update(double braking) override;
+    virtual void Synchronize(double braking) override;
 
     /// Get the current brake torque.
     virtual double GetBrakeTorque() override { return m_braking * GetMaxBrakingTorque(); }

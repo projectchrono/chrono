@@ -46,18 +46,18 @@ ChTrackedVehicle::~ChTrackedVehicle() {
 // from the powertrain, and tire forces (expressed in the global reference
 // frame).
 // -----------------------------------------------------------------------------
-void ChTrackedVehicle::Update(double time,
-                              double steering,
-                              double braking,
-                              double powertrain_torque,
-                              const TrackShoeForces& shoe_forces_left,
-                              const TrackShoeForces& shoe_forces_right) {
+void ChTrackedVehicle::Synchronize(double time,
+                                   double steering,
+                                   double braking,
+                                   double powertrain_torque,
+                                   const TrackShoeForces& shoe_forces_left,
+                                   const TrackShoeForces& shoe_forces_right) {
     // Apply powertrain torque to the driveline's input shaft.
-    m_driveline->Update(steering, powertrain_torque);
+    m_driveline->Synchronize(steering, powertrain_torque);
 
     // Apply contact track shoe forces.
-    m_tracks[LEFT]->Update(time, braking, shoe_forces_left);
-    m_tracks[RIGHT]->Update(time, braking, shoe_forces_right);
+    m_tracks[LEFT]->Synchronize(time, braking, shoe_forces_left);
+    m_tracks[RIGHT]->Synchronize(time, braking, shoe_forces_right);
 }
 
 // -----------------------------------------------------------------------------

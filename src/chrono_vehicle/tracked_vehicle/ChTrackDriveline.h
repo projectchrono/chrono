@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChTrackDriveline {
     /// driveline's driveshaft.
     /// A derived class must also process the steering input to send appropriate
     /// torques to the sprockets of the two track assemblies.
-    virtual void Update(double steering, double torque) { m_driveshaft->SetAppliedTorque(torque); }
+    virtual void Synchronize(double steering, double torque) { m_driveshaft->SetAppliedTorque(torque); }
 
   protected:
     std::string m_name;                     ///< name of the subsystem

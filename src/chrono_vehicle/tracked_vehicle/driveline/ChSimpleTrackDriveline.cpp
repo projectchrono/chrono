@@ -87,7 +87,7 @@ static void differentialSplit(double torque,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleTrackDriveline::Update(double steering, double torque) {
+void ChSimpleTrackDriveline::Synchronize(double steering, double torque) {
     // Split the axle torques for the corresponding left/right sprockets and apply
     // them to the sprocket axle shafts.
     double torque_left;

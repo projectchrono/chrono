@@ -278,7 +278,7 @@ bool ChTrackAssembly::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 // -----------------------------------------------------------------------------
 // Update the state of this track assembly at the current time.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Update(double time, double braking, const TrackShoeForces& shoe_forces) {
+void ChTrackAssembly::Synchronize(double time, double braking, const TrackShoeForces& shoe_forces) {
     // Apply track shoe forces
     for (size_t i = 0; i < m_shoes.size(); ++i) {
         m_shoes[i]->m_shoe->Empty_forces_accumulators();
@@ -287,7 +287,7 @@ void ChTrackAssembly::Update(double time, double braking, const TrackShoeForces&
     }
 
     // Apply braking input
-    m_brake->Update(braking);
+    m_brake->Synchronize(braking);
 }
 
 // -----------------------------------------------------------------------------

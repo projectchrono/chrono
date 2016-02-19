@@ -253,7 +253,7 @@ double ChTrackTestRig::GetActuatorMarkerDist() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackTestRig::Update(double time, double disp, const TrackShoeForces& shoe_forces) {
+void ChTrackTestRig::Synchronize(double time, double disp, const TrackShoeForces& shoe_forces) {
     // Apply the displacements to the left/right post actuators
     if (auto func = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact->Get_dist_funct()))
         func->Set_yconst(disp);

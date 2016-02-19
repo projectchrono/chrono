@@ -97,10 +97,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Update the state at the current time.
     /// steering between -1 and +1, and no force need be applied if using external actuation
-    void Update(double time,                        ///< [in] current time
-                double disp,                        ///< [in] post displacement
-                const TrackShoeForces& shoe_forces  ///< [in] vector of track shoe forces
-                );
+    void Synchronize(double time,                        ///< [in] current time
+                     double disp,                        ///< [in] post displacement
+                     const TrackShoeForces& shoe_forces  ///< [in] vector of track shoe forces
+                     );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

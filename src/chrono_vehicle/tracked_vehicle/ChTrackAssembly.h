@@ -122,10 +122,10 @@ class CH_VEHICLE_API ChTrackAssembly {
         );
 
     /// Update the state of this track assembly at the current time.
-    void Update(double time,                        ///< [in] current time
-                double braking,                     ///< [in] braking driver input
-                const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
-                );
+    void Synchronize(double time,                        ///< [in] current time
+                     double braking,                     ///< [in] braking driver input
+                     const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
+                     );
 
     /// Log current constraint violations.
     void LogConstraintViolations();
