@@ -35,8 +35,8 @@ using blaze::DynamicMatrix;
 
 real bin_edge = 1;
 
-real2 min_bounding_point = real2(-2);
-real2 max_bounding_point = real2(2);
+real2 min_bounding_point = real2(-2, -2);
+real2 max_bounding_point = real2(2, 2);
 
 real2 diag = max_bounding_point - min_bounding_point;
 int2 bins_per_axis = int2(diag / bin_edge);
@@ -47,6 +47,7 @@ real2 gravity = real2(0, -9.80665);
 real dt = 0.1;
 real rho = .1;
 DynamicMatrix<real> A;
+DynamicVector<real> density;
 ChProjectNone ProjectNone;
 
 ChParallelDataManager* data_manager;
@@ -82,6 +83,30 @@ class CH_PARALLEL_API ChShurProductFLIP : public ChShurProduct {
     }
 };
 
+class CH_PARALLEL_API ChProjectFLIP : public ChProjectConstraints {
+  public:
+    ChProjectFLIP() {}
+    virtual ~ChProjectFLIP() {}
+
+    // Project the Lagrange multipliers
+    virtual void operator()(real* data) {
+        for (int i = 0; i < grid_size; i++) {
+            int2 g = GridDecode(i, bins_per_axis);
+            if ((g.x + 1) >= bins_per_axis.x) {
+                data[i] = 0;
+            } else if ((g.y + 1) >= bins_per_axis.y) {
+                data[i] = 0;
+            }
+            //            if (density[i] <= 0) {
+            //                data[i] = 0;
+            //            }
+            if (data[i] < 0) {
+                data[i] = 0;
+            }
+        }
+    }
+};
+
 int main(int argc, char* argv[]) {
     printf("max_bounding_point [%f %f]\n", max_bounding_point.x, max_bounding_point.y);
     printf("min_bounding_point [%f %f]\n", min_bounding_point.x, min_bounding_point.y);
@@ -103,10 +128,12 @@ int main(int argc, char* argv[]) {
     DynamicVector<real> hf(grid_size * 2);
     DynamicVector<real> node_mass(grid_size);
     DynamicVector<real> rhs(grid_size);
-    DynamicVector<real> pressure(grid_size);
-    DynamicVector<real> density(grid_size, 0);
+    DynamicVector<real> pressure(grid_size, 0);
+    // density.resize(grid_size, 0);
 
-    density[5] = rho;
+    //    density[GridHash(1, 1, bins_per_axis)] = rho;
+    //
+    //    density[GridHash(3, 1, bins_per_axis)] = rho;
 
     DynamicMatrix<real> M_inv(grid_size * 2, grid_size * 2, 0);
     DynamicMatrix<real> D_T(grid_size, grid_size * 2, 0);
@@ -122,29 +149,33 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
-        if (density[i] <= 0) {
-            v[i * 2 + 0] = 0;
-            v[i * 2 + 1] = 0;
+        //        if (density[i] <= 0) {
+        //            v[i * 2 + 0] = 0;
+        //            v[i * 2 + 1] = 0;
+        //
+        //            hf[i * 2 + 0] = 0;
+        //            hf[i * 2 + 1] = 0;
+        //
+        //        } else {
+        v[i * 2 + 0] = 0;
+        v[i * 2 + 1] = -1;
 
-            hf[i * 2 + 0] = 0;
-            hf[i * 2 + 1] = 0;
-
-        } else {
-            v[i * 2 + 0] = 0;
-            v[i * 2 + 1] = 0;
-
-            hf[i * 2 + 0] = dt * gravity.x;
-            hf[i * 2 + 1] = dt * gravity.y;
-        }
+        hf[i * 2 + 0] = 0;  // dt * gravity.x;
+        hf[i * 2 + 1] = 0;  // dt * gravity.y;
+        //}
         printf("HERE : [%d %d] [%f %f]\n", g.x, g.y, hf[i * 2 + 0], hf[i * 2 + 1]);
     }
 
+    //    v[GridHash(1, 1, bins_per_axis) * 2 + 0] = 1;
+    //
+    //    v[GridHash(3, 1, bins_per_axis) * 2 + 0] = -1;
+
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
-        if (density[i] > 0) {
-            M_inv(i * 2 + 0, i * 2 + 0) = dt / density[i];
-            M_inv(i * 2 + 1, i * 2 + 1) = dt / density[i];
-        }
+        // if (density[i] > 0) {
+        M_inv(i * 2 + 0, i * 2 + 0) = dt / rho;
+        M_inv(i * 2 + 1, i * 2 + 1) = dt / rho;
+        //}
     }
 
     std::cout << "M_inv:\n";
@@ -162,42 +193,49 @@ int main(int argc, char* argv[]) {
         // Look at mass of cell below and see if it is zero
         // look at mass of cell above and see if it is zero
 
-        bool cell_active = (density[i] != 0);
-
-        if (cell_active) {
+        // bool cell_active = (density[i] != 0);
+        if ((g.x + 1) >= bins_per_axis.x) {
+        } else if ((g.y + 1) >= bins_per_axis.y) {
+        } else if (g.x == 0) {
+        } else if (g.y == 0) {
+        } else {
+            // if (cell_active) {
             D_T(i, i * 2 + 0) = -1;
             D_T(i, i * 2 + 1) = -1;
             D_T(i, g_right * 2 + 0) = 1;
             D_T(i, g_up * 2 + 1) = 1;
+            //}
         }
-        if (g.x + 1 < bins_per_axis.x) {
-            if (density[g_right] != 0) {
-                D_T(i, g_right * 2 + 0) = 1;
-                D_T(i, i * 2 + 0) = -1;
-            }
-        }
-        if (g.y + 1 < bins_per_axis.y) {
-            if (density[g_up] != 0) {
-                D_T(i, g_up * 2 + 1) = 1;
-                D_T(i, i * 2 + 1) = -1;
-            }
-        }
-        if (g.x - 1 >= 0) {
-            if (density[g_left] != 0) {
-                D_T(i, i * 2 + 0) = -1;
-                D_T(i, g_left * 2 + 0) = 1;
-            }
-        }
-        if (g.y - 1 >= 0) {
-            if (density[g_down] != 0) {
-                D_T(i, i * 2 + 1) = -1;
-                D_T(i, g_down * 2 + 1) = 1;
-            }
-        }
+
+        //        }
+        //        if (g.x + 1 < bins_per_axis.x) {
+        //            if (density[g_right] != 0) {
+        //                //D_T(i, g_right * 2 + 0) = 1;
+        //                D_T(i, i * 2 + 0) = -1;
+        //            }
+        //        }
+        //        if (g.y + 1 < bins_per_axis.y) {
+        //            if (density[g_up] != 0) {
+        //                //D_T(i, g_up * 2 + 1) = 1;
+        //                D_T(i, i * 2 + 1) = -1;
+        //            }
+        //        }
+        //        if (g.x - 1 >= 0) {
+        //            if (density[g_left] != 0) {
+        //                //D_T(i, i * 2 + 0) = -1;
+        //                D_T(i, g_right * 2 + 0) = 1;
+        //            }
+        //        }
+        //        if (g.y - 1 >= 0) {
+        //            if (density[g_down] != 0) {
+        //                //D_T(i, i * 2 + 1) = -1;
+        //                D_T(i, g_up * 2 + 1) = 1;
+        //            }
+        //        }
 
         // printf("D: [%d %d] [%f %f] [%f %f]\n", g.x, g.y, fx.x, fx.y, fy.x, fy.y);
     }
-    D_T = D_T * inv_bin_edge;
+    //D_T = D_T * inv_bin_edge;
 
     std::cout << "D_T:\n";
     Print(std::cout, D_T);
@@ -217,7 +255,8 @@ int main(int argc, char* argv[]) {
     Print(std::cout, A);
 
     ChShurProductFLIP Multiply;
-    solver->Solve(Multiply, ProjectNone, 100, grid_size, rhs, pressure);
+    ChProjectFLIP Proj;
+    solver->Solve(Multiply, Proj, 100, grid_size, rhs, pressure);
 
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
         printf("Iter hist: %d [%f %f]\n", i, data_manager->measures.solver.maxd_hist[i],
@@ -226,13 +265,14 @@ int main(int argc, char* argv[]) {
 
     DynamicVector<real> force = -D * pressure;
 
-    v = v + M_inv * hf;
+    v = v + M_inv * hf + M_inv * D * pressure;
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
 
         // printf("v: [%d %d] [%f %f] [%f] [%f]\n", g.x, g.y, v[i * 2 + 0], v[i * 2 + 1], node_mass[i],
         //  pressure[i]);
-        printf("v: [%d %d] [%f] [%f %f]\n", g.x, g.y, pressure[i], force[i * 2 + 0], force[i * 2 + 1]);
+        printf("[%d %d] v: [%f %f] p:[%f] f:[%f %f]\n", g.x, g.y, v[i * 2 + 0], v[i * 2 + 1], pressure[i],
+               force[i * 2 + 0], force[i * 2 + 1]);
     }
 }
