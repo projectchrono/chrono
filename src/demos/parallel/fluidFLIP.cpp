@@ -45,7 +45,7 @@
 
 using namespace chrono;
 using namespace chrono::collision;
-ChMPMContainer* mpm_container;
+ChFLIPContainer* mpm_container;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
 // blade attached through a revolute joint to ground. The mixer is constrained
@@ -117,7 +117,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
 void AddFluid(ChSystemParallelDVI* sys) {
-    mpm_container = new ChMPMContainer(sys);
+    mpm_container = new ChFLIPContainer(sys);
 
     real youngs_modulus = 1.4e2;
     real poissons_ratio = 0.2;
@@ -126,27 +126,27 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->theta_s = 7.5e-3;
     mpm_container->lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
     mpm_container->mu = youngs_modulus / (2. * (1. + poissons_ratio));
-    mpm_container->alpha = .95;
+    mpm_container->alpha = 1;
     mpm_container->hardening_coefficient = 10.0;
+    mpm_container->rho = 1000;
 
-    real initial_density = 4e2;
+    real initial_density = 1000;
     mpm_container->mass = .01;
     mpm_container->max_iterations = 20;
     mpm_container->kernel_radius = .01;
     mpm_container->contact_recovery_speed = 1000;
 
-    real radius = mpm_container->kernel_radius * 8;  //*5
+    real radius = mpm_container->kernel_radius * 5;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
-    real3 origin(0, 0, .1);
+    real3 origin(0, 0, 0);
     real vol;
 
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
-
 #if 1
     double dist = mpm_container->kernel_radius;
-    vol = dist * dist * dist;
+    vol = dist * dist * dist * .8;
     mpm_container->mass = initial_density * vol;
 
     utils::GridSampler<> sampler(dist);
@@ -155,19 +155,25 @@ void AddFluid(ChSystemParallelDVI* sys) {
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(6, 0, 0);
+        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z);
+        vel_fluid[i] = real3(1, 0, 0);
     }
+    // pos_fluid.resize(1);
+    // vel_fluid.resize(1);
+
+    //    pos_fluid[0] = real3(0, 0, 0);
+    //    vel_fluid[0] = real3(.1, 0, 0);
+
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
-    points = sampler.SampleBox(ChVector<>(1, 0, 0), ChVector<>(radius, radius, radius));
+    points = sampler.SampleBox(ChVector<>(.4, 0, 0), ChVector<>(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(-6, 0, 0);
+        vel_fluid[i] = real3(0, 0, 0);
     }
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
@@ -205,7 +211,7 @@ int main(int argc, char* argv[]) {
     // ---------------------
 
     double gravity = 9.81;
-    double time_step = 2e-3;
+    double time_step = .001;
     double time_end = 1;
 
     double out_fps = 50;
@@ -251,15 +257,15 @@ int main(int argc, char* argv[]) {
     msystem.SetLoggingLevel(LOG_INFO, true);
     // Create the fixed and moving bodies
     // ----------------------------------
-
-     AddContainer(&msystem);
+    // AddContainer(&msystem);
     // AddBody(&msystem);
     // This initializes all of the MPM stuff
     msystem.Initialize();
+// omp_set_num_threads(1);
 // Perform the simulation
 // ----------------------
 //#undef CHRONO_OPENGL
-#ifdef CHRONO_OPENGL
+#if 1
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
     gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1);
