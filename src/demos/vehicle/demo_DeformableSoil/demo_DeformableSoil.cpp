@@ -108,27 +108,29 @@ int main(int argc, char* argv[]) {
     mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.5)));
 
     // Initialize the geometry of the soil: use either a regular grid:
-    // mterrain->Initialize(0.2,1,1,50,50);
+     mterrain.Initialize(0.2,1.5,5,100,200);
     // or use a height map:
-    mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.5, 1.5, 0, 0.3);
+    //mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters:
     mterrain.SetSoilParametersSCM(1.2e6,  // Bekker Kphi
                                     0,   // Bekker Kc
                                     1.1, // Bekker n exponent
                                     0,   // Mohr cohesive limit (Pa)
-                                    20,  // Mohr friction limit (degrees)
+                                    30,  // Mohr friction limit (degrees)
                                     0.01,// Janosi shear coefficient (m)
-                                    2e7  // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
+                                    5e7  // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
                                     );
-    mterrain->SetBulldozingFlow(false); // inflate soil at the border of the rut
+    mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
+    mterrain.SetBulldozingParameters(40, // angle of frictionfor erosion of displaced material at the border of the rut
+                                    1.6);// displaced material vs downward pressed material.
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);

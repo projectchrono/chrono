@@ -107,9 +107,17 @@ public:
         double melastic_K       ///< elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
         );
 
-    /// If true, enable the creation of lateral effects in ruts, bulldozing the material apart.
+    /// If true, enable the creation of soil inflation at the side of the ruts, 
+    /// like bulldozing the material apart.
     void SetBulldozingFlow(bool mb);
     bool GetBulldozingFlow() const;
+
+    /// If true, enable the creation of soil inflation at the side of the ruts, 
+    /// like bulldozing the material apart. Remember to enable SetBulldozingFlow(true).
+    void SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
+                                 double mbulldozing_flow_factor = 1.0  ///< growth of lateral volume respect to pressed volume
+                                 );
+
 
     /// Set the color plot type for the soil mesh.
     /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
@@ -225,7 +233,8 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     std::vector<double> p_sigma_yeld;
     std::vector<double> p_tau;
     std::vector<int>    p_id_island;
-    
+    std::vector<bool>   p_erosion;
+
     double Bekker_Kphi;
     double Bekker_Kc;
     double Bekker_n;
@@ -244,6 +253,8 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     std::vector<std::set<int>> connected_vertexes;
 
     bool do_bulldozing;
+    double bulldozing_flow_factor;
+    double bulldozing_erosion_angle;
 
     friend class DeformableTerrain;
 };

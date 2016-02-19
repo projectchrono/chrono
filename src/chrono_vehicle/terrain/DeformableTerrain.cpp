@@ -105,6 +105,14 @@ void DeformableTerrain::SetSoilParametersSCM(
     m_ground->elastic_K = ChMax(melastic_K, mBekker_Kphi);
 }
 
+void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
+                                 double mbulldozing_flow_factor   ///< growth of lateral volume respect to pressed volume
+                                 ) {
+    m_ground->bulldozing_erosion_angle = mbulldozing_erosion_angle;
+    m_ground->bulldozing_flow_factor = mbulldozing_flow_factor;
+}
+
+
 // Set the color plot type.
 void DeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double mmax) {
     m_ground->plot_type = mplot;
@@ -151,6 +159,8 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     m_trimesh_shape->SetWireframe(false);
 
     do_bulldozing = false;
+    bulldozing_flow_factor = 1.2;
+    bulldozing_erosion_angle = 40;
 
     Bekker_Kphi = 2e6;
     Bekker_Kc = 0;
@@ -377,6 +387,7 @@ void DeformableSoil::SetupAuxData() {
     p_sigma_yeld.resize( vertices.size());
     p_tau.resize( vertices.size());  
     p_id_island.resize (vertices.size());
+    p_erosion.resize(vertices.size());
 
     connected_vertexes.resize( vertices.size() );
     for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
@@ -438,8 +449,9 @@ void DeformableSoil::UpdateInternalForces() {
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i]=0;
-  
-        ChVector<> to   = vertices[i] +N*0.01; //p_vertices_initial[i] - (N* p_sinkage_plastic[i]*0.95);
+        p_erosion[i] = false;
+
+        ChVector<> to   = vertices[i] +N*0.01; 
         ChVector<> from = to - N*0.5;
 
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
@@ -513,6 +525,8 @@ void DeformableSoil::UpdateInternalForces() {
 
     } // end loop on vertexes
 
+
+
     //
     // Flow material to the side of rut, using heuristics
     // 
@@ -525,10 +539,11 @@ void DeformableSoil::UpdateInternalForces() {
                 touched_vertexes.insert(iv);
         }
 
-        int id_island = 0;
+        std::set<int> domain_boundaries;
 
-        for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end();
-             fillseed = touched_vertexes.begin()) {
+        // Compute contact islands (and their displaced material) by flood-filling the mesh
+        int id_island = 0;
+        for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end(); fillseed = touched_vertexes.begin()) {
             // new island:
             ++id_island;
             std::set<int> fill_front;
@@ -538,8 +553,7 @@ void DeformableSoil::UpdateInternalForces() {
             double tot_area_boundary = 0;
 
             int n_vert_island = 1;
-            double tot_step_flow_island =
-                p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
+            double tot_step_flow_island = p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
             double tot_Nforce_island = p_area[*fillseed] * p_sigma[*fillseed];
             fill_front.insert(*fillseed);
             p_id_island[*fillseed] = id_island;
@@ -547,24 +561,21 @@ void DeformableSoil::UpdateInternalForces() {
             while (fill_front.size() >0) {
                 // fill next front
                 std::set<int> fill_front_2;
-                for (auto ifront = fill_front.begin(); ifront != fill_front.end(); ++ifront) {
-                    for (auto ivconnect = connected_vertexes[*ifront].begin();
-                         ivconnect != connected_vertexes[*ifront].end(); ++ivconnect) {
-                        if ((p_sigma[*ivconnect]>0) && (p_id_island[*ivconnect]==0)) {
+                for (auto ifront : fill_front) {
+                    for (auto ivconnect : connected_vertexes[ifront]) {
+                        if ((p_sigma[ivconnect]>0) && (p_id_island[ivconnect]==0)) {
                             ++n_vert_island;
-                            tot_step_flow_island +=
-                                p_area[*ivconnect] * p_step_plastic_flow[*ivconnect] * this->GetSystem()->GetStep();
-                            tot_Nforce_island += p_area[*ivconnect] * p_sigma[*ivconnect];
-                            fill_front_2.insert(*ivconnect);
-                            p_id_island[*ivconnect] = id_island;
-                            touched_vertexes.erase(*ivconnect);
-                        }
-                        if ((p_sigma[*ivconnect] == 0) && (p_id_island[*ivconnect] <= 0) &&
-                            (p_id_island[*ivconnect] != -id_island)) {
+                            tot_step_flow_island += p_area[ivconnect] * p_step_plastic_flow[ivconnect] * this->GetSystem()->GetStep();
+                            tot_Nforce_island += p_area[ivconnect] * p_sigma[ivconnect];
+                            fill_front_2.insert(ivconnect);
+                            p_id_island[ivconnect] = id_island;
+                            touched_vertexes.erase(ivconnect);
+                        } 
+                        else if ((p_sigma[ivconnect] == 0) && (p_id_island[ivconnect] <= 0) && (p_id_island[ivconnect] != -id_island)) {
                             ++n_vert_boundary;
-                            tot_area_boundary += p_area[*ivconnect];
-                            p_id_island[*ivconnect] = -id_island; // negative to mark as boundary
-                            boundary.insert(*ivconnect);
+                            tot_area_boundary += p_area[ivconnect];
+                            p_id_island[ivconnect] = -id_island; // negative to mark as boundary
+                            boundary.insert(ivconnect);
                         }
                     }
                 }
@@ -573,56 +584,67 @@ void DeformableSoil::UpdateInternalForces() {
             }
             //GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" << tot_Nforce_island << "\n"; 
 
-            // Raise the boundary because of material flow
+            // Raise the boundary because of material flow (it gives a sharp spike around the
+            // island boundary, but later we'll use the erosion algorithm to smooth it out)
             double tot_length_boundary = (double)boundary.size() * sqrt(0.5*tot_area_boundary / (double)boundary.size() ); // approx.
             double tot_width_boundary = tot_area_boundary/tot_length_boundary;
             
             for (auto ibv : boundary) {
-                double raise_y = ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
+                double raise_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
                 vertices[ibv]           += N * raise_y;
                 p_vertices_initial[ibv] += N * raise_y;
             }
 
-            // Erosion
-            std::vector<bool> smoothing(vertices.size());
-            std::set<int> smoothdomain= boundary;
-            std::set<int> smoothfront = boundary;
-            for (int iloop = 0; iloop <4; ++iloop) {
-                std::set<int> smoothfront2;
-                for(auto is : smoothfront) {
-                    for (auto ivconnect = connected_vertexes[is].begin(); ivconnect != connected_vertexes[is].end(); ++ivconnect) {
-                        if (((p_id_island[*ivconnect]==0) ||(p_id_island[*ivconnect]==1e10)) && (smoothing[*ivconnect]==0)) {
-                            smoothfront2.insert(*ivconnect);
-                            smoothing[*ivconnect] = true;
-                            p_id_island[*ivconnect] = 1e10;
-                        }
-                    }
-                }
-                smoothdomain.insert(smoothfront2.begin(), smoothfront2.end());
-                smoothfront = smoothfront2;
-            }
-            for (int ismo = 0; ismo <5; ++ismo) {
-                for (auto is : smoothdomain) {
-                    double my = vertices[is].y;
-                    for (auto ivc : connected_vertexes[is]) {
-                        //if (p_sigma_yeld[ivc] == 0) {
-                            ChVector<> vdist = vertices[ivc]-vertices[is];
-                            double ddist = vdist.Length();
-                            double dy = my - vertices[ivc].y;
-                            double dy_lim = ddist * tan(2*Mohr_friction*CH_C_DEG_TO_RAD);
-                            if (dy>dy_lim) {
-                                vertices[is].y  -= (dy-dy_lim)*0.5/(double)connected_vertexes[is].size();
-                                vertices[ivc].y += (dy-dy_lim)*0.5/(double)connected_vertexes[is].size();
-                            }
-                        //}
-                        //my = vertices[is].y 0.5 vertices[ivc].y + 
-                    }
-                }
-            }
+            domain_boundaries.insert(boundary.begin(), boundary.end());
 
         }// end for islands
 
+
+        // Erosion domain area select, by topologically dilation of all the 
+        // boundaries of the islands:
+        std::set<int> domain_erosion= domain_boundaries;
+        for (auto ie : domain_boundaries)
+            p_erosion[ie] = true;
+        std::set<int> front_erosion = domain_boundaries;
+        for (int iloop = 0; iloop <10; ++iloop) {
+            std::set<int> front_erosion2;
+            for(auto is : front_erosion) {
+                for (auto ivconnect : connected_vertexes[is]) {
+                    if ((p_id_island[ivconnect]==0) && (p_erosion[ivconnect]==0)) {
+                        front_erosion2.insert(ivconnect);
+                        p_erosion[ivconnect] = true;
+                    }
+                }
+            }
+            domain_erosion.insert(front_erosion2.begin(), front_erosion2.end());
+            front_erosion = front_erosion2;
+        }
+        // Erosion smoothing algorithm on domain
+        for (int ismo = 0; ismo <3; ++ismo) {
+            for (auto is : domain_erosion) {
+                double my = vertices[is].y;
+                for (auto ivc : connected_vertexes[is]) {
+                    ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
+                    if (p_sigma[ivc] == 0) {
+                        ChVector<> vic = this->plane.TransformParentToLocal(vertices[ivc]);
+                        ChVector<> vdist = vic-vis;
+                        vdist.y=0;
+                        double ddist = vdist.Length();
+                        double dy = my - vertices[ivc].y;
+                        double dy_lim = ddist * tan(bulldozing_erosion_angle*CH_C_DEG_TO_RAD);
+                        if (dy>dy_lim) {
+                            ChVector<> DV = ((dy-dy_lim)*0.5/(double)connected_vertexes[is].size()) * this->plane.TransformDirectionLocalToParent(VECT_Y);
+                            vertices[is]  -= DV;
+                            vertices[ivc] += DV;
+                        }
+                    }
+                }
+            }
+        }
+
     } // end bulldozing flow 
+
+
 
     //
     // Update the visualization colors
@@ -657,12 +679,13 @@ void DeformableSoil::UpdateInternalForces() {
                     mcolor = ChColor::ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
                     break;
                 case DeformableTerrain::PLOT_ISLAND_ID:
+                    mcolor = ChColor(0,0,1);
+                    if (p_erosion[iv] == true)
+                        mcolor = ChColor(1,1,1);
                     if (p_id_island[iv] >0)
-                        mcolor = ChColor::ComputeFalseColor(3 +(p_id_island[iv] % 8), 0, 11);
-                    else if (p_id_island[iv] <0)
+                        mcolor = ChColor::ComputeFalseColor(4 +(p_id_island[iv] % 8), 0, 12);
+                    if (p_id_island[iv] <0)
                         mcolor = ChColor(0,0,0);
-                    else
-                        mcolor = ChColor(0,0,1);
                     break;
                 case DeformableTerrain::PLOT_IS_TOUCHED:
                     if (p_sigma[iv]>0)
