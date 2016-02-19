@@ -645,56 +645,71 @@ void ChOpenGLViewer::RenderGrid() {
     mpm_grid_data.clear();
     mpm_node_data.clear();
     if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+        int3 bins_per_axis;
+        real3 bin_size_vec;
+        real3 min_pt;
+        real3 max_pt;
+        real3 center;
+        real bin_edge;
+
         if (ChFLIPContainer* flip_container =
                 dynamic_cast<ChFLIPContainer*>(parallel_sys->data_manager->mpm_container)) {
             int3 bins_per_axis = flip_container->bins_per_axis;
-            real3 bin_size_vec = real3(flip_container->bin_edge);
-            real3 min_pt = flip_container->min_bounding_point;
-            real3 max_pt = flip_container->max_bounding_point;
-            real3 center = (min_pt + max_pt) * .5;
-            mpm_node_data.resize(parallel_sys->data_manager->num_mpm_nodes);
-
-            for (int i = 0; i < parallel_sys->data_manager->num_mpm_nodes; i++) {
-                int3 g = GridDecode(i, bins_per_axis);
-                real3 current_node_location = NodeLocation(g.x, g.y, g.z, flip_container->bin_edge, min_pt);
-                mpm_node_data[i] = glm::vec3(current_node_location.x, current_node_location.y, current_node_location.z);
-            }
-            mpm_node.SetPointSize(.002);
-            mpm_node.Update(mpm_node_data);
-            mpm_node.Draw(projection, view * model);
-            glm::vec3 offset = glm::vec3(.5 * bin_size_vec.x, .5 * bin_size_vec.x, .5 * bin_size_vec.x);
-            for (int i = 0; i <= bins_per_axis.x; i++) {
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z) - offset);
-            }
-            for (int i = 0; i <= bins_per_axis.z; i++) {
-                mpm_grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
-            }
-
-            for (int i = 0; i <= bins_per_axis.y; i++) {
-                mpm_grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
-            }
-            for (int i = 0; i <= bins_per_axis.y; i++) {
-                mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z) - offset);
-            }
-
-            for (int i = 0; i <= bins_per_axis.x; i++) {
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z) - offset);
-            }
-            for (int i = 0; i <= bins_per_axis.z; i++) {
-                mpm_grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
-            }
-
-            mpm_grid.Update(mpm_grid_data);
-            glm::mat4 model(1);
-
-            mpm_grid.Draw(projection, view * model);
+            bin_size_vec = real3(flip_container->bin_edge);
+            min_pt = flip_container->min_bounding_point;
+            max_pt = flip_container->max_bounding_point;
+            center = (min_pt + max_pt) * .5;
+            bin_edge = flip_container->bin_edge;
         }
+        if (ChMPMContainer* mpm_container = dynamic_cast<ChMPMContainer*>(parallel_sys->data_manager->mpm_container)) {
+            bins_per_axis = mpm_container->bins_per_axis;
+            bin_size_vec = real3(mpm_container->bin_edge);
+            min_pt = mpm_container->min_bounding_point;
+            max_pt = mpm_container->max_bounding_point;
+            center = (min_pt + max_pt) * .5;
+            bin_edge = mpm_container->bin_edge;
+        }
+        mpm_node_data.resize(parallel_sys->data_manager->num_mpm_nodes);
+        for (int i = 0; i < parallel_sys->data_manager->num_mpm_nodes; i++) {
+            int3 g = GridDecode(i, bins_per_axis);
+            real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_pt);
+            mpm_node_data[i] = glm::vec3(current_node_location.x, current_node_location.y, current_node_location.z);
+        }
+        mpm_node.SetPointSize(.002);
+        mpm_node.Update(mpm_node_data);
+        mpm_node.Draw(projection, view * model);
+        glm::vec3 offset = glm::vec3(.5 * bin_size_vec.x, .5 * bin_size_vec.x, .5 * bin_size_vec.x);
+        for (int i = 0; i <= bins_per_axis.x; i++) {
+            mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z) - offset);
+            mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z) - offset);
+        }
+        for (int i = 0; i <= bins_per_axis.z; i++) {
+            mpm_grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
+            mpm_grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
+        }
+
+        for (int i = 0; i <= bins_per_axis.y; i++) {
+            mpm_grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
+            mpm_grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
+        }
+        for (int i = 0; i <= bins_per_axis.y; i++) {
+            mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z) - offset);
+            mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z) - offset);
+        }
+
+        for (int i = 0; i <= bins_per_axis.x; i++) {
+            mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z) - offset);
+            mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z) - offset);
+        }
+        for (int i = 0; i <= bins_per_axis.z; i++) {
+            mpm_grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
+            mpm_grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
+        }
+
+        mpm_grid.Update(mpm_grid_data);
+        glm::mat4 model(1);
+
+        mpm_grid.Draw(projection, view * model);
     }
 }
 
