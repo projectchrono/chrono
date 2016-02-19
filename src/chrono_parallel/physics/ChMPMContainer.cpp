@@ -469,23 +469,23 @@ void ChMPMContainer::Build_b() {
     if (num_rigid_mpm_contacts > 0) {
         custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_mpm;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
-
-#pragma omp parallel for
-        for (int p = 0; p < num_mpm_markers; p++) {
-            int start = contact_counts[p];
-            int end = contact_counts[p + 1];
-            for (int index = start; index < end; index++) {
-                int i = index - start;  // index that goes from 0
-                real depth = data_manager->host_data.dpth_rigid_mpm[p * max_rigid_neighbors + i];
-
-                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                // printf("boundary: [%f]\n", bi);
-                data_manager->host_data.b[start_row + index + 0] = bi;
-                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 0] = 0;
-                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 1] = 0;
-            }
-        }
-    }
+//
+//#pragma omp parallel for
+//        for (int p = 0; p < num_mpm_markers; p++) {
+//            int start = contact_counts[p];
+//            int end = contact_counts[p + 1];
+//            for (int index = start; index < end; index++) {
+//                int i = index - start;  // index that goes from 0
+//                real depth = data_manager->host_data.dpth_rigid_mpm[p * max_rigid_neighbors + i];
+//
+//                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+//                // printf("boundary: [%f]\n", bi);
+//                data_manager->host_data.b[start_row + index + 0] = bi;
+//                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 0] = 0;
+//                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 1] = 0;
+//            }
+//        }
+//    }
 }
 void ChMPMContainer::Build_E() {
     LOG(INFO) << "ChMPMContainer::Build_E";
