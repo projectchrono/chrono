@@ -337,7 +337,6 @@ void ChFLIPContainer::Build_D() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     custom_vector<real>& node_mass = data_manager->host_data.node_mass;
-    SetRow3(D_T, start_row + 1, body_offset + 1 * 3, real3(1, 1, 1));
 
     for (int n = 0; n < num_mpm_nodes; n++) {
         int3 g = GridDecode(n, bins_per_axis);
