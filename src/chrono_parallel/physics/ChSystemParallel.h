@@ -137,7 +137,8 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
   void ChangeSolverType(SOLVERTYPE type) { ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
 
   virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
-  virtual ChBody* NewBody();
+  virtual ChBody* NewBody() override;
+  virtual ChBodyAuxRef* NewBodyAuxRef() override;
   virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
   virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
@@ -157,7 +158,8 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
   ChSystemParallelDEM(unsigned int max_objects = 1000);
 
   virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
-  virtual ChBody* NewBody();
+  virtual ChBody* NewBody() override;
+  virtual ChBodyAuxRef* NewBodyAuxRef() override;
   virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
   virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 

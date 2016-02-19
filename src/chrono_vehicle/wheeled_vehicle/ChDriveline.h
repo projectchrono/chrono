@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChDriveline {
     /// This represents the input to the driveline subsystem from the powertrain
     /// system. The default implementation applies this torque to the driveline's
     /// driveshaft.
-    virtual void Update(double torque) { m_driveshaft->SetAppliedTorque(torque); }
+    virtual void Synchronize(double torque) { m_driveshaft->SetAppliedTorque(torque); }
 
     /// Get the indexes of the vehicle's axles driven by this driveline subsystem.
     const std::vector<int>& GetDrivenAxleIndexes() const { return m_driven_axles; }

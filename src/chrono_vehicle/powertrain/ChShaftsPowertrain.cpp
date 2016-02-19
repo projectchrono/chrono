@@ -163,7 +163,7 @@ void ChShaftsPowertrain::SetDriveMode(ChPowertrain::DriveMode mmode) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChShaftsPowertrain::Update(double time, double throttle, double shaft_speed) {
+void ChShaftsPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
     // Just update the throttle level in the thermal engine
     m_engine->SetThrottle(throttle);
 

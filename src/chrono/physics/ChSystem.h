@@ -31,6 +31,7 @@
 #include "core/ChMath.h"
 #include "core/ChTimer.h"
 #include "physics/ChAssembly.h"
+#include "physics/ChBodyAuxRef.h"
 #include "physics/ChLinksAll.h"
 #include "physics/ChEvents.h"
 #include "physics/ChProbe.h"
@@ -378,6 +379,12 @@ class ChApi ChSystem : public ChAssembly,
     /// of this Chsystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
     virtual ChBody* NewBody() { return new ChBody(ChMaterialSurfaceBase::DVI); }
+
+    /// Create and return the pointer to a new body with auxiliary reference frame.
+    /// The returned body is created with a contact model consistent with the type
+    /// of this Chsystem and with the collision system currently associated with this
+    /// ChSystem.  Note that the body is *not* attached to this system.
+    virtual ChBodyAuxRef* NewBodyAuxRef() { return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI); }
 
     /// Attach a probe to this system.
     void AddProbe(std::shared_ptr<ChProbe>& newprobe);

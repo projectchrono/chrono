@@ -86,7 +86,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
-    m_axleTube = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_axleTube = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
@@ -103,7 +103,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
-    m_tierod = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_tierod = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_tierod->SetNameString(m_name + "_tierodBody");
     m_tierod->SetPos((tierodOuterL + tierodOuterR) / 2);
     m_tierod->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
@@ -145,7 +145,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize knuckle body (same orientation as the chassis)
-    m_knuckle[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_knuckle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_knuckle[side]->SetNameString(m_name + "_knuckle" + suffix);
     m_knuckle[side]->SetPos(points[KNUCKLE_CM]);
     m_knuckle[side]->SetRot(chassisRot);
@@ -156,7 +156,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
@@ -175,7 +175,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_upperLink[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_upperLink[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_upperLink[side]->SetNameString(m_name + "_upperLink" + suffix);
     m_upperLink[side]->SetPos(points[UL_CM]);
     m_upperLink[side]->SetRot(rot);
@@ -200,7 +200,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_lowerLink[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_lowerLink[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_lowerLink[side]->SetNameString(m_name + "_lowerLink" + suffix);
     m_lowerLink[side]->SetPos(points[LL_CM]);
     m_lowerLink[side]->SetRot(rot);
@@ -293,7 +293,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
       u = Vcross(v, w);
       rot.Set_A_axis(u, v, w);
 
-      m_draglink = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+      m_draglink = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
       m_draglink->SetNameString(m_name + "_draglink");
       m_draglink->SetPos((points[DRAGLINK_C] + points[BELLCRANK_DRAGLINK]) / 2);
       m_draglink->SetRot(rot.Get_A_quaternion());
@@ -309,7 +309,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
       chassis->GetSystem()->AddLink(m_sphericalDraglink);
 
       // Create and initialize bell crank body (one side only).
-      m_bellCrank = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+      m_bellCrank = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
       m_bellCrank->SetNameString(m_name + "_bellCrank");
       m_bellCrank->SetPos((points[BELLCRANK_DRAGLINK] + points[BELLCRANK_AXLE] + points[BELLCRANK_TIEROD]) / 3);
       m_bellCrank->SetRot(rot.Get_A_quaternion());

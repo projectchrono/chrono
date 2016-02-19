@@ -157,10 +157,10 @@ int main(int argc, char* argv[]) {
             int arg = 2;
 
         // update all 4 types of tires, with current wheel state data
-        tire_long.Update(time, long_state, flat_terrain);
-        tire_lat.Update(time, lat_state, flat_terrain);
-        tire_lat_gamma.Update(time, latGamma_state, flat_terrain);
-        tire_combined.Update(time, combined_state, flat_terrain);
+        tire_long.Synchronize(time, long_state, flat_terrain);
+        tire_lat.Synchronize(time, lat_state, flat_terrain);
+        tire_lat_gamma.Synchronize(time, latGamma_state, flat_terrain);
+        tire_combined.Synchronize(time, combined_state, flat_terrain);
 
         // advance the slip displacements, calculate reactions
         tire_long.Advance(step_size);

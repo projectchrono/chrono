@@ -196,9 +196,7 @@ namespace chrono
 	{
 		if (on_off)
 		{
-			int iparm4_value = 0;
-			int K = 0;
-			K = (mtype == 11 || mtype == 1) ? 1 : 2;
+			int K = (mtype == 11 || mtype == 1) ? 1 : 2;
 			IPARM(4) = 10 * L + K;
 		}
 		else
@@ -253,14 +251,14 @@ namespace chrono
 
 	}
 
-	void ChMklEngine::GetResidual(double* res) {
+	void ChMklEngine::GetResidual(double* res) const {
 		mkl_cspblas_dcsrgemv("N", &n, a, ia, ja, x, res); // performs Matrix*Solution
 		for (int i = 0; i < n; i++){
 			res[i] = b[i] - res[i];	// performs: rhs - Matrix*Solution
 		};
 	};
 	
-	double ChMklEngine::GetResidualNorm(double* res) const{
+	double ChMklEngine::GetResidualNorm(double* res) const {
 		double norm = 0;
 		for (int i = 0; i < n; i++){
 			norm += res[i] * res[i];

@@ -176,10 +176,10 @@ int main(int argc, char* argv[]) {
         double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
-        driver.Update(time);
-        terrain.Update(time);
-        my_hmmwv.Update(time, steering_input, braking_input, throttle_input, terrain);
-        app.Update(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        driver.Synchronize(time);
+        terrain.Synchronize(time);
+        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

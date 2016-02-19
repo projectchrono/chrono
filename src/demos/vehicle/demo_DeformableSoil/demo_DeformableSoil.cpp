@@ -17,26 +17,22 @@
 //       say CFD or SPH (here simulated as a function in this .cpp file)
 //       that is perform a cosimulation.
 
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/geometry/ChCTriangleMeshConnected.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemDEM.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_vehicle/terrain/DeformableTerrain.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/DeformableTerrain.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
 
 using namespace irr;
 
-
-
 int main(int argc, char* argv[]) {
-
     // Global parameter for tire:
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
@@ -44,7 +40,6 @@ int main(int argc, char* argv[]) {
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y)); // create rotated 180° on y
 
     double tire_w0 = tire_vel_z0/tire_rad;
-
 
     // Create a Chrono::Engine physical system
     ChSystemDEM my_system;
@@ -61,7 +56,6 @@ int main(int argc, char* argv[]) {
     application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
 
- 
     std::shared_ptr<ChBody> mtruss (new ChBody);
     mtruss->SetBodyFixed(true);
     my_system.Add(mtruss);
@@ -86,7 +80,8 @@ int main(int argc, char* argv[]) {
     mrigidbody->AddAsset(mrigidmesh);
 
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(mrigidmesh->GetMesh(),false, false, VNULL, ChMatrix33<>(CH_C_PI, VECT_Y),0.01);
+    mrigidbody->GetCollisionModel()->AddTriangleMesh(mrigidmesh->GetMesh(), false, false, VNULL,
+                                                     ChMatrix33<>(CH_C_PI, VECT_Y), 0.01);
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
@@ -106,34 +101,38 @@ int main(int argc, char* argv[]) {
     // THE DEFORMABLE TERRAIN
     //
 
-
     // Create the 'deformable terrain' object
-    std::shared_ptr<vehicle::DeformableTerrain> mterrain (new vehicle::DeformableTerrain(&my_system));
-    my_system.Add(mterrain);
+    vehicle::DeformableTerrain mterrain(&my_system);
 
     // Optionally, displace/tilt/rotate the terrain reference plane:
-    mterrain->SetPlane(ChCoordsys<>( ChVector<>(0,0,0.5)) );
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.5)));
 
     // Initialize the geometry of the soil: use either a regular grid:
     // mterrain->Initialize(0.2,1,1,50,50);
     // or use a height map:
-    mterrain->Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 2, 2, 0, 0.3);
+    mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.5, 1.5, 0, 0.3);
 
     // Set the soil terramechanical parameters:
-    mterrain->SetSoilParametersSCM( 0.2e6, // Bekker Kphi
+    mterrain.SetSoilParametersSCM(1.2e6,  // Bekker Kphi
                                     0,   // Bekker Kc
                                     1.1, // Bekker n exponent
                                     0,   // Mohr cohesive limit (Pa)
                                     20,  // Mohr friction limit (degrees)
-                                    0.01 // Janosi shear coefficient (m)
+                                    0.01,// Janosi shear coefficient (m)
+                                    2e7  // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
                                     );
+    mterrain->SetBulldozingFlow(false); // inflate soil at the border of the rut
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    mterrain->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
-    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
-    //mterrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-   
-
+    //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
@@ -144,10 +143,8 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-
     // ==IMPORTANT!== Mark completion of system construction
     my_system.SetupInitial();
-
 
     //
     // THE SOFT-REAL-TIME CYCLE
@@ -163,10 +160,6 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-10);  
   */  
 
-    // Change type of integrator:
-    //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-
-
     application.SetTimestep(0.005);
 
     while (application.GetDevice()->run()) {
@@ -176,8 +169,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-       // ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20,
-       //                         ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X), video::SColor(50, 90, 90, 90), true);
+        ChIrrTools::drawColorbar(0,30000, "Pressure yeld [Pa]", application.GetDevice(),  1180);
 
         application.EndScene();
     }

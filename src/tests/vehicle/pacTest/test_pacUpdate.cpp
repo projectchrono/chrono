@@ -45,12 +45,12 @@ void processState(std::shared_ptr<ChPacejkaTire> tire, const WheelState& state, 
     cout << "Angular vel.: " << state.ang_vel.x << "  " << state.ang_vel.y << "  " << state.ang_vel.z << endl;
     cout << "Wheel omega:  " << state.omega << endl << endl;
 
-    tire->Update(0, state, terrain);
+    tire->Synchronize(0, state, terrain);
     double kappa = tire->get_kappa();
     double alpha = tire->get_alpha();
     double gamma = tire->get_gamma();
     double R_eff = tire->get_tire_rolling_rad();
-    cout << "Update()" << endl;
+    cout << "Synchronize()" << endl;
     cout << "  alpha = " << alpha << " rad = " << alpha* rad2deg << " deg" << endl;
     cout << "  gamma = " << gamma << " rad = " << gamma* rad2deg << " deg" << endl << endl;
     cout << "  R_eff = " << R_eff << endl;

@@ -14,7 +14,7 @@
 //
 // Base class for a vehicle driver. A driver object must be able to report the
 // current values of the inputs (throttle, steering, braking). To set these
-// values, a concrete driver class can implement the virtual method Update()
+// values, a concrete driver class can implement the virtual method Synchronize()
 // which will be invoked at each time step.
 //
 // =============================================================================

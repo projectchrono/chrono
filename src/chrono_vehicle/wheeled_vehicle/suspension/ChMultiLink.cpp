@@ -106,7 +106,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
@@ -116,7 +116,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
-    m_upright[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_upright[side]->SetNameString(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
@@ -142,7 +142,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
-    m_upperArm[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_upperArm[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_upperArm[side]->SetNameString(m_name + "_upperArm" + suffix);
     m_upperArm[side]->SetPos(points[UA_CM]);
     m_upperArm[side]->SetRot(rot);
@@ -161,7 +161,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_lateral[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_lateral[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_lateral[side]->SetNameString(m_name + "_lateral" + suffix);
     m_lateral[side]->SetPos(points[LAT_CM]);
     m_lateral[side]->SetRot(rot);
@@ -180,7 +180,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_trailingLink[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_trailingLink[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_trailingLink[side]->SetNameString(m_name + "_trailingLink" + suffix);
     m_trailingLink[side]->SetPos(points[TL_CM]);
     m_trailingLink[side]->SetRot(rot);
