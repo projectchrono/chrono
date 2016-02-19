@@ -233,11 +233,11 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();
-        driver.Update(time);
-        terrain.Update(time);
-        powertrain.Update(time, throttle_input, driveshaft_speed);
-        vehicle.Update(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
-        app.Update("", steering_input, throttle_input, braking_input);
+        driver.Synchronize(time);
+        terrain.Synchronize(time);
+        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
+        app.Synchronize("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

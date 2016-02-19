@@ -134,9 +134,9 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         double time = rig.GetChTime();
-        driver.Update(time);
-        rig.Update(time, post_input, shoe_forces);
-        app.Update("", steering_input, 0, 0);
+        driver.Synchronize(time);
+        rig.Synchronize(time, post_input, shoe_forces);
+        app.Synchronize("", steering_input, 0, 0);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

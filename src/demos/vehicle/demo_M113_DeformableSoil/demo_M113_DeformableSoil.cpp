@@ -115,20 +115,19 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     // ------------------
 
-    auto terrain = std::make_shared<DeformableTerrain>(vehicle.GetSystem());
-    vehicle.GetSystem()->Add(terrain);
-    terrain->SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    terrain->SetSoilParametersSCM(2e7,   // Bekker Kphi
-                                  0,     // Bekker Kc
-                                  1.1,   // Bekker n exponent
-                                  0,     // Mohr cohesive limit (Pa)
-                                  20,    // Mohr friction limit (degrees)
-                                  0.01,  // Janosi shear coefficient (m)
-                                  2e8    // Elastic stiffness (Pa/m), before plastic yeld
-                                  );
-    terrain->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-    ////terrain->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-    terrain->Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    DeformableTerrain terrain(vehicle.GetSystem());
+    terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
+                                 0,     // Bekker Kc
+                                 1.1,   // Bekker n exponent
+                                 0,     // Mohr cohesive limit (Pa)
+                                 20,    // Mohr friction limit (degrees)
+                                 0.01,  // Janosi shear coefficient (m)
+                                 2e8    // Elastic stiffness (Pa/m), before plastic yeld
+                                 );
+    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    ////terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
 
     AddFixedObstacles(vehicle.GetSystem());
     ////AddMovingObstacles(vehicle.GetSystem());
@@ -232,16 +231,16 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();
-        driver.Update(time);
-        ////terrain.Update(time);
-        powertrain.Update(time, throttle_input, driveshaft_speed);
-        vehicle.Update(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
-        app.Update("", steering_input, throttle_input, braking_input);
+        driver.Synchronize(time);
+        terrain.Synchronize(time);
+        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
+        app.Synchronize("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
         driver.Advance(step);
-        ////terrain.Advance(step);
+        terrain.Advance(step);
         powertrain.Advance(step);
         vehicle.Advance(step);
         app.Advance(step);

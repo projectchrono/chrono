@@ -366,9 +366,9 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();
-        driver.Update(time);
-        powertrain.Update(time, throttle_input, driveshaft_speed);
-        vehicle.Update(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
+        driver.Synchronize(time);
+        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(time_step);
