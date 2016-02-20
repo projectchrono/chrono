@@ -248,10 +248,10 @@ void ChFluidContainer::Density_Fluid() {
             real3 dcon_od = mass_over_density * kernel_xij;  // off diagonal
             dcon_diag -= dcon_od;                            // diagonal is sum
             // den_con_jac[body_a * max_neighbors + i] = dcon_od;
-            SetRow3Check(D_T, start_density + body_a, body_offset + body_b * 3, dcon_od);
+            SetRow3(D_T, start_density + body_a, body_offset + body_b * 3, dcon_od);
         }
         // den_con_jac[body_a * max_neighbors + d_ind] = dcon_diag;
-        SetRow3Check(D_T, start_density + body_a, body_offset + body_a * 3, dcon_diag);
+        SetRow3(D_T, start_density + body_a, body_offset + body_a * 3, dcon_diag);
         density[body_a] = dens;
     }
 }
@@ -372,18 +372,18 @@ void ChFluidContainer::Build_D() {
                     real3 r2 = xij[1] * kernel_xij * scalar;
                     real3 r3 = xij[2] * kernel_xij * scalar;
 
-                    SetRow3Check(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, r1);
-                    SetRow3Check(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3, r2);
-                    SetRow3Check(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3, r3);
+                    SetRow3(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, r1);
+                    SetRow3(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3, r2);
+                    SetRow3(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3, r3);
 
                     vmat_row1 -= r1;
                     vmat_row2 -= r2;
                     vmat_row3 -= r3;
                 }
 
-                SetRow3Check(D_T, start_viscous + body_a * 3 + 0, body_offset + body_a * 3, vmat_row1);
-                SetRow3Check(D_T, start_viscous + body_a * 3 + 1, body_offset + body_a * 3, vmat_row2);
-                SetRow3Check(D_T, start_viscous + body_a * 3 + 2, body_offset + body_a * 3, vmat_row3);
+                SetRow3(D_T, start_viscous + body_a * 3 + 0, body_offset + body_a * 3, vmat_row1);
+                SetRow3(D_T, start_viscous + body_a * 3 + 1, body_offset + body_a * 3, vmat_row2);
+                SetRow3(D_T, start_viscous + body_a * 3 + 2, body_offset + body_a * 3, vmat_row3);
             }
         }
     }
@@ -567,7 +567,7 @@ void ChFluidContainer::GenerateSparsity() {
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
             for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                AppendRow3(D_T, start_density + body_a, body_offset + body_b * 3, 0);
+                AppendRow3(D_T, start_density + body_a, body_offset + body_b * 3, C_EPSILON);
             }
             D_T.finalize(start_density + body_a);
         }
@@ -577,19 +577,19 @@ void ChFluidContainer::GenerateSparsity() {
             for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
                 for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                     int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                    AppendRow3(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, 0);
+                    AppendRow3(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, C_EPSILON);
                 }
                 D_T.finalize(start_viscous + body_a * 3 + 0);
                 //
                 for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                     int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                    AppendRow3(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3, 0);
+                    AppendRow3(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3, C_EPSILON);
                 }
                 D_T.finalize(start_viscous + body_a * 3 + 1);
                 //
                 for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                     int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                    AppendRow3(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3, 0);
+                    AppendRow3(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3, C_EPSILON);
                 }
                 D_T.finalize(start_viscous + body_a * 3 + 2);
             }
