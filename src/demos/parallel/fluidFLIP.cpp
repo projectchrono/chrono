@@ -157,26 +157,26 @@ void AddFluid(ChSystemParallelDVI* sys) {
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z);
-        vel_fluid[i] = real3(1, 0, 0);
-    }
-    //    pos_fluid.resize(1);
-    //    vel_fluid.resize(1);
-    //
-    //    pos_fluid[0] = real3(0, 0, 0);
-    //    vel_fluid[0] = real3(1, 0, 0);
+        vel_fluid[i] = real3(5, 0, 0);
+   }
+//        pos_fluid.resize(1);
+//        vel_fluid.resize(1);
+//
+//        pos_fluid[0] = real3(0, 0, 0);
+//        vel_fluid[0] = real3(1, 0, 0);
 
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
-    points = sampler.SampleBox(ChVector<>(.12, 0, 0), ChVector<>(radius, radius, radius));
+    points = sampler.SampleBox(ChVector<>(.2, 0, 0), ChVector<>(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(-1, 0, 0);
+        vel_fluid[i] = real3(-5, 0, 0);
     }
-    //mpm_container->AddNodes(pos_fluid, vel_fluid);
+    mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
     std::ifstream ifile("state_0.029.dat");
