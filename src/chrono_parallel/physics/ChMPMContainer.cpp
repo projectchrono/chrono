@@ -206,13 +206,24 @@ void ChMPMContainer::ComputeDOF() {
     bbox_reduction binary_op;
     res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
 
-    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + kernel_radius * 12)),
-                               (Ceil(res.second.y), (res.second.y + kernel_radius * 12)),
-                               (Ceil(res.second.z), (res.second.z + kernel_radius * 12)));
+    res.first.x = kernel_radius * Round(res.first.x / kernel_radius);
+    res.first.y = kernel_radius * Round(res.first.y / kernel_radius);
+    res.first.z = kernel_radius * Round(res.first.z / kernel_radius);
 
-    min_bounding_point = real3((Floor(res.first.x), (res.first.x - kernel_radius * 12)),
-                               (Floor(res.first.y), (res.first.y - kernel_radius * 12)),
-                               (Floor(res.first.z), (res.first.z - kernel_radius * 12)));
+    res.second.x = kernel_radius * Round(res.second.x / kernel_radius);
+    res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
+    res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
+
+    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 4;
+    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 2;
+
+    //    max_bounding_point = real3((Ceil(res.second.x), (res.second.x + kernel_radius * 12)),
+    //                               (Ceil(res.second.y), (res.second.y + kernel_radius * 12)),
+    //                               (Ceil(res.second.z), (res.second.z + kernel_radius * 12)));
+    //
+    //    min_bounding_point = real3((Floor(res.first.x), (res.first.x - kernel_radius * 12)),
+    //                               (Floor(res.first.y), (res.first.y - kernel_radius * 12)),
+    //                               (Floor(res.first.z), (res.first.z - kernel_radius * 12)));
 
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
@@ -469,23 +480,23 @@ void ChMPMContainer::Build_b() {
     if (num_rigid_mpm_contacts > 0) {
         custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_mpm;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
-//
-//#pragma omp parallel for
-//        for (int p = 0; p < num_mpm_markers; p++) {
-//            int start = contact_counts[p];
-//            int end = contact_counts[p + 1];
-//            for (int index = start; index < end; index++) {
-//                int i = index - start;  // index that goes from 0
-//                real depth = data_manager->host_data.dpth_rigid_mpm[p * max_rigid_neighbors + i];
-//
-//                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-//                // printf("boundary: [%f]\n", bi);
-//                data_manager->host_data.b[start_row + index + 0] = bi;
-//                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 0] = 0;
-//                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 1] = 0;
-//            }
-//        }
-//    }
+
+#pragma omp parallel for
+        for (int p = 0; p < num_mpm_markers; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            for (int index = start; index < end; index++) {
+                int i = index - start;  // index that goes from 0
+                real depth = data_manager->host_data.dpth_rigid_mpm[p * max_rigid_neighbors + i];
+
+                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                // printf("boundary: [%f]\n", bi);
+                data_manager->host_data.b[start_row + index + 0] = bi;
+                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 0] = 0;
+                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 1] = 0;
+            }
+        }
+    }
 }
 void ChMPMContainer::Build_E() {
     LOG(INFO) << "ChMPMContainer::Build_E";
