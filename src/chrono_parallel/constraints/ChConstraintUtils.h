@@ -94,15 +94,15 @@ static void inline SetRow3Check(T& D, const int row, const int col, const real3&
         exit(1);
     }
 
-    if (A.x != 0.0) {
-        D.set(row, col + 0, A.x);
-    }
-    if (A.y != 0.0) {
-        D.set(row, col + 1, A.y);
-    }
-    if (A.z != 0.0) {
-        D.set(row, col + 2, A.z);
-    }
+    // if (A.x != 0.0) {
+    D.set(row, col + 0, A.x + C_EPSILON);
+    //}
+    // if (A.y != 0.0) {
+    D.set(row, col + 1, A.y + C_EPSILON);
+    //}
+    // if (A.z != 0.0) {
+    D.set(row, col + 2, A.z + C_EPSILON);
+    //}
 }
 template <typename T>
 static void inline SetRow3Weak(T& D, const int row, const int col, const real3& A) {
