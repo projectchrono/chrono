@@ -330,6 +330,7 @@ class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
 
     DynamicVector<real> rhs;
     DynamicVector<real> grid_vel;
+    custom_vector<real3> face_density;
 
     uint start_node;
     uint num_mpm_constraints;
