@@ -41,9 +41,12 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked
+/// @{
+
+/// Definition of a track assembly.
+/// A track assembly consists of a sprocket, an idler (with tensioner mechanism),
+/// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
 class CH_VEHICLE_API ChTrackAssembly {
   public:
     ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
@@ -149,6 +152,8 @@ class CH_VEHICLE_API ChTrackAssembly {
     /// direction and false otherwise.
     bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis);
 };
+
+/// @} vehicle_tracked
 
 }  // end namespace vehicle
 }  // end namespace chrono

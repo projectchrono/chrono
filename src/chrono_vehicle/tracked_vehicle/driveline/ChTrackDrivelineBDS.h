@@ -32,8 +32,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
+/// @addtogroup vehicle_tracked_driveline
+/// @{
+
+/// Track driveline model template based on ChShaft objects.
 class CH_VEHICLE_API ChTrackDrivelineBDS : public ChTrackDriveline {
   public:
     ChTrackDrivelineBDS(const std::string& name  ///< [in] name of the subsystem
@@ -86,6 +88,8 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChTrackDriveline {
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;
 };
+
+/// @} vehicle_tracked_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

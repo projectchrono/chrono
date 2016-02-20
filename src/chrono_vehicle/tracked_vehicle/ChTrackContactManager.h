@@ -32,8 +32,12 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_tracked
+/// @{
+
 class ChTrackedVehicle;
 
+/// Contact information data structure.
 struct ChTrackContactInfo {
     ChVector<> m_point;
     ChMatrix33<> m_csys;
@@ -41,6 +45,7 @@ struct ChTrackContactInfo {
     ChVector<> m_torque;
 };
 
+/// Class for monitoring contacts of tracked vehicle subsystems.
 class ChTrackContactManager : public chrono::ChReportContactCallback2 {
   public:
     ChTrackContactManager();
@@ -92,6 +97,8 @@ class ChTrackContactManager : public chrono::ChReportContactCallback2 {
 
     friend class ChTrackedVehicleIrrApp;
 };
+
+/// @} vehicle_tracked
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -28,9 +28,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_suspension
+/// @{
+
+/// Base class for a double road wheel (template definition).
 class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
   public:
     ChDoubleRoadWheel(const std::string& name  ///< [in] name of the subsystem
@@ -57,6 +58,8 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
     /// The default implementation renders the wheel as two textured cylinders.
     virtual void AddWheelVisualization();
 };
+
+/// @} vehicle_tracked_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

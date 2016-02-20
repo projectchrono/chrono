@@ -28,15 +28,22 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_tracked Tracked vehicles
+    @}
+*/
 
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_tracked
+/// @{
+
 /// Base class for chrono tracked vehicle systems.
 /// This class provides the interface between the vehicle system and other
 /// systems (terrain, driver, etc.)
-///
 class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
@@ -137,6 +144,8 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     friend class ChTrackedVehicleIrrApp;
 };
+
+/// @} vehicle_tracked
 
 }  // end namespace vehicle
 }  // end namespace chrono

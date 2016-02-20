@@ -24,6 +24,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_tracked
+/// @{
+
+/// Enumerations for track collision flags.
 namespace TrackCollide {
 enum Enum {
     NONE = 0,
@@ -39,9 +43,12 @@ enum Enum {
 };
 }
 
+/// Enumerations for track collision families.
 namespace TrackCollisionFamily {
 enum Enum { CHASSIS, IDLERS, WHEELS, SHOES };
 }
+
+/// @} vehicle_tracked
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -28,9 +28,11 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_shoe
+/// @{
+
+/// Base class for a single-pin track shoe (template definition).
+/// A single-pin track shoe can be either of CENTRAL_PIN or LATERAL_PIN type.
 class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
   public:
     ChSinglePinShoe(const std::string& name  ///< [in] name of the subsystem
@@ -82,6 +84,8 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
 };
+
+/// @} vehicle_tracked_shoe
 
 }  // end namespace vehicle
 }  // end namespace chrono

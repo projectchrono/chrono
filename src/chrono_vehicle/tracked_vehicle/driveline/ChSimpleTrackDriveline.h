@@ -27,9 +27,12 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_driveline
+/// @{
+
+/// Simple driveline model for a tracked vehicle.
+/// This template splits the input torque to the left and right tracks using a simple
+/// analytical model of a Torsen limited-slip differential and the given driver steering input.
 class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
   public:
     ChSimpleTrackDriveline(const std::string& name);
@@ -68,6 +71,8 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
       std::shared_ptr<ChShaft> m_shaft_left;
       std::shared_ptr<ChShaft> m_shaft_right;
 };
+
+/// @} vehicle_tracked_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

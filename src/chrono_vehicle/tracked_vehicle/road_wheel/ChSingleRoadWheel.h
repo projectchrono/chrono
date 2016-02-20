@@ -28,9 +28,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_suspension
+/// @{
+
+/// Base class for a single road wheel (template definition).
 class CH_VEHICLE_API ChSingleRoadWheel : public ChRoadWheel {
   public:
     ChSingleRoadWheel(const std::string& name  ///< [in] name of the subsystem
@@ -55,6 +56,8 @@ class CH_VEHICLE_API ChSingleRoadWheel : public ChRoadWheel {
     /// The default implementation renders the wheel as a textured cylinder.
     virtual void AddWheelVisualization();
 };
+
+/// @} vehicle_tracked_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

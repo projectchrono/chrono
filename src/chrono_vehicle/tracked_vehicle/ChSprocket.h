@@ -45,15 +45,24 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
+/**
+    @addtogroup vehicle_tracked
+    @{
+        @defgroup vehicle_tracked_sprocket Sprocket subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
+
+/// @addtogroup vehicle_tracked_sprocket
+/// @{
 
 // Forward declaration
 class ChTrackAssembly;
 
-///
-///
-///
+/// Base class for a tracked vehicle sprocket.
+/// A sprocket is responsible for contact processing with the track shoes of the containing track assembly.
 class CH_VEHICLE_API ChSprocket {
   public:
     ChSprocket(const std::string& name  ///< [in] name of the subsystem
@@ -167,6 +176,8 @@ class CH_VEHICLE_API ChSprocket {
 
 /// Vector of handles to sprocket subsystems.
 typedef std::vector<std::shared_ptr<ChSprocket> > ChSprocketList;
+
+/// @} vehicle_tracked_sprocket
 
 }  // end namespace vehicle
 }  // end namespace chrono

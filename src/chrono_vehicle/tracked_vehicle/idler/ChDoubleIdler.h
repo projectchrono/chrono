@@ -28,9 +28,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_idler
+/// @{
+
+/// Base class for a double idler (template definition).
 class CH_VEHICLE_API ChDoubleIdler : public ChIdler {
   public:
     ChDoubleIdler(const std::string& name  ///< [in] name of the subsystem
@@ -56,6 +57,8 @@ class CH_VEHICLE_API ChDoubleIdler : public ChIdler {
     /// The default implementation renders the wheel as two textured cylinders.
     virtual void AddWheelVisualization();
 };
+
+/// @} vehicle_tracked_idler
 
 }  // end namespace vehicle
 }  // end namespace chrono

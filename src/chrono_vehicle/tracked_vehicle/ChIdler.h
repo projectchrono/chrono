@@ -39,12 +39,23 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
+/**
+    @addtogroup vehicle_tracked
+    @{
+        @defgroup vehicle_tracked_idler Idler subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_idler
+/// @{
+
+/// Base class for an idler subsystem.
+/// An idler consists of the idler wheel and a connecting body.  The idler wheel is connected
+/// through a revolute joint to the connecting body which in turn is connected to the chassis
+/// through a translational joint. A linear actuator acts as a tensioner.
 class CH_VEHICLE_API ChIdler {
   public:
     ChIdler(const std::string& name  ///< [in] name of the subsystem
@@ -149,6 +160,8 @@ class CH_VEHICLE_API ChIdler {
                                  const ChVector<>& pt_C,
                                  const ChVector<>& pt_T);
 };
+
+/// @} vehicle_tracked_idler
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -28,6 +28,11 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_tracked_utils
+/// @{
+
+/// Irrlicht-based GUI driver for the a track test rig.
+/// This class extends the ChIrrGuiDriver for a vehicle with controls for the shaker posts.
 class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChIrrGuiDriver {
   public:
     ChIrrGuiDriverTTR(ChVehicleIrrApp& app,            ///< handle to the vehicle Irrlicht application
@@ -52,6 +57,8 @@ class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChIrrGuiDriver {
     double m_minDisplacement;
     double m_maxDisplacement;
 };
+
+/// @} vehicle_tracked_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono

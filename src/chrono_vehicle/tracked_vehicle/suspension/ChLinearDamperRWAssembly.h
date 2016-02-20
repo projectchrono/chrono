@@ -31,9 +31,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_suspension
+/// @{
+
+/// Base class for a torsion-bar suspension system using linear dampers (template definition).
 class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
   public:
     ChLinearDamperRWAssembly(const std::string& name,  ///< [in] name of the subsystem
@@ -103,6 +104,8 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                              const ChVector<>& pt_AS   ///< connection to shock absorber (in global frame)
                              );
 };
+
+/// @} vehicle_tracked_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

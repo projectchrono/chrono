@@ -29,12 +29,20 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
+/**
+    @addtogroup vehicle_tracked
+    @{
+        @defgroup vehicle_tracked_driveline Driveline subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_driveline
+/// @{
+
+/// Base class for a tracked vehicle driveline.
 class CH_VEHICLE_API ChTrackDriveline {
   public:
     ChTrackDriveline(const std::string& name  ///< [in] name of the subsystem
@@ -89,6 +97,8 @@ class CH_VEHICLE_API ChTrackDriveline {
     bool m_gyration_mode;                   ///< flag indicating if in gyration mode (turn in place)
     std::shared_ptr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
 };
+
+/// @} vehicle_tracked_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

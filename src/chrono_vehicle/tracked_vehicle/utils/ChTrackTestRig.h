@@ -32,12 +32,20 @@
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
+/**
+    @addtogroup vehicle_tracked
+    @{
+        @defgroup vehicle_tracked_utils Utility classes
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_tracked_utils
+/// @{
+
 /// Definition of a suspension test rig.
-///
 class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
   public:
     /// Construct a test rig for a specified track assembly of a given vehicle.
@@ -135,6 +143,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ChVector<> m_idlerLoc;
     std::vector<ChVector<> > m_suspLocs;
 };
+
+/// @} vehicle_tracked_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono

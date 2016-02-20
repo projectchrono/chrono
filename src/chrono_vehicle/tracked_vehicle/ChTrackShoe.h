@@ -29,12 +29,20 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
+/**
+    @addtogroup vehicle_tracked
+    @{
+        @defgroup vehicle_tracked_shoe Track-shoe subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_shoe
+/// @{
+
+/// Base class for a track shoe.
 class CH_VEHICLE_API ChTrackShoe {
   public:
     ChTrackShoe(const std::string& name  ///< [in] name of the subsystem
@@ -113,6 +121,8 @@ class CH_VEHICLE_API ChTrackShoe {
 
 /// Vector of handles to track shoe subsystems.
 typedef std::vector<std::shared_ptr<ChTrackShoe> > ChTrackShoeList;
+
+/// @} vehicle_tracked_shoe
 
 }  // end namespace vehicle
 }  // end namespace chrono

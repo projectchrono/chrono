@@ -28,6 +28,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_tracked_brake
+/// @{
+
+/// Simple brake created with constant torque opposing sprocket rotation.
 class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
   public:
     ChTrackBrakeSimple();
@@ -54,6 +58,8 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     double m_braking;
     std::shared_ptr<ChLinkBrake> m_brake;
 };
+
+/// @} vehicle_tracked_brake
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -25,12 +25,20 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+/**
+    @addtogroup vehicle_tracked
+    @{
+        @defgroup vehicle_tracked_brake Brake subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
-/// Base class for a brake subsystem
-///
+/// @addtogroup vehicle_tracked_brake
+/// @{
+
+/// Base class for a tracked vehicle brake subsystem.
 class CH_VEHICLE_API ChTrackBrake {
   public:
     ChTrackBrake();
@@ -50,6 +58,8 @@ class CH_VEHICLE_API ChTrackBrake {
 
 /// Vector of handles to brake subsystems.
 typedef std::vector<std::shared_ptr<ChTrackBrake> > ChTrackBrakeList;
+
+/// @} vehicle_tracked_brake
 
 }  // end namespace vehicle
 }  // end namespace chrono

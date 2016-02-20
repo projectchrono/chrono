@@ -27,9 +27,11 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_sprocket
+/// @{
+
+/// Base class for a sprocket template with gear profile composed of circular arcs.
+/// This sprocket type is suitable for interaction with single-pin track shoes.
 class CH_VEHICLE_API ChArcSprocket : public ChSprocket {
   public:
     ChArcSprocket(const std::string& name  ///< [in] name of the subsystem
@@ -59,6 +61,8 @@ class CH_VEHICLE_API ChArcSprocket : public ChSprocket {
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const = 0;
 };
+
+/// @} vehicle_tracked_sprocket
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -33,9 +33,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_suspension
+/// @{
+
+/// Base class for a road wheel subsystem.
 class CH_VEHICLE_API ChRoadWheel {
   public:
     ChRoadWheel(const std::string& name  ///< [in] name of the subsystem
@@ -103,6 +104,8 @@ class CH_VEHICLE_API ChRoadWheel {
     float m_young_modulus;
     float m_poisson_ratio;
 };
+
+/// @} vehicle_tracked_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

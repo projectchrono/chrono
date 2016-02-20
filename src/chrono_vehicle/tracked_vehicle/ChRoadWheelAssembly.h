@@ -33,12 +33,20 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
 
+/**
+    @addtogroup vehicle_tracked
+    @{
+        @defgroup vehicle_tracked_suspension Suspension subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
-///
-///
+/// @addtogroup vehicle_tracked_suspension
+/// @{
+
+/// Base class for tracked vehicle suspension (road-wheel assembly) subsystem.
 class CH_VEHICLE_API ChRoadWheelAssembly {
   public:
     ChRoadWheelAssembly(const std::string& name  ///< [in] name of the subsystem
@@ -97,6 +105,8 @@ class CH_VEHICLE_API ChRoadWheelAssembly {
 
 /// Vector of handles to road wheel assembly subsystems.
 typedef std::vector<std::shared_ptr<ChRoadWheelAssembly> > ChRoadWheelAssemblyList;
+
+/// @} vehicle_tracked_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

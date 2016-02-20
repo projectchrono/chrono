@@ -26,9 +26,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_tracked_utils
+/// @{
+
 /// Customized Chrono Irrlicht application for tracked vehicle visualization.
-///
 class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a tracked vehicle Irrlicht application.
@@ -48,6 +49,8 @@ class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
 
     ChTrackedVehicle* m_tvehicle;
 };
+
+/// @} vehicle_tracked_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono
