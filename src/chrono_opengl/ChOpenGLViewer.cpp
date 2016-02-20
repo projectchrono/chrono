@@ -654,7 +654,7 @@ void ChOpenGLViewer::RenderGrid() {
 
         if (ChFLIPContainer* flip_container =
                 dynamic_cast<ChFLIPContainer*>(parallel_sys->data_manager->mpm_container)) {
-            int3 bins_per_axis = flip_container->bins_per_axis;
+            bins_per_axis = flip_container->bins_per_axis;
             bin_size_vec = real3(flip_container->bin_edge);
             min_pt = flip_container->min_bounding_point;
             max_pt = flip_container->max_bounding_point;
