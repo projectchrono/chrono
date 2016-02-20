@@ -121,6 +121,12 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChSprocket::GetMass() const {
+    return GetGearMass();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChSprocket::AddGearVisualization() {
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);

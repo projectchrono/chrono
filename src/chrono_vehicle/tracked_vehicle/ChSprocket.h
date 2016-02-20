@@ -99,6 +99,9 @@ class CH_VEHICLE_API ChSprocket {
     /// Turn on/off collision flag for the gear wheel.
     void SetCollide(bool val) { m_gear->SetCollide(val); }
 
+    /// Get the mass of the sprocket subsystem.
+    virtual double GetMass() const;
+
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in

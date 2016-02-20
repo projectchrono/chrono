@@ -95,6 +95,12 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChLinearDamperRWAssembly::GetMass() const {
+    return GetArmMass() + m_road_wheel->GetWheelMass();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
                                                    const ChVector<>& pt_A,
                                                    const ChVector<>& pt_AW,

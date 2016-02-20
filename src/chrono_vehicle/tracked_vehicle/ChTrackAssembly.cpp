@@ -271,8 +271,21 @@ bool ChTrackAssembly::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         ++index;
     }
 
-    GetLog() << "Track assembly done.  Number of track shoes: " << index << "\n\n";
+    GetLog() << "Track assembly done.  Number of track shoes: " << index << "\n";
     return ccw;
+}
+
+// -----------------------------------------------------------------------------
+// Calculate and return the total mass of the track assembly
+// -----------------------------------------------------------------------------
+double ChTrackAssembly::GetMass() const {
+    double mass = m_sprocket->GetMass() + m_idler->GetMass();
+    for (size_t i = 0; i < m_suspensions.size(); i++)
+        mass += m_suspensions[i]->GetMass();
+    for (size_t i = 0; i < m_shoes.size(); ++i)
+        mass += m_shoes[i]->GetMass();
+
+    return mass;
 }
 
 // -----------------------------------------------------------------------------

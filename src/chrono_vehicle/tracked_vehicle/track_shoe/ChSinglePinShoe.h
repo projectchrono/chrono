@@ -36,6 +36,9 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     ChSinglePinShoe(const std::string& name  ///< [in] name of the subsystem
                     );
 
+    /// Get the mass of the track shoe.
+    virtual double GetMass() const override;
+
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).

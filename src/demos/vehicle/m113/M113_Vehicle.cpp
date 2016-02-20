@@ -82,6 +82,8 @@ void M113_Vehicle::Create(bool fixed) {
     // Create the driveline
     m_driveline = std::make_shared<M113_SimpleDriveline>();
     ////m_driveline = std::make_shared<M113_DrivelineBDS>();
+
+    GetLog() << "M113 vehicle mass = " << GetVehicleMass() << " kg.\n";
 }
 
 // -----------------------------------------------------------------------------

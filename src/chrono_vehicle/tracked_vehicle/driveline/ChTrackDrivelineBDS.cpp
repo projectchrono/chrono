@@ -87,6 +87,8 @@ double ChTrackDrivelineBDS::GetSprocketTorque(VehicleSide side) const {
         case RIGHT:
             return -m_differential->GetTorqueReactionOn3();
     }
+
+    return 0;
 }
 
 double ChTrackDrivelineBDS::GetSprocketSpeed(VehicleSide side) const {
@@ -98,6 +100,8 @@ double ChTrackDrivelineBDS::GetSprocketSpeed(VehicleSide side) const {
             return m_differential->GetSpeedShaft3();
         }
     }
+
+    return 0;
 }
 
 }  // end namespace vehicle

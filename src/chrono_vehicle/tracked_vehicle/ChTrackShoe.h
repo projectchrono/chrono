@@ -66,6 +66,9 @@ class CH_VEHICLE_API ChTrackShoe {
     /// Get the index of this track shoe within its containing track assembly.
     size_t GetIndex() const { return m_index; }
 
+    /// Get the mass of the track shoe.
+    virtual double GetMass() const = 0;
+
     /// Set contact material properties.
     /// This function must be called before Initialize().
     void SetContactMaterial(float friction_coefficient,     ///< [in] coefficient of friction

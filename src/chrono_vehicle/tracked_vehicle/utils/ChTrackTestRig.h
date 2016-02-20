@@ -72,6 +72,10 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     double GetActuatorForce();
     double GetActuatorMarkerDist();
 
+    /// Get the rig total mass.
+    /// This is simply the mass of the track subsystem.
+    virtual double GetVehicleMass() const override;
+
     /// Return the location of the shaker post.
     const ChVector<>& GetPostPosition() const { return m_post_pos; }
 

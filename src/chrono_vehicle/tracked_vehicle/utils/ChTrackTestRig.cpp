@@ -284,6 +284,12 @@ void ChTrackTestRig::SetCollide(int flags) {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double ChTrackTestRig::GetVehicleMass() const {
+    return m_track->GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::LogConstraintViolations() {

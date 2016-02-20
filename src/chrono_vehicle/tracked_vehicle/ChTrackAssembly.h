@@ -109,6 +109,10 @@ class CH_VEHICLE_API ChTrackAssembly {
     /// all expressed in the global reference frame.
     BodyState GetTrackShoeState(size_t id) const;
 
+    /// Get the total mass of the track assembly.
+    /// This includes the masses of the sprocket, idler, suspensions, and track shoes.
+    double GetMass() const;
+
     /// Initialize this track assembly subsystem.
     /// The subsystem is initialized by attaching its constituent subsystems to the
     /// specified chassis body at the specified corresponding locations (with respect

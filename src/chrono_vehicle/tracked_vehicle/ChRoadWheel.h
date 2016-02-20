@@ -58,6 +58,12 @@ class CH_VEHICLE_API ChRoadWheel {
     /// Get a handle to the revolute joint.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
+    /// Return the mass of the road wheel body.
+    virtual double GetWheelMass() const = 0;
+  
+    /// Return the moments of inertia of the road wheel body.
+    virtual const ChVector<>& GetWheelInertia() = 0;
+
     /// Get the radius of the road wheel.
     virtual double GetWheelRadius() const = 0;
 
@@ -88,11 +94,6 @@ class CH_VEHICLE_API ChRoadWheel {
     void LogConstraintViolations();
 
   protected:
-    /// Return the mass of the road wheel body.
-    virtual double GetWheelMass() const = 0;
-    /// Return the moments of inertia of the road wheel body.
-    virtual const ChVector<>& GetWheelInertia() = 0;
-
     std::string m_name;                              ///< name of the subsystem
     std::shared_ptr<ChBody> m_wheel;                 ///< handle to the road wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel revolute joint

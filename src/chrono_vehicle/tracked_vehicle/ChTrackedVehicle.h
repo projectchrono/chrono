@@ -59,6 +59,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Set the name identifier for this vehicle system.
     void SetName(const std::string& name) { m_name = name; }
 
+    /// Get the vehicle total mass.
+    /// This includes the mass of the chassis and all vehicle subsystems.
+    virtual double GetVehicleMass() const override;
+
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
 

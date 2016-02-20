@@ -71,6 +71,12 @@ void ChSinglePinShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChSinglePinShoe::GetMass() const {
+    return GetShoeMass();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChSinglePinShoe::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Create and initialize the revolute joint.
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));

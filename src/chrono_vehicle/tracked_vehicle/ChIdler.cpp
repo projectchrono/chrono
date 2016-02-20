@@ -112,6 +112,12 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChIdler::GetMass() const {
+    return GetWheelMass() + GetCarrierMass();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChIdler::AddVisualizationCarrier(std::shared_ptr<ChBody> carrier,
                                       const ChVector<>& pt_W,
                                       const ChVector<>& pt_C,

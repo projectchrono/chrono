@@ -97,6 +97,13 @@ void ChTrackedVehicle::SetCollide(int flags) {
 }
 
 // -----------------------------------------------------------------------------
+// Calculate and return the total vehicle mass
+// -----------------------------------------------------------------------------
+double ChTrackedVehicle::GetVehicleMass() const {
+    return m_chassis->GetMass() + m_tracks[0]->GetMass() + m_tracks[1]->GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::LogConstraintViolations() {

@@ -81,6 +81,9 @@ class CH_VEHICLE_API ChIdler {
     /// Turn on/off collision flag for the idler wheel.
     void SetCollide(bool val) { m_wheel->SetCollide(val); }
 
+    /// Get the mass of the idler subsystem.
+    virtual double GetMass() const;
+
     /// Initialize this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in

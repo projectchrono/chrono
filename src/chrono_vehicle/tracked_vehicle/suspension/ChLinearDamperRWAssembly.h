@@ -45,6 +45,10 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
 
+    /// Get the total mass of the roadwheel assembly.
+    /// This includes the mass of the roadwheel and of the suspension mechanism.
+    virtual double GetMass() const override;
+
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
