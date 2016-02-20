@@ -282,7 +282,7 @@ void ChFluidContainer::Normalize_Density_Fluid() {
 }
 
 void ChFluidContainer::Build_D() {
-    LOG(INFO) << "ChFluidContainer::Build_D";
+    LOG(INFO) << "ChFluidContainer::Build_D Boundary";
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
@@ -322,6 +322,8 @@ void ChFluidContainer::Build_D() {
         }
     }
     if (data_manager->num_fluid_contacts >= 0) {
+        LOG(INFO) << "ChFluidContainer::Build_D Fluid";
+
         real h = kernel_radius;
         real envel = data_manager->settings.collision.collision_envelope;
         real inv_density = 1.0 / rho;
@@ -384,9 +386,6 @@ void ChFluidContainer::Build_D() {
                 SetRow3Check(D_T, start_viscous + body_a * 3 + 2, body_offset + body_a * 3, vmat_row3);
             }
         }
-
-        // Add more entries for viscosity
-        // Code is repeated because there are three rows per viscosity constraint
     }
 }
 void ChFluidContainer::Build_b() {
