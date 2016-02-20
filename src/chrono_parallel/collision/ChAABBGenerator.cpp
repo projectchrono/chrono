@@ -92,86 +92,86 @@ ChCAABBGenerator::ChCAABBGenerator() {
 }
 
 void ChCAABBGenerator::GenerateAABB() {
-    const custom_vector<shape_type>& typ_rigid = data_manager->shape_data.typ_rigid;
-    const custom_vector<int>& start_rigid = data_manager->shape_data.start_rigid;
-    const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
-    const custom_vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
-
-    const custom_vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
-    const custom_vector<real3>& convex_rigid = data_manager->shape_data.convex_rigid;
-    const custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
-    const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
-    const uint num_rigid_shapes = data_manager->num_rigid_shapes;
-    real collision_envelope = data_manager->settings.collision.collision_envelope;
-    custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-
     LOG(TRACE) << "ChCAABBGenerator::GenerateAABB() S";
+    if (data_manager->num_rigid_shapes > 0) {
+        const custom_vector<shape_type>& typ_rigid = data_manager->shape_data.typ_rigid;
+        const custom_vector<int>& start_rigid = data_manager->shape_data.start_rigid;
+        const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
+        const custom_vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
+        real collision_envelope = data_manager->settings.collision.collision_envelope;
+        const custom_vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
+        const custom_vector<real3>& convex_rigid = data_manager->shape_data.convex_rigid;
+        const custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+        const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
+        const uint num_rigid_shapes = data_manager->num_rigid_shapes;
+        custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+        custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
-    aabb_min.resize(num_rigid_shapes);
-    aabb_max.resize(num_rigid_shapes);
+        aabb_min.resize(num_rigid_shapes);
+        aabb_max.resize(num_rigid_shapes);
 
 #pragma omp parallel for
-    for (int index = 0; index < num_rigid_shapes; index++) {
-        // Shape data
-        shape_type type = typ_rigid[index];
-        real3 local_pos = obj_data_A[index];
-        quaternion local_rot = obj_data_R[index];
-        uint id = id_rigid[index];  // The rigid body corresponding to this shape
-        int start = start_rigid[index];
+        for (int index = 0; index < num_rigid_shapes; index++) {
+            // Shape data
+            shape_type type = typ_rigid[index];
+            real3 local_pos = obj_data_A[index];
+            quaternion local_rot = obj_data_R[index];
+            uint id = id_rigid[index];  // The rigid body corresponding to this shape
+            int start = start_rigid[index];
 
-        // Body data
+            // Body data
 
-        real3 position = pos_rigid[id];
-        quaternion rotation = Mult(body_rot[id], local_rot);
-        real3 temp_min;
-        real3 temp_max;
+            real3 position = pos_rigid[id];
+            quaternion rotation = Mult(body_rot[id], local_rot);
+            real3 temp_min;
+            real3 temp_max;
 
-        if (type == SPHERE) {
-            real radius = data_manager->shape_data.sphere_rigid[start];
-            ComputeAABBSphere(radius + collision_envelope, local_pos, position, body_rot[id], temp_min, temp_max);
+            if (type == SPHERE) {
+                real radius = data_manager->shape_data.sphere_rigid[start];
+                ComputeAABBSphere(radius + collision_envelope, local_pos, position, body_rot[id], temp_min, temp_max);
 
-        } else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
-            real3 B = data_manager->shape_data.box_like_rigid[start];
-            ComputeAABBBox(B + collision_envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
+            } else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
+                real3 B = data_manager->shape_data.box_like_rigid[start];
+                ComputeAABBBox(B + collision_envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-        } else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
-            real4 T = data_manager->shape_data.rbox_like_rigid[start];
-            real3 B = real3(T.x, T.y, T.z) + T.w + collision_envelope;
-            ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
+            } else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
+                real4 T = data_manager->shape_data.rbox_like_rigid[start];
+                real3 B = real3(T.x, T.y, T.z) + T.w + collision_envelope;
+                ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-        } else if (type == CAPSULE) {
-            real2 T = data_manager->shape_data.capsule_rigid[start];
-            real3 B_ = real3(T.x, T.x + T.y, T.x) + collision_envelope;
-            ComputeAABBBox(B_, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
+            } else if (type == CAPSULE) {
+                real2 T = data_manager->shape_data.capsule_rigid[start];
+                real3 B_ = real3(T.x, T.x + T.y, T.x) + collision_envelope;
+                ComputeAABBBox(B_, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-        } else if (type == CONVEX) {
-            int length = data_manager->shape_data.length_rigid[index];
-            ComputeAABBConvex(convex_rigid.data(), start, length, local_pos, position, rotation, temp_min, temp_max);
-            temp_min -= collision_envelope;
-            temp_max += collision_envelope;
+            } else if (type == CONVEX) {
+                int length = data_manager->shape_data.length_rigid[index];
+                ComputeAABBConvex(convex_rigid.data(), start, length, local_pos, position, rotation, temp_min,
+                                  temp_max);
+                temp_min -= collision_envelope;
+                temp_max += collision_envelope;
 
-        } else if (type == TRIANGLEMESH) {
-            real3 A, B, C;
+            } else if (type == TRIANGLEMESH) {
+                real3 A, B, C;
 
-            A = data_manager->shape_data.triangle_rigid[start * 3 + 0];
-            B = data_manager->shape_data.triangle_rigid[start * 3 + 1];
-            C = data_manager->shape_data.triangle_rigid[start * 3 + 2];
+                A = data_manager->shape_data.triangle_rigid[start * 3 + 0];
+                B = data_manager->shape_data.triangle_rigid[start * 3 + 1];
+                C = data_manager->shape_data.triangle_rigid[start * 3 + 2];
 
-            A = Rotate(A, body_rot[id]) + position;
-            B = Rotate(B, body_rot[id]) + position;
-            C = Rotate(C, body_rot[id]) + position;
+                A = Rotate(A, body_rot[id]) + position;
+                B = Rotate(B, body_rot[id]) + position;
+                C = Rotate(C, body_rot[id]) + position;
 
-            ComputeAABBTriangle(A, B, C, temp_min, temp_max);
+                ComputeAABBTriangle(A, B, C, temp_min, temp_max);
 
-        } else {
-            continue;
+            } else {
+                continue;
+            }
+
+            aabb_min[index] = temp_min;
+            aabb_max[index] = temp_max;
         }
-
-        aabb_min[index] = temp_min;
-        aabb_max[index] = temp_max;
     }
-
     // Deal with tetrahedral elements
     const uint num_tets = data_manager->host_data.boundary_element_fea.size();
     if (num_tets > 0) {
@@ -181,6 +181,8 @@ void ChCAABBGenerator::GenerateAABB() {
         custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
         custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
         real node_radius = data_manager->fea_container->kernel_radius;
+        real collision_envelope = data_manager->settings.collision.collision_envelope;
+
         aabb_min_tet.resize(num_tets);
         aabb_max_tet.resize(num_tets);
 #pragma omp parallel for
