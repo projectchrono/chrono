@@ -120,6 +120,13 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the anti-roll bar subsystem
+// -----------------------------------------------------------------------------
+double ChAntirollBarRSD::GetMass() const {
+    return 2 * getArmMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint

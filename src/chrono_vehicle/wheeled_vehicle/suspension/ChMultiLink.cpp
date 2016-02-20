@@ -289,6 +289,12 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
+// -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
+// -----------------------------------------------------------------------------
+double ChMultiLink::GetMass() const {
+    return 2 * (getSpindleMass() + getUpperArmMass() + getLateralMass() + getTrailingLinkMass() + getUprightMass());
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

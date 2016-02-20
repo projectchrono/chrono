@@ -76,6 +76,9 @@ class CH_VEHICLE_API ChSteering {
                              double steering  ///< [in] current steering input [-1,+1]
                              ) = 0;
 
+    /// Get the total mass of the steering subsystem.
+    virtual double GetMass() const = 0;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
 

@@ -248,6 +248,13 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
+// -----------------------------------------------------------------------------
+double ChMacPhersonStrut::GetMass() const {
+    return 2 * (getSpindleMass() + getStrutMass() + getLCAMass() + getUprightMass());
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChMacPhersonStrut::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

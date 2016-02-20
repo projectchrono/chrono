@@ -138,6 +138,13 @@ void ChPitmanArm::Synchronize(double time, double steering) {
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the steering subsystem
+// -----------------------------------------------------------------------------
+double ChPitmanArm::GetMass() const {
+    return getSteeringLinkMass() + getPitmanArmMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::AddVisualizationPitmanArm(std::shared_ptr<ChBody> arm,
                                             const ChVector<>& pt_C,

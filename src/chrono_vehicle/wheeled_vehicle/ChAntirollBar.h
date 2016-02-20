@@ -69,6 +69,9 @@ class CH_VEHICLE_API ChAntirollBar {
         std::shared_ptr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
         ) = 0;
 
+    /// Get the total mass of the anti-roll bar subsystem.
+    virtual double GetMass() const = 0;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
 
