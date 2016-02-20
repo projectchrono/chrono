@@ -360,6 +360,14 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
+// -----------------------------------------------------------------------------
+double ChSolidAxle::GetMass() const {
+    return getAxleTubeMass() + getTierodMass() + getDraglinkMass() + getBellCrankMass() +
+           2 * (getSpindleMass() + getULMass() + getLLMass() + getKnuckleMass());
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

@@ -91,6 +91,11 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Return true if a steering system is attached.
     bool HasSteering() const { return m_steering != 0; }
 
+    /// Get the rig total mass.
+    /// This includes the mass of the suspension and wheels, and (if present) the mass of the
+    /// steering mechanism.
+    virtual double GetVehicleMass() const override;
+
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }

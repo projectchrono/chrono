@@ -54,6 +54,23 @@ void ChWheeledVehicle::Synchronize(double time,
 }
 
 // -----------------------------------------------------------------------------
+// Calculate and return the total vehicle mass
+// -----------------------------------------------------------------------------
+double ChWheeledVehicle::GetVehicleMass() const {
+    double mass = m_chassis->GetMass();
+    for (size_t i = 0; i < m_suspensions.size(); i++)
+        mass += m_suspensions[i]->GetMass();
+    for (size_t i = 0; i < m_antirollbars.size(); i++)
+        mass += m_antirollbars[i]->GetMass();
+    for (size_t i = 0; i < m_steerings.size(); i++)
+        mass += m_steerings[i]->GetMass();
+    for (size_t i = 0; i < m_wheels.size(); i++)
+        mass += m_wheels[i]->GetMass();
+
+    return mass;
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> ChWheeledVehicle::GetWheelBody(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());

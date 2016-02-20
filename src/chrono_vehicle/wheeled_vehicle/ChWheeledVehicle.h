@@ -77,6 +77,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
 
+    /// Get the vehicle total mass.
+    /// This includes the mass of the chassis and all vehicle subsystems.
+    virtual double GetVehicleMass() const override;
+
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 

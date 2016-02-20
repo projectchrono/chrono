@@ -401,6 +401,18 @@ WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChSuspensionTestRig::GetVehicleMass() const {
+    double mass = m_suspension->GetMass();
+    if (HasSteering())
+        mass += m_steering->GetMass();
+    for (size_t i = 0; i < m_wheels.size(); i++)
+        mass += m_wheels[i]->GetMass();
+
+    return mass;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 double ChSuspensionTestRig::GetActuatorDisp(VehicleSide side) {
     double time = GetSystem()->GetChTime();
     if (side == LEFT)

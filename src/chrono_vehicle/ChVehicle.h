@@ -82,6 +82,10 @@ class CH_VEHICLE_API ChVehicle {
     /// rotation with respect to the global reference frame.
     const ChQuaternion<>& GetChassisRotCOM() const { return m_chassis->GetRot(); }
 
+    /// Get the vehicle total mass.
+    /// This includes the mass of the chassis and all vehicle subsystems.
+    virtual double GetVehicleMass() const = 0;
+
     /// Get the vehicle speed.
     /// Return the speed measured at the origin of the chassis reference frame.
     double GetVehicleSpeed() const { return m_chassis->GetFrame_REF_to_abs().GetPos_dt().Length(); }

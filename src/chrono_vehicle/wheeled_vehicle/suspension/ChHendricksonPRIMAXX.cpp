@@ -298,6 +298,14 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
+// -----------------------------------------------------------------------------
+double ChHendricksonPRIMAXX::GetMass() const {
+    return getAxlehousingMass() + getTransversebeamMass() +
+           2 * (getSpindleMass() + getKnuckleMass() + getTorquerodMass() + getLowerbeamMass());
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

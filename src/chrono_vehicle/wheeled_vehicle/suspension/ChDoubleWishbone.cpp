@@ -249,6 +249,13 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
+// -----------------------------------------------------------------------------
+double ChDoubleWishbone::GetMass() const {
+    return 2 * (getSpindleMass() + getUCAMass() + getLCAMass() + getUprightMass());
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

@@ -96,6 +96,13 @@ void ChRackPinion::Synchronize(double time, double steering) {
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the steering subsystem
+// -----------------------------------------------------------------------------
+double ChRackPinion::GetMass() const {
+    return GetSteeringLinkMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::AddVisualizationSteeringLink() {
     double length = GetSteeringLinkLength();

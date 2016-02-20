@@ -131,6 +131,9 @@ class CH_VEHICLE_API ChSuspension {
     /// The default implementation returns a NULL pointer.
     virtual std::shared_ptr<ChBody> GetRightBody() const { return std::shared_ptr<ChBody>(); }
 
+    /// Get the total mass of the suspension subsystem.
+    virtual double GetMass() const = 0;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}
 

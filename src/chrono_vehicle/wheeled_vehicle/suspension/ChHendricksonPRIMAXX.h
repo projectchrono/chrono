@@ -79,6 +79,9 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
                             std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) override;
 
+    /// Get the total mass of the suspension subsystem.
+    virtual double GetMass() const override;
+
     /// There could be a spring (coil or air) and damper element between chassis and lower beam
     /// and a second spring and damper element between chassis and housing
 

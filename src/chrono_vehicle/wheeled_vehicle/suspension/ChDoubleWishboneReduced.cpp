@@ -152,6 +152,13 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
+// -----------------------------------------------------------------------------
+double ChDoubleWishboneReduced::GetMass() const {
+    return 2 * (getSpindleMass() + getUprightMass());
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
                                                       const ChVector<> pt_C,

@@ -68,6 +68,9 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
                              double steering  ///< [in] current steering input [-1,+1]
                              ) override;
 
+    /// Get the total mass of the steering subsystem.
+    virtual double GetMass() const override;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
