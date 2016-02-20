@@ -36,29 +36,19 @@
 #include "core/ChClassRegister.h"
 #include "serialization/ChArchive.h"
 
-/// This is the namespace for most functions of the Chrono library
 namespace chrono {
 
-///
-/// VECTOR:	a class for general purpose 3d vectorial variables, such as
-/// points in 3D. It implements the vectorial algebra in 3D (Gibbs products).
-///
-///  The vector object comes either with the template "ChVector<type>" mode,
-/// either in the 'shortcut' flavour, that is "Vector", which assumes
-/// the type of x,y,z is double precision, so it is faster to type.
-///  For example, for a declaration, you can write "ChVector<double> foo;",
-/// as well as "Vector foo;" (less typing effort for the second..)
-///
-
-//
 // CONSTANTS
-//
+
 // Added this here as code was not compiling (under linux at least)- Hammad
 #define VNULL ChVector<double>(0., 0., 0.)
 #define VECT_X ChVector<double>(1., 0., 0.)
 #define VECT_Y ChVector<double>(0., 1., 0.)
 #define VECT_Z ChVector<double>(0., 0., 1.)
 
+/// Definition of general purpose 3d vector variables, such as points in 3D.
+/// This class implements the vectorial algebra in 3D (Gibbs products).
+/// ChVector is templated by precision, with default 'double'.
 template <class Real = double>
 class ChVector {
   public:
@@ -412,17 +402,22 @@ class ChVector {
         marchive >> CHNVP(y);
         marchive >> CHNVP(z);
     }
-
 };
 
 /// Shortcut for faster use of typical double-precision vectors.
-///  Instead of writing    ChVector<double> foo;   you can write
-///  the shorter version   Vector foo;
-///
+/// Instead of writing
+///    ChVector<double> foo;
+/// or
+///    ChVector<> foo;
+/// you can use the shorter version
+///    Vector foo;
 typedef ChVector<double> Vector;
 
 /// Shortcut for faster use of typical single-precision vectors.
-///
+/// Instead of writing
+///    ChVector<float> foo;
+/// you can use the shorter version
+///    Vector foo;
 typedef ChVector<float> VectorF;
 
 // Reversed operators
