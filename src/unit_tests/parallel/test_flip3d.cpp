@@ -33,17 +33,17 @@ using namespace chrono;
 
 using blaze::DynamicMatrix;
 
-real bin_edge = 1;
+real bin_edge = 0.020000;
 
-real2 min_bounding_point = real2(-3, -3);
-real2 max_bounding_point = real2(3, 3);
+real3 min_bounding_point = real3(-0.020000, -0.020000, -0.020000);
+real3 max_bounding_point = real3(0.040000, 0.040000, 0.040000);
 
-real2 diag = max_bounding_point - min_bounding_point;
-int2 bins_per_axis = int2(diag / bin_edge);
+real3 diag = max_bounding_point - min_bounding_point;
+int3 bins_per_axis = int3(diag / bin_edge);
 real inv_bin_edge = real(1.) / bin_edge;
-uint grid_size = bins_per_axis.x * bins_per_axis.y;
+uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
-real2 gravity = real2(0, -9.80665);
+real3 gravity = real3(0, 0, -9.80665);
 real dt = 0.1;
 real rho = .1;
 DynamicMatrix<real> A;
@@ -60,15 +60,6 @@ void Print(std::ostream& os, const DynamicMatrix<real>& M) {
         }
         os << "\n";
     }
-}
-static inline int GridHash(int x, int y, const int2& bins_per_axis) {
-    return (y * bins_per_axis.x) + x;
-}
-static inline int2 GridDecode(int hash, const int2& bins_per_axis) {
-    int2 decoded_hash;
-    decoded_hash.x = hash % bins_per_axis.x;
-    decoded_hash.y = hash / bins_per_axis.x;
-    return decoded_hash;
 }
 
 class CH_PARALLEL_API ChShurProductFLIP : public ChShurProduct {
@@ -91,11 +82,14 @@ class CH_PARALLEL_API ChProjectFLIP : public ChProjectConstraints {
     // Project the Lagrange multipliers
     virtual void operator()(real* data) {
         for (int i = 0; i < grid_size; i++) {
-            int2 g = GridDecode(i, bins_per_axis);
+            int3 g = GridDecode(i, bins_per_axis);
             if ((g.x + 1) >= bins_per_axis.x) {
                 data[i] = 0;
             }
             if ((g.y + 1) >= bins_per_axis.y) {
+                data[i] = 0;
+            }
+            if ((g.z + 1) >= bins_per_axis.z) {
                 data[i] = 0;
             }
             //            if (density[i] <= 0) {
@@ -112,7 +106,8 @@ int main(int argc, char* argv[]) {
     printf("max_bounding_point [%f %f]\n", max_bounding_point.x, max_bounding_point.y);
     printf("min_bounding_point [%f %f]\n", min_bounding_point.x, min_bounding_point.y);
     printf("diag [%f %f] edge:%f \n", diag.x, diag.y, bin_edge);
-    printf("Compute DOF [%d] [%d %d] [%f]\n", grid_size, bins_per_axis.x, bins_per_axis.y, bin_edge);
+    printf("Compute DOF [%d] [%d %d %d] [%f]\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
+           bin_edge);
 
     ChSolverParallel* solver = new ChSolverBB();
     data_manager = new ChParallelDataManager();
@@ -125,59 +120,63 @@ int main(int argc, char* argv[]) {
 
     // 4x4 grid
 
-    DynamicVector<real> v(grid_size * 2);
-    DynamicVector<real> hf(grid_size * 2);
+    DynamicVector<real> v(grid_size * 3);
+    DynamicVector<real> hf(grid_size * 3);
     DynamicVector<real> node_mass(grid_size);
     DynamicVector<real> rhs(grid_size);
     DynamicVector<real> pressure(grid_size, 0);
 
-    DynamicMatrix<real> M_inv(grid_size * 2, grid_size * 2, 0);
-    DynamicMatrix<real> D_T(grid_size, grid_size * 2, 0);
+    DynamicMatrix<real> M_inv(grid_size * 3, grid_size * 3, 0);
+    DynamicMatrix<real> D_T(grid_size, grid_size * 3, 0);
     density.resize(grid_size);
     node_mass = 1;
     v = 0;
     hf = 0;
 
-    density[GridHash(2, 2, bins_per_axis)] = 1;
-    density[GridHash(3, 2, bins_per_axis)] = 1;
-    density[GridHash(2, 3, bins_per_axis)] = 1;
-    density[GridHash(3, 3, bins_per_axis)] = 1;
+    density[GridHash(1, 1, 1, bins_per_axis)] = 15.525000;
+    //    density[GridHash(3, 2, bins_per_axis)] = 1;
+    //    density[GridHash(2, 3, bins_per_axis)] = 1;
+    //    density[GridHash(3, 3, bins_per_axis)] = 1;
 
     for (int i = 0; i < grid_size; i++) {
-        int2 g = GridDecode(i, bins_per_axis);
+        int3 g = GridDecode(i, bins_per_axis);
         if (density[i] <= 0) {
-            v[i * 2 + 0] = 0;
-            v[i * 2 + 1] = 0;
+            v[i * 3 + 0] = 0;
+            v[i * 3 + 1] = 0;
+            v[i * 3 + 2] = 0;
 
-            hf[i * 2 + 0] = 0;
-            hf[i * 2 + 1] = 0;
+            hf[i * 3 + 0] = 0;
+            hf[i * 3 + 1] = 0;
+            hf[i * 3 + 2] = 0;
 
         } else {
-            v[i * 2 + 0] = 0;
-            v[i * 2 + 1] = 0;
+            v[i * 3 + 0] = 0;
+            v[i * 3 + 1] = 0;
+            v[i * 3 + 2] = 0;
 
-            hf[i * 2 + 0] = 0;  // dt * gravity.x;
-            hf[i * 2 + 1] = 0;  // dt * gravity.y;
+            hf[i * 3 + 0] = 0;
+            hf[i * 3 + 1] = 0;
+            hf[i * 3 + 2] = 0;
         }
         printf("HERE : [%d %d] [%f %f]\n", g.x, g.y, hf[i * 2 + 0], hf[i * 2 + 1]);
     }
 
-    v[GridHash(2, 2, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(3, 2, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(4, 2, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(2, 3, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(3, 3, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(4, 3, bins_per_axis) * 2 + 0] = 0.013717;
-
+    v[GridHash(1, 1, 1, bins_per_axis) * 3 + 0] = 0.013717;
+    //        v[GridHash(3, 2, bins_per_axis) * 2 + 0] = 0.013717;
+    //        v[GridHash(4, 2, bins_per_axis) * 2 + 0] = 0.013717;
+    //        v[GridHash(2, 3, bins_per_axis) * 2 + 0] = 0.013717;
+    //        v[GridHash(3, 3, bins_per_axis) * 2 + 0] = 0.013717;
+    //        v[GridHash(4, 3, bins_per_axis) * 2 + 0] = 0.013717;
 
     // v[GridHash(3, 1, bins_per_axis) * 2 + 0] = -1;
     // v[GridHash(4, 1, bins_per_axis) * 2 + 0] = 1;
 
     for (int i = 0; i < grid_size; i++) {
-        int2 g = GridDecode(i, bins_per_axis);
+        int3 g = GridDecode(i, bins_per_axis);
         if (density[i] > 0) {
-            M_inv(i * 2 + 0, i * 2 + 0) = dt / density[i];
-            M_inv(i * 2 + 1, i * 2 + 1) = dt / density[i];
+            M_inv(i * 3 + 0, i * 3 + 0) = dt / density[i];
+            M_inv(i * 3 + 1, i * 3 + 1) = dt / density[i];
+            M_inv(i * 3 + 2, i * 3 + 2) = dt / density[i];
         }
     }
 
@@ -185,24 +184,27 @@ int main(int argc, char* argv[]) {
     Print(std::cout, M_inv);
 
     for (int i = 0; i < grid_size; i++) {
-        int2 g = GridDecode(i, bins_per_axis);
+        int3 g = GridDecode(i, bins_per_axis);
 
-        int g_left = GridHash(g.x - 1, g.y, bins_per_axis);
-        int g_right = GridHash(g.x + 1, g.y, bins_per_axis);
-        int g_up = GridHash(g.x, g.y + 1, bins_per_axis);
-        int g_down = GridHash(g.x, g.y - 1, bins_per_axis);
+        int g_left = GridHash(g.x - 1, g.y, g.z, bins_per_axis);
+        int g_right = GridHash(g.x + 1, g.y, g.z, bins_per_axis);
+        int g_down = GridHash(g.x, g.y - 1, g.z, bins_per_axis);
+        int g_up = GridHash(g.x, g.y + 1, g.z, bins_per_axis);
+        int g_front = GridHash(g.x, g.y, g.z - 1, bins_per_axis);
+        int g_back = GridHash(g.x, g.y, g.z + 1, bins_per_axis);
 
         bool cell_active = (density[i] != 0);
         if ((g.x + 1) >= bins_per_axis.x) {
         } else if ((g.y + 1) >= bins_per_axis.y) {
-            //        } else if (g.x == 0) {
-            //        } else if (g.y == 0) {
+        } else if ((g.z + 1) >= bins_per_axis.z) {
         } else {
             if (cell_active) {
-                D_T(i, i * 2 + 0) = -1;
-                D_T(i, i * 2 + 1) = -1;
-                D_T(i, g_right * 2 + 0) = 1;
-                D_T(i, g_up * 2 + 1) = 1;
+                D_T(i, i * 3 + 0) = -1;
+                D_T(i, i * 3 + 1) = -1;
+                D_T(i, i * 3 + 2) = -1;
+                D_T(i, g_right * 3 + 0) = 1;
+                D_T(i, g_up * 3 + 1) = 1;
+                D_T(i, g_back * 3 + 1) = 1;
             }
         }
     }
@@ -218,8 +220,9 @@ int main(int argc, char* argv[]) {
     rhs = -rhs;
 
     for (int i = 0; i < grid_size; i++) {
-        int2 g = GridDecode(i, bins_per_axis);
-        printf("rhs: [%d %d] [%f] [%f %f]\n", g.x, g.y, rhs[i], hf[i * 2 + 0], hf[i * 2 + 1]);
+        int3 g = GridDecode(i, bins_per_axis);
+        printf("rhs: [%d %d %d ] [%f] [%f %f %f]\n", g.x, g.y, g.z, rhs[i], hf[i * 3 + 0], hf[i * 3 + 1],
+               hf[i * 3 + 2]);
     }
 
     std::cout << "A: \n";
@@ -239,11 +242,11 @@ int main(int argc, char* argv[]) {
     v = v + M_inv * hf + M_inv * D * pressure;
 
     for (int i = 0; i < grid_size; i++) {
-        int2 g = GridDecode(i, bins_per_axis);
+        int3 g = GridDecode(i, bins_per_axis);
 
         // printf("v: [%d %d] [%f %f] [%f] [%f]\n", g.x, g.y, v[i * 2 + 0], v[i * 2 + 1], node_mass[i],
         //  pressure[i]);
-        printf("[%d %d] v: [%f %f] p:[%f] f:[%f %f]\n", g.x, g.y, v[i * 2 + 0], v[i * 2 + 1], pressure[i],
-               force[i * 2 + 0], force[i * 2 + 1]);
+        printf("[%d %d %d] v: [%f %f %f] p:[%f ] f:[%f %f %f]\n", g.x, g.y, g.z, v[i * 3 + 0], v[i * 3 + 1],
+               v[i * 3 + 2], pressure[i], force[i * 3 + 0], force[i * 3 + 1], force[i * 3 + 2]);
     }
 }

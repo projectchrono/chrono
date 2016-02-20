@@ -126,7 +126,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->theta_s = 7.5e-3;
     mpm_container->lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
     mpm_container->mu = youngs_modulus / (2. * (1. + poissons_ratio));
-    mpm_container->alpha = 1;
+    mpm_container->alpha = .95;
     mpm_container->hardening_coefficient = 10.0;
     mpm_container->rho = 1000;
 
@@ -145,9 +145,10 @@ void AddFluid(ChSystemParallelDVI* sys) {
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
 #if 1
-    double dist = mpm_container->kernel_radius;
+    double dist = mpm_container->kernel_radius * .9;
     vol = dist * dist * dist * .8;
-    mpm_container->mass = initial_density * vol;
+
+    printf("mass: %f", mpm_container->mass);
 
     utils::GridSampler<> sampler(dist);
     utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, 0), ChVector<>(radius, radius, radius));
@@ -158,24 +159,24 @@ void AddFluid(ChSystemParallelDVI* sys) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z);
         vel_fluid[i] = real3(1, 0, 0);
     }
-    // pos_fluid.resize(1);
-    // vel_fluid.resize(1);
-
+    //    pos_fluid.resize(1);
+    //    vel_fluid.resize(1);
+    //
     //    pos_fluid[0] = real3(0, 0, 0);
-    //    vel_fluid[0] = real3(.1, 0, 0);
+    //    vel_fluid[0] = real3(1, 0, 0);
 
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
-    points = sampler.SampleBox(ChVector<>(.4, 0, 0), ChVector<>(radius, radius, radius));
+    points = sampler.SampleBox(ChVector<>(.12, 0, 0), ChVector<>(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(0, 0, 0);
+        vel_fluid[i] = real3(-1, 0, 0);
     }
-    mpm_container->AddNodes(pos_fluid, vel_fluid);
+    //mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
     std::ifstream ifile("state_0.029.dat");

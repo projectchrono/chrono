@@ -23,6 +23,7 @@ SET(TESTS
     test_mpm
     test_other_math
     test_flip
+    test_flip3d
     #test_blaze
 )
 
