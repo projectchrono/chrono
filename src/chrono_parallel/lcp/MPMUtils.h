@@ -3,7 +3,9 @@
 #include "chrono_parallel/math/svd.h"
 #define one_third 1. / 3
 #define two_thirds 2. / 3
+#define three_halves 3. / 2
 #define four_thirds 4. / 3
+#define three_fourths 3. / 4
 #define five_thirds 5. / 3
 #define one_sixth 1. / 6
 #define one_ninth 1. / 9
@@ -32,6 +34,19 @@ static real N(const real x) {
 
 static real N(const real3& X, real inv_grid_dx) {
     return N(X.x * inv_grid_dx) * N(X.y * inv_grid_dx) * N(X.z * inv_grid_dx);
+}
+
+static real N_tight(const real x) {
+    if (Abs(x) >= real(0.0) && Abs(x) < real(.5)) {
+        return -Sqr(x) + three_fourths;
+    } else if (Abs(x) >= real(1.0) && Abs(x) < real(three_halves)) {
+        return .5 * Sqr(x) - real(three_halves) * x + (9.0 / 8.0);
+    }
+    return real(0.0);
+}
+
+static real N_tight(const real3& X, real inv_grid_dx) {
+    return N_tight(X.x * inv_grid_dx) * N_tight(X.y * inv_grid_dx) * N_tight(X.z * inv_grid_dx);
 }
 
 static real dN(const real x) {
