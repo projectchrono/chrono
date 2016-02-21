@@ -18,26 +18,31 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-#define RINGS 0
+#define RINGS 1
 
 #if RINGS == 2
+#define MAX_OFF 10
+#define MIN_OFF 8
+#elif RINGS == 1
 #define MAX_OFF 8
 #define MIN_OFF 6
-#elif RINGS==1
-#define MAX_OFF 6
-#define MIN_OFF 4
 #else
 #define MAX_OFF 4
 #define MIN_OFF 2
 #endif
 
-void Print(std::ostream& os, const CompressedMatrix<real>& M) {
+void Print(std::ostream& os, const CompressedMatrix<real>& M, int3 bins_per_axis) {
     for (size_t i = 0UL; i < (~M).rows(); ++i) {
-        os << "";
+        // os << "";
         for (size_t j = 0UL; j < (~M).columns(); ++j) {
-            os << std::setw(1) << (~M)(i, j) << ", ";
+            // os << std::setw(1) << (~M)(i, j) << ", ";
+            if ((~M)(i, j) != 0) {
+                int3 g = GridDecode(i, bins_per_axis);
+                int3 f = GridDecode(j / 3, bins_per_axis);
+                printf("[%d %d] [%f] [%d %d %d] [%d %d %d]\n", i, j, (~M)(i, j), g.x, g.y, g.z, f.x, f.y, f.z);
+            }
         }
-        os << "\n";
+        // os << "\n";
     }
 }
 
@@ -235,20 +240,20 @@ void ChFLIPContainer::Update(double ChTime) {
         //                v[body_offset + g_down * 3 + 1] = v[body_offset + i * 3 + 1];
         //            }
         //        }
-        //        if (face_density[i].y > 0) {
-        //            // If the face to the right has zero mass
-        //            if (face_density[g_up].y <= 0) {
-        //                // Set the velocity to the velocity of the face
-        //                v[body_offset + g_up * 3 + 1] = v[body_offset + i * 3 + 1];
-        //            }
-        //        }
-        //        if (face_density[i].z > 0) {
-        //            // If the face to the right has zero mass
-        //            if (face_density[g_back].z <= 0) {
-        //                // Set the velocity to the velocity of the face
-        //                v[body_offset + g_back * 3 + 2] = v[body_offset + i * 3 + 2];
-        //            }
-        //        }
+        if (face_density[i].y > 0) {
+            // If the face to the right has zero mass
+            if (face_density[g_up].y <= 0) {
+                // Set the velocity to the velocity of the face
+                v[body_offset + g_up * 3 + 1] = v[body_offset + i * 3 + 1];
+            }
+        }
+        if (face_density[i].z > 0) {
+            // If the face to the right has zero mass
+            if (face_density[g_back].z <= 0) {
+                // Set the velocity to the velocity of the face
+                v[body_offset + g_back * 3 + 2] = v[body_offset + i * 3 + 2];
+            }
+        }
         //        if (face_density[i].z > 0) {
         //            // If the face to the right has zero mass
         //            if (face_density[g_front].z <= 0) {
@@ -345,7 +350,7 @@ void ChFLIPContainer::UpdatePosition(double ChTime) {
         //        if (speed > max_velocity) {
         //            new_vel = new_vel * max_velocity / speed;
         //        }
-        // printf("new_vel: [%f %f %f]\n", new_vel.x, new_vel.y, new_vel.z);
+        printf("new_vel: [%f %f %f]\n", new_vel.x, new_vel.y, new_vel.z);
 
         vel_marker[p] = new_vel;
         pos_marker[p] += new_vel * data_manager->settings.step_size;
@@ -471,9 +476,9 @@ void ChFLIPContainer::Project(real* gamma) {
             gamma[start_node + i] = 0;
         }
 
-        //        if (gamma[start_node + i] < 0) {
-        //            gamma[start_node + i] = 0;
-        //        }
+//                if (gamma[start_node + i] < 0) {
+//                    gamma[start_node + i] = 0;
+//                }
     }
 }
 
@@ -502,19 +507,23 @@ void ChFLIPContainer::Build_D() {
         } else if ((g.y + 1) >= bins_per_axis.y) {
         } else if ((g.z + 1) >= bins_per_axis.z) {
         } else {
-            if (old_vel_node_mpm[n * 3 + 0] != 0) {
+            if (face_density[n].x != 0) {
                 ff.x = -factor;
             }
-            if (old_vel_node_mpm[n * 3 + 1] != 0) {
+            if (face_density[n].y != 0) {
                 ff.y = -factor;
             }
-            if (old_vel_node_mpm[n * 3 + 2] != 0) {
+            if (face_density[n].z != 0) {
                 ff.z = -factor;
             }
-            SetRow3(D_T, start_row + n, body_offset + n * 3, ff);
-            SetRow3(D_T, start_row + n, body_offset + g_right * 3, real3(-ff.x, 0, 0));
-            SetRow3(D_T, start_row + n, body_offset + g_up * 3, real3(0, -ff.y, 0));
-            SetRow3(D_T, start_row + n, body_offset + g_back * 3, real3(0, 0, -ff.z));
+            SetRow3Check(D_T, start_row + n, body_offset + n * 3, ff);
+            SetRow3Check(D_T, start_row + n, body_offset + g_right * 3, real3(-ff.x, 0, 0));
+            SetRow3Check(D_T, start_row + n, body_offset + g_up * 3, real3(0, -ff.y, 0));
+            SetRow3Check(D_T, start_row + n, body_offset + g_back * 3, real3(0, 0, -ff.z));
+
+            //            printf("D: [%f %f %f] [%d %d %d] x [%d %d %d] y [%d %d %d] z[%d %d %d]\n", ff.x, ff.y, ff.z,
+            //            g.x, g.y, g.z,
+            //                   g.x + 1, g.y, g.z, g.x, g.y + 1, g.z, g.x, g.y, g.z + 1);
         }
     }
 }
@@ -525,15 +534,15 @@ void ChFLIPContainer::Build_b() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     const real dt = data_manager->settings.step_size;
 
-    for (int index = 0; index < num_mpm_nodes; index++) {
-        // if (data_manager->host_data.node_mass[index] > C_EPSILON) {
-        real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
-        // printf("density: %f\n", density);
-        b_sub[index] = -(density / rho - 1.0);
-        //        } else {
-        //            b_sub[index] = 0;
-        //        }
-    }
+        for (int index = 0; index < num_mpm_nodes; index++) {
+            // if (data_manager->host_data.node_mass[index] > C_EPSILON) {
+            real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
+            // printf("density: %f\n", density);
+            b_sub[index] = -(density / rho - 1.0);
+            //        } else {
+            //            b_sub[index] = 0;
+            //        }
+        }
     // SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
     // b_sub =
     //   b_sub- dt * blaze::submatrix(D_T, start_row, body_offset, num_mpm_nodes * 3, num_mpm_nodes * 3) * v_sub;
@@ -628,12 +637,12 @@ void ChFLIPContainer::GenerateSparsity() {
             //        } else if (g.y == 0) {
             //        } else if (g.z == 0) {
         } else {
-            if (cell_active) {
-                AppendRow3(D_T, start_row + n, body_offset + n * 3, 0);
-                AppendRow3(D_T, start_row + n, body_offset + g_right * 3, 0);
-                AppendRow3(D_T, start_row + n, body_offset + g_up * 3, 0);
-                AppendRow3(D_T, start_row + n, body_offset + g_back * 3, 0);
-            }
+            // if (cell_active) {
+            AppendRow3(D_T, start_row + n, body_offset + n * 3, 0);
+            AppendRow3(D_T, start_row + n, body_offset + g_right * 3, 0);
+            AppendRow3(D_T, start_row + n, body_offset + g_up * 3, 0);
+            AppendRow3(D_T, start_row + n, body_offset + g_back * 3, 0);
+            //}
         }
         //}
 
@@ -655,7 +664,7 @@ void ChFLIPContainer::PostSolve() {
     //            printf("gamma: %f [%d %d %d] %.20f [%d %d] \n", gamma_sub[i], g.x, g.y, g.z, node_mass[i], hash, i);
     //        }
     //    }
-    //
+
     //    for (int i = 0; i < gamma_sub.size(); i++) {
     //        int3 g = GridDecode(i, bins_per_axis);
     //        printf("v: [%f,%f,%f] [%d] [%d %d %d] [%.20f] \n", v_sub[i * 3 + 0], v_sub[i * 3 + 1], v_sub[i * 3 + 2],
@@ -663,7 +672,7 @@ void ChFLIPContainer::PostSolve() {
     //               g.y, g.z, R_sub[i]);
     //    }
 
-    // Print(std::cout, data_manager->host_data.D_T);
+    // Print(std::cout, data_manager->host_data.D_T, bins_per_axis);
 }
 
 void ChFLIPContainer::Solve(const DynamicVector<real>& rhs, DynamicVector<real>& delta_v) {}

@@ -128,7 +128,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->mu = youngs_modulus / (2. * (1. + poissons_ratio));
     mpm_container->alpha = .95;
     mpm_container->hardening_coefficient = 10.0;
-    mpm_container->rho = 1000;
+    mpm_container->rho = 100000;
 
     real initial_density = 1000;
     mpm_container->mass = .01;
@@ -137,7 +137,6 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->contact_recovery_speed = 1000;
 
     real radius = mpm_container->kernel_radius * 5;  //*5
-    real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, 0);
     real vol;
@@ -147,23 +146,24 @@ void AddFluid(ChSystemParallelDVI* sys) {
 #if 1
     double dist = mpm_container->kernel_radius * .9;
     vol = dist * dist * dist * .8;
+    // mpm_container->mass = mpm_container->rho * vol;
 
     printf("mass: %f", mpm_container->mass);
 
     utils::GridSampler<> sampler(dist);
-    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, 0), ChVector<>(radius, radius, radius));
+    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, .1, 0), ChVector<>(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z);
-        vel_fluid[i] = real3(5, 0, 0);
-   }
-//        pos_fluid.resize(1);
-//        vel_fluid.resize(1);
-//
-//        pos_fluid[0] = real3(0, 0, 0);
-//        vel_fluid[0] = real3(1, 0, 0);
+        vel_fluid[i] = real3(1, 0, 0);
+    }
+    //            pos_fluid.resize(1);
+    //            vel_fluid.resize(1);
+    //
+    //            pos_fluid[0] = real3(0, 0, 0);
+    //            vel_fluid[0] = real3(1, 0, 0);
 
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
@@ -174,7 +174,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(-5, 0, 0);
+        vel_fluid[i] = real3(-1, 0, 0);
     }
     mpm_container->AddNodes(pos_fluid, vel_fluid);
 
@@ -241,13 +241,13 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.max_iteration_sliding = 40;
     msystem.GetSettings()->solver.max_iteration_spinning = 0;
     msystem.GetSettings()->solver.max_iteration_bilateral = 0;
-    msystem.GetSettings()->solver.tolerance = 1e-2;
+    msystem.GetSettings()->solver.tolerance = 0;
     msystem.GetSettings()->solver.alpha = 0;
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->collision.use_two_level = false;
     msystem.GetSettings()->solver.contact_recovery_speed = 10000;
     msystem.GetSettings()->solver.cache_step_length = true;
-    msystem.ChangeSolverType(BB);
+    msystem.ChangeSolverType(APGD);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
     AddFluid(&msystem);
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
 #if 1
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1);
+    gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .05);
     gl_window.Pause();
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.
