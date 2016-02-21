@@ -18,7 +18,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-#define RINGS 1
+#define RINGS 2
 
 #if RINGS == 2
 #define MAX_OFF 10
@@ -100,10 +100,8 @@ void ChFLIPContainer::ComputeDOF() {
     res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
     res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
 
-    max_bounding_point =
-        real3(.5, .2, .2);  // real3(res.second.x, res.second.y, res.second.z) + kernel_radius * MAX_OFF;
-    min_bounding_point =
-        real3(-.5, -.2, -.2);  // real3(res.first.x, res.first.y, res.first.z) - kernel_radius * MIN_OFF;
+    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * MAX_OFF;
+    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * MIN_OFF;
 
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
@@ -159,58 +157,60 @@ void ChFLIPContainer::Update(double ChTime) {
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         const real3 vi = vel_marker[p];
-        LOOPOVERNODESY(real weight_x = N(xi - (current_node_location - real3(.5 * bin_edge, 0, 0)), inv_bin_edge);  //
-                       real weight_y = N(xi - (current_node_location - real3(0, .5 * bin_edge, 0)), inv_bin_edge);  //
-                       real weight_z = N(xi - (current_node_location - real3(0, 0, .5 * bin_edge)), inv_bin_edge);  //
-                       face_density[current_node].x += weight_x * mass;                                             //
-                       face_density[current_node].y += weight_y * mass;                                             //
-                       face_density[current_node].z += weight_z * mass;                                             //
-                       , RINGS);
-    }
-
-    // velocity at face centers
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        const real3 vi = vel_marker[p];
-        LOOPOVERNODESY(                                                                                  //
+        LOOPOVERNODESY(
             node_mass[current_node] += N(xi - current_node_location, inv_bin_edge) * mass;               //
             real weight_x = N(xi - (current_node_location - real3(.5 * bin_edge, 0, 0)), inv_bin_edge);  //
             real weight_y = N(xi - (current_node_location - real3(0, .5 * bin_edge, 0)), inv_bin_edge);  //
             real weight_z = N(xi - (current_node_location - real3(0, 0, .5 * bin_edge)), inv_bin_edge);  //
-            v[body_offset + current_node * 3 + 0] += mass * weight_x * vi.x;  // / face_density[current_node].x;  //
-            v[body_offset + current_node * 3 + 1] += mass * weight_y * vi.y;  // / face_density[current_node].y;  //
-            v[body_offset + current_node * 3 + 2] += mass * weight_z * vi.z;  // / face_density[current_node].z;  //
 
-            , RINGS  //
-            )
+            if (i >= cx - 1) {                                                    //
+                face_density[current_node].x += weight_x * mass;                  //
+                v[body_offset + current_node * 3 + 0] += mass * weight_x * vi.x;  //
+            }                                                                     //
+            if (j >= cy - 1) {                                                    //
+                face_density[current_node].y += weight_y * mass;                  //
+                v[body_offset + current_node * 3 + 1] += mass * weight_y * vi.y;  //
+            }                                                                     //
+            if (k >= cz - 1) {                                                    //
+                face_density[current_node].z += weight_z * mass;                  //
+                v[body_offset + current_node * 3 + 2] += mass * weight_z * vi.z;  //
+            }                                                                     //
+            ,
+            RINGS);
     }
+
 #pragma omp parallel for
     for (int i = 0; i < num_mpm_nodes; i++) {
         int3 g = GridDecode(i, bins_per_axis);
         int g_left = GridHash(g.x - 1, g.y, g.z, bins_per_axis);
         int g_right = GridHash(g.x + 1, g.y, g.z, bins_per_axis);
+
         int g_down = GridHash(g.x, g.y - 1, g.z, bins_per_axis);
         int g_up = GridHash(g.x, g.y + 1, g.z, bins_per_axis);
+
         int g_front = GridHash(g.x, g.y, g.z - 1, bins_per_axis);
         int g_back = GridHash(g.x, g.y, g.z + 1, bins_per_axis);
 
         if (face_density[i].x > 0) {
             v[body_offset + i * 3 + 0] /= face_density[i].x;
-            if (face_density[g_right].x <= 0) {
-                v[body_offset + g_right * 3 + 0] = v[body_offset + i * 3 + 0];
-            }
+            //            if (face_density[g_right].x <= 0) {
+            //                // face_density[g_right].x = face_density[i].x;
+            //                v[body_offset + g_right * 3 + 0] = v[body_offset + i * 3 + 0];
         }
+        //        }
         if (face_density[i].y > 0) {
             v[body_offset + i * 3 + 1] /= face_density[i].y;
-            if (face_density[g_up].y <= 0) {
-                v[body_offset + g_up * 3 + 1] = v[body_offset + i * 3 + 1];
-            }
+            //            if (face_density[g_up].y <= 0) {
+            //                // face_density[g_up].y = face_density[i].y;
+            //                v[body_offset + g_up * 3 + 1] = v[body_offset + i * 3 + 1];
+            //            }
         }
         if (face_density[i].z > 0) {
             v[body_offset + i * 3 + 2] /= face_density[i].z;
-            if (face_density[g_back].z <= 0) {
-                v[body_offset + g_back * 3 + 2] = v[body_offset + i * 3 + 2];
-            }
+            //            if (face_density[g_back].z <= 0) {
+            //                // face_density[g_back].z = face_density[i].z;
+            //                v[body_offset + g_back * 3 + 2] = v[body_offset + i * 3 + 2];
+            //            }
         }
 
         data_manager->host_data.old_vel_node_mpm[i * 3 + 0] = v[body_offset + i * 3 + 0];
@@ -234,9 +234,9 @@ void ChFLIPContainer::UpdatePosition(double ChTime) {
         real3 V_flip = vel_marker[p];
         real3 V_pic = real3(0.0);
         LOOPOVERNODESY(                                                                                               //
-            real weight_x = N(xi - (current_node_location - real3(.5 * bin_edge, 0, 0)), inv_bin_edge);               //
-            real weight_y = N(xi - (current_node_location - real3(0, .5 * bin_edge, 0)), inv_bin_edge);               //
-            real weight_z = N(xi - (current_node_location - real3(0, 0, .5 * bin_edge)), inv_bin_edge);               //
+            real weight_x = N(xi - (current_node_location - real3(.5 * bin_edge, 0, 0)), inv_bin_edge);         //
+            real weight_y = N(xi - (current_node_location - real3(0, .5 * bin_edge, 0)), inv_bin_edge);         //
+            real weight_z = N(xi - (current_node_location - real3(0, 0, .5 * bin_edge)), inv_bin_edge);         //
             V_pic.x += v[body_offset + current_node * 3 + 0] * weight_x;                                              //
             V_pic.y += v[body_offset + current_node * 3 + 1] * weight_y;                                              //
             V_pic.z += v[body_offset + current_node * 3 + 2] * weight_z;                                              //
@@ -247,14 +247,13 @@ void ChFLIPContainer::UpdatePosition(double ChTime) {
             )
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
 
-        real speed = Length(new_vel);
-        if (speed > max_velocity) {
-            new_vel = new_vel * max_velocity / speed;
-        }
+        //        real speed = Length(new_vel);
+        //        if (speed > max_velocity) {
+        //            new_vel = new_vel * max_velocity / speed;
+        //        }
 
-        //        printf("new_vel: [%f %f %f] pic:[%f %f %f] flip:[%f %f %f]\n", new_vel.x, new_vel.y, new_vel.z,
-        //        V_pic.x,
-        //               V_pic.y, V_pic.z, V_flip.x, V_flip.y, V_flip.z);
+//        printf("new_vel: [%f %f %f] pic:[%f %f %f] flip:[%f %f %f]\n", new_vel.x, new_vel.y, new_vel.z, V_pic.x,
+//               V_pic.y, V_pic.z, V_flip.x, V_flip.y, V_flip.z);
 
         vel_marker[p] = new_vel;
         pos_marker[p] += new_vel * data_manager->settings.step_size;
@@ -300,6 +299,7 @@ void ChFLIPContainer::ComputeInvMass(int offset) {
         if (face_density[i].z > 0) {
             inv_mass.z = dt / (face_density[i].z / volz);
         }
+
         //}
         // printf("MASS: [%f %f %f] [%d %d %d]\n", inv_mass.x, inv_mass.y, inv_mass.z, g.x, g.y, g.z);
 
@@ -379,7 +379,7 @@ void ChFLIPContainer::Project(real* gamma) {
             gamma[start_node + i] = 0;
         }
         // Dirchlet pressure boundary condition for empty cells
-        if (face_density[i].x <= C_EPSILON && face_density[i].y <= C_EPSILON && face_density[i].z <= C_EPSILON) {
+        if (face_density[i].x <= C_EPSILON || face_density[i].y <= C_EPSILON || face_density[i].z <= C_EPSILON) {
             gamma[start_node + i] = 0;
         }
         //
@@ -441,12 +441,12 @@ void ChFLIPContainer::Build_b() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     const real dt = data_manager->settings.step_size;
     custom_vector<real>& node_mass = data_manager->host_data.node_mass;
-    for (int index = 0; index < num_mpm_nodes; index++) {
-        if (node_mass[index] > 0) {
-            real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
-            b_sub[index] = -(density / rho - 1.0);
+        for (int index = 0; index < num_mpm_nodes; index++) {
+            if (node_mass[index] > 0) {
+                real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
+                b_sub[index] = -(density / rho - 1.0);
+            }
         }
-    }
     // SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
     // b_sub =
     //   b_sub- dt * blaze::submatrix(D_T, start_row, body_offset, num_mpm_nodes * 3, num_mpm_nodes * 3) * v_sub;
@@ -507,12 +507,12 @@ void ChFLIPContainer::PostSolve() {
     //        }
     //    }
 
-    //    for (int i = 0; i < gamma_sub.size(); i++) {
-    //        int3 g = GridDecode(i, bins_per_axis);
-    //        printf("v: [%f,%f,%f] [%d] [%d %d %d] [%.20f] [%.20f] [%.20f]\n", v_sub[i * 3 + 0], v_sub[i * 3 + 1],
-    //               v_sub[i * 3 + 2], i, g.x, g.y, g.z, R_sub[i], gamma_sub[i],
-    //               node_mass[i] / (bin_edge * bin_edge * bin_edge));
-    //    }
+    for (int i = 0; i < gamma_sub.size(); i++) {
+        int3 g = GridDecode(i, bins_per_axis);
+        printf("v: [%f,%f,%f] [%.20f] [%.20f] [%d] [%d %d %d]  [%.20f]\n", v_sub[i * 3 + 0], v_sub[i * 3 + 1],
+               v_sub[i * 3 + 2], R_sub[i], gamma_sub[i], i, g.x, g.y, g.z,
+               node_mass[i] / (bin_edge * bin_edge * bin_edge));
+    }
     int size = data_manager->measures.solver.maxd_hist.size();
     for (int i = 0; i < size; i++) {
         printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
