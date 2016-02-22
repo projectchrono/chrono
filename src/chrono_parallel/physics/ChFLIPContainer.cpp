@@ -392,9 +392,9 @@ void ChFLIPContainer::Project(real* gamma) {
             gamma[start_node + i] = 0;
         }
         //
-        //        if (gamma[start_node + i] < 0) {
-        //            gamma[start_node + i] = 0;
-        //        }
+        if (gamma[start_node + i] < 0) {
+            gamma[start_node + i] = 0;
+        }
     }
 }
 
@@ -437,12 +437,12 @@ void ChFLIPContainer::Build_D() {
                 ff.x = -factor;
                 ff.y = -factor;
                 ff.z = -factor;
-
-                SetRow3Check(D_T, start_row + n, body_offset + n * 3, ff);
-                SetRow3Check(D_T, start_row + n, body_offset + g_right * 3, real3(-ff.x, 0, 0));
-                SetRow3Check(D_T, start_row + n, body_offset + g_up * 3, real3(0, -ff.y, 0));
-                SetRow3Check(D_T, start_row + n, body_offset + g_back * 3, real3(0, 0, -ff.z));
             }
+            SetRow3Check(D_T, start_row + n, body_offset + n * 3, ff);
+            SetRow3Check(D_T, start_row + n, body_offset + g_right * 3, real3(-ff.x, 0, 0));
+            SetRow3Check(D_T, start_row + n, body_offset + g_up * 3, real3(0, -ff.y, 0));
+            SetRow3Check(D_T, start_row + n, body_offset + g_back * 3, real3(0, 0, -ff.z));
+
             //            printf("D: [%f %f %f] [%d %d %d] x [%d %d %d] y [%d %d %d] z[%d %d %d]\n", ff.x, ff.y,
             //            ff.z,
             //            g.x, g.y, g.z,
@@ -460,7 +460,7 @@ void ChFLIPContainer::Build_b() {
     for (int index = 0; index < num_mpm_nodes; index++) {
         if (node_mass[index] > 0) {
             real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
-            b_sub[index] = -(density / rho - 1.0);
+            b_sub[index] = -(Max(density / rho - 1.0, 0));
         }
     }
     // SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
@@ -522,18 +522,18 @@ void ChFLIPContainer::PostSolve() {
     //        }
     //    }
     //
-    //    for (int i = 0; i < gamma_sub.size(); i++) {
-    //        int3 g = GridDecode(i, bins_per_axis);
-    //        printf("v: [%f,%f,%f] [%.10f] [%.10f] [%d] [%d %d %d]  [%.10f] [%f,%f,%f]\n", v_sub[i * 3 + 0],
-    //               v_sub[i * 3 + 1], v_sub[i * 3 + 2], R_sub[i], gamma_sub[i], i, g.x, g.y, g.z,
-    //               node_mass[i] / (bin_edge * bin_edge * bin_edge), face_density[i].x, face_density[i].y,
-    //               face_density[i].z);
-    //    }
-    //    int size = data_manager->measures.solver.maxd_hist.size();
-    //    for (int i = 0; i < size; i++) {
-    //        printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
-    //               data_manager->measures.solver.maxdeltalambda_hist[i]);
-    //    }
+    for (int i = 0; i < gamma_sub.size(); i++) {
+        int3 g = GridDecode(i, bins_per_axis);
+        printf("v: [%f,%f,%f] r: [%.10f] gam: [%.10f] i:[%d] g:[%d %d %d]  v:[%.10f] fm:[%f,%f,%f]\n", v_sub[i * 3 + 0],
+               v_sub[i * 3 + 1], v_sub[i * 3 + 2], R_sub[i], gamma_sub[i], i, g.x, g.y, g.z,
+               node_mass[i] / (bin_edge * bin_edge * bin_edge), face_density[i].x, face_density[i].y,
+               face_density[i].z);
+    }
+    int size = data_manager->measures.solver.maxd_hist.size();
+    for (int i = 0; i < size; i++) {
+        printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
+               data_manager->measures.solver.maxdeltalambda_hist[i]);
+    }
 
     // Print(std::cout, data_manager->host_data.D_T, bins_per_axis);
 }
