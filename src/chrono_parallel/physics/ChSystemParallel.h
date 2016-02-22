@@ -30,9 +30,14 @@
 #include "physics/ChContactDEM.h"
 #include "physics/ChGlobal.h"
 
+#include "chrono_parallel/collision/ChCollisionModelParallel.h"
+#include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/ChSettings.h"
+#include "chrono_parallel/ChMeasures.h"
 #include "chrono_fea/ChMesh.h"
+
 
 namespace chrono {
 
