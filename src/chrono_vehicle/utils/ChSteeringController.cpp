@@ -153,15 +153,18 @@ void ChSteeringController::WriteOutputFile(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // Implementation of the derived class ChPathSteeringController.
 // -----------------------------------------------------------------------------
-ChPathSteeringController::ChPathSteeringController(ChBezierCurve* path) : m_path(path) {
+ChPathSteeringController::ChPathSteeringController(ChBezierCurve* path, bool isClosedPath) 
+    : m_path(path) {
     // Create a tracker object associated with the given path.
-    m_tracker = new ChBezierCurveTracker(path);
+    m_tracker = new ChBezierCurveTracker(path, isClosedPath);
 }
 
-ChPathSteeringController::ChPathSteeringController(const std::string& filename, ChBezierCurve* path)
+ChPathSteeringController::ChPathSteeringController(const std::string& filename,
+                                                   ChBezierCurve* path, 
+                                                   bool isClosedPath)
     : ChSteeringController(filename), m_path(path) {
     // Create a tracker object associated with the given path.
-    m_tracker = new ChBezierCurveTracker(path);
+    m_tracker = new ChBezierCurveTracker(path, isClosedPath);
 }
 
 ChPathSteeringController::~ChPathSteeringController() {

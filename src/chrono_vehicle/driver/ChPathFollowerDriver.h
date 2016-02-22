@@ -49,7 +49,8 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
     ChPathFollowerDriver(ChVehicle& vehicle,            ///< associated vehicle
                          ChBezierCurve* path,           ///< Bezier curve with target path
                          const std::string& path_name,  ///< name of the path curve
-                         double target_speed            ///< constant target speed
+                         double target_speed,           ///< constant target speed
+                         bool isClosedPath = false      ///< Treat the path as a closed loop
                          );
 
     /// Construct using JSON specification files.
@@ -60,7 +61,8 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
                          const std::string& speed_filename,     ///< JSON file with speed controller specification
                          ChBezierCurve* path,                   ///< Bezier curve with target path
                          const std::string& path_name,          ///< name of the path curve
-                         double target_speed                    ///< constant target speed
+                         double target_speed,                   ///< constant target speed
+                         bool isClosedPath = false              ///< Treat the path as a closed loop
                          );
 
     ~ChPathFollowerDriver() {}

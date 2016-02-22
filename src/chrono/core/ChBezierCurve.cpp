@@ -450,28 +450,55 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChVector<>& po
         point = m_path->calcClosestPoint(loc, m_curInterval, m_curParam);
 
         if (m_curParam < ChBezierCurve::m_paramTol) {
-            if (m_curInterval == 0)
+            if ((m_curInterval == 0) && (!m_isClosedPath))
                 return -1;
 
             if (lastAtMax)
                 return 0;
 
+            // If the search region is at the beginning of the interval check the 
+            // previous interval.  Loop to the last interval if the path is a 
+            // closed loop and is it is currently in the first interval
+            if ((m_curInterval == 0) && (m_isClosedPath))
+                m_curInterval = m_path->getNumPoints() - 2; 
+            else
+                m_curInterval--;
+
             lastAtMin = true;
-            m_curInterval--;
             m_curParam = 1;
         } else if (m_curParam > 1 - ChBezierCurve::m_paramTol) {
-            if (m_curInterval == m_path->getNumPoints() - 2)
+            if ((m_curInterval == m_path->getNumPoints() - 2) && (!m_isClosedPath))
                 return +1;
 
             if (lastAtMin)
                 return 0;
 
+            // If the search region is at the end of the interval check the 
+            // next interval.  Loop to the first interval if the path is a 
+            // closed loop and is it is currently in the last interval
+            if ((m_curInterval == m_path->getNumPoints() - 2) && (m_isClosedPath))
+                m_curInterval = 0;
+            else
+                m_curInterval++;
+
             lastAtMax = true;
-            m_curInterval++;
             m_curParam = 0;
         } else
             return 0;
     }
+}
+
+
+// -----------------------------------------------------------------------------
+// ChBezierCurveTracker::setIsClosedPath()
+//
+// This function sets how the end points of the curve are treated by the
+// tracker.  With an open path, the tracker will not loop back to check the 
+// start of the curve.  With a closed loop path, it will loop back
+// -----------------------------------------------------------------------------
+
+void ChBezierCurveTracker::setIsClosedPath(bool isClosedPath){
+    m_isClosedPath = isClosedPath;
 }
 
 }  // end of namespace chrono
