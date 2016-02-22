@@ -134,3 +134,7 @@ void ChSystemParallelDEM::PrintStepStats() {
     std::cout << "    stabilization          " << timer_solver_stab << std::endl;
     std::cout << std::endl;
 }
+
+double ChSystemParallelDEM::GetTimerProcessContact() {
+    return data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");
+}

@@ -4,9 +4,12 @@
 #include "physics/ChShaftsPlanetary.h"
 #include "physics/ChShaftsBody.h"
 
+#include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
+#include "chrono_parallel/collision/ChCollisionModelParallel.h"
+#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 #include "chrono_parallel/math/mat33.h"  // for quaternion, real4
 
@@ -701,4 +704,54 @@ double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec)
     }
 
     return max_c;
+}
+
+void ChSystemParallel::PrintStepStats() {
+    data_manager->system_timer.PrintReport();
+}
+
+int ChSystemParallel::GetNumBodies() {
+    return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
+}
+
+int ChSystemParallel::GetNumShafts() {
+    return data_manager->num_shafts;
+}
+
+int ChSystemParallel::GetNumContacts() {
+    return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
+}
+
+int ChSystemParallel::GetNumBilaterals() {
+    return data_manager->num_bilaterals;
+}
+
+/// Gets the time (in seconds) spent for computing the time step
+double ChSystemParallel::GetTimerStep() {
+    return data_manager->system_timer.GetTime("step");
+}
+/// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
+double ChSystemParallel::GetTimerLcp() {
+    return data_manager->system_timer.GetTime("lcp");
+}
+/// Gets the fraction of time (in seconds) for finding collisions, within the time step
+double ChSystemParallel::GetTimerCollisionBroad() {
+    return data_manager->system_timer.GetTime("collision_broad");
+}
+/// Gets the fraction of time (in seconds) for finding collisions, within the time step
+double ChSystemParallel::GetTimerCollisionNarrow() {
+    return data_manager->system_timer.GetTime("collision_narrow");
+}
+/// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
+double ChSystemParallel::GetTimerUpdate() {
+    return data_manager->system_timer.GetTime("update");
+}
+
+/// Gets the total time for the collision detection step
+double ChSystemParallel::GetTimerCollision() {
+    return data_manager->system_timer.GetTime("collision");
+}
+
+settings_container* ChSystemParallel::GetSettings() {
+    return &(data_manager->settings);
 }

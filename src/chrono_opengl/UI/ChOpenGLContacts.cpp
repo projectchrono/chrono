@@ -18,7 +18,7 @@
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
-
+#include "chrono_parallel/ChDataManager.h"
 namespace chrono {
 using namespace collision;
 namespace opengl {

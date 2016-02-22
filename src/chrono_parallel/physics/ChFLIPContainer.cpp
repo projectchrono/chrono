@@ -136,6 +136,7 @@ void ChFLIPContainer::Update(double ChTime) {
 
     node_mass.resize(num_mpm_nodes);
     face_density.resize(num_mpm_nodes);
+    face_volume.resize(num_mpm_nodes);
     data_manager->host_data.old_vel_node_mpm.resize(num_mpm_nodes * 3);
 
     //#pragma omp parallel for
@@ -148,29 +149,43 @@ void ChFLIPContainer::Update(double ChTime) {
         data_manager->host_data.hf[body_offset + i * 3 + 2] = 0;
         node_mass[i] = 0;
         face_density[i] = real3(0, 0, 0);
+        face_volume[i] = real3(0, 0, 0);
     }
 
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         const real3 vi = vel_marker[p];
+        //        {
+        //            const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
+        //            const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
+        //            const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
+        //            printf("Particle: %d [%d %d %d] \n", p, cx, cy, cz);
+        //        }
+
         LOOPOVERNODESY(
             //
             real weight_x = N(xi - (current_node_location - real3(.5 * bin_edge, 0, 0)), inv_bin_edge);  //
             real weight_y = N(xi - (current_node_location - real3(0, .5 * bin_edge, 0)), inv_bin_edge);  //
             real weight_z = N(xi - (current_node_location - real3(0, 0, .5 * bin_edge)), inv_bin_edge);  //
+            face_volume[current_node].x += mass / rho * weight_x;                                        //
+            face_volume[current_node].y += mass / rho * weight_y;                                        //
+            face_volume[current_node].z += mass / rho * weight_z;                                        //
 
             if (i >= cx - 1 && j < cy + 2 && k < cz + 2) {                        //
                 face_density[current_node].x += weight_x * mass;                  //
                 v[body_offset + current_node * 3 + 0] += mass * weight_x * vi.x;  //
+
             }                                                                     //
             if (j >= cy - 1 && i < cx + 2 && k < cz + 2) {                        //
                 face_density[current_node].y += weight_y * mass;                  //
                 v[body_offset + current_node * 3 + 1] += mass * weight_y * vi.y;  //
+
             }                                                                     //
             if (k >= cz - 1 && i < cx + 2 && j < cy + 2) {                        //
                 face_density[current_node].z += weight_z * mass;                  //
                 v[body_offset + current_node * 3 + 2] += mass * weight_z * vi.z;  //
-            }                                                                     //
+
+            }  //
             // Only if in the one ring
             if (i >= cx - 1 && j >= cy - 1 && k >= cz - 1 && i <= cx + 1 && j <= cy + 1 && k <= cz + 1) {
                 node_mass[current_node] += N(xi - current_node_location, inv_bin_edge) * mass;
@@ -266,9 +281,9 @@ void ChFLIPContainer::ComputeInvMass(int offset) {
     real N_x = N(real3(.5 * bin_edge, 0, 0), inv_bin_edge);  //
     real N_y = N(real3(0, .5 * bin_edge, 0), inv_bin_edge);  //
     real N_z = N(real3(0, 0, .5 * bin_edge), inv_bin_edge);  //
-    real volx = bin_edge * bin_edge * N_x;
-    real voly = bin_edge * bin_edge * N_y;
-    real volz = bin_edge * bin_edge * N_z;
+    real volx = N_x * N_x * N_x;
+    real voly = N_y * N_y * N_y;
+    real volz = N_z * N_z * N_z;
 
     printf("Volume of cell: %f face_vol = %.20f %.20f %.20f [%.20f %.20f %.20f]\n", bin_edge * bin_edge * bin_edge,
            volx, voly, volz, N_x, N_y, N_z);
@@ -281,13 +296,17 @@ void ChFLIPContainer::ComputeInvMass(int offset) {
         //}
         int3 g = GridDecode(i, bins_per_axis);
 
-        if (face_density[i].x > 0 && face_density[i].y > 0 && face_density[i].z > 0) {
-            inv_mass.x = dt / (face_density[i].x / volx);
-            inv_mass.y = dt / (face_density[i].y / voly);
-            inv_mass.z = dt / (face_density[i].z / volz);
+        // if (face_density[i].x > 0 && face_density[i].y > 0 && face_density[i].z > 0) {
+        if (node_mass[i] > 0) {
+            real density = node_mass[i] / (bin_edge * bin_edge * bin_edge);
 
-            printf("MASS: [%f %f %f] [%f %f %f]  [%d %d %d]\n", face_density[i].x, face_density[i].y, face_density[i].z,
-                   inv_mass.x, inv_mass.y, inv_mass.z, g.x, g.y, g.z);
+            inv_mass.x = dt / (face_density[i].x / face_volume[i].x);
+            inv_mass.y = dt / (face_density[i].y / face_volume[i].y);
+            inv_mass.z = dt / (face_density[i].z / face_volume[i].z);
+
+            //            printf("MASS: [%f %f %f] [%f %f %f]  [%d %d %d]\n", face_density[i].x, face_density[i].y,
+            //            face_density[i].z,
+            //                   inv_mass.x, inv_mass.y, inv_mass.z, g.x, g.y, g.z);
         }
         // dt/rho = .001/1000
 
@@ -418,13 +437,12 @@ void ChFLIPContainer::Build_D() {
                 ff.x = -factor;
                 ff.y = -factor;
                 ff.z = -factor;
+
+                SetRow3Check(D_T, start_row + n, body_offset + n * 3, ff);
+                SetRow3Check(D_T, start_row + n, body_offset + g_right * 3, real3(-ff.x, 0, 0));
+                SetRow3Check(D_T, start_row + n, body_offset + g_up * 3, real3(0, -ff.y, 0));
+                SetRow3Check(D_T, start_row + n, body_offset + g_back * 3, real3(0, 0, -ff.z));
             }
-
-            SetRow3Check(D_T, start_row + n, body_offset + n * 3, ff);
-            SetRow3Check(D_T, start_row + n, body_offset + g_right * 3, real3(-ff.x, 0, 0));
-            SetRow3Check(D_T, start_row + n, body_offset + g_up * 3, real3(0, -ff.y, 0));
-            SetRow3Check(D_T, start_row + n, body_offset + g_back * 3, real3(0, 0, -ff.z));
-
             //            printf("D: [%f %f %f] [%d %d %d] x [%d %d %d] y [%d %d %d] z[%d %d %d]\n", ff.x, ff.y,
             //            ff.z,
             //            g.x, g.y, g.z,
@@ -439,12 +457,12 @@ void ChFLIPContainer::Build_b() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     const real dt = data_manager->settings.step_size;
     custom_vector<real>& node_mass = data_manager->host_data.node_mass;
-    // for (int index = 0; index < num_mpm_nodes; index++) {
-    //        // if (node_mass[index] > 0) {
-    //   real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
-    // b_sub[index] = -(density / rho - 1.0);
-    //        //}
-    // }
+    for (int index = 0; index < num_mpm_nodes; index++) {
+        if (node_mass[index] > 0) {
+            real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
+            b_sub[index] = -(density / rho - 1.0);
+        }
+    }
     // SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
     // b_sub =
     //   b_sub- dt * blaze::submatrix(D_T, start_row, body_offset, num_mpm_nodes * 3, num_mpm_nodes * 3) * v_sub;
@@ -503,19 +521,19 @@ void ChFLIPContainer::PostSolve() {
     //            i);
     //        }
     //    }
-
-    for (int i = 0; i < gamma_sub.size(); i++) {
-        int3 g = GridDecode(i, bins_per_axis);
-        printf("v: [%f,%f,%f] [%.10f] [%.10f] [%d] [%d %d %d]  [%.10f] [%f,%f,%f]\n", v_sub[i * 3 + 0],
-               v_sub[i * 3 + 1], v_sub[i * 3 + 2], R_sub[i], gamma_sub[i], i, g.x, g.y, g.z,
-               node_mass[i] / (bin_edge * bin_edge * bin_edge), face_density[i].x, face_density[i].y,
-               face_density[i].z);
-    }
-    int size = data_manager->measures.solver.maxd_hist.size();
-    for (int i = 0; i < size; i++) {
-        printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
-               data_manager->measures.solver.maxdeltalambda_hist[i]);
-    }
+    //
+    //    for (int i = 0; i < gamma_sub.size(); i++) {
+    //        int3 g = GridDecode(i, bins_per_axis);
+    //        printf("v: [%f,%f,%f] [%.10f] [%.10f] [%d] [%d %d %d]  [%.10f] [%f,%f,%f]\n", v_sub[i * 3 + 0],
+    //               v_sub[i * 3 + 1], v_sub[i * 3 + 2], R_sub[i], gamma_sub[i], i, g.x, g.y, g.z,
+    //               node_mass[i] / (bin_edge * bin_edge * bin_edge), face_density[i].x, face_density[i].y,
+    //               face_density[i].z);
+    //    }
+    //    int size = data_manager->measures.solver.maxd_hist.size();
+    //    for (int i = 0; i < size; i++) {
+    //        printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
+    //               data_manager->measures.solver.maxdeltalambda_hist[i]);
+    //    }
 
     // Print(std::cout, data_manager->host_data.D_T, bins_per_axis);
 }

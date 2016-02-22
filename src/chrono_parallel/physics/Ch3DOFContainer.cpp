@@ -4,6 +4,7 @@
 #include <math.h>
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include <chrono_parallel/physics/Ch3DOFContainer.h>
+#include "chrono_parallel/ChDataManager.h"
 
 namespace chrono {
 

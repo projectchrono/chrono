@@ -21,7 +21,14 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
+#include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/other_types.h"
+#include "chrono_parallel/math/mat33.h"
 #include "chrono/physics/ChPhysicsItem.h"
+
+#include "physics/ChBody.h"
+
+
 #include <blaze/math/DynamicVector.h>
 
 using blaze::DynamicVector;
@@ -329,6 +336,7 @@ class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
     int GetNumNonZeros();
 
     custom_vector<real3> face_density;
+    custom_vector<real3> face_volume;
 
     uint start_node;
     uint num_mpm_constraints;

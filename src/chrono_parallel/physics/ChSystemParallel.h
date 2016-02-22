@@ -31,15 +31,13 @@
 #include "physics/ChGlobal.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-#include "chrono_parallel/math/ChParallelMath.h"
-
-#include "chrono_parallel/collision/ChCollisionModelParallel.h"
-
+#include "chrono_parallel/math/real3.h"
 #include "chrono_fea/ChMesh.h"
 
 namespace chrono {
+
+class ChParallelDataManager;
+class settings_container;
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     CH_RTTI(ChSystemParallel, ChSystem);
@@ -67,37 +65,30 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void Setup();
     virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
-    virtual void PrintStepStats() { data_manager->system_timer.PrintReport(); }
-
-    int GetNumBodies() { return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies; }
-
-    int GetNumShafts() { return data_manager->num_shafts; }
-
-    int GetNumContacts() {
-        return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts +
-               data_manager->num_fluid_contacts;
-    }
-
-    int GetNumBilaterals() { return data_manager->num_bilaterals; }
+    virtual void PrintStepStats();
+    int GetNumBodies();
+    int GetNumShafts();
+    int GetNumContacts();
+    int GetNumBilaterals();
 
     /// Gets the time (in seconds) spent for computing the time step
-    virtual double GetTimerStep() { return data_manager->system_timer.GetTime("step"); }
+    virtual double GetTimerStep();
     /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-    virtual double GetTimerLcp() { return data_manager->system_timer.GetTime("lcp"); }
+    virtual double GetTimerLcp();
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    virtual double GetTimerCollisionBroad() { return data_manager->system_timer.GetTime("collision_broad"); }
+    virtual double GetTimerCollisionBroad();
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    virtual double GetTimerCollisionNarrow() { return data_manager->system_timer.GetTime("collision_narrow"); }
+    virtual double GetTimerCollisionNarrow();
     /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-    virtual double GetTimerUpdate() { return data_manager->system_timer.GetTime("update"); }
+    virtual double GetTimerUpdate();
 
     /// Gets the total time for the collision detection step
-    double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }
+    double GetTimerCollision();
 
     virtual real3 GetBodyContactForce(uint body_id) const = 0;
     virtual real3 GetBodyContactTorque(uint body_id) const = 0;
 
-    settings_container* GetSettings() { return &(data_manager->settings); }
+    settings_container* GetSettings();
 
     // based on the passed logging level and the state of that level, enable or
     // disable logging level
@@ -173,9 +164,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
 
     virtual void PrintStepStats();
 
-    double GetTimerProcessContact() const {
-        return data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");
-    }
+    double GetTimerProcessContact();
 };
 
 }  // end namespace chrono
