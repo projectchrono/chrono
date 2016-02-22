@@ -11,7 +11,6 @@
 .carousel-inner {
   position: relative;
   overflow: hidden;
-  width: 100%;
 
   > .item {
     display: none;
@@ -21,8 +20,11 @@
     // Account for jankitude on images
     > img,
     > a > img {
-      @include img-responsive;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
       line-height: 1;
+      height: 500px;
     }
 
     // WebKit CSS3 transforms for supported devices
