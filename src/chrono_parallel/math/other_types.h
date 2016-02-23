@@ -197,4 +197,50 @@ static inline std::ostream& operator<<(std::ostream& out, const int3& a) {
     out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << std::endl;
     return out;
 }
+
+static bool operator<(const uint3& a, const uint3& b) {
+    if (a.x < b.x) {
+        return true;
+    }
+    if (b.x < a.x) {
+        return false;
+    }
+    if (a.y < b.y) {
+        return true;
+    }
+    if (b.y < a.y) {
+        return false;
+    }
+    if (a.z < b.z) {
+        return true;
+    }
+    if (b.z < a.z) {
+        return false;
+    }
+    return false;
+}
+static bool operator>(const uint3& a, const uint3& b) {
+    if (a.x > b.x) {
+        return true;
+    }
+    if (b.x > a.x) {
+        return false;
+    }
+    if (a.y > b.y) {
+        return true;
+    }
+    if (b.y > a.y) {
+        return false;
+    }
+    if (a.z > b.z) {
+        return true;
+    }
+    if (b.z > a.z) {
+        return false;
+    }
+    return false;
+}
+static bool operator==(const uint3& lhs, const uint3& rhs) {
+    return (lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z);
+}
 }
