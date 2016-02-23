@@ -87,41 +87,49 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     // INTERFACE TO ChContactable
     //
 
-        /// Access variables
-    virtual ChLcpVariables* GetVariables1() {return &Variables(); }
+    /// Access variables.
+    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
 
-        /// Tell if the object must be considered in collision detection
-    virtual bool IsContactActive() { return true; }
+    /// Tell if the object must be considered in collision detection.
+    virtual bool IsContactActive() override { return true; }
 
-        /// Get the absolute speed of point abs_point if attached to the 
-        /// surface. Easy in this case because there are no roations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) {return this->pos_dt;};
+    /// Get the number of DOFs affected by this object (position part).
+    virtual int ContactableGet_ndof_x() override { return 3; }
 
-        /// ChCollisionModel might call this to get the position of the 
-        /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->pos, QUNIT);}
+    /// Get the number of DOFs affected by this object (speed part).
+    virtual int ContactableGet_ndof_w() override { return 3; }
 
-        /// Apply the force, expressed in absolute reference, applied in pos, to the 
-        /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                         ChVectorDynamic<>& R);
+    /// Get the absolute speed of point abs_point if attached to the surface.
+    /// Easy in this case because there are no roations..
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->pos_dt; }
 
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second);
+    /// Return the coordinate system for the associated collision model.
+    /// ChCollisionModel might call this to get the position of the
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->pos, QUNIT); }
 
-    virtual double GetContactableMass()  {return this->GetMass();}
+    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) override;
 
-        /// Return the pointer to the surface material. 
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    /// Compute the jacobian(s) part(s) for this contactable item. For example,
+    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               type_constraint_tuple& jacobian_tuple_N,
+                                               type_constraint_tuple& jacobian_tuple_U,
+                                               type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) override;
 
-        /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem();
+    virtual double GetContactableMass() override { return this->GetMass(); }
 
+    /// Return the pointer to the surface material.
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+
+    /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // SERIALIZATION
 

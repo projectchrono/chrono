@@ -43,10 +43,8 @@ namespace chrono {
 class ChSystem;
 class ChParticlesClones;
 
-/// Class for a single particle clone in the ChParticlesClones cluster
-/// (it does not define mass, inertia and shape becuase those
-/// data are _shared_ between them)
-
+/// Class for a single particle clone in the ChParticlesClones cluster.
+/// It does not define mass, inertia and shape because those are _shared_ among them.
 class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
   public:
@@ -68,53 +66,61 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // INTERFACE TO ChContactable
     //
 
-        /// Access variables
-    virtual ChLcpVariables* GetVariables1() {return &Variables(); }
+    /// Access variables.
+    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
 
-        /// Tell if the object must be considered in collision detection
-    virtual bool IsContactActive() { return true; }
+    /// Tell if the object must be considered in collision detection.
+    virtual bool IsContactActive() override { return true; }
 
-     /// Return the pointer to the contact surface material. 
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    /// Get the number of DOFs affected by this object (position part).
+    virtual int ContactableGet_ndof_x() override { return 7; }
 
-        /// Get the absolute speed of point abs_point if attached to the 
-        /// surface. Easy in this case because there are no roations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point);
+    /// Get the number of DOFs affected by this object (speed part).
+    virtual int ContactableGet_ndof_w() override { return 6; }
 
-        /// ChCollisionModel might call this to get the position of the 
-        /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() {return this->coord;}
+    /// Return the pointer to the contact surface material.
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
 
-        /// Apply the force, expressed in absolute reference, applied in pos, to the 
-        /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                     ChVectorDynamic<>& R);
+    /// Get the absolute speed of point abs_point if attached to the surface.
+    /// Easy in this case because there are no roations..
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
 
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    /// Return the coordinate system for the associated collision model.
+    /// ChCollisionModel might call this to get the position of the
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return this->coord; }
+
+    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) override;
+
+    /// Compute the jacobian(s) part(s) for this contactable item. For example,
+    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-        /// (used only for rolling friction DVI contacts)
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
+    /// (used only for rolling friction DVI contacts)
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-         /// used by some DEM code
-    virtual double GetContactableMass()  {return this->variables.GetBodyMass();}
+    /// used by some DEM code
+    virtual double GetContactableMass() override { return this->variables.GetBodyMass(); }
 
-        /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem();
+    /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // SERIALIZATION
 

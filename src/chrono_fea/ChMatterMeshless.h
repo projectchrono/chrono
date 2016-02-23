@@ -95,22 +95,31 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     //
 
     /// Access variables
-    virtual ChLcpVariables* GetVariables1() { return &Variables(); }
+    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
 
     /// Tell if the object must be considered in collision detection
-    virtual bool IsContactActive() { return true; }
+    virtual bool IsContactActive() override { return true; }
 
-    /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no roations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) { return this->pos_dt; };
+    /// Get the number of DOFs affected by this object (position part).
+    virtual int ContactableGet_ndof_x() override { return 3; }
 
+    /// Get the number of DOFs affected by this object (speed part).
+    virtual int ContactableGet_ndof_w() override { return 3; }
+
+    /// Get the absolute speed of point abs_point if attached to the surface.
+    /// Easy in this case because there are no roations..
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->pos_dt; }
+
+    /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() { return ChCoordsys<>(this->pos, QNULL); }
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->pos, QNULL); }
 
     /// Apply the force, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R);
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -119,16 +128,16 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
                                                type_constraint_tuple& jacobian_tuple_N,
                                                type_constraint_tuple& jacobian_tuple_U,
                                                type_constraint_tuple& jacobian_tuple_V,
-                                               bool second);
+                                               bool second) override;
 
     /// Used by some DEM code
-    virtual double GetContactableMass() { return this->GetMass(); }
+    virtual double GetContactableMass() override { return this->GetMass(); }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem();
+    virtual ChPhysicsItem* GetPhysicsItem() override;
 
     //
     // DATA

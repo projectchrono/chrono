@@ -614,25 +614,28 @@ class ChApi ChBody :            public ChPhysicsItem,
     // INTERFACE TO ChContactable
     //
 
-
-    virtual ChLcpVariables* GetVariables1() {return &this->variables; }
+    virtual ChLcpVariables* GetVariables1() override {return &this->variables; }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return this->IsActive(); }
 
+    /// Get the number of DOFs affected by this object (position part)
+    virtual int ContactableGet_ndof_x() override { return 7; }
+
+    /// Get the number of DOFs affected by this object (speed part)
+    virtual int ContactableGet_ndof_w() override { return 6; }
+
     /// Return the pointer to the surface material.
-    /// Use dynamic cast to understand if this is a
-    /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
-    /// This function returns a reference to the shared pointer member
-    /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
+    /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
 
-    /// Get the absolute speed of point abs_point if attached to the
-    /// surface.
+    /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
 
+    /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it
+    /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->GetFrame_REF_to_abs().coord); }
 
     /// Apply the force, expressed in absolute reference, applied in pos, to the
@@ -641,32 +644,31 @@ class ChApi ChBody :            public ChPhysicsItem,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Compute the jacobian(s) part(s) for this contactable item. For example,
-    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    /// Compute the jacobian(s) part(s) for this contactable item.
+    /// For a ChBody, this updates the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-        /// (used only for rolling friction DVI contacts)
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
+    /// Used only for rolling friction DVI contacts.
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-        /// Used by some DEM code
-    virtual double GetContactableMass()  {return this->GetMass();}
+    /// Used by some DEM code
+    virtual double GetContactableMass() override { return this->GetMass(); }
 
-        /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem() { return this;}
-
+    /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem() override { return this; }
 
     //
     // INTERFACE to ChLoadable 

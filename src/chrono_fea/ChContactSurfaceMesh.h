@@ -67,37 +67,46 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
     //
 
     /// Access variables for node 1
-    virtual ChLcpVariables* GetVariables1() { return &mnode1->Variables(); }
+    virtual ChLcpVariables* GetVariables1() override { return &mnode1->Variables(); }
     /// Access variables for node 2
-    virtual ChLcpVariables* GetVariables2() { return &mnode2->Variables(); }
+    virtual ChLcpVariables* GetVariables2() override { return &mnode2->Variables(); }
     /// Access variables for node 3
-    virtual ChLcpVariables* GetVariables3() { return &mnode3->Variables(); }
+    virtual ChLcpVariables* GetVariables3() override { return &mnode3->Variables(); }
 
     /// Tell if the object must be considered in collision detection
-    virtual bool IsContactActive() { return true; }
+    virtual bool IsContactActive() override { return true; }
+
+    /// Get the number of DOFs affected by this object (position part)
+    virtual int ContactableGet_ndof_x() override { return 9; }
+
+    /// Get the number of DOFs affected by this object (speed part)
+    virtual int ContactableGet_ndof_w() override { return 9; }
 
     /// Get the absolute speed of point abs_point if attached to the
     /// surface. Easy in this case because there are no roations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) {
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override {
         double s2, s3;
         this->ComputeUVfromP(abs_point, s2, s3);
         double s1 = 1 - s2 - s3;
         return (s1 * this->mnode1->pos_dt + s2 * this->mnode2->pos_dt + s3 * this->mnode3->pos_dt);
     }
 
+    /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() { return ChCoordsys<>(VNULL, QUNIT); }
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(VNULL, QUNIT); }
 
     /// Apply the force, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
-        double s2,s3;
-        this->ComputeUVfromP(abs_point,s2,s3);
-        double s1=1-s2-s3; 
-        R.PasteSumVector(F*s1, this->mnode1->NodeGetOffset_w(), 0);
-        R.PasteSumVector(F*s2, this->mnode2->NodeGetOffset_w(), 0);
-        R.PasteSumVector(F*s3, this->mnode3->NodeGetOffset_w(), 0);
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) override {
+        double s2, s3;
+        this->ComputeUVfromP(abs_point, s2, s3);
+        double s1 = 1 - s2 - s3;
+        R.PasteSumVector(F * s1, this->mnode1->NodeGetOffset_w(), 0);
+        R.PasteSumVector(F * s2, this->mnode2->NodeGetOffset_w(), 0);
+        R.PasteSumVector(F * s3, this->mnode3->NodeGetOffset_w(), 0);
     }
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
@@ -107,12 +116,12 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
                                                type_constraint_tuple& jacobian_tuple_N,
                                                type_constraint_tuple& jacobian_tuple_U,
                                                type_constraint_tuple& jacobian_tuple_V,
-                                               bool second) {
+                                               bool second) override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
     }
 
     /// Might be needed by some DEM models
-    virtual double GetContactableMass() {
+    virtual double GetContactableMass() override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
         return 1;
         // this->mnode1->GetMass()+this->mnode2->GetMass()+this->mnode3->GetMass(); // no!! could be zero in nodes of
@@ -120,10 +129,10 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override ;
 
     /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem();
+    virtual ChPhysicsItem* GetPhysicsItem() override;
 
   private:
     /// Compute u,v of contact point respect to triangle.

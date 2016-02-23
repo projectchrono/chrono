@@ -13,10 +13,10 @@
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
 
-#include "lcp/ChLcpConstraintTuple.h"
-#include "physics/ChMaterialSurfaceBase.h"
-#include "core/ChVectorDynamic.h"
-#include "core/ChMatrix33.h"
+#include "chrono/lcp/ChLcpConstraintTuple.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
 
@@ -28,42 +28,43 @@ class ChPhysicsItem;
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
 /// on the number of ChVariable objects contained in the object (i.e. the variable chuncks
 /// to whom the contact point position depends, also the variables affected by contact force).
-
-class ChContactable  {
-public:
-        /// Tell if the object must be considered in collision detection
+class ChContactable {
+  public:
+    /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() = 0;
 
-        /// Return the pointer to the surface material. 
-        /// Use dynamic cast to understand if this is a 
-        /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
-        /// This function returns a reference to the shared pointer member
-        /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() =0;
+    /// Get the number of DOFs affected by this object (position part)
+    virtual int ContactableGet_ndof_x() = 0;
 
-        /// Get the absolute speed of point abs_point if attached to the 
-        /// surface.
+    /// Get the number of DOFs affected by this object (speed part)
+    virtual int ContactableGet_ndof_w() = 0;
+
+    /// Return the pointer to the surface material.
+    /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() = 0;
+
+    /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) = 0;
 
-        /// ChCollisionModel might call this to get the position of the 
-        /// contact model (when rigid) and sync it
-     virtual ChCoordsys<> GetCsysForCollisionModel() =0;
+    /// Return the coordinate system for the associated collision model.
+    /// ChCollisionModel might call this to get the position of the
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() = 0;
 
-        /// Apply the force, expressed in absolute reference, applied in pos, to the 
-        /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                ChVectorDynamic<>& R) = 0;
+    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) = 0;
 
-        /// This can be useful in some DEM code:
+    /// This can be useful in some DEM code:
     virtual double GetContactableMass() = 0;
 
-        /// This is only for backward compatibility. Note that in recent code
-        /// the reference to the ChPhysicsItem should disappear. 
-        /// The ChPhysicsItem could be the ChContactable itself (ex. see the ChBody) or 
-        /// a container (ex. the ChMEsh, for ChContactTriangle)
+    /// This is only for backward compatibility. Note that in recent code
+    /// the reference to the ChPhysicsItem should disappear.
+    /// The ChPhysicsItem could be the ChContactable itself (ex. see the ChBody) or
+    /// a container (ex. the ChMEsh, for ChContactTriangle)
     virtual ChPhysicsItem* GetPhysicsItem() = 0;
 };
-
 
 // Note that template T1 is the number of DOFs in the referenced ChVariable, 
 // for instance = 6 for rigid bodies, =3 for ChNodeXYZ, etc. 

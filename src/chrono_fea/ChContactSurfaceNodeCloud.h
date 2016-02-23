@@ -27,75 +27,83 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI_ROOT(ChContactNodeXYZ);
 
-public:
-  ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
-      mnode = anode;
-      container = acontainer;
-  }
-
-  //
-  // FUNCTIONS
-  //
-
-  /// Access the FEA node to whom this is is a proxy
-  ChNodeFEAxyz* GetNode() { return mnode; }
-  /// Set the FEA node to whom this is a proxy
-  void SetNode(ChNodeFEAxyz* mn) { mnode = mn; }
-
-  /// Get the contact surface container
-  ChContactSurface* GetContactSurface() const { return container; }
-  /// Set the contact surface container
-  void GetContactSurface(ChContactSurface* mc) { container = mc; }
-
-  //
-  // INTERFACE TO ChContactable
-  //
-
-  /// Access variables
-  virtual ChLcpVariables* GetVariables1() { return &mnode->Variables(); }
-
-  /// Tell if the object must be considered in collision detection
-  virtual bool IsContactActive() { return true; }
-
-  /// Get the absolute speed of point abs_point if attached to the
-  /// surface. Easy in this case because there are no roations..
-  virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) { return this->mnode->pos_dt; };
-
-  /// ChCollisionModel might call this to get the position of the
-  /// contact model (when rigid) and sync it
-  virtual ChCoordsys<> GetCsysForCollisionModel() { return ChCoordsys<>(this->mnode->pos, QNULL); }
-
-  /// Apply the force, expressed in absolute reference, applied in pos, to the
-  /// coordinates of the variables. Force for example could come from a penalty model.
-  virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R);
-
-  /// Compute the jacobian(s) part(s) for this contactable item. For example,
-  /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-  virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
-                                             ChMatrix33<>& contact_plane,
-                                             type_constraint_tuple& jacobian_tuple_N,
-                                             type_constraint_tuple& jacobian_tuple_U,
-                                             type_constraint_tuple& jacobian_tuple_V,
-                                             bool second);
-
-  virtual double GetContactableMass() {
-      //***TODO***!!!!!!!!!!!!!!!!!!!!
-      return 1;
-      // return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
+  public:
+    ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
+        mnode = anode;
+        container = acontainer;
     }
 
-    /// Return the pointer to the surface material. 
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    //
+    // FUNCTIONS
+    //
+
+    /// Access the FEA node to whom this is is a proxy
+    ChNodeFEAxyz* GetNode() { return mnode; }
+    /// Set the FEA node to whom this is a proxy
+    void SetNode(ChNodeFEAxyz* mn) { mnode = mn; }
+
+    /// Get the contact surface container
+    ChContactSurface* GetContactSurface() const { return container; }
+    /// Set the contact surface container
+    void GetContactSurface(ChContactSurface* mc) { container = mc; }
+
+    //
+    // INTERFACE TO ChContactable
+    //
+
+    /// Access variables
+    virtual ChLcpVariables* GetVariables1() override { return &mnode->Variables(); }
+
+    /// Tell if the object must be considered in collision detection
+    virtual bool IsContactActive() override { return true; }
+
+    /// Get the number of DOFs affected by this object (position part)
+    virtual int ContactableGet_ndof_x() override { return 3; }
+
+    /// Get the number of DOFs affected by this object (speed part)
+    virtual int ContactableGet_ndof_w() override { return 3; }
+
+    /// Get the absolute speed of point abs_point if attached to the
+    /// surface. Easy in this case because there are no roations..
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->mnode->pos_dt; }
+
+    /// Return the coordinate system for the associated collision model.
+    /// ChCollisionModel might call this to get the position of the
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->mnode->pos, QNULL); }
+
+    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) override;
+
+    /// Compute the jacobian(s) part(s) for this contactable item. For example,
+    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               type_constraint_tuple& jacobian_tuple_N,
+                                               type_constraint_tuple& jacobian_tuple_U,
+                                               type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) override;
+
+    virtual double GetContactableMass() override {
+        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        return 1;
+        // return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
+    }
+
+    /// Return the pointer to the surface material.
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem();
+    virtual ChPhysicsItem* GetPhysicsItem() override;
 
-private:
+  private:
     ChNodeFEAxyz* mnode;
 
     ChContactSurface* container;
 };
-
 
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud 
 /// type of collisions.

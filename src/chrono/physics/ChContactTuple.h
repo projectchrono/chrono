@@ -158,6 +158,10 @@ class ChContactTuple {
 
     virtual void ContIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {}
 
+    virtual void ContInjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {}
+
+    virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) {}
+
     virtual void ContIntToLCP(const unsigned int off_L,    ///< offset in L, Qc
                               const ChVectorDynamic<>& L,  ///<
                               const ChVectorDynamic<>& Qc  ///<
