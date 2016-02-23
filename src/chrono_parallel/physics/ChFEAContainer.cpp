@@ -853,10 +853,9 @@ void ChFEAContainer::PreSolve() {
             gamma_old * 0.9;
     }
 
-    //    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
-    //        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid
-    //        * 0.9;
-    //    }
+    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
+        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid * 0.9;
+    }
 }
 void ChFEAContainer::PostSolve() {
     if (data_manager->num_fea_tets * (6 + 1) > 0) {
