@@ -40,7 +40,7 @@ static real N_tight(const real x) {
     if (Abs(x) >= real(0.0) && Abs(x) < real(.5)) {
         return -Sqr(x) + three_fourths;
     } else if (Abs(x) >= real(1.0) && Abs(x) < real(three_halves)) {
-        return .5 * Sqr(x) - real(three_halves) * x + (9.0 / 8.0);
+        return .5 * Sqr(x) - real(three_halves) * Abs(x) + (9.0 / 8.0);
     }
     return real(0.0);
 }
