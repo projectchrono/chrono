@@ -279,16 +279,16 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         int ndof_w = 0;
         std::vector<ChLcpVariables*> vars;
 
-        vars.push_back(objA->GetVariables1());
-        if (auto objA_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(objA)) {
+        vars.push_back(this->objA->GetVariables1());
+        if (auto objA_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objA)) {
             vars.push_back(objA_333->GetVariables2());
             vars.push_back(objA_333->GetVariables3());
         }
         ndof_x += this->objA->ContactableGet_ndof_x();
         ndof_w += this->objA->ContactableGet_ndof_w();
 
-        vars.push_back(objB->GetVariables1());
-        if (auto objB_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(objB)) {
+        vars.push_back(this->objB->GetVariables1());
+        if (auto objB_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objB)) {
             vars.push_back(objB_333->GetVariables2());
             vars.push_back(objB_333->GetVariables3());
         }
@@ -319,20 +319,20 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         ////   - how do we deal with quaternion states?!?
 
         // Get states for objA
-        int ndofA_x = objA->ContactableGet_ndof_x();
-        int ndofA_w = objA->ContactableGet_ndof_w();
+        int ndofA_x = this->objA->ContactableGet_ndof_x();
+        int ndofA_w = this->objA->ContactableGet_ndof_w();
         ChState stateA_x(ndofA_x);
         ChStateDelta stateA_w(ndofA_w);
-        objA->ContactableGetStateBlock_x(stateA_x);
-        objA->ContactableGetStateBlock_w(stateA_w);
+        this->objA->ContactableGetStateBlock_x(stateA_x);
+        this->objA->ContactableGetStateBlock_w(stateA_w);
 
         // Get states for objB
-        int ndofB_x = objB->ContactableGet_ndof_x();
-        int ndofB_w = objB->ContactableGet_ndof_w();
+        int ndofB_x = this->objB->ContactableGet_ndof_x();
+        int ndofB_w = this->objB->ContactableGet_ndof_w();
         ChState stateB_x(ndofB_x);
         ChStateDelta stateB_w(ndofB_w);
-        objB->ContactableGetStateBlock_x(stateB_x);
-        objB->ContactableGetStateBlock_w(stateB_w);
+        this->objB->ContactableGetStateBlock_x(stateB_x);
+        this->objB->ContactableGetStateBlock_w(stateB_w);
 
         // Compute Q at current state
         ChVectorDynamic<> Q0(ndofA_w + ndofB_w);
