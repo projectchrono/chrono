@@ -373,17 +373,21 @@ void ChFLIPContainer::Project(real* gamma) {
     custom_vector<real>& node_mass = data_manager->host_data.node_mass;
     for (int i = 0; i < num_mpm_constraints; i++) {
         int3 g = GridDecode(i, bins_per_axis);
-        //        if ((g.x + 1) >= bins_per_axis.x) {
-        //            gamma[start_node + i] = 0;
-        //        }
-        //        if ((g.y + 1) >= bins_per_axis.y) {
-        //            gamma[start_node + i] = 0;
-        //        }
-        //        if ((g.z + 1) >= bins_per_axis.z) {
-        //            gamma[start_node + i] = 0;
-        //        }
+        if ((g.x + 1) >= bins_per_axis.x) {
+            gamma[start_node + i] = 0;
+        }
+        if ((g.y + 1) >= bins_per_axis.y) {
+            gamma[start_node + i] = 0;
+        }
+        if ((g.z + 1) >= bins_per_axis.z) {
+            gamma[start_node + i] = 0;
+        }
         // Dirchlet pressure boundary condition for empty cells
-        if (node_mass[i] <= C_EPSILON) {
+//        if (node_mass[i] <= C_EPSILON) {
+//            gamma[start_node + i] = 0;
+//        }
+
+        if (face_density[i].x <= 0 || face_density[i].y <= 0 || face_density[i].z <= 0) {
             gamma[start_node + i] = 0;
         }
 
@@ -455,7 +459,7 @@ void ChFLIPContainer::Build_b() {
         if (node_mass[index] > 0) {
             real density = data_manager->host_data.node_mass[index] / (bin_edge * bin_edge * bin_edge);
             // b_sub[index] = -(Max(density / rho - 1.0, 0));
-            // b_sub[index] = -(density / rho - 1.0);
+             b_sub[index] = -(density / rho - 1.0);
         }
     }
     // SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
