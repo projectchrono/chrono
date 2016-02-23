@@ -266,7 +266,9 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint start_rigid;
 
     // Id of the rigid body and node number
-    custom_vector<int2> constraint_bodies;
+    custom_vector<int> constraint_bodies;
+    std::vector<std::shared_ptr<ChBody>> bodylist;
+
     real rigid_constraint_recovery_speed;
     // The point where the constraint is enforced in the local coords of the rigid body
     custom_vector<real3> constraint_position;

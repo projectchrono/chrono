@@ -75,8 +75,6 @@ void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
 void ChFEAContainer::AddConstraint(const uint node, std::shared_ptr<ChBody>& body) {
     // Creates constraints between a 3dof node and a 6dof rigid body
     // point is the nodal point
-    int body_a = body->GetId();
-    int body_b = node;
 
     custom_vector<real3>& pos_node_fea = data_manager->host_data.pos_node_fea;
 
@@ -84,8 +82,9 @@ void ChFEAContainer::AddConstraint(const uint node, std::shared_ptr<ChBody>& bod
     quaternion rot_rigid = quaternion(body->GetRot().e0, body->GetRot().e1, body->GetRot().e2, body->GetRot().e3);
     //    printf("body ID: %d %d [%f %f %f] [%f %f %f]\n", body_b, body_a, pos_rigid.x, pos_rigid.y, pos_rigid.z,
     //           pos_node_fea[body_b].x, pos_node_fea[body_b].y, pos_node_fea[body_b].z);
-    constraint_position.push_back(TransformParentToLocal(pos_rigid, rot_rigid, pos_node_fea[body_b]));
-    constraint_bodies.push_back(_make_int2(body_a, body_b));
+    constraint_position.push_back(TransformParentToLocal(pos_rigid, rot_rigid, pos_node_fea[node]));
+    constraint_bodies.push_back(node);
+    bodylist.push_back(body);
 
     num_rigid_constraints++;
 }
@@ -536,15 +535,9 @@ void ChFEAContainer::Build_D() {
 
     if (num_rigid_constraints > 0) {
         for (int index = 0; index < num_rigid_constraints; index++) {
-            int2 body_id = constraint_bodies[index];
-
-            int body_a = body_id.x;
-            int node_b = body_id.y;
-
-            Mat33 Arw = Transpose(Mat33(rot_rigid[body_a]));
-            real3 temp = Arw * Normalize((pos_node[node_b] - pos_rigid[body_a]));
-            Mat33 atilde = SkewSymmetric(temp);
-            Mat33 Jrb = Arw * atilde;  // Jacobian for body
+            int body_a = bodylist[index]->GetId();
+            int node_b = constraint_bodies[index];
+            // printf("[%d %d]\n", body_a, node_b);
 
             //======= Experimental jacobian weighting
             //            real dJxn = Abs(Determinant(Jxn));
@@ -561,17 +554,19 @@ void ChFEAContainer::Build_D() {
             //                Jrb = Jrb * (1.0 / dJrb);
             //            }
             //
-            Arw = Arw * .8;
-            Jrb = Jrb * .8;
+
             //            //=======
+            Mat33 Jxn = Transpose(Mat33(rot_rigid[body_a]));
+            Mat33 Jrb = SkewSymmetric(Jxn * (pos_node[node_b] - pos_rigid[body_a]));
+            // Jxn = Jxn * .8;
+            // Jrb = Jrb * .8;
+            SetRow6Check(D_T, start_rigid + index * 3 + 0, body_a * 6, -Jxn.row(0), Jrb.row(0));
+            SetRow6Check(D_T, start_rigid + index * 3 + 1, body_a * 6, -Jxn.row(1), Jrb.row(1));
+            SetRow6Check(D_T, start_rigid + index * 3 + 2, body_a * 6, -Jxn.row(2), Jrb.row(2));
 
-            SetRow6Check(D_T, start_rigid + index * 3 + 0, body_a * 6, -Arw.row(0), Jrb.row(0));
-            SetRow6Check(D_T, start_rigid + index * 3 + 1, body_a * 6, -Arw.row(1), Jrb.row(1));
-            SetRow6Check(D_T, start_rigid + index * 3 + 2, body_a * 6, -Arw.row(2), Jrb.row(2));
-
-            SetRow3Check(D_T, start_rigid + index * 3 + 0, b_off + node_b * 3, Arw.row(0));
-            SetRow3Check(D_T, start_rigid + index * 3 + 1, b_off + node_b * 3, Arw.row(1));
-            SetRow3Check(D_T, start_rigid + index * 3 + 2, b_off + node_b * 3, Arw.row(2));
+            SetRow3Check(D_T, start_rigid + index * 3 + 0, b_off + node_b * 3, Jxn.row(0));
+            SetRow3Check(D_T, start_rigid + index * 3 + 1, b_off + node_b * 3, Jxn.row(1));
+            SetRow3Check(D_T, start_rigid + index * 3 + 2, b_off + node_b * 3, Jxn.row(2));
         }
     }
 }
@@ -664,10 +659,8 @@ void ChFEAContainer::Build_b() {
 
     if (num_rigid_constraints > 0) {
         for (int index = 0; index < num_rigid_constraints; index++) {
-            int2 body_id = constraint_bodies[index];
-
-            int body_a = body_id.x;
-            int node_b = body_id.y;
+            int body_a = bodylist[index]->GetId();
+            int node_b = constraint_bodies[index];
 
             Mat33 Arw(rot_rigid[body_a]);
             real3 res =
@@ -835,9 +828,8 @@ void ChFEAContainer::GenerateSparsity() {
 
     if (num_rigid_constraints) {
         for (int index = 0; index < num_rigid_constraints; index++) {
-            int2 body_id = constraint_bodies[index];
-            int body_a = body_id.x;
-            int node_b = body_id.y;
+            int body_a = bodylist[index]->GetId();
+            int node_b = constraint_bodies[index];
             // printf("Rigid fea: %d %d %d\n", start_rigid + index * 3 + 0, body_a * 6, body_offset + node_b * 3);
 
             AppendRow6(D_T, start_rigid + index * 3 + 0, body_a * 6, 0);
@@ -861,9 +853,10 @@ void ChFEAContainer::PreSolve() {
             gamma_old * 0.9;
     }
 
-    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
-        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid * 0.9;
-    }
+    //    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
+    //        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid
+    //        * 0.9;
+    //    }
 }
 void ChFEAContainer::PostSolve() {
     if (data_manager->num_fea_tets * (6 + 1) > 0) {
