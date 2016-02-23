@@ -255,7 +255,6 @@ int main(int argc, char* argv[]) {
 
     mcontactcloud->SetMaterialSurface(mysurfmaterial);
 
-    my_mesh->AddContactSurface(mcontactsurf);
     
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh_beams);

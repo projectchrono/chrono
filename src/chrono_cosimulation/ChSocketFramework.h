@@ -14,6 +14,9 @@
 
 #include "chrono_cosimulation/ChSocket.h"
 
+namespace chrono {
+namespace cosimul {
+
 /// A single object of this class must be instantiated before using
 /// all classes related to sockets, because it initializes some platform-specific
 /// settings.
@@ -24,5 +27,10 @@ class ChApiCosimulation ChSocketFramework {
     ChSocketFramework();
     ~ChSocketFramework();
 };
+
+
+}  // END_OF_NAMESPACE____
+}  // END_OF_NAMESPACE____
+
 
 #endif

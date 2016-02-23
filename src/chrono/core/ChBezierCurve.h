@@ -194,7 +194,8 @@ class ChApi ChBezierCurve {
 class ChApi ChBezierCurveTracker {
   public:
     /// Create a tracker associated with the specified Bezier curve.
-    ChBezierCurveTracker(ChBezierCurve* path) : m_path(path), m_curInterval(0), m_curParam(0) {}
+      ChBezierCurveTracker(ChBezierCurve* path, bool isClosedPath = false) 
+          : m_path(path), m_curInterval(0), m_curParam(0), m_isClosedPath(isClosedPath) {}
 
     /// Destructor for ChBezierCurveTracker.
     ~ChBezierCurveTracker() {}
@@ -215,10 +216,14 @@ class ChApi ChBezierCurveTracker {
     /// such, this function should be called with a continuous sequence of locations.
     int calcClosestPoint(const ChVector<>& loc, ChVector<>& point);
 
+    /// Set if the path is treated as an open loop or a closed loop for tracking
+    void setIsClosedPath(bool isClosedPath);
+
   private:
     ChBezierCurve* m_path;  ///< associated Bezier curve
     size_t m_curInterval;   ///< current search interval
     double m_curParam;      ///< parameter for current closest point
+    bool m_isClosedPath;    ///< treat the path as a closed loop curve
 };
 
 }  // end of namespace chrono
