@@ -125,7 +125,8 @@ int main(int argc, char* argv[]) {
                                  0.01,  // Janosi shear coefficient (m)
                                  2e8    // Elastic stiffness (Pa/m), before plastic yeld
                                  );
-    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
 
@@ -213,7 +214,7 @@ int main(int argc, char* argv[]) {
             app.DrawAll();
             app.EndScene();
 
-            if (img_output && step_number > 100) {
+            if (img_output && step_number > 0) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
