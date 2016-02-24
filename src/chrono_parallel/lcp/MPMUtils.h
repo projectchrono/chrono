@@ -23,6 +23,17 @@
 
 namespace chrono {
 // Interpolation Functions
+
+static real N_Tri(const real x) {
+    if (Abs(x) < real(1.0)) {
+        return 1.0 - Abs(x);
+    }
+    return real(0.0);
+}
+static real N_Tri(const real3& X, real inv_grid_dx) {
+    return N_Tri(X.x * inv_grid_dx) * N_Tri(X.y * inv_grid_dx) * N_Tri(X.z * inv_grid_dx);
+}
+
 static real N(const real x) {
     if (Abs(x) < real(1.0)) {
         return real(0.5) * Cube(Abs(x)) - Sqr(x) + two_thirds;
