@@ -202,8 +202,9 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     custom_vector<Mat33> SVD_Fe_hat_R;
     custom_vector<Mat33> SVD_Fe_hat_S;
 
-    uint start_node;
-    uint num_mpm_constraints;
+    uint start_boundary;
+    uint start_contact;
+
     real mass;
     real mu;
     real hardening_coefficient;
@@ -218,6 +219,8 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real bin_edge;
     real inv_bin_edge;
     uint body_offset;
+
+    uint num_mpm_contacts;  // number of mpm marker contacts
 
     uint num_mpm_markers;
     uint num_mpm_nodes;
