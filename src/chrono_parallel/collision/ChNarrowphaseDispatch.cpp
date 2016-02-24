@@ -343,25 +343,24 @@ inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
 
-void ChCNarrowphaseDispatch::DispatchFluid() {
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() S";
-    const int num_fluid_bodies = data_manager->num_fluid_bodies;
-    const int num_rigid_bodies = data_manager->num_rigid_bodies;
-    const int num_shafts = data_manager->num_shafts;
-
-    if (num_fluid_bodies == 0) {
-        return;
-    }
+void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
+                                                 const int body_offset,
+                                                 const real radius,
+                                                 const real collision_envelope,
+                                                 const real3& min_bounding_point,
+                                                 const real3& max_bounding_point,
+                                                 const custom_vector<real3>& pos_fluid,
+                                                 const custom_vector<real3>& vel_fluid,
+                                                 custom_vector<real3>& sorted_pos_fluid,
+                                                 custom_vector<real3>& sorted_vel_fluid,
+                                                 DynamicVector<real>& v,
+                                                 custom_vector<int>& neighbor_fluid_fluid,
+                                                 custom_vector<int>& contact_counts,
+                                                 custom_vector<int>& particle_indices,
+                                                 int3& bins_per_axis,
+                                                 uint& num_fluid_contacts) {
+    const real radiusSq = radius * radius + collision_envelope;
     //=======
-    const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    const custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
-    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& sorted_vel_fluid = data_manager->host_data.sorted_vel_3dof;
-
-    custom_vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_3dof_3dof;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_3dof_3dof;
-    custom_vector<int>& particle_indices = data_manager->host_data.particle_indices_3dof;
-    // custom_vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping_3dof;
 
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
     contact_counts.resize(num_fluid_bodies);
@@ -375,31 +374,16 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
 
-    const real radius = data_manager->node_container->kernel_radius;
-    const real radiusSq = radius * radius + data_manager->node_container->collision_envelope;
-
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;
     bbox_reduction binary_op;
     res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
 
-    real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
-    real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
-    int3& bins_per_axis = data_manager->measures.collision.ff_bins_per_axis;
-
-    max_bounding_point = real3(Max(Ceil(res.second.x), Ceil(res.second.x + radius * 6)),
-                               Max(Ceil(res.second.y), Ceil(res.second.y + radius * 6)),
-                               Max(Ceil(res.second.z), Ceil(res.second.z + radius * 6)));
-
-    min_bounding_point = real3(Min(Floor(res.first.x), Floor(res.first.x - radius * 6)),
-                               Min(Floor(res.first.y), Floor(res.first.y - radius * 6)),
-                               Min(Floor(res.first.z), Floor(res.first.z - radius * 6)));
-
     real3 diag = max_bounding_point - min_bounding_point;
 
     bins_per_axis = int3(diag / (radius * 2));
 
-    real inv_bin_edge = real(1.0) / (radius * 2 + data_manager->node_container->collision_envelope);
+    real inv_bin_edge = real(1.0) / (radius * 2 + collision_envelope);
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     ff_bin_starts.resize(grid_size);
@@ -442,9 +426,9 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
         int index = particle_indices[i];
         sorted_pos_fluid[i] = pos_fluid[index];
         sorted_vel_fluid[i] = vel_fluid[index];
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel_fluid[index].x;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel_fluid[index].y;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel_fluid[index].z;
+        v[body_offset + i * 3 + 0] = vel_fluid[index].x;
+        v[body_offset + i * 3 + 1] = vel_fluid[index].y;
+        v[body_offset + i * 3 + 2] = vel_fluid[index].z;
 
         // reverse_mapping[index] = i;
     }
@@ -487,7 +471,44 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
         contact_counts[p] = contact_count;
     }
 
-    data_manager->num_fluid_contacts = Thrust_Total(contact_counts);
+    num_fluid_contacts = Thrust_Total(contact_counts);
+}
+
+void ChCNarrowphaseDispatch::DispatchFluid() {
+    if (data_manager->num_fluid_bodies == 0) {
+        return;
+    }
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() S";
+    const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
+    const real radius = data_manager->node_container->kernel_radius;
+
+    bbox res(pos_fluid[0], pos_fluid[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
+
+    res.first.x = radius * Round(res.first.x / radius);
+    res.first.y = radius * Round(res.first.y / radius);
+    res.first.z = radius * Round(res.first.z / radius);
+
+    res.second.x = radius * Round(res.second.x / radius);
+    res.second.y = radius * Round(res.second.y / radius);
+    res.second.z = radius * Round(res.second.z / radius);
+
+    real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+
+    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + radius * 6;
+    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - radius * 6;
+
+    SphereSphereContact(data_manager->num_fluid_bodies, data_manager->num_rigid_bodies * 6 + data_manager->num_shafts,
+                        radius, data_manager->node_container->collision_envelope, min_bounding_point,
+                        max_bounding_point, pos_fluid, data_manager->host_data.vel_3dof,
+                        data_manager->host_data.sorted_pos_3dof, data_manager->host_data.sorted_vel_3dof,
+                        data_manager->host_data.v, data_manager->host_data.neighbor_3dof_3dof,
+                        data_manager->host_data.c_counts_3dof_3dof, data_manager->host_data.particle_indices_3dof,
+                        data_manager->measures.collision.ff_bins_per_axis, data_manager->num_fluid_contacts);
+
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() E " << data_manager->num_fluid_contacts;
 }
 

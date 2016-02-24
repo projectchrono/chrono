@@ -11,7 +11,6 @@
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCollision.h"
 
-
 namespace chrono {
 namespace collision {
 
@@ -155,6 +154,12 @@ void ChCollisionSystemParallel::Run() {
         data_manager->system_timer.start("collision_narrow");
         // do this first so that we can augment the min/max for rigids to get a larger grid
         narrowphase->DispatchFluid();
+        data_manager->system_timer.stop("collision_narrow");
+    }
+    if (data_manager->num_mpm_markers != 0) {
+        data_manager->system_timer.start("collision_narrow");
+        // do this first so that we can augment the min/max for rigids to get a larger grid
+        narrowphase->DispatchMPM();
         data_manager->system_timer.stop("collision_narrow");
     }
 

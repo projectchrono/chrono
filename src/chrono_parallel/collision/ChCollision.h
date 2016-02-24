@@ -71,6 +71,24 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     void DispatchRigidTet();
     void DispatchRigidMPM();
     void DispatchFluid();
+    void DispatchMPM();
+
+    void SphereSphereContact(const int num_fluid_bodies,
+                             const int body_offset,
+                             const real radius,
+                             const real collision_envelope,
+                             const real3& min_bounding_point,
+                             const real3& max_bounding_point,
+                             const custom_vector<real3>& pos_fluid,
+                             const custom_vector<real3>& vel_fluid,
+                             custom_vector<real3>& sorted_pos_fluid,
+                             custom_vector<real3>& sorted_vel_fluid,
+                             DynamicVector<real>& v,
+                             custom_vector<int>& neighbor_fluid_fluid,
+                             custom_vector<int>& contact_counts,
+                             custom_vector<int>& particle_indices,
+                             int3& bins_per_axis,
+                             uint& num_fluid_contacts);
 
     void RigidSphereContact(const real sphere_radius,
                             const int num_spheres,
