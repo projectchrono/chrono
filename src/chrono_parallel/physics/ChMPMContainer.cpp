@@ -77,12 +77,12 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
             real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));          // Constant
             real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));  // Constant
 
-            Mat33 Fe_hat_inv_transpose;
-            if (J > 0.0) {
-                Fe_hat_inv_transpose = AdjointTranspose(data_manager->host_data.marker_Fe_hat[p]) * real(1.0 / J);
-            } else {
-                Fe_hat_inv_transpose = Mat33(0);
-            }
+            // Mat33 Fe_hat_inv_transpose;
+            // if (J > 0.0) {
+            //    Fe_hat_inv_transpose = AdjointTranspose(data_manager->host_data.marker_Fe_hat[p]) * real(1.0 / J);
+            //} else {
+            //    Fe_hat_inv_transpose = Mat33(0);
+            //}
 
             // Mat33 Fe_hat_inv_transpose = InverseTranspose(data_manager->host_data.marker_Fe_hat[p]);  // Constant
             // Mat33 U, V;
@@ -91,18 +91,16 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
             // Mat33 R = MultTranspose(U, V);                           // Constant
             // Mat33 S = V * MultTranspose(Mat33(E), V);                // Constant
 
-            real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
-            Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * TransposeMult(delta_F, Fe_hat_inv_transpose);
-            Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
+            // real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
+            // Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * TransposeMult(delta_F, Fe_hat_inv_transpose);
+            // Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
 
             Mat33 W = TransposeMult(R, delta_F);
             Mat33 RD = Solve_dR(R, S, W);
 
-            Mat33 volume_Ap_Fe_transpose =
-                data_manager->host_data.marker_volume[p] *
-                (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
-                 (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
-                Transpose(data_manager->host_data.marker_Fe[p]);
+            Mat33 volume_Ap_Fe_transpose = data_manager->host_data.marker_volume[p] *
+                                           (2 * current_mu * (delta_F - RD)) *
+                                           Transpose(data_manager->host_data.marker_Fe[p]);
             {
                 const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
                 const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
@@ -569,6 +567,7 @@ void ChMPMContainer::GenerateSparsity() {
 }
 void ChMPMContainer::PreSolve() {
     UpdateRhs();
+    // CollideGrid();
 
     DynamicVector<real> delta_v(num_mpm_nodes * 3);
     delta_v = 0;
@@ -649,22 +648,6 @@ void ChMPMContainer::PostSolve() {
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         data_manager->host_data.marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
     }
-
-    if (num_rigid_mpm_contacts > 0) {
-        DynamicVector<real>& gamma = data_manager->host_data.gamma;
-        SubVectorType gamma_n = subvector(gamma, start_row, num_rigid_mpm_contacts);
-        SubVectorType gamma_t = subvector(gamma, start_row + num_rigid_mpm_contacts, 2 * num_rigid_mpm_contacts);
-
-        contact_forces = submatrix(data_manager->host_data.D, 0, start_row, _num_dof_, num_rigid_mpm_contacts) *
-                             gamma_n / data_manager->settings.step_size +
-                         submatrix(data_manager->host_data.D, 0, start_row + num_rigid_mpm_contacts, _num_dof_,
-                                   2 * num_rigid_mpm_contacts) *
-                             gamma_t / data_manager->settings.step_size;
-        //        for (int i = 0; i < num_mpm_markers; i++) {
-        //            printf("Forces: [%f %f %f] \n", contact_forces[i * 3 + 0], contact_forces[i * 3 + 1],
-        //                   contact_forces[i * 3 + 2]);
-        //        }
-    }
 }
 
 void ChMPMContainer::Solve(const DynamicVector<real>& rhs, DynamicVector<real>& delta_v) {
@@ -685,9 +668,9 @@ void ChMPMContainer::UpdateRhs() {
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
 
-        Mat33 PED =
-            Potential_Energy_Derivative(data_manager->host_data.marker_Fe_hat[p], data_manager->host_data.marker_Fp[p],
-                                        mu, lambda, hardening_coefficient);
+        Mat33 PED = Potential_Energy_Derivative_Deviatoric(data_manager->host_data.marker_Fe_hat[p],
+                                                           data_manager->host_data.marker_Fp[p], mu, lambda,
+                                                           hardening_coefficient);
 
         Mat33 vPEDFepT =
             data_manager->host_data.marker_volume[p] * MultTranspose(PED, data_manager->host_data.marker_Fe[p]);
@@ -710,37 +693,37 @@ void ChMPMContainer::UpdateRhs() {
             rhs[current_node * 3 + 2] -= dt * force.z;  //- dt * contact_force.z;  //
             )
     }
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
-    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_mpm;
-    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_mpm;
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-
-        int start = contact_counts[p];
-        int end = contact_counts[p + 1];
-
-        real3 f = real3(0);
-        LOOPOVERNODES(                                                  //
-            real weight = N(xi - current_node_location, inv_bin_edge);  //
-            f += weight * node_force[current_node];                     //
-            )
-
-        for (int index = start; index < end; index++) {
-            int i = index - start;  // index that goes from 0
-            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-            real3 point = cpta[p * max_rigid_neighbors + i];
-
-            real3 torque = Cross(point - data_manager->host_data.pos_rigid[rigid], f);
-
-            data_manager->host_data.hf[rigid * 6 + 0] += f.x;
-            data_manager->host_data.hf[rigid * 6 + 1] += f.y;
-            data_manager->host_data.hf[rigid * 6 + 2] += f.z;
-
-            data_manager->host_data.hf[rigid * 6 + 3] += torque.x;
-            data_manager->host_data.hf[rigid * 6 + 4] += torque.y;
-            data_manager->host_data.hf[rigid * 6 + 5] += torque.z;
-        }
-    }
+    //    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
+    //    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_mpm;
+    //    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_mpm;
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //
+    //        int start = contact_counts[p];
+    //        int end = contact_counts[p + 1];
+    //
+    //        real3 f = real3(0);
+    //        LOOPOVERNODES(                                                  //
+    //            real weight = N(xi - current_node_location, inv_bin_edge);  //
+    //            f += weight * node_force[current_node];                     //
+    //            )
+    //
+    //        for (int index = start; index < end; index++) {
+    //            int i = index - start;  // index that goes from 0
+    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+    //            real3 point = cpta[p * max_rigid_neighbors + i];
+    //
+    //            real3 torque = Cross(point - data_manager->host_data.pos_rigid[rigid], f);
+    //
+    //            data_manager->host_data.hf[rigid * 6 + 0] += f.x;
+    //            data_manager->host_data.hf[rigid * 6 + 1] += f.y;
+    //            data_manager->host_data.hf[rigid * 6 + 2] += f.z;
+    //
+    //            data_manager->host_data.hf[rigid * 6 + 3] += torque.x;
+    //            data_manager->host_data.hf[rigid * 6 + 4] += torque.y;
+    //            data_manager->host_data.hf[rigid * 6 + 5] += torque.z;
+    //        }
+    //    }
 }
 
 }  // END_OF_NAMESPACE____
