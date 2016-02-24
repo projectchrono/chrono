@@ -143,7 +143,6 @@ bool ChOpenGLViewer::Initialize() {
     fluid.Initialize(cloud_data, blue_jeans, &sphere_shader);
     grid.Initialize(grid_data, darkriver, &cloud_shader);
     mpm_grid.Initialize(grid_data, darkriver, &cloud_shader);
-    mpm.Initialize(cloud_data, blue_jeans, &sphere_shader);
     mpm_node.Initialize(cloud_data, apple, &cloud_shader);
 
     fea_nodes.Initialize(fea_node_data, darkred, &dot_shader);
@@ -250,7 +249,6 @@ void ChOpenGLViewer::Render() {
 
         RenderFluid();
         RenderFEA();
-        RenderMPM();
 
         RenderGrid();
         RenderAABB();
@@ -570,32 +568,6 @@ void ChOpenGLViewer::RenderFEA() {
     fea_elements.Draw(projection, view * model);
 }
 
-void ChOpenGLViewer::RenderMPM() {
-    if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        if (parallel_system->data_manager->num_mpm_markers <= 0) {
-            return;
-        }
-
-        if (render_mode != POINTS) {
-            mpm.AttachShader(&sphere_shader);
-        } else {
-            mpm.AttachShader(&dot_shader);
-        }
-
-        mpm_data.resize(parallel_system->data_manager->num_mpm_markers);
-#pragma omp parallel for
-        for (int i = 0; i < parallel_system->data_manager->num_mpm_markers; i++) {
-            real3 pos = parallel_system->data_manager->host_data.pos_marker_mpm[i];
-            mpm_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-        }
-
-        mpm.SetPointSize(parallel_system->data_manager->mpm_container->kernel_radius);
-
-        mpm.Update(mpm_data);
-        glm::mat4 model(1);
-        mpm.Draw(projection, view * model);
-    }
-}
 void ChOpenGLViewer::RenderGrid() {
     if (view_grid == false) {
         return;
@@ -652,7 +624,7 @@ void ChOpenGLViewer::RenderGrid() {
         real3 max_pt;
         real3 center;
         real bin_edge;
-
+        uint num_mpm_nodes;
         if (ChFLIPContainer* flip_container =
                 dynamic_cast<ChFLIPContainer*>(parallel_sys->data_manager->mpm_container)) {
             bins_per_axis = flip_container->bins_per_axis;
@@ -661,6 +633,7 @@ void ChOpenGLViewer::RenderGrid() {
             max_pt = flip_container->max_bounding_point;
             center = (min_pt + max_pt) * .5;
             bin_edge = flip_container->bin_edge;
+            num_mpm_nodes = flip_container->num_mpm_nodes;
         }
         if (ChMPMContainer* mpm_container = dynamic_cast<ChMPMContainer*>(parallel_sys->data_manager->mpm_container)) {
             bins_per_axis = mpm_container->bins_per_axis;
@@ -669,9 +642,10 @@ void ChOpenGLViewer::RenderGrid() {
             max_pt = mpm_container->max_bounding_point;
             center = (min_pt + max_pt) * .5;
             bin_edge = mpm_container->bin_edge;
+            num_mpm_nodes = mpm_container->num_mpm_nodes;
         }
-        mpm_node_data.resize(parallel_sys->data_manager->num_mpm_nodes);
-        for (int i = 0; i < parallel_sys->data_manager->num_mpm_nodes; i++) {
+        mpm_node_data.resize(num_mpm_nodes);
+        for (int i = 0; i < num_mpm_nodes; i++) {
             int3 g = GridDecode(i, bins_per_axis);
             real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_pt);
             mpm_node_data[i] = glm::vec3(current_node_location.x, current_node_location.y, current_node_location.z);

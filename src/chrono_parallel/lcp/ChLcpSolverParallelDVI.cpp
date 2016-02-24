@@ -294,7 +294,7 @@ void ChLcpSolverParallelDVI::ComputeR() {
     data_manager->fea_container->Build_b();
     data_manager->mpm_container->Build_b();
 
-    R = -b - D_T * M_invk;
+    R = -b - D_T * (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");
 }

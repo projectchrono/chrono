@@ -69,9 +69,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     void DispatchRigid();
     void DispatchRigidFluid();
     void DispatchRigidTet();
-    void DispatchRigidMPM();
     void DispatchFluid();
-    void DispatchMPM();
 
     void SphereSphereContact(const int num_fluid_bodies,
                              const int body_offset,

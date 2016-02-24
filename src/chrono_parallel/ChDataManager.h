@@ -243,12 +243,6 @@ struct host_container {
     custom_vector<real4> face_rigid_tet;
     custom_vector<int> c_counts_rigid_tet;
 
-    custom_vector<real3> norm_rigid_mpm;
-    custom_vector<real3> cpta_rigid_mpm;
-    custom_vector<real> dpth_rigid_mpm;
-    custom_vector<int> neighbor_rigid_mpm;
-    custom_vector<int> c_counts_rigid_mpm;
-
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
     // for bodies that are involved in at least one contact.
@@ -287,19 +281,6 @@ struct host_container {
     custom_vector<real3> sorted_pos_3dof;
     custom_vector<real3> vel_3dof;
     custom_vector<real3> sorted_vel_3dof;
-
-    // Information for mpm
-    custom_vector<real3> pos_marker_mpm;
-    custom_vector<real3> vel_marker_mpm;
-    custom_vector<real3> vel_node_mpm;
-
-    custom_vector<real> node_mass;
-    custom_vector<real> old_vel_node_mpm;
-    custom_vector<real> marker_volume;
-    custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
-
-    // custom_vector<real3> sorted_pos_marker_mpm;
-    // custom_vector<real3> sorted_vel_marker_mpm;
 
     // Information for FEM nodes
     custom_vector<real3> pos_node_fea;
@@ -431,21 +412,9 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_constraints;           // Total number of constraints
     uint num_fea_nodes;             // Total number of FEM nodes
     uint num_fea_tets;              // Total number of FEM nodes
-    uint num_mpm_nodes;             // Total number of MPM nodes
-    uint num_mpm_markers;           // Total number of MPM markers
     // uint num_rigid_node_contacts;   // The number of contacts between rigids and  nodes
     uint num_rigid_tet_contacts;  // The number of contacts between tetrahedron and rigid bodies
-    uint num_rigid_mpm_contacts;  // The number of contacts between rigids and  mpm markers
     uint nnz_bilaterals;          // The number of non-zero entries in the bilateral Jacobian
-
-    //
-    //    uint num_fluid_markers;
-    //
-    //    uint num_mpm_markers;
-    //    uint num_mpm_nodes;
-    //
-    //    uint num_fea_nodes;
-    //    uint num_fea_tets;
 
     // Flag indicating whether or not the contact forces are current (DVI only).
     bool Fc_current;

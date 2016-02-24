@@ -51,9 +51,6 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
     if (data_manager->num_fea_tets != 0) {
         DispatchRigidTet();
     }
-    if (data_manager->num_mpm_markers != 0) {
-        DispatchRigidMPM();
-    }
 }
 
 void ChCNarrowphaseDispatch::PreprocessCount() {
@@ -789,21 +786,5 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
 }
 
 //==================================================================================================================================
-void ChCNarrowphaseDispatch::DispatchRigidMPM() {
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidMPM() S";
-
-    RigidSphereContact(data_manager->mpm_container->kernel_radius,  //
-                       data_manager->num_mpm_markers,               //
-                       data_manager->host_data.pos_marker_mpm,      //
-                       data_manager->host_data.norm_rigid_mpm,      //
-                       data_manager->host_data.cpta_rigid_mpm,      //
-                       data_manager->host_data.dpth_rigid_mpm,      //
-                       data_manager->host_data.neighbor_rigid_mpm,  //
-                       data_manager->host_data.c_counts_rigid_mpm,  //
-                       data_manager->num_rigid_mpm_contacts);
-
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidMPM() E " << data_manager->num_rigid_mpm_contacts;
-}
-
 }  // end namespace collision
 }  // end namespace chrono

@@ -34,8 +34,6 @@ Ch3DOFContainer::Ch3DOFContainer() {
     num_shafts = 0;
     num_fea_tets = 0;
     num_fea_nodes = 0;
-    num_mpm_markers = 0;
-    num_mpm_nodes = 0;
     max_iterations = 0;
 }
 
@@ -79,8 +77,6 @@ void Ch3DOFContainer::Setup(int start_constraint) {
         num_shafts = data_manager->num_shafts;
         num_fea_tets = data_manager->num_fea_tets;
         num_fea_nodes = data_manager->num_fea_nodes;
-        num_mpm_markers = data_manager->num_mpm_markers;
-        num_mpm_nodes = data_manager->num_mpm_nodes;
     }
 }
 

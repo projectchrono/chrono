@@ -156,13 +156,6 @@ void ChCollisionSystemParallel::Run() {
         narrowphase->DispatchFluid();
         data_manager->system_timer.stop("collision_narrow");
     }
-    if (data_manager->num_mpm_markers != 0) {
-        data_manager->system_timer.start("collision_narrow");
-        // do this first so that we can augment the min/max for rigids to get a larger grid
-        narrowphase->DispatchMPM();
-        data_manager->system_timer.stop("collision_narrow");
-    }
-
     if (data_manager->num_fea_tets != 0) {
         data_manager->system_timer.start("collision_narrow");
         broadphase->DispatchTets();

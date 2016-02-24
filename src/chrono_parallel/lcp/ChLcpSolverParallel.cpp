@@ -25,7 +25,6 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_fea_nodes = data_manager->num_fea_nodes;
-    uint num_mpm_nodes = data_manager->num_mpm_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
@@ -44,7 +43,7 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
 
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
-    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3 + num_mpm_nodes * 3);
+    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M_inv.resize(num_dof, num_dof);
@@ -110,7 +109,6 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_fea_nodes = data_manager->num_fea_nodes;
-    uint num_mpm_nodes = data_manager->num_mpm_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
@@ -125,7 +123,7 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
 
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
-    M.reserve(num_bodies * 12 + num_shafts * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3 + num_mpm_nodes * 3);
+    M.reserve(num_bodies * 12 + num_shafts * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M.resize(num_dof, num_dof);

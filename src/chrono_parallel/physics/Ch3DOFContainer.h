@@ -119,8 +119,6 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_shafts;
     uint num_fea_tets;
     uint num_fea_nodes;
-    uint num_mpm_markers;
-    uint num_mpm_nodes;
 };
 
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
@@ -220,6 +218,16 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real bin_edge;
     real inv_bin_edge;
     uint body_offset;
+
+    uint num_mpm_markers;
+    uint num_mpm_nodes;
+
+    custom_vector<real3> vel_node_mpm;
+
+    custom_vector<real> node_mass;
+    custom_vector<real> old_vel_node_mpm;
+    custom_vector<real> marker_volume;
+    custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
 
     ChSolverParallel* solver;
 };
@@ -349,6 +357,9 @@ class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
     real theta_c;
     real alpha;
 
+    uint num_mpm_markers;
+    uint num_mpm_nodes;
+
     real3 min_bounding_point;
     real3 max_bounding_point;
     int3 bins_per_axis;
@@ -356,6 +367,8 @@ class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
     real inv_bin_edge;
     uint body_offset;
     real rho;
+    custom_vector<real> node_mass;
+    custom_vector<real> old_vel_node_mpm;
 
     ChSolverParallel* solver;
 };

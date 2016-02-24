@@ -36,10 +36,6 @@ void ChCBroadphase::DetermineBoundingBox() {
         res.first = Min(res.first, data_manager->measures.collision.tet_min_bounding_point);
         res.second = Max(res.second, data_manager->measures.collision.tet_max_bounding_point);
     }
-    if (data_manager->num_mpm_markers != 0) {
-        res.first = Min(res.first, data_manager->measures.collision.mpm_min_bounding_point);
-        res.second = Max(res.second, data_manager->measures.collision.mpm_max_bounding_point);
-    }
     data_manager->measures.collision.min_bounding_point = res.first;
     data_manager->measures.collision.max_bounding_point = res.second;
     data_manager->measures.collision.global_origin = res.first;

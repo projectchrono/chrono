@@ -19,9 +19,7 @@ ChParallelDataManager::ChParallelDataManager()
       num_fea_nodes(0),
       num_fea_tets(0),
       num_rigid_tet_contacts(0),
-      nnz_bilaterals(0),
-      num_mpm_markers(0),
-      num_mpm_nodes(0) {
+      nnz_bilaterals(0) {
     node_container = new Ch3DOFContainer();
     fea_container = new Ch3DOFContainer();
     mpm_container = new Ch3DOFContainer();
