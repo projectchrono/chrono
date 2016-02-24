@@ -153,7 +153,7 @@ void Ch3DOFRigidContainer::Setup(int start_constraint) {
     Ch3DOFContainer::Setup(start_constraint);
 
     start_boundary = start_constraint;
-    if (mu == 0) {
+    if (contact_mu == 0) {
         start_contact = start_constraint + num_rigid_fluid_contacts;
     } else {
         start_contact = start_constraint + num_rigid_fluid_contacts * 3;
@@ -170,7 +170,8 @@ void Ch3DOFRigidContainer::Initialize() {
 void Ch3DOFRigidContainer::Build_D() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
-    LOG(INFO) << "ChConstraintRigidFluid::Build_D_Fluid" << D_T.rows() << " " << D_T.columns();
+    LOG(INFO) << "ChConstraintRigidFluid::Build_D_Fluid"
+              << " " << D_T.rows() << " " << D_T.columns();
     if (num_rigid_fluid_contacts > 0) {
         custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
         custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
