@@ -376,7 +376,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     Thrust_Fill(neighbor_fluid_fluid, 0);
 
     const real radius = data_manager->node_container->kernel_radius;
-    const real radiusSq = radius * radius;
+    const real radiusSq = radius * radius + data_manager->node_container->collision_envelope;
 
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;

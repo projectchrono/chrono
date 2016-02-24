@@ -344,7 +344,7 @@ void Ch3DOFRigidContainer::Build_b() {
                     }
                     real3 xij = pos_p - sorted_pos[body_b];
                     real depth = Length(xij) - kernel_radius;
-
+                    depth = Min(depth, 0);  // depth is positive no need to correct
                     real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
                     b[start_contact + index + 0] = bi;
                     index++;
@@ -363,7 +363,7 @@ void Ch3DOFRigidContainer::Build_b() {
                     }
                     real3 xij = pos_p - sorted_pos[body_b];
                     real depth = Length(xij) - kernel_radius;
-
+                    depth = Min(depth, 0);  // depth is positive no need to correct
                     real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
                     b[start_contact + index + 0] = bi;
                     b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;
@@ -506,10 +506,8 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
             real3 gam;
             gam.x = gamma[start_contact + index];
             gam.x += cohesion;
-
             gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
             gamma[start_contact + index] = gam.x;
-            continue;
         }
     } else {
 #pragma omp parallel for
