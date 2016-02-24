@@ -99,6 +99,12 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     /// Get the number of DOFs affected by this object (speed part).
     virtual int ContactableGet_ndof_w() override { return 3; }
 
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteVector(this->pos, 0, 0); }
+
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.PasteVector(this->pos_dt, 0, 0); }
+
     /// Get the absolute speed of point abs_point if attached to the surface.
     /// Easy in this case because there are no roations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->pos_dt; }

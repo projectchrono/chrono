@@ -78,6 +78,15 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// Get the number of DOFs affected by this object (speed part).
     virtual int ContactableGet_ndof_w() override { return 6; }
 
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
+
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
+        w.PasteVector(this->GetPos_dt(), 0, 0);
+        w.PasteVector(this->GetWvel_loc(), 3, 0);
+    }
+
     /// Return the pointer to the contact surface material.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
 

@@ -625,6 +625,15 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Get the number of DOFs affected by this object (speed part)
     virtual int ContactableGet_ndof_w() override { return 6; }
 
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
+
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
+        w.PasteVector(this->GetPos_dt(), 0, 0);
+        w.PasteVector(this->GetWvel_loc(), 3, 0);
+    }
+
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.

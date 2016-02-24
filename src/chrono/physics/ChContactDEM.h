@@ -308,29 +308,22 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // that is only once per step.  The Jacobian of generalized contact forces will therefore be
         // constant over the time step.
 
-        /*
-
         //// TODO
-        ////   - figure out how we get the current states (x and v) for the two contactables
-        ////     (what new methods do we need on a ChContactable?)
-        ////   - call CalculateForce at perturbed states and calculate F-D approximate Jacobian column
-
-        //// TODO
-        ////   - how do we deal with quaternion states?!?
+        ////   - how/where do we deal with quaternion states?!?
 
         // Get states for objA
         int ndofA_x = this->objA->ContactableGet_ndof_x();
         int ndofA_w = this->objA->ContactableGet_ndof_w();
-        ChState stateA_x(ndofA_x);
-        ChStateDelta stateA_w(ndofA_w);
+        ChState stateA_x(ndofA_x, NULL);
+        ChStateDelta stateA_w(ndofA_w, NULL);
         this->objA->ContactableGetStateBlock_x(stateA_x);
         this->objA->ContactableGetStateBlock_w(stateA_w);
 
         // Get states for objB
         int ndofB_x = this->objB->ContactableGet_ndof_x();
         int ndofB_w = this->objB->ContactableGet_ndof_w();
-        ChState stateB_x(ndofB_x);
-        ChStateDelta stateB_w(ndofB_w);
+        ChState stateB_x(ndofB_x, NULL);
+        ChStateDelta stateB_w(ndofB_w, NULL);
         this->objB->ContactableGetStateBlock_x(stateB_x);
         this->objB->ContactableGetStateBlock_w(stateB_w);
 
@@ -342,6 +335,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         ChVectorDynamic<> Q1(ndofA_w + ndofB_w);
         ChVectorDynamic<> Jcolumn(ndofA_w + ndofB_w);
 
+        /*
         // Jacobian w.r.t. positions of objA
         for (int i = 0; i < ndofA_x; i++) {
             stateA_x(i) += perturbation;

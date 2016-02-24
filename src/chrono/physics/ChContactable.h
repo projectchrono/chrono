@@ -17,6 +17,7 @@
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/timestepper/ChState.h"
 
 namespace chrono {
 
@@ -38,6 +39,12 @@ class ChContactable {
 
     /// Get the number of DOFs affected by this object (speed part)
     virtual int ContactableGet_ndof_w() = 0;
+
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) = 0;
+
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) = 0;
 
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.

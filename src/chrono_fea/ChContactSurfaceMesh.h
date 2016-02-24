@@ -82,6 +82,20 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
     /// Get the number of DOFs affected by this object (speed part)
     virtual int ContactableGet_ndof_w() override { return 9; }
 
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) override {
+        x.PasteVector(this->mnode1->pos, 0, 0);
+        x.PasteVector(this->mnode2->pos, 3, 0);
+        x.PasteVector(this->mnode3->pos, 6, 0);
+    }
+
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
+        w.PasteVector(this->mnode1->pos_dt, 0, 0);
+        w.PasteVector(this->mnode2->pos_dt, 3, 0);
+        w.PasteVector(this->mnode3->pos_dt, 6, 0);
+    }
+
     /// Get the absolute speed of point abs_point if attached to the
     /// surface. Easy in this case because there are no roations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override {
