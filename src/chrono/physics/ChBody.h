@@ -639,6 +639,26 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
 
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        return csys.TransformPointLocalToParent(loc_point);
+    }
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChVector<> abs_vel = state_w.ClipVector(0, 0);
+        ChVector<> loc_omg = state_w.ClipVector(3, 0);
+        ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
+
+        return abs_vel + Vcross(abs_omg, loc_point);
+    }
+
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
 
@@ -652,6 +672,23 @@ class ChApi ChBody :            public ChPhysicsItem,
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
+
+    /// Apply the given force at the given point and load the generalized force array.
+    /// The force and its application point are specified in the gloabl frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactForceLoadQ(const ChVector<>& F,
+                                   const ChVector<>& point,
+                                   const ChState& state_x,
+                                   ChVectorDynamic<>& Q,
+                                   int offset) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChVector<> point_loc = csys.TransformPointParentToLocal(point);
+        ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
+        ChVector<> torque_loc = Vcross(point_loc, force_loc);
+        Q.PasteVector(F, offset + 0, 0);
+        Q.PasteVector(torque_loc, offset + 3, 0);
+    }
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     /// For a ChBody, this updates the corresponding 1x6 jacobian.

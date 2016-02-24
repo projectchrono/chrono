@@ -96,6 +96,22 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
         w.PasteVector(this->mnode3->pos_dt, 6, 0);
     }
 
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+        //// TODO
+        return ChVector<>(0, 0, 0);
+    }
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) override {
+        //// TODO
+        return ChVector<>(0, 0, 0);
+    }
+
     /// Get the absolute speed of point abs_point if attached to the
     /// surface. Easy in this case because there are no roations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override {
@@ -121,6 +137,18 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
         R.PasteSumVector(F * s1, this->mnode1->NodeGetOffset_w(), 0);
         R.PasteSumVector(F * s2, this->mnode2->NodeGetOffset_w(), 0);
         R.PasteSumVector(F * s3, this->mnode3->NodeGetOffset_w(), 0);
+    }
+
+    /// Apply the given force at the given point and load the generalized force array.
+    /// The force and its application point are specified in the gloabl frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactForceLoadQ(const ChVector<>& F,
+                                   const ChVector<>& point,
+                                   const ChState& state_x,
+                                   ChVectorDynamic<>& Q,
+                                   int offset) override {
+        //// TODO
     }
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,

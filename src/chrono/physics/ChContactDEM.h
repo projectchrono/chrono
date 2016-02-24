@@ -239,31 +239,36 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                     const ChStateDelta& stateB_w,  ///< state velocities for objB
                     ChVectorDynamic<>& Q           ///< output generalized forces
                     ) {
-        /*
-        double delta;           // overlap in normal direction (positive)
-        ChVector<> normal_dir;  // normal contact direction (expressed in global frame)
-        ChVector<> pt1;         // contact point on objA (expressed in global frame)
-        ChVector<> pt2;         // contact point on objB (expressed in global frame)
-        ChVector<> vel1;        // velocity of contact point on objA (expressed in global frame)
-        ChVector<> vel2;        // velocity of contact point on objB (expressed in global frame)
+        // Express contact points in local frames.
+        // We assume that these points remain fixed to their respective contactable objects.
+        ChVector<> p1_loc = this->objA->GetCsysForCollisionModel().TransformPointParentToLocal(this->p1);
+        ChVector<> p2_loc = this->objB->GetCsysForCollisionModel().TransformPointParentToLocal(this->p2);
 
-        // Calculate contact points, their velocity, penetration, and normal direction
-        // at the specified states for the two contactable objects.
+        // Express the local points in global frame
+        ChVector<> p1_abs = this->objA->GetContactPoint(p1_loc, stateA_x);
+        ChVector<> p2_abs = this->objB->GetContactPoint(p2_loc, stateB_x);
 
-        //// TODO
-        ////   - assume that the two contact points remain fixed on the respective contactables
-        ////   - calculate contact penetration, contact normal, and velocities of the contact points
-        ////     given (perturbed) states of the contactables
-        ////     (what new methods do we need on a ChContactable?)
+        // Calculate normal direction (expressed in global frame)
+        ChVector<> normal_dir = (p1_abs - p2_abs).GetNormalized();
+
+        // Calculate penetration depth
+        double delta = (p1_abs - p2_abs).Length();
+
+        // If the normal direction flipped sign, change sign of delta
+        if (Vdot(normal_dir, this->normal) < 0)
+            delta = -delta;
+
+        // Calculate velocity of contact points (expressed in global frame)
+        ChVector<> vel1 = this->objA->GetContactPointSpeed(p1_loc, stateA_x, stateA_w);
+        ChVector<> vel2 = this->objB->GetContactPointSpeed(p2_loc, stateB_x, stateB_w);
 
         // Compute the contact force.
         ChVector<> force;
         CalculateForce(delta, normal_dir, vel1, vel2, force);
 
         // Compute and load the generalized contact forces.
-        this->objA->ContactForceLoadQ(-force, pt1, Q, 0);
-        this->objB->ContactForceLoadQ(force, pt2, Q, this->objA->ContactableGet_ndof_w());
-        */
+        this->objA->ContactForceLoadQ(-force, p1_abs, stateA_x, Q, 0);
+        this->objB->ContactForceLoadQ(force, p2_abs, stateB_x, Q, this->objA->ContactableGet_ndof_w());
     }
 
     /// Create the Jacobian matrices.
@@ -308,9 +313,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // that is only once per step.  The Jacobian of generalized contact forces will therefore be
         // constant over the time step.
 
-        //// TODO
-        ////   - how/where do we deal with quaternion states?!?
-
         // Get states for objA
         int ndofA_x = this->objA->ContactableGet_ndof_x();
         int ndofA_w = this->objA->ContactableGet_ndof_w();
@@ -335,7 +337,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         ChVectorDynamic<> Q1(ndofA_w + ndofB_w);
         ChVectorDynamic<> Jcolumn(ndofA_w + ndofB_w);
 
-        /*
         // Jacobian w.r.t. positions of objA
         for (int i = 0; i < ndofA_x; i++) {
             stateA_x(i) += perturbation;
@@ -374,8 +375,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
             m_Jac->m_R.PasteMatrix(&Jcolumn, 0, ndofA_w + i);
-        }
-        */
+        }       
     }
 
     /// Apply contact forces to the two objects.
@@ -404,8 +404,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             m_Jac->m_KRM.Get_K()->FillElem(0);
 
             //// TODO
-            ////  - this needs to be changed to take into account dimensions of K & R in KRM.
-            ////  - account for quaternion transformation here?
+            ////  - this needs to take into account dimensions of K & R in KRM.
+            ////  - how do we account for quaternion transformation here?
 
             /*
             m_Jac->m_KRM.Get_K()->MatrInc(m_Jac->m_K * Kfactor);

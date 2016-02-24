@@ -112,6 +112,20 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.PasteVector(this->pos_dt, 0, 0); }
 
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+        return state_x.ClipVector(0, 0);
+    }
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) override {
+        return state_w.ClipVector(0, 0);
+    }
+
     /// Get the absolute speed of point abs_point if attached to the surface.
     /// Easy in this case because there are no roations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->pos_dt; }
@@ -126,6 +140,18 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     virtual void ContactForceLoadResidual_F(const ChVector<>& F,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
+
+    /// Apply the given force at the given point and load the generalized force array.
+    /// The force and its application point are specified in the gloabl frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactForceLoadQ(const ChVector<>& F,
+                                   const ChVector<>& point,
+                                   const ChState& state_x,
+                                   ChVectorDynamic<>& Q,
+                                   int offset) override {
+        Q.PasteVector(F, offset, 0);
+    }
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
