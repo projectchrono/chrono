@@ -28,7 +28,6 @@
 
 #include "physics/ChBody.h"
 
-
 #include <blaze/math/DynamicVector.h>
 
 using blaze::DynamicVector;
@@ -315,7 +314,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
 
 class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
   public:
-	ChFLIPContainer(ChSystemParallelDVI* system);
+    ChFLIPContainer(ChSystemParallelDVI* system);
     ~ChFLIPContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void ComputeDOF();
@@ -341,7 +340,7 @@ class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
     custom_vector<real3> face_volume;
 
     uint start_node;
-    uint num_mpm_constraints;
+    uint start_boundary;
     real mass;
     real mu;
     real hardening_coefficient;
