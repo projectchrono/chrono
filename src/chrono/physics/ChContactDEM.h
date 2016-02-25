@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -28,7 +28,7 @@
 
 namespace chrono {
 
-/// Class for DEM-P contact between two generic ChContactable objects.
+/// Class for DEM-P contact between two generic contactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 template <class Ta, class Tb>
 class ChContactDEM : public ChContactTuple<Ta, Tb> {
@@ -71,8 +71,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     /// Get the contact force, expressed in the frame of the contact.
     ChVector<> GetContactForceLocal() const { return this->contact_plane.MatrT_x_Vect(m_force); }
 
-    /// Access the proxy to the Jacobian, for sparse LCP solver.
-    ChLcpKblockGeneric& GetJacobian() { return m_Jac; }
+    /// Access the proxy to the Jacobian.
+    ChLcpKblockGeneric& GetJacobian() { return *m_Jac; }
 
     /// Reinitialize this contact.
     virtual void Reset(Ta* mobjA,                               ///< collidable object A
@@ -280,7 +280,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // Set variables and resize Jacobian matrices.
         // NOTE: currently, only contactable objects derived from ChContactable_1vars<6>,
         //       ChContactable_1vars<3>, and ChContactable_3vars<3,3,3> are supported.
-        int ndof_x = 0;
         int ndof_w = 0;
         std::vector<ChLcpVariables*> vars;
 
@@ -289,7 +288,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             vars.push_back(objA_333->GetVariables2());
             vars.push_back(objA_333->GetVariables3());
         }
-        ndof_x += this->objA->ContactableGet_ndof_x();
         ndof_w += this->objA->ContactableGet_ndof_w();
 
         vars.push_back(this->objB->GetVariables1());
@@ -297,12 +295,12 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             vars.push_back(objB_333->GetVariables2());
             vars.push_back(objB_333->GetVariables3());
         }
-        ndof_x += this->objB->ContactableGet_ndof_x();
         ndof_w += this->objB->ContactableGet_ndof_w();
 
         m_Jac->m_KRM.SetVariables(vars);
-        m_Jac->m_K.Reset(ndof_w, ndof_x);
+        m_Jac->m_K.Reset(ndof_w, ndof_w);
         m_Jac->m_R.Reset(ndof_w, ndof_w);
+        assert(m_Jac->m_KRM.Get_K()->GetColumns() == ndof_w);
     }
 
     /// Calculate Jacobian of generalized contact forces.
@@ -333,32 +331,29 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         ChVectorDynamic<> Q0(ndofA_w + ndofB_w);
         CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q0);
 
+        // Finite-difference approximation perturbation.
+        // Note that ChState and ChStateDelta are set to 0 on construction.
+        // To accommodate objects with quaternion states, use the method ContactableIncrementState while
+        // calculating Jacobian columns corresponding to position states.
         double perturbation = 1e-8;
+        ChState stateA_x1(ndofA_x, NULL);
+        ChState stateB_x1(ndofA_x, NULL);
+        ChStateDelta prtrbA(ndofA_w, NULL);
+        ChStateDelta prtrbB(ndofB_w, NULL);
+
         ChVectorDynamic<> Q1(ndofA_w + ndofB_w);
         ChVectorDynamic<> Jcolumn(ndofA_w + ndofB_w);
 
-        // Jacobian w.r.t. positions of objA
-        for (int i = 0; i < ndofA_x; i++) {
-            stateA_x(i) += perturbation;
-            CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
-            stateA_x(i) -= perturbation;
+        // Jacobian w.r.t. variables of objA
+        for (int i = 0; i < ndofA_w; i++) {
+            prtrbA(i) += perturbation;
+            this->objA->ContactableIncrementState(stateA_x, prtrbA, stateA_x1);
+            CalculateQ(stateA_x1, stateA_w, stateB_x, stateB_w, Q1);
+            prtrbA(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
             m_Jac->m_K.PasteMatrix(&Jcolumn, 0, i);
-        }
 
-        // Jacobian w.r.t. positions of objB
-        for (int i = 0; i < ndofB_x; i++) {
-            stateB_x(i) += perturbation;
-            CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
-            stateB_x(i) -= perturbation;
-
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_K.PasteMatrix(&Jcolumn, 0, ndofA_x + i);
-        }
-
-        // Jacobian w.r.t. velocities of objA
-        for (int i = 0; i < ndofA_w; i++) {
             stateA_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
             stateA_w(i) -= perturbation;
@@ -367,15 +362,23 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             m_Jac->m_R.PasteMatrix(&Jcolumn, 0, i);
         }
 
-        // Jacobian w.r.t. velocities of objB
+        // Jacobian w.r.t. variables of objB
         for (int i = 0; i < ndofB_w; i++) {
+            prtrbB(i) += perturbation;
+            this->objB->ContactableIncrementState(stateB_x, prtrbB, stateB_x1);
+            CalculateQ(stateA_x, stateA_w, stateB_x1, stateB_w, Q1);
+            prtrbB(i) -= perturbation;
+
+            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
+            m_Jac->m_K.PasteMatrix(&Jcolumn, 0, ndofA_w + i);
+
             stateB_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
             stateB_w(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
             m_Jac->m_R.PasteMatrix(&Jcolumn, 0, ndofA_w + i);
-        }       
+        }
     }
 
     /// Apply contact forces to the two objects.
@@ -403,14 +406,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         if (m_Jac) {
             m_Jac->m_KRM.Get_K()->FillElem(0);
 
-            //// TODO
-            ////  - this needs to take into account dimensions of K & R in KRM.
-            ////  - how do we account for quaternion transformation here?
-
-            /*
             m_Jac->m_KRM.Get_K()->MatrInc(m_Jac->m_K * Kfactor);
             m_Jac->m_KRM.Get_K()->MatrInc(m_Jac->m_R * Rfactor);
-            */
         }
     }
 };

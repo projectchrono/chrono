@@ -46,6 +46,10 @@ class ChContactable {
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) = 0;
 
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
+
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.

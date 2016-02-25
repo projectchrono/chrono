@@ -69,6 +69,12 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// Get all the DOFs packed in a single vector (speed part)
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.PasteVector(this->mnode->pos_dt, 0, 0); }
 
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        this->mnode->NodeIntStateIncrement(0, x_new, x, 0, dw);
+    }
+
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
         return state_x.ClipVector(0, 0);

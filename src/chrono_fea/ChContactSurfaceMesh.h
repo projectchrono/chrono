@@ -96,6 +96,14 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
         w.PasteVector(this->mnode3->pos_dt, 6, 0);
     }
 
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        this->mnode1->NodeIntStateIncrement(0, x_new, x, 0, dw);
+        this->mnode2->NodeIntStateIncrement(3, x_new, x, 3, dw);
+        this->mnode3->NodeIntStateIncrement(6, x_new, x, 6, dw);
+    }
+
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
         //// TODO

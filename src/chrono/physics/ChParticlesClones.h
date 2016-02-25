@@ -87,6 +87,25 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
         w.PasteVector(this->GetWvel_loc(), 3, 0);
     }
 
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        // Increment position
+        x_new(0) = x(0) + dw(0);
+        x_new(1) = x(1) + dw(1);
+        x_new(2) = x(2) + dw(2);
+
+        // Increment rotation: rot' = delta*rot  (use quaternion for delta rotation)
+        ChQuaternion<> mdeltarot;
+        ChQuaternion<> moldrot = x.ClipQuaternion(3, 0);
+        ChVector<> newwel_abs = Amatrix * dw.ClipVector(3, 0);
+        double mangle = newwel_abs.Length();
+        newwel_abs.Normalize();
+        mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
+        ChQuaternion<> mnewrot = mdeltarot * moldrot;  // quaternion product
+        x_new.PasteQuaternion(mnewrot, 3, 0);
+    }
+
     /// Return the pointer to the contact surface material.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
 
