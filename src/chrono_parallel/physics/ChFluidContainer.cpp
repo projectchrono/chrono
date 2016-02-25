@@ -296,30 +296,21 @@ void ChFluidContainer::Build_D() {
         custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 #pragma omp parallel
-        for (int p = 0; p < num_fluid_bodies; p++) {
-            int start = contact_counts[p];
-            int end = contact_counts[p + 1];
-            for (int index = start; index < end; index++) {
-                int i = index - start;  // index that goes from 0
-                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-                int fluid = p;  // fluid body is in second index
-                real3 U = norm[p * max_rigid_neighbors + i], V, W;
-                Orthogonalize(U, V, W);
-                real3 T1, T2, T3;
-                Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
-                                 T2, T3);
+        Loop_Over_Rigid_Neighbors(
+            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+            int fluid = p;                                                  // fluid body is in second index
+            real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
+            Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
+            Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2,
+                             T3);
 
-                SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-                SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, rigid * 6, -V, T2);
-                SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, -W, T3);
+            SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
+            SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, rigid * 6, -V, T2);
+            SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
-                SetRow3Check(D_T, start_boundary + index + 0, body_offset + fluid * 3, U);
-                SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, body_offset + fluid * 3,
-                             V);
-                SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + fluid * 3,
-                             W);
-            }
-        }
+            SetRow3Check(D_T, start_boundary + index + 0, body_offset + fluid * 3, U);
+            SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, body_offset + fluid * 3, V);
+            SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + fluid * 3, W););
     }
     if (data_manager->num_fluid_contacts >= 0) {
         LOG(INFO) << "ChFluidContainer::Build_D Fluid";
@@ -398,18 +389,11 @@ void ChFluidContainer::Build_b() {
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
 #pragma omp parallel
-        for (int p = 0; p < num_fluid_bodies; p++) {
-            int start = contact_counts[p];
-            int end = contact_counts[p + 1];
-            for (int index = start; index < end; index++) {
-                int i = index - start;  // index that goes from 0
-                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
-                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                b[start_boundary + index + 0] = bi;
-                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
-                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;
-            }
-        }
+        Loop_Over_Rigid_Neighbors(real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
+                                  real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                  b[start_boundary + index + 0] = bi;
+                                  b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
+                                  b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
     }
     if (num_fluid_bodies > 0) {
 #pragma omp parallel for
@@ -482,42 +466,33 @@ void ChFluidContainer::Project(real* gamma) {
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
 #pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        int start = contact_counts[p];
-        int end = contact_counts[p + 1];
-        for (int index = start; index < end; index++) {
-            int i = index - start;                                          // index that goes from 0
-            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-            real rigid_fric = data_manager->host_data.fric_data[rigid].x;
-            real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
-            real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+    Loop_Over_Rigid_Neighbors(
+        int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  // rigid is stored in the first index
+        real rigid_fric = data_manager->host_data.fric_data[rigid].x;
+        real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
+        real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
 
-            real3 gam;
-            gam.x = gamma[start_boundary + index];
-            gam.y = gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 0];
-            gam.z = gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1];
+        real3 gam; gam.x = gamma[start_boundary + index];
+        gam.y = gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 0];
+        gam.z = gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1];
 
-            gam.x += cohesion;
+        gam.x += cohesion;
 
-            real mu = friction;
-            if (mu == 0) {
-                gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
-                gam.y = gam.z = 0;
+        real mu = friction; if (mu == 0) {
+            gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
+            gam.y = gam.z = 0;
 
-                gamma[start_boundary + index] = gam.x;
-                gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = gam.y;
-                gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = gam.z;
-                continue;
-            }
-
-            if (Cone_generalized_rf(gam.x, gam.y, gam.z, mu)) {
-            }
-
-            gamma[start_boundary + index] = gam.x - cohesion;
+            gamma[start_boundary + index] = gam.x;
             gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = gam.y;
             gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = gam.z;
+            continue;
         }
-    }
+
+                            if (Cone_generalized_rf(gam.x, gam.y, gam.z, mu)) {}
+
+                            gamma[start_boundary + index] = gam.x - cohesion;
+        gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = gam.y;
+        gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = gam.z;);
 }
 
 void ChFluidContainer::GenerateSparsity() {
@@ -531,37 +506,22 @@ void ChFluidContainer::GenerateSparsity() {
         custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
-        for (int p = 0; p < num_fluid_bodies; p++) {
-            int start = contact_counts[p];
-            int end = contact_counts[p + 1];
-            for (int index = start; index < end; index++) {
-                int i = index - start;  // index that goes from 0
-                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-                int fluid = p;
+        Loop_Over_Rigid_Neighbors(int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  //
+                                  AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
+                                  AppendRow3(D_T, start_boundary + index + 0, body_offset + p * 3, 0);
+                                  D_T.finalize(start_boundary + index + 0););
 
-                AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
-                AppendRow3(D_T, start_boundary + index + 0, body_offset + fluid * 3, 0);
-                D_T.finalize(start_boundary + index + 0);
-            }
-        }
-        for (int p = 0; p < num_fluid_bodies; p++) {
-            int start = contact_counts[p];
-            int end = contact_counts[p + 1];
-            for (int index = start; index < end; index++) {
-                int i = index - start;  // index that goes from 0
-                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-                int fluid = p;
+        Loop_Over_Rigid_Neighbors(
+            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
 
-                AppendRow6(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, rigid * 6, 0);
-                AppendRow3(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, body_offset + fluid * 3, 0);
-                D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 0);
+            AppendRow6(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, rigid * 6, 0);
+            AppendRow3(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, body_offset + p * 3, 0);
+            D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 0);
 
-                AppendRow6(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, 0);
-                AppendRow3(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + fluid * 3, 0);
+            AppendRow6(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, 0);
+            AppendRow3(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + p * 3, 0);
 
-                D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 1);
-            }
-        }
+            D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 1);)
     }
     if (data_manager->num_fluid_contacts > 0) {
         for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {

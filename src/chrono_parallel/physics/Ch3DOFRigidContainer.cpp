@@ -18,33 +18,6 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-#define Loop_Over_Rigid_Neighbors(X)                    \
-    for (int p = 0; p < num_fluid_bodies; p++) {        \
-        int start = contact_counts[p];                  \
-        int end = contact_counts[p + 1];                \
-        for (int index = start; index < end; index++) { \
-            int i = index - start;                      \
-            X                                           \
-        }                                               \
-    }
-
-#define Loop_Over_Fluid_Neighbors(X)                                                             \
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {                                  \
-        real3 pos_p = sorted_pos[body_a];                                                        \
-        for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {           \
-            int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i]; \
-            if (body_a == body_b) {                                                              \
-                continue;                                                                        \
-            }                                                                                    \
-            if (body_a > body_b) {                                                               \
-                continue;                                                                        \
-            }                                                                                    \
-            real3 xij = pos_p - sorted_pos[body_b];                                              \
-            X;                                                                                   \
-            index++;                                                                             \
-        }                                                                                        \
-    }
-
 Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelDVI* physics_system) {
     data_manager = physics_system->data_manager;
     data_manager->Add3DOFContainer(this);
@@ -219,7 +192,7 @@ void Ch3DOFRigidContainer::Build_D() {
                                  T2, T3);
 
                 SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-                SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U);)
+                SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U););
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
@@ -236,7 +209,7 @@ void Ch3DOFRigidContainer::Build_D() {
 
                 SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U);
                 SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, body_offset + p * 3, V);
-                SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + p * 3, W);)
+                SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + p * 3, W););
         }
     }
 
@@ -250,7 +223,7 @@ void Ch3DOFRigidContainer::Build_D() {
                 Orthogonalize(U, V, W);                                                      //
                 SetRow3Check(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);  //
                 SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U);   //
-                )
+                );
 
         } else {
             Loop_Over_Fluid_Neighbors(
@@ -267,7 +240,7 @@ void Ch3DOFRigidContainer::Build_D() {
 
                 SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
                 SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_b * 3, V);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W);)
+                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
         }
     }
 
@@ -286,14 +259,14 @@ void Ch3DOFRigidContainer::Build_b() {
             Loop_Over_Rigid_Neighbors(real depth =
                                           data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
                                       real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                      b[start_boundary + index + 0] = bi;)
+                                      b[start_boundary + index + 0] = bi;);
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
                 real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
                 real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); b[start_boundary + index + 0] = bi;
                 b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
-                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;)
+                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
         }
     }
     if (num_rigid_contacts > 0) {
@@ -303,13 +276,13 @@ void Ch3DOFRigidContainer::Build_b() {
         if (mu == 0) {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius; depth = Min(depth, 0);
                                       real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                      b[start_contact + index + 0] = bi;)
+                                      b[start_contact + index + 0] = bi;);
         } else {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius; depth = Min(depth, 0);
                                       real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
                                       b[start_contact + index + 0] = bi;
                                       b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;
-                                      b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;)
+                                      b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;);
         }
     }
 }
@@ -387,7 +360,7 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
             gam.x = gamma[start_boundary + index];     //
             gam.x += cohesion;                         //
             gam.x = gam.x < 0 ? 0 : gam.x - cohesion;  //
-            gamma[start_boundary + index] = gam.x;)
+            gamma[start_boundary + index] = gam.x;);
     } else {
 #pragma omp parallel for
         Loop_Over_Rigid_Neighbors(
@@ -418,7 +391,7 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
 
             gamma[start_boundary + index] = gam.x - cohesion;  //
             gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = gam.y;
-            gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = gam.z;)
+            gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = gam.z;);
     }
     if (mu == 0) {
 #pragma omp parallel for
@@ -471,8 +444,8 @@ void Ch3DOFRigidContainer::GenerateSparsity() {
         Loop_Over_Rigid_Neighbors(int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
                                   AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
                                   AppendRow3(D_T, start_boundary + index + 0, body_offset + p * 3, 0);
-                                  D_T.finalize(start_boundary + index + 0);)  //
-            if (contact_mu != 0) {
+                                  D_T.finalize(start_boundary + index + 0););
+        if (contact_mu != 0) {
             Loop_Over_Rigid_Neighbors(
                 int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
 
@@ -483,7 +456,7 @@ void Ch3DOFRigidContainer::GenerateSparsity() {
                 AppendRow6(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, 0);
                 AppendRow3(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + p * 3, 0);
 
-                D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 1);)
+                D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 1););
         }
     }
 

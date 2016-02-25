@@ -38,7 +38,7 @@ static void inline SetRow6(T& D, const int row, const int col, const real3& A, c
 }
 template <typename T>
 static void inline AppendRow3(T& D, const int row, const int col, const real init) {
-    //printf("Append %d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
+    // printf("Append %d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
     D.append(row, col + 0, init);
     D.append(row, col + 1, init);
     D.append(row, col + 2, init);
@@ -247,4 +247,31 @@ static void Compute_Jacobian_Rolling(const quaternion& quat,
     T2 = Rotate(V, quaternion_conjugate);
     T3 = Rotate(W, quaternion_conjugate);
 }
+
+#define Loop_Over_Rigid_Neighbors(X)                    \
+    for (int p = 0; p < num_fluid_bodies; p++) {        \
+        int start = contact_counts[p];                  \
+        int end = contact_counts[p + 1];                \
+        for (int index = start; index < end; index++) { \
+            int i = index - start;                      \
+            X                                           \
+        }                                               \
+    }
+
+#define Loop_Over_Fluid_Neighbors(X)                                                             \
+    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {                                  \
+        real3 pos_p = sorted_pos[body_a];                                                        \
+        for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {           \
+            int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i]; \
+            if (body_a == body_b) {                                                              \
+                continue;                                                                        \
+            }                                                                                    \
+            if (body_a > body_b) {                                                               \
+                continue;                                                                        \
+            }                                                                                    \
+            real3 xij = pos_p - sorted_pos[body_b];                                              \
+            X;                                                                                   \
+            index++;                                                                             \
+        }                                                                                        \
+    }
 }
