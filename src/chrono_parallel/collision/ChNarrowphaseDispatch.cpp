@@ -354,6 +354,7 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
                                                  custom_vector<int>& neighbor_fluid_fluid,
                                                  custom_vector<int>& contact_counts,
                                                  custom_vector<int>& particle_indices,
+                                                 custom_vector<int>& reverse_mapping,
                                                  int3& bins_per_axis,
                                                  uint& num_fluid_contacts) {
     const real radiusSq = radius * radius + collision_envelope;
@@ -362,7 +363,7 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
     neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
     contact_counts.resize(num_fluid_bodies);
     particle_indices.resize(num_fluid_bodies);
-    // reverse_mapping.resize(num_fluid_bodies);
+    reverse_mapping.resize(num_fluid_bodies);
     ff_bin_ids.resize(num_fluid_bodies);
 
     sorted_pos_fluid.resize(num_fluid_bodies);
@@ -427,7 +428,7 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
         v[body_offset + i * 3 + 1] = vel_fluid[index].y;
         v[body_offset + i * 3 + 2] = vel_fluid[index].z;
 
-        // reverse_mapping[index] = i;
+        reverse_mapping[index] = i;
     }
 
 #pragma omp parallel for
@@ -504,7 +505,8 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         data_manager->host_data.sorted_pos_3dof, data_manager->host_data.sorted_vel_3dof,
                         data_manager->host_data.v, data_manager->host_data.neighbor_3dof_3dof,
                         data_manager->host_data.c_counts_3dof_3dof, data_manager->host_data.particle_indices_3dof,
-                        data_manager->measures.collision.ff_bins_per_axis, data_manager->num_fluid_contacts);
+                        data_manager->host_data.reverse_mapping_3dof, data_manager->measures.collision.ff_bins_per_axis,
+                        data_manager->num_fluid_contacts);
 
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() E " << data_manager->num_fluid_contacts;
 }
