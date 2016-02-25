@@ -75,11 +75,11 @@ void AddFluid(ChSystemParallelDVI* sys) {
     fluid_container->contact_cohesion = 0;
     fluid_container->kernel_radius = .016;
     fluid_container->mass = .1;
-    fluid_container->contact_mu = .01;
-    fluid_container->mu = 0;
-    fluid_container->cohesion = 0;
+    fluid_container->contact_mu = .1;
+    fluid_container->mu = .1;
+    fluid_container->cohesion = .5;
     fluid_container->contact_recovery_speed = .3;
-    fluid_container->collision_envelope = fluid_container->kernel_radius * .05;
+    fluid_container->collision_envelope = fluid_container->kernel_radius * .01;
 
     real radius = .1;  //*5
     real dens = 30;
