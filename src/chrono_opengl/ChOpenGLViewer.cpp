@@ -543,7 +543,10 @@ void ChOpenGLViewer::RenderFluid() {
                 dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
             fluid.SetPointSize(fluid_container->kernel_radius);
         }
-
+        if (Ch3DOFRigidContainer* rigid_container =
+                dynamic_cast<Ch3DOFRigidContainer*>(parallel_system->data_manager->node_container)) {
+            fluid.SetPointSize(rigid_container->kernel_radius);
+        }
         fluid.Update(fluid_data);
         glm::mat4 model(1);
         fluid.Draw(projection, view * model);
