@@ -1130,7 +1130,8 @@ HTML_EXTRA_STYLESHEET  =
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 HTML_EXTRA_FILES       = logo_chronoengine_middle.png \
-						 doxy-boot.js
+						 doxy-boot.js \
+						 bootstrap-hover-dropdown.min.js
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to
