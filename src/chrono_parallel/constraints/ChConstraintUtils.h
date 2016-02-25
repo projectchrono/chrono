@@ -274,4 +274,30 @@ static void Compute_Jacobian_Rolling(const quaternion& quat,
             index++;                                                                             \
         }                                                                                        \
     }
+
+static bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
+    real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
+
+    // inside upper cone? keep untouched!
+    if (f_tang < (mu * gamma_n)) {
+        return false;
+    }
+
+    // inside lower cone? reset  normal,u,v to zero!
+    if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+        gamma_n = 0;
+        gamma_u = 0;
+        gamma_v = 0;
+        return false;
+    }
+
+    // remaining case: project orthogonally to generator segment of upper cone
+
+    gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
+    real tproj_div_t = (gamma_n * mu) / f_tang;
+    gamma_u *= tproj_div_t;
+    gamma_v *= tproj_div_t;
+
+    return true;
+}
 }

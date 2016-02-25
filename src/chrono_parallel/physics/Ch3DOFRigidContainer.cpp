@@ -45,10 +45,7 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
-    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
-    real3 g_acc = data_manager->settings.gravity;
-    real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
+    real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
     for (int i = 0; i < num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
@@ -69,7 +66,7 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
 
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
-
+#pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         real3 vel;
         int original_index = data_manager->host_data.particle_indices_3dof[i];
@@ -320,32 +317,6 @@ void Ch3DOFRigidContainer::Build_E() {
             }
         }
     }
-}
-
-bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
-    real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
-
-    // inside upper cone? keep untouched!
-    if (f_tang < (mu * gamma_n)) {
-        return false;
-    }
-
-    // inside lower cone? reset  normal,u,v to zero!
-    if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
-        gamma_n = 0;
-        gamma_u = 0;
-        gamma_v = 0;
-        return false;
-    }
-
-    // remaining case: project orthogonally to generator segment of upper cone
-
-    gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
-    real tproj_div_t = (gamma_n * mu) / f_tang;
-    gamma_u *= tproj_div_t;
-    gamma_v *= tproj_div_t;
-
-    return true;
 }
 
 void Ch3DOFRigidContainer::Project(real* gamma) {

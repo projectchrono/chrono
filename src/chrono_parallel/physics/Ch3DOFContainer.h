@@ -187,7 +187,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     void Build_E();
     void UpdateRhs();
     void Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma);
-    void Project(real* gamma) {}
+    void Project(real* gamma);
     void GenerateSparsity();
     void ComputeInvMass(int offset);
     void ComputeMass(int offset);
@@ -204,7 +204,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
 
     uint start_boundary;
     uint start_contact;
-
+    real cohesion;
     real mass;
     real mu;
     real hardening_coefficient;
