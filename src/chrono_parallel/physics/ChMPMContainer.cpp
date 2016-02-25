@@ -427,50 +427,31 @@ void ChMPMContainer::Build_D() {
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            for (int p = 0; p < num_fluid_bodies; p++) {
-                int start = contact_counts[p];
-                int end = contact_counts[p + 1];
-                for (int index = start; index < end; index++) {
-                    int i = index - start;  // index that goes from 0
-                    int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-                    int fluid = p;  // fluid body is in second index
-                    real3 U = norm[p * max_rigid_neighbors + i], V, W;
-                    Orthogonalize(U, V, W);
-                    real3 T1, T2, T3;
-                    Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid],
-                                     T1, T2, T3);
+            Loop_Over_Rigid_Neighbors(int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+                                      real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
+                                      Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
+                                      Compute_Jacobian(rot_rigid[rigid], U, V, W,
+                                                       cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2,
+                                                       T3);
 
-                    SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-
-                    SetRow3Check(D_T, start_boundary + index + 0, body_offset + fluid * 3, U);
-                }
-            }
+                                      SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
+                                      SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U););
         } else {
 #pragma omp parallel for
-            for (int p = 0; p < num_fluid_bodies; p++) {
-                int start = contact_counts[p];
-                int end = contact_counts[p + 1];
-                for (int index = start; index < end; index++) {
-                    int i = index - start;  // index that goes from 0
-                    int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-                    int fluid = p;  // fluid body is in second index
-                    real3 U = norm[p * max_rigid_neighbors + i], V, W;
-                    Orthogonalize(U, V, W);
-                    real3 T1, T2, T3;
-                    Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid],
-                                     T1, T2, T3);
+            Loop_Over_Rigid_Neighbors(
+                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+                real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
+                Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
+                Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
+                                 T2, T3);
 
-                    SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-                    SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, rigid * 6, -V, T2);
-                    SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, -W, T3);
+                SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
+                SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, rigid * 6, -V, T2);
+                SetRow6Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
-                    SetRow3Check(D_T, start_boundary + index + 0, body_offset + fluid * 3, U);
-                    SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0,
-                                 body_offset + fluid * 3, V);
-                    SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1,
-                                 body_offset + fluid * 3, W);
-                }
-            }
+                SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U);
+                SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, body_offset + p * 3, V);
+                SetRow3Check(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + p * 3, W););
         }
     }
 
@@ -479,25 +460,10 @@ void ChMPMContainer::Build_D() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
-                real3 pos_p = sorted_pos[body_a];
-                for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
-                    if (body_a == body_b) {
-                        continue;
-                    }
-                    if (body_a > body_b) {
-                        continue;
-                    }
-                    real3 xij = pos_p - sorted_pos[body_b];
-                    real3 U = -Normalize(xij), V, W;
-
-                    Orthogonalize(U, V, W);
-                    SetRow3Check(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
-                    SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
-                    index++;
-                }
-            }
+            Loop_Over_Fluid_Neighbors(real3 U = -Normalize(xij); real3 V; real3 W;  //
+                                      Orthogonalize(U, V, W);
+                                      SetRow3Check(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
+                                      SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U););
         }
     }
 }
@@ -505,99 +471,128 @@ void ChMPMContainer::Build_b() {
     LOG(INFO) << "ChMPMContainer::Build_b";
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     real dt = data_manager->settings.step_size;
-    //    if (num_rigid_mpm_contacts > 0) {
-    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_mpm;
-    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
-    //
-    //#pragma omp parallel for
-    //        for (int p = 0; p < num_mpm_markers; p++) {
-    //            int start = contact_counts[p];
-    //            int end = contact_counts[p + 1];
-    //            for (int index = start; index < end; index++) {
-    //                int i = index - start;  // index that goes from 0
-    //                real depth = data_manager->host_data.dpth_rigid_mpm[p * max_rigid_neighbors + i];
-    //
-    //                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-    //                // printf("boundary: [%f]\n", bi);
-    //                data_manager->host_data.b[start_row + index + 0] = bi;
-    //                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 0] = 0;
-    //                data_manager->host_data.b[start_row + num_rigid_mpm_contacts + index * 2 + 1] = 0;
-    //            }
-    //        }
-    //    }
 }
 void ChMPMContainer::Build_E() {
-    //    LOG(INFO) << "ChMPMContainer::Build_E";
-    //    SubVectorType E_sub = blaze::subvector(data_manager->host_data.E, start_row, num_mpm_constraints);
-    //    E_sub = 0;
-    //    custom_vector<real3>& pos_marker = data_manager->host_data.pos_marker_mpm;
+    DynamicVector<real>& E = data_manager->host_data.E;
+
+    if (num_rigid_fluid_contacts > 0) {
+        if (contact_mu == 0) {
+#pragma omp parallel for
+            for (int index = 0; index < num_rigid_fluid_contacts; index++) {
+                E[start_boundary + index + 0] = 0;
+            }
+        } else {
+#pragma omp parallel for
+            for (int index = 0; index < num_rigid_fluid_contacts; index++) {
+                E[start_boundary + index + 0] = 0;
+                E[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
+                E[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;
+            }
+        }
+    }
+    if (num_mpm_contacts > 0) {
+        if (mu == 0) {
+#pragma omp parallel for
+            for (int index = 0; index < num_mpm_contacts; index++) {
+                E[start_contact + index + 0] = 0;
+            }
+        }
+    }
 }
 void ChMPMContainer::GenerateSparsity() {
-    LOG(INFO) << "ChMPMContainer::GenerateSparsity";
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    //    for (int i = 0; i < num_mpm_nodes; i++) {
-    //        AppendRow3(D_T, start_node + i * 6 + 0, body_offset + i * 3, 0);
-    //        D_T.finalize(start_node + i * 6 + 0);
-    //
-    //        AppendRow3(D_T, start_node + i * 6 + 1, body_offset + i * 3, 0);
-    //        D_T.finalize(start_node + i * 6 + 1);
-    //
-    //        AppendRow3(D_T, start_node + i * 6 + 2, body_offset + i * 3, 0);
-    //        D_T.finalize(start_node + i * 6 + 2);
-    //        ///==================================================================================================================================
-    //
-    //        AppendRow3(D_T, start_node + i * 6 + 3, body_offset + i * 3, 0);
-    //        D_T.finalize(start_node + i * 6 + 3);
-    //
-    //        AppendRow3(D_T, start_node + i * 6 + 4, body_offset + i * 3, 0);
-    //        D_T.finalize(start_node + i * 6 + 4);
-    //
-    //        AppendRow3(D_T, start_node + i * 6 + 5, body_offset + i * 3, 0);
-    //        D_T.finalize(start_node + i * 6 + 5);
-    //    }
 
-    //    if (num_rigid_mpm_contacts > 0) {
-    //        LOG(INFO) << "ChConstraintRigidMPM::GenerateSparsity " << num_rigid_mpm_contacts;
-    //
-    //        int index_t = 0;
-    //
-    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_mpm;
-    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
-    //
-    //        for (int p = 0; p < num_mpm_markers; p++) {
-    //            int start = contact_counts[p];
-    //            int end = contact_counts[p + 1];
-    //            for (int index = start; index < end; index++) {
-    //                int i = index - start;  // index that goes from 0
-    //                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-    //
-    //                AppendRow6(D_T, start_row + index + 0, rigid * 6, 0);
-    //                AppendRow3(D_T, start_row + index + 0, body_offset + p * 3, 0);
-    //                D_T.finalize(start_row + index + 0);
-    //            }
-    //        }
-    //        for (int p = 0; p < num_mpm_markers; p++) {
-    //            int start = contact_counts[p];
-    //            int end = contact_counts[p + 1];
-    //            for (int index = start; index < end; index++) {
-    //                int i = index - start;  // index that goes from 0
-    //                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-    //
-    //                AppendRow6(D_T, start_row + num_rigid_mpm_contacts + index * 2 + 0, rigid * 6, 0);
-    //                AppendRow3(D_T, start_row + num_rigid_mpm_contacts + index * 2 + 0, body_offset + p * 3, 0);
-    //                D_T.finalize(start_row + num_rigid_mpm_contacts + index * 2 + 0);
-    //
-    //                AppendRow6(D_T, start_row + num_rigid_mpm_contacts + index * 2 + 1, rigid * 6, 0);
-    //                AppendRow3(D_T, start_row + num_rigid_mpm_contacts + index * 2 + 1, body_offset + p * 3, 0);
-    //
-    //                D_T.finalize(start_row + num_rigid_mpm_contacts + index * 2 + 1);
-    //            }
-    //        }
-    //    }
+    LOG(INFO) << "ChMPMContainer::GenerateSparsity";
+    if (num_rigid_fluid_contacts > 0) {
+        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
+
+        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+
+        Loop_Over_Rigid_Neighbors(int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+                                  AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
+                                  AppendRow3(D_T, start_boundary + index + 0, body_offset + p * 3, 0);
+                                  D_T.finalize(start_boundary + index + 0););
+        if (contact_mu != 0) {
+            Loop_Over_Rigid_Neighbors(
+                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+
+                AppendRow6(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 0, body_offset + p * 3, 0);
+                D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 0);
+
+                AppendRow6(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary + num_rigid_fluid_contacts + index * 2 + 1, body_offset + p * 3, 0);
+
+                D_T.finalize(start_boundary + num_rigid_fluid_contacts + index * 2 + 1););
+        }
+    }
+    if (num_mpm_contacts > 0) {
+        int index_n = 0;
+        int index_t = 0;
+        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
+                if (body_a == body_b || body_a > body_b) {
+                    continue;
+                }
+
+                AppendRow3(D_T, start_contact + index_n + 0, body_offset + body_a * 3, 0);
+                AppendRow3(D_T, start_contact + index_n + 0, body_offset + body_b * 3, 0);
+
+                D_T.finalize(start_contact + index_n + 0);
+                index_n++;
+            }
+        }
+    }
 }
 void ChMPMContainer::PreSolve() {
     UpdateRhs();
-    // CollideGrid();
+
+    // Loop over rigid bodies
+
+    if (num_rigid_fluid_contacts > 0) {
+        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
+
+        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+
+        custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
+        custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+
+        // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
+        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+
+        Loop_Over_Rigid_Neighbors(                                          //
+            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  //
+            real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
+            Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
+            real3 c_pt = cpta[p * max_rigid_neighbors + i];
+
+            real3 v_rigid = real3(data_manager->host_data.v[rigid * 6 + 0], data_manager->host_data.v[rigid * 6 + 1],
+                                  data_manager->host_data.v[rigid * 6 + 2]);
+
+            real3 o_rigid = real3(data_manager->host_data.v[rigid * 6 + 3], data_manager->host_data.v[rigid * 6 + 4],
+                                  data_manager->host_data.v[rigid * 6 + 5]);
+
+            real3 pt1_loc = TransformParentToLocal(pos_rigid[rigid], rot_rigid[rigid], c_pt);
+            // Velocity of the contact point on the body:
+            real3 vel1 = v_rigid + Rotate(Cross(o_rigid, pt1_loc), rot_rigid[rigid]);
+
+            // Find the grid cell
+
+            const int cx = GridCoord(c_pt.x, inv_bin_edge, min_bounding_point.x);
+            const int cy = GridCoord(c_pt.y, inv_bin_edge, min_bounding_point.y);
+            const int cz = GridCoord(c_pt.z, inv_bin_edge, min_bounding_point.z);
+            const int current_node = GridHash(cx, cy, cz, bins_per_axis);
+
+            real3 current_node_location = NodeLocation(cx, cy, cz, bin_edge, min_bounding_point);
+            real weight = N(c_pt - current_node_location, inv_bin_edge);  //
+            grid_vel[current_node * 3 + 0] += vel1.x;                     //
+            grid_vel[current_node * 3 + 1] += vel1.y;                     //
+            grid_vel[current_node * 3 + 2] += vel1.z;);
+    }
 
     DynamicVector<real> delta_v(num_mpm_nodes * 3);
     delta_v = 0;
@@ -721,37 +716,6 @@ void ChMPMContainer::UpdateRhs() {
             rhs[current_node * 3 + 2] -= dt * force.z;  //- dt * contact_force.z;  //
             )
     }
-    //    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_mpm;
-    //    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_mpm;
-    //    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_mpm;
-    //    for (int p = 0; p < num_mpm_markers; p++) {
-    //        const real3 xi = pos_marker[p];
-    //
-    //        int start = contact_counts[p];
-    //        int end = contact_counts[p + 1];
-    //
-    //        real3 f = real3(0);
-    //        LOOPOVERNODES(                                                  //
-    //            real weight = N(xi - current_node_location, inv_bin_edge);  //
-    //            f += weight * node_force[current_node];                     //
-    //            )
-    //
-    //        for (int index = start; index < end; index++) {
-    //            int i = index - start;  // index that goes from 0
-    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-    //            real3 point = cpta[p * max_rigid_neighbors + i];
-    //
-    //            real3 torque = Cross(point - data_manager->host_data.pos_rigid[rigid], f);
-    //
-    //            data_manager->host_data.hf[rigid * 6 + 0] += f.x;
-    //            data_manager->host_data.hf[rigid * 6 + 1] += f.y;
-    //            data_manager->host_data.hf[rigid * 6 + 2] += f.z;
-    //
-    //            data_manager->host_data.hf[rigid * 6 + 3] += torque.x;
-    //            data_manager->host_data.hf[rigid * 6 + 4] += torque.y;
-    //            data_manager->host_data.hf[rigid * 6 + 5] += torque.z;
-    //        }
-    //    }
 }
 
 }  // END_OF_NAMESPACE____
