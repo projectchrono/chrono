@@ -22,7 +22,6 @@ ChParallelDataManager::ChParallelDataManager()
       nnz_bilaterals(0) {
     node_container = new Ch3DOFContainer();
     fea_container = new Ch3DOFContainer();
-    mpm_container = new Ch3DOFContainer();
 }
 
 ChParallelDataManager::~ChParallelDataManager() {}
@@ -128,10 +127,10 @@ void ChParallelDataManager::AddFEAContainer(ChFEAContainer* container) {
     fea_container = container;
 }
 void ChParallelDataManager::AddMPMContainer(ChMPMContainer* container) {
-    delete mpm_container;
-    mpm_container = container;
+    delete node_container;
+    node_container = container;
 }
 void ChParallelDataManager::AddFLIPContainer(ChFLIPContainer* container) {
-    delete mpm_container;
-    mpm_container = container;
+    delete node_container;
+    node_container = container;
 }

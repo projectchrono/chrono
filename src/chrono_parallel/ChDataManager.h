@@ -387,7 +387,6 @@ class CH_PARALLEL_API ChParallelDataManager {
 
     Ch3DOFContainer* node_container;
     Ch3DOFContainer* fea_container;
-    Ch3DOFContainer* mpm_container;
 
     ChConstraintRigidRigid* rigid_rigid;
     ChConstraintBilateral* bilateral;

@@ -177,7 +177,7 @@ void ChSystemParallelDVI::AssembleSystem() {
 }
 void ChSystemParallelDVI::Initialize() {
     // Mpm update is special because it computes the number of nodes that we have
-    data_manager->mpm_container->ComputeDOF();
+    data_manager->node_container->ComputeDOF();
 
     Setup();
 
@@ -193,5 +193,4 @@ void ChSystemParallelDVI::Initialize() {
     data_manager->system_timer.stop("collision");
 
     data_manager->node_container->Initialize();
-    data_manager->mpm_container->Initialize();
 }

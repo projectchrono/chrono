@@ -231,11 +231,11 @@ void ChMPMContainer::ComputeDOF() {
 }
 
 void ChMPMContainer::Update(double ChTime) {
-    custom_vector<real3>& pos_marker = data_manager->host_data.sorted_pos_3dof;
-    custom_vector<real3>& vel_marker = data_manager->host_data.sorted_vel_3dof;
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
     const real dt = data_manager->settings.step_size;
     Setup(0);
-
+    printf("Update: %d %d\n", num_mpm_nodes, num_mpm_markers);
     node_mass.resize(num_mpm_nodes);
     old_vel_node_mpm.resize(num_mpm_nodes * 3);
     rhs.resize(num_mpm_nodes * 3);
@@ -246,58 +246,12 @@ void ChMPMContainer::Update(double ChTime) {
 
     real3 g_acc = data_manager->settings.gravity;
     real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
-
-#pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < num_mpm_markers; i++) {
         // Velocity already set in the fluid fluid contact function
         data_manager->host_data.hf[body_offset + i * 3 + 0] = h_gravity.x;
         data_manager->host_data.hf[body_offset + i * 3 + 1] = h_gravity.y;
         data_manager->host_data.hf[body_offset + i * 3 + 2] = h_gravity.z;
-    }
-
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        const real3 vi = vel_marker[p];
-        LOOPOVERNODES(                                                         //
-            real weight = N(xi - current_node_location, inv_bin_edge) * mass;  //
-            node_mass[current_node] += weight;                                 //
-            grid_vel[current_node * 3 + 0] += weight * vi.x;                   //
-            grid_vel[current_node * 3 + 1] += weight * vi.y;                   //
-            grid_vel[current_node * 3 + 2] += weight * vi.z;                   //
-            )
-    }
-// normalize weights for the velocity (to conserve momentum)
-#pragma omp parallel for
-    for (int i = 0; i < num_mpm_nodes; i++) {
-        if (node_mass[i] > C_EPSILON) {
-            grid_vel[i * 3 + 0] /= node_mass[i];
-            grid_vel[i * 3 + 1] /= node_mass[i];
-            grid_vel[i * 3 + 2] /= node_mass[i];
-            old_vel_node_mpm[i * 3 + 0] = grid_vel[i * 3 + 0];
-            old_vel_node_mpm[i * 3 + 1] = grid_vel[i * 3 + 1];
-            old_vel_node_mpm[i * 3 + 2] = grid_vel[i * 3 + 2];
-        }
-    }
-    SVD_Fe_hat_R.resize(num_mpm_markers);
-    SVD_Fe_hat_S.resize(num_mpm_markers);
-
-    printf("Compute_Elastic_Deformation_Gradient_Hat\n");
-#pragma omp parallel for
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        marker_Fe_hat[p] = Mat33(1.0);
-        Mat33 Fe_hat_t(1);
-        LOOPOVERNODES(  //
-            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-            real3 kern = dN(xi - current_node_location, inv_bin_edge); Fe_hat_t += OuterProduct(dt * vel, kern);  //
-            )
-        Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
-        marker_Fe_hat[p] = Fe_hat;
-        Mat33 U, V;
-        real3 E;
-        SVD(Fe_hat, U, E, V);
-        SVD_Fe_hat_R[p] = MultTranspose(U, V);
-        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
     }
 }
 
@@ -547,6 +501,55 @@ void ChMPMContainer::GenerateSparsity() {
     }
 }
 void ChMPMContainer::PreSolve() {
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
+    const real dt = data_manager->settings.step_size;
+
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        const real3 vi = vel_marker[p];
+        LOOPOVERNODES(                                                         //
+            real weight = N(xi - current_node_location, inv_bin_edge) * mass;  //
+            node_mass[current_node] += weight;                                 //
+            grid_vel[current_node * 3 + 0] += weight * vi.x;                   //
+            grid_vel[current_node * 3 + 1] += weight * vi.y;                   //
+            grid_vel[current_node * 3 + 2] += weight * vi.z;                   //
+            )
+    }
+    // normalize weights for the velocity (to conserve momentum)
+    //#pragma omp parallel for
+    for (int i = 0; i < num_mpm_nodes; i++) {
+        if (node_mass[i] > C_EPSILON) {
+            grid_vel[i * 3 + 0] /= node_mass[i];
+            grid_vel[i * 3 + 1] /= node_mass[i];
+            grid_vel[i * 3 + 2] /= node_mass[i];
+            old_vel_node_mpm[i * 3 + 0] = grid_vel[i * 3 + 0];
+            old_vel_node_mpm[i * 3 + 1] = grid_vel[i * 3 + 1];
+            old_vel_node_mpm[i * 3 + 2] = grid_vel[i * 3 + 2];
+        }
+    }
+    SVD_Fe_hat_R.resize(num_mpm_markers);
+    SVD_Fe_hat_S.resize(num_mpm_markers);
+
+    printf("Compute_Elastic_Deformation_Gradient_Hat\n");
+#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        marker_Fe_hat[p] = Mat33(1.0);
+        Mat33 Fe_hat_t(1);
+        LOOPOVERNODES(  //
+            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
+            real3 kern = dN(xi - current_node_location, inv_bin_edge); Fe_hat_t += OuterProduct(dt * vel, kern);  //
+            )
+        Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
+        marker_Fe_hat[p] = Fe_hat;
+        Mat33 U, V;
+        real3 E;
+        SVD(Fe_hat, U, E, V);
+        SVD_Fe_hat_R[p] = MultTranspose(U, V);
+        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
+    }
+
     UpdateRhs();
 
     // Loop over rigid bodies
@@ -589,9 +592,9 @@ void ChMPMContainer::PreSolve() {
 
             real3 current_node_location = NodeLocation(cx, cy, cz, bin_edge, min_bounding_point);
             real weight = N(c_pt - current_node_location, inv_bin_edge);  //
-            grid_vel[current_node * 3 + 0] += vel1.x;                     //
-            grid_vel[current_node * 3 + 1] += vel1.y;                     //
-            grid_vel[current_node * 3 + 2] += vel1.z;);
+            grid_vel[current_node * 3 + 0] = vel1.x;                      //
+            grid_vel[current_node * 3 + 1] = vel1.y;                      //
+            grid_vel[current_node * 3 + 2] = vel1.z;);
     }
 
     DynamicVector<real> delta_v(num_mpm_nodes * 3);
@@ -600,10 +603,7 @@ void ChMPMContainer::PreSolve() {
 
     grid_vel += delta_v;
 
-    const real dt = data_manager->settings.step_size;
     const real3 gravity = data_manager->settings.gravity;
-    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-    custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
 
     custom_vector<real>& old_vel_node_mpm = old_vel_node_mpm;
     for (int p = 0; p < num_mpm_markers; p++) {

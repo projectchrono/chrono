@@ -23,13 +23,12 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
     uint num_tet_constraints = data_manager->fea_container->GetNumConstraints();
-    uint num_mpm_constraints = data_manager->mpm_container->GetNumConstraints();
 
     // Get the number of 3dof constraints, from the 3dof container in use right now
 
     // This is the total number of constraints
-    data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof +
-                                    num_tet_constraints + num_mpm_constraints;
+    data_manager->num_constraints =
+        data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof + num_tet_constraints;
     LOG(INFO) << "ChLcpSolverParallelDVI::RunTimeStep S num_constraints: " << data_manager->num_constraints;
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
@@ -43,8 +42,6 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->bilateral->Setup(data_manager);
     data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals);
     data_manager->fea_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
-    data_manager->mpm_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof +
-                                       num_tet_constraints);
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
@@ -66,7 +63,6 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     data_manager->node_container->PreSolve();
     data_manager->fea_container->PreSolve();
-    data_manager->mpm_container->PreSolve();
 
     ShurProductFull.Setup(data_manager);
     ShurProductBilateral.Setup(data_manager);
@@ -147,7 +143,6 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     data_manager->Fc_current = false;
     data_manager->node_container->PostSolve();
     data_manager->fea_container->PostSolve();
-    data_manager->mpm_container->PostSolve();
 
     data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
 
@@ -197,15 +192,12 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint num_fem = data_manager->fea_container->GetNumConstraints();
     uint nnz_fem = data_manager->fea_container->GetNumNonZeros();
 
-    uint num_mpm = data_manager->mpm_container->GetNumConstraints();
-    uint nnz_mpm = data_manager->mpm_container->GetNumNonZeros();
-
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-    int nnz_total = nnz_bilaterals + nnz_fluid_fluid + nnz_fem + nnz_mpm;
-    int num_rows = num_bilaterals + num_fluid_fluid + num_fem + num_mpm;
+    int nnz_total = nnz_bilaterals + nnz_fluid_fluid + nnz_fem;
+    int num_rows = num_bilaterals + num_fluid_fluid + num_fem;
 
     switch (data_manager->settings.solver.solver_mode) {
         case NORMAL:
@@ -231,13 +223,11 @@ void ChLcpSolverParallelDVI::ComputeD() {
     data_manager->bilateral->GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
     data_manager->fea_container->GenerateSparsity();
-    data_manager->mpm_container->GenerateSparsity();
 
     data_manager->rigid_rigid->Build_D();
     data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
     data_manager->fea_container->Build_D();
-    data_manager->mpm_container->Build_D();
 
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D = trans(D_T)";
 
@@ -264,7 +254,6 @@ void ChLcpSolverParallelDVI::ComputeE() {
 
     data_manager->fea_container->Build_E();
     data_manager->node_container->Build_E();
-    data_manager->mpm_container->Build_E();
 
     data_manager->system_timer.stop("ChLcpSolverParallel_E");
 }
@@ -292,9 +281,8 @@ void ChLcpSolverParallelDVI::ComputeR() {
     data_manager->bilateral->Build_b();
     data_manager->node_container->Build_b();
     data_manager->fea_container->Build_b();
-    data_manager->mpm_container->Build_b();
 
-    R = -b - D_T * (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
+    R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");
 }

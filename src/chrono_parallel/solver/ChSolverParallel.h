@@ -96,7 +96,6 @@ class CH_PARALLEL_API ChSolverParallel {
                        const DynamicVector<real>& b,  // Rhs vector
                        DynamicVector<real>& x         // The vector of unknowns
                        ) = 0;
-    virtual void InnerSolve();
 
     void AtIterationEnd(real maxd, real maxdeltalambda) {
         data_manager->measures.solver.maxd_hist.push_back(maxd);

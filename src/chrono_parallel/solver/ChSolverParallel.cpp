@@ -6,7 +6,6 @@ void ChProjectConstraints::operator()(real* data) {
     data_manager->system_timer.start("ChSolverParallel_Project");
     data_manager->rigid_rigid->Project(data);
     data_manager->node_container->Project(data);
-    data_manager->mpm_container->Project(data);
     data_manager->fea_container->Project(data);
     data_manager->system_timer.stop("ChSolverParallel_Project");
 }
@@ -60,8 +59,4 @@ real ChSolverParallel::LargestEigenValue(ChShurProduct& ShurProduct, DynamicVect
         lambda_old = lambda;
     }
     return lambda;
-}
-
-void ChSolverParallel::InnerSolve() {
-    data_manager->mpm_container->InnerSolve();
 }

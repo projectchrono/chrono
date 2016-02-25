@@ -77,7 +77,7 @@ int ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.start("step");
 
     // Mpm update is special because it computes the number of nodes that we have
-    data_manager->mpm_container->ComputeDOF();
+    data_manager->node_container->ComputeDOF();
 
     Setup();
 
@@ -152,7 +152,6 @@ int ChSystemParallel::Integrate_Y() {
 
     data_manager->node_container->UpdatePosition(ChTime);
     data_manager->fea_container->UpdatePosition(ChTime);
-    data_manager->mpm_container->UpdatePosition(ChTime);
     data_manager->system_timer.stop("update");
 
     //=============================================================================================
@@ -439,7 +438,6 @@ void ChSystemParallel::UpdateShafts() {
 void ChSystemParallel::Update3DOFBodies() {
     data_manager->node_container->Update(ChTime);
     data_manager->fea_container->Update(ChTime);
-    data_manager->mpm_container->Update(ChTime);
 }
 
 //

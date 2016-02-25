@@ -531,8 +531,18 @@ void ChOpenGLViewer::RenderFluid() {
             real3 pos = parallel_system->data_manager->host_data.pos_3dof[i];
             fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
         }
-
-        fluid.SetPointSize(parallel_system->data_manager->node_container->kernel_radius);
+        if (ChMPMContainer* flip_container =
+                dynamic_cast<ChMPMContainer*>(parallel_system->data_manager->node_container)) {
+            fluid.SetPointSize(flip_container->kernel_radius);
+        }
+        if (ChFLIPContainer* mpm_container =
+                dynamic_cast<ChFLIPContainer*>(parallel_system->data_manager->node_container)) {
+            fluid.SetPointSize(mpm_container->kernel_radius);
+        }
+        if (ChFluidContainer* fluid_container =
+                dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
+            fluid.SetPointSize(fluid_container->kernel_radius);
+        }
 
         fluid.Update(fluid_data);
         glm::mat4 model(1);
@@ -626,7 +636,7 @@ void ChOpenGLViewer::RenderGrid() {
         real bin_edge;
         uint num_mpm_nodes;
         if (ChFLIPContainer* flip_container =
-                dynamic_cast<ChFLIPContainer*>(parallel_sys->data_manager->mpm_container)) {
+                dynamic_cast<ChFLIPContainer*>(parallel_sys->data_manager->node_container)) {
             bins_per_axis = flip_container->bins_per_axis;
             bin_size_vec = real3(flip_container->bin_edge);
             min_pt = flip_container->min_bounding_point;
@@ -635,7 +645,7 @@ void ChOpenGLViewer::RenderGrid() {
             bin_edge = flip_container->bin_edge;
             num_mpm_nodes = flip_container->num_mpm_nodes;
         }
-        if (ChMPMContainer* mpm_container = dynamic_cast<ChMPMContainer*>(parallel_sys->data_manager->mpm_container)) {
+        if (ChMPMContainer* mpm_container = dynamic_cast<ChMPMContainer*>(parallel_sys->data_manager->node_container)) {
             bins_per_axis = mpm_container->bins_per_axis;
             bin_size_vec = real3(mpm_container->bin_edge);
             min_pt = mpm_container->min_bounding_point;

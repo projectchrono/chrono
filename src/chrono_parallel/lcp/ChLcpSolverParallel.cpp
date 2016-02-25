@@ -98,7 +98,6 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
     int offset = num_bodies * 6 + num_shafts;
     data_manager->node_container->ComputeInvMass(offset);
     data_manager->fea_container->ComputeInvMass(offset + num_fluid_bodies * 3);
-    data_manager->mpm_container->ComputeInvMass(offset + num_fluid_bodies * 3 + num_fea_nodes * 3);
 
     M_invk = v + M_inv * hf;
 }
@@ -178,7 +177,6 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
     int offset = num_bodies * 6 + num_shafts;
     data_manager->node_container->ComputeMass(offset);
     data_manager->fea_container->ComputeMass(offset + num_fluid_bodies * 3);
-    data_manager->mpm_container->ComputeMass(offset + num_fluid_bodies * 3 + num_fea_nodes * 3);
 }
 
 void ChLcpSolverParallel::PerformStabilization() {
