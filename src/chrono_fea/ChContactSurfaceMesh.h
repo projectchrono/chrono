@@ -106,8 +106,19 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
-        //// TODO
-        return ChVector<>(0, 0, 0);
+        // Note: because the reference coordinate system for a ChcontactTriangleXYZ is the identity,
+        // the given point loc_point is actually expressed in the global frame. In this case, we 
+        // calculate the output point here by assuming that its barycentric coordinates do not change
+        // with a change in the states of this object.
+        double s2, s3;
+        this->ComputeUVfromP(loc_point, s2, s3);
+        double s1 = 1 - s2 - s3;
+
+        ChVector<> A1 = state_x.ClipVector(0, 0);
+        ChVector<> A2 = state_x.ClipVector(3, 0);
+        ChVector<> A3 = state_x.ClipVector(6, 0);
+
+        return s1 * A1 + s2 * A2 + s3 * A3;
     }
 
     /// Get the absolute speed of a local point attached to the contactable.
@@ -116,8 +127,19 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override {
-        //// TODO
-        return ChVector<>(0, 0, 0);
+        // Note: because the reference coordinate system for a ChcontactTriangleXYZ is the identity,
+        // the given point loc_point is actually expressed in the global frame. In this case, we 
+        // calculate the output point here by assuming that its barycentric coordinates do not change
+        // with a change in the states of this object.
+        double s2, s3;
+        this->ComputeUVfromP(loc_point, s2, s3);
+        double s1 = 1 - s2 - s3;
+
+        ChVector<> A1_dt = state_w.ClipVector(0, 0);
+        ChVector<> A2_dt = state_w.ClipVector(3, 0);
+        ChVector<> A3_dt = state_w.ClipVector(6, 0);
+
+        return s1 * A1_dt + s2 * A2_dt + s3 * A3_dt;
     }
 
     /// Get the absolute speed of point abs_point if attached to the
@@ -156,7 +178,20 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override {
-        //// TODO
+        // Calculate barycentric coordinates
+        ChVector<> A1 = state_x.ClipVector(0, 0);
+        ChVector<> A2 = state_x.ClipVector(3, 0);
+        ChVector<> A3 = state_x.ClipVector(6, 0);
+
+        double s2, s3;
+        double dist;
+        int is_into;
+        ChVector<> p_projected;
+        dist = collision::ChCollisionUtils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+        double s1 = 1 - s2 - s3;
+        Q.PasteVector(F * s1, offset + 0, 0);
+        Q.PasteVector(F * s2, offset + 3, 0);
+        Q.PasteVector(F * s3, offset + 6, 0);
     }
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
