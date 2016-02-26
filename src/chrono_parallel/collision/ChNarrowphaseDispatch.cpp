@@ -612,8 +612,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             for (uint i = start; i < end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 pos_sphere = pos_spheres[p];
-                real3 Bmin = pos_sphere - real3(sphere_radius) - global_origin;
-                real3 Bmax = pos_sphere + real3(sphere_radius) - global_origin;
+                real3 Bmin = pos_sphere - real3(sphere_radius + collision_envelope) - global_origin;
+                real3 Bmax = pos_sphere + real3(sphere_radius + collision_envelope) - global_origin;
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
@@ -639,6 +639,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                             contact_counts[p]++;
                         }
                     }
+
                     delete shapeA;
                     delete shapeB;
                 }
