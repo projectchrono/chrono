@@ -119,7 +119,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container = new ChMPMContainer(sys);
 
-    real youngs_modulus = 1.4e2;
+    real youngs_modulus = 1.4e5;
     real poissons_ratio = 0.2;
 
     mpm_container->theta_c = 2.5e-2;
@@ -132,10 +132,14 @@ void AddFluid(ChSystemParallelDVI* sys) {
     real initial_density = 4e2;
     mpm_container->mass = .01;
     mpm_container->max_iterations = 20;
-    mpm_container->kernel_radius = .01;
-    mpm_container->contact_recovery_speed = 1000;
-
-    real radius = mpm_container->kernel_radius * 8;  //*5
+    mpm_container->kernel_radius = .016;
+    mpm_container->collision_envelope = mpm_container->kernel_radius * 0.005;
+    mpm_container->contact_recovery_speed = .1;
+    mpm_container->contact_cohesion = 0;
+    mpm_container->contact_mu = .1;
+    mpm_container->cohesion = 0;
+    mpm_container->max_velocity = 2;
+    real radius = mpm_container->kernel_radius * 4;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, .1);
@@ -149,14 +153,14 @@ void AddFluid(ChSystemParallelDVI* sys) {
     vol = dist * dist * dist;
     mpm_container->mass = initial_density * vol;
 
-    utils::GridSampler<> sampler(dist);
-    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, 0), ChVector<>(radius, radius, radius));
+    utils::HCPSampler<> sampler(dist);
+    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, .1), ChVector<>(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
-        vel_fluid[i] = real3(6, 0, 0);
+        vel_fluid[i] = real3(0, 0, 0);
     }
     mpm_container->UpdatePosition(0);
     mpm_container->AddNodes(pos_fluid, vel_fluid);
@@ -169,7 +173,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
         pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
         vel_fluid[i] = real3(-6, 0, 0);
     }
-    mpm_container->AddNodes(pos_fluid, vel_fluid);
+// mpm_container->AddNodes(pos_fluid, vel_fluid);
 
 #else
     std::ifstream ifile("state_0.029.dat");
@@ -234,11 +238,11 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.max_iteration_sliding = 40;
     msystem.GetSettings()->solver.max_iteration_spinning = 0;
     msystem.GetSettings()->solver.max_iteration_bilateral = 0;
-    msystem.GetSettings()->solver.tolerance = 1e-2;
+    msystem.GetSettings()->solver.tolerance = 0;
     msystem.GetSettings()->solver.alpha = 0;
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->collision.use_two_level = false;
-    msystem.GetSettings()->solver.contact_recovery_speed = 10000;
+    msystem.GetSettings()->solver.contact_recovery_speed = 1;
     msystem.GetSettings()->solver.cache_step_length = true;
     msystem.ChangeSolverType(BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
@@ -252,7 +256,7 @@ int main(int argc, char* argv[]) {
     // Create the fixed and moving bodies
     // ----------------------------------
 
-     AddContainer(&msystem);
+    AddContainer(&msystem);
     // AddBody(&msystem);
     // This initializes all of the MPM stuff
     msystem.Initialize();

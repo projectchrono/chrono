@@ -68,22 +68,18 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
             }
             delta_F = delta_F * container->marker_Fe[p];
 
-            real plastic_determinant = Determinant(container->marker_Fp[p]);
-            real J = Determinant(container->marker_Fe_hat[p]);
-            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-            real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
-            Mat33 Fe_hat_inv_transpose = InverseTranspose(container->marker_Fe_hat[p]);
+            Mat33 R = container->SVD_Fe_hat_R[p];
+            Mat33 S = container->SVD_Fe_hat_S[p];
 
-            real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
-            Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
-            Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
-            Mat33 RD = Rotational_Derivative(container->marker_Fe_hat[p], delta_F);
+            real plastic_determinant = Determinant(container->marker_Fp[p]);                          // Constant
+            //real J = Determinant(container->marker_Fe_hat[p]);                                        // Constant
+            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));          // Constant
+            //real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));  // Constant
 
+            Mat33 W = TransposeMult(R, delta_F);
+            Mat33 RD = Solve_dR(R, S, W);
             Mat33 volume_Ap_Fe_transpose =
-                container->marker_volume[p] *
-                (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
-                 (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
-                Transpose(container->marker_Fe[p]);
+                container->marker_volume[p] * (2 * current_mu * (delta_F - RD)) * Transpose(container->marker_Fe[p]);
             {
                 const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
                 const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
@@ -177,8 +173,8 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     marker_delta_F.resize(data_manager->num_fluid_bodies);
     marker_volume.resize(data_manager->num_fluid_bodies);
 
-    marker_Fe[data_manager->num_fluid_bodies - 1] = Mat33(1);
-    marker_Fp[data_manager->num_fluid_bodies - 1] = Mat33(1);
+    std::fill(marker_Fe.begin(), marker_Fe.end(), Mat33(1));
+    std::fill(marker_Fp.begin(), marker_Fp.end(), Mat33(1));
 }
 void ChMPMContainer::ComputeDOF() {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
@@ -199,8 +195,8 @@ void ChMPMContainer::ComputeDOF() {
     res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
     res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
 
-    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 8;
-    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 6;
+    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 6;
+    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 4;
 
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
@@ -244,7 +240,6 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
 
 #pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
         real3 new_vel;
         int original_index = data_manager->host_data.particle_indices_3dof[p];
         new_vel.x = data_manager->host_data.v[body_offset + p * 3 + 0];
@@ -339,7 +334,7 @@ void ChMPMContainer::Initialize() {
             )
         particle_density /= (bin_edge * bin_edge * bin_edge);
         marker_volume[p] = mass / particle_density;
-        // printf("Volumes: %.20f \n", data_manager->host_data.marker_volume[p], particle_density);
+        printf("Volumes: %.20f \n", marker_volume[p], particle_density);
     }
 }
 
@@ -590,6 +585,7 @@ void ChMPMContainer::PreSolve() {
             old_vel_node_mpm[i * 3 + 1] = grid_vel[i * 3 + 1];
             old_vel_node_mpm[i * 3 + 2] = grid_vel[i * 3 + 2];
         }
+        // printf("N: %d [%f %f %f]\n", i, grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
     }
     SVD_Fe_hat_R.resize(num_mpm_markers);
     SVD_Fe_hat_S.resize(num_mpm_markers);
@@ -602,7 +598,8 @@ void ChMPMContainer::PreSolve() {
         Mat33 Fe_hat_t(1);
         LOOPOVERNODES(  //
             real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-            real3 kern = dN(xi - current_node_location, inv_bin_edge); Fe_hat_t += OuterProduct(dt * vel, kern);  //
+            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
             )
         Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
         marker_Fe_hat[p] = Fe_hat;
@@ -615,7 +612,7 @@ void ChMPMContainer::PreSolve() {
     printf("UpdateRhs\n");
     UpdateRhs();
 
-    printf("Loop over rigid bodies\n");
+    //    printf("Loop over rigid bodies\n");
     //    if (num_rigid_fluid_contacts > 0) {
     //        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
     //
@@ -747,6 +744,11 @@ void ChMPMContainer::PostSolve() {
         marker_Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
+
+        //        real JE = Determinant(marker_Fe[p]);  //
+        //        real JP = Determinant(marker_Fp[p]);  //
+        //
+        //        printf("JU: %d [%f %f] [%f %f %f]\n", p, JE, JP, E_clamped.x, E_clamped.y, E_clamped.z);
     }
 }
 
@@ -772,11 +774,15 @@ void ChMPMContainer::UpdateRhs() {
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
 
-        Mat33 PED = Potential_Energy_Derivative(marker_Fe_hat[p], marker_Fp[p], mu, lambda, hardening_coefficient);
+        Mat33 PED =
+            Potential_Energy_Derivative_Deviatoric(marker_Fe_hat[p], marker_Fp[p], mu, lambda, hardening_coefficient);
 
         Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, marker_Fe[p]);
-        real JE = Determinant(marker_Fe[p]);                                //
-        real JP = Determinant(marker_Fp[p]);                                //
+        real JE = Determinant(marker_Fe[p]);  //
+        real JP = Determinant(marker_Fp[p]);  //
+
+        // printf("J: %d [%f %f]\n", p, JE, JP);
+
         LOOPOVERNODES(                                                      //
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
             real3 force = (vPEDFepT * d_weight) / (JE * JP);
@@ -786,6 +792,10 @@ void ChMPMContainer::UpdateRhs() {
             rhs[current_node * 3 + 2] -= dt * force.z;  //
             )
     }
+
+    //    for (int i = 0; i < num_mpm_nodes; i++) {
+    //        printf("R: %d [%f %f %f]\n", i, rhs[i * 3 + 0], rhs[i * 3 + 1], rhs[i * 3 + 2]);
+    //    }
 }
 
 }  // END_OF_NAMESPACE____
