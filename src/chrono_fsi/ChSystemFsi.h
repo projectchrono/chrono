@@ -39,10 +39,11 @@ public:
 	void DoStepDynamics_FSI();
 	void DoStepDynamics_ChronoRK2(); 
 	void CopyDeviceDataToHalfStep();
+	void SetHaveVehicle(bool other_haveVehicle);
 
 private:
 	int DoStepChronoSystem(Real dT,
-		double mTime, double time_hold_vehicle, bool haveVehicle);
+		double mTime);
 
 	ChFsiDataManager* fsiData;
 	// map fsi to chrono bodies
@@ -56,6 +57,9 @@ private:
 
 	SimParams* paramsH;
 	NumberOfObjects* numObjectsH;
+
+	double mTime;
+	bool haveVehicle;
 };
 } // end namespace fsi
 } // end namespace chrono

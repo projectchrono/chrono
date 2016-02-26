@@ -49,18 +49,17 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 
 	void CalculateXSPH_velocity();
 	void CollideWrapper();
-	void DensityReinitialization(); // Arman : TODO
-// TODO : make these four dudes static in ChCollisionSystemFsi
-	void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
+///////////////////////////////////////////////////////////////////
+	static void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,
 		const thrust::device_vector<uint>& gridMarkerIndex);
-	void CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
+	static void CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,
 		const thrust::device_vector<uint>& gridMarkerIndex);
-	void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
+	static void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
 			thrust::device_vector<Real4>& sorted,
 			const thrust::device_vector<uint>& gridMarkerIndex);
-	void CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
+	static void CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
 			thrust::device_vector<Real4>& sorted,
 			const thrust::device_vector<uint>& gridMarkerIndex);
 ///////////////////////////////////////////////////////////////////

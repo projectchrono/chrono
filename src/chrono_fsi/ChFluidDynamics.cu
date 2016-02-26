@@ -22,6 +22,46 @@
 
 namespace chrono {
 namespace fsi {
+//--------------------------------------------------------------------------------------------------------------------------------
+// collide a particle against all other particles in a given cell
+__device__ void collideCellDensityReInit(Real& densityShare, Real& denominator,
+		int3 gridPos, uint index, Real3 posRadA, Real3* sortedPosRad,
+		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* cellStart,
+		uint* cellEnd) {
+
+	//?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
+	uint gridHash = calcGridHash(gridPos);
+	// get start of bucket for this cell
+	Real densityShare2 = 0.0f;
+	Real denominator2 = 0.0f;
+
+	uint startIndex = FETCH(cellStart, gridHash);
+	if (startIndex != 0xffffffff) {  // cell is not empty
+		// iterate over particles in this cell
+		uint endIndex = FETCH(cellEnd, gridHash);
+
+		for (uint j = startIndex; j < endIndex; j++) {
+			if (j != index) {  // check not colliding with self
+				Real3 posRadB = FETCH(sortedPosRad, j);
+				Real4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
+				Real3 dist3 = Distance(posRadA, posRadB);
+				Real d = length(dist3);
+				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
+					continue;
+				Real partialDensity = paramsD.markerMass * W3(d); // optimize it ?$
+				densityShare2 += partialDensity;
+				denominator2 += partialDensity / rhoPreMuB.x;
+				// if (fabs(W3(d)) < .00000001) {printf("good evening, distance %f %f %f\n", dist3.x, dist3.y, dist3.z);
+				// printf("posRadA %f %f %f, posRadB, %f %f %f\n", posRadA.x, posRadA.y, posRadA.z, posRadB.x, posRadB.y,
+				// posRadB.z);
+				//}
+			}
+		}
+	}
+	densityShare += densityShare2;
+	denominator += denominator2;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 
 __global__ void ApplyPeriodicBoundaryXKernel(Real3* posRadD,
 		Real4* rhoPresMuD) {
@@ -221,6 +261,51 @@ __global__ void UpdateFluidD(Real3* posRadD, Real3* velMasD, Real3* vel_XSPH_D,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// without normalization
+__global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real3* sortedPosRad, Real3* sortedVelMas,
+		Real4* sortedRhoPreMu, uint* gridMarkerIndex, uint* cellStart,
+		uint* cellEnd, uint numAllMarkers) {
+	uint index = __mul24(blockIdx.x, blockDim.x) + threadIdx.x;
+	if (index >= numAllMarkers)
+		return;
+
+	// read particle data from sorted arrays
+	Real3 posRadA = FETCH(sortedPosRad, index);
+	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+
+	if (rhoPreMuA.w > -.1)
+		return;
+
+	// get address in grid
+	int3 gridPos = calcGridPos(posRadA);
+
+	Real densityShare = 0.0f;
+	Real denominator = 0.0f;
+	// examine neighbouring cells
+	for (int z = -1; z <= 1; z++) {
+		for (int y = -1; y <= 1; y++) {
+			for (int x = -1; x <= 1; x++) {
+				int3 neighbourPos = gridPos + mI3(x, y, z);
+				collideCellDensityReInit(densityShare, denominator,
+						neighbourPos, index, posRadA, sortedPosRad,
+						sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
+			}
+		}
+	}
+	// write new velocity back to original unsorted location
+
+	Real newDensity = densityShare + paramsD.markerMass * W3(0); //?$ include the particle in its summation as well
+	Real newDenominator = denominator
+			+ paramsD.markerMass * W3(0) / rhoPreMuA.x;
+	if (rhoPreMuA.w < 0) {
+		//		rhoPreMuA.x = newDensity; // old version
+		rhoPreMuA.x = newDensity / newDenominator;  // correct version
+	}
+	rhoPreMuA.y = Eos(rhoPreMuA.x, rhoPreMuA.w);
+	dummySortedRhoPreMu[index] = rhoPreMuA;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
 
 ChFluidDynamics::ChFluidDynamics(
 			ChBce* otherBceWorker,
@@ -315,6 +400,25 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD) {
 	//	SetOutputPressureToZero_X<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR3CAST(posRadD), mR4CAST(rhoPresMuD));
 	//    cudaThreadSynchronize();
 	//    cudaCheckError();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChFluidDynamics::DensityReinitialization() {
+	uint nBlock_NumSpheres, nThreads_SphMarkers;
+	computeGridSize(numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
+
+	thrust::device_vector<Real4>& dummySortedRhoPreMu = fsiData->sortedSphMarkersD.rhoPresMuD;
+	ReCalcDensityD_F1<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(dummySortedRhoPreMu), mR3CAST(fsiData->sortedSphMarkersD.posRadD),
+			mR3CAST(fsiData->sortedSphMarkersD.velMasD), mR4CAST(fsiData->sortedSphMarkersD.rhoPresMuD),
+
+			U1CAST(fsiData->markersProximityD.gridMarkerIndexD), 
+			U1CAST(fsiData->markersProximityD.cellStartD), U1CAST(fsiData->markersProximityD.cellEndD),
+			numObjectsH->numAllMarkers);
+
+	cudaThreadSynchronize();
+	cudaCheckError()
+
+	ChFsiForceParallel::CopySortedToOriginal_Invasive_R4(fsiData->sphMarkersD1.rhoPresMuD, dummySortedRhoPreMu, fsiData->markersProximityD.gridMarkerIndexD);
+	dummySortedRhoPreMu.clear();
 }
 
 } // end namespace fsi

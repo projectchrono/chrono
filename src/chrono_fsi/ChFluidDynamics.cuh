@@ -41,6 +41,8 @@ public:
 	FsiBodiesDataD * fsiBodiesD1,
 	Real dT);
 
+	void DensityReinitialization();
+
 protected:
 	ChFsiDataManager* fsiData;
 	ChFsiForceParallel* forceSystem;
