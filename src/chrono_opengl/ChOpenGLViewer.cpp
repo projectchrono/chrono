@@ -298,8 +298,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
         lrot.Normalize();
         lrot.Q_to_AngAxis(angle, axis);
 
-        if (std::dynamic_pointer_cast<ChSphereShape>(asset)) {
-            ChSphereShape* sphere_shape = ((ChSphereShape*)(asset.get()));
+        if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
             float radius = sphere_shape->GetSphereGeometry().rad;
             ChVector<> pos_final = pos + center;
 
@@ -308,8 +307,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(radius, radius, radius));
             model_sphere.push_back(model);
 
-        } else if (std::dynamic_pointer_cast<ChEllipsoidShape>(asset)) {
-            ChEllipsoidShape* ellipsoid_shape = ((ChEllipsoidShape*)(asset.get()));
+        } else if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
             Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
             ChVector<> pos_final = pos + center;
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
@@ -317,8 +315,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
             model_sphere.push_back(model);
 
-        } else if (std::dynamic_pointer_cast<ChBoxShape>(asset)) {
-            ChBoxShape* box_shape = ((ChBoxShape*)(asset.get()));
+        } else if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(asset.get())) {
             ChVector<> pos_final = pos + center;
             Vector radius = box_shape->GetBoxGeometry().Size;
 
@@ -327,8 +324,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
             model_box.push_back(model);
 
-        } else if (std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
-            ChCylinderShape* cylinder_shape = ((ChCylinderShape*)(asset.get()));
+        } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
             double rad = cylinder_shape->GetCylinderGeometry().rad;
             double height = cylinder_shape->GetCylinderGeometry().p1.y - cylinder_shape->GetCylinderGeometry().p2.y;
             // Quaternion rott(1,0,0,0);
@@ -343,8 +339,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(rad, height * .5, rad));
             model_cylinder.push_back(model);
 
-        } else if (std::dynamic_pointer_cast<ChConeShape>(asset)) {
-            ChConeShape* cone_shape = ((ChConeShape*)(asset.get()));
+        } else if (ChConeShape* cone_shape = dynamic_cast<ChConeShape*>(asset.get())) {
             Vector rad = cone_shape->GetConeGeometry().rad;
             ChVector<> pos_final = pos + center;
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
@@ -352,8 +347,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(rad.x, rad.y, rad.z));
             model_cone.push_back(model);
 
-        } else if (std::dynamic_pointer_cast<ChRoundedBoxShape>(asset)) {
-            ChRoundedBoxShape* shape = ((ChRoundedBoxShape*)(asset.get()));
+        } else if (ChRoundedBoxShape* shape = dynamic_cast<ChRoundedBoxShape*>(asset.get())) {
             Vector rad = shape->GetRoundedBoxGeometry().Size;
             double radsphere = shape->GetRoundedBoxGeometry().radsphere;
             ChVector<> pos_final = pos + center;
@@ -410,8 +404,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
                                    glm::vec3(pos_final.x + local.x, pos_final.y + local.y, pos_final.z + local.z));
             model = glm::scale(model, glm::vec3(radsphere));
             model_sphere.push_back(model);
-        } else if (std::dynamic_pointer_cast<ChCapsuleShape>(asset)) {
-            ChCapsuleShape* capsule_shape = ((ChCapsuleShape*)(asset.get()));
+        } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(asset.get())) {
             double rad = capsule_shape->GetCapsuleGeometry().rad;
             double height = capsule_shape->GetCapsuleGeometry().hlen;
             // Quaternion rott(1,0,0,0);
@@ -438,8 +431,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(rad));
             model_sphere.push_back(model);
 
-        } else if (std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
-            ChTriangleMeshShape* trimesh_shape = ((ChTriangleMeshShape*)(asset.get()));
+        } else if (ChTriangleMeshShape* trimesh_shape = dynamic_cast<ChTriangleMeshShape*>(asset.get())) {
             ChVector<> pos_final = pos + center;
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
