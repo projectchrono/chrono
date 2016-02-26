@@ -1,24 +1,21 @@
 main:
     - title: Download
       url: '/download'
-    - title: Chrono Info
-      url: 'http://api.chrono.projectchrono.org/tutorial_root.html'
+    - title: Documentation
+      url: 'http://api.chrono.projectchrono.org'
       sub:
        -
-         title: Chrono Install Guide
+         title: Install Guide
          url: 'http://api.chrono.projectchrono.org/tutorial_table_of_content_install.html'
        -
-         title: Chrono Documentation
-         url: 'http://api.chrono.projectchrono.org'
+         title: Examples/Tutorials
+         url: 'http://api.chrono.projectchrono.org/tutorial_root.html'
        -
-         title: Chrono Knowledge Repository
-         url: '#'
+         title: Model Library
+         url: 'http://api.chrono.projectchrono.org/model_root.html'
        -
-         title: Chrono Examples/Tutorials
-         url: '#'
-       -
-         title: Chrono Model Library
-         url: '#'
+         title: White Papers
+         url: 'http://api.chrono.projectchrono.org/white_paper_root.html'
     - title: News
       url: '/news/'
     - title: Forum

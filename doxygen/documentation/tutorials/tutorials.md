@@ -30,15 +30,14 @@ When you want to develop a program based on Chrono::Engine, there are
 different alternatives:
 
 -   @subpage tutorial_cmake
-	
-	This is approach that we suggest when you want to develop serious projects
+
+This is approach that we suggest when you want to develop serious projects
 
 -   @subpage advanced_build
 	
-	This section is for people that need to integrate Chrono::Engine in a project where they are already using other build systems. It contains low-level details on build flags, library paths etc.
+ This section is for people that need to integrate Chrono::Engine in a project where they are already using other build systems. It contains low-level details on build flags, library paths etc.
 
-	In all cases, the build process requires that you
-
+ In all cases, the build process requires that you
 	-   include the .h headers of Chrono::Engine,
 	-   link the .lib libraries of Chrono::Engine,
 	-   build your .exe
