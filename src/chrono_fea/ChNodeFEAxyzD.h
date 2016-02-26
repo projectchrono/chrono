@@ -43,7 +43,9 @@ public:
 						variables_D->GetMassDiagonal().FillElem(0.0); // default: no atomic mass associated to fea node, the fea element will add mass matrix
 					}
 
-	~ChNodeFEAxyzD() {};
+	~ChNodeFEAxyzD() {
+        delete variables_D;
+    };
 
 	ChNodeFEAxyzD (const ChNodeFEAxyzD& other) :
 						ChNodeFEAxyz(other) 
