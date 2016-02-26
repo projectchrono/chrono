@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Hammad Mazhar
+// Authors: Hammad Mazhar
 // =============================================================================
 //
 // ChronoParallel test program using penalty method for frictional contact.
@@ -87,7 +87,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     fluid_container->artificial_pressure_k = .001;
     fluid_container->artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
     fluid_container->artificial_pressure_n = 4;
-    fluid_container->collision_envelope = fluid_container->kernel_radius * .05;
+    fluid_container->collision_envelope = 0;//fluid_container->kernel_radius * .05;
 
     real radius = .1;  //*5
     real dens = 30;
