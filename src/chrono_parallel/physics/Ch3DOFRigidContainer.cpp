@@ -253,37 +253,16 @@ void Ch3DOFRigidContainer::Build_b() {
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(
-                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i] -
-                             data_manager->settings.collision.collision_envelope;  //
-                real bi = 0;                                                       //
-                if (depth > 0 && contact_cohesion == 0) {
-                    bi = real(1.0) / dt * (depth);  // - data_manager->settings.collision.collision_envelope);  //
-                    // printf("BI: %f %f %f\n", bi, depth, data_manager->settings.collision.collision_envelope);
-                } else {
-                    depth = Min(depth, 0);
-                    bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                    // printf("BB: %f %f %f\n", bi, depth, data_manager->settings.collision.collision_envelope);
-                }
-
-                b[start_boundary + index + 0] = bi;);
+            Loop_Over_Rigid_Neighbors(real depth =
+                                          data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
+                                      real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                      b[start_boundary + index + 0] = bi;);
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
-                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i] -
-                             data_manager->settings.collision.collision_envelope;  //
-                real bi = 0;                                                       //
-                if (depth > 0 && contact_cohesion == 0) {
-                    bi = real(1.0) / dt * (depth);  // - data_manager->settings.collision.collision_envelope);  //
-                    // printf("BI: %f %f %f\n", bi, depth, data_manager->settings.collision.collision_envelope);
-                } else {
-                    depth = Min(depth, 0);
-                    bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                    // printf("BB: %f %f %f\n", bi, depth, data_manager->settings.collision.collision_envelope);
-                }
-
-                b[start_boundary + index + 0] = bi;
-                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
+                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
+                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);  //
+                b[start_boundary + index + 0] = bi; b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
                 b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
         }
     }
