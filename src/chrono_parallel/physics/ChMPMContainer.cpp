@@ -68,38 +68,22 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
             }
             delta_F = delta_F * container->marker_Fe[p];
 
-            // real plastic_determinant = container->det_marker_Fp[p];
-            Mat33 R = container->SVD_Fe_hat_R[p];
-            Mat33 S = container->SVD_Fe_hat_S[p];
+            real plastic_determinant = Determinant(container->marker_Fp[p]);
+            real J = Determinant(container->marker_Fe_hat[p]);
+            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+            real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));
+            Mat33 Fe_hat_inv_transpose = InverseTranspose(container->marker_Fe_hat[p]);
 
-            real plastic_determinant = Determinant(container->marker_Fp[p]);                          // Constant
-            real J = Determinant(container->marker_Fe_hat[p]);                                        // Constant
-            real current_mu = mu * Exp(hardening_coefficient * (1.0 - plastic_determinant));          // Constant
-            real current_lambda = lambda * Exp(hardening_coefficient * (1.0 - plastic_determinant));  // Constant
-
-            // Mat33 Fe_hat_inv_transpose;
-            // if (J > 0.0) {
-            //    Fe_hat_inv_transpose = AdjointTranspose(data_manager->host_data.marker_Fe_hat[p]) * real(1.0 / J);
-            //} else {
-            //    Fe_hat_inv_transpose = Mat33(0);
-            //}
-
-            // Mat33 Fe_hat_inv_transpose = InverseTranspose(data_manager->host_data.marker_Fe_hat[p]);  // Constant
-            // Mat33 U, V;
-            // real3 E;
-            // SVD(data_manager->host_data.marker_Fe_hat[p], U, E, V);  // Constant
-            // Mat33 R = MultTranspose(U, V);                           // Constant
-            // Mat33 S = V * MultTranspose(Mat33(E), V);                // Constant
-
-            // real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
-            // Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * TransposeMult(delta_F, Fe_hat_inv_transpose);
-            // Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
-
-            Mat33 W = TransposeMult(R, delta_F);
-            Mat33 RD = Solve_dR(R, S, W);
+            real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
+            Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
+            Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
+            Mat33 RD = Rotational_Derivative(container->marker_Fe_hat[p], delta_F);
 
             Mat33 volume_Ap_Fe_transpose =
-                container->marker_volume[p] * (2 * current_mu * (delta_F - RD)) * Transpose(container->marker_Fe[p]);
+                container->marker_volume[p] *
+                (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
+                 (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
+                Transpose(container->marker_Fe[p]);
             {
                 const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
                 const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
@@ -256,7 +240,6 @@ void ChMPMContainer::Update(double ChTime) {
 void ChMPMContainer::UpdatePosition(double ChTime) {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
-    custom_vector<real>& old_vel_node_mpm = old_vel_node_mpm;
     printf("Update_Particle_Velocities\n");
 
 #pragma omp parallel for
@@ -467,6 +450,8 @@ void ChMPMContainer::Build_E() {
         }
     }
     if (num_mpm_contacts > 0) {
+// printf("Stiffness: %f\n", lambda + 2 * mu);
+
 #pragma omp parallel for
         for (int index = 0; index < num_mpm_contacts; index++) {
             E[start_contact + index + 0] = 0;
@@ -578,7 +563,7 @@ void ChMPMContainer::GenerateSparsity() {
     }
 }
 void ChMPMContainer::PreSolve() {
-    return;
+    printf("PreSolve\n");
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
     const real dt = data_manager->settings.step_size;
@@ -631,48 +616,50 @@ void ChMPMContainer::PreSolve() {
     UpdateRhs();
 
     printf("Loop over rigid bodies\n");
-    if (num_rigid_fluid_contacts > 0) {
-        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
-
-        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-
-        custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
-        custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
-
-        // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
-        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-
-        Loop_Over_Rigid_Neighbors(                                          //
-            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  //
-            real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
-            Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
-            real3 c_pt = cpta[p * max_rigid_neighbors + i];
-
-            real3 v_rigid = real3(data_manager->host_data.v[rigid * 6 + 0], data_manager->host_data.v[rigid * 6 + 1],
-                                  data_manager->host_data.v[rigid * 6 + 2]);
-
-            real3 o_rigid = real3(data_manager->host_data.v[rigid * 6 + 3], data_manager->host_data.v[rigid * 6 + 4],
-                                  data_manager->host_data.v[rigid * 6 + 5]);
-
-            real3 pt1_loc = TransformParentToLocal(pos_rigid[rigid], rot_rigid[rigid], c_pt);
-            // Velocity of the contact point on the body:
-            real3 vel1 = v_rigid + Rotate(Cross(o_rigid, pt1_loc), rot_rigid[rigid]);
-
-            // Find the grid cell
-
-            const int cx = GridCoord(c_pt.x, inv_bin_edge, min_bounding_point.x);
-            const int cy = GridCoord(c_pt.y, inv_bin_edge, min_bounding_point.y);
-            const int cz = GridCoord(c_pt.z, inv_bin_edge, min_bounding_point.z);
-            const int current_node = GridHash(cx, cy, cz, bins_per_axis);
-
-            real3 current_node_location = NodeLocation(cx, cy, cz, bin_edge, min_bounding_point);
-            real weight = N(c_pt - current_node_location, inv_bin_edge);  //
-            grid_vel[current_node * 3 + 0] = vel1.x;                      //
-            grid_vel[current_node * 3 + 1] = vel1.y;                      //
-            grid_vel[current_node * 3 + 2] = vel1.z;);
-    }
+    //    if (num_rigid_fluid_contacts > 0) {
+    //        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
+    //
+    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    //
+    //        custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
+    //        custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+    //
+    //        // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
+    //        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+    //        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+    //
+    //        Loop_Over_Rigid_Neighbors(                                          //
+    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  //
+    //            real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
+    //            Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
+    //            real3 c_pt = cpta[p * max_rigid_neighbors + i];
+    //
+    //            real3 v_rigid = real3(data_manager->host_data.v[rigid * 6 + 0], data_manager->host_data.v[rigid * 6 +
+    //            1],
+    //                                  data_manager->host_data.v[rigid * 6 + 2]);
+    //
+    //            real3 o_rigid = real3(data_manager->host_data.v[rigid * 6 + 3], data_manager->host_data.v[rigid * 6 +
+    //            4],
+    //                                  data_manager->host_data.v[rigid * 6 + 5]);
+    //
+    //            real3 pt1_loc = TransformParentToLocal(pos_rigid[rigid], rot_rigid[rigid], c_pt);
+    //            // Velocity of the contact point on the body:
+    //            real3 vel1 = v_rigid + Rotate(Cross(o_rigid, pt1_loc), rot_rigid[rigid]);
+    //
+    //            // Find the grid cell
+    //
+    //            const int cx = GridCoord(c_pt.x, inv_bin_edge, min_bounding_point.x);
+    //            const int cy = GridCoord(c_pt.y, inv_bin_edge, min_bounding_point.y);
+    //            const int cz = GridCoord(c_pt.z, inv_bin_edge, min_bounding_point.z);
+    //            const int current_node = GridHash(cx, cy, cz, bins_per_axis);
+    //
+    //            real3 current_node_location = NodeLocation(cx, cy, cz, bin_edge, min_bounding_point);
+    //            real weight = N(c_pt - current_node_location, inv_bin_edge);  //
+    //            grid_vel[current_node * 3 + 0] = vel1.x;                      //
+    //            grid_vel[current_node * 3 + 1] = vel1.y;                      //
+    //            grid_vel[current_node * 3 + 2] = vel1.z;);
+    //    }
 
     DynamicVector<real> delta_v(num_mpm_nodes * 3);
     delta_v = 0;
@@ -683,14 +670,15 @@ void ChMPMContainer::PreSolve() {
 
     const real3 gravity = data_manager->settings.gravity;
 
-    custom_vector<real>& old_vel_node_mpm = old_vel_node_mpm;
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         real3 V_flip = vel_marker[p];
 
         real3 V_pic = real3(0.0);
-        LOOPOVERNODES(                                                                                       //
-            real weight = N(xi - current_node_location, inv_bin_edge);                                       //
+
+        LOOPOVERNODES(                                                  //
+            real weight = N(xi - current_node_location, inv_bin_edge);  //
+
             V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                              //
             V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                              //
             V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                              //
@@ -698,7 +686,6 @@ void ChMPMContainer::PreSolve() {
             V_flip.y += (grid_vel[current_node * 3 + 1] - old_vel_node_mpm[current_node * 3 + 1]) * weight;  //
             V_flip.z += (grid_vel[current_node * 3 + 2] - old_vel_node_mpm[current_node * 3 + 2]) * weight;  //
             )
-
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
 
         real speed = Length(new_vel);
@@ -708,9 +695,9 @@ void ChMPMContainer::PreSolve() {
 
         int index = data_manager->host_data.reverse_mapping_3dof[p];
 
-        //        data_manager->host_data.v[body_offset + index * 3 + 0] = new_vel.x;
-        //        data_manager->host_data.v[body_offset + index * 3 + 1] = new_vel.y;
-        //        data_manager->host_data.v[body_offset + index * 3 + 2] = new_vel.z;
+        data_manager->host_data.v[body_offset + index * 3 + 0] = new_vel.x;
+        data_manager->host_data.v[body_offset + index * 3 + 1] = new_vel.y;
+        data_manager->host_data.v[body_offset + index * 3 + 2] = new_vel.z;
 
         //        sorted_pos_fluid[i] = pos_fluid[index];
         //        sorted_vel_fluid[i] = vel_fluid[index];
@@ -724,8 +711,6 @@ void ChMPMContainer::PreSolve() {
     printf("Done Pre solve\n");
 }
 void ChMPMContainer::PostSolve() {
-    return;
-
     //    UpdateRhs();
     //
     //    DynamicVector<real> delta_v(num_mpm_nodes * 3);
@@ -770,6 +755,12 @@ void ChMPMContainer::Solve(const DynamicVector<real>& rhs, DynamicVector<real>& 
     Multiply.Setup(this, data_manager);
     ChProjectNone ProjectNone;
     solver->Solve(Multiply, ProjectNone, max_iterations, num_mpm_nodes * 3, rhs, delta_v);
+
+    int size = data_manager->measures.solver.maxd_hist.size();
+    for (int i = 0; i < size; i++) {
+        printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
+               data_manager->measures.solver.maxdeltalambda_hist[i]);
+    }
 }
 
 void ChMPMContainer::UpdateRhs() {
@@ -777,33 +768,22 @@ void ChMPMContainer::UpdateRhs() {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
     const real dt = data_manager->settings.step_size;
-    // contact forces
-    custom_vector<real3> node_force(num_mpm_nodes);
 
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
 
-        Mat33 PED =
-            Potential_Energy_Derivative_Deviatoric(marker_Fe_hat[p], marker_Fp[p], mu, lambda, hardening_coefficient);
+        Mat33 PED = Potential_Energy_Derivative(marker_Fe_hat[p], marker_Fp[p], mu, lambda, hardening_coefficient);
 
         Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, marker_Fe[p]);
-        real JE = Determinant(marker_Fe[p]);  //
-        real JP = Determinant(marker_Fp[p]);  //
-        real3 contact_force = real3(0);
-        if (contact_forces.size() == num_mpm_markers) {
-            contact_force.x = contact_forces[p * 3 + 0];
-            contact_force.y = contact_forces[p * 3 + 1];
-            contact_force.z = contact_forces[p * 3 + 2];
-        }
+        real JE = Determinant(marker_Fe[p]);                                //
+        real JP = Determinant(marker_Fp[p]);                                //
         LOOPOVERNODES(                                                      //
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
             real3 force = (vPEDFepT * d_weight) / (JE * JP);
 
-            node_force[current_node] -= force;
-
-            rhs[current_node * 3 + 0] -= dt * force.x;  // - dt * contact_force.x;  //
-            rhs[current_node * 3 + 1] -= dt * force.y;  // - dt * contact_force.y;  //
-            rhs[current_node * 3 + 2] -= dt * force.z;  //- dt * contact_force.z;  //
+            rhs[current_node * 3 + 0] -= dt * force.x;  //
+            rhs[current_node * 3 + 1] -= dt * force.y;  //
+            rhs[current_node * 3 + 2] -= dt * force.z;  //
             )
     }
 }
