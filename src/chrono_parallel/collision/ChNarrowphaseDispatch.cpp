@@ -332,7 +332,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
 
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     real l = x - minimum;
-    int c = round(l * inv_bin_edge);
+    int c = Round(l * inv_bin_edge);
     return c;
 }
 
@@ -357,20 +357,8 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
                                                  custom_vector<int>& reverse_mapping,
                                                  int3& bins_per_axis,
                                                  uint& num_fluid_contacts) {
-    const real radiusSq = radius * radius + collision_envelope;
-    //=======
-
-    neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
-    contact_counts.resize(num_fluid_bodies);
-    particle_indices.resize(num_fluid_bodies);
-    reverse_mapping.resize(num_fluid_bodies);
-    ff_bin_ids.resize(num_fluid_bodies);
-
-    sorted_pos_fluid.resize(num_fluid_bodies);
-    sorted_vel_fluid.resize(num_fluid_bodies);
-
-    Thrust_Fill(contact_counts, 0);
-    Thrust_Fill(neighbor_fluid_fluid, 0);
+    const real radius_envelope = radius + collision_envelope;
+    const real radius_squared = radius_envelope * radius_envelope;
 
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;
@@ -378,18 +366,29 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
     res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
 
     real3 diag = max_bounding_point - min_bounding_point;
-
-    bins_per_axis = int3(diag / (radius * 2));
-
-    real inv_bin_edge = real(1.0) / (radius * 2 + collision_envelope);
+    bins_per_axis = int3(diag / (radius_envelope * 2));
+    real inv_bin_edge = real(1.0) / (radius_envelope * 2);
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
+    //====================================
+    neighbor_fluid_fluid.resize(num_fluid_bodies * max_neighbors);
+    contact_counts.resize(num_fluid_bodies);
+    particle_indices.resize(num_fluid_bodies);
+    reverse_mapping.resize(num_fluid_bodies);
+    ff_bin_ids.resize(num_fluid_bodies);
+    //====================================
+    sorted_pos_fluid.resize(num_fluid_bodies);
+    sorted_vel_fluid.resize(num_fluid_bodies);
+    //====================================
     ff_bin_starts.resize(grid_size);
     ff_bin_ends.resize(grid_size);
-
+    //====================================
     Thrust_Fill(ff_bin_starts, 0);
     Thrust_Fill(ff_bin_ends, 0);
     Thrust_Fill(contact_counts, 0);
+    Thrust_Fill(contact_counts, 0);
+    Thrust_Fill(neighbor_fluid_fluid, 0);
+//====================================
 
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
@@ -438,25 +437,18 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
         const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
         const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);
 
-        const int xstart = cx - 1, xend = cx + 1;
-        const int ystart = cy - 1, yend = cy + 1;
-        const int zstart = cz - 1, zend = cz + 1;
-
         int contact_count = 0;
-        for (int k = zstart; k <= zend; ++k) {
-            for (int j = ystart; j <= yend; ++j) {
-                for (int i = xstart; i <= xend; ++i) {
+        for (int k = cz - 1; k <= cz + 1; ++k) {
+            for (int j = cy - 1; j <= cy + 1; ++j) {
+                for (int i = cx - 1; i <= cx + 1; ++i) {
                     const int cellIndex = GridHash(i, j, k, bins_per_axis);
                     const int cellStart = ff_bin_starts[cellIndex];
                     const int cellEnd = ff_bin_ends[cellIndex];
                     for (int q = cellStart; q < cellEnd; ++q) {
-                        // if (q == p) {
-                        //    continue;
-                        //}  // disabled this so that we get self contact
+                        // if (q == p) { continue; }  // disabled this so that we get self contact
                         const real3 xj = sorted_pos_fluid[q];
                         const real3 xij = xi - xj;
-                        const real dSq = Dot(xij);
-                        if (dSq < radiusSq) {
+                        if (Dot(xij) < radius_squared) {
                             if (contact_count < max_neighbors) {
                                 neighbor_fluid_fluid[p * max_neighbors + contact_count] = q;
                                 ++contact_count;
@@ -478,7 +470,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     }
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() S";
     const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    const real radius = data_manager->node_container->kernel_radius;
+    const real radius = data_manager->node_container->kernel_radius + data_manager->node_container->collision_envelope;
 
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;
@@ -536,9 +528,11 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     real3 global_origin = data_manager->measures.collision.global_origin;
     int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
+    const real radius = sphere_radius + collision_envelope;
 
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
     is_rigid_bin_active.resize(total_bins);
+
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
     for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
@@ -547,11 +541,12 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     }
     f_bin_intersections.resize(num_spheres + 1);
     f_bin_intersections[num_spheres] = 0;
+
 #pragma omp parallel for
     for (int p = 0; p < num_spheres; p++) {
         real3 pos_sphere = pos_spheres[p];
-        int3 gmin = HashMin(pos_sphere - real3(sphere_radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_sphere + real3(sphere_radius) - global_origin, inv_bin_size);
+        int3 gmin = HashMin(pos_sphere - real3(radius) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_sphere + real3(radius) - global_origin, inv_bin_size);
         f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
@@ -566,8 +561,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     for (int p = 0; p < num_spheres; p++) {
         uint count = 0, i, j, k;
         real3 pos_sphere = pos_spheres[p];
-        int3 gmin = HashMin(pos_sphere - real3(sphere_radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_sphere + real3(sphere_radius) - global_origin, inv_bin_size);
+        int3 gmin = HashMin(pos_sphere - real3(radius) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_sphere + real3(radius) - global_origin, inv_bin_size);
         uint mInd = f_bin_intersections[p];
         for (i = gmin.x; i <= gmax.x; i++) {
             for (j = gmin.y; j <= gmax.y; j++) {
@@ -612,8 +607,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             for (uint i = start; i < end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 pos_sphere = pos_spheres[p];
-                real3 Bmin = pos_sphere - real3(sphere_radius + collision_envelope) - global_origin;
-                real3 Bmax = pos_sphere + real3(sphere_radius + collision_envelope) - global_origin;
+                real3 Bmin = pos_sphere - real3(radius) - global_origin;
+                real3 Bmax = pos_sphere + real3(radius) - global_origin;
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
@@ -671,14 +666,14 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
     is_rigid_bin_active.resize(total_bins);
     Thrust_Fill(is_rigid_bin_active, 1000000000);
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
         uint bin_number = data_manager->host_data.bin_number_out[index];
         is_rigid_bin_active[bin_number] = index;
     }
     f_bin_intersections.resize(num_tets + 1);
     f_bin_intersections[num_tets] = 0;
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
         int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
         int3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
@@ -692,7 +687,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     f_bin_fluid_number.resize(f_number_of_bin_intersections);
     f_bin_start_index.resize(f_number_of_bin_intersections);
 
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
         uint count = 0, i, j, k;
         int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
@@ -726,6 +721,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     contact_counts.resize(num_tets + 1);
     short2 family = data_manager->fea_container->family;
     Thrust_Fill(contact_counts, 0);
+#pragma omp parallel for
     for (int index = 0; index < f_number_of_bins_active; index++) {
         uint start = f_bin_start_index[index];
         uint end = f_bin_start_index[index + 1];
