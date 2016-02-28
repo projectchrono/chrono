@@ -251,7 +251,7 @@ if (NOT IOMP5_LIBRARY)
     # we could instead fallback to default library (via FindOpenMP.cmake)
     list(APPEND _MKL_MISSING_LIBRARIES IOMP5)
 else()
-    list(APPEND MKL_LIBRARIES ${IOMP5_LIBRARY})
+    ####list(APPEND MKL_LIBRARIES ${IOMP5_LIBRARY})
     if (MKL_FIND_DEBUG)
         message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
                        "Found IOMP5_LIBRARY: ${IOMP5_LIBRARY}")
@@ -282,7 +282,7 @@ if (NOT MATH_LIBRARY)
     # we could instead fallback to default library (via FindOpenMP.cmake)
     list(APPEND _MKL_MISSING_LIBRARIES MATH)
 else()
-    list(APPEND MKL_LIBRARIES ${MATH_LIBRARY})
+    ####list(APPEND MKL_LIBRARIES ${MATH_LIBRARY})
     if (MKL_FIND_DEBUG)
         message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
                        "Found MATH_LIBRARY: ${MATH_LIBRARY}")
@@ -315,20 +315,22 @@ elseif (_MKL_MISSING_LIBRARIES)
     endif()
 endif()
 
-if (MKL_FOUND)
-    if (NOT MKL_FIND_QUIETLY OR MKL_FIND_DEBUG)
-        message(STATUS
-            "Intel(R) MKL was found:\n"
-            "  MKL_INCLUDE_DIRS: ${MKL_INCLUDE_DIRS}\n"
-            "  MKL_LIBRARY_DIRS: ${MKL_LIBRARY_DIRS}\n"
-            "  MKL_LIBRARIES: ${MKL_LIBRARIES}"
-        )
-    endif()
-else()
-    if (MKL_FIND_REQUIRED)
-        message(SEND_ERROR "Intel(R) MKL could not be found.")
+if (MKL_FIND_DEBUG)
+    if (MKL_FOUND)
+        if (NOT MKL_FIND_QUIETLY OR MKL_FIND_DEBUG)
+            message(STATUS
+                "Intel(R) MKL was found:\n"
+                "  MKL_INCLUDE_DIRS: ${MKL_INCLUDE_DIRS}\n"
+                "  MKL_LIBRARY_DIRS: ${MKL_LIBRARY_DIRS}\n"
+                "  MKL_LIBRARIES: ${MKL_LIBRARIES}"
+            )
+        endif()
     else()
-        message(STATUS "Intel(R) MKL could not be found.")
+        if (MKL_FIND_REQUIRED)
+            message(SEND_ERROR "Intel(R) MKL could not be found.")
+        else()
+            message(STATUS "Intel(R) MKL could not be found.")
+        endif()
     endif()
 endif()
 

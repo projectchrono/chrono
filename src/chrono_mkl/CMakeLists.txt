@@ -15,6 +15,7 @@ ENDIF()
 
 MESSAGE(STATUS "==== Chrono MKL module ====")
 
+MARK_AS_ADVANCED(CLEAR MKL_ROOT)
 MARK_AS_ADVANCED(CLEAR MATH_LIBRARY)
 MARK_AS_ADVANCED(CLEAR IOMP5_LIBRARY)
 
@@ -22,11 +23,19 @@ MARK_AS_ADVANCED(CLEAR IOMP5_LIBRARY)
 # Dependencies for MKL module
 # ------------------------------------------------------------------------------
 
+message(STATUS "Find MKL libraries")
+
 #set(MKL_USE_STATIC_LIBS ON)
 #set(MKL_FIND_DEBUG ON)
 find_package(MKL)
 
-if(NOT MKL_FOUND)
+message(STATUS "   MKL include dirs:  ${MKL_INCLUDE_DIRS}")
+message(STATUS "   MKL libraries:     ${MKL_LIBRARIES}")
+message(STATUS "   IOMP5 library:     ${IOMP5_LIBRARY}")
+message(STATUS "   MATH library:      ${MATH_LIBRARY}")
+message(STATUS "   MKL library dirs:  ${MKL_LIBRARY_DIRS}")
+
+if(NOT MKL_LIBRARIES)
   set(MKL_ROOT "" CACHE PATH "Location of MKL installation")
 endif()
 
