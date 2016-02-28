@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
 
         // Report run time and total number of iterations.
         GetLog() << "Number of iterations: " << num_iterations << "\n";
-        GetLog() << "Simulation time:  " << timer.GetTimeSecondsIntermediate() << "\n";
+        GetLog() << "Simulation time:  " << timer() << "\n";
         GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces() << "):  " << my_mesh->GetTimingInternalForces() << "\n";
         GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimingJacobianLoad() << "\n";
         GetLog() << "Extra time:  " << timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad() << "\n";
