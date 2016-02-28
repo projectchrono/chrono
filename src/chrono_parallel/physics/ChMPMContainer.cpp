@@ -192,9 +192,9 @@ void ChMPMContainer::ComputeDOF() {
     res.second.x = kernel_radius * Round(res.second.x / kernel_radius);
     res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
     res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
-
-    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 6;
-    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 4;
+    // Note that 8 and 6 are the optimal values here, 6 and 4 will cause memory errors in valgrind
+    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 8;
+    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 6;
 
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
@@ -205,13 +205,13 @@ void ChMPMContainer::ComputeDOF() {
 
     printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
     printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("Compute DOF [%d] [%d %d %d] [%f] %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
-           bin_edge, num_mpm_markers);
+    printf("Compute DOF [%d] [%d %d %d] [%f] %d %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
+           bin_edge, num_mpm_nodes, num_mpm_markers);
 }
 
 void ChMPMContainer::Update(double ChTime) {
     Setup(0);
-    printf("Update: %d %d\n", num_mpm_nodes, num_mpm_markers);
+    ComputeDOF();
     node_mass.resize(num_mpm_nodes);
     old_vel_node_mpm.resize(num_mpm_nodes * 3);
     rhs.resize(num_mpm_nodes * 3);
@@ -300,18 +300,13 @@ void ChMPMContainer::ComputeMass(int offset) {
 }
 
 void ChMPMContainer::Initialize() {
+    ComputeDOF();
     const real dt = data_manager->settings.step_size;
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-
-    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
-    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("Initialize [%d] [%d %d %d] [%f] %d\n", num_mpm_nodes, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
-           bin_edge, num_mpm_markers);
 
     marker_volume.resize(num_mpm_markers);
     node_mass.resize(num_mpm_nodes);
     std::fill(node_mass.begin(), node_mass.end(), 0);
-
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         LOOPOVERNODES(                                                                //
@@ -321,7 +316,6 @@ void ChMPMContainer::Initialize() {
     }
 
     printf("Compute_Particle_Volumes %f\n", mass);
-#pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
         real particle_density = 0;
@@ -332,7 +326,7 @@ void ChMPMContainer::Initialize() {
             )
         particle_density /= (bin_edge * bin_edge * bin_edge);
         marker_volume[p] = mass / particle_density;
-        printf("Volumes: %.20f \n", marker_volume[p], particle_density);
+        // printf("Volumes: %.20f \n", marker_volume[p], particle_density);
     }
 }
 
@@ -402,10 +396,14 @@ void ChMPMContainer::Build_b() {
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth =
-                                          data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
-                                      real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                      b[start_boundary + index + 0] = bi;);
+            Loop_Over_Rigid_Neighbors(
+                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
+
+                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); b[start_boundary + index + 0] = bi;
+
+                // printf("bi: %f\n", bi);
+
+                );
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
