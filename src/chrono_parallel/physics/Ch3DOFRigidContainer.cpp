@@ -253,16 +253,23 @@ void Ch3DOFRigidContainer::Build_b() {
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth =
-                                          data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
-                                      real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                      b[start_boundary + index + 0] = bi;);
+            Loop_Over_Rigid_Neighbors(
+                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];  //
+
+                real bi = 0;  //
+                if (contact_cohesion) { depth = Min(depth, 0); } else if (depth > 0) { bi = 0; } else {
+                    real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                }  //
+                b[start_boundary + index + 0] = bi;);
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
-                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
-                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);  //
-                b[start_boundary + index + 0] = bi; b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
+                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i]; real bi = 0;  //
+                if (contact_cohesion) { depth = Min(depth, 0); } else if (depth > 0) { bi = 0; } else {
+                    real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                }  //
+                b[start_boundary + index + 0] = bi;
+                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
                 b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
         }
     }
@@ -271,19 +278,19 @@ void Ch3DOFRigidContainer::Build_b() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius; depth = Min(depth, 0);
-                                      real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+            Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;  //
+                                      real bi = 0;                               //
+                                      if (cohesion) { depth = Min(depth, 0); } else if (depth > 0) { bi = 0; } else {
+                                          real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                      }
+
                                       b[start_contact + index + 0] = bi;);
         } else {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;  //
                                       real bi = 0;                               //
-                                      if (depth > 0 && cohesion == 0) {
-                                          bi = real(1.0) / dt * depth;  //
-                                      } else {
-                                          depth = Min(depth, 0);                                           //
-                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);  //
-                                      }
-
+                                      if (cohesion) { depth = Min(depth, 0); } else if (depth > 0) { bi = 0; } else {
+                                          real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                      }                                                           //
                                       b[start_contact + index + 0] = bi;                          //
                                       b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;  //
                                       b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;);
