@@ -57,7 +57,7 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
     m_idler_R_contacts.clear();
 
     // Traverse all system contacts and extract information.
-    vehicle->GetSystem()->GetContactContainer()->ReportAllContacts2(this);
+    vehicle->GetSystem()->GetContactContainer()->ReportAllContacts(this);
 
     // Collect contact information data.
 
@@ -76,14 +76,14 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool ChTrackContactManager::ReportContactCallback2(const ChVector<>& pA,
-                                                   const ChVector<>& pB,
-                                                   const ChMatrix33<>& plane_coord,
-                                                   const double& distance,
-                                                   const ChVector<>& react_forces,
-                                                   const ChVector<>& react_torques,
-                                                   ChContactable* modA,
-                                                   ChContactable* modB) {
+bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
+                                                  const ChVector<>& pB,
+                                                  const ChMatrix33<>& plane_coord,
+                                                  const double& distance,
+                                                  const ChVector<>& react_forces,
+                                                  const ChVector<>& react_torques,
+                                                  ChContactable* modA,
+                                                  ChContactable* modB) {
     ChTrackContactInfo info;
 
     // Ignore contacts with zero force.
