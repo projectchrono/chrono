@@ -1,6 +1,7 @@
 #--------------------------------------------------------------
 set(FEA_TESTS
     test_shellANCF
+    test_4HumveeTires
 )
 
 if(ENABLE_MODULE_MKL)
