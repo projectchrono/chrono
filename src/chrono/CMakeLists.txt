@@ -503,6 +503,7 @@ set(ChronoEngine_timestepper_HEADERS
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
     timestepper/ChStaticAnalysis.h
+	timestepper/ChAssemblyAnalysis.h
     )
 
 source_group(timestepper FILES

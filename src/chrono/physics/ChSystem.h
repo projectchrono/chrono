@@ -43,6 +43,7 @@
 #include "collision/ChCCollisionSystem.h"
 #include "timestepper/ChIntegrable.h"
 #include "timestepper/ChTimestepper.h"
+#include "timestepper/ChAssemblyAnalysis.h"
 
 namespace chrono {
 
@@ -884,7 +885,7 @@ public:
     ///  flags = [see above]
     ///  ASF_COLLISION , perform also collision detection
     /// Returns 0 if no errors, returns TRUE if error happened (impossible assemblation?)
-    int DoAssembly(int action, int mflags = 0);
+    int DoAssembly(int action = ASS_POSITION|ASS_SPEED|ASS_ACCEL, int mflags = 0);
 
     /// Shortcut for full pos/speed/acc assembly, also computes forces
     int DoFullAssembly();
@@ -1031,18 +1032,7 @@ public:
     std::shared_ptr<ChTimestepper> timestepper;
 };
 
-//////////////////////////////////////
-// Define flags for "action" of
-// DoAssembly()  function
 
-#define ASS_POSITION (1L << 0)
-#define ASS_SPEED (1L << 1)
-#define ASS_ACCEL (1L << 2)
-
-// define other flags for "flags"
-// argument of DoAssembly() function
-#define ASF_NONE 0
-#define ASF_COLLISIONS (1L << 6)
 
 }  // END_OF_NAMESPACE____
 
