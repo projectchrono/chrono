@@ -55,7 +55,7 @@ We took the decision to release Chrono as open source in 2013, when we started t
 ### Copyright
 Chrono is copyrighted by {% include module.html first="PROJECT" second="CHRONO" %}, a nonprofit set up in the US, and released under a BSD 3 license. 
 
-###References
+### References
 
 - A. Tasora, R. Serban, H. Mazhar, A. Pazouki, D. Melanz, J. Fleischmann, M. Taylor, H. Sugiyama, and D. Negrut, *Chrono: An Open Source Multi-Physics Dynamics Engine*, Springer's Lecture Notes in Computer Science, 2015
 

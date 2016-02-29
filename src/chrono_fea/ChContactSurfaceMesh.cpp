@@ -110,9 +110,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
             std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
             std::shared_ptr<ChNodeFEAxyz> nD = mshell->GetNodeD();
             std::array<ChNodeFEAxyz*,3> tri1 = {nA.get(),nB.get(),nC.get()};
-            std::array<ChNodeFEAxyz*,3> tri2 = {nA.get(),nC.get(),nD.get()};
+            std::array<ChNodeFEAxyz*,3> tri2 = {nB.get(),nC.get(),nD.get()};
             std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri1_ptrs = {nA,nB,nC};
-            std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri2_ptrs = {nA,nC,nD};
+            std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri2_ptrs = {nB,nC,nD};
             triangles.push_back( tri1 );
             triangles.push_back( tri2 );
             triangles_ptrs.push_back( tri1_ptrs );

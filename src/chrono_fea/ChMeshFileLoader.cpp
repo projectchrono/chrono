@@ -544,7 +544,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                 string token;
                 std::istringstream ss(line);
                 elementsVector.resize(ele + 1);
-                elementsVector[ele].resize(4);
+                elementsVector[ele].resize(5);
                 elementsdxdy.resize(ele + 1);
                 elementsdxdy[ele].resize(2);
                 while (std::getline(ss, token, ' ') && ntoken < 20) {

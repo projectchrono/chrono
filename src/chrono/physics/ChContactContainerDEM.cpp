@@ -253,24 +253,22 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
-
 template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback2* mcallback) {
+void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        bool proceed =
-            mcallback->ReportContactCallback2((*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(),
-                                             *(*itercontact)->GetContactPlane(), (*itercontact)->GetContactDistance(),
-                                             (*itercontact)->GetContactForceLocal(),
-                                             VNULL,  // no react torques
-                                             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+        bool proceed = mcallback->ReportContactCallback(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForceLocal(),
+            VNULL,  // no react torques
+            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
         if (!proceed)
             break;
         ++itercontact;
     }
 }
 
-void ChContactContainerDEM::ReportAllContacts2(ChReportContactCallback2* mcallback) {
+void ChContactContainerDEM::ReportAllContacts(ChReportContactCallback* mcallback) {
     
     _ReportAllContacts(contactlist_6_6, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);

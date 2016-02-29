@@ -63,16 +63,16 @@ void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const C
 // Draw contact points.
 // Uses the _draw_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _draw_reporter_class : public ChReportContactCallback2 {
+class _draw_reporter_class : public ChReportContactCallback {
   public:
-    virtual bool ReportContactCallback2(const ChVector<>& pA,
+    virtual bool ReportContactCallback(const ChVector<>& pA,
                                        const ChVector<>& pB,
                                        const ChMatrix33<>& plane_coord,
                                        const double& distance,
                                        const ChVector<>& react_forces,
                                        const ChVector<>& react_torques,
                                        ChContactable* modA,
-                                       ChContactable* modB) {
+                                       ChContactable* modB) override {
         ChMatrix33<>& mplanecoord = const_cast<ChMatrix33<>&>(plane_coord);
         ChVector<> v1 = pA;
         ChVector<> v2;
@@ -134,7 +134,7 @@ int ChIrrTools::drawAllContactPoints(ChSystem& mphysicalSystem,
     my_drawer.drawtype = drawtype;
 
     // scan all contacts
-    mphysicalSystem.GetContactContainer()->ReportAllContacts2(&my_drawer);
+    mphysicalSystem.GetContactContainer()->ReportAllContacts(&my_drawer);
 
     return 0;
 }
@@ -143,16 +143,16 @@ int ChIrrTools::drawAllContactPoints(ChSystem& mphysicalSystem,
 // Draw contact information as labels at the contact point.
 // Uses the _label_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _label_reporter_class : public ChReportContactCallback2 {
+class _label_reporter_class : public ChReportContactCallback {
   public:
-    virtual bool ReportContactCallback2(const ChVector<>& pA,
+    virtual bool ReportContactCallback(const ChVector<>& pA,
                                        const ChVector<>& pB,
                                        const ChMatrix33<>& plane_coord,
                                        const double& distance,
                                        const ChVector<>& react_forces,
                                        const ChVector<>& react_torques,
                                        ChContactable* modA,
-                                       ChContactable* modB) {
+                                       ChContactable* modB) override {
         char buffer[25];
         irr::core::vector3df mpos((irr::f32)pA.x, (irr::f32)pA.y, (irr::f32)pA.z);
         irr::core::position2d<s32> spos =
@@ -210,7 +210,7 @@ int ChIrrTools::drawAllContactLabels(ChSystem& mphysicalSystem,
     my_label_rep.labeltype = labeltype;
 
     // scan all contacts
-    mphysicalSystem.GetContactContainer()->ReportAllContacts2(&my_label_rep);
+    mphysicalSystem.GetContactContainer()->ReportAllContacts(&my_label_rep);
 
     return 0;
 }

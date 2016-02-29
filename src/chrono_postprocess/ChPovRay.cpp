@@ -903,8 +903,8 @@ void ChPovRay::ExportData(const std::string& filename) {
                                                    const float& mfriction,
                                                    const ChVector<>& react_forces,
                                                    const ChVector<>& react_torques,
-                                                   collision::ChCollisionModel* modA,
-                                                   collision::ChCollisionModel* modB) {
+                                                   ChContactable* contactobjA,
+                                                   ChContactable* contactobjB) {
                     if (fabs(react_forces.x) > 1e-8 || fabs(react_forces.y) > 1e-8 || fabs(react_forces.z) > 1e-8) {
                         ChMatrix33<> localmatr(plane_coord);
                         ChVector<> n1 = localmatr.Get_A_Xaxis();

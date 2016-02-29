@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChMaterialSurface.h"
@@ -62,14 +63,21 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     bool automatic_gravity_load;
 	int num_points_gravity;
 
+    ChTimer<> timer_internal_forces;
+    ChTimer<> timer_KRMload;
+    int ncalls_internal_forces;
+    int ncalls_KRMload;
+
   public:
-    ChMesh() {
-        n_dofs = 0;
-        n_dofs_w = 0;
-        automatic_gravity_load = true;
-        num_points_gravity = 1;
-    };
-    ~ChMesh(){};
+    ChMesh()
+        : n_dofs(0),
+          n_dofs_w(0),
+          automatic_gravity_load(true),
+          num_points_gravity(1),
+          ncalls_internal_forces(0),
+          ncalls_KRMload(0) {}
+
+    ~ChMesh() {}
 
     void AddNode(std::shared_ptr<ChNodeFEAbase> m_node);
     void AddElement(std::shared_ptr<ChElementBase> m_elem);
@@ -87,7 +95,17 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual int GetDOF_w() { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem
-    virtual bool GetCollide() { return true; };
+    virtual bool GetCollide() { return true; }
+
+    /// Get number of calls to internal forces evaluation.
+    int GetNumCallsInternalForces() { return ncalls_internal_forces; }
+    /// Get number of calls to load Jacobian information.
+    int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
+
+    /// Get cummulative timing for internal force evaluation.
+    double GetTimingInternalForces() { return timer_internal_forces(); }
+    /// Get cummulative timing for Jacobian load calls.
+    double GetTimingJacobianLoad() { return timer_KRMload(); }
 
     /// Add a contact surface
     void AddContactSurface(std::shared_ptr<ChContactSurface> m_surf);
