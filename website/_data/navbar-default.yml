@@ -16,6 +16,15 @@ main:
        -
          title: White Papers
          url: 'http://api.chrono.projectchrono.org/white_paper_root.html'
+    - title: Movies
+      url: '/gallery/'
+      sub:
+       -
+         title: On Vimeo
+         url: 'https://vimeo.com/uwsbel'
+       -
+         title: SBEL
+         url: 'http://sbel.wisc.edu/Animations/'
     - title: News
       url: '/news/'
     - title: Forum
