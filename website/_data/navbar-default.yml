@@ -15,7 +15,7 @@ main:
          url: 'http://api.chrono.projectchrono.org/model_root.html'
        -
          title: White Papers
-         url: 'http://api.chrono.projectchrono.org/white_paper_root.html'
+         url: 'http://api.chrono.projectchrono.org/whitepaper_root.html'
     - title: Movies
       url: '/gallery/'
       sub:
