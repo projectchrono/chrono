@@ -45,10 +45,7 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 		void ForceSPH(
 		SphMarkerDataD * otherSphMarkersD,
 		FsiBodiesDataD * otherFsiBodiesD);
-	private:
 
-	void CalculateXSPH_velocity();
-	void CollideWrapper();
 ///////////////////////////////////////////////////////////////////
 	static void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,
@@ -65,8 +62,12 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 ///////////////////////////////////////////////////////////////////
 
 
+		
+	private:
 
-		ChCollisionSystemFsi* fsiCollisionSystem;
+	void CalculateXSPH_velocity();
+	void CollideWrapper();
+			ChCollisionSystemFsi* fsiCollisionSystem;
 		ChBce* bceWorker;
 
 		SphMarkerDataD * sphMarkersD;

@@ -16,6 +16,7 @@
 // =============================================================================
 
 #include "chrono_fsi/ChUtilsGeneratorFluid.h"
+#include "chrono_fsi/ChDeviceUtils.cuh"
 
 
 namespace chrono{

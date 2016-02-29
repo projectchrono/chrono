@@ -39,7 +39,7 @@ public:
 	void DoStepDynamics_FSI();
 	void DoStepDynamics_ChronoRK2(); 
 	void CopyDeviceDataToHalfStep();
-	void SetHaveVehicle(bool other_haveVehicle);
+	void SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle);
 
 private:
 	int DoStepChronoSystem(Real dT,

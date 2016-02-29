@@ -86,7 +86,7 @@ ChUtilsGeneratorBce.h
 ChUtilsGeneratorFluid.h
 ChUtilsGeneratorFsi.h
 ChApiFsi.h
-ChUtilsGeneralFsi.h
+ChUtilsGeneralSph.cuh
 )
 
 SOURCE_GROUP("" FILES 

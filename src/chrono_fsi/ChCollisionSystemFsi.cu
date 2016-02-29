@@ -18,6 +18,9 @@
 #include <stdexcept>
 #include <thrust/sort.h>
 #include "chrono_fsi/ChCollisionSystemFsi.cuh"
+#include "chrono_fsi/ChDeviceUtils.cuh"
+#include "chrono_fsi/ChUtilsGeneralSph.cuh"
+
 
 namespace chrono {
 namespace fsi {
@@ -133,9 +136,9 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD, // output: cell s
 		/* Now use the sorted index to reorder the pos and vel data */
 		uint originalIndex = gridMarkerIndexD[index];  // map sorted to original
 		mapOriginalToSorted[index] = index;	// will be sorted outside. Alternatively, you could have mapOriginalToSorted[originalIndex] = index; without need to sort. But that is not thread safe
-		Real3 posRad = FETCH(posRadD, originalIndex); // macro does either global read or texture fetch
-		Real3 velMas = FETCH(velMasD, originalIndex); // see particles_kernel.cuh
-		Real4 rhoPreMu = FETCH(rhoPresMuD, originalIndex);
+		Real3 posRad = posRadD[originalIndex]; // macro does either global read or texture fetch
+		Real3 velMas = velMasD[originalIndex]; // see particles_kernel.cuh
+		Real4 rhoPreMu = rhoPresMuD[originalIndex];
 
 		if (!(isfinite(posRad.x) && isfinite(posRad.y)
 				&& isfinite(posRad.z))) {

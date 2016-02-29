@@ -19,7 +19,7 @@
 
 #include "chrono_fsi/ChUtilsGeneratorBce.h"
 #include "chrono/core/ChMathematics.h" // for CH_C_PI
-#include "chrono_fsi/ChUtilsGeneralFsi.h"
+#include "chrono_fsi/ChDeviceUtils.cuh"
 
 namespace chrono{
 namespace fsi {

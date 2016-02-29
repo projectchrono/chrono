@@ -23,7 +23,6 @@
 namespace chrono {
 namespace fsi {
  
-
 void ChDeviceUtils::ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize) {
 	mThrustVec.resize(mSize);
 }

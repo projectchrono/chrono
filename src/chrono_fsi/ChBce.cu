@@ -16,6 +16,7 @@
 // =============================================================================
 
 #include "chrono_fsi/ChBce.cuh" //for FsiGeneralData
+#include "chrono_fsi/ChUtilsGeneralSph.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -34,23 +35,23 @@ __device__ void BCE_modification_Share(
 		Real4* sortedRhoPreMu, uint* cellStart, uint* cellEnd) {
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
-	uint startIndex = FETCH(cellStart, gridHash);
+	uint startIndex = cellStart[gridHash];
 	if (startIndex != 0xffffffff) {  // cell is not empty
 		// iterate over particles in this cell
-		uint endIndex = FETCH(cellEnd, gridHash);
+		uint endIndex = cellEnd[gridHash];
 
 		for (uint j = startIndex; j < endIndex; j++) {
-			Real3 posRadB = FETCH(sortedPosRad, j);
+			Real3 posRadB = sortedPosRad[j];
 			Real3 dist3 = Distance(posRadA, posRadB);
 			Real d = length(dist3);
-			Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+			Real4 rhoPresMuB = sortedRhoPreMu[j];
 			if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML || rhoPresMuB.w > -.1)
 				continue;
 
 			Real Wd = W3(d);
 			Real WdOvRho = Wd / rhoPresMuB.x;
 			isAffectedV = 1;
-			Real3 velMasB = FETCH(sortedVelMas, j);
+			Real3 velMasB = sortedVelMas[j];
 			sumVW += velMasB * WdOvRho;
 			sumWAll += WdOvRho;
 
@@ -81,9 +82,9 @@ __global__ void new_BCE_VelocityPressure(
 		return;
 	}
 	uint idA = mapOriginalToSorted[sphIndex];
-	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, idA);
-	Real3 posRadA = FETCH(sortedPosRad, idA);
-	Real3 velMasA = FETCH(sortedVelMas, idA);
+	Real4 rhoPreMuA = sortedRhoPreMu[idA];
+	Real3 posRadA = sortedPosRad[idA];
+	Real3 velMasA = sortedVelMas[idA];
 	int isAffectedV = 0;
 	int isAffectedP = 0;
 

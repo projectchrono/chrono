@@ -15,6 +15,8 @@
 // Class for handling time integration in fsi system.//
 // =============================================================================
 #include "chrono_fsi/ChFsiForceParallel.cuh"
+#include "chrono_fsi/ChDeviceUtils.cuh"
+#include "chrono_fsi/ChUtilsGeneralSph.cuh"
 #include <thrust/sort.h>
 
 namespace chrono {
@@ -30,24 +32,24 @@ __device__ Real3 deltaVShare(int3 gridPos, uint index, Real3 posRadA,
 	// get start of bucket for this cell
 	Real3 deltaV = mR3(0.0f);
 
-	uint startIndex = FETCH(cellStart, gridHash);
+	uint startIndex = cellStart[gridHash];
 	if (startIndex != 0xffffffff) {  // cell is not empty
 		// iterate over particles in this cell
-		uint endIndex = FETCH(cellEnd, gridHash);
+		uint endIndex = cellEnd[gridHash];
 
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) {  // check not colliding with self
-				Real3 posRadB = FETCH(sortedPosRad, j);
+				Real3 posRadB = sortedPosRad[j];
 				Real3 dist3 = Distance(posRadA, posRadB);
 				Real d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
 					continue;
-				Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+				Real4 rhoPresMuB = sortedRhoPreMu[j];
 				if (rhoPresMuB.w > -.1)
 					continue; //# B must be fluid (A was checked originally and it is fluid at this point), accoring to
 				// colagrossi (2003), the other phase (i.e. rigid) should not be considered)
 				Real multRho = 2.0f / (rhoPresMuA.x + rhoPresMuB.x);
-				Real3 velMasB = FETCH(sortedVelMas, j);
+				Real3 velMasB = sortedVelMas[j];
 				deltaV += paramsD.markerMass * (velMasB - velMasA) * W3(d)
 						* multRho;
 			}
@@ -159,16 +161,16 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 	// get start of bucket for this cell
 	Real4 derivVelRho = mR4(0);
 
-	uint startIndex = FETCH(cellStart, gridHash);
+	uint startIndex = cellStart[gridHash];
 	if (startIndex == 0xffffffff) { // cell is not empty
 		return derivVelRho;
 	}
 	// iterate over particles in this cell
-	uint endIndex = FETCH(cellEnd, gridHash);
+	uint endIndex = cellEnd[gridHash];
 
 	for (uint j = startIndex; j < endIndex; j++) {
 		if (j != index) {  // check not colliding with self
-			Real3 posRadB = FETCH(sortedPosRad, j);
+			Real3 posRadB = sortedPosRad[j];
 			Real3 dist3Alpha = posRadA - posRadB;
 //			Real3 dist3 = Distance(posRadA, posRadB);
 			Real3 dist3 = Modify_Local_PosB(posRadB, posRadA);
@@ -176,7 +178,7 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 			if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
 				continue;
 
-			Real4 rhoPresMuB = FETCH(sortedRhoPreMu, j);
+			Real4 rhoPresMuB = sortedRhoPreMu[j];
 //			// old version. When rigid-rigid contact used to be handled within fluid
 //			if ((fabs(rhoPresMuB.w - rhoPresMuA.w) < .1)
 //					&& rhoPresMuA.w > -.1) {
@@ -187,7 +189,7 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 			}
 
 			modifyPressure(rhoPresMuB, dist3Alpha);
-			Real3 velMasB = FETCH(sortedVelMas, j);
+			Real3 velMasB = sortedVelMas[j];
 			if (rhoPresMuB.w > -.1) {
 				int bceIndexB = gridMarkerIndex[j] - (numObjectsD.numFluidMarkers);
 				if (!(bceIndexB >= 0 && bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
@@ -198,7 +200,7 @@ __device__ Real4 collideCell(int3 gridPos, uint index, Real3 posRadA,
 			}
 			Real multViscosit = 1;
 			Real4 derivVelRhoAB = mR4(0.0f);
-			Real3 vel_XSPH_B = FETCH(vel_XSPH_Sorted_D, j);
+			Real3 vel_XSPH_B = vel_XSPH_Sorted_D[j];
 			derivVelRhoAB = DifVelocityRho(dist3, d, posRadA, posRadB, velMasA, vel_XSPH_A,
 					velMasB, vel_XSPH_B, rhoPresMuA, rhoPresMuB,
 					multViscosit);
@@ -223,14 +225,14 @@ __global__ void newVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocity
 
 	// read particle data from sorted arrays
 
-	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
-	Real3 velMasA = FETCH(sortedVelMas, index);
+	Real4 rhoPreMuA = sortedRhoPreMu[index];
+	Real3 velMasA = sortedVelMas[index];
 	if (rhoPreMuA.w > -0.1) { // v_XSPH is calculated only for fluid markers. Keep unchanged if not fluid.
 		vel_XSPH_Sorted_D[index] = velMasA;
 		return;
 	}
 
-	Real3 posRadA = FETCH(sortedPosRad, index);
+	Real3 posRadA = sortedPosRad[index];
 	Real3 deltaV = mR3(0);
 
 	// get address in grid
@@ -275,9 +277,9 @@ __global__ void collideD(Real4* sortedDerivVelRho_fsi_D,  // output: new velocit
 		return;
 
 	// read particle data from sorted arrays
-	Real3 posRadA = FETCH(sortedPosRad, index);
-	Real3 velMasA = FETCH(sortedVelMas, index);
-	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	Real3 posRadA = sortedPosRad[index];
+	Real3 velMasA = sortedVelMas[index];
+	Real4 rhoPreMuA = sortedRhoPreMu[index];
 
 
 	// *** comment these couple of lines since we don't want the force on the rigid (or boundary) be influenced by ADAMi

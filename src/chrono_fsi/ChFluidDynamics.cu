@@ -19,6 +19,8 @@
 // applies periodic BC along x
 
 #include "chrono_fsi/ChFluidDynamics.cuh"
+#include "chrono_fsi/ChDeviceUtils.cuh"
+#include "chrono_fsi/ChUtilsGeneralSph.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -35,15 +37,15 @@ __device__ void collideCellDensityReInit(Real& densityShare, Real& denominator,
 	Real densityShare2 = 0.0f;
 	Real denominator2 = 0.0f;
 
-	uint startIndex = FETCH(cellStart, gridHash);
+	uint startIndex = cellStart[gridHash];
 	if (startIndex != 0xffffffff) {  // cell is not empty
 		// iterate over particles in this cell
-		uint endIndex = FETCH(cellEnd, gridHash);
+		uint endIndex = cellEnd[gridHash];
 
 		for (uint j = startIndex; j < endIndex; j++) {
 			if (j != index) {  // check not colliding with self
-				Real3 posRadB = FETCH(sortedPosRad, j);
-				Real4 rhoPreMuB = FETCH(sortedRhoPreMu, j);
+				Real3 posRadB = sortedPosRad[j];
+				Real4 rhoPreMuB = sortedRhoPreMu[j];
 				Real3 dist3 = Distance(posRadA, posRadB);
 				Real d = length(dist3);
 				if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
@@ -270,8 +272,8 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real3* sortedPosRa
 		return;
 
 	// read particle data from sorted arrays
-	Real3 posRadA = FETCH(sortedPosRad, index);
-	Real4 rhoPreMuA = FETCH(sortedRhoPreMu, index);
+	Real3 posRadA = sortedPosRad[index];
+	Real4 rhoPreMuA = sortedRhoPreMu[index];
 
 	if (rhoPreMuA.w > -.1)
 		return;
@@ -406,7 +408,7 @@ void ChFluidDynamics::DensityReinitialization() {
 	uint nBlock_NumSpheres, nThreads_SphMarkers;
 	computeGridSize(numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
 
-	thrust::device_vector<Real4>& dummySortedRhoPreMu = fsiData->sortedSphMarkersD.rhoPresMuD;
+	thrust::device_vector<Real4> dummySortedRhoPreMu = fsiData->sortedSphMarkersD.rhoPresMuD;
 	ReCalcDensityD_F1<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(dummySortedRhoPreMu), mR3CAST(fsiData->sortedSphMarkersD.posRadD),
 			mR3CAST(fsiData->sortedSphMarkersD.velMasD), mR4CAST(fsiData->sortedSphMarkersD.rhoPresMuD),
 
@@ -415,8 +417,7 @@ void ChFluidDynamics::DensityReinitialization() {
 			numObjectsH->numAllMarkers);
 
 	cudaThreadSynchronize();
-	cudaCheckError()
-
+	cudaCheckError();
 	ChFsiForceParallel::CopySortedToOriginal_Invasive_R4(fsiData->sphMarkersD1.rhoPresMuD, dummySortedRhoPreMu, fsiData->markersProximityD.gridMarkerIndexD);
 	dummySortedRhoPreMu.clear();
 }
