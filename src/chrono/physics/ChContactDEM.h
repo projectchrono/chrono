@@ -72,7 +72,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     ChVector<> GetContactForceLocal() const { return this->contact_plane.MatrT_x_Vect(m_force); }
 
     /// Access the proxy to the Jacobian.
-    ChLcpKblockGeneric& GetJacobian() { return *m_Jac; }
+    const ChLcpKblockGeneric& GetJacobianKRM() const { return m_Jac->m_KRM; }
+    const ChMatrixDynamic<double>& GetJacobianK() const { return m_Jac->m_K; }
+    const ChMatrixDynamic<double>& GetJacobianR() const { return m_Jac->m_R; }
 
     /// Reinitialize this contact.
     virtual void Reset(Ta* mobjA,                               ///< collidable object A
@@ -335,9 +337,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // Note that ChState and ChStateDelta are set to 0 on construction.
         // To accommodate objects with quaternion states, use the method ContactableIncrementState while
         // calculating Jacobian columns corresponding to position states.
-        double perturbation = 1e-8;
+        double perturbation = 1e-5;
         ChState stateA_x1(ndofA_x, NULL);
-        ChState stateB_x1(ndofA_x, NULL);
+        ChState stateB_x1(ndofB_x, NULL);
         ChStateDelta prtrbA(ndofA_w, NULL);
         ChStateDelta prtrbB(ndofB_w, NULL);
 
