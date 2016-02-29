@@ -56,7 +56,7 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
     ChParallelDataManager* data_manager = system->data_manager;
     int num_contacts = data_manager->num_rigid_contacts + data_manager->num_rigid_tet_contacts;
 
-    std::cout << "CONTACT RENDER: " << num_contacts << std::endl;
+    //std::cout << "CONTACT RENDER: " << num_contacts << std::endl;
 
     if (num_contacts == 0) {
         return;
