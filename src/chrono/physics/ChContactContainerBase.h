@@ -12,23 +12,9 @@
 #ifndef CHCONTACTCONTAINERBASE_H
 #define CHCONTACTCONTAINERBASE_H
 
-///////////////////////////////////////////////////
-//
-//   ChContactContainerBase.h
-//
-//   Class for container of many contacts
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChMaterialCouple.h"
-#include "collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/physics/ChMaterialCouple.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
@@ -38,7 +24,6 @@ namespace chrono {
 /// average of the friction of the two bodies).
 /// The user should implement an inherited class and
 /// implement a custom ContactCallback() function.
-
 class ChApi ChAddContactCallback {
   public:
     /// Callback, used to report contact points being added to the container.
@@ -54,7 +39,6 @@ class ChApi ChAddContactCallback {
 /// maybe with already computed forces).
 /// The user should implement an inherited class and
 /// implement a custom ReportContactCallback() function.
-
 class ChApi ChReportContactCallback {
   public:
     /// Callback, used to report contact points already added to the container.
@@ -65,49 +49,16 @@ class ChApi ChReportContactCallback {
         const ChVector<>& pB,             ///< get contact pB
         const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
         const double& distance,           ///< get contact distance
-        const float& mfriction,           ///< get friction info
         const ChVector<>& react_forces,   ///< get react.forces (if already computed). In coordsystem 'plane_coord'
         const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
-        collision::ChCollisionModel*
-            modA,  ///< get model A (note: some containers may not support it and could be zero!)
-        collision::ChCollisionModel*
-            modB  ///< get model B (note: some containers may not support it and could be zero!)
+        ChContactable* contactobjA,       ///< get model A (note: some containers may not support it and could be zero!)
+        ChContactable* contactobjB        ///< get model B (note: some containers may not support it and could be zero!)
         ) = 0;
 };
 
-
-/// Class to be used as a callback interface for some user defined
-/// action to be taken for each contact (already added to the container,
-/// maybe with already computed forces).
-/// The user should implement an inherited class and
-/// implement a custom ReportContactCallback() function.
-
-class ChApi ChReportContactCallback2 {
-  public:
-    /// Callback, used to report contact points already added to the container.
-    /// This must be implemented by a child class of ChReportContactCallback.
-    /// If returns false, the contact scanning will be stopped.
-    virtual bool ReportContactCallback2(
-        const ChVector<>& pA,             ///< get contact pA
-        const ChVector<>& pB,             ///< get contact pB
-        const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
-        const double& distance,           ///< get contact distance
-        const ChVector<>& react_forces,   ///< get react.forces (if already computed). In coordsystem 'plane_coord'
-        const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
-        ChContactable* contactobjA,  ///< get model A (note: some containers may not support it and could be zero!)
-        ChContactable* contactobjB   ///< get model B (note: some containers may not support it and could be zero!)
-        ) = 0;
-};
-
-
-///
 /// Class representing a container of many contacts.
-/// There might be implementations of this interface
-/// in form of plain CPU linked lists of contact objects,
-/// or highly optimized GPU buffers, etc. etc.
-/// This is only the basic interface with the features that are in common.
-///
-
+/// There might be implementations of this interface in form of plain CPU linked lists of contact objects,
+/// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
 class ChApi ChContactContainerBase : public ChPhysicsItem {
     CH_RTTI(ChContactContainerBase, ChPhysicsItem);
 
@@ -118,7 +69,6 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
 
     ChAddContactCallback* add_contact_callback;
     ChReportContactCallback* report_contact_callback;
-    ChReportContactCallback2* report_contact_callback2;
 
   public:
     //
@@ -128,10 +78,9 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     ChContactContainerBase() {
         add_contact_callback = 0;
         report_contact_callback = 0;
-        report_contact_callback2 = 0;
-    };
+    }
 
-    virtual ~ChContactContainerBase(){};
+    virtual ~ChContactContainerBase() {}
 
     //
     // FUNCTIONS
@@ -161,7 +110,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     /// The collision system will call EndAddContact() after adding
     /// all contacts (for example with AddContact() or similar). By default
     /// it does nothing.
-    virtual void EndAddContact(){};
+    virtual void EndAddContact() {}
 
     /// Sets a callback to be used each time a contact point is
     /// added to the container. Note that not all child classes can
@@ -172,22 +121,16 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     /// Gets the callback to be used each time a contact point is added to the container.
     ChAddContactCallback* GetAddContactCallback() { return add_contact_callback; }
 
-    /// Scans all the contacts and for each contact exacutes the ReportContactCallback()
+    /// Scans all the contacts and for each contact executes the ReportContactCallback()
     /// function of the user object inherited from ChReportContactCallback.
-    /// Child classes of ChContactContainerBase should try to implement this (although
-    /// in some highly-optimized cases as in ChContactContainerGPU it could be impossible to
-    /// report all contacts).
-    virtual void ReportAllContacts(ChReportContactCallback* mcallback) {};
-
-    virtual void ReportAllContacts2(ChReportContactCallback2* mcallback) {};
-
+    /// Child classes of ChContactContainerBase should try to implement this.
+    virtual void ReportAllContacts(ChReportContactCallback* mcallback) {}
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -196,19 +139,14 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
         ChPhysicsItem::ArchiveIN(marchive);
         // stream in all member data:
     }
-
 };
-
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
 
 }  // END_OF_NAMESPACE____
 

@@ -136,9 +136,7 @@ class ChApi ChProximityContainerBase : public ChPhysicsItem {
 
     /// Scans all the contacts and for each proximity pair executes the ReportProximityCallback()
     /// function of the user object inherited from ChReportContactCallback.
-    /// Child classes of ChContactContainerBase should try to implement this (although
-    /// in some highly-optimized cases as in ChContactContainerGPU it could be impossible to
-    /// report all contacts).
+    /// Child classes of ChContactContainerBase should try to implement this.
     virtual void ReportAllProximities(ChReportProximityCallback* mcallback) = 0;
 
 
