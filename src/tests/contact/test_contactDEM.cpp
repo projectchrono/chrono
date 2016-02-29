@@ -23,73 +23,125 @@
 
 #include <irrlicht.h>
 
-// Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
-
-// Use the main namespaces of Irrlicht
 using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
 
-void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
-    body->GetCollisionModel()->AddBox(dim.x, dim.y, dim.z, loc);
+// Custom contact container -- get access to the contact lists in the base class.
+class MyContactContainer : public ChContactContainerDEM {
+public:
+    MyContactContainer() {}
 
-    auto box = std::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = dim;
-    box->GetBoxGeometry().Pos = loc;
-    box->SetColor(ChColor(1, 0, 0));
-    box->SetFading(0.6f);
-    body->AddAsset(box);
-}
+    // Traverse the list contactlist_6_6
+    void ScanContacts(std::shared_ptr<ChBody> ball) {
+        auto iter = contactlist_6_6.begin();
+        while (iter != contactlist_6_6.end()) {
+            ChContactable* objA = (*iter)->GetObjA();
+            ChContactable* objB = (*iter)->GetObjB();
+            ChVector<> pA = (*iter)->GetContactP1();
+            ChVector<> pB = (*iter)->GetContactP2();
+            const ChLcpKblockGeneric& KRM = (*iter)->GetJacobianKRM();
+            const ChMatrixDynamic<double>& K = (*iter)->GetJacobianK();
+            const ChMatrixDynamic<double>& R = (*iter)->GetJacobianR();
+
+            GetLog().SetNumFormat("%12.3e");
+            
+            int iball;
+            if (objA == ball.get()) {
+                iball = 0;
+                GetLog() << "pA = " << pA << "\n";
+            }
+            else if (objB == ball.get()) {
+                iball = 1;
+                GetLog() << "pB = " << pB << "\n";
+            }
+
+            GetLog() << "K = " << K << "\n";
+            GetLog() << "R = " << R << "\n";
+
+            ChMatrixNM<double, 6, 6> Kball;
+            ChMatrixNM<double, 6, 6> Rball;
+            Kball.PasteClippedMatrix(&K, iball * 6, iball * 6, 6, 6, 0, 0);
+            Rball.PasteClippedMatrix(&R, iball * 6, iball * 6, 6, 6, 0, 0);
+
+            GetLog() << "Kball = " << Kball << "\n";
+            GetLog() << "Rball = " << Rball << "\n";
+
+            ++iter;
+        }
+    }
+};
+
+// ====================================================================================
 
 int main(int argc, char* argv[]) {
+    // ---------------------
     // Simulation parameters
-    double gravity = -9.81;
-    double time_step = 1e-5; // integration step size
-    int out_steps = 2000;  // render/output every out_step steps
+    // ---------------------
+
+    double gravity = -9.81;   // gravitational acceleration
+    double time_step = 1e-4;  // integration step size
 
     enum SolverType { DEFAULT_SOLVER, MINRES_SOLVER, MKL_SOLVER };
-    enum IntegratorType { EULER_IMPLICIT_LINEARIZED, HHT };
     SolverType solver_type = MKL_SOLVER;
-    IntegratorType integrator_type = HHT;
 
-    bool stiff_contact = false;
+    bool stiff_contact = true;
 
+    // ---------------------------
+    // Contact material properties
+    // ---------------------------
 
+    bool use_mat_properties = false;
+    bool use_history = false;
+    ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
+
+    float young_modulus = 2e9f;
+    float friction = 0.4f;
+    float restitution = 0.1f;
+    float adhesion = 0.0f;
+
+    float kn = 1e8;
+    float gn = 0;
+    float kt = 0;
+    float gt = 0;
+
+    // -------------------------------
     // Parameters for the falling ball
+    // -------------------------------
+    
     int ballId = 100;
     double radius = 1;
     double mass = 1000;
     ChVector<> pos(0, 2, 0);
     ChQuaternion<> rot(1, 0, 0, 0);
     ChVector<> init_vel(0, 0, 0);
+    ChVector<> init_omg(0, 0, 0);
 
+    // ---------------------------------
     // Parameters for the containing bin
+    // ---------------------------------
+
     int binId = 200;
     double width = 2;
     double length = 2;
-    double height = 1;
     double thickness = 0.1;
 
+    // -----------------
     // Create the system
-    ChSystemDEM msystem;
+    // -----------------
 
-    // The following two lines are optional, since they are the default options. They are added for future reference,
-    // i.e. when needed to change those models.
-    msystem.SetContactForceModel(ChSystemDEM::ContactForceModel::Hertz);
-    msystem.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
+    ChSystemDEM system(use_mat_properties, use_history);
 
-    // Set contact forces as stiff (to force Jacobian computation)
-    msystem.SetStiffContact(stiff_contact);
+    // Set the DEM contact force model 
+    system.SetContactForceModel(force_model);
 
-    msystem.Set_G_acc(ChVector<>(0, gravity, 0));
+    // Set contact forces as stiff (to force Jacobian computation) or non-stiff
+    system.SetStiffContact(stiff_contact);
+
+    system.Set_G_acc(ChVector<>(0, gravity, 0));
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&msystem, L"DEM demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"DEM demo", core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();
@@ -103,29 +155,32 @@ int main(int argc, char* argv[]) {
 
     // Create a material (will be used by both objects)
     auto material = std::make_shared<ChMaterialSurfaceDEM>();
-    material->SetRestitution(0.1f);
-    material->SetFriction(0.4f);
-    material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
+    material->SetYoungModulus(young_modulus);
+    material->SetRestitution(restitution);
+    material->SetFriction(friction);
+    material->SetAdhesion(adhesion);
+    material->SetKn(kn);
+    material->SetGn(gn);
+    material->SetKt(kt);
+    material->SetGt(gt);
 
     // Create the falling ball
     auto ball = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
     ball->SetPos(pos);
     ball->SetRot(rot);
     ball->SetPos_dt(init_vel);
-    // ball->SetWvel_par(ChVector<>(0,0,3));
+    ball->SetWvel_par(init_omg);
+    ball->SetCollide(true);
     ball->SetBodyFixed(false);
     ball->SetMaterialSurface(material);
-
-    ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
     ball->GetCollisionModel()->AddSphere(radius);
     ball->GetCollisionModel()->BuildModel();
-
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
     auto sphere = std::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = radius;
@@ -135,35 +190,45 @@ int main(int argc, char* argv[]) {
     mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     ball->AddAsset(mtexture);
 
-    msystem.AddBody(ball);
+    system.AddBody(ball);
 
-    // Create container
-    auto bin = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
+    // Create ground
+    auto ground = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
 
-    bin->SetIdentifier(binId);
-    bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
-    bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
-    bin->SetMaterialSurface(material);
+    ground->SetIdentifier(binId);
+    ground->SetMass(1);
+    ground->SetPos(ChVector<>(0, 0, 0));
+    ground->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    ground->SetCollide(true);
+    ground->SetBodyFixed(true);
+    ground->SetMaterialSurface(material);
 
-    bin->GetCollisionModel()->ClearModel();
-    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
-    bin->GetCollisionModel()->BuildModel();
+    ground->GetCollisionModel()->ClearModel();
+    ground->GetCollisionModel()->AddBox(width, thickness, length, ChVector<>(0, -thickness, 0));
+    ground->GetCollisionModel()->BuildModel();
 
-    msystem.AddBody(bin);
+    auto box = std::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().Size = ChVector<>(width, thickness, length);
+    box->GetBoxGeometry().Pos = ChVector<>(0, -thickness, 0);
+    ground->AddAsset(box);
+
+    system.AddBody(ground);
 
     // Complete asset construction
     application.AssetBindAll();
     application.AssetUpdateAll();
 
+    // ----------------------------
+    // Use custom contact container
+    // ----------------------------
 
-    // Setup linear solver.
+    auto container = std::make_shared<MyContactContainer>();
+    system.ChangeContactContainer(container);
+
+    // -------------------
+    // Setup linear solver
+    // -------------------
+
     // Note that not all solvers support stiffness matrices (that includes the default LcpSolverDEM).
 #ifndef CHRONO_MKL
     if (solver_type == MKL_SOLVER) {
@@ -175,68 +240,55 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             GetLog() << "Using DEFAULT solver.\n";
-            msystem.SetIterLCPmaxItersSpeed(100);
-            msystem.SetTolForce(1e-6);
+            system.SetIterLCPmaxItersSpeed(100);
+            system.SetTolForce(1e-6);
             break;
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
             ChLcpIterativeMINRES* minres_solver = new ChLcpIterativeMINRES;
             minres_solver->SetDiagonalPreconditioning(true);
-            msystem.ChangeLcpSolverSpeed(minres_solver);
-            msystem.SetIterLCPmaxItersSpeed(100);
-            msystem.SetTolForce(1e-6);
+            system.ChangeLcpSolverSpeed(minres_solver);
+            system.SetIterLCPmaxItersSpeed(100);
+            system.SetTolForce(1e-6);
             break;
         }
         case MKL_SOLVER: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver.\n";
             ChLcpMklSolver* mkl_solver = new ChLcpMklSolver;
-            msystem.ChangeLcpSolverSpeed(mkl_solver);
+            system.ChangeLcpSolverSpeed(mkl_solver);
             mkl_solver->SetSparsityPatternLock(true);
 #endif
             break;
         }
     }
 
+    // ----------------
     // Setup integrator
-    switch (integrator_type) {
-        case HHT: {
-            GetLog() << "Using HHT integrator.\n";
-            msystem.SetIntegrationType(ChSystem::INT_HHT);
-            auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(msystem.GetTimestepper());
-            mystepper->SetAlpha(0.0);
-            mystepper->SetMaxiters(100);
-            mystepper->SetAbsTolerances(1e-08);
-            ////mystepper->SetMode(ChTimestepperHHT::POSITION);
-            mystepper->SetScaling(false);
-            ////mystepper->SetStepControl(false);
-            ////mystepper->SetVerbose(true);
-            break;
-        }
-    }
+    // ----------------
 
-    // The soft-real-time cycle
-    double time = 0.0;
-    double out_time = 0.0;
+    system.SetIntegrationType(ChSystem::INT_HHT);
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system.GetTimestepper());
+    integrator->SetAlpha(0.0);
+    integrator->SetMaxiters(100);
+    integrator->SetAbsTolerances(1e-08);
+    ////integrator->SetMode(ChTimestepperHHT::POSITION);
+    integrator->SetScaling(false);
+    ////integrator->SetStepControl(false);
+    ////integrator->SetVerbose(true);
 
+    // ---------------
+    // Simulation loop
+    // ---------------
     while (application.GetDevice()->run()) {
         application.BeginScene();
-
         application.DrawAll();
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.2, 0.2, 20, 20,
-                             ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
-                             video::SColor(255, 80, 100, 100), true);
-
-        if (integrator_type == HHT) {
-            auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(msystem.GetTimestepper());
-            int num_iters = 0;
-            for (int i = 0; i < out_steps; i++) {
-                msystem.DoStepDynamics(time_step);
-                num_iters += mystepper->GetNumIterations();
-            }
-            GetLog() << "t = " << msystem.GetChTime() << "  avg. NR iters. = " << num_iters * (1.0 / out_steps) << "\n";
+        system.DoStepDynamics(time_step);
+        if (ball->GetPos().y <= radius) {
+            container->ScanContacts(ball);
+            GetLog() << "t = " << system.GetChTime() << "  NR iters. = " << integrator->GetNumIterations() << "\n";
         }
 
         application.EndScene();
