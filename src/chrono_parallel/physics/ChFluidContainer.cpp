@@ -390,7 +390,12 @@ void ChFluidContainer::Build_b() {
 
 #pragma omp parallel
         Loop_Over_Rigid_Neighbors(real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
-                                  real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+
+                                  real bi = 0;  //
+                                  if (contact_cohesion) { depth = Min(depth, 0); } else if (depth > 0) {
+                                      bi = 0;
+                                  } else { real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); }  //
+
                                   b[start_boundary + index + 0] = bi;
                                   b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
                                   b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
