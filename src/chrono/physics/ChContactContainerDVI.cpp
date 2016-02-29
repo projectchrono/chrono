@@ -199,44 +199,40 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
-
 template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback2* mcallback) {
+void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        bool proceed =
-            mcallback->ReportContactCallback2((*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(),
-                                             *(*itercontact)->GetContactPlane(), (*itercontact)->GetContactDistance(),
-                                             (*itercontact)->GetContactForce(),
-                                             VNULL,  // no react torques
-                                             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
-        if (!proceed)
-            break;
-        ++itercontact;
-    }
-}
-template <class Tcont>
-void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChReportContactCallback2* mcallback) {
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        bool proceed =
-            mcallback->ReportContactCallback2((*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(),
-                                             *(*itercontact)->GetContactPlane(), (*itercontact)->GetContactDistance(),
-                                             (*itercontact)->GetContactForce(),
-                                             (*itercontact)->GetContactTorque(),  
-                                             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+        bool proceed = mcallback->ReportContactCallback(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
+            VNULL,  // no react torques
+            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
         if (!proceed)
             break;
         ++itercontact;
     }
 }
 
-void ChContactContainerDVI::ReportAllContacts2(ChReportContactCallback2* mcallback) {
-    
+template <class Tcont>
+void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    while (itercontact != contactlist.end()) {
+        bool proceed = mcallback->ReportContactCallback(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(), (*itercontact)->GetContactTorque(),
+            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+        if (!proceed)
+            break;
+        ++itercontact;
+    }
+}
+
+void ChContactContainerDVI::ReportAllContacts(ChReportContactCallback* mcallback) {
     _ReportAllContacts(contactlist_6_6, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_3_3, mcallback);
-    _ReportAllContactsRolling(contactlist_6_6_rolling, mcallback); 
+    _ReportAllContactsRolling(contactlist_6_6_rolling, mcallback);
 }
 
 ////////// STATE INTERFACE ////
