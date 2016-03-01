@@ -5,6 +5,9 @@ main:
       url: 'http://api.chrono.projectchrono.org'
       sub:
        -
+         title: FAQ
+         url: 'http://api.chrono.projectchrono.org/faq_root.html'
+       -
          title: Install Guide
          url: 'http://api.chrono.projectchrono.org/tutorial_table_of_content_install.html'
        -
@@ -20,11 +23,11 @@ main:
       url: '/gallery/'
       sub:
        -
-         title: On Vimeo
-         url: 'https://vimeo.com/uwsbel'
-       -
          title: SBEL
          url: 'http://sbel.wisc.edu/Animations/'
+       -
+         title: On Vimeo
+         url: 'https://vimeo.com/uwsbel'
     - title: News
       url: '/news/'
     - title: Forum
