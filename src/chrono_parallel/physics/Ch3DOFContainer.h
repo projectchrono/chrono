@@ -233,6 +233,14 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
     DynamicVector<real> delta_v;
 
+    //Reverse mapping, for each partticle have node
+    custom_vector<int> particle_node_mapping; //num_particles * 125
+    custom_vector<int> node_particle_mapping;
+    custom_vector<int> node_start_index;
+    custom_vector<int> particle_number;
+    uint num_mpm_nodes_active;
+
+
     ChSolverParallel* solver;
 };
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
