@@ -4,12 +4,13 @@ title: Consulting
 permalink: /consulting/
 ---
 
+#### Please consider making us part of your plans related to Chrono use. These consulting activities fund the  development of Chrono.
+   
 
 #### If you are in academia:
 - Work with us by making Chrono part of your proposal
-- We organize training courses in US (University of Wisconsin-Madison) and Europe (Italy)
+- Join us at a training course in US (University of Wisconsin-Madison) or Europe (University of Parma, Italy)
   
-------------------------------
   
   
 #### If you are in industry, we can:
@@ -20,7 +21,5 @@ permalink: /consulting/
 - Run one to three days long Chrono tutorials at your organization
   
   
-These consulting activities fund for the most part future developments of Chrono.
-   
-   
+  
 Contact us at <info@projectchrono.org> for additional consulting-related information.
