@@ -1,4 +1,4 @@
-Chrono Tutorials {#tutorial_table_of_content_chrono}
+Chrono Tutorials, Core Features {#tutorial_table_of_content_chrono}
 ==========================
 
 The following links describe a set of basic Chrono tutorials. 

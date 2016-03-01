@@ -1,4 +1,6 @@
-Example Models {#model_root}
+Chrono Model Library {#model_root}
 ==========================
 
-This section will provide example models to demonstrate more advanced features of Chrono, they assume a higher level of familiarity with the Chrono API and will note be as verbose as the Tutorials
+Under construction.
+
+This page is the entry point to a collection of Chrono models. These models assume a higher level of familiarity with the Chrono API. Their purpose is to provide a starting point to generating other models that user might need in their work. The [Tutorial/Examples](\ref tutorial_root) page has a set of simple models that can serve as a quick introduction to Chrono.

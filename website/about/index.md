@@ -26,20 +26,20 @@ permalink: /about/
 
 
 <h4>Key Project Chrono Developers</h4>
-- <a href="link= http://sbel.wisc.edu/People/ ">Radu Serban</a> - Associate Scientist, University of Wisconsin-Madison, USA
-- <a href="link= http://hamelot.co.uk/ ">Hammad Mazhar</a> - PhD Student, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Arman Pazouki</a> - Assistant Scientist, University of Wisconsin-Madison, USA
-- <a href="link= http://melanz.us/ ">Dan Melanz</a> - PhD Student, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Antonio Recuero</a> - Assistant Scientist, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Dario Mangoni</a> - PhD Student, Univeristy of Parma, Italy
-- <a href="link= http://sbel.wisc.edu/People/ ">Andrew Seidl</a> - Former University of Wisconsin-Madison student
-- <a href="link= http://sbel.wisc.edu/People/ ">Mike Taylor</a> - PhD Student, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Milad Rakhsha</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Radu Serban</a> - Associate Scientist, University of Wisconsin-Madison, USA
+- <a href="http://hamelot.co.uk/">Hammad Mazhar</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Arman Pazouki</a> - Assistant Scientist, University of Wisconsin-Madison, USA
+- <a href="http://melanz.us/ ">Dan Melanz</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Antonio Recuero</a> - Assistant Scientist, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Dario Mangoni</a> - PhD Student, Univeristy of Parma, Italy
+- <a href="https://andrewseidl.com/">Andrew Seidl</a> - Former University of Wisconsin-Madison student
+- <a href="http://sbel.wisc.edu/People/">Mike Taylor</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Milad Rakhsha</a> - PhD Student, University of Wisconsin-Madison, USA
 
 
 <h4>Past developers</h4>
-- <a href="link= http://sbel.wisc.edu/People/madsen/sbel.html ">Justin Madsen, PhD</a> - former SBEL student, currently at Oshkosh Corporation
-- <a href="link= http://sbel.wisc.edu/People/heyn/index.htm ">Toby Heyn, PhD</a> - former SBEL student, currently at Epic Systems
+- <a href="http://sbel.wisc.edu/People/madsen/sbel.html ">Justin Madsen, PhD</a> - former SBEL student, currently at Oshkosh Corporation
+- <a href="http://sbel.wisc.edu/People/heyn/index.htm ">Toby Heyn, PhD</a> - former SBEL student, currently at Epic Systems
 
 
 ### HISTORY
