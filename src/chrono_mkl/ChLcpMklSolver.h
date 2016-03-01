@@ -62,6 +62,7 @@ namespace chrono {
 	   bool sparsity_pattern_lock;
 	   bool use_perm;
 	   bool use_rhs_sparsity;
+	   bool separate_solve_phase;
 
    public:
 
@@ -71,13 +72,15 @@ namespace chrono {
 	   ChMklEngine& GetMklEngine(){ return mkl_engine; }
 	   ChCSR3Matrix& GetMatrix(){ return matCSR3; }
 
-	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
-	   void UsePermutationVector(bool on_off) { use_perm = on_off;  };
-	   void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; };
-	   void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); };
+	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; }
+	   void UsePermutationVector(bool on_off) { use_perm = on_off;  }
+	   void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; }
+	   void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); }
+	   void SetSeparateSolvePhase(bool on_off) { separate_solve_phase = on_off; }
 
         /// Solve using the MKL Pardiso sparse direct solver
-	   virtual double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
+	   double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
+	   int FinalizeSolution(ChLcpSystemDescriptor& sysd); ///< system description with constraints and variables
 
 	    //
         // SERIALIZATION
