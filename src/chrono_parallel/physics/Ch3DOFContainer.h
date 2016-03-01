@@ -228,7 +228,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     custom_vector<real3> vel_node_mpm;
 
     custom_vector<real> node_mass;
-    custom_vector<real> old_vel_node_mpm;
+    DynamicVector<real> old_vel_node_mpm;
     custom_vector<real> marker_volume;
     custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
     DynamicVector<real> delta_v;
@@ -239,7 +239,7 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     custom_vector<int> node_start_index;
     custom_vector<int> particle_number;
     uint num_mpm_nodes_active;
-
+    custom_vector<Mat33> volume_Ap_Fe_transpose;
 
     ChSolverParallel* solver;
 };
