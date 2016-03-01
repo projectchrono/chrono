@@ -204,51 +204,7 @@ public:
 						mdescriptor.InsertVariables(this->variables_D);
 					};
 
-	virtual void VariablesFbReset() 
-					{ 
-						ChNodeFEAxyz::VariablesFbReset();
-						this->variables_D->Get_fb().FillElem(0.0); 
-					};
 
-	virtual void VariablesFbLoadForces(double factor=1.) 
-					{ 
-						ChNodeFEAxyz::VariablesFbLoadForces(factor);
-						//this->variables_D->Get_fb().PasteSumVector( VNULL ,3,0); // TODO something related to inertia?
-					};
-
-	virtual void VariablesQbLoadSpeed() 
-					{ 
-						ChNodeFEAxyz::VariablesQbLoadSpeed();			
-						this->variables_D->Get_qb().PasteVector(this->D_dt,3,0);
-					};
-
-	virtual void VariablesQbSetSpeed(double step=0.) 
-					{
-						ChNodeFEAxyz::VariablesQbSetSpeed(step);
-
-						ChVector<> oldD_dt = this->D_dt;
-						this->SetD_dt  ( this->variables_D->Get_qb().ClipVector(3,0) );
-						if (step)
-						{
-							this->SetD_dtdt  ( (this->D_dt   - oldD_dt)  / step);
-						}
-					};
-
-	virtual void VariablesFbIncrementMq() 
-					{
-						ChNodeFEAxyz::VariablesFbIncrementMq();
-						this->variables_D->Compute_inc_Mb_v(this->variables_D->Get_fb(), this->variables_D->Get_qb());
-					};
-
-	virtual void VariablesQbIncrementPosition(double step) 
-					{
-						ChNodeFEAxyz::VariablesQbIncrementPosition(step);
-
-						ChVector<> newspeed_D = variables_D->Get_qb().ClipVector(3,0);
-
-						// ADVANCE POSITION: pos' = pos + dt * vel
-						this->SetD  ( this->GetD()   + newspeed_D * step);
-					};
 
     //
     // INTERFACE to ChLoadable 

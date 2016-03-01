@@ -173,17 +173,17 @@ void ChSystemParallelDVI::AssembleSystem() {
   {
     std::vector<std::shared_ptr<ChLink> >::iterator iterlink = linklist.begin();
     while (iterlink != linklist.end()) {
-      (*iterlink)->ConstraintsBiReset();
+      //(*iterlink)->ConstraintsBiReset(); //***TODO*** replace with new bookkeeping?
       iterlink++;
     }
     std::vector<std::shared_ptr<ChBody> >::iterator ibody = bodylist.begin();
     while (ibody != bodylist.end()) {
-      (*ibody)->VariablesFbReset();
+      //(*ibody)->VariablesFbReset(); //***TODO*** replace with new bookkeeping?
       ibody++;
     }
-    this->contact_container->ConstraintsBiReset();
+    //this->contact_container->ConstraintsBiReset(); //***TODO*** replace with new bookkeeping?
   }
-
+/*
   LCPprepare_load(true,                            // Cq,
                   true,                            // adds [M]*v_old to the known vector
                   step,                            // f*dt
@@ -195,6 +195,8 @@ void ChSystemParallelDVI::AssembleSystem() {
                   max_penetration_recovery_speed,  // vlim, max penetrations recovery speed (positive for exiting)
                   true                             // do above max. clamping on -C/dt
                   );
+   //***TODO*** replace with new bookkeeping?
+*/ 
 
   this->LCP_descriptor->BeginInsertion();
   for (int i = 0; i < bodylist.size(); i++) {

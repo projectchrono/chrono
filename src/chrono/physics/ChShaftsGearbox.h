@@ -117,16 +117,7 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     // (to assembly/manage data for LCP system solver
 
     virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    // virtual void ConstraintsFbLoadForces(double factor=1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
-    virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions
 

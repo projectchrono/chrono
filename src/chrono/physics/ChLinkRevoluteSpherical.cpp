@@ -343,54 +343,11 @@ void ChLinkRevoluteSpherical::InjectConstraints(ChLcpSystemDescriptor& descripto
     descriptor.InsertConstraint(&m_cnstr_dot);
 }
 
-void ChLinkRevoluteSpherical::ConstraintsBiReset() {
-    m_cnstr_dist.Set_b_i(0.0);
-    m_cnstr_dot.Set_b_i(0.0);
-}
-
-void ChLinkRevoluteSpherical::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    if (!IsActive())
-        return;
-
-    double cnstr_dist_violation = do_clamp
-                                      ? ChMin(ChMax(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
-                                      : factor * (m_cur_dist - m_dist);
-
-    double cnstr_dot_violation =
-        do_clamp ? ChMin(ChMax(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
-
-    m_cnstr_dist.Set_b_i(m_cnstr_dist.Get_b_i() + cnstr_dist_violation);
-    m_cnstr_dot.Set_b_i(m_cnstr_dot.Get_b_i() + cnstr_dot_violation);
-}
 
 void ChLinkRevoluteSpherical::ConstraintsLoadJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 
-void ChLinkRevoluteSpherical::ConstraintsFetch_react(double factor) {
-    // Extract the Lagrange multipliers for the distance and for
-    // the dot constraint.
-    double lam_dist = m_cnstr_dist.Get_l_i();  // ||pos2_abs - pos1_abs|| - dist = 0
-    double lam_dot = m_cnstr_dot.Get_l_i();    // dot(dir1_abs, pos2_abs - pos1_abs) = 0
-
-    // Note that the Lagrange multipliers must be multiplied by 'factor' to
-    // convert from reaction impulses to reaction forces.
-    lam_dist *= factor;
-    lam_dot *= factor;
-
-    // Calculate the reaction torques and forces on Body 2 in the joint frame
-    // (Note: origin of the joint frame is at the center of the revolute joint
-    //  which is defined on body 1, the x-axis is along the vector from the
-    //  point on body 1 to the point on body 2.  The z axis is along the revolute
-    //  axis defined for the joint)
-    react_force.x = lam_dist;
-    react_force.y = 0;
-    react_force.z = lam_dot;
-
-    react_torque.x = 0;
-    react_torque.y = -m_cur_dist * lam_dot;
-    react_torque.z = 0;
-}
 
 // -----------------------------------------------------------------------------
 // Additional reaction force and torque calculations due to the odd definition
@@ -437,32 +394,6 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2() {
     return VNULL;
 }
 
-// -----------------------------------------------------------------------------
-// Load and store multipliers (caching to allow warm starting)
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_dist.Set_l_i(m_cache_speed[0]);
-    m_cnstr_dot.Set_l_i(m_cache_speed[1]);
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_dist.Set_l_i(m_cache_pos[0]);
-    m_cnstr_dot.Set_l_i(m_cache_pos[1]);
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Cache current multipliers.
-    m_cache_speed[0] = m_cnstr_dist.Get_l_i();
-    m_cache_speed[1] = m_cnstr_dot.Get_l_i();
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Cache current multipliers.
-    m_cache_pos[0] = m_cnstr_dist.Get_l_i();
-    m_cache_pos[1] = m_cnstr_dot.Get_l_i();
-}
 
 
 void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive)

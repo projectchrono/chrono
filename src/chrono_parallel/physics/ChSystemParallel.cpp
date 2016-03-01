@@ -230,12 +230,12 @@ void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
 void ChSystemParallel::ClearForceVariables() {
 #pragma omp parallel for
   for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
-    bodylist[i]->VariablesFbReset();
+    //bodylist[i]->VariablesFbReset(); //***TODO*** replace with new bookkeeping?
   }
 
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
-    shaftlist[i]->VariablesFbReset();
+    //shaftlist[i]->VariablesFbReset(); //***TODO*** replace with new bookkeeping?
   }
 }
 
@@ -286,8 +286,8 @@ void ChSystemParallel::UpdateRigidBodies() {
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
     bodylist[i]->Update(ChTime, false);
-    bodylist[i]->VariablesFbLoadForces(GetStep());
-    bodylist[i]->VariablesQbLoadSpeed();
+    //bodylist[i]->VariablesFbLoadForces(GetStep());  //***TODO*** replace with new bookkeeping?
+    //bodylist[i]->VariablesQbLoadSpeed();  //***TODO*** replace with new bookkeeping?
 
     ChMatrix<>& body_qb = bodylist[i]->Variables().Get_qb();
     ChMatrix<>& body_fb = bodylist[i]->Variables().Get_fb();
@@ -333,8 +333,8 @@ void ChSystemParallel::UpdateShafts() {
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
     shaftlist[i]->Update(ChTime, false);
-    shaftlist[i]->VariablesFbLoadForces(GetStep());
-    shaftlist[i]->VariablesQbLoadSpeed();
+    //shaftlist[i]->VariablesFbLoadForces(GetStep());  //***TODO*** replace with new bookkeeping?
+    //shaftlist[i]->VariablesQbLoadSpeed();  //***TODO*** replace with new bookkeeping?
 
     shaft_rot[i] = shaftlist[i]->GetPos();
     shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
@@ -364,11 +364,11 @@ void ChSystemParallel::UpdateLinks() {
 
   for (int i = 0; i < linklist.size(); i++) {
     linklist[i]->Update(ChTime, false);
-    linklist[i]->ConstraintsBiReset();
-    linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
-    linklist[i]->ConstraintsBiLoad_Ct(1);
-    linklist[i]->ConstraintsFbLoadForces(GetStep());
-    linklist[i]->ConstraintsLoadJacobians();
+    //linklist[i]->ConstraintsBiReset();  //***TODO*** replace with new bookkeeping?
+    //linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);  //***TODO*** replace with new bookkeeping?
+    //linklist[i]->ConstraintsBiLoad_Ct(1);  //***TODO*** replace with new bookkeeping?
+    //linklist[i]->ConstraintsFbLoadForces(GetStep());  //***TODO*** replace with new bookkeeping?
+    //linklist[i]->ConstraintsLoadJacobians();  //***TODO*** replace with new bookkeeping?
 
     linklist[i]->InjectConstraints(*LCP_descriptor);
 
@@ -421,13 +421,13 @@ void ChSystemParallel::UpdateOtherPhysics() {
 
   for (int i = 0; i < otherphysicslist.size(); i++) {
     otherphysicslist[i]->Update(ChTime, false);
-    otherphysicslist[i]->ConstraintsBiReset();
-    otherphysicslist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
-    otherphysicslist[i]->ConstraintsBiLoad_Ct(1);
-    otherphysicslist[i]->ConstraintsFbLoadForces(GetStep());
-    otherphysicslist[i]->ConstraintsLoadJacobians();
-    otherphysicslist[i]->VariablesFbLoadForces(GetStep());
-    otherphysicslist[i]->VariablesQbLoadSpeed();
+    //otherphysicslist[i]->ConstraintsBiReset(); //***TODO*** replace with new bookkeeping?
+    //otherphysicslist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp); //***TODO*** replace with new bookkeeping?
+    //otherphysicslist[i]->ConstraintsBiLoad_Ct(1); //***TODO*** replace with new bookkeeping?
+    //otherphysicslist[i]->ConstraintsFbLoadForces(GetStep()); //***TODO*** replace with new bookkeeping?
+    //otherphysicslist[i]->ConstraintsLoadJacobians(); //***TODO*** replace with new bookkeeping?
+    //otherphysicslist[i]->VariablesFbLoadForces(GetStep());  //***TODO*** replace with new bookkeeping?
+    //otherphysicslist[i]->VariablesQbLoadSpeed();  //***TODO*** replace with new bookkeeping?
 
     BILATERALTYPE type = GetBilateralType(otherphysicslist[i].get());
 

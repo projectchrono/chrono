@@ -273,45 +273,10 @@ class ChApi ChBody :            public ChPhysicsItem,
     // LCP FUNCTIONS
     //
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
-
-    /// Sets the 'fb' part of the encapsulated ChLcpVariablesBodyOwnMass to zero.
-    void VariablesFbReset();
-
-    /// Adds the current forces applied to body (including gyroscopic torque) in
-    /// encapsulated ChLcpVariablesBody, in the 'fb' part: qf+=forces*factor
-    void VariablesFbLoadForces(double factor = 1.);
-
-    /// Initialize the 'qb' part of the ChLcpVariablesBody with the
-    /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
-    /// function seems unuseful, unless used before VariablesFbIncrementMq()
-    void VariablesQbLoadSpeed();
-
-    /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
-    /// with v_old using VariablesQbLoadSpeed, this method can be used in
-    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-    void VariablesFbIncrementMq();
-
-    /// Fetches the body speed (both linear and angular) from the
-    /// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
-    /// and sets it as the current body speed.
-    /// If 'step' is not 0, also computes the approximate acceleration of
-    /// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
-    /// Mostly used after the LCP provided the solution in ChLcpVariablesBody .
-    void VariablesQbSetSpeed(double step = 0.);
-
-    /// Increment body position by the 'qb' part of the ChLcpVariablesBody,
-    /// multiplied by a 'step' factor.
-    ///     pos+=qb*step
-    /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
-    /// Does not automatically update markers & forces.
-    void VariablesQbIncrementPosition(double step);
-
     /// Tell to a system descriptor that there are variables of type
     /// ChLcpVariables in this object (for further passing it to a LCP solver)
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+
 
     /// Instantiate the collision model
     virtual collision::ChCollisionModel* InstanceCollisionModel();

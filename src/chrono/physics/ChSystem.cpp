@@ -1269,47 +1269,6 @@ void ChSystem::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
     contact_container->InjectVariables(mdescriptor);
 }
 
-void ChSystem::VariablesFbReset() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesFbReset();
-    // Use also on contact container:
-    contact_container->VariablesFbReset();
-}
-
-void ChSystem::VariablesFbLoadForces(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesFbLoadForces();
-    // Use also on contact container:
-    contact_container->VariablesFbLoadForces();
-}
-
-void ChSystem::VariablesFbIncrementMq() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesFbIncrementMq();
-    // Use also on contact container:
-    contact_container->VariablesFbIncrementMq();
-}
-
-void ChSystem::VariablesQbLoadSpeed() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesQbLoadSpeed();
-    // Use also on contact container:
-    contact_container->VariablesQbLoadSpeed();
-}
-
-void ChSystem::VariablesQbSetSpeed(double step) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesQbSetSpeed(step);
-    // Use also on contact container:
-    contact_container->VariablesQbSetSpeed(step);
-}
-
-void ChSystem::VariablesQbIncrementPosition(double dt_step) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::VariablesQbIncrementPosition(dt_step);
-    // Use also on contact container:
-    contact_container->VariablesQbIncrementPosition(dt_step);
-}
 
 void ChSystem::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
@@ -1318,81 +1277,11 @@ void ChSystem::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     contact_container->InjectConstraints(mdescriptor);
 }
 
-void ChSystem::ConstraintsBiReset() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiReset();
-    // Use also on contact container:
-    contact_container->ConstraintsBiReset();
-}
-
-void ChSystem::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
-    // Use also on contact container:
-    contact_container->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
-}
-
-void ChSystem::ConstraintsBiLoad_Ct(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiLoad_Ct(factor);
-    // Use also on contact container:
-    contact_container->ConstraintsBiLoad_Ct(factor);
-}
-
-void ChSystem::ConstraintsBiLoad_Qc(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsBiLoad_Qc(factor);
-    // Use also on contact container:
-    contact_container->ConstraintsBiLoad_Qc(factor);
-}
-
-void ChSystem::ConstraintsFbLoadForces(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsFbLoadForces(factor);
-    // Use also on contact container:
-    contact_container->ConstraintsFbLoadForces(factor);
-}
-
 void ChSystem::ConstraintsLoadJacobians() {
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::ConstraintsLoadJacobians();
     // Use also on contact container:
     contact_container->ConstraintsLoadJacobians();
-}
-
-void ChSystem::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiLoadSuggestedSpeedSolution();
-}
-
-void ChSystem::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiLoadSuggestedPositionSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiLoadSuggestedPositionSolution();
-}
-
-void ChSystem::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiFetchSuggestedSpeedSolution();
-}
-
-void ChSystem::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiFetchSuggestedPositionSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiFetchSuggestedPositionSolution();
-}
-
-void ChSystem::ConstraintsFetch_react(double factor) {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsFetch_react(factor);
-    // Use also on contact container:
-    contact_container->ConstraintsFetch_react(factor);
 }
 
 void ChSystem::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {

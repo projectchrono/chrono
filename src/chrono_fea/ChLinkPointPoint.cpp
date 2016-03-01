@@ -174,28 +174,6 @@ void ChLinkPointPoint::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
 	mdescriptor.InsertConstraint(&constraint3);
 }
 
-void ChLinkPointPoint::ConstraintsBiReset() {
-	constraint1.Set_b_i(0.);
-	constraint2.Set_b_i(0.);
-	constraint3.Set_b_i(0.);
-}
- 
-void ChLinkPointPoint::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-
-	ChVector<> res = mnodeA->GetPos() -  mnodeB->GetPos(); 
-
-	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.x);
-	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.y);
-	this->constraint3.Set_b_i(constraint3.Get_b_i() +  factor * res.z);
-}
-
-void ChLinkPointPoint::ConstraintsBiLoad_Ct(double factor) {
-	//if (!this->IsActive())
-	//	return;
-
-	// nothing
-}
-
 void ChLinkPointPoint::ConstraintsLoadJacobians() {
 		// compute jacobians
 	ChMatrix33<> Jxa;
@@ -214,39 +192,6 @@ void ChLinkPointPoint::ConstraintsLoadJacobians() {
 	this->constraint3.Get_Cq_b()->PasteClippedMatrix(&Jxb, 2,0, 1,3, 0,0);
 }
  
-void ChLinkPointPoint::ConstraintsFetch_react(double factor) {
-	// From constraints to react vector:
-	this->react.x = constraint1.Get_l_i() * factor; 
-	this->react.y = constraint2.Get_l_i() * factor; 
-	this->react.z = constraint3.Get_l_i() * factor; 
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChLinkPointPoint::ConstraintsLiLoadSuggestedSpeedSolution() {
-	constraint1.Set_l_i(this->cache_li_speed.x);
-	constraint2.Set_l_i(this->cache_li_speed.y);
-	constraint3.Set_l_i(this->cache_li_speed.z);
-}
-
-void ChLinkPointPoint::ConstraintsLiLoadSuggestedPositionSolution() {
-	constraint1.Set_l_i(this->cache_li_pos.x);
-	constraint2.Set_l_i(this->cache_li_pos.y);
-	constraint3.Set_l_i(this->cache_li_pos.z);
-}
-
-void ChLinkPointPoint::ConstraintsLiFetchSuggestedSpeedSolution() {
-	this->cache_li_speed.x = (float)constraint1.Get_l_i();
-	this->cache_li_speed.y = (float)constraint2.Get_l_i();
-	this->cache_li_speed.z = (float)constraint3.Get_l_i();
-}
-
-void ChLinkPointPoint::ConstraintsLiFetchSuggestedPositionSolution() {
-	this->cache_li_pos.x =  (float)constraint1.Get_l_i();
-	this->cache_li_pos.y =  (float)constraint2.Get_l_i();
-	this->cache_li_pos.z =  (float)constraint3.Get_l_i();
-}
-
 //////// FILE I/O
 
 void ChLinkPointPoint::StreamOUT(ChStreamOutBinary& mstream) {

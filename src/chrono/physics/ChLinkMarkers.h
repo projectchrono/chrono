@@ -178,12 +178,6 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Adds force to residual R, as R*= F*c
     /// NOTE: here the off ofset in R is NOT used because add F at the TWO offsets of the two connected bodies,
     /// so it is assumed that offsets for Body1 and Body2 variables have been already set properly!
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
-
-    //
-    // LCP INTERFACE
-    //
-
     /// Overrides the empty behaviour of the parent ChLink implementation, which
     /// does not consider any user-imposed force between the two bodies.
     /// It adds the current link-forces, if any, (caused by springs, etc.) to the 'fb' vectors
@@ -192,7 +186,9 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Both C_force and C_torque these forces are considered expressed in the
     /// reference coordsystem of marker2 (the MAIN marker),
     /// and their application point is the origin of marker1 (the SLAVE marker).
-    virtual void ConstraintsFbLoadForces(double factor = 1.);
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+
+ 
 
     //
     // LINK COORDINATES and other functions:

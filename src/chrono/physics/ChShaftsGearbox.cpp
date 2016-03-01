@@ -156,33 +156,6 @@ void ChShaftsGearbox::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     mdescriptor.InsertConstraint(&constraint);
 }
 
-void ChShaftsGearbox::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
-}
-
-void ChShaftsGearbox::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!this->IsActive())
-    //	return;
-
-    double res = 0;  // no residual
-
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
-}
-
-void ChShaftsGearbox::ConstraintsBiLoad_Ct(double factor) {
-    // if (!this->IsActive())
-    //	return;
-
-    // nothing
-}
-
-/*
-void ChShaftsGearbox::ConstraintsFbLoadForces(double factor)
-{
-    // no forces
-}
-*/
-
 void ChShaftsGearbox::ConstraintsLoadJacobians() {
     // compute jacobians
     constraint.Get_Cq_a()->SetElement(0, 0, (float)this->r1);
@@ -199,28 +172,6 @@ void ChShaftsGearbox::ConstraintsLoadJacobians() {
     this->constraint.Get_Cq_c()->ElementN(5) = (float)jacw.z * (float)this->r3;
 }
 
-void ChShaftsGearbox::ConstraintsFetch_react(double factor) {
-    // From constraints to react vector:
-    this->torque_react = constraint.Get_l_i() * factor;
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsGearbox::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsGearbox::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsGearbox::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsGearbox::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
-}
 
 //////// FILE I/O
 
