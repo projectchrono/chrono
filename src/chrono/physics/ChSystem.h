@@ -140,8 +140,8 @@ class ChApi ChSystem : public ChAssembly,
 
     /// Available methods for time integration (time steppers).
     enum eCh_integrationType {
-        INT_ANITESCU = 0,
-        INT_TASORA = 6,
+        INT_ANITESCU = 0,       ///< alias of INT_EULER_IMPLICIT_LINEARIZED
+        INT_TASORA = 6,         ///< alias of INT_EULER_IMPLICIT_PROJECTED
         INT_EULER_IMPLICIT = 7,
         INT_EULER_IMPLICIT_LINEARIZED = 8,
         INT_EULER_IMPLICIT_PROJECTED = 17,
@@ -798,14 +798,6 @@ public:
     /// Depending on the integration type, it switches to one of the following:
     virtual int Integrate_Y();
 
-    /// Use Anitescu stepper, with position stabilization in speed stage.
-    virtual int Integrate_Y_impulse_Anitescu();
-
-    /// Use Tasora stepper, with separate stage for position stabilization.
-    virtual int Integrate_Y_impulse_Tasora();
-
-    /// Use the new pluggable ChTimestepper
-    virtual int Integrate_Y_timestepper();
 
   public:
 
