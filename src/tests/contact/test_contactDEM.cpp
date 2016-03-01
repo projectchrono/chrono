@@ -40,9 +40,7 @@ public:
             ChContactable* objB = (*iter)->GetObjB();
             ChVector<> pA = (*iter)->GetContactP1();
             ChVector<> pB = (*iter)->GetContactP2();
-            const ChLcpKblockGeneric& KRM = (*iter)->GetJacobianKRM();
-            const ChMatrixDynamic<double>& K = (*iter)->GetJacobianK();
-            const ChMatrixDynamic<double>& R = (*iter)->GetJacobianR();
+
 
             GetLog().SetNumFormat("%12.3e");
             
@@ -56,16 +54,23 @@ public:
                 GetLog() << "pB = " << pB << "\n";
             }
 
-            GetLog() << "K = " << K << "\n";
-            GetLog() << "R = " << R << "\n";
+            
+            const ChLcpKblockGeneric* KRM = (*iter)->GetJacobianKRM();
+            const ChMatrixDynamic<double>* K = (*iter)->GetJacobianK();
+            const ChMatrixDynamic<double>* R = (*iter)->GetJacobianR();
 
-            ChMatrixNM<double, 6, 6> Kball;
-            ChMatrixNM<double, 6, 6> Rball;
-            Kball.PasteClippedMatrix(&K, iball * 6, iball * 6, 6, 6, 0, 0);
-            Rball.PasteClippedMatrix(&R, iball * 6, iball * 6, 6, 6, 0, 0);
+            if (KRM) {
+                GetLog() << "K = " << *K << "\n";
+                GetLog() << "R = " << *R << "\n";
 
-            GetLog() << "Kball = " << Kball << "\n";
-            GetLog() << "Rball = " << Rball << "\n";
+                ChMatrixNM<double, 6, 6> Kball;
+                ChMatrixNM<double, 6, 6> Rball;
+                Kball.PasteClippedMatrix(K, iball * 6, iball * 6, 6, 6, 0, 0);
+                Rball.PasteClippedMatrix(R, iball * 6, iball * 6, 6, 6, 0, 0);
+
+                GetLog() << "Kball = " << Kball << "\n";
+                GetLog() << "Rball = " << Rball << "\n";
+            }
 
             ++iter;
         }

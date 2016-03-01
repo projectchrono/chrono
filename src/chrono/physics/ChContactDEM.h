@@ -72,9 +72,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     ChVector<> GetContactForceLocal() const { return this->contact_plane.MatrT_x_Vect(m_force); }
 
     /// Access the proxy to the Jacobian.
-    const ChLcpKblockGeneric& GetJacobianKRM() const { return m_Jac->m_KRM; }
-    const ChMatrixDynamic<double>& GetJacobianK() const { return m_Jac->m_K; }
-    const ChMatrixDynamic<double>& GetJacobianR() const { return m_Jac->m_R; }
+    const ChLcpKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
+    const ChMatrixDynamic<double>* GetJacobianK() const { return m_Jac ? &(m_Jac->m_K) : NULL; }
+    const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
     /// Reinitialize this contact.
     virtual void Reset(Ta* mobjA,                               ///< collidable object A
@@ -249,6 +249,15 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // Express the local points in global frame
         ChVector<> p1_abs = this->objA->GetContactPoint(p1_loc, stateA_x);
         ChVector<> p2_abs = this->objB->GetContactPoint(p2_loc, stateB_x);
+
+        /*
+            Note: while this can be somewhat justified for a ChBody, it will not work
+                  for a mesh vertex for instance...
+
+        // Project the points onto the unperturbed normal line
+        p1_abs = this->p1 + Vdot(p1_abs - this->p1, this->normal) * this->normal;
+        p2_abs = this->p2 + Vdot(p2_abs - this->p2, this->normal) * this->normal;
+        */
 
         // Calculate normal direction (expressed in global frame)
         ChVector<> normal_dir = (p1_abs - p2_abs).GetNormalized();
