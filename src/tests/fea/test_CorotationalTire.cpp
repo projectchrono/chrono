@@ -9,14 +9,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLoaderUV.h"
-#include "chrono/physics/ChLoadContainer.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
@@ -40,9 +41,11 @@
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 
+#ifdef CHRONO_IRRLICHT
+using namespace chrono::irrlicht;
 using namespace irr;
+#endif
 
 int main(int argc, char* argv[]) {
 
@@ -300,8 +303,12 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Perform simulation
     // ------------------
+#ifndef CHRONO_IRRLICHT
+    visualization = false;
+#endif
 
     if (visualization) {
+#ifdef CHRONO_IRRLICHT
         // Create Irrlicht visualization application
         ChIrrApp application(&my_system, L"ABAQUS tire demo", core::dimension2d<u32>(1280, 720), false, true);
 
@@ -327,6 +334,7 @@ int main(int argc, char* argv[]) {
             application.DoStep();
             application.EndScene();
         }
+#endif
     } else {
         // Simulation loop
         ChTimer<> timer;
