@@ -3,6 +3,7 @@ set(FEA_TESTS
     test_shellANCF
     test_4HumveeTires
     test_CorotationalTire
+    test_ANCFHumveeTire
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
