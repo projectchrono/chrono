@@ -126,6 +126,14 @@ class gpu_vector {
         size_t count = size() * sizeof(T);
         cudaCheck(cudaMemcpy((void*)data_h.data(), data_d, count, cudaMemcpyDeviceToHost));
     }
+    void operator=(const gpu_vector& rhs) {
+        if (rhs.size() == 0) {
+            return;
+        }
+        if (size() < rhs.size()) {
+            resize(rhs.size());
+        }
+        cudaCheck(cudaMemcpy((void*)data_d, rhs.data_d, count, cudaMemcpyDeviceToDevice));
     }
 
     T* data_d;
