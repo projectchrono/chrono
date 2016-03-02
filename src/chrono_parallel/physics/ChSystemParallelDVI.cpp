@@ -171,18 +171,19 @@ void ChSystemParallelDVI::AssembleSystem() {
   this->contact_container->EndAddContact();
 
   {
-    std::vector<std::shared_ptr<ChLink> >::iterator iterlink = linklist.begin();
-    while (iterlink != linklist.end()) {
-      //(*iterlink)->ConstraintsBiReset(); //***TODO*** replace with new bookkeeping?
-      iterlink++;
-    }
-    std::vector<std::shared_ptr<ChBody> >::iterator ibody = bodylist.begin();
-    while (ibody != bodylist.end()) {
-      //(*ibody)->VariablesFbReset(); //***TODO*** replace with new bookkeeping?
-      ibody++;
-    }
-    //this->contact_container->ConstraintsBiReset(); //***TODO*** replace with new bookkeeping?
+      std::vector<std::shared_ptr<ChLink> >::iterator iterlink = linklist.begin();
+      while (iterlink != linklist.end()) {
+          //(*iterlink)->ConstraintsBiReset(); //***TODO*** replace with new bookkeeping?
+          iterlink++;
+      }
+      std::vector<std::shared_ptr<ChBody> >::iterator ibody = bodylist.begin();
+      while (ibody != bodylist.end()) {
+          (*ibody)->Variables().Get_fb().FillElem(0.0);
+          ibody++;
+      }
+      // this->contact_container->ConstraintsBiReset(); //***TODO*** replace with new bookkeeping?
   }
+
 /*
   LCPprepare_load(true,                            // Cq,
                   true,                            // adds [M]*v_old to the known vector
