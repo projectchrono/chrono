@@ -6,7 +6,54 @@ struct Bounds {
     real maximum[3];
 };
 
+struct Settings {
+    real dt;
+    real radius;
+    real inv_radius;
+    real bin_edge;
+
+    real inv_bin_edge;
+    real max_vel;
+    real mu;
+    real lambda;
+
+    real hardening_coefficient;
+    real theta_c;
+    real theta_s;
+    real alpha;
+
+    real youngs_modulus;
+    real poissons_ratio;
+    real pad_0;
+    real pad_1;
+
+    int num_iterations;
+    int3 bins_per_axis;
+};
+
+CUDA_CONSTANT Settings system_settings;
 CUDA_CONSTANT Bounds system_bounds;
+
+#define LOOP_TWO_RING_GPU(X)                                                       \
+    const real bin_edge = system_settings.bin_edge;                                \
+    const real inv_bin_edge = 1.f / bin_edge;                                      \
+                                                                                   \
+    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);        \
+    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);        \
+    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);        \
+                                                                                   \
+    for (int k = cz - 2; k <= cz + 2; ++k) {                                       \
+        for (int j = cy - 2; j <= cy + 2; ++j) {                                   \
+            for (int i = cx - 2; i <= cx + 2; ++i) {                               \
+                const int current_node = GridHash(i, j, k, bins_per_axis);         \
+                real3 current_node_location;                                       \
+                current_node_location.x = i * bin_edge + system_bounds.minimum[0]; \
+                current_node_location.y = j * bin_edge + system_bounds.minimum[1]; \
+                current_node_location.z = k * bin_edge + system_bounds.minimum[2]; \
+                X                                                                  \
+            }                                                                      \
+        }                                                                          \
+    }
 
 //========================================================================================================================================================================
 static inline CUDA_DEVICE void AtomicAdd(real3* pointer, real3 val) {
@@ -82,6 +129,22 @@ CUDA_GLOBAL void kRasterize(int num_particles,        // parameters
             )
     }
 }
+
+//========================================================================================================================================================================
+
+CUDA_GLOBAL void kNormalizeWeights(int num_nodes,     // parameters
+                                   real* grid_mass,   // input
+                                   real* grid_vel) {  // output
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < num_nodes) {
+        real n_mass = grid_mass[i];
+        if (n_mass > C_EPSILON) {
+            grid_vel[i * 3 + 0] /= n_mass;
+            grid_vel[i * 3 + 1] /= n_mass;
+            grid_vel[i * 3 + 2] /= n_mass;
+        }
+    }
+}
 //========================================================================================================================================================================
 
 CUDA_GLOBAL void kComputeParticleVolumes(int num_particles,        // parameters
@@ -154,12 +217,12 @@ void ChMPM::Initialize(const real marker_mass, const real radius, std::vector<re
                                             bins_per_axis,      // parameter
                                             mass,               // parameter
                                             pos.d_data,         // input
-                                            grid_mass.d_data);  // output
+                                            node_mass.d_data);  // output
 
     kComputeParticleVolumes<<<CONFIG(num_mpm_markers)>>>(num_mpm_markers,   // parameters
                                                          bins_per_axis,     // parameters
                                                          pos.d_data,        // input
-                                                         grid_mass.d_data,  // output
+                                                         node_mass.d_data,  // output
                                                          marker_volume.d_data);
 }
 
@@ -169,72 +232,24 @@ void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::
     Bounds(kernel_radius, positions);
 
     // ========================================================================================
-    kRasterize<<<CONFIG(num_mpm_markers)>>>(num_mpm_markers,  // parameter
-                                            bins_per_axis,    // parameter
-                                            mass,
-                                            container.sorted_pos,  // input
-                                            container.sorted_vel,  // input
-                                            container.grid_mass,   // output
-                                            container.grid_vel     // output
+    kRasterize<<<CONFIG(num_mpm_markers)>>>(num_mpm_markers,   // parameter
+                                            bins_per_axis,     // parameter
+                                            mass,              // parameter
+                                            pos.d_data,        // input
+                                            vel.d_data,        // input
+                                            node_mass.d_data,  // output
+                                            grid_vel.d_data    // output
                                             );
 
-#pragma omp parallel for
-    for (int index = 0; index < num_mpm_nodes_active; index++) {
-        uint start = node_start_index[index];
-        uint end = node_start_index[index + 1];
-        const int current_node = node_particle_mapping[index];
-        int3 g = GridDecode(current_node, bins_per_axis);
-        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
-        real3 vel_mass = real3(0);
-        real mass_w = 0;
-        for (uint i = start; i < end; i++) {
-            int p = particle_number[i];
-            real weight = N(pos_marker[p] - current_node_location, inv_bin_edge) * mass;  //
-            mass_w += weight;
-            vel_mass += weight * vel_marker[p];
-        }
-
-        node_mass[current_node] = mass_w;
-        grid_vel[current_node * 3 + 0] = vel_mass.x;  //
-        grid_vel[current_node * 3 + 1] = vel_mass.y;  //
-        grid_vel[current_node * 3 + 2] = vel_mass.z;  //
-    }
-
-#pragma omp parallel for
-    for (int i = 0; i < num_mpm_nodes; i++) {
-        real n_mass = node_mass[i];
-        if (n_mass > C_EPSILON) {
-            grid_vel[i * 3 + 0] /= n_mass;
-            grid_vel[i * 3 + 1] /= n_mass;
-            grid_vel[i * 3 + 2] /= n_mass;
-        }
-        // printf("N: %d [%f %f %f]\n", i, grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-    }
+    kRasterize<<<CONFIG(num_mpm_nodes)>>>(num_mpm_nodes,     // parameter
+                                          node_mass.d_data,  // input
+                                          grid_vel.d_data);  // output
 
     old_vel_node_mpm = grid_vel;
-    SVD_Fe_hat_R.resize(num_mpm_markers);
-    SVD_Fe_hat_S.resize(num_mpm_markers);
 
-#pragma omp parallel for
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        marker_Fe_hat[p] = Mat33(1.0);
-        Mat33 Fe_hat_t(1);
-        LOOPOVERNODES(  //
-            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
-            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
-            )
-        Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
-        marker_Fe_hat[p] = Fe_hat;
-        Mat33 U, V;
-        real3 E;
-        SVD(Fe_hat, U, E, V);
-        SVD_Fe_hat_R[p] = MultTranspose(U, V);
-        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
-    }
+    kRhs<<<CONFIG(num_mpm_markers)>>>(num_mpm_markers, pos.d_data, )
 
-    custom_vector<Mat33> rhs_temp(num_mpm_markers);
+        custom_vector<Mat33> rhs_temp(num_mpm_markers);
 #pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         const real3 xi = pos_marker[p];
@@ -243,9 +258,16 @@ void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::
             Potential_Energy_Derivative_Deviatoric(marker_Fe_hat[p], marker_Fp[p], mu, lambda, hardening_coefficient);
 
         Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, marker_Fe[p]);
-        real JE = Determinant(marker_Fe[p]);  //
-        real JP = Determinant(marker_Fp[p]);  //
-        rhs_temp[p] = (vPEDFepT) * (1.0 / (JE * JP));
+        real JE = Determinant(marker_Fe[p]);                                //
+        real JP = Determinant(marker_Fp[p]);                                //
+        LOOPOVERNODES(                                                      //
+            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
+            real3 force = (vPEDFepT * d_weight) / (JE * JP);
+
+            rhs[current_node * 3 + 0] -= dt * force.x;  //
+            rhs[current_node * 3 + 1] -= dt * force.y;  //
+            rhs[current_node * 3 + 2] -= dt * force.z;  //
+            )
     }
 
 #pragma omp parallel for

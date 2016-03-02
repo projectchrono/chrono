@@ -38,7 +38,6 @@ class ChMPM {
     real kernel_radius;
     custom_vector<real> old_vel_node_mpm;
 
-    custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
     custom_vector<real> delta_v;
 
     custom_vector<int> particle_node_mapping;
@@ -56,4 +55,7 @@ class ChMPM {
     gpu_vector<real> node_mass;
     gpu_vector<real> marker_volume;
     gpu_vector<real> grid_vel;
+    gpu_vector<real> rhs;
+    gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
+
 };
