@@ -26,7 +26,7 @@
 #include <core/ChMatrix.h>
 #include <core/ChMatrixDynamic.h>
 #include <core/ChMatrix33.h>
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 
 using namespace chrono;
 real3 ToReal3(const ChVector<real>& a) {

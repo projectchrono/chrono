@@ -30,7 +30,7 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;

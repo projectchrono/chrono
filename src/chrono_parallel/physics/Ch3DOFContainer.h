@@ -22,7 +22,7 @@
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/other_types.h"
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "physics/ChBody.h"

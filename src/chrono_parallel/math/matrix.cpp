@@ -1,4 +1,4 @@
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/simd.h"
 namespace chrono {

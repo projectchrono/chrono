@@ -21,7 +21,7 @@
 
 #include "unit_testing.h"
 
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/svd.h"
 
 using namespace chrono;

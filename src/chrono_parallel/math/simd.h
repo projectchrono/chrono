@@ -1,7 +1,7 @@
 #include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real4.h"
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 using namespace chrono;
 
 #if defined(USE_AVX)

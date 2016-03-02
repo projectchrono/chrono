@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 namespace chrono {
 // Oliver K. Smith. 1961. Eigenvalues of a symmetric 3 × 3 matrix. Commun. ACM 4, 4 (April 1961), 168-.
 // DOI=http://dx.doi.org/10.1145/355578.366316

@@ -160,8 +160,8 @@ SOURCE_GROUP(lcp FILES ${ChronoEngine_Parallel_LCP})
 
 SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
-    math/mat33.h
-    math/mat33.cpp
+    math/matrix.h
+    math/matrix.cpp
     math/sse.h
     math/simd.h
     math/real.h

@@ -22,7 +22,7 @@
 #include "unit_testing.h"
 
 #include "chrono_parallel/math/real4.h"
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
 const double precision = 1e-10;

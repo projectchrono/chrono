@@ -20,7 +20,7 @@
 #include <cmath>
 
 #include "unit_testing.h"
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 
 using namespace chrono;
 int main(int argc, char* argv[]) {

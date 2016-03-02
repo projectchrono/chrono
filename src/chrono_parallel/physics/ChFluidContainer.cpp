@@ -12,7 +12,7 @@
 #include "chrono_parallel/math/real2.h"        // for real2
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
-#include "chrono_parallel/math/mat33.h"        // for quaternion, real4
+#include "chrono_parallel/math/matrix.h"        // for quaternion, real4
 
 namespace chrono {
 

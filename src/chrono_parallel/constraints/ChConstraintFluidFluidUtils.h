@@ -3,7 +3,7 @@
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/math/mat33.h"               // for quaternion, real4
+#include "chrono_parallel/math/matrix.h"               // for quaternion, real4
 #define F_PI 3.141592653589793238462643383279
 #define INVPI 1 / F_PI
 
