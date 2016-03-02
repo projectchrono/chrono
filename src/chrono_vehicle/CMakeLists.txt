@@ -102,6 +102,8 @@ set(CV_DRIVER_FILES
     driver/ChDataDriver.cpp
     driver/ChPathFollowerDriver.h
     driver/ChPathFollowerDriver.cpp
+    driver/ChPathFollowerACCDriver.h
+    driver/ChPathFollowerACCDriver.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_DRIVER_FILES
@@ -141,6 +143,8 @@ set(CV_UTILS_FILES
     utils/ChSteeringController.cpp
     utils/ChSpeedController.h
     utils/ChSpeedController.cpp
+	utils/ChAdaptiveSpeedController.h
+	utils/ChAdaptiveSpeedController.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_UTILS_FILES
