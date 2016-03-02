@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,9 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: This file defines a fluid node, it is based on a 3DOF NodeXYZ
-// element. This class is similar to ChMatterSPH but is meant to be a bit more
-// general.
+// Description: This file contains definitions for all 3DOF type containers
+// for chrono parallel.
 // =============================================================================
 
 #pragma once
@@ -207,6 +206,8 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real cohesion;
     real mass;
     real mu;
+    real nu;
+    real youngs_modulus;
     real hardening_coefficient;
     real lambda;
     real theta_s;

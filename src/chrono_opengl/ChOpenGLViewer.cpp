@@ -20,7 +20,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
-#include "chrono_parallel/lcp/MPMUtils.h"
+#include "chrono_parallel/physics/MPMUtils.h"
 
 #include "assets/ChBoxShape.h"
 #include "assets/ChSphereShape.h"

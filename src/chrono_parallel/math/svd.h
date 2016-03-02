@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,8 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: definition of a real number which can be defined as a float
-// (increased speed on some architectures) or a double (increased precision)
+// Description: Fast Singular Value Decomposition (SVD)
 // =============================================================================
 
 #pragma once

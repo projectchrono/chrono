@@ -21,7 +21,7 @@
 
 #include "unit_testing.h"
 
-#include "chrono_parallel/lcp/MPMUtils.h"
+#include "chrono_parallel/physics/MPMUtils.h"
 
 using namespace chrono;
 

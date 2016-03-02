@@ -26,7 +26,7 @@
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/mat33.h"        // for quaternion, real4
 #include "chrono_parallel/solver/ChSolverParallel.h"
-#include "chrono_parallel/lcp/MPMUtils.h"
+#include "chrono_parallel/physics/MPMUtils.h"
 #include "chrono_parallel/ChDataManager.h"
 
 using namespace chrono;
