@@ -156,14 +156,7 @@ void ChShaftsTorqueConverter::IntLoadResidual_F(const unsigned int off,  ///< of
         R(shaft_stator->GetOffset_w()) += GetTorqueReactionOnStator() * c;
 }
 
-////////// LCP INTERFACES ////
 
-void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
-    // Apply torques to the three connected 1D variables:
-    shaft1->Variables().Get_fb().ElementN(0) += torque_in * factor;
-    shaft2->Variables().Get_fb().ElementN(0) += torque_out * factor;
-    shaft_stator->Variables().Get_fb().ElementN(0) += GetTorqueReactionOnStator() * factor;
-}
 
 //////// FILE I/O
 

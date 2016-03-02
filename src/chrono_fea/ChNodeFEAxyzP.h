@@ -185,51 +185,6 @@ public:
 						mdescriptor.InsertVariables(&this->variables);
 					};
 
-	virtual void VariablesFbReset() 
-					{ 
-						this->variables.Get_fb().FillElem(0.0); 
-					};
-
-	virtual void VariablesFbLoadForces(double factor=1.) 
-					{ 
-						if (variables.IsDisabled())
-							return;
-						this->variables.Get_fb().ElementN(0) += this->F * factor;
-					};
-
-	virtual void VariablesQbLoadSpeed() 
-					{ 
-						if (variables.IsDisabled())
-							return;
-						// not really a 'speed', just the field derivative (may be used in incremental solver) 
-						this->variables.Get_qb().SetElement(0,0, this->P_dt);
-					};
-
-	virtual void VariablesQbSetSpeed(double step=0.) 
-					{
-						if (variables.IsDisabled())
-							return;
-						// not really a 'speed', just the field derivative (may be used in incremental solver) 
-						this->P_dt =  this->variables.Get_qb().GetElement(0,0);
-					};
-
-	virtual void VariablesFbIncrementMq() 
-					{
-						if (variables.IsDisabled())
-							return;
-						this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
-					};
-
-	virtual void VariablesQbIncrementPosition(double step) 
-					{ 
-						if (variables.IsDisabled())
-							return;
-
-						double pseudospeed = variables.Get_qb().GetElement(0,0);
-
-						// ADVANCE FIELD: pos' = pos + dt * vel
-						this->P =  this->P + pseudospeed * step;
-					};
 
     //
     // SERIALIZATION

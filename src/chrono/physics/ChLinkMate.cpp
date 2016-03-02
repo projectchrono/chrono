@@ -493,98 +493,12 @@ void ChLinkMateGeneric::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     }
 }
 
-void ChLinkMateGeneric::ConstraintsBiReset() {
-    if (!this->IsActive())
-        return;
-
-    for (int i = 0; i < mask->nconstr; i++) {
-        mask->Constr_N(i).Set_b_i(0.);
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    if (!this->IsActive())
-        return;
-
-    //***TEST***
-    /*
-        GetLog()<< "cload: " ;
-        if (this->c_x) GetLog()<< " x";
-        if (this->c_y) GetLog()<< " y";
-        if (this->c_z) GetLog()<< " z";
-        if (this->c_rx) GetLog()<< " Rx";
-        if (this->c_ry) GetLog()<< " Ry";
-        if (this->c_rz) GetLog()<< " Rz";
-        GetLog()<< *this->C << "\n";
-    */
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
-                    mask->Constr_N(i)
-                        .Set_b_i(mask->Constr_N(i).Get_b_i() + ChMax(factor * C->ElementN(cnt), -recovery_clamp));
-                else
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMin(ChMax(factor * C->ElementN(cnt), -recovery_clamp), recovery_clamp));
-            } else
-                mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * C->ElementN(cnt));
-
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsBiLoad_Ct(double factor) {
-    if (!this->IsActive())
-        return;
-
-    // NOT NEEDED BECAUSE NO RHEONOMIC TERM
-}
 
 void ChLinkMateGeneric::ConstraintsLoadJacobians() {
     // already loaded when doing Update (which used the matrices of the scalar constraint objects)
 }
 
-void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
-    react_force = VNULL;
-    react_torque = VNULL;
 
-    if (!this->IsActive())
-        return;
-
-    int nc = 0;
-    if (c_x) {
-        if (mask->Constr_N(nc).IsActive())
-            react_force.x = -mask->Constr_N(nc).Get_l_i() * factor;
-        nc++;
-    }
-    if (c_y) {
-        if (mask->Constr_N(nc).IsActive())
-            react_force.y = -mask->Constr_N(nc).Get_l_i() * factor;
-        nc++;
-    }
-    if (c_z) {
-        if (mask->Constr_N(nc).IsActive())
-            react_force.z = -mask->Constr_N(nc).Get_l_i() * factor;
-        nc++;
-    }
-    if (c_rx) {
-        if (mask->Constr_N(nc).IsActive())
-            react_torque.x = - mask->Constr_N(nc).Get_l_i() * factor;
-        nc++;
-    }
-    if (c_ry) {
-        if (mask->Constr_N(nc).IsActive())
-            react_torque.y = - mask->Constr_N(nc).Get_l_i() * factor;
-        nc++;
-    }
-    if (c_rz) {
-        if (mask->Constr_N(nc).IsActive())
-            react_torque.z = - mask->Constr_N(nc).Get_l_i() * factor;
-        nc++;
-    }
-}
 
 void ChLinkMateGeneric::Initialize(
     std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
@@ -640,49 +554,7 @@ void ChLinkMateGeneric::Initialize(
     this->frame2 = mfr2;
 }
 
-//
-// Following functions are for exploiting persistence
-//
 
-void ChLinkMateGeneric::ConstraintsLiLoadSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_speed->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsLiLoadSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_pos->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsLiFetchSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_speed->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsLiFetchSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_pos->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
 
 void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive)
 {

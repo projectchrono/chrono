@@ -2,15 +2,26 @@
 set(FEA_TESTS
     test_shellANCF
     test_4HumveeTires
+    test_CorotationalTire
+    test_ANCFHumveeTire
 )
+
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+list(APPEND LIBS "")
 
 if(ENABLE_MODULE_MKL)
     include_directories(${CH_MKL_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    set(LIB_MKL ChronoEngine_mkl)
-else()
-    set(LIB_MKL "")
+    list(APPEND LIBS "ChronoEngine_mkl")
+endif()
+
+if(ENABLE_MODULE_IRRLICHT)
+    include_directories(${CH_IRRLICHTINC})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+    list(APPEND LIBS "ChronoEngine_irrlicht")
+    list(APPEND LIBS "${CH_IRRLICHTLIB}")
 endif()
 
 message(STATUS "Additional test programs for FEA module...")
@@ -29,7 +40,7 @@ foreach(PROGRAM ${FEA_TESTS})
         LINK_FLAGS "${LINKER_FLAGS}"
     )
 
-    target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_fea ${LIB_MKL})
+    target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_fea ${LIBS})
 
 endforeach()
 

@@ -369,50 +369,6 @@ void ChLinkMasked::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     }
 }
 
-void ChLinkMasked::ConstraintsBiReset() {
-    for (int i = 0; i < mask->nconstr; i++) {
-        mask->Constr_N(i).Set_b_i(0.);
-    }
-}
-
-void ChLinkMasked::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            if (do_clamp) {
-                if (mask->Constr_N(i).IsUnilateral())
-                    mask->Constr_N(i)
-                        .Set_b_i(mask->Constr_N(i).Get_b_i() + ChMax(factor * C->ElementN(cnt), -recovery_clamp));
-                else
-                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
-                                              ChMin(ChMax(factor * C->ElementN(cnt), -recovery_clamp), recovery_clamp));
-            } else
-                mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * C->ElementN(cnt));
-
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsBiLoad_Ct(double factor) {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Ct->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsBiLoad_Qc(double factor) {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Qc->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
 
 void ChLinkMasked::ConstraintsLoadJacobians() {
     if (!this->ndoc)
@@ -431,59 +387,6 @@ void ChLinkMasked::ConstraintsLoadJacobians() {
     }
 }
 
-void ChLinkMasked::ConstraintsFetch_react(double factor) {
-    react_force = VNULL;   // Do not update 'intuitive' react force and torque here: just set as 0.
-    react_torque = VNULL;  // Child classes implementations should compute them.
-
-    // From constraints to react vector:
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            react->ElementN(cnt) = mask->Constr_N(i).Get_l_i() * factor;
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsLiLoadSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_speed->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsLiLoadSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_pos->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsLiFetchSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_speed->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsLiFetchSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_pos->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
 
 ////////////////////////////////////
 ///

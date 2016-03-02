@@ -426,41 +426,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  ///< offset in R 
     }
 }
 
-/////////
-///////// LCP INTERFACE
-/////////
 
-void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
-    if (!Body1 || !Body2)
-        return;
-
-    Vector mbody_force;
-    Vector mbody_torque;
-    if (Vnotnull(&C_force)) {
-        Vector m_abs_force = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_force));
-        Body2->To_abs_forcetorque(m_abs_force,
-                                  marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                  FALSE,                       // from abs. space
-                                  mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        Body2->Variables().Get_fb().PasteSumVector(mbody_force * -factor, 0, 0);
-        Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -factor, 3,
-                                                   0);
-
-        Body1->To_abs_forcetorque(m_abs_force,
-                                  marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                  FALSE,                       // from abs. space
-                                  mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        Body1->Variables().Get_fb().PasteSumVector(mbody_force * factor, 0, 0);
-        Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * factor, 3, 0);
-    }
-    if (Vnotnull(&C_torque)) {
-        Vector m_abs_torque = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_torque));
-        // load torques in 'fb' vector accumulator of body variables (torques in local coords)
-        Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * factor, 3, 0);
-        Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -factor, 3,
-                                                   0);
-    }
-}
 
 /////////
 ///////// FILE I/O

@@ -59,13 +59,6 @@ void ChShaftsTorqueBase::IntLoadResidual_F(const unsigned int off,  ///< offset 
         R(shaft2->GetOffset_w()) += -this->torque * c;
 }
 
-////////// LCP INTERFACES ////
-
-void ChShaftsTorqueBase::VariablesFbLoadForces(double factor) {
-    // add applied torques to 'fb' vector
-    this->shaft1->Variables().Get_fb().ElementN(0) += this->torque * factor;
-    this->shaft2->Variables().Get_fb().ElementN(0) += -this->torque * factor;
-}
 
 //////// FILE I/O
 

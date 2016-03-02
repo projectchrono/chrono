@@ -179,44 +179,6 @@ void ChShaftsMotor::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
         mdescriptor.InsertConstraint(&constraint);
 }
 
-void ChShaftsMotor::ConstraintsBiReset() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        constraint.Set_b_i(0.);
-}
-
-void ChShaftsMotor::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!this->IsActive())
-    //	return;
-    if (motor_mode != MOT_MODE_TORQUE) {
-        double res;
-
-        if (motor_mode == MOT_MODE_SPEED)
-            res = 0;  // no need to stabilize positions
-
-        if (motor_mode == MOT_MODE_ROTATION)
-            res = this->GetMotorRot() - this->motor_set_rot;
-
-        constraint.Set_b_i(constraint.Get_b_i() + factor * res);
-    }
-}
-
-void ChShaftsMotor::ConstraintsBiLoad_Ct(double factor) {
-    // if (!this->IsActive())
-    //	return;
-
-    if (motor_mode == MOT_MODE_SPEED) {
-        double ct = this->motor_set_rot_dt;
-        constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
-    }
-}
-
-void ChShaftsMotor::ConstraintsFbLoadForces(double factor) {
-    if (motor_mode == MOT_MODE_TORQUE) {
-        shaft1->Variables().Get_fb().ElementN(0) += motor_torque * factor;
-        shaft2->Variables().Get_fb().ElementN(0) += -motor_torque * factor;
-    }
-}
-
 void ChShaftsMotor::ConstraintsLoadJacobians() {
     if (motor_mode != MOT_MODE_TORQUE) {
         constraint.Get_Cq_a()->SetElement(0, 0, 1);
@@ -224,33 +186,6 @@ void ChShaftsMotor::ConstraintsLoadJacobians() {
     }
 }
 
-void ChShaftsMotor::ConstraintsFetch_react(double factor) {
-    // From constraints to react vector:
-    if (motor_mode != MOT_MODE_TORQUE)
-        this->motor_torque = constraint.Get_l_i() * factor;
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsMotor::ConstraintsLiLoadSuggestedSpeedSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsMotor::ConstraintsLiLoadSuggestedPositionSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsMotor::ConstraintsLiFetchSuggestedSpeedSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsMotor::ConstraintsLiFetchSuggestedPositionSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        this->cache_li_pos = (float)constraint.Get_l_i();
-}
 
 //////// FILE I/O
 
