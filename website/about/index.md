@@ -7,9 +7,9 @@ permalink: /about/
 
 <h3>What is {% include module.html first="PROJECT" second="CHRONO" %}?</h3>
 
-{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modeling and simulation infrastructure based on a platform-independent, open-source design. The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to develop simulation software. The other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
+{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to develop simulation software. The other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
 
-- Chrono::Parallel, a library for enabling parallel computation in Chrono::Engine
+- Chrono::Parallel, a library for enabling parallel computation in Chrono
 - Chrono::Vehicle, which provides support for vehicle dynamics simulation
 - Chrono::FEA, which provides support for linear and nonlinear Finite Element Analysis
 - Chrono::FSI, which provides support for fluid-solid interaction problems
