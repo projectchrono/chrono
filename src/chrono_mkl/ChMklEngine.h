@@ -113,12 +113,13 @@ namespace chrono
 		// Output functions
 		void GetResidual(double* res) const;
 		void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
-		double GetResidualNorm(double* res) const;
-		double GetResidualNorm(ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
+		double GetResidualNorm(const double* res) const;
+		double GetResidualNorm(const ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
 
 		// Auxiliary functions
 		int* GetIparmAddress(){ return iparm; }
 		void SetIparmValue(int parm_num, int value){ IPARM(parm_num) = value; }; //< Sets the \c parm_num th element of \c iparm to \c value
+		int GetIparmValue(int parm_num) const { return IPARM(parm_num); }; //< Returns the \c parm_num th element of \c iparm
 		void PrintIparmOutput() const;
 
 		// Advanced functions
