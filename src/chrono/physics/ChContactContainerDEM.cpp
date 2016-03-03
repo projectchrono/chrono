@@ -310,7 +310,10 @@ void ChContactContainerDEM::IntLoadResidual_F(const unsigned int off,
     _IntLoadResidual_F(contactlist_333_333, R, c);
 }
 
-
+void ChContactContainerDEM::ConstraintsFbLoadForces(double factor)
+                                              {
+    GetLog() << "ChContactContainerDEM::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
+}
 
 
 

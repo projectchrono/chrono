@@ -247,6 +247,72 @@ class ChContactDVIrolling :
         mdescriptor.InsertConstraint(&Rv);
     }
 
+    virtual void ConstraintsBiReset()  {
+        // base behaviour too
+        ChContactDVI< Ta, Tb >::ConstraintsBiReset();
+
+        Rx.Set_b_i(0.);
+        Ru.Set_b_i(0.);
+        Rv.Set_b_i(0.);
+    }
+
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false)  {
+        // base behaviour too
+        ChContactDVI< Ta, Tb >::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+
+        // If rolling and spinning compliance, set the cfm terms
+        double h = this->container->GetSystem()->GetStep();
+
+        //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
+        double alpha = this->dampingf;              // [R]=alpha*[K]
+        double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
+        double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
+
+        this->Ru.Set_cfm_i((inv_hhpa) * this->complianceRoll);
+        this->Rv.Set_cfm_i((inv_hhpa) * this->complianceRoll);
+        this->Rx.Set_cfm_i((inv_hhpa) * this->complianceSpin);
+
+        // Assume no residual ever, do not load in C
+    }
+
+    virtual void ConstraintsFetch_react(double factor)  {
+        // base behaviour too
+        ChContactDVI< Ta, Tb >::ConstraintsFetch_react(factor);
+
+        // From constraints to react torque:
+        react_torque.x = Rx.Get_l_i() * factor;
+        react_torque.y = Ru.Get_l_i() * factor;
+        react_torque.z = Rv.Get_l_i() * factor;
+    }
+
+    virtual void ConstraintsLiLoadSuggestedSpeedSolution()  {
+        // base behaviour too
+        ChContactDVI< Ta, Tb >::ConstraintsLiLoadSuggestedSpeedSolution();
+
+        // [Note: no persistent cache used for rolling multipliers - do nothing]
+    }
+
+    virtual void ConstraintsLiLoadSuggestedPositionSolution()  {
+        // base behaviour too
+        ChContactDVI< Ta, Tb >::ConstraintsLiLoadSuggestedPositionSolution();
+
+        // [Note: no persistent cache used for rolling multipliers - do nothing]
+    }
+
+    virtual void ConstraintsLiFetchSuggestedSpeedSolution()  {
+        // base behaviour too
+        ChContactDVI< Ta, Tb >::ConstraintsLiFetchSuggestedSpeedSolution();
+
+        // [Note: no persistent cache used for rolling multipliers - do nothing]
+    }
+
+    virtual void ConstraintsLiFetchSuggestedPositionSolution()  {
+        // base behaviour too
+        ChContactDVI< Ta, Tb >::ConstraintsLiFetchSuggestedPositionSolution();
+
+        // [Note: no persistent cache used for rolling multipliers - do nothing]
+    }
+
 };
 
 

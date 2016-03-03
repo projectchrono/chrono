@@ -448,8 +448,87 @@ void ChParticlesClones::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
     }
 }
 
+void ChParticlesClones::VariablesFbReset() {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        this->particles[j]->variables.Get_fb().FillElem(0.0);
+    }
+}
 
+void ChParticlesClones::VariablesFbLoadForces(double factor) {
+    ChVector<> Gforce;
+    if (GetSystem())
+        Gforce = GetSystem()->Get_G_acc() * this->particle_mass.GetBodyMass();
 
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        // particle gyroscopic force:
+        ChVector<> Wvel = this->particles[j]->GetWvel_loc();
+        ChVector<> gyro = Vcross(Wvel, (this->particle_mass.GetBodyInertia().Matr_x_Vect(Wvel)));
+
+        // add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
+        this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserForce + Gforce) * factor, 0, 0);
+        this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserTorque - gyro) * factor, 3, 0);
+    }
+}
+
+void ChParticlesClones::VariablesQbLoadSpeed() {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
+        this->particles[j]->variables.Get_qb().PasteVector(this->particles[j]->GetCoord_dt().pos, 0, 0);
+        this->particles[j]->variables.Get_qb().PasteVector(this->particles[j]->GetWvel_loc(), 3, 0);
+    }
+}
+
+void ChParticlesClones::VariablesFbIncrementMq() {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        this->particles[j]->variables.Compute_inc_Mb_v(this->particles[j]->variables.Get_fb(),
+                                                       this->particles[j]->variables.Get_qb());
+    }
+}
+
+void ChParticlesClones::VariablesQbSetSpeed(double step) {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        ChCoordsys<> old_coord_dt = this->particles[j]->GetCoord_dt();
+
+        // from 'qb' vector, sets body speed, and updates auxiliary data
+        this->particles[j]->SetPos_dt(this->particles[j]->variables.Get_qb().ClipVector(0, 0));
+        this->particles[j]->SetWvel_loc(this->particles[j]->variables.Get_qb().ClipVector(3, 0));
+
+        // apply limits (if in speed clamping mode) to speeds.
+        // ClampSpeed(); NO - do only per-particle, here.. (but.. really needed here?)
+
+        // Compute accel. by BDF (approximate by differentiation);
+        if (step) {
+            this->particles[j]->SetPos_dtdt((this->particles[j]->GetCoord_dt().pos - old_coord_dt.pos) / step);
+            this->particles[j]->SetRot_dtdt((this->particles[j]->GetCoord_dt().rot - old_coord_dt.rot) / step);
+        }
+    }
+}
+
+void ChParticlesClones::VariablesQbIncrementPosition(double dt_step) {
+    // if (!this->IsActive())
+    //	return;
+
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        // Updates position with incremental action of speed contained in the
+        // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
+
+        ChVector<> newspeed = this->particles[j]->variables.Get_qb().ClipVector(0, 0);
+        ChVector<> newwel = this->particles[j]->variables.Get_qb().ClipVector(3, 0);
+
+        // ADVANCE POSITION: pos' = pos + dt * vel
+        this->particles[j]->SetPos(this->particles[j]->GetPos() + newspeed * dt_step);
+
+        // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
+        ChQuaternion<> mdeltarot;
+        ChQuaternion<> moldrot = this->particles[j]->GetRot();
+        ChVector<> newwel_abs = particles[j]->GetA() * newwel;
+        double mangle = newwel_abs.Length() * dt_step;
+        newwel_abs.Normalize();
+        mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
+        ChQuaternion<> mnewrot = mdeltarot % moldrot;
+        this->particles[j]->SetRot(mnewrot);
+    }
+}
 
 //////////////
 

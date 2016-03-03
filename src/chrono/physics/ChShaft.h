@@ -181,6 +181,36 @@ class ChApi ChShaft : public ChPhysicsItem {
     // LCP FUNCTIONS
     //
 
+    // Override/implement LCP system functions of ChPhysicsItem
+    // (to assembly/manage data for LCP system solver)
+
+    /// Sets the 'fb' part of the encapsulated ChLcpVariables to zero.
+    void VariablesFbReset();
+
+    /// Adds the current torques in the 'fb' part: qf+=torques*factor
+    void VariablesFbLoadForces(double factor = 1.);
+
+    /// Initialize the 'qb' part of the ChLcpVariables with the
+    /// current value of shaft speed. Note: since 'qb' is the unknown of the LCP, this
+    /// function seems unuseful, unless used before VariablesFbIncrementMq()
+    void VariablesQbLoadSpeed();
+
+    /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
+    /// with v_old using VariablesQbLoadSpeed, this method can be used in
+    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+    void VariablesFbIncrementMq();
+
+    /// Fetches the shaft speed from the 'qb' part of the ChLcpVariables (does not
+    /// updates the full shaft state) and sets it as the current shaft speed.
+    /// If 'step' is not 0, also computes the approximate acceleration of
+    /// the shaft using backward differences, that is  accel=(new_speed-old_speed)/step.
+    void VariablesQbSetSpeed(double step = 0.);
+
+    /// Increment shaft position by the 'qb' part of the ChLcpVariables,
+    /// multiplied by a 'step' factor.
+    ///     pos+=qb*step
+    void VariablesQbIncrementPosition(double step);
+
     /// Tell to a system descriptor that there are variables of type
     /// ChLcpVariables in this object (for further passing it to a LCP solver)
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);

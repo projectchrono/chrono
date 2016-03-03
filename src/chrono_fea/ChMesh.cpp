@@ -393,6 +393,52 @@ void ChMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
     ncalls_KRMload++;
 }
 
+void ChMesh::VariablesFbReset()
+{
+  for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
+    this->vnodes[ie]->VariablesFbReset();
+}
+
+void ChMesh::VariablesFbLoadForces(double factor)
+{
+  // applied nodal forces
+  for (unsigned int in = 0; in < this->vnodes.size(); in++)
+    this->vnodes[in]->VariablesFbLoadForces(factor);
+
+  // internal forces
+  for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+    this->velements[ie]->VariablesFbLoadInternalForces(factor);
+}
+
+void ChMesh::VariablesQbLoadSpeed() 
+{
+  for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
+    this->vnodes[ie]->VariablesQbLoadSpeed();
+}
+
+void ChMesh::VariablesFbIncrementMq() 
+{
+  // nodal masses
+  for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
+    this->vnodes[ie]->VariablesFbIncrementMq();
+
+  // internal masses
+  for (unsigned int ie = 0; ie < this->velements.size(); ie++)
+    this->velements[ie]->VariablesFbIncrementMq();
+}
+
+void ChMesh::VariablesQbSetSpeed(double step) 
+{
+  for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
+    this->vnodes[ie]->VariablesQbSetSpeed(step);
+}
+
+void ChMesh::VariablesQbIncrementPosition(double step)
+{
+  for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
+    this->vnodes[ie]->VariablesQbIncrementPosition(step);
+}
+
 void ChMesh::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
 {
   for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)

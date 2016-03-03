@@ -216,8 +216,51 @@ void ChLinkDistance::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     mdescriptor.InsertConstraint(&Cx);
 }
 
+void ChLinkDistance::ConstraintsBiReset() {
+    Cx.Set_b_i(0.);
+}
+
+void ChLinkDistance::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    if (!this->IsActive())
+        return;
+
+    if (do_clamp)
+        Cx.Set_b_i(Cx.Get_b_i() + ChMin(ChMax(factor * (curr_dist - distance), -recovery_clamp), recovery_clamp));
+    else
+        Cx.Set_b_i(Cx.Get_b_i() + factor * (curr_dist - distance));
+}
+
 void ChLinkDistance::ConstraintsLoadJacobians() {
     // already loaded when doing Update (which used the matrices of the scalar constraint objects)
+}
+
+void ChLinkDistance::ConstraintsFetch_react(double factor) {
+    // From constraints to react vector:
+    react_force.x = -Cx.Get_l_i() * factor;
+    react_force.y = 0;
+    react_force.z = 0;
+
+    react_torque = VNULL;
+}
+
+//
+// Following functions are for exploiting the contact persistence
+//
+
+void ChLinkDistance::ConstraintsLiLoadSuggestedSpeedSolution() {
+    Cx.Set_l_i(this->cache_li_speed);
+}
+
+void ChLinkDistance::ConstraintsLiLoadSuggestedPositionSolution() {
+    Cx.Set_l_i(this->cache_li_pos);
+}
+
+void ChLinkDistance::ConstraintsLiFetchSuggestedSpeedSolution() {
+    this->cache_li_speed = (float)Cx.Get_l_i();
+}
+
+void ChLinkDistance::ConstraintsLiFetchSuggestedPositionSolution() {
+    this->cache_li_pos = (float)Cx.Get_l_i();
 }
 
 

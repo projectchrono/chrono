@@ -286,6 +286,15 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     // LCP FUNCTIONS
     //
 
+    // Override/implement LCP system functions of ChPhysicsItem
+    // (to assembly/manage data for LCP system solver)
+
+    void VariablesFbReset();
+    void VariablesFbLoadForces(double factor = 1.);
+    void VariablesQbLoadSpeed();
+    void VariablesFbIncrementMq();
+    void VariablesQbSetSpeed(double step = 0.);
+    void VariablesQbIncrementPosition(double step);
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
 
     // Other functions

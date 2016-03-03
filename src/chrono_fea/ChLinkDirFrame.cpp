@@ -234,6 +234,35 @@ void ChLinkDirFrame::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
 	mdescriptor.InsertConstraint(&constraint2);
 }
 
+void ChLinkDirFrame::ConstraintsBiReset()
+{
+	constraint1.Set_b_i(0.);
+	constraint2.Set_b_i(0.);
+}
+ 
+void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp)
+{
+	//if (!this->IsActive())
+	//	return;
+
+	if (!mnode) 
+		return;
+	ChMatrix33<> Arw = this->csys_direction.rot >> this->body->coord.rot;
+	ChVector<> res = Arw.MatrT_x_Vect (mnode->GetD());
+
+	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.y);
+	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.z);
+}
+
+void ChLinkDirFrame::ConstraintsBiLoad_Ct(double factor)
+{
+	//if (!this->IsActive())
+	//	return;
+
+	// nothing
+}
+
+
 void ChLinkDirFrame::ConstraintsLoadJacobians()
 {
 		// compute jacobians
@@ -258,7 +287,40 @@ void ChLinkDirFrame::ConstraintsLoadJacobians()
 	this->constraint1.Get_Cq_b()->PasteClippedMatrix(&Jrb, 1,0, 1,3, 0,3);
 	this->constraint2.Get_Cq_b()->PasteClippedMatrix(&Jrb, 2,0, 1,3, 0,3);
 }
+ 
 
+void ChLinkDirFrame::ConstraintsFetch_react(double factor)
+{
+	// From constraints to react vector:
+	this->react.y = constraint1.Get_l_i() * factor; 
+	this->react.z = constraint2.Get_l_i() * factor; 
+}
+
+// Following functions are for exploiting the contact persistence
+
+void  ChLinkDirFrame::ConstraintsLiLoadSuggestedSpeedSolution()
+{
+	constraint1.Set_l_i(this->cache_li_speed.y);
+	constraint2.Set_l_i(this->cache_li_speed.z);
+}
+
+void  ChLinkDirFrame::ConstraintsLiLoadSuggestedPositionSolution()
+{
+	constraint1.Set_l_i(this->cache_li_pos.y);
+	constraint2.Set_l_i(this->cache_li_pos.z);
+}
+
+void  ChLinkDirFrame::ConstraintsLiFetchSuggestedSpeedSolution()
+{
+	this->cache_li_speed.y = (float)constraint1.Get_l_i();
+	this->cache_li_speed.z = (float)constraint2.Get_l_i();
+}
+
+void  ChLinkDirFrame::ConstraintsLiFetchSuggestedPositionSolution()
+{
+	this->cache_li_pos.y =  (float)constraint1.Get_l_i();
+	this->cache_li_pos.z =  (float)constraint2.Get_l_i();
+}
 
 
 

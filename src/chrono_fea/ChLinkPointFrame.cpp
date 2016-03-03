@@ -208,6 +208,35 @@ void ChLinkPointFrame::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
 	mdescriptor.InsertConstraint(&constraint3);
 }
 
+void ChLinkPointFrame::ConstraintsBiReset() {
+	constraint1.Set_b_i(0.);
+	constraint2.Set_b_i(0.);
+	constraint3.Set_b_i(0.);
+}
+ 
+void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+	//if (!this->IsActive())
+	//	return;
+
+	if (!mnode) 
+		return;
+
+	ChMatrix33<> Arw (attach_reference.rot >> body->GetRot());
+
+	ChVector<> res = Arw.MatrT_x_Vect(mnode->GetPos() - this->body->TransformPointLocalToParent(this->attach_reference.pos) ); 
+
+	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.x);
+	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.y);
+	this->constraint3.Set_b_i(constraint3.Get_b_i() +  factor * res.z);
+}
+
+void ChLinkPointFrame::ConstraintsBiLoad_Ct(double factor) {
+	//if (!this->IsActive())
+	//	return;
+
+	// nothing
+}
+
 void ChLinkPointFrame::ConstraintsLoadJacobians() {
 		// compute jacobians
 	ChMatrix33<> Aro (attach_reference.rot); 
@@ -238,6 +267,38 @@ void ChLinkPointFrame::ConstraintsLoadJacobians() {
 	this->constraint3.Get_Cq_b()->PasteClippedMatrix(&Jrb, 2,0, 1,3, 0,3);
 }
  
+void ChLinkPointFrame::ConstraintsFetch_react(double factor) {
+	// From constraints to react vector:
+	this->react.x = constraint1.Get_l_i() * factor; 
+	this->react.y = constraint2.Get_l_i() * factor; 
+	this->react.z = constraint3.Get_l_i() * factor; 
+}
+
+// Following functions are for exploiting the contact persistence
+
+void ChLinkPointFrame::ConstraintsLiLoadSuggestedSpeedSolution() {
+	constraint1.Set_l_i(this->cache_li_speed.x);
+	constraint2.Set_l_i(this->cache_li_speed.y);
+	constraint3.Set_l_i(this->cache_li_speed.z);
+}
+
+void ChLinkPointFrame::ConstraintsLiLoadSuggestedPositionSolution() {
+	constraint1.Set_l_i(this->cache_li_pos.x);
+	constraint2.Set_l_i(this->cache_li_pos.y);
+	constraint3.Set_l_i(this->cache_li_pos.z);
+}
+
+void ChLinkPointFrame::ConstraintsLiFetchSuggestedSpeedSolution() {
+	this->cache_li_speed.x = (float)constraint1.Get_l_i();
+	this->cache_li_speed.y = (float)constraint2.Get_l_i();
+	this->cache_li_speed.z = (float)constraint3.Get_l_i();
+}
+
+void ChLinkPointFrame::ConstraintsLiFetchSuggestedPositionSolution() {
+	this->cache_li_pos.x =  (float)constraint1.Get_l_i();
+	this->cache_li_pos.y =  (float)constraint2.Get_l_i();
+	this->cache_li_pos.z =  (float)constraint3.Get_l_i();
+}
 
 //////// FILE I/O
 

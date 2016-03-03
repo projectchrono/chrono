@@ -199,14 +199,79 @@ void ChConveyor::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
     this->conveyor_plate->InjectVariables(mdescriptor);
 }
 
+void ChConveyor::VariablesFbReset() {
+    this->conveyor_truss->VariablesFbReset();
+    this->conveyor_plate->VariablesFbReset();
+}
+
+void ChConveyor::VariablesFbLoadForces(double factor) {
+    this->conveyor_truss->VariablesFbLoadForces(factor);
+    this->conveyor_plate->VariablesFbLoadForces(factor);
+}
+
+void ChConveyor::VariablesFbIncrementMq() {
+    this->conveyor_truss->VariablesFbIncrementMq();
+    this->conveyor_plate->VariablesFbIncrementMq();
+}
+
+void ChConveyor::VariablesQbLoadSpeed() {
+    this->conveyor_truss->VariablesFbIncrementMq();
+    this->conveyor_plate->VariablesQbLoadSpeed();
+}
+
+void ChConveyor::VariablesQbSetSpeed(double step) {
+    this->conveyor_truss->VariablesQbSetSpeed(step);
+    this->conveyor_plate->VariablesQbSetSpeed(step);
+}
+
+void ChConveyor::VariablesQbIncrementPosition(double dt_step) {
+    this->conveyor_truss->VariablesQbIncrementPosition(dt_step);
+    this->conveyor_plate->VariablesQbIncrementPosition(dt_step);
+}
+
 void ChConveyor::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     this->internal_link->InjectConstraints(mdescriptor);
+}
+
+void ChConveyor::ConstraintsBiReset() {
+    this->internal_link->ConstraintsBiReset();
+}
+
+void ChConveyor::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    this->internal_link->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+}
+
+void ChConveyor::ConstraintsBiLoad_Ct(double factor) {
+    this->internal_link->ConstraintsBiLoad_Ct(factor);
+}
+
+void ChConveyor::ConstraintsBiLoad_Qc(double factor) {
+    this->internal_link->ConstraintsBiLoad_Qc(factor);
 }
 
 void ChConveyor::ConstraintsLoadJacobians() {
     this->internal_link->ConstraintsLoadJacobians();
 }
 
+void ChConveyor::ConstraintsFetch_react(double factor) {
+    this->internal_link->ConstraintsFetch_react(factor);
+}
+
+void ChConveyor::ConstraintsLiLoadSuggestedSpeedSolution() {
+    this->internal_link->ConstraintsLiLoadSuggestedSpeedSolution();
+}
+
+void ChConveyor::ConstraintsLiLoadSuggestedPositionSolution() {
+    this->internal_link->ConstraintsLiLoadSuggestedPositionSolution();
+}
+
+void ChConveyor::ConstraintsLiFetchSuggestedSpeedSolution() {
+    this->internal_link->ConstraintsLiFetchSuggestedSpeedSolution();
+}
+
+void ChConveyor::ConstraintsLiFetchSuggestedPositionSolution() {
+    this->internal_link->ConstraintsLiFetchSuggestedPositionSolution();
+}
 
 void ChConveyor::SetSystem(ChSystem* m_system) {
     this->system = m_system;

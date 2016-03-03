@@ -235,9 +235,22 @@ class ChApi ChLinkEngine : public ChLinkLock {
     // (beyond the base link implementations, it also have to
     // add the constraint coming from the inner shaft etc.)
     virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void ConstraintsBiReset();
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-
+    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
+    virtual void ConstraintsLiLoadSuggestedPositionSolution();
+    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
+    virtual void ConstraintsLiFetchSuggestedPositionSolution();
+    virtual void ConstraintsFetch_react(double factor = 1.);
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void VariablesFbReset();
+    virtual void VariablesFbLoadForces(double factor = 1.);
+    virtual void VariablesQbLoadSpeed();
+    virtual void VariablesFbIncrementMq();
+    virtual void VariablesQbSetSpeed(double step = 0.);
+    virtual void VariablesQbIncrementPosition(double step);
 
     //
     // SERIALIZATION

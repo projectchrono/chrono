@@ -187,6 +187,43 @@ public:
 						mdescriptor.InsertVariables(&this->variables);
 					};
 
+	virtual void VariablesFbReset() 
+					{ 
+						this->variables.Get_fb().FillElem(0.0); 
+					};
+
+	virtual void VariablesFbLoadForces(double factor=1.) 
+					{ 
+						this->variables.Get_fb().PasteSumVector( this->Force * factor ,0,0);
+					};
+
+	virtual void VariablesQbLoadSpeed() 
+					{ 
+						this->variables.Get_qb().PasteVector(this->pos_dt,0,0); 
+					};
+
+	virtual void VariablesQbSetSpeed(double step=0.) 
+					{
+						ChVector<> old_dt = this->pos_dt;
+						this->SetPos_dt( this->variables.Get_qb().ClipVector(0,0) );
+						if (step)
+						{
+							this->SetPos_dtdt( (this->pos_dt - old_dt)  / step);
+						}
+					};
+
+	virtual void VariablesFbIncrementMq() 
+					{
+						this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+					};
+
+	virtual void VariablesQbIncrementPosition(double step) 
+					{
+						ChVector<> newspeed = variables.Get_qb().ClipVector(0,0);
+
+						// ADVANCE POSITION: pos' = pos + dt * vel
+						this->SetPos( this->GetPos() + newspeed * step);
+					};
 
     //
     // SERIALIZATION

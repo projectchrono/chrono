@@ -81,6 +81,10 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
 
+    // Override/implement LCP system functions of ChPhysicsItem
+    // (to assembly/manage data for LCP system solver
+
+    virtual void VariablesFbLoadForces(double factor);
 
     // Other functions
 

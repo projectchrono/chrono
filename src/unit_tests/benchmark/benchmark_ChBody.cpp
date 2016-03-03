@@ -37,6 +37,13 @@ int main() {
     TIMEBODY(ClampSpeed(), "ClampSpeed ");
     TIMEBODY(ComputeGyro(), "ComputeGyro ");
 
+    TIMEBODY(VariablesFbReset(), "VariablesFbReset ");
+    TIMEBODY(VariablesFbLoadForces(time_step), "VariablesFbLoadForces ");
+    TIMEBODY(VariablesQbLoadSpeed(), "VariablesQbLoadSpeed ");
+    TIMEBODY(VariablesQbIncrementPosition(time_step), "VariablesQbIncrementPosition ");
+    TIMEBODY(VariablesQbSetSpeed(time_step), "VariablesQbSetSpeed ");
+    // TIMEBODY(VariablesBody().GetBodyInvInertia(), "GetBodyInvInertia ");
+
     full.stop();
     cout << "Total: " << full() << endl;
     timer.start();
@@ -46,6 +53,11 @@ int main() {
         body_list->at(i)->UpdateMarkers(current_time);
         body_list->at(i)->ClampSpeed();
         body_list->at(i)->ComputeGyro();
+        body_list->at(i)->VariablesFbReset();
+        body_list->at(i)->VariablesFbLoadForces(time_step);
+        body_list->at(i)->VariablesQbLoadSpeed();
+        body_list->at(i)->VariablesQbIncrementPosition(time_step);
+        body_list->at(i)->VariablesQbSetSpeed(time_step);
     }
     timer.stop();
     cout << "SIngle Loop " << timer() << endl;

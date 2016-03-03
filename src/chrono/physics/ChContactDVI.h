@@ -268,6 +268,120 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         mdescriptor.InsertConstraint(&Tv);
     }
 
+    virtual void ConstraintsBiReset() {
+        Nx.Set_b_i(0.);
+        Tu.Set_b_i(0.);
+        Tv.Set_b_i(0.);
+    }
+
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) {
+        bool bounced = false;
+
+        // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
+        // Note that this works only if the two connected items are two ChBody.
+
+        if (this->objA && this->objB) {
+            if (this->restitution) {
+                // compute normal rebounce speed
+                Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
+                Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
+                Vector Vrel_w = V2_w - V1_w;
+                Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
+
+                double h = 1.0 / factor;  // inverse timestep is factor
+
+                double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
+                if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
+                    if (this->norm_dist + neg_rebounce_speed * h < 0) {
+                        // CASE: BOUNCE
+                        bounced = true;
+                        Nx.Set_b_i(Nx.Get_b_i() + neg_rebounce_speed);
+                    }
+            }
+        }
+
+        if (!bounced) {
+            // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
+
+            if (this->compliance) {
+                //  inverse timestep is factor
+                double h = 1.0 / factor;
+
+                double alpha = this->dampingf;              // [R]=alpha*[K]
+                double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
+                double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
+
+                Nx.Set_cfm_i((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //***TEST DAMPING***//
+                Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
+                Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
+
+                // GetLog()<< "compliance " << (int)this << "  compl=" << this->compliance << "  damping=" <<
+                // this->dampingf
+                // << "  h=" << h << "\n";
+
+                // no clamping of residual
+                Nx.Set_b_i(Nx.Get_b_i() + inv_hpa * this->norm_dist);  // was (inv_h)* ...   //***TEST DAMPING***//
+            } else {
+                // GetLog()<< "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << "\n";
+                if (do_clamp)
+                    if (this->Nx.GetCohesion())
+                        Nx.Set_b_i(Nx.Get_b_i() + ChMin(0.0, ChMax(factor * this->norm_dist, -recovery_clamp)));
+                    else
+                        Nx.Set_b_i(Nx.Get_b_i() + ChMax(factor * this->norm_dist, -recovery_clamp));
+                else
+                    Nx.Set_b_i(Nx.Get_b_i() + factor * this->norm_dist);
+            }
+        }
+    }
+
+    virtual void ConstraintsFetch_react(double factor) {
+        // From constraints to react vector:
+        react_force.x = Nx.Get_l_i() * factor;
+        react_force.y = Tu.Get_l_i() * factor;
+        react_force.z = Tv.Get_l_i() * factor;
+    }
+
+    virtual void ConstraintsLiLoadSuggestedSpeedSolution() {
+        // Fetch the last computed impulsive reactions from the persistent contact manifold (could
+        // be used for warm starting the CCP speed solver):
+        if (this->reactions_cache) {
+            Nx.Set_l_i(reactions_cache[0]);
+            Tu.Set_l_i(reactions_cache[1]);
+            Tv.Set_l_i(reactions_cache[2]);
+        }
+        // GetLog() << "++++      " << (int)this << "  fetching N=" << (double)mn <<"\n";
+    }
+
+    virtual void ConstraintsLiLoadSuggestedPositionSolution() {
+        // Fetch the last computed 'positional' reactions from the persistent contact manifold (could
+        // be used for warm starting the CCP position stabilization solver):
+        if (this->reactions_cache) {
+            Nx.Set_l_i(reactions_cache[3]);
+            Tu.Set_l_i(reactions_cache[4]);
+            Tv.Set_l_i(reactions_cache[5]);
+        }
+    }
+
+    virtual void ConstraintsLiFetchSuggestedSpeedSolution() {
+        // Store the last computed reactions into the persistent contact manifold (might
+        // be used for warm starting CCP the speed solver):
+        if (reactions_cache) {
+            reactions_cache[0] = (float)Nx.Get_l_i();
+            reactions_cache[1] = (float)Tu.Get_l_i();
+            reactions_cache[2] = (float)Tv.Get_l_i();
+        }
+        // GetLog() << "         " << (int)this << "  storing  N=" << Nx.Get_l_i() <<"\n";
+    }
+
+    virtual void ConstraintsLiFetchSuggestedPositionSolution() {
+        // Store the last computed 'positional' reactions into the persistent contact manifold (might
+        // be used for warm starting the CCP position stabilization solver):
+        if (reactions_cache) {
+            reactions_cache[3] = (float)Nx.Get_l_i();
+            reactions_cache[4] = (float)Tu.Get_l_i();
+            reactions_cache[5] = (float)Tv.Get_l_i();
+        }
+    }
 };
 
 }  // END_OF_NAMESPACE____

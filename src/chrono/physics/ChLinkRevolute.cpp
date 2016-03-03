@@ -395,9 +395,117 @@ void ChLinkRevolute::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
     descriptor.InsertConstraint(&m_cnstr_vw);
 }
 
+void ChLinkRevolute::ConstraintsBiReset() {
+    m_cnstr_x.Set_b_i(0.0);
+    m_cnstr_y.Set_b_i(0.0);
+    m_cnstr_z.Set_b_i(0.0);
+    m_cnstr_uw.Set_b_i(0.0);
+    m_cnstr_vw.Set_b_i(0.0);
+}
+
+void ChLinkRevolute::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    if (!IsActive())
+        return;
+
+    double cnstr_x_violation = factor * m_C->GetElement(0, 0);
+    double cnstr_y_violation = factor * m_C->GetElement(1, 0);
+    double cnstr_z_violation = factor * m_C->GetElement(2, 0);
+    double cnstr_uw_violation = factor * m_C->GetElement(3, 0);
+    double cnstr_vw_violation = factor * m_C->GetElement(4, 0);
+
+    if (do_clamp) {
+        cnstr_x_violation = ChMin(ChMax(cnstr_x_violation, -recovery_clamp), recovery_clamp);
+        cnstr_y_violation = ChMin(ChMax(cnstr_y_violation, -recovery_clamp), recovery_clamp);
+        cnstr_z_violation = ChMin(ChMax(cnstr_z_violation, -recovery_clamp), recovery_clamp);
+        cnstr_uw_violation = ChMin(ChMax(cnstr_uw_violation, -recovery_clamp), recovery_clamp);
+        cnstr_vw_violation = ChMin(ChMax(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
+    }
+
+    m_cnstr_x.Set_b_i(m_cnstr_x.Get_b_i() + cnstr_x_violation);
+    m_cnstr_y.Set_b_i(m_cnstr_y.Get_b_i() + cnstr_y_violation);
+    m_cnstr_z.Set_b_i(m_cnstr_z.Get_b_i() + cnstr_z_violation);
+    m_cnstr_uw.Set_b_i(m_cnstr_uw.Get_b_i() + cnstr_uw_violation);
+    m_cnstr_vw.Set_b_i(m_cnstr_vw.Get_b_i() + cnstr_vw_violation);
+}
+
 void ChLinkRevolute::ConstraintsLoadJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
+
+void ChLinkRevolute::ConstraintsFetch_react(double factor) {
+    // Extract the Lagrange multipliers for the 3 spherical constraints and for
+    // the 2 dot constraint.
+    ChVector<> lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
+    double lam_uw = m_cnstr_uw.Get_l_i();
+    double lam_vw = m_cnstr_vw.Get_l_i();
+
+    // Note that the Lagrange multipliers must be multiplied by 'factor' to
+    // convert from reaction impulses to reaction forces.
+    lam_sph *= factor;
+    lam_uw *= factor;
+    lam_vw *= factor;
+
+    // Calculate the reaction force and torque acting on the 2nd body at the joint
+    // location, expressed in the joint reference frame.  Taking into account the
+    // sign with which Lagrange multipliers show up in the EOM in Chrono, we get:
+    //   F = C^T * A_2^T * Phi_r2^T * lam
+    //   T = C^T * ( Phi_pi2^T - tilde(s2') * A_2^T * Phi_r2^T ) * lam
+    // For the revolute joint, after some manipulations, we have:
+    //   F = C^T * A_2^T * lam_sph
+    //   T = C^T * tilde(w2') *A_2^T * (u1 * lam_uw + v1 * lam_vw)
+    //     = -C^T * [A_2 * tilde(w2')]^T * (u1 * lam_uw + v1 * lam_vw)
+
+    // Reaction force
+    ChVector<> F2 = Body2->GetA().MatrT_x_Vect(lam_sph);
+    react_force = m_frame2.GetA().MatrT_x_Vect(F2);
+
+    // Reaction torque
+    ChVector<> u1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Xaxis());
+    ChVector<> v1 = Body1->TransformDirectionLocalToParent(m_frame1.GetA().Get_A_Yaxis());
+    ChMatrix33<> mat2 = Body2->GetA() * m_w2_tilde;
+    ChVector<> T2 = mat2.MatrT_x_Vect(lam_uw * u1 + lam_vw * v1);
+    react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
+}
+
+// -----------------------------------------------------------------------------
+// Load and store multipliers (caching to allow warm starting)
+// -----------------------------------------------------------------------------
+void ChLinkRevolute::ConstraintsLiLoadSuggestedSpeedSolution() {
+    // Set multipliers to those cached at previous step.
+    m_cnstr_x.Set_l_i(m_cache_speed[0]);
+    m_cnstr_y.Set_l_i(m_cache_speed[1]);
+    m_cnstr_z.Set_l_i(m_cache_speed[2]);
+    m_cnstr_uw.Set_l_i(m_cache_speed[3]);
+    m_cnstr_vw.Set_l_i(m_cache_speed[4]);
+}
+
+void ChLinkRevolute::ConstraintsLiLoadSuggestedPositionSolution() {
+    // Set multipliers to those cached at previous step.
+    m_cnstr_x.Set_l_i(m_cache_pos[0]);
+    m_cnstr_y.Set_l_i(m_cache_pos[1]);
+    m_cnstr_z.Set_l_i(m_cache_pos[2]);
+    m_cnstr_uw.Set_l_i(m_cache_pos[3]);
+    m_cnstr_vw.Set_l_i(m_cache_pos[4]);
+}
+
+void ChLinkRevolute::ConstraintsLiFetchSuggestedSpeedSolution() {
+    // Cache current multipliers.
+    m_cache_speed[0] = m_cnstr_x.Get_l_i();
+    m_cache_speed[1] = m_cnstr_y.Get_l_i();
+    m_cache_speed[2] = m_cnstr_z.Get_l_i();
+    m_cache_speed[3] = m_cnstr_uw.Get_l_i();
+    m_cache_speed[4] = m_cnstr_vw.Get_l_i();
+}
+
+void ChLinkRevolute::ConstraintsLiFetchSuggestedPositionSolution() {
+    // Cache current multipliers.
+    m_cache_pos[0] = m_cnstr_x.Get_l_i();
+    m_cache_pos[1] = m_cnstr_y.Get_l_i();
+    m_cache_pos[2] = m_cnstr_z.Get_l_i();
+    m_cache_pos[3] = m_cnstr_uw.Get_l_i();
+    m_cache_pos[4] = m_cnstr_vw.Get_l_i();
+}
+
 
 
 void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive)

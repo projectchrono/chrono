@@ -1007,6 +1007,78 @@ void ChAssembly::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
     }
 }
 
+void ChAssembly::VariablesFbReset() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->VariablesFbReset();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->VariablesFbReset();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->VariablesFbReset();
+    }
+}
+
+void ChAssembly::VariablesFbLoadForces(double factor) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->VariablesFbLoadForces(factor);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->VariablesFbLoadForces(factor);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->VariablesFbLoadForces(factor);
+    }
+}
+
+void ChAssembly::VariablesFbIncrementMq() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->VariablesFbIncrementMq();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->VariablesFbIncrementMq();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->VariablesFbIncrementMq();
+    }
+}
+
+void ChAssembly::VariablesQbLoadSpeed() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->VariablesQbLoadSpeed();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->VariablesQbLoadSpeed();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->VariablesQbLoadSpeed();
+    }
+}
+
+void ChAssembly::VariablesQbSetSpeed(double step) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->VariablesQbSetSpeed(step);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->VariablesQbSetSpeed(step);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->VariablesQbSetSpeed(step);
+    }
+}
+
+void ChAssembly::VariablesQbIncrementPosition(double dt_step) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->VariablesQbIncrementPosition(dt_step);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->VariablesQbIncrementPosition(dt_step);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->VariablesQbIncrementPosition(dt_step);
+    }
+}
+
 void ChAssembly::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->InjectConstraints(mdescriptor);
@@ -1016,6 +1088,66 @@ void ChAssembly::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     }
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->InjectConstraints(mdescriptor);
+    }
+}
+
+void ChAssembly::ConstraintsBiReset() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsBiReset();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsBiReset();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsBiReset();
+    }
+}
+
+void ChAssembly::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    }
+}
+
+void ChAssembly::ConstraintsBiLoad_Ct(double factor) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsBiLoad_Ct(factor);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsBiLoad_Ct(factor);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsBiLoad_Ct(factor);
+    }
+}
+
+void ChAssembly::ConstraintsBiLoad_Qc(double factor) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsBiLoad_Qc(factor);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsBiLoad_Qc(factor);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsBiLoad_Qc(factor);
+    }
+}
+
+void ChAssembly::ConstraintsFbLoadForces(double factor) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsFbLoadForces(factor);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsFbLoadForces(factor);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsFbLoadForces(factor);
     }
 }
 
@@ -1031,6 +1163,65 @@ void ChAssembly::ConstraintsLoadJacobians() {
     }
 }
 
+void ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsLiLoadSuggestedSpeedSolution();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsLiLoadSuggestedSpeedSolution();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsLiLoadSuggestedSpeedSolution();
+    }
+}
+
+void ChAssembly::ConstraintsLiLoadSuggestedPositionSolution() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsLiLoadSuggestedPositionSolution();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsLiLoadSuggestedPositionSolution();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsLiLoadSuggestedPositionSolution();
+    }
+}
+
+void ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsLiFetchSuggestedSpeedSolution();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsLiFetchSuggestedSpeedSolution();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsLiFetchSuggestedSpeedSolution();
+    }
+}
+
+void ChAssembly::ConstraintsLiFetchSuggestedPositionSolution() {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsLiFetchSuggestedPositionSolution();
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsLiFetchSuggestedPositionSolution();
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsLiFetchSuggestedPositionSolution();
+    }
+}
+
+void ChAssembly::ConstraintsFetch_react(double factor) {
+    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->ConstraintsFetch_react(factor);
+    }
+    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->ConstraintsFetch_react(factor);
+    }
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->ConstraintsFetch_react(factor);
+    }
+}
 
 void ChAssembly::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {

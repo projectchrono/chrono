@@ -609,6 +609,35 @@ void ChLinkEngine::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
     }
 }
 
+void ChLinkEngine::ConstraintsBiReset() {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsBiReset();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innerconstraint1->ConstraintsBiReset();
+        innerconstraint2->ConstraintsBiReset();
+    }
+}
+
+void ChLinkEngine::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innerconstraint1->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+        innerconstraint2->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    }
+}
+
+void ChLinkEngine::ConstraintsBiLoad_Ct(double factor) {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsBiLoad_Ct(factor);
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        // nothing
+    }
+}
+
 void ChLinkEngine::ConstraintsLoadJacobians() {
     // First, inherit to parent class
     ChLinkLock::ConstraintsLoadJacobians();
@@ -616,6 +645,56 @@ void ChLinkEngine::ConstraintsLoadJacobians() {
     if (this->eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
         innerconstraint1->ConstraintsLoadJacobians();
         innerconstraint2->ConstraintsLoadJacobians();
+    }
+}
+
+void ChLinkEngine::ConstraintsFetch_react(double factor) {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsFetch_react(factor);
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innerconstraint1->ConstraintsFetch_react(factor);
+        innerconstraint2->ConstraintsFetch_react(factor);
+    }
+}
+
+void ChLinkEngine::ConstraintsLiLoadSuggestedSpeedSolution() {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsLiLoadSuggestedSpeedSolution();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innerconstraint1->ConstraintsLiLoadSuggestedSpeedSolution();
+        innerconstraint2->ConstraintsLiLoadSuggestedSpeedSolution();
+    }
+}
+
+void ChLinkEngine::ConstraintsLiLoadSuggestedPositionSolution() {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsLiLoadSuggestedPositionSolution();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innerconstraint1->ConstraintsLiLoadSuggestedPositionSolution();
+        innerconstraint2->ConstraintsLiLoadSuggestedPositionSolution();
+    }
+}
+
+void ChLinkEngine::ConstraintsLiFetchSuggestedSpeedSolution() {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsLiFetchSuggestedSpeedSolution();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innerconstraint1->ConstraintsLiFetchSuggestedSpeedSolution();
+        innerconstraint2->ConstraintsLiFetchSuggestedSpeedSolution();
+    }
+}
+
+void ChLinkEngine::ConstraintsLiFetchSuggestedPositionSolution() {
+    // First, inherit to parent class
+    ChLinkLock::ConstraintsLiFetchSuggestedPositionSolution();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innerconstraint1->ConstraintsLiFetchSuggestedPositionSolution();
+        innerconstraint2->ConstraintsLiFetchSuggestedPositionSolution();
     }
 }
 
@@ -629,6 +708,65 @@ void ChLinkEngine::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
     }
 }
 
+void ChLinkEngine::VariablesFbReset() {
+    // First, inherit to parent class
+    ChLinkLock::VariablesFbReset();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innershaft1->VariablesFbReset();
+        innershaft2->VariablesFbReset();
+    }
+}
+
+void ChLinkEngine::VariablesFbLoadForces(double factor) {
+    // First, inherit to parent class
+    ChLinkLock::VariablesFbLoadForces(factor);
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innershaft1->VariablesFbLoadForces(factor);
+        innershaft2->VariablesFbLoadForces(factor);
+    }
+}
+
+void ChLinkEngine::VariablesFbIncrementMq() {
+    // inherit parent class
+    ChLinkLock::VariablesFbIncrementMq();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innershaft1->VariablesFbIncrementMq();
+        innershaft2->VariablesFbIncrementMq();
+    }
+}
+
+void ChLinkEngine::VariablesQbLoadSpeed() {
+    // First, inherit to parent class
+    ChLinkLock::VariablesQbLoadSpeed();
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innershaft1->VariablesQbLoadSpeed();
+        innershaft2->VariablesQbLoadSpeed();
+    }
+}
+
+void ChLinkEngine::VariablesQbSetSpeed(double step) {
+    // First, inherit to parent class
+    ChLinkLock::VariablesQbSetSpeed(step);
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innershaft1->VariablesQbSetSpeed(step);
+        innershaft2->VariablesQbSetSpeed(step);
+    }
+}
+
+void ChLinkEngine::VariablesQbIncrementPosition(double step) {
+    // First, inherit to parent class
+    ChLinkLock::VariablesQbIncrementPosition(step);
+
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+        innershaft1->VariablesQbIncrementPosition(step);
+        innershaft2->VariablesQbIncrementPosition(step);
+    }
+}
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.

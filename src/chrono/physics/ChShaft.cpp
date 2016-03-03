@@ -165,6 +165,52 @@ void ChShaft::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
     mdescriptor.InsertVariables(&this->variables);
 }
 
+void ChShaft::VariablesFbReset() {
+    this->variables.Get_fb().FillElem(0.0);
+}
+
+void ChShaft::VariablesFbLoadForces(double factor) {
+    // add applied torques to 'fb' vector
+    this->variables.Get_fb().ElementN(0) += this->torque * factor;
+}
+
+void ChShaft::VariablesFbIncrementMq() {
+    this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+}
+
+void ChShaft::VariablesQbLoadSpeed() {
+    // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
+    this->variables.Get_qb().SetElement(0, 0, pos_dt);
+}
+
+void ChShaft::VariablesQbSetSpeed(double step) {
+    double old_dt = this->pos_dt;
+
+    // from 'qb' vector, sets body speed, and updates auxiliary data
+    this->pos_dt = this->variables.Get_qb().GetElement(0, 0);
+
+    // apply limits (if in speed clamping mode) to speeds.
+    ClampSpeed();
+
+    // Compute accel. by BDF (approximate by differentiation);
+    if (step) {
+        pos_dtdt = ((this->pos_dt - old_dt) / step);
+    }
+}
+
+void ChShaft::VariablesQbIncrementPosition(double dt_step) {
+    if (!this->IsActive())
+        return;
+
+    // Updates position with incremental action of speed contained in the
+    // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
+
+    double newspeed = variables.Get_qb().GetElement(0, 0);
+
+    // ADVANCE POSITION: pos' = pos + dt * vel
+    this->pos = this->pos + newspeed * dt_step;
+}
+
 void ChShaft::SetNoSpeedNoAcceleration() {
     this->pos_dt = 0;
     this->pos_dtdt = 0;
