@@ -1,19 +1,13 @@
 Install Chrono Solidworks {#tutorial_install_chrono_solidworks}
 ==========================
 
-<div class="text-center">
-<img src="/images/Carousel_chronosolidworks.jpg" alt="Chrono Solidworks">
-</div>
-
 Chrono::SolidWorks is an add-in tool that allows to model complex
 mechanisms using the powerful [SolidWorks](http://www.solidworks.com) 3D
 CAD software. The user can create mechanisms with mouse and 3D
 interface, then a description file can be output from SolidWorks and
 load in a C++ or Python program.
 
-<div class="text-center">
-<img src="/images/SWaddin.jpg" alt="Solidworks Add in">
-</div>
+![](SWaddin.jpg)
 
 The generated description file is actually a Python .py file that
 contains all the statements to create Chrono::Engine scenes, with
@@ -29,7 +23,7 @@ Installation
 -   A copy of [SolidWorks](http://www.solidworks.com) must be installed
     on your computer. Supported from version 2011, 64bit, or later.
 -   Install the
-    [Chrono::SolidWorks](projectchrono.org/download/#chronosolidworks) add-in,
+    [Chrono::SolidWorks](http://projectchrono.org/download/#chronosolidworks) add-in,
     using the installer in our download section.
 -   install the [Chrono::PyEngine](@ref tutorial_install_chrono_pyengine)
     module, using the installer in our download section.

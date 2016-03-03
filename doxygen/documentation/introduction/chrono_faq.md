@@ -4,9 +4,8 @@ Chrono Frequently Asked Questions {#faq_root}
 
 ### Where can I start to read the documentation?
 
-If you are a new user, we suggest you to start from [the main page of
-this WIKI](Main_Page "wikilink"), or directly go to [this quick
-installation guide](Installation "wikilink").
+If you are a new user, we suggest you to start from the [main page](index.html) of
+this WIKI, or directly go to this [quick installation guide](@ref tutorial_table_of_content_install).
 
 ### Does CHRONO::ENGINE have a graphical user interface?
 

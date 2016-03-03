@@ -3,6 +3,8 @@ Chrono Tutorials, Core Features {#tutorial_table_of_content_chrono}
 
 The following links describe a set of basic Chrono tutorials. 
 
+These tutorials teach how to setup physical systems in Chrono::Engine. Here we do not use any graphical user interface: see the 'Irrlicht' tutorials for demos with a 3D graphical output. 
+
 -   @subpage tutorial_demo_buildsystem
 	
     Tutorial which teaches the basic approach to build and simulate mechanical systems. No 3D user interface is used here, so you compile this example even if you do not have Irrlicht 3D visualization library installed. Learn how:
