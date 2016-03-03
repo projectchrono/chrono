@@ -152,58 +152,86 @@ void ChSystemParallelDVI::AssembleSystem() {
   Setup();
 
   collision_system->Run();
-  collision_system->ReportContacts(this->contact_container.get());
+  collision_system->ReportContacts(contact_container.get());
   ChSystem::Update();
-  this->contact_container->BeginAddContact();
+  contact_container->BeginAddContact();
   chrono::collision::ChCollisionInfo icontact;
   for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
-    int2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
-    icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel();
-    icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();
-    icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
-    icontact.vpA =
-        ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
-    icontact.vpB =
-        ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
-    icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
-    this->contact_container->AddContact(icontact);
+      int2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
+      icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel();
+      icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();
+      icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
+      icontact.vpA =
+          ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
+      icontact.vpB =
+          ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
+      icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
+      contact_container->AddContact(icontact);
   }
-  this->contact_container->EndAddContact();
+  contact_container->EndAddContact();
 
-  {
-    std::vector<std::shared_ptr<ChLink> >::iterator iterlink = linklist.begin();
-    while (iterlink != linklist.end()) {
-      (*iterlink)->ConstraintsBiReset();
-      iterlink++;
-    }
-    std::vector<std::shared_ptr<ChBody> >::iterator ibody = bodylist.begin();
-    while (ibody != bodylist.end()) {
-      (*ibody)->VariablesFbReset();
-      ibody++;
-    }
-    this->contact_container->ConstraintsBiReset();
+  // Reset sparse representation accumulators.
+  for (int ip = 0; ip < linklist.size(); ++ip) {
+      linklist[ip]->ConstraintsBiReset();
+  }
+  for (int ip = 0; ip < bodylist.size(); ++ip) {
+      bodylist[ip]->VariablesFbReset();
+  }
+  contact_container->ConstraintsBiReset();
+
+  // Fill in the sparse system representation by looping over all links, bodies,
+  // and other physics items.
+  double F_factor = step;
+  double K_factor = step * step;
+  double R_factor = step;
+  double M_factor = 1;
+  double Ct_factor = 1;
+  double C_factor = 1 / step;
+
+  for (int ip = 0; ip < linklist.size(); ++ip) {
+      std::shared_ptr<ChLink> Lpointer = linklist[ip];
+
+      Lpointer->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
+      Lpointer->ConstraintsBiLoad_Ct(Ct_factor);
+      Lpointer->VariablesQbLoadSpeed();
+      Lpointer->VariablesFbIncrementMq();
+      Lpointer->ConstraintsLoadJacobians();
+      Lpointer->ConstraintsFbLoadForces(F_factor);
   }
 
-  LCPprepare_load(true,                            // Cq,
-                  true,                            // adds [M]*v_old to the known vector
-                  step,                            // f*dt
-                  step * step,                     // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-                  step,                            // dt*R   (nb only non-Schur based solvers support R matrix blocks)
-                  1.0,                             // M (for FEM with non-lumped masses, add their mass-matrixes)
-                  1.0,                             // Ct   (needed, for rheonomic motors)
-                  1.0 / step,                      // C/dt
-                  max_penetration_recovery_speed,  // vlim, max penetrations recovery speed (positive for exiting)
-                  true                             // do above max. clamping on -C/dt
-                  );
+  for (int ip = 0; ip < bodylist.size(); ++ip) {
+      std::shared_ptr<ChBody> Bpointer = bodylist[ip];
 
-  this->LCP_descriptor->BeginInsertion();
-  for (int i = 0; i < bodylist.size(); i++) {
-    bodylist[i]->InjectVariables(*this->LCP_descriptor);
+      Bpointer->VariablesFbLoadForces(F_factor);
+      Bpointer->VariablesQbLoadSpeed();
+      Bpointer->VariablesFbIncrementMq();
   }
-  std::vector<std::shared_ptr<ChLink> >::iterator it;
-  for (it = linklist.begin(); it != linklist.end(); it++) {
-    (*it)->InjectConstraints(*this->LCP_descriptor);
+
+  for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
+      std::shared_ptr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
+
+      PHpointer->VariablesFbLoadForces(F_factor);
+      PHpointer->VariablesQbLoadSpeed();
+      PHpointer->VariablesFbIncrementMq();
+      PHpointer->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
+      PHpointer->ConstraintsBiLoad_Ct(Ct_factor);
+      PHpointer->ConstraintsLoadJacobians();
+      PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
+      PHpointer->ConstraintsFbLoadForces(F_factor);
   }
-  this->contact_container->InjectConstraints(*this->LCP_descriptor);
-  this->LCP_descriptor->EndInsertion();
+
+  contact_container->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
+  contact_container->ConstraintsFbLoadForces(F_factor);
+  contact_container->ConstraintsLoadJacobians();
+
+  // Inject all variables and constraints into the system descriptor.
+  LCP_descriptor->BeginInsertion();
+  for (int ip = 0; ip < bodylist.size(); ++ip) {
+      bodylist[ip]->InjectVariables(*LCP_descriptor);
+  }
+  for (int ip = 0; ip < linklist.size(); ++ip) {
+      linklist[ip]->InjectConstraints(*LCP_descriptor);
+  }
+  contact_container->InjectConstraints(*LCP_descriptor);
+  LCP_descriptor->EndInsertion();
 }
