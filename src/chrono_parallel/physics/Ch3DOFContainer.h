@@ -75,8 +75,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual int GetNumConstraints() { return 0; }
     virtual int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
-    virtual real3 GetBodyContactForce(uint body_id) {}
-    virtual real3 GetBodyContactTorque(uint body_id) {}
+    virtual real3 GetBodyContactForce(uint body_id) {return real3(0);}
+    virtual real3 GetBodyContactTorque(uint body_id) {return real3(0);}
     // Integrate happens after the solve
     // void Integrate(double ChTime);
     // Position of the node - in absolute csys.
