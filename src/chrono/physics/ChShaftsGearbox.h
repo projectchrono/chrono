@@ -53,9 +53,6 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     // used as an interface to the LCP solver.
     ChLcpConstraintThreeGeneric constraint;
 
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
     ChShaft* shaft1;
     ChShaft* shaft2;
     ChBodyFrame* body;
@@ -120,12 +117,7 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    // virtual void ConstraintsFbLoadForces(double factor=1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions

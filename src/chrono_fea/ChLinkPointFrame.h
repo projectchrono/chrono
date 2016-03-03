@@ -66,9 +66,6 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     ChLcpConstraintTwoGeneric constraint2;
     ChLcpConstraintTwoGeneric constraint3;
 
-    ChVector<> cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    ChVector<> cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
     std::shared_ptr<fea::ChNodeFEAxyz> mnode;
     std::shared_ptr<ChBodyFrame> body;
 
@@ -127,10 +124,6 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions

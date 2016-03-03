@@ -63,9 +63,6 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     // used as an interface to the LCP solver.
     ChLcpConstraintTwoGeneric constraint;
 
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
   public:
     //
     // CONSTRUCTORS
@@ -121,12 +118,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    // virtual void ConstraintsFbLoadForces(double factor=1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions

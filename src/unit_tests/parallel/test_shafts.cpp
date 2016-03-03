@@ -185,6 +185,9 @@ bool TestShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMethod 
     if (std::abs(Tr1 - Tr1_an) > tol_trq || std::abs(Tr2 - Tr2_an) > tol_trq) {
       passed = false;
     }
+
+    if (!passed)
+        break;
   }
 
   std::cout << (passed ? "PASSED" : "FAILED") << std::endl;

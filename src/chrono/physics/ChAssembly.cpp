@@ -1163,54 +1163,6 @@ void ChAssembly::ConstraintsLoadJacobians() {
     }
 }
 
-void ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution() {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->ConstraintsLiLoadSuggestedSpeedSolution();
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->ConstraintsLiLoadSuggestedSpeedSolution();
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->ConstraintsLiLoadSuggestedSpeedSolution();
-    }
-}
-
-void ChAssembly::ConstraintsLiLoadSuggestedPositionSolution() {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->ConstraintsLiLoadSuggestedPositionSolution();
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->ConstraintsLiLoadSuggestedPositionSolution();
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->ConstraintsLiLoadSuggestedPositionSolution();
-    }
-}
-
-void ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution() {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->ConstraintsLiFetchSuggestedSpeedSolution();
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->ConstraintsLiFetchSuggestedSpeedSolution();
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->ConstraintsLiFetchSuggestedSpeedSolution();
-    }
-}
-
-void ChAssembly::ConstraintsLiFetchSuggestedPositionSolution() {
-    for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->ConstraintsLiFetchSuggestedPositionSolution();
-    }
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->ConstraintsLiFetchSuggestedPositionSolution();
-    }
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->ConstraintsLiFetchSuggestedPositionSolution();
-    }
-}
-
 void ChAssembly::ConstraintsFetch_react(double factor) {
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->ConstraintsFetch_react(factor);

@@ -140,8 +140,8 @@ class ChApi ChSystem : public ChAssembly,
 
     /// Available methods for time integration (time steppers).
     enum eCh_integrationType {
-        INT_ANITESCU = 0,
-        INT_TASORA = 6,
+        INT_ANITESCU = 0,       ///< alias of INT_EULER_IMPLICIT_LINEARIZED
+        INT_TASORA = 6,         ///< alias of INT_EULER_IMPLICIT_PROJECTED
         INT_EULER_IMPLICIT = 7,
         INT_EULER_IMPLICIT_LINEARIZED = 8,
         INT_EULER_IMPLICIT_PROJECTED = 17,
@@ -451,44 +451,9 @@ class ChApi ChSystem : public ChAssembly,
     // LCP SOLVER
     //
 
-    /// Sets to zero all the known terms bi & fb of the sparse LCP (that is,
-    /// resets all the bi terms in ChConstraints (for example constraints
-    /// defined in ChLinks, and resets all the fb vectors of ChVariables
-    /// contained, for example, in ChBodies)
-    virtual void LCPprepare_reset();
-
-    /// Fills the all the known terms of the sparse LCP (that is,
-    /// fills all the bi terms in ChConstraints (for example constraints
-    /// defined in ChLinks, and fills all the fb vectors of ChVariables
-    /// contained, for example, in ChBodies).
-    /// The parameters of this function specify which data must be loaded
-    /// in the known terms.
-    virtual void LCPprepare_load(
-        bool load_jacobians,  ///< load jacobians into ChConstraints
-        bool load_Mv,         ///< load M*v in fb: fb+=M*v (for timestepping where fb=F*h+M*v_old). Also, sets q=v_old.
-        double F_factor,      ///< load F (forces) in fb: fb+=F*F_factor
-        double K_factor,      ///< load K stiff.matrices, if any ChLcpKblock matrices, multiplied by K_factor
-        double R_factor,      ///< load R damp.matrices, if any ChLcpKblock matrices, multiplied by R_factor
-        double M_factor,      ///< load M mass.matrices, if any ChLcpKblock matrices, multiplied by M_factor (ex in
-        /// non-lumped-mass FEM)
-        double Ct_factor,       ///< load Ct into bi:  bi+= Ct*Ct_factor
-        double C_factor,        ///< load C  into bi:  bi+= C*C_factor, otherwise..
-        double recovery_clamp,  ///< if do_clamp=true,  bi+= min(C*C_factor, recovery_clamp);
-        bool do_clamp           ///< if true, limit the recovery of constraint drifting
-        );
-
     /// Pushes back all ChConstraints and ChVariables contained in links,bodies,etc.
     /// into the LCP descriptor.
     virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
-
-    /// The following constraints<->system functions are used before and after the solution of a LCP, because
-    /// iterative LCP solvers may converge faster to the Li lagrangian multiplier solutions if 'guessed'
-    /// values provided (exploit the fact that ChLink classes implement caches with 'last computed multipliers').
-    virtual void LCPprepare_Li_from_speed_cache();
-    virtual void LCPprepare_Li_from_position_cache();
-    virtual void LCPresult_Li_into_speed_cache();
-    virtual void LCPresult_Li_into_position_cache();
-    virtual void LCPresult_Li_into_reactions(double mfactor);
 
 public:
     //
@@ -574,11 +539,6 @@ public:
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsBiLoad_Qc(double factor = 1.);
     virtual void ConstraintsFbLoadForces(double factor = 1.);
-    
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     //
@@ -798,14 +758,6 @@ public:
     /// Depending on the integration type, it switches to one of the following:
     virtual int Integrate_Y();
 
-    /// Use Anitescu stepper, with position stabilization in speed stage.
-    virtual int Integrate_Y_impulse_Anitescu();
-
-    /// Use Tasora stepper, with separate stage for position stabilization.
-    virtual int Integrate_Y_impulse_Tasora();
-
-    /// Use the new pluggable ChTimestepper
-    virtual int Integrate_Y_timestepper();
 
   public:
 

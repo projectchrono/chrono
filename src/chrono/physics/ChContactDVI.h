@@ -340,48 +340,6 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         react_force.y = Tu.Get_l_i() * factor;
         react_force.z = Tv.Get_l_i() * factor;
     }
-
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution() {
-        // Fetch the last computed impulsive reactions from the persistent contact manifold (could
-        // be used for warm starting the CCP speed solver):
-        if (this->reactions_cache) {
-            Nx.Set_l_i(reactions_cache[0]);
-            Tu.Set_l_i(reactions_cache[1]);
-            Tv.Set_l_i(reactions_cache[2]);
-        }
-        // GetLog() << "++++      " << (int)this << "  fetching N=" << (double)mn <<"\n";
-    }
-
-    virtual void ConstraintsLiLoadSuggestedPositionSolution() {
-        // Fetch the last computed 'positional' reactions from the persistent contact manifold (could
-        // be used for warm starting the CCP position stabilization solver):
-        if (this->reactions_cache) {
-            Nx.Set_l_i(reactions_cache[3]);
-            Tu.Set_l_i(reactions_cache[4]);
-            Tv.Set_l_i(reactions_cache[5]);
-        }
-    }
-
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution() {
-        // Store the last computed reactions into the persistent contact manifold (might
-        // be used for warm starting CCP the speed solver):
-        if (reactions_cache) {
-            reactions_cache[0] = (float)Nx.Get_l_i();
-            reactions_cache[1] = (float)Tu.Get_l_i();
-            reactions_cache[2] = (float)Tv.Get_l_i();
-        }
-        // GetLog() << "         " << (int)this << "  storing  N=" << Nx.Get_l_i() <<"\n";
-    }
-
-    virtual void ConstraintsLiFetchSuggestedPositionSolution() {
-        // Store the last computed 'positional' reactions into the persistent contact manifold (might
-        // be used for warm starting the CCP position stabilization solver):
-        if (reactions_cache) {
-            reactions_cache[3] = (float)Nx.Get_l_i();
-            reactions_cache[4] = (float)Tu.Get_l_i();
-            reactions_cache[5] = (float)Tv.Get_l_i();
-        }
-    }
 };
 
 }  // END_OF_NAMESPACE____

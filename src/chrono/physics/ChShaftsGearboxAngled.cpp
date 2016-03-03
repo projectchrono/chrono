@@ -26,8 +26,6 @@ ChShaftsGearboxAngled::ChShaftsGearboxAngled() {
     SetTransmissionRatio(1);
 
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     this->shaft1 = 0;
     this->shaft2 = 0;
@@ -52,8 +50,6 @@ void ChShaftsGearboxAngled::Copy(ChShaftsGearboxAngled* source) {
     shaft_dir2 = source->shaft_dir2;
 
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
     this->shaft1 = 0;
     this->shaft2 = 0;
     this->body = 0;
@@ -203,27 +199,7 @@ void ChShaftsGearboxAngled::ConstraintsFetch_react(double factor) {
     this->torque_react = constraint.Get_l_i() * factor;
 }
 
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsGearboxAngled::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsGearboxAngled::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsGearboxAngled::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsGearboxAngled::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
-}
-
 //////// FILE I/O
-
-
 
 void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive)
 {

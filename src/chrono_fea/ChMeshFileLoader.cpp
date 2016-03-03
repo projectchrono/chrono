@@ -409,6 +409,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                                             const char* filename,
                                             std::shared_ptr<ChMaterialShellANCF> my_material,
+                                            std::vector<double>& node_ave_area,
                                             std::vector<int>& Boundary_nodes,
                                             ChVector<> pos_transform,
                                             ChMatrix33<> rot_transform,
@@ -453,6 +454,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
             cout << "Reading nodal information ..." << endl;
             getline(fin, line);
             Normals.resize(TotalNumNodes);
+            node_ave_area.resize(nodes_offset + TotalNumNodes);
             num_Normals.resize(TotalNumNodes);
             for (int inode = 0; inode < TotalNumNodes; inode++) {
                 double loc_x, loc_y, loc_z;
@@ -604,12 +606,16 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
 
     GetLog() << "-----------------------------------------------------------\n\n";
     //
-    for (int inode = 0; inode < 0 + TotalNumNodes; inode++) {
+    for (int inode = 0; inode < TotalNumNodes; inode++) {
         ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);
-        //
+        // Very useful information to store: 1/4 of area of neighbouring elements contribute to each node's average area
+        node_ave_area[nodes_offset + inode] = Normals[inode].Length() / 4;
+        GetLog() << " Ave area of this node " << node_ave_area[nodes_offset + inode] << " \n ";
+
         if (num_Normals[inode] <= 2)
             Boundary_nodes.push_back(nodes_offset + inode);
         node_normal.Normalize();
+
         ChVector<> node_position = nodesVector[inode]->GetPos();
         auto node = std::make_shared<ChNodeFEAxyzD>(node_position, node_normal);
         node->SetMass(0);
