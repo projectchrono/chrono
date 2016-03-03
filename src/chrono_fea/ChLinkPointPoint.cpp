@@ -26,8 +26,6 @@ ChClassRegister<ChLinkPointPoint> a_registration_ChLinkPointPoint;
 
 ChLinkPointPoint::ChLinkPointPoint() {
 	this->react= VNULL;
-	this->cache_li_speed = VNULL;
-	this->cache_li_pos = VNULL;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
@@ -41,8 +39,6 @@ void ChLinkPointPoint::Copy(ChLinkPointPoint* source) {
 
 		// copy class data
 	react = source->react;
-	cache_li_speed = source->cache_li_speed;
-	cache_li_pos = source->cache_li_pos;
 }
 
 ChCoordsys<> ChLinkPointPoint::GetLinkAbsoluteCoords() {

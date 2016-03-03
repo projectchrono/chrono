@@ -31,8 +31,6 @@ ChClassRegister<ChLinkDirFrame> a_registration_ChLinkDirFrame;
 ChLinkDirFrame::ChLinkDirFrame ()
 {
 	this->react= VNULL;
-	this->cache_li_speed = VNULL;
-	this->cache_li_pos = VNULL;
 	this->direction = VECT_X;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
@@ -53,8 +51,6 @@ void ChLinkDirFrame::Copy(ChLinkDirFrame* source)
 		// copy class data
 
 	react = source->react;
-	cache_li_speed = source->cache_li_speed;
-	cache_li_pos = source->cache_li_pos;
 	direction= source->direction;
 }
 

@@ -44,11 +44,6 @@ ChLinkEngine::ChLinkEngine() {
     mot_eta = 1.0;
     mot_inertia = 0.0;
 
-    cache_li_speed1 = 0;
-    cache_li_pos1 = 0;
-    torque_react1 = 0;
-    cache_li_speed2 = 0;
-    cache_li_pos2 = 0;
     torque_react2 = 0;
 
     eng_mode = ENG_MODE_ROTATION;
@@ -104,11 +99,6 @@ void ChLinkEngine::Copy(ChLinkEngine* source) {
     mot_eta = source->mot_eta;
     mot_inertia = source->mot_inertia;
 
-    cache_li_speed1 = 0;
-    cache_li_pos1 = 0;
-    torque_react1 = source->torque_react1;
-    cache_li_speed2 = 0;
-    cache_li_pos2 = 0;
     torque_react2 = source->torque_react2;
 }
 

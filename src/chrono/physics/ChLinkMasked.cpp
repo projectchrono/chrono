@@ -51,7 +51,6 @@ ChLinkMasked::ChLinkMasked() {
     C = C_dt = C_dtdt = NULL;  // initialize matrices.
 
     react = 0;
-    cache_li_speed = cache_li_pos = 0;
     Qc = Ct = 0;
     Cq1 = Cq2 = 0;
     Cqw1 = Cqw2 = 0;
@@ -135,8 +134,6 @@ void ChLinkMasked::BuildLink() {
         Cq2 = new ChMatrixDynamic<>(ndoc, BODY_QDOF);
         Cqw1 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
         Cqw2 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
-        cache_li_speed = new ChMatrixDynamic<>(ndoc, 1);
-        cache_li_pos = new ChMatrixDynamic<>(ndoc, 1);
     } else {
         C = 0;
         C_dt = 0;
@@ -148,8 +145,6 @@ void ChLinkMasked::BuildLink() {
         Cq2 = 0;
         Cqw1 = 0;
         Cqw2 = 0;
-        cache_li_speed = 0;
-        cache_li_pos = 0;
     }
 }
 
@@ -205,14 +200,6 @@ void ChLinkMasked::DestroyLink() {
         if (react) {
             delete react;
             react = NULL;
-        }
-        if (cache_li_speed) {
-            delete cache_li_speed;
-            cache_li_speed = 0;
-        }
-        if (cache_li_pos) {
-            delete cache_li_pos;
-            cache_li_pos = 0;
         }
     }
 

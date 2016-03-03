@@ -116,9 +116,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     ChMatrix<>* C;  // residuals
 
-    ChMatrix<>* cache_li_pos;
-    ChMatrix<>* cache_li_speed;
-
   public:
     //
     // CONSTRUCTORS

@@ -87,11 +87,7 @@ class ChApi ChLinkEngine : public ChLinkLock {
     std::shared_ptr<ChShaft> innershaft2;            // ''      ''
     std::shared_ptr<ChShaftsBody> innerconstraint1;  // ''     ''
     std::shared_ptr<ChShaftsBody> innerconstraint2;  // ''     ''
-    double cache_li_speed1;
-    double cache_li_pos1;
     double torque_react1;
-    double cache_li_speed2;
-    double cache_li_pos2;
     double torque_react2;
 
   public:

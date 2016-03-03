@@ -58,9 +58,6 @@ class ChApi ChLinkDistance : public ChLink {
 
     double curr_dist;  // used for internal optimizations
 
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
   public:
     //
     // CONSTRUCTORS

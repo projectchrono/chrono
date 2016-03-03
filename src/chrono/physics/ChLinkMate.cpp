@@ -71,8 +71,6 @@ ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx
     c_rz = mc_rz;
 
     C = 0;
-    cache_li_pos = 0;
-    cache_li_speed = 0;
 
     mask = new ChLinkMask();
 
@@ -83,14 +81,6 @@ ChLinkMateGeneric::~ChLinkMateGeneric() {
     if (C)
         delete C;
     C = 0;
-
-    if (cache_li_pos)
-        delete cache_li_pos;
-    cache_li_pos = 0;
-
-    if (cache_li_speed)
-        delete cache_li_speed;
-    cache_li_speed = 0;
 
     if (mask)
         delete mask;
@@ -149,14 +139,6 @@ void ChLinkMateGeneric::SetupLinkMask() {
     if (C)
         delete C;
     C = new ChMatrixDynamic<>(nc, 1);
-
-    if (cache_li_pos)
-        delete cache_li_pos;
-    cache_li_pos = new ChMatrixDynamic<>(nc, 1);
-
-    if (cache_li_speed)
-        delete cache_li_speed;
-    cache_li_speed = new ChMatrixDynamic<>(nc, 1);
 
     ChangedLinkMask();
 }

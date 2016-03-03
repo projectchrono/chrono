@@ -51,9 +51,6 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     // used as an interface to the LCP solver.
     ChLcpConstraintThreeGeneric constraint;
 
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
     ChShaft* shaft1;
     ChShaft* shaft2;
     ChBodyFrame* body;

@@ -47,9 +47,6 @@ private:
 	ChLcpConstraintTwoGeneric constraint2;
 	ChLcpConstraintTwoGeneric constraint3;
 
-	ChVector<> cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
-	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
-
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
 

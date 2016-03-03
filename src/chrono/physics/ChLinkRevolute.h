@@ -156,9 +156,8 @@ class ChApi ChLinkRevolute : public ChLink {
     // Current constraint violations
     ChMatrix<>* m_C;
 
-    // Caching of multipliers to allow warm starting
-    double m_cache_speed[5];
-    double m_cache_pos[5];
+    // Lagrange multipliers
+    double m_multipliers[5];
 };
 
 }  // END_OF_NAMESPACE____

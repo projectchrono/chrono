@@ -37,9 +37,6 @@ ChShaftsMotor::ChShaftsMotor() {
     this->motor_set_rot = 0;
     this->motor_set_rot_dt = 0;
 
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
-
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
 
@@ -55,9 +52,6 @@ void ChShaftsMotor::Copy(ChShaftsMotor* source) {
     motor_mode = source->motor_mode;
     motor_set_rot = source->motor_set_rot;
     motor_set_rot_dt = source->motor_set_rot_dt;
-
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
 }
 
 bool ChShaftsMotor::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {

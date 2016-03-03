@@ -39,8 +39,6 @@ ChShaftsClutch::ChShaftsClutch() {
     this->modulation = 1.0;
 
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
@@ -60,8 +58,6 @@ void ChShaftsClutch::Copy(ChShaftsClutch* source) {
     modulation = source->modulation;
 
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
 }
 
 bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {

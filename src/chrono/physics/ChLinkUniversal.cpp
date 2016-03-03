@@ -22,15 +22,10 @@ ChClassRegister<ChLinkUniversal> a_registration_ChLinkUniversal;
 ChLinkUniversal::ChLinkUniversal() {
     m_C = new ChMatrixDynamic<>(4, 1);
 
-    m_cache_speed[0] = 0;
-    m_cache_speed[1] = 0;
-    m_cache_speed[2] = 0;
-    m_cache_speed[3] = 0;
-
-    m_cache_pos[0] = 0;
-    m_cache_pos[1] = 0;
-    m_cache_pos[2] = 0;
-    m_cache_pos[3] = 0;
+    m_multipliers[0] = 0;
+    m_multipliers[1] = 0;
+    m_multipliers[2] = 0;
+    m_multipliers[3] = 0;
 }
 
 ChLinkUniversal::~ChLinkUniversal() {
@@ -54,15 +49,10 @@ void ChLinkUniversal::Copy(ChLinkUniversal* source) {
     m_cnstr_z.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    m_cache_speed[0] = source->m_cache_speed[0];
-    m_cache_speed[1] = source->m_cache_speed[1];
-    m_cache_speed[2] = source->m_cache_speed[2];
-    m_cache_speed[3] = source->m_cache_speed[3];
-
-    m_cache_pos[0] = source->m_cache_pos[0];
-    m_cache_pos[1] = source->m_cache_pos[1];
-    m_cache_pos[2] = source->m_cache_pos[2];
-    m_cache_pos[3] = source->m_cache_pos[3];
+    m_multipliers[0] = source->m_multipliers[0];
+    m_multipliers[1] = source->m_multipliers[1];
+    m_multipliers[2] = source->m_multipliers[2];
+    m_multipliers[3] = source->m_multipliers[3];
 }
 
 ChLink* ChLinkUniversal::new_Duplicate() {
@@ -238,27 +228,27 @@ void ChLinkUniversal::IntStateGatherReactions(const unsigned int off_L, ChVector
     if (!this->IsActive())
         return;
 
-    L(off_L) = m_cache_speed[0];
-    L(off_L + 1) = m_cache_speed[1];
-    L(off_L + 2) = m_cache_speed[2];
-    L(off_L + 3) = m_cache_speed[3];
+    L(off_L + 0) = m_multipliers[0];
+    L(off_L + 1) = m_multipliers[1];
+    L(off_L + 2) = m_multipliers[2];
+    L(off_L + 3) = m_multipliers[3];
 }
 
 void ChLinkUniversal::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     if (!this->IsActive())
         return;
 
-    m_cache_speed[0] = L(off_L);
-    m_cache_speed[1] = L(off_L + 1);
-    m_cache_speed[2] = L(off_L + 2);
-    m_cache_speed[3] = L(off_L + 3);
+    m_multipliers[0] = L(off_L + 0);
+    m_multipliers[1] = L(off_L + 1);
+    m_multipliers[2] = L(off_L + 2);
+    m_multipliers[3] = L(off_L + 3);
 
     // Also compute 'intuitive' reactions:
 
     // Extract the Lagrange multipliers for the 3 spherical constraints and for
     // the dot constraint.
-    ChVector<> lam_sph(m_cache_speed[0], m_cache_speed[1], m_cache_speed[2]);
-    double lam_dot = m_cache_speed[3];
+    ChVector<> lam_sph(m_multipliers[0], m_multipliers[1], m_multipliers[2]);
+    double lam_dot = m_multipliers[3];
 
     // Calculate the reaction force and torque acting on the 2nd body at the joint
     // location, expressed in the joint reference frame.  Taking into account the

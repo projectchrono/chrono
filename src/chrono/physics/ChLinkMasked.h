@@ -90,9 +90,6 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
 
     ChMatrix<>* react;  // {l}	, the lagrangians forces in the constraints
 
-    ChMatrix<>* cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    ChMatrix<>* cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
   public:
     //
     // CONSTRUCTORS

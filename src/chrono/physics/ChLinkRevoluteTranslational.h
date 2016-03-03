@@ -199,11 +199,10 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     // Current constraint violations
     ChMatrix<>* m_C;
 
-    // Caching of multipliers to allow warm starting
+    // Lagrange multipliers
     // Note that their order corresponds to the following order of the constraints:
     // par1, par2, dot, dist.
-    double m_cache_speed[4];
-    double m_cache_pos[4];
+    double m_multipliers[4];
 };
 
 }  // end namespace chrono

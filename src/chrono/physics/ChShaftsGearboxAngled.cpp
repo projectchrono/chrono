@@ -26,8 +26,6 @@ ChShaftsGearboxAngled::ChShaftsGearboxAngled() {
     SetTransmissionRatio(1);
 
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     this->shaft1 = 0;
     this->shaft2 = 0;
@@ -52,8 +50,6 @@ void ChShaftsGearboxAngled::Copy(ChShaftsGearboxAngled* source) {
     shaft_dir2 = source->shaft_dir2;
 
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
     this->shaft1 = 0;
     this->shaft2 = 0;
     this->body = 0;

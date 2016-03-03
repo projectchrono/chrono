@@ -66,8 +66,6 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
 
     // used as an interface to the LCP solver.
     ChLcpConstraintTwoGeneric constraint;
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
 
   public:
     //

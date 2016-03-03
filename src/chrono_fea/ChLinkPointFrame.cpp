@@ -26,8 +26,6 @@ ChClassRegister<ChLinkPointFrame> a_registration_ChLinkPointFrame;
 
 ChLinkPointFrame::ChLinkPointFrame() {
 	this->react= VNULL;
-	this->cache_li_speed = VNULL;
-	this->cache_li_pos = VNULL;
 	this->attach_reference = CSYSNORM;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
@@ -43,8 +41,6 @@ void ChLinkPointFrame::Copy(ChLinkPointFrame* source) {
 		// copy class data
 	attach_reference = source->attach_reference;
 	react = source->react;
-	cache_li_speed = source->cache_li_speed;
-	cache_li_pos = source->cache_li_pos;
 }
 
 ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
