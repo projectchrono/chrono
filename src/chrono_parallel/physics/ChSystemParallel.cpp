@@ -90,7 +90,7 @@ int ChSystemParallel::Integrate_Y() {
   }
 
   // Update the constraint reactions.
-  //LCPresult_Li_into_reactions(1.0 / this->GetStep());  //***TODO*** 
+  LCPresult_Li_into_reactions(1.0 / this->GetStep());  // R = l/dt  , approximately
 
   // Scatter the states to the Chrono objects (bodies and shafts) and update
   // all physics items at the end of the step.
@@ -100,79 +100,35 @@ int ChSystemParallel::Integrate_Y() {
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
-      if (!data_manager->host_data.active_rigid[i])
-          continue;
+    if (data_manager->host_data.active_rigid[i] == true) {
+      bodylist[i]->Variables().Get_qb().SetElement(0, 0, velocities[i * 6 + 0]);
+      bodylist[i]->Variables().Get_qb().SetElement(1, 0, velocities[i * 6 + 1]);
+      bodylist[i]->Variables().Get_qb().SetElement(2, 0, velocities[i * 6 + 2]);
+      bodylist[i]->Variables().Get_qb().SetElement(3, 0, velocities[i * 6 + 3]);
+      bodylist[i]->Variables().Get_qb().SetElement(4, 0, velocities[i * 6 + 4]);
+      bodylist[i]->Variables().Get_qb().SetElement(5, 0, velocities[i * 6 + 5]);
 
-      std::shared_ptr<ChBody> body = bodylist[i];
-      ChVector<> new_vel(velocities[i * 6 + 0], velocities[i * 6 + 1], velocities[i * 6 + 2]);
-      ChVector<> new_omg(velocities[i * 6 + 3], velocities[i * 6 + 4], velocities[i * 6 + 5]);
+      bodylist[i]->VariablesQbIncrementPosition(this->GetStep());
+      bodylist[i]->VariablesQbSetSpeed(this->GetStep());
 
-      // Store the new states into the body variables
-      body->Variables().Get_qb().SetElement(0, 0, new_vel.x);
-      body->Variables().Get_qb().SetElement(1, 0, new_vel.y);
-      body->Variables().Get_qb().SetElement(2, 0, new_vel.z);
-      body->Variables().Get_qb().SetElement(3, 0, new_omg.x);
-      body->Variables().Get_qb().SetElement(4, 0, new_omg.y);
-      body->Variables().Get_qb().SetElement(5, 0, new_omg.z);
+      bodylist[i]->Update(ChTime);
 
-      // Advance body position: pos' = pos + dt * vel
-      body->SetPos(body->GetPos() + new_vel * this->step);
-
-      // Advance body rotation: rot' = [dt*omg]%rot  (use quaternion for delta rotation)
-      ChVector<> new_omg_abs = body->TransformDirectionLocalToParent(new_omg);
-      double mangle = new_omg_abs.Length() * this->step;
-      new_omg_abs.Normalize();
-      ChQuaternion<> deltarot;
-      deltarot.Q_from_AngAxis(mangle, new_omg_abs);
-      body->SetRot(deltarot % body->GetRot());
-
-      // Set body velocities
-      ChCoordsys<> old_coord_dt = body->GetCoord_dt();
-      body->SetPos_dt(new_vel);
-      body->SetWvel_loc(new_omg);
-
-      // Apply limits to speeds and compute gyroscopic forces
-      body->ClampSpeed();
-      body->ComputeGyro();
-
-      // Approximate body acceleration by finite differences
-      body->SetPos_dtdt((body->GetCoord_dt().pos - old_coord_dt.pos) / this->step);
-      body->SetRot_dtdt((body->GetCoord_dt().rot - old_coord_dt.rot) / this->step);
-
-      // Update body time and body assets
-      body->Update(this->ChTime, true);
-
-      // Update the position and rotation vectors
-      pos_pointer[i] = R3(body->GetPos().x, body->GetPos().y, body->GetPos().z);
-      rot_pointer[i] = R4(body->GetRot().e0, body->GetRot().e1, body->GetRot().e2, body->GetRot().e3);
+      // update the position and rotation vectors
+      pos_pointer[i] = (R3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
+      rot_pointer[i] =
+          (R4(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2, bodylist[i]->GetRot().e3));
+    }
   }
 
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
-      if (!data_manager->host_data.shaft_active[i])
-          continue;
+    if (!data_manager->host_data.shaft_active[i])
+      continue;
 
-      ChShaft* shaft = shaftlist[i];
-      double new_vel = velocities[data_manager->num_rigid_bodies * 6 + i];
-
-      // Store the new state into the shaft variables
-      shaft->Variables().Get_qb().SetElementN(0, new_vel);
-
-      // Advance shaft position
-      shaft->SetPos(shaft->GetPos() + new_vel * this->step);
-
-      // Set shaft velocity
-      double old_vel = shaft->GetPos_dt();
-      shaft->SetPos_dt(new_vel);
-
-      // Spply limits to speed
-      shaft->ClampSpeed();
-
-      // Approximate shaft acceleration by finite differences
-      shaft->SetPos_dtdt((new_vel - old_vel) / this->step);
-
-      // Update shaft time and shaft assets
-      shaft->Update(this->ChTime, true);
+    shaftlist[i]->Variables().Get_qb().SetElementN(0, velocities[data_manager->num_rigid_bodies * 6 + i]);
+    shaftlist[i]->VariablesQbIncrementPosition(GetStep());
+    shaftlist[i]->VariablesQbSetSpeed(GetStep());
+    shaftlist[i]->Update(ChTime);
   }
 
   for (int i = 0; i < otherphysicslist.size(); i++) {
@@ -274,12 +230,12 @@ void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
 void ChSystemParallel::ClearForceVariables() {
 #pragma omp parallel for
   for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
-      bodylist[i]->Variables().Get_fb().FillElem(0.0);
+    //bodylist[i]->VariablesFbReset(); //***TODO*** replace with new bookkeeping?
   }
 
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
-      shaftlist[i]->Variables().Get_fb().FillElem(0.0);
+    //shaftlist[i]->VariablesFbReset(); //***TODO*** replace with new bookkeeping?
   }
 }
 
@@ -329,46 +285,39 @@ void ChSystemParallel::UpdateRigidBodies() {
 
 #pragma omp parallel for
   for (int i = 0; i < bodylist.size(); i++) {
-      bodylist[i]->Update(ChTime, false);
+    bodylist[i]->Update(ChTime, false);
+    //bodylist[i]->VariablesFbLoadForces(GetStep());  //***TODO*** replace with new bookkeeping?
+    //bodylist[i]->VariablesQbLoadSpeed();  //***TODO*** replace with new bookkeeping?
 
-      ChVector<>& body_pos = bodylist[i]->GetPos();
-      ChQuaternion<>& body_rot = bodylist[i]->GetRot();
-      ChVector<>& body_vel = bodylist[i]->GetCoord_dt().pos;
-      ChVector<>& body_omg = bodylist[i]->GetWvel_loc();
+    ChMatrix<>& body_qb = bodylist[i]->Variables().Get_qb();
+    ChMatrix<>& body_fb = bodylist[i]->Variables().Get_fb();
+    ChVector<>& body_pos = bodylist[i]->GetPos();
+    ChQuaternion<>& body_rot = bodylist[i]->GetRot();
 
-      // Note: use the body variables as a force accumulator
-      //       (other items might have already added forces on this body)
-      ChMatrix<>& body_fb = bodylist[i]->Variables().Get_fb();
-      const ChVector<>& body_force = bodylist[i]->Get_Xforce();
-      ChVector<> body_torque = bodylist[i]->GetNoGyroTorque() ? bodylist[i]->Get_Xtorque()
-                                                              : (bodylist[i]->Get_Xtorque() - bodylist[i]->Get_gyro());
-      body_fb.PasteSumVector(body_force * this->step, 0, 0);
-      body_fb.PasteSumVector(body_torque * this->step, 3, 0);
+    data_manager->host_data.v[i * 6 + 0] = body_qb.GetElementN(0);
+    data_manager->host_data.v[i * 6 + 1] = body_qb.GetElementN(1);
+    data_manager->host_data.v[i * 6 + 2] = body_qb.GetElementN(2);
+    data_manager->host_data.v[i * 6 + 3] = body_qb.GetElementN(3);
+    data_manager->host_data.v[i * 6 + 4] = body_qb.GetElementN(4);
+    data_manager->host_data.v[i * 6 + 5] = body_qb.GetElementN(5);
 
-      data_manager->host_data.v[i * 6 + 0] = body_vel.x;
-      data_manager->host_data.v[i * 6 + 1] = body_vel.y;
-      data_manager->host_data.v[i * 6 + 2] = body_vel.z;
-      data_manager->host_data.v[i * 6 + 3] = body_omg.x;
-      data_manager->host_data.v[i * 6 + 4] = body_omg.y;
-      data_manager->host_data.v[i * 6 + 5] = body_omg.z;
+    data_manager->host_data.hf[i * 6 + 0] = body_fb.ElementN(0);
+    data_manager->host_data.hf[i * 6 + 1] = body_fb.ElementN(1);
+    data_manager->host_data.hf[i * 6 + 2] = body_fb.ElementN(2);
+    data_manager->host_data.hf[i * 6 + 3] = body_fb.ElementN(3);
+    data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
+    data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
 
-      data_manager->host_data.hf[i * 6 + 0] = body_fb.ElementN(0);
-      data_manager->host_data.hf[i * 6 + 1] = body_fb.ElementN(1);
-      data_manager->host_data.hf[i * 6 + 2] = body_fb.ElementN(2);
-      data_manager->host_data.hf[i * 6 + 3] = body_fb.ElementN(3);
-      data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
-      data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
+    position[i] = R3(body_pos.x, body_pos.y, body_pos.z);
+    rotation[i] = R4(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
 
-      position[i] = R3(body_pos.x, body_pos.y, body_pos.z);
-      rotation[i] = R4(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
+    active[i] = bodylist[i]->IsActive();
+    collide[i] = bodylist[i]->GetCollide();
 
-      active[i] = bodylist[i]->IsActive();
-      collide[i] = bodylist[i]->GetCollide();
+    // Let derived classes set the specific material surface data.
+    UpdateMaterialSurfaceData(i, bodylist[i].get());
 
-      // Let derived classes set the specific material surface data.
-      UpdateMaterialSurfaceData(i, bodylist[i].get());
-
-      bodylist[i]->GetCollisionModel()->SyncPosition();
+    bodylist[i]->GetCollisionModel()->SyncPosition();
   }
 }
 
@@ -384,19 +333,17 @@ void ChSystemParallel::UpdateShafts() {
   ////#pragma omp parallel for
   for (int i = 0; i < data_manager->num_shafts; i++) {
     shaftlist[i]->Update(ChTime, false);
+    //shaftlist[i]->VariablesFbLoadForces(GetStep());  //***TODO*** replace with new bookkeeping?
+    //shaftlist[i]->VariablesQbLoadSpeed();  //***TODO*** replace with new bookkeeping?
 
     shaft_rot[i] = shaftlist[i]->GetPos();
     shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
     shaft_active[i] = shaftlist[i]->IsActive();
 
-    data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->GetPos_dt();
-
-    // Note: use the shaft variables as a force accumulator
-    //       (other items might have already added forces on this shaft)
-    ChMatrix<>& shaft_fb = shaftlist[i]->Variables().Get_fb();
-    shaft_fb.ElementN(0) += shaftlist[i]->GetAppliedTorque() * this->step;
-
-    data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] = shaft_fb.ElementN(0);
+    data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] =
+        shaftlist[i]->Variables().Get_qb().GetElementN(0);
+    data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] =
+        shaftlist[i]->Variables().Get_fb().GetElementN(0);
   }
 }
 
