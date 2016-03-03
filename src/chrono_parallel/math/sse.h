@@ -51,7 +51,7 @@
 #undef USE_AVX
 #undef USE_SSE
 #endif
-
+#if 0
 #include <cstdint>
 #include <cstddef>
 #include <stdexcept>
@@ -162,3 +162,4 @@ class aligned_allocator {
   private:
     aligned_allocator& operator=(const aligned_allocator&);
 };
+#endif

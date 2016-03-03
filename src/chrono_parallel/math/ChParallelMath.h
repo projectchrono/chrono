@@ -57,8 +57,10 @@ class real3_int {
     real3 v;
     int i;
 };
+#if 0
 typedef aligned_allocator<real2, sizeof(real2)> real2_allocator;
 typedef aligned_allocator<real3, sizeof(real3)> real3_allocator;
 typedef aligned_allocator<real4, sizeof(real4)> real4_allocator;
 typedef aligned_allocator<quaternion, sizeof(quaternion)> quat_allocator;
+#endif
 }
