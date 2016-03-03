@@ -658,46 +658,6 @@ void ChLinkEngine::ConstraintsFetch_react(double factor) {
     }
 }
 
-void ChLinkEngine::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiLoadSuggestedSpeedSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiLoadSuggestedSpeedSolution();
-        innerconstraint2->ConstraintsLiLoadSuggestedSpeedSolution();
-    }
-}
-
-void ChLinkEngine::ConstraintsLiLoadSuggestedPositionSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiLoadSuggestedPositionSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiLoadSuggestedPositionSolution();
-        innerconstraint2->ConstraintsLiLoadSuggestedPositionSolution();
-    }
-}
-
-void ChLinkEngine::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiFetchSuggestedSpeedSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiFetchSuggestedSpeedSolution();
-        innerconstraint2->ConstraintsLiFetchSuggestedSpeedSolution();
-    }
-}
-
-void ChLinkEngine::ConstraintsLiFetchSuggestedPositionSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiFetchSuggestedPositionSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiFetchSuggestedPositionSolution();
-        innerconstraint2->ConstraintsLiFetchSuggestedPositionSolution();
-    }
-}
-
 void ChLinkEngine::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
     // First, inherit to parent class
     ChLinkLock::InjectVariables(mdescriptor);

@@ -581,41 +581,6 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body2() {
     return VNULL;
 }
 
-// -----------------------------------------------------------------------------
-// Load and store multipliers (caching to allow warm starting)
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_par1.Set_l_i(m_cache_speed[0]);
-    m_cnstr_par2.Set_l_i(m_cache_speed[1]);
-    m_cnstr_dot.Set_l_i(m_cache_speed[2]);
-    m_cnstr_dist.Set_l_i(m_cache_speed[3]);
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_par1.Set_l_i(m_cache_pos[0]);
-    m_cnstr_par2.Set_l_i(m_cache_pos[1]);
-    m_cnstr_dot.Set_l_i(m_cache_pos[2]);
-    m_cnstr_dist.Set_l_i(m_cache_pos[3]);
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Cache current multipliers.
-    m_cache_speed[0] = m_cnstr_par1.Get_l_i();
-    m_cache_speed[1] = m_cnstr_par2.Get_l_i();
-    m_cache_speed[2] = m_cnstr_dot.Get_l_i();
-    m_cache_speed[3] = m_cnstr_dist.Get_l_i();
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Cache current multipliers.
-    m_cache_pos[0] = m_cnstr_par1.Get_l_i();
-    m_cache_pos[1] = m_cnstr_par2.Get_l_i();
-    m_cache_pos[2] = m_cnstr_dot.Get_l_i();
-    m_cache_pos[3] = m_cnstr_dist.Get_l_i();
-}
-
 
 void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive)
 {

@@ -296,34 +296,6 @@ void ChLinkDirFrame::ConstraintsFetch_react(double factor)
 	this->react.z = constraint2.Get_l_i() * factor; 
 }
 
-// Following functions are for exploiting the contact persistence
-
-void  ChLinkDirFrame::ConstraintsLiLoadSuggestedSpeedSolution()
-{
-	constraint1.Set_l_i(this->cache_li_speed.y);
-	constraint2.Set_l_i(this->cache_li_speed.z);
-}
-
-void  ChLinkDirFrame::ConstraintsLiLoadSuggestedPositionSolution()
-{
-	constraint1.Set_l_i(this->cache_li_pos.y);
-	constraint2.Set_l_i(this->cache_li_pos.z);
-}
-
-void  ChLinkDirFrame::ConstraintsLiFetchSuggestedSpeedSolution()
-{
-	this->cache_li_speed.y = (float)constraint1.Get_l_i();
-	this->cache_li_speed.z = (float)constraint2.Get_l_i();
-}
-
-void  ChLinkDirFrame::ConstraintsLiFetchSuggestedPositionSolution()
-{
-	this->cache_li_pos.y =  (float)constraint1.Get_l_i();
-	this->cache_li_pos.z =  (float)constraint2.Get_l_i();
-}
-
-
-
 //////// FILE I/O
 
 void ChLinkDirFrame::StreamOUT(ChStreamOutBinary& mstream)

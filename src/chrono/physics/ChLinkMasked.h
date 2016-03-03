@@ -184,10 +184,6 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     virtual void ConstraintsBiLoad_Qc(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
     virtual void ConstraintsFetch_react(double factor = 1.);
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
 
     //
     // UPDATING FUNCTIONS

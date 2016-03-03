@@ -539,11 +539,6 @@ public:
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsBiLoad_Qc(double factor = 1.);
     virtual void ConstraintsFbLoadForces(double factor = 1.);
-    
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     //

@@ -467,46 +467,6 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
 }
 
-// -----------------------------------------------------------------------------
-// Load and store multipliers (caching to allow warm starting)
-// -----------------------------------------------------------------------------
-void ChLinkRevolute::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_x.Set_l_i(m_cache_speed[0]);
-    m_cnstr_y.Set_l_i(m_cache_speed[1]);
-    m_cnstr_z.Set_l_i(m_cache_speed[2]);
-    m_cnstr_uw.Set_l_i(m_cache_speed[3]);
-    m_cnstr_vw.Set_l_i(m_cache_speed[4]);
-}
-
-void ChLinkRevolute::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_x.Set_l_i(m_cache_pos[0]);
-    m_cnstr_y.Set_l_i(m_cache_pos[1]);
-    m_cnstr_z.Set_l_i(m_cache_pos[2]);
-    m_cnstr_uw.Set_l_i(m_cache_pos[3]);
-    m_cnstr_vw.Set_l_i(m_cache_pos[4]);
-}
-
-void ChLinkRevolute::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Cache current multipliers.
-    m_cache_speed[0] = m_cnstr_x.Get_l_i();
-    m_cache_speed[1] = m_cnstr_y.Get_l_i();
-    m_cache_speed[2] = m_cnstr_z.Get_l_i();
-    m_cache_speed[3] = m_cnstr_uw.Get_l_i();
-    m_cache_speed[4] = m_cnstr_vw.Get_l_i();
-}
-
-void ChLinkRevolute::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Cache current multipliers.
-    m_cache_pos[0] = m_cnstr_x.Get_l_i();
-    m_cache_pos[1] = m_cnstr_y.Get_l_i();
-    m_cache_pos[2] = m_cnstr_z.Get_l_i();
-    m_cache_pos[3] = m_cnstr_uw.Get_l_i();
-    m_cache_pos[4] = m_cnstr_vw.Get_l_i();
-}
-
-
 
 void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive)
 {

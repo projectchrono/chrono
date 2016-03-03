@@ -133,10 +133,6 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsFbLoadForces(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions

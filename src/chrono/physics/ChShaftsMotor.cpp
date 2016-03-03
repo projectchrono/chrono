@@ -230,28 +230,6 @@ void ChShaftsMotor::ConstraintsFetch_react(double factor) {
         this->motor_torque = constraint.Get_l_i() * factor;
 }
 
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsMotor::ConstraintsLiLoadSuggestedSpeedSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsMotor::ConstraintsLiLoadSuggestedPositionSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsMotor::ConstraintsLiFetchSuggestedSpeedSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsMotor::ConstraintsLiFetchSuggestedPositionSolution() {
-    if (motor_mode != MOT_MODE_TORQUE)
-        this->cache_li_pos = (float)constraint.Get_l_i();
-}
-
 //////// FILE I/O
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:

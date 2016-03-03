@@ -437,33 +437,6 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2() {
     return VNULL;
 }
 
-// -----------------------------------------------------------------------------
-// Load and store multipliers (caching to allow warm starting)
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_dist.Set_l_i(m_cache_speed[0]);
-    m_cnstr_dot.Set_l_i(m_cache_speed[1]);
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_dist.Set_l_i(m_cache_pos[0]);
-    m_cnstr_dot.Set_l_i(m_cache_pos[1]);
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Cache current multipliers.
-    m_cache_speed[0] = m_cnstr_dist.Get_l_i();
-    m_cache_speed[1] = m_cnstr_dot.Get_l_i();
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Cache current multipliers.
-    m_cache_pos[0] = m_cnstr_dist.Get_l_i();
-    m_cache_pos[1] = m_cnstr_dot.Get_l_i();
-}
-
 
 void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive)
 {

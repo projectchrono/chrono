@@ -243,27 +243,6 @@ void ChLinkDistance::ConstraintsFetch_react(double factor) {
     react_torque = VNULL;
 }
 
-//
-// Following functions are for exploiting the contact persistence
-//
-
-void ChLinkDistance::ConstraintsLiLoadSuggestedSpeedSolution() {
-    Cx.Set_l_i(this->cache_li_speed);
-}
-
-void ChLinkDistance::ConstraintsLiLoadSuggestedPositionSolution() {
-    Cx.Set_l_i(this->cache_li_pos);
-}
-
-void ChLinkDistance::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)Cx.Get_l_i();
-}
-
-void ChLinkDistance::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)Cx.Get_l_i();
-}
-
-
 
 void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive)
 {

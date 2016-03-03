@@ -1360,34 +1360,6 @@ void ChSystem::ConstraintsLoadJacobians() {
     contact_container->ConstraintsLoadJacobians();
 }
 
-void ChSystem::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiLoadSuggestedSpeedSolution();
-}
-
-void ChSystem::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiLoadSuggestedPositionSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiLoadSuggestedPositionSolution();
-}
-
-void ChSystem::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiFetchSuggestedSpeedSolution();
-}
-
-void ChSystem::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiFetchSuggestedPositionSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiFetchSuggestedPositionSolution();
-}
-
 void ChSystem::ConstraintsFetch_react(double factor) {
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::ConstraintsFetch_react(factor);

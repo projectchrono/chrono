@@ -640,49 +640,6 @@ void ChLinkMateGeneric::Initialize(
     this->frame2 = mfr2;
 }
 
-//
-// Following functions are for exploiting persistence
-//
-
-void ChLinkMateGeneric::ConstraintsLiLoadSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_speed->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsLiLoadSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_pos->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsLiFetchSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_speed->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMateGeneric::ConstraintsLiFetchSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_pos->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
 
 void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive)
 {

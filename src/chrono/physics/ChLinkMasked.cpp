@@ -445,46 +445,6 @@ void ChLinkMasked::ConstraintsFetch_react(double factor) {
     }
 }
 
-void ChLinkMasked::ConstraintsLiLoadSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_speed->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsLiLoadSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Set_l_i(cache_li_pos->ElementN(cnt));
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsLiFetchSuggestedSpeedSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_speed->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
-
-void ChLinkMasked::ConstraintsLiFetchSuggestedPositionSolution() {
-    int cnt = 0;
-    for (int i = 0; i < mask->nconstr; i++) {
-        if (mask->Constr_N(i).IsActive()) {
-            cache_li_pos->ElementN(cnt) = mask->Constr_N(i).Get_l_i();
-            cnt++;
-        }
-    }
-}
-
 ////////////////////////////////////
 ///
 ///    UPDATING PROCEDURES
