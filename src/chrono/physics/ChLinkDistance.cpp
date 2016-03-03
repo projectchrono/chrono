@@ -31,7 +31,6 @@ ChLinkDistance::ChLinkDistance() {
     pos1 = pos2 = VNULL;
     distance = 0;
     curr_dist = 0;
-    cache_li_speed = cache_li_pos = 0;
 }
 
 ChLinkDistance::~ChLinkDistance() {
@@ -84,8 +83,6 @@ void ChLinkDistance::Copy(ChLinkDistance* source) {
     pos2 = source->pos2;
     distance = source->distance;
     curr_dist = source->curr_dist;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
 }
 
 ChLink* ChLinkDistance::new_Duplicate() {
@@ -242,27 +239,6 @@ void ChLinkDistance::ConstraintsFetch_react(double factor) {
 
     react_torque = VNULL;
 }
-
-//
-// Following functions are for exploiting the contact persistence
-//
-
-void ChLinkDistance::ConstraintsLiLoadSuggestedSpeedSolution() {
-    Cx.Set_l_i(this->cache_li_speed);
-}
-
-void ChLinkDistance::ConstraintsLiLoadSuggestedPositionSolution() {
-    Cx.Set_l_i(this->cache_li_pos);
-}
-
-void ChLinkDistance::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)Cx.Get_l_i();
-}
-
-void ChLinkDistance::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)Cx.Get_l_i();
-}
-
 
 
 void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive)

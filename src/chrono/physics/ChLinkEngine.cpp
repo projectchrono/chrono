@@ -44,11 +44,6 @@ ChLinkEngine::ChLinkEngine() {
     mot_eta = 1.0;
     mot_inertia = 0.0;
 
-    cache_li_speed1 = 0;
-    cache_li_pos1 = 0;
-    torque_react1 = 0;
-    cache_li_speed2 = 0;
-    cache_li_pos2 = 0;
     torque_react2 = 0;
 
     eng_mode = ENG_MODE_ROTATION;
@@ -104,11 +99,6 @@ void ChLinkEngine::Copy(ChLinkEngine* source) {
     mot_eta = source->mot_eta;
     mot_inertia = source->mot_inertia;
 
-    cache_li_speed1 = 0;
-    cache_li_pos1 = 0;
-    torque_react1 = source->torque_react1;
-    cache_li_speed2 = 0;
-    cache_li_pos2 = 0;
     torque_react2 = source->torque_react2;
 }
 
@@ -655,46 +645,6 @@ void ChLinkEngine::ConstraintsFetch_react(double factor) {
     if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
         innerconstraint1->ConstraintsFetch_react(factor);
         innerconstraint2->ConstraintsFetch_react(factor);
-    }
-}
-
-void ChLinkEngine::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiLoadSuggestedSpeedSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiLoadSuggestedSpeedSolution();
-        innerconstraint2->ConstraintsLiLoadSuggestedSpeedSolution();
-    }
-}
-
-void ChLinkEngine::ConstraintsLiLoadSuggestedPositionSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiLoadSuggestedPositionSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiLoadSuggestedPositionSolution();
-        innerconstraint2->ConstraintsLiLoadSuggestedPositionSolution();
-    }
-}
-
-void ChLinkEngine::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiFetchSuggestedSpeedSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiFetchSuggestedSpeedSolution();
-        innerconstraint2->ConstraintsLiFetchSuggestedSpeedSolution();
-    }
-}
-
-void ChLinkEngine::ConstraintsLiFetchSuggestedPositionSolution() {
-    // First, inherit to parent class
-    ChLinkLock::ConstraintsLiFetchSuggestedPositionSolution();
-
-    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innerconstraint1->ConstraintsLiFetchSuggestedPositionSolution();
-        innerconstraint2->ConstraintsLiFetchSuggestedPositionSolution();
     }
 }
 

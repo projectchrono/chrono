@@ -42,7 +42,7 @@ double step_size = 1e-3;
 int num_steps = 20;
 
 int numDiv_x = 50;
-int numDiv_y = 40;
+int numDiv_y = 50;
 int numDiv_z = 1;
 
 int main(int argc, char* argv[]) {
@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
     GetLog() << "Using " << numDiv_x << " x " << numDiv_y << " mesh divisions\n";
     auto my_mesh = std::make_shared<ChMesh>();
     // Geometry of the plate
-    double plate_lenght_x = 1;
-    double plate_lenght_y = 0.01;
-    double plate_lenght_z = 0.1;  // small thickness
+    double plate_lenght_x = 1.0;
+    double plate_lenght_y = 1.0;
+    double plate_lenght_z = 0.04;  // small thickness
     // Specification of the mesh
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
@@ -103,11 +103,12 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < TotalNumNodes; i++) {
         // Parametric location and direction of nodal coordinates
         double loc_x = (i % (numDiv_x + 1)) * dx;
-        double loc_y = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dy;
-        double loc_z = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dz;
+        double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+        double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
+
         double dir_x = 0;
-        double dir_y = 1;
-        double dir_z = 0;
+        double dir_y = 0;
+        double dir_z = 1;
 
         // Create the node
         auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
@@ -130,10 +131,11 @@ int main(int argc, char* argv[]) {
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         // Definition of nodes forming an element
-        int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
+        int node0 = (i / (numDiv_x)) * (N_x)+i % numDiv_x;
         int node1 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1;
         int node2 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + N_x;
         int node3 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;
+
 
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();
@@ -143,9 +145,9 @@ int main(int argc, char* argv[]) {
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
 
         // Element length is a fixed number in both direction. (uniform distribution of nodes in both directions)
-        element->SetDimensions(dx, dz);
+        element->SetDimensions(dx, dy);
         // Single layer
-        element->AddLayer(dy, 0 * CH_C_DEG_TO_RAD, mat); // Thickness: dy;  Ply angle: 0.
+        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat); // Thickness: dy;  Ply angle: 0.
         // Set other element properties
         element->SetAlphaDamp(0.0);   // Structural damping for this
         element->SetGravityOn(true);  // element calculates its own gravitational load
@@ -188,7 +190,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetAbsTolerances(1e-5);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
-    ////mystepper->SetVerbose(true);
+    //// mystepper->SetVerbose(true);
 
     // ---------------
     // Simulation loop

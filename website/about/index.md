@@ -7,9 +7,9 @@ permalink: /about/
 
 <h3>What is {% include module.html first="PROJECT" second="CHRONO" %}?</h3>
 
-{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modeling and simulation infrastructure based on a platform-independent, open-source design. The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to develop simulation software. The other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
+{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to develop simulation software. The other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
 
-- Chrono::Parallel, a library for enabling parallel computation in Chrono::Engine
+- Chrono::Parallel, a library for enabling parallel computation in Chrono
 - Chrono::Vehicle, which provides support for vehicle dynamics simulation
 - Chrono::FEA, which provides support for linear and nonlinear Finite Element Analysis
 - Chrono::FSI, which provides support for fluid-solid interaction problems
@@ -26,20 +26,20 @@ permalink: /about/
 
 
 <h4>Key Project Chrono Developers</h4>
-- <a href="link= http://sbel.wisc.edu/People/ ">Radu Serban</a> - Associate Scientist, University of Wisconsin-Madison, USA
-- <a href="link= http://hamelot.co.uk/ ">Hammad Mazhar</a> - PhD Student, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Arman Pazouki</a> - Assistant Scientist, University of Wisconsin-Madison, USA
-- <a href="link= http://melanz.us/ ">Dan Melanz</a> - PhD Student, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Antonio Recuero</a> - Assistant Scientist, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Dario Mangoni</a> - PhD Student, Univeristy of Parma, Italy
-- <a href="link= http://sbel.wisc.edu/People/ ">Andrew Seidl</a> - Former University of Wisconsin-Madison student
-- <a href="link= http://sbel.wisc.edu/People/ ">Mike Taylor</a> - PhD Student, University of Wisconsin-Madison, USA
-- <a href="link= http://sbel.wisc.edu/People/ ">Milad Rakhsha</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Radu Serban</a> - Associate Scientist, University of Wisconsin-Madison, USA
+- <a href="http://hamelot.co.uk/">Hammad Mazhar</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Arman Pazouki</a> - Assistant Scientist, University of Wisconsin-Madison, USA
+- <a href="http://melanz.us/ ">Dan Melanz</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Antonio Recuero</a> - Assistant Scientist, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Dario Mangoni</a> - PhD Student, Univeristy of Parma, Italy
+- <a href="https://andrewseidl.com/">Andrew Seidl</a> - Former University of Wisconsin-Madison student
+- <a href="http://sbel.wisc.edu/People/">Mike Taylor</a> - PhD Student, University of Wisconsin-Madison, USA
+- <a href="http://sbel.wisc.edu/People/">Milad Rakhsha</a> - PhD Student, University of Wisconsin-Madison, USA
 
 
 <h4>Past developers</h4>
-- <a href="link= http://sbel.wisc.edu/People/madsen/sbel.html ">Justin Madsen, PhD</a> - former SBEL student, currently at Oshkosh Corporation
-- <a href="link= http://sbel.wisc.edu/People/heyn/index.htm ">Toby Heyn, PhD</a> - former SBEL student, currently at Epic Systems
+- <a href="http://sbel.wisc.edu/People/madsen/sbel.html ">Justin Madsen, PhD</a> - former SBEL student, currently at Oshkosh Corporation
+- <a href="http://sbel.wisc.edu/People/heyn/index.htm ">Toby Heyn, PhD</a> - former SBEL student, currently at Epic Systems
 
 
 ### HISTORY

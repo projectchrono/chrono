@@ -257,22 +257,6 @@ void ChConveyor::ConstraintsFetch_react(double factor) {
     this->internal_link->ConstraintsFetch_react(factor);
 }
 
-void ChConveyor::ConstraintsLiLoadSuggestedSpeedSolution() {
-    this->internal_link->ConstraintsLiLoadSuggestedSpeedSolution();
-}
-
-void ChConveyor::ConstraintsLiLoadSuggestedPositionSolution() {
-    this->internal_link->ConstraintsLiLoadSuggestedPositionSolution();
-}
-
-void ChConveyor::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->internal_link->ConstraintsLiFetchSuggestedSpeedSolution();
-}
-
-void ChConveyor::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->internal_link->ConstraintsLiFetchSuggestedPositionSolution();
-}
-
 void ChConveyor::SetSystem(ChSystem* m_system) {
     this->system = m_system;
     this->conveyor_truss->SetSystem(m_system);

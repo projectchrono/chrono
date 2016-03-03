@@ -187,10 +187,6 @@ class ChApi ChConveyor : public ChPhysicsItem {
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsBiLoad_Qc(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions

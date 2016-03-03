@@ -6313,3 +6313,11 @@ input[type="checkbox"] {
 .second {
   font-weight: bold;
   margin-right: 5px; }
+
+.lineno {
+  color: #B4B4B4;
+}
+
+.details {
+  background-color: #e7e7e7;
+}

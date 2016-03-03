@@ -284,37 +284,7 @@ class ChContactDVIrolling :
         react_torque.y = Ru.Get_l_i() * factor;
         react_torque.z = Rv.Get_l_i() * factor;
     }
-
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiLoadSuggestedSpeedSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
-    virtual void ConstraintsLiLoadSuggestedPositionSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiLoadSuggestedPositionSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiFetchSuggestedSpeedSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
-    virtual void ConstraintsLiFetchSuggestedPositionSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiFetchSuggestedPositionSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
 };
-
 
 
 }  // END_OF_NAMESPACE____

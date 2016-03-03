@@ -58,9 +58,6 @@ class ChApi ChLinkDistance : public ChLink {
 
     double curr_dist;  // used for internal optimizations
 
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
   public:
     //
     // CONSTRUCTORS
@@ -172,10 +169,6 @@ class ChApi ChLinkDistance : public ChLink {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();
     virtual void ConstraintsFetch_react(double factor = 1.);
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
 
     //
     // SERIALIZATION
