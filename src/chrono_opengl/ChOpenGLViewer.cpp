@@ -526,19 +526,19 @@ void ChOpenGLViewer::RenderFluid() {
         }
         if (ChMPMContainer* flip_container =
                 dynamic_cast<ChMPMContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(flip_container->kernel_radius);
+            fluid.SetPointSize(flip_container->kernel_radius*.75);
         }
         if (ChFLIPContainer* mpm_container =
                 dynamic_cast<ChFLIPContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(mpm_container->kernel_radius);
+            fluid.SetPointSize(mpm_container->kernel_radius*.75);
         }
         if (ChFluidContainer* fluid_container =
                 dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(fluid_container->kernel_radius);
+            fluid.SetPointSize(fluid_container->kernel_radius*.75);
         }
         if (Ch3DOFRigidContainer* rigid_container =
                 dynamic_cast<Ch3DOFRigidContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(rigid_container->kernel_radius);
+            fluid.SetPointSize(rigid_container->kernel_radius*.75);
         }
         fluid.Update(fluid_data);
         glm::mat4 model(1);
