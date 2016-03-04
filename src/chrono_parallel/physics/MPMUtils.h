@@ -41,17 +41,17 @@
 namespace chrono {
 // Interpolation Functions
 
-static real N_Tri(const real x) {
+CUDA_HOST_DEVICE static real N_Tri(const real x) {
     if (Abs(x) < real(1.0)) {
         return 1.0 - Abs(x);
     }
     return real(0.0);
 }
-static real N_Tri(const real3& X, real inv_grid_dx) {
+CUDA_HOST_DEVICE static real N_Tri(const real3& X, real inv_grid_dx) {
     return N_Tri(X.x * inv_grid_dx) * N_Tri(X.y * inv_grid_dx) * N_Tri(X.z * inv_grid_dx);
 }
 
-static real N(const real x) {
+CUDA_HOST_DEVICE static real N(const real x) {
     if (Abs(x) < real(1.0)) {
         return real(0.5) * Cube(Abs(x)) - Sqr(x) + two_thirds;
     } else if (Abs(x) < real(2.0)) {
@@ -60,11 +60,11 @@ static real N(const real x) {
     return real(0.0);
 }
 
-static real N(const real3& X, real inv_grid_dx) {
+CUDA_HOST_DEVICE static real N(const real3& X, real inv_grid_dx) {
     return N(X.x * inv_grid_dx) * N(X.y * inv_grid_dx) * N(X.z * inv_grid_dx);
 }
 
-static real N_tight(const real x) {
+CUDA_HOST_DEVICE static real N_tight(const real x) {
     if (Abs(x) >= real(0.0) && Abs(x) < real(.5)) {
         return -Sqr(x) + three_fourths;
     } else if (Abs(x) >= real(1.0) && Abs(x) < real(three_halves)) {
@@ -73,11 +73,11 @@ static real N_tight(const real x) {
     return real(0.0);
 }
 
-static real N_tight(const real3& X, real inv_grid_dx) {
+CUDA_HOST_DEVICE static real N_tight(const real3& X, real inv_grid_dx) {
     return N_tight(X.x * inv_grid_dx) * N_tight(X.y * inv_grid_dx) * N_tight(X.z * inv_grid_dx);
 }
 
-static real dN(const real x) {
+CUDA_HOST_DEVICE static real dN(const real x) {
     if (Abs(x) < real(1.0)) {
         return real(1.5) * Sign(x) * Sqr(x) - real(2.0) * x;
     } else if (Abs(x) < real(2.0)) {
@@ -86,7 +86,7 @@ static real dN(const real x) {
     return real(0.0);
 }
 
-static real3 dN(const real3& X, real inv_grid_dx) {
+CUDA_HOST_DEVICE static real3 dN(const real3& X, real inv_grid_dx) {
     real3 val = real3(0);
     real3 T = X * inv_grid_dx;
     val.x = dN(T.x) * inv_grid_dx * N(T.y) * N(T.z);
@@ -103,19 +103,19 @@ static real3 dN(const real3& X, real inv_grid_dx) {
     //                val[axis] *= N(X[other_axis] * inv_grid_dx);
     //        }
     //    }
-    //return val;
+    // return val;
 }
 
-static inline int GridCoord(real x, real inv_bin_edge, real minimum) {
+CUDA_HOST_DEVICE static inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     real l = x - minimum;
     int c = Round(l * inv_bin_edge);
     return c;
 }
 
-static inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
+CUDA_HOST_DEVICE static inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
-static inline int3 GridDecode(int hash, const int3& bins_per_axis) {
+CUDA_HOST_DEVICE static inline int3 GridDecode(int hash, const int3& bins_per_axis) {
     int3 decoded_hash;
     decoded_hash.x = hash % (bins_per_axis.x * bins_per_axis.y) % bins_per_axis.x;
     decoded_hash.y = (hash % (bins_per_axis.x * bins_per_axis.y)) / bins_per_axis.x;
@@ -123,7 +123,7 @@ static inline int3 GridDecode(int hash, const int3& bins_per_axis) {
     return decoded_hash;
 }
 
-static inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding_point) {
+CUDA_HOST_DEVICE static inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_bounding_point) {
     real3 node_location;
     node_location.x = i * bin_edge + min_bounding_point.x;
     node_location.y = j * bin_edge + min_bounding_point.y;
@@ -188,16 +188,16 @@ static inline real3 NodeLocation(int i, int j, int k, real bin_edge, real3 min_b
     /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/         \
     Mat33 RE = MultTranspose(UE, VE);
 
-static Mat33 Potential_Energy_Derivative(const Mat33& FE,
-                                         const Mat33& FP,
-                                         real mu,
-                                         real lambda,
-                                         real hardening_coefficient) {
+CUDA_HOST_DEVICE static Mat33 Potential_Energy_Derivative(const Mat33& FE,
+                                                          const Mat33& FP,
+                                                          real mu,
+                                                          real lambda,
+                                                          real hardening_coefficient) {
     Potential_Energy_Derivative_Helper();
 
     return real(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
 }
-static Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
+CUDA_HOST_DEVICE static Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
     Mat33 A;
     real3 b;
     // setup 3x3 system
@@ -225,7 +225,7 @@ static Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
     Mat33 dR = R * rx;
     return dR;
 }
-static Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
+CUDA_HOST_DEVICE static Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     Mat33 U, V, R, S, W;
     real3 E;
     SVD(F, U, E, V);
@@ -238,35 +238,35 @@ static Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
     return Solve_dR(R, S, W);
 }
 
-static void SplitPotential_Energy_Derivative(const Mat33& FE,
-                                             const Mat33& FP,
-                                             real mu,
-                                             real lambda,
-                                             real hardening_coefficient,
-                                             Mat33& Deviatoric,
-                                             Mat33& Dilational) {
+CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33& FE,
+                                                              const Mat33& FP,
+                                                              real mu,
+                                                              real lambda,
+                                                              real hardening_coefficient,
+                                                              Mat33& Deviatoric,
+                                                              Mat33& Dilational) {
     Potential_Energy_Derivative_Helper();
 
     Deviatoric = real(2.) * current_mu * (FE - RE);
     Dilational = current_lambda * JE * (JE - real(1.)) * InverseTranspose(FE);
 }
-static Mat33 Potential_Energy_Derivative_Deviatoric(const Mat33& FE,
-                                                    const Mat33& FP,
-                                                    real mu,
-                                                    real lambda,
-                                                    real hardening_coefficient) {
+CUDA_HOST_DEVICE static Mat33 Potential_Energy_Derivative_Deviatoric(const Mat33& FE,
+                                                                     const Mat33& FP,
+                                                                     real mu,
+                                                                     real lambda,
+                                                                     real hardening_coefficient) {
     Potential_Energy_Derivative_Helper();
 
     return real(2.) * current_mu * (FE - RE);
 }
 
-static void SplitPotential_Energy(const Mat33& FE,
-                                  const Mat33& FP,
-                                  real mu,
-                                  real lambda,
-                                  real hardening_coefficient,
-                                  real& Deviatoric,
-                                  real& Dilational) {
+CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33& FE,
+                                                   const Mat33& FP,
+                                                   real mu,
+                                                   real lambda,
+                                                   real hardening_coefficient,
+                                                   real& Deviatoric,
+                                                   real& Dilational) {
     Potential_Energy_Derivative_Helper();
 
     Deviatoric = current_mu * Trace(Transpose(FE - RE) * (FE - RE));

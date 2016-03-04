@@ -21,7 +21,7 @@
 namespace chrono {
 // Oliver K. Smith. 1961. Eigenvalues of a symmetric 3 × 3 matrix. Commun. ACM 4, 4 (April 1961), 168-.
 // DOI=http://dx.doi.org/10.1145/355578.366316
-static real3 Fast_Eigenvalues(const SymMat33& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts
+CUDA_HOST_DEVICE static real3 Fast_Eigenvalues(const SymMat33& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts
 {
     real m = 1.0f / 3.0f * (A.x11 + A.x22 + A.x33);
     real a11 = A.x11 - m;
@@ -44,7 +44,7 @@ static real3 Fast_Eigenvalues(const SymMat33& A)  // 24 mults, 20 adds, 1 atan2,
     return lambda;
 }
 
-static Mat33 Fast_Eigenvectors(const SymMat33& A, real3& lambda) {
+CUDA_HOST_DEVICE static Mat33 Fast_Eigenvectors(const SymMat33& A, real3& lambda) {
     // flip if necessary so that first eigenvalue is the most different
     bool flipped = false;
     real3 lambda_flip(lambda);
@@ -71,12 +71,12 @@ static Mat33 Fast_Eigenvectors(const SymMat33& A, real3& lambda) {
                    : Mat33(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
 }
 
-static void Fast_Solve_EigenProblem(const SymMat33& A, real3& eigen_values, Mat33& eigen_vectors) {
+CUDA_HOST_DEVICE static void Fast_Solve_EigenProblem(const SymMat33& A, real3& eigen_values, Mat33& eigen_vectors) {
     eigen_values = Fast_Eigenvalues(A);
     eigen_vectors = Fast_Eigenvectors(A, eigen_values);
 }
 
-static void SVD(const Mat33& A, Mat33& U, real3& singular_values, Mat33& V) {
+CUDA_HOST_DEVICE static void SVD(const Mat33& A, Mat33& U, real3& singular_values, Mat33& V) {
     SymMat33 ATA = NormalEquationsMatrix(A);
     real3 lambda;
     Fast_Solve_EigenProblem(ATA, lambda, V);

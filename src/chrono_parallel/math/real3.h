@@ -28,24 +28,24 @@ namespace chrono {
 
 class real3 {
 public:
-	inline real3() {
+	CUDA_HOST_DEVICE inline real3() {
 	}
-	inline explicit real3(real a) :
+	CUDA_HOST_DEVICE inline explicit real3(real a) :
 			array { a, a, a, 0 } {
 	}
-	inline real3(real a, real b, real c) :
+	CUDA_HOST_DEVICE inline real3(real a, real b, real c) :
 			array { a, b, c, 0 } {
 	}
-	inline real3(const real3& v) :
+	CUDA_HOST_DEVICE inline real3(const real3& v) :
 			array { v.x, v.y, v.z, 0 } {
 	}
-	inline real operator[](unsigned int i) const {
+	CUDA_HOST_DEVICE inline real operator[](unsigned int i) const {
 		return array[i];
 	}
-	inline real& operator[](unsigned int i) {
+	CUDA_HOST_DEVICE inline real& operator[](unsigned int i) {
 		return array[i];
 	}
-	inline real3& operator=(const real3& rhs) {
+	CUDA_HOST_DEVICE inline real3& operator=(const real3& rhs) {
 		x = rhs.x;
 		y = rhs.y;
 		z = rhs.z;
@@ -85,10 +85,10 @@ public:
 		return _mm_setr_ps(x, y, z, 0.0f);
 	}
 #else
-	static inline real3 Set(real x) {
+	CUDA_HOST_DEVICE static inline real3 Set(real x) {
 		return real3(x);
 	}
-	static inline real3 Set(real x, real y, real z) {
+	CUDA_HOST_DEVICE static inline real3 Set(real x, real y, real z) {
 		return real3(x, y, z);
 	}
 #endif
@@ -101,47 +101,47 @@ public:
 	};
 };
 
-real3 operator+(const real3& a, real b);
-real3 operator-(const real3& a, real b);
-real3 operator*(const real3& a, real b);
-real3 operator/(const real3& a, real b);
+CUDA_HOST_DEVICE real3 operator+(const real3& a, real b);
+CUDA_HOST_DEVICE real3 operator-(const real3& a, real b);
+CUDA_HOST_DEVICE real3 operator*(const real3& a, real b);
+CUDA_HOST_DEVICE real3 operator/(const real3& a, real b);
 
-real3 operator+(const real3& a, const real3& b);
-real3 operator-(const real3& a, const real3& b);
-real3 operator*(const real3& a, const real3& b);
-real3 operator/(const real3& a, const real3& b);
+CUDA_HOST_DEVICE real3 operator+(const real3& a, const real3& b);
+CUDA_HOST_DEVICE real3 operator-(const real3& a, const real3& b);
+CUDA_HOST_DEVICE real3 operator*(const real3& a, const real3& b);
+CUDA_HOST_DEVICE real3 operator/(const real3& a, const real3& b);
 
-OPERATOR_EQUALSALT(*, real, real3)
-OPERATOR_EQUALSALT(/, real, real3)
-OPERATOR_EQUALSALT(+, real, real3)
-OPERATOR_EQUALSALT(-, real, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, real, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(/, real, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(+, real, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(-, real, real3)
 
-OPERATOR_EQUALSALT(*, real3, real3)
-OPERATOR_EQUALSALT(/, real3, real3)
-OPERATOR_EQUALSALT(+, real3, real3)
-OPERATOR_EQUALSALT(-, real3, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, real3, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(/, real3, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(+, real3, real3)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(-, real3, real3)
 
-real3 operator-(const real3& a);
-real3 operator*(real lhs, const real3& rhs);
-real3 operator/(real lhs, const real3& rhs);
+CUDA_HOST_DEVICE real3 operator-(const real3& a);
+CUDA_HOST_DEVICE real3 operator*(real lhs, const real3& rhs);
+CUDA_HOST_DEVICE real3 operator/(real lhs, const real3& rhs);
 
-bool operator<(const real3& lhs, const real3& rhs);
-bool operator>(const real3& lhs, const real3& rhs);
-bool operator==(const real3& lhs, const real3& rhs);
+CUDA_HOST_DEVICE bool operator<(const real3& lhs, const real3& rhs);
+CUDA_HOST_DEVICE bool operator>(const real3& lhs, const real3& rhs);
+CUDA_HOST_DEVICE bool operator==(const real3& lhs, const real3& rhs);
 
-real3 Cross(const real3& b, const real3& c);
-real Dot(const real3& v1, const real3& v2);
-real Dot(const real3& v);
-real3 Normalize(const real3& v);
-real3 Sqrt(const real3& v);
-real3 Round(const real3& v);
-real Length(const real3& v);
+CUDA_HOST_DEVICE real3 Cross(const real3& b, const real3& c);
+CUDA_HOST_DEVICE real Dot(const real3& v1, const real3& v2);
+CUDA_HOST_DEVICE real Dot(const real3& v);
+CUDA_HOST_DEVICE real3 Normalize(const real3& v);
+CUDA_HOST_DEVICE real3 Sqrt(const real3& v);
+CUDA_HOST_DEVICE real3 Round(const real3& v);
+CUDA_HOST_DEVICE real Length(const real3& v);
 
-static inline real Length2(const real3& v1) {
+CUDA_HOST_DEVICE static inline real Length2(const real3& v1) {
 	return Dot(v1);
 }
 
-inline real SafeLength(const real3& v) {
+CUDA_HOST_DEVICE inline real SafeLength(const real3& v) {
 	real len_sq = Length2(v);
 	if (len_sq) {
 		return Sqrt(len_sq);
@@ -150,7 +150,7 @@ inline real SafeLength(const real3& v) {
 	}
 }
 
-inline real3 SafeNormalize(const real3& v, const real3& safe = real3(0)) {
+CUDA_HOST_DEVICE inline real3 SafeNormalize(const real3& v, const real3& safe = real3(0)) {
 	real len_sq = Length2(v);
 	if (len_sq > real(0)) {
 		return v * InvSqrt(len_sq);
@@ -159,18 +159,18 @@ inline real3 SafeNormalize(const real3& v, const real3& safe = real3(0)) {
 	}
 }
 
-real Max(const real3& a);
-real Min(const real3& a);
-real3 Max(const real3& a, const real3& b);
-real3 Min(const real3& a, const real3& b);
-real3 Max(const real3& a, const real& b);
-real3 Min(const real3& a, const real& b);
+CUDA_HOST_DEVICE real Max(const real3& a);
+CUDA_HOST_DEVICE real Min(const real3& a);
+CUDA_HOST_DEVICE real3 Max(const real3& a, const real3& b);
+CUDA_HOST_DEVICE real3 Min(const real3& a, const real3& b);
+CUDA_HOST_DEVICE real3 Max(const real3& a, const real& b);
+CUDA_HOST_DEVICE real3 Min(const real3& a, const real& b);
 
-bool IsZero(const real3& v);
+CUDA_HOST_DEVICE bool IsZero(const real3& v);
 
-real3 Abs(const real3& v);
-real3 Sign(const real3& v);
-static inline real3 Clamp(const real3& v, real max_length) {
+CUDA_HOST_DEVICE real3 Abs(const real3& v);
+CUDA_HOST_DEVICE real3 Sign(const real3& v);
+CUDA_HOST_DEVICE static inline real3 Clamp(const real3& v, real max_length) {
 	real3 x = v;
 	real len_sq = Dot(x);
 	real inv_len = InvSqrt(len_sq);
@@ -180,7 +180,7 @@ static inline real3 Clamp(const real3& v, real max_length) {
 
 	return x;
 }
-real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
+CUDA_HOST_DEVICE real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
 
 //
 // static inline real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
@@ -191,10 +191,10 @@ real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
 //    return clampv;
 //}
 //
-real3 OrthogonalVector(const real3& v);
-real3 UnitOrthogonalVector(const real3& v);
+CUDA_HOST_DEVICE real3 OrthogonalVector(const real3& v);
+CUDA_HOST_DEVICE real3 UnitOrthogonalVector(const real3& v);
 //
-static inline void Sort(real& a, real& b, real& c) {
+CUDA_HOST_DEVICE static inline void Sort(real& a, real& b, real& c) {
 	if (a > b)
 		Swap(a, b);
 	if (b > c)
@@ -202,7 +202,7 @@ static inline void Sort(real& a, real& b, real& c) {
 	if (a > b)
 		Swap(a, b);
 }
-static void Print(real3 v, const char* name) {
+CUDA_HOST_DEVICE static void Print(real3 v, const char* name) {
 	printf("%s\n", name);
 	printf("%f %f %f\n", v[0], v[1], v[2]);
 }

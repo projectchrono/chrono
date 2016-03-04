@@ -48,163 +48,163 @@ typedef float real;
 
 // Trig Functions
 // ========================================================================================
-static inline real Sin(const real theta) {
+CUDA_HOST_DEVICE static inline real Sin(const real theta) {
     return sin(theta);
 }
-static inline real Cos(const real theta) {
+CUDA_HOST_DEVICE static inline real Cos(const real theta) {
     return cos(theta);
 }
-static inline real Tan(const real theta) {
+CUDA_HOST_DEVICE static inline real Tan(const real theta) {
     return tan(theta);
 }
-static inline real ASin(const real theta) {
+CUDA_HOST_DEVICE static inline real ASin(const real theta) {
     return asin(theta);
 }
-static inline real ACos(const real theta) {
+CUDA_HOST_DEVICE static inline real ACos(const real theta) {
     return acos(theta);
 }
-static inline real ATan(const real theta) {
+CUDA_HOST_DEVICE static inline real ATan(const real theta) {
     return atan(theta);
 }
-static inline real ATan2(const real x, const real y) {
+CUDA_HOST_DEVICE static inline real ATan2(const real x, const real y) {
     return atan2(x, y);
 }
 // Geometric Functions
 // ========================================================================================
-static inline real Sqr(const real x) {
+CUDA_HOST_DEVICE static inline real Sqr(const real x) {
     return x * x;
 }
-static inline real Cube(const real x) {
+CUDA_HOST_DEVICE static inline real Cube(const real x) {
     return x * x * x;
 }
-static inline real Sqrt(const real x) {
+CUDA_HOST_DEVICE static inline real Sqrt(const real x) {
     return sqrt(x);
 }
-static inline real InvSqrt(const real x) {
+CUDA_HOST_DEVICE static inline real InvSqrt(const real x) {
     return 1.0 / sqrt(x);  // could also use rsqrtf(x) here and avoid division
 }
-static inline real Abs(const real x) {
+CUDA_HOST_DEVICE static inline real Abs(const real x) {
     return fabs(x);
 }
-static inline real Pow(const real b, const real e) {
+CUDA_HOST_DEVICE static inline real Pow(const real b, const real e) {
     return pow(b, e);
 }
-static inline real Mod(const real x, const real y) {
+CUDA_HOST_DEVICE static inline real Mod(const real x, const real y) {
     return fmod(x, y);
 }
-static inline real Exp(const real x) {
+CUDA_HOST_DEVICE static inline real Exp(const real x) {
     return exp(x);
 }
-static inline real Min(const real a, const real b) {
+CUDA_HOST_DEVICE static inline real Min(const real a, const real b) {
     return fmin(a, b);
 }
-static inline real Max(const real a, const real b) {
+CUDA_HOST_DEVICE static inline real Max(const real a, const real b) {
     return fmax(a, b);
 }
-static inline real Floor(const real a) {
+CUDA_HOST_DEVICE static inline real Floor(const real a) {
     return floor(a);
 }
-static inline real Ceil(const real a) {
+CUDA_HOST_DEVICE static inline real Ceil(const real a) {
     return ceil(a);
 }
-static inline real Round(const real a) {
+CUDA_HOST_DEVICE static inline real Round(const real a) {
     return round(a);
 }
-static inline real Log(const real a) {
+CUDA_HOST_DEVICE static inline real Log(const real a) {
     return log(a);
 }
 #else
 
 // Trig Functions
 // ========================================================================================
-static inline real Sin(const real theta) {
+CUDA_HOST_DEVICE static inline real Sin(const real theta) {
     return sinf(theta);
 }
-static inline real Cos(const real theta) {
+CUDA_HOST_DEVICE static inline real Cos(const real theta) {
     return cosf(theta);
 }
-static inline real Tan(const real theta) {
+CUDA_HOST_DEVICE static inline real Tan(const real theta) {
     return tanf(theta);
 }
-static inline real ASin(const real theta) {
+CUDA_HOST_DEVICE static inline real ASin(const real theta) {
     return asinf(theta);
 }
-static inline real ACos(const real theta) {
+CUDA_HOST_DEVICE static inline real ACos(const real theta) {
     return acosf(theta);
 }
-static inline real ATan(const real theta) {
+CUDA_HOST_DEVICE static inline real ATan(const real theta) {
     return atanf(theta);
 }
-static inline real ATan2(const real x, const real y) {
+CUDA_HOST_DEVICE static inline real ATan2(const real x, const real y) {
     return atan2f(x, y);
 }
-// static inline real DegToRad(const real t) {
+// CUDA_HOST_DEVICE static inline real DegToRad(const real t) {
 //    return t * C_DegToRad;
 //}
-// static inline real RadToDeg(const real t) {
+// CUDA_HOST_DEVICE static inline real RadToDeg(const real t) {
 //    return t * C_RadToDeg;
 //}
 
 // Geometric Functions
 // ========================================================================================
-static inline real Sqr(const real x) {
+CUDA_HOST_DEVICE static inline real Sqr(const real x) {
     return x * x;
 }
-static inline real Cube(const real x) {
+CUDA_HOST_DEVICE static inline real Cube(const real x) {
     return x * x * x;
 }
-static inline real Sqrt(const real x) {
+CUDA_HOST_DEVICE static inline real Sqrt(const real x) {
     return sqrtf(x);
 }
-static inline real InvSqrt(const real x) {
+CUDA_HOST_DEVICE static inline real InvSqrt(const real x) {
     return 1.0f / sqrtf(x);  // could also use rsqrtf(x) here and avoid division
 }
-static inline real Abs(const real x) {
+CUDA_HOST_DEVICE static inline real Abs(const real x) {
     return fabsf(x);
 }
-static inline real Pow(const real b, const real e) {
+CUDA_HOST_DEVICE static inline real Pow(const real b, const real e) {
     return powf(b, e);
 }
-static inline real Mod(const real x, const real y) {
+CUDA_HOST_DEVICE static inline real Mod(const real x, const real y) {
     return fmod(x, y);
 }
-static inline real Exp(const real x) {
+CUDA_HOST_DEVICE static inline real Exp(const real x) {
     return expf(x);
 }
-static inline real Min(const real a, const real b) {
+CUDA_HOST_DEVICE static inline real Min(const real a, const real b) {
     return fminf(a, b);
 }
-static inline real Max(const real a, const real b) {
+CUDA_HOST_DEVICE static inline real Max(const real a, const real b) {
     return fmaxf(a, b);
 }
-static inline real Floor(const real a) {
+CUDA_HOST_DEVICE static inline real Floor(const real a) {
     return floorf(a);
 }
-static inline real Ceil(const real a) {
+CUDA_HOST_DEVICE static inline real Ceil(const real a) {
     return ceilf(a);
 }
-static inline real Round(const real a) {
+CUDA_HOST_DEVICE static inline real Round(const real a) {
     return roundf(a);
 }
-static inline real Log(const real a) {
+CUDA_HOST_DEVICE static inline real Log(const real a) {
     return logf(a);
 }
 #endif
 
-// static inline real DegToRad(real t) {
+// CUDA_HOST_DEVICE static inline real DegToRad(real t) {
 //    return t * C_DegToRad;
 //}
-// static inline real RadToDeg(real t) {
+// CUDA_HOST_DEVICE static inline real RadToDeg(real t) {
 //    return t * C_RadToDeg;
 //}
 
-// static inline real Sign(const real x) {
+// CUDA_HOST_DEVICE static inline real Sign(const real x) {
 //  return x < real(0.0) ? -1.0f : 1.0f;
 //}
 // Returns a -1 if the value is negative
 // Returns a +1 if the value is positive
 // Otherwise returns zero, this should only happen if the given value is zero
-static inline real Sign(const real& x) {
+CUDA_HOST_DEVICE static inline real Sign(const real& x) {
     if (x < 0) {
         return -1;
     } else if (x > 0) {
@@ -216,7 +216,7 @@ static inline real Sign(const real& x) {
 
 // Checks if the value is zero to within a certain epsilon
 // in this case ZERO_EPSILON is defined based on what the base type of real is
-static inline bool IsZero(const real x) {
+CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
     return Abs(x) < C_EPSILON;
 }
 
@@ -240,7 +240,7 @@ static inline bool IsZero(const real x) {
 // Check if two values are equal using a small delta/epsilon value.
 // Essentially a fuzzy comparison operator
 template <typename T>
-static inline bool IsEqual(const T& _a, const T& _b) {
+CUDA_HOST_DEVICE static inline bool IsEqual(const T& _a, const T& _b) {
     real ab;
     ab = Abs(_a - _b);
     if (Abs(ab) < C_EPSILON)
@@ -255,37 +255,37 @@ static inline bool IsEqual(const T& _a, const T& _b) {
     }
 }
 
-inline real Lerp(const real& start, const real& end, const real& t) {
+CUDA_HOST_DEVICE inline real Lerp(const real& start, const real& end, const real& t) {
     return start + (end - start) * t;
 }
 
 template <typename T>
-inline void Swap(T& a, T& b) {
+CUDA_HOST_DEVICE inline void Swap(T& a, T& b) {
     T temp = a;
     a = b;
     b = temp;
 }
 
 template <typename T>
-void SwapIfGreater(T& a, T& b) {
+CUDA_HOST_DEVICE void SwapIfGreater(T& a, T& b) {
     if (a > b) {
         Swap(a, b);
     }
 }
 
 // Clamps a given value a between user specified minimum and maximum values
-inline real Clamp(real x, real low, real high) {
+CUDA_HOST_DEVICE inline real Clamp(real x, real low, real high) {
     if (low > high) {
         Swap(low, high);
     }
     return Max(low, Min(x, high));
 }
 
-inline real ClampMin(real x, real low) {
+CUDA_HOST_DEVICE inline real ClampMin(real x, real low) {
     return Max(low, x);
 }
 
-inline real ClampMax(real x, real high) {
+CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
     return Min(x, high);
 }
 }

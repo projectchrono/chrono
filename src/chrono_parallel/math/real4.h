@@ -25,21 +25,21 @@ namespace chrono {
 
 class real4 {
   public:
-    inline real4() {}
-    inline real4(real a) : array{a, a, a, a} {}
-    inline real4(real a, real b, real c, real d) : array{a, b, c, d} {}
-    inline real4(const real3& v, real w) : array{v.x, v.y, v.y, w} {}
-    inline real4(const real4& v) : array{v.x, v.y, v.y, v.w} {}
+    CUDA_HOST_DEVICE inline real4() {}
+    CUDA_HOST_DEVICE inline real4(real a) : array{a, a, a, a} {}
+    CUDA_HOST_DEVICE inline real4(real a, real b, real c, real d) : array{a, b, c, d} {}
+    CUDA_HOST_DEVICE inline real4(const real3& v, real w) : array{v.x, v.y, v.y, w} {}
+    CUDA_HOST_DEVICE inline real4(const real4& v) : array{v.x, v.y, v.y, v.w} {}
 
-    inline real operator[](unsigned int i) const { return array[i]; }
-    inline real& operator[](unsigned int i) { return array[i]; }
-    inline operator real*() { return &array[0]; }
-    inline operator const real*() const { return &array[0]; }
+    CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
+    CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
+    CUDA_HOST_DEVICE inline operator real*() { return &array[0]; }
+    CUDA_HOST_DEVICE inline operator const real*() const { return &array[0]; }
 
-    inline operator real3() { return real3(x, y, z); }
-    inline operator const real3() const { return real3(x, y, z); }
+    CUDA_HOST_DEVICE inline operator real3() { return real3(x, y, z); }
+    CUDA_HOST_DEVICE inline operator const real3() const { return real3(x, y, z); }
 
-    inline real4& operator=(const real4& rhs) {
+    CUDA_HOST_DEVICE inline real4& operator=(const real4& rhs) {
         memcpy(array, rhs.array, 4 * sizeof(real));
 
         return *this;  // Return a reference to myself.
@@ -64,8 +64,8 @@ class real4 {
     static inline __m128 Set(real x) { return _mm_set1_ps(x); }
     static inline __m128 Set(real x, real y, real z, real w) { return _mm_setr_ps(x, y, z, w); }
 #else
-    static inline real4 Set(real x) { return real4(x); }
-    static inline real4 Set(real x, real y, real z, real w) { return real4(x, y, z, w); }
+    CUDA_HOST_DEVICE static inline real4 Set(real x) { return real4(x); }
+    CUDA_HOST_DEVICE static inline real4 Set(real x, real y, real z, real w) { return real4(x, y, z, w); }
 #endif
 
     // ========================================================================================
@@ -78,45 +78,43 @@ class real4 {
     };
 };
 
-real4 operator+(const real4& a, const real4& b);
-real4 operator-(const real4& a, const real4& b);
-real4 operator*(const real4& a, const real4& b);
-real4 operator/(const real4& a, const real4& b);
+CUDA_HOST_DEVICE real4 operator+(const real4& a, const real4& b);
+CUDA_HOST_DEVICE real4 operator-(const real4& a, const real4& b);
+CUDA_HOST_DEVICE real4 operator*(const real4& a, const real4& b);
+CUDA_HOST_DEVICE real4 operator/(const real4& a, const real4& b);
 
-real4 operator+(const real4& a, real b);
-real4 operator-(const real4& a, real b);
-real4 operator*(const real4& a, real b);
-real4 operator/(const real4& a, real b);
+CUDA_HOST_DEVICE real4 operator+(const real4& a, real b);
+CUDA_HOST_DEVICE real4 operator-(const real4& a, real b);
+CUDA_HOST_DEVICE real4 operator*(const real4& a, real b);
+CUDA_HOST_DEVICE real4 operator/(const real4& a, real b);
 
-OPERATOR_EQUALSALT(*, real, real4)
-OPERATOR_EQUALSALT(/, real, real4)
-OPERATOR_EQUALSALT(+, real, real4)
-OPERATOR_EQUALSALT(-, real, real4)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, real, real4) CUDA_HOST_DEVICE OPERATOR_EQUALSALT(/, real, real4) CUDA_HOST_DEVICE
+    OPERATOR_EQUALSALT(+, real, real4) CUDA_HOST_DEVICE OPERATOR_EQUALSALT(-, real, real4)
 
-OPERATOR_EQUALSALT(*, real4, real4)
-OPERATOR_EQUALSALT(/, real4, real4)
-OPERATOR_EQUALSALT(+, real4, real4)
-OPERATOR_EQUALSALT(-, real4, real4)
+        CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, real4, real4) CUDA_HOST_DEVICE
+    OPERATOR_EQUALSALT(/, real4, real4) CUDA_HOST_DEVICE OPERATOR_EQUALSALT(+, real4, real4) CUDA_HOST_DEVICE
+    OPERATOR_EQUALSALT(-, real4, real4)
 
-real4 operator-(const real4& a);
-real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4);
+        CUDA_HOST_DEVICE real4
+        operator-(const real4& a);
+CUDA_HOST_DEVICE real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4);
 // Quaternion Class
 // ========================================================================================
 class quaternion {
   public:
-    inline quaternion() {}
-    inline quaternion(real a) : array{a, a, a, a} {}
-    inline quaternion(real _w, real _x, real _y, real _z) : array{_w, _x, _y, _z} {}
-    inline quaternion(const real3& v, real w) : array{v.w, v.x, v.y, v.z} {}
-    inline real operator[](unsigned int i) const { return array[i]; }
-    inline real& operator[](unsigned int i) { return array[i]; }
-    inline operator real*() { return &array[0]; }
-    inline operator const real*() const { return &array[0]; };
-    inline quaternion& operator=(const quaternion& rhs) {
+    CUDA_HOST_DEVICE inline quaternion() {}
+    CUDA_HOST_DEVICE inline quaternion(real a) : array{a, a, a, a} {}
+    CUDA_HOST_DEVICE inline quaternion(real _w, real _x, real _y, real _z) : array{_w, _x, _y, _z} {}
+    CUDA_HOST_DEVICE inline quaternion(const real3& v, real w) : array{v.w, v.x, v.y, v.z} {}
+    CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
+    CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
+    CUDA_HOST_DEVICE inline operator real*() { return &array[0]; }
+    CUDA_HOST_DEVICE inline operator const real*() const { return &array[0]; };
+    CUDA_HOST_DEVICE inline quaternion& operator=(const quaternion& rhs) {
         memcpy(array, rhs.array, 4 * sizeof(real));
         return *this;  // Return a reference to myself.
     }
-    inline real3 vect() const { return real3(x, y, z); }
+    CUDA_HOST_DEVICE inline real3 vect() const { return real3(x, y, z); }
 
 #if defined(USE_AVX)
     inline quaternion(__m256d m) { _mm256_storeu_pd(&w, m); }
@@ -137,8 +135,8 @@ class quaternion {
     static inline __m128 Set(real x) { return _mm_set1_ps(x); }
     static inline __m128 Set(real w, real x, real y, real z) { return _mm_setr_ps(w, x, y, z); }
 #else
-    static inline quaternion Set(real x) { return quaternion(x); }
-    static inline quaternion Set(real w, real x, real y, real z) { return quaternion(w, x, y, z); }
+    CUDA_HOST_DEVICE static inline quaternion Set(real x) { return quaternion(x); }
+    CUDA_HOST_DEVICE static inline quaternion Set(real w, real x, real y, real z) { return quaternion(w, x, y, z); }
 #endif
     //
     //    inline quaternion Inv() const {
@@ -159,27 +157,27 @@ class quaternion {
     };
 };
 
-quaternion operator+(const quaternion& a, real b);
-quaternion operator-(const quaternion& a, real b);
-quaternion operator*(const quaternion& a, real b);
-quaternion operator/(const quaternion& a, real b);
-quaternion operator~(const quaternion& a);
-quaternion Inv(const quaternion& a);
-real Dot(const quaternion& v1, const quaternion& v2);
-real Dot(const quaternion& v);
-quaternion Mult(const quaternion& a, const quaternion& b);
-quaternion Normalize(const quaternion& v);
-static inline real3 Rotate(const real3& v, const quaternion& q) {
+CUDA_HOST_DEVICE quaternion operator+(const quaternion& a, real b);
+CUDA_HOST_DEVICE quaternion operator-(const quaternion& a, real b);
+CUDA_HOST_DEVICE quaternion operator*(const quaternion& a, real b);
+CUDA_HOST_DEVICE quaternion operator/(const quaternion& a, real b);
+CUDA_HOST_DEVICE quaternion operator~(const quaternion& a);
+CUDA_HOST_DEVICE quaternion Inv(const quaternion& a);
+CUDA_HOST_DEVICE real Dot(const quaternion& v1, const quaternion& v2);
+CUDA_HOST_DEVICE real Dot(const quaternion& v);
+CUDA_HOST_DEVICE quaternion Mult(const quaternion& a, const quaternion& b);
+CUDA_HOST_DEVICE quaternion Normalize(const quaternion& v);
+CUDA_HOST_DEVICE static inline real3 Rotate(const real3& v, const quaternion& q) {
     real3 t = 2 * Cross(q.vect(), v);
     return v + q.w * t + Cross(q.vect(), t);
 }
 
-static inline real3 RotateT(const real3& v, const quaternion& q) {
+CUDA_HOST_DEVICE static inline real3 RotateT(const real3& v, const quaternion& q) {
     return Rotate(v, ~q);
 }
 
 // Rotate a vector with the absolute value of a rotation matrix generated by a quaternion
-static inline real3 AbsRotate(const quaternion& q, const real3& v) {
+CUDA_HOST_DEVICE static inline real3 AbsRotate(const quaternion& q, const real3& v) {
     real e0e0 = q.w * q.w;
     real e1e1 = q.x * q.x;
     real e2e2 = q.y * q.y;
@@ -202,7 +200,7 @@ static inline real3 AbsRotate(const quaternion& q, const real3& v) {
     return result;
 }
 
-static inline quaternion Q_from_AngAxis(const real& angle, const real3& axis) {
+CUDA_HOST_DEVICE static inline quaternion Q_from_AngAxis(const real& angle, const real3& axis) {
     quaternion quat;
     real halfang;
     real sinhalf;
@@ -215,7 +213,7 @@ static inline quaternion Q_from_AngAxis(const real& angle, const real3& axis) {
     return (quat);
 }
 
-static inline real3 AMatV(const quaternion& q) {
+CUDA_HOST_DEVICE static inline real3 AMatV(const quaternion& q) {
     real3 V;
 
     real e0e0 = q.w * q.w;
@@ -232,7 +230,7 @@ static inline real3 AMatV(const quaternion& q) {
     return V;
 }
 
-static void Print(quaternion v, const char* name) {
+CUDA_HOST_DEVICE static void Print(quaternion v, const char* name) {
     printf("%s\n", name);
     printf("%f %f %f %f\n", v.w, v[0], v[1], v[2]);
 }

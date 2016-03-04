@@ -17,11 +17,11 @@
 
 #pragma once
 
-//#define num_threads_per_block 128
+#define num_threads_per_block 128
 
-//#include <cuda_runtime_api.h>
-//#include <cuda.h>
-//#include "thirdparty/cub/cub.cuh"
+#include <cuda_runtime_api.h>
+#include <cuda.h>
+#include "thirdparty/cub/cub.cuh"
 
 #include <cassert>
 #include <vector>
