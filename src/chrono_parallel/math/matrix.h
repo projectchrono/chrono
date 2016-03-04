@@ -89,9 +89,7 @@ class Mat33 {
     // cols[2] 6 7 8
 };
 // ========================================================================================
-#if 0
-typedef aligned_allocator<Mat33, sizeof(Mat33)> mat33_allocator;
-#endif
+
 real3 operator*(const Mat33& M, const real3& v);
 Mat33 operator*(const Mat33& N, const real scale);
 Mat33 operator*(const Mat33& M, const Mat33& N);
