@@ -280,7 +280,7 @@ void ChMesh::IntLoadResidual_F(
 
     // internal forces
     timer_internal_forces.start();
-#pragma omp parallel for
+#pragma omp parallel for schedule (dynamic, 4)
     for (int ie = 0; ie < this->velements.size(); ie++) {
         this->velements[ie]->EleIntLoadResidual_F(R, c);
     }
