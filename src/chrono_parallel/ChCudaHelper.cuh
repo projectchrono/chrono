@@ -142,16 +142,52 @@ class gpu_vector {
 
 // Used by cub
 struct real3Min {
-    inline CUDA_DEVICE real3 operator()(const real3& a, const real3& b) { return Min(a, b); }
+    inline CUDA_HOST_DEVICE real3 operator()(const real3& a, const real3& b) {
+        return real3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
+    }
 };
 
 struct real3Max {
-    inline CUDA_DEVICE real3 operator()(const real3& a, const real3& b) { return Max(a, b); }
+    inline CUDA_HOST_DEVICE real3 operator()(const real3& a, const real3& b) {
+        return real3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
+    }
 };
 
 // code adopted from http://stackoverflow.com/questions/17371275/implementing-max-reduce-in-cuda
 // ========================================================================================
-static inline CUDA_DEVICE float AtomicMaxf(float* address, float value) {
+
+static CUDA_DEVICE double atomicAdd(double* address, double value) {
+    unsigned long long int* address_as_ull = (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed, __double_as_longlong(value + __longlong_as_double(assumed)));
+    } while (assumed != old);
+    return __longlong_as_double(old);
+}
+
+static CUDA_DEVICE double AtomicMax(double* address, double value) {
+    unsigned long long int* address_as_ull = (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+
+    while (value > __longlong_as_double(old)) {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed, __double_as_longlong(value));
+    }
+    return __longlong_as_double(old);
+}
+
+static CUDA_DEVICE double AtomicMin(double* address, double value) {
+    unsigned long long int* address_as_ull = (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+    while (value < __longlong_as_double(old)) {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed, __double_as_longlong(value));
+    }
+    return __longlong_as_double(old);
+}
+
+static inline CUDA_DEVICE float AtomicMax(float* address, float value) {
     int* address_as_int = (int*)address;
     int old = *address_as_int, assumed;
 
@@ -163,7 +199,7 @@ static inline CUDA_DEVICE float AtomicMaxf(float* address, float value) {
     return __int_as_float(old);
 }
 
-static inline CUDA_DEVICE float AtomicMinf(float* address, float value) {
+static inline CUDA_DEVICE float AtomicMin(float* address, float value) {
     int* address_as_int = (int*)address;
     int old = *address_as_int, assumed;
 
@@ -182,14 +218,14 @@ static inline CUDA_DEVICE void AtomicAdd(real3* pointer, real3 val) {
 }
 
 static inline CUDA_DEVICE void AtomicMax(real3* pointer, real3 val) {
-    AtomicMaxf(&pointer->x, val.x);
-    AtomicMaxf(&pointer->y, val.y);
-    AtomicMaxf(&pointer->z, val.z);
+    AtomicMax(&pointer->x, val.x);
+    AtomicMax(&pointer->y, val.y);
+    AtomicMax(&pointer->z, val.z);
 }
 
 static inline CUDA_DEVICE void AtomicMin(real3* pointer, real3 val) {
-    AtomicMinf(&pointer->x, val.x);
-    AtomicMinf(&pointer->y, val.y);
-    AtomicMinf(&pointer->z, val.z);
+    AtomicMin(&pointer->x, val.x);
+    AtomicMin(&pointer->y, val.y);
+    AtomicMin(&pointer->z, val.z);
 }
 }
