@@ -34,7 +34,11 @@ set(CH_PARALLEL_C_FLAGS "")
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
-
+# Find CUDA
+find_package(CUDA REQUIRED)
+SET(CUDA_SEPARABLE_COMPILATION ON)
+SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode arch=compute_30,code=sm_30)
 
 OPTION(USE_PARALLEL_DOUBLE "Compile Chrono::Parallel with double precision math (no SSE support)" ON)
 
@@ -144,6 +148,7 @@ SET(ChronoEngine_Parallel_PHYSICS
     physics/ChFEAContainer.cpp
     physics/Ch3DOFRigidContainer.cpp
     physics/ChFLIPContainer.cpp
+    physics/ChMPM.cu
     )
 
 SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})
@@ -367,7 +372,7 @@ ENDIF()
 # Add the ChronoEngine_parallel library
 # ------------------------------------------------------------------------------
 
-ADD_LIBRARY(ChronoEngine_parallel SHARED
+CUDA_ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_BASE}
             ${ChronoEngine_Parallel_PHYSICS}
             ${ChronoEngine_Parallel_LCP}

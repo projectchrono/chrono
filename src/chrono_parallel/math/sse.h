@@ -20,6 +20,13 @@
 
 #include "chrono_parallel/ChConfigParallel.h"
 
+#ifdef __CUDACC__
+#undef USE_AVX
+#undef USE_SSE
+#undef CHRONO_HAS_SSE
+#undef CHRONO_HAS_AVX
+#else
+
 // Check if SSE was found in CMake
 #ifdef CHRONO_HAS_SSE
 // Depending on the SSE variable in CMake include the proper header file for that
@@ -50,4 +57,5 @@
 #else
 #undef USE_AVX
 #undef USE_SSE
+#endif
 #endif

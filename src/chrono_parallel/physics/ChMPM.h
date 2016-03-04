@@ -15,8 +15,9 @@
 // Description: Class for the Pure MPM solve, takes positions and velocities
 // as input, outputs updated positions and velocities
 // =============================================================================
-#include "chrono_parallel/physics/ChCudaHelper.cuh"
-
+#include "chrono_parallel/ChCudaHelper.cuh"
+#include "chrono_parallel/physics/MPMUtils.h"
+namespace chrono {
 class ChMPM {
   public:
     ChMPM() {}
@@ -57,5 +58,5 @@ class ChMPM {
     gpu_vector<real> grid_vel;
     gpu_vector<real> rhs;
     gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
-
 };
+}

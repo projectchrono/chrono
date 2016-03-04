@@ -17,20 +17,18 @@
 
 #pragma once
 
-#ifdef __CUDACC__
-#define CUDA_HOST_DEVICE __host__ __device__
-#define CUDA_DEVICE __device__
-#define CUDA_CONSTANT __device__ __constant__
-#define CUDA_SHARED __shared__
-#define CUDA_GLOBAL __global__
-#else
-#define CUDA_HOST_DEVICE
-#define CUDA_DEVICE
-#define CUDA_CONSTANT
-#define CUDA_SHARED
-#define CUDA_GLOBAL
-#endif
+//#define num_threads_per_block 128
 
+//#include <cuda_runtime_api.h>
+//#include <cuda.h>
+//#include "thirdparty/cub/cub.cuh"
+
+#include <cassert>
+#include <vector>
+#include "chrono_parallel/math/real.h"
+#include "chrono_parallel/math/real3.h"
+//
+namespace chrono {
 #define BLOCKS(x) (x + num_threads_per_block - 1) / num_threads_per_block
 #define CONFIG(x) BLOCKS(x), num_threads_per_block
 
@@ -133,6 +131,7 @@ class gpu_vector {
         if (size() < rhs.size()) {
             resize(rhs.size());
         }
+        size_t count = size() * sizeof(T);
         cudaCheck(cudaMemcpy((void*)data_d, rhs.data_d, count, cudaMemcpyDeviceToDevice));
     }
 
@@ -149,3 +148,48 @@ struct real3Min {
 struct real3Max {
     inline CUDA_DEVICE real3 operator()(const real3& a, const real3& b) { return Max(a, b); }
 };
+
+// code adopted from http://stackoverflow.com/questions/17371275/implementing-max-reduce-in-cuda
+// ========================================================================================
+static inline CUDA_DEVICE float AtomicMaxf(float* address, float value) {
+    int* address_as_int = (int*)address;
+    int old = *address_as_int, assumed;
+
+    while (value > __int_as_float(old)) {
+        assumed = old;
+        old = atomicCAS(address_as_int, assumed, __float_as_int(value));
+    }
+
+    return __int_as_float(old);
+}
+
+static inline CUDA_DEVICE float AtomicMinf(float* address, float value) {
+    int* address_as_int = (int*)address;
+    int old = *address_as_int, assumed;
+
+    while (value < __int_as_float(old)) {
+        assumed = old;
+        old = atomicCAS(address_as_int, assumed, __float_as_int(value));
+    }
+
+    return __int_as_float(old);
+}
+
+static inline CUDA_DEVICE void AtomicAdd(real3* pointer, real3 val) {
+    atomicAdd(&pointer->x, val.x);
+    atomicAdd(&pointer->y, val.y);
+    atomicAdd(&pointer->z, val.z);
+}
+
+static inline CUDA_DEVICE void AtomicMax(real3* pointer, real3 val) {
+    AtomicMaxf(&pointer->x, val.x);
+    AtomicMaxf(&pointer->y, val.y);
+    AtomicMaxf(&pointer->z, val.z);
+}
+
+static inline CUDA_DEVICE void AtomicMin(real3* pointer, real3 val) {
+    AtomicMinf(&pointer->x, val.x);
+    AtomicMinf(&pointer->y, val.y);
+    AtomicMinf(&pointer->z, val.z);
+}
+}

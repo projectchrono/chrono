@@ -113,5 +113,19 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 // Supported Logging Levels
 enum LOGGINGLEVEL { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
 
+#ifdef __CUDACC__
+#define CUDA_HOST_DEVICE __host__ __device__
+#define CUDA_DEVICE __device__
+#define CUDA_CONSTANT __device__ __constant__
+#define CUDA_SHARED __shared__
+#define CUDA_GLOBAL __global__
+#else
+#define CUDA_HOST_DEVICE
+#define CUDA_DEVICE
+#define CUDA_CONSTANT
+#define CUDA_SHARED
+#define CUDA_GLOBAL
+#endif
+
 #define max_neighbors 64
 #define max_rigid_neighbors 32
