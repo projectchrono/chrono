@@ -187,6 +187,116 @@ inline Mat33 MAbs(const real* M) {
 }
 
 #elif defined(USE_SSE)
+inline real3 DotMM(const real* M) {
+    real3 result;
+    result.x = M[0] * M[0] + M[1] * M[1] + M[2] * M[2];
+    result.y = M[4] * M[4] + M[5] * M[5] + M[6] * M[6];
+    result.z = M[8] * M[8] + M[9] * M[9] + M[10] * M[10];
+    return result;
+}  // dot product of each column of a matrix with another matrix
+inline real3 DotMM(const real* M, const real* N) {
+    real3 result;
+    result.x = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
+    result.y = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
+    result.z = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    return result;
+}
+// http://fhtr.blogspot.com/2010/02/4x4-float-matrix-multiplication-using.html
+inline Mat33 MulMM(const real* M, const real* N) {
+    Mat33 r;
+    __m128 r_line;
+    int i;
+    __m128 a = _mm_loadu_ps(&M[0]);  // Load first column of M
+    __m128 b = _mm_loadu_ps(&M[4]);  // Load second column of M
+    __m128 c = _mm_loadu_ps(&M[8]);  // Load third column of M
+
+    for (i = 0; i < 3; i++) {
+        r_line = _mm_mul_ps(a, _mm_set1_ps(N[i * 4 + 0]));
+        r_line = _mm_add_ps(_mm_mul_ps(b, _mm_set1_ps(N[i * 4 + 1])), r_line);
+        r_line = _mm_add_ps(_mm_mul_ps(c, _mm_set1_ps(N[i * 4 + 2])), r_line);
+        _mm_storeu_ps(&r.array[i * 4], r_line);
+    }
+    return r;
+}
+
+inline Mat33 MulM_TM(const real* M, const real* N) {
+    Mat33 r;
+    r[0] = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
+    r[1] = M[4] * N[0] + M[5] * N[1] + M[6] * N[2];
+    r[2] = M[8] * N[0] + M[9] * N[1] + M[10] * N[2];
+
+    r[4] = M[0] * N[4] + M[1] * N[5] + M[2] * N[6];
+    r[5] = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
+    r[6] = M[8] * N[4] + M[9] * N[5] + M[10] * N[6];
+
+    r[8] = M[0] * N[8] + M[1] * N[9] + M[2] * N[10];
+    r[9] = M[4] * N[8] + M[5] * N[9] + M[6] * N[10];
+    r[10] = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    return r;
+}
+
+inline real3 MulMV(const real* a, const real* b) {
+    real3 r;
+    __m128 v1 = _mm_loadu_ps(&a[0]) * _mm_set1_ps(b[0]);
+    __m128 v2 = _mm_loadu_ps(&a[4]) * _mm_set1_ps(b[1]);
+    __m128 v3 = _mm_loadu_ps(&a[8]) * _mm_set1_ps(b[2]);
+    __m128 out = _mm_add_ps(_mm_add_ps(v1, v2), v3);
+    _mm_storeu_ps(&r.array[0], out);
+
+    return r;
+}
+
+inline Mat33 OuterProductVV(const real* a, const real* b) {
+    Mat33 r;
+    __m128 u = _mm_loadu_ps(a);  // Load the first vector
+    __m128 col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        col = _mm_mul_ps(u, _mm_set1_ps(b[i]));
+        _mm_storeu_ps(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline Mat33 ScaleMat(const real* a, const real b) {
+    Mat33 r;
+    __m128 s = _mm_set1_ps(b);
+    __m128 c, col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        c = _mm_loadu_ps(&a[i * 4]);
+        col = _mm_mul_ps(c, s);
+        _mm_storeu_ps(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline SymMat33 NormalEquations(const real* A) {
+    SymMat33 T;
+
+    T.x11 = A[0] * A[0] + A[1] * A[1] + A[2] * A[2];
+    T.x21 = A[0] * A[4] + A[1] * A[5] + A[2] * A[6];
+    T.x31 = A[0] * A[8] + A[1] * A[9] + A[2] * A[10];
+    T.x22 = A[4] * A[4] + A[5] * A[5] + A[6] * A[6];
+    T.x32 = A[4] * A[8] + A[5] * A[9] + A[6] * A[10];
+    T.x33 = A[8] * A[8] + A[9] * A[9] + A[10] * A[10];
+
+    return T;
+}
+
+inline Mat33 MAbs(const real* M) {
+    Mat33 result;
+    __m128 a = _mm_loadu_ps(&M[0]);  // Load first column of M
+    __m128 b = _mm_loadu_ps(&M[4]);  // Load second column of M
+    __m128 c = _mm_loadu_ps(&M[8]);  // Load third column of M
+    a = _mm_and_ps(a, simd::ABSMASK);
+    b = _mm_and_ps(b, simd::ABSMASK);
+    c = _mm_and_ps(c, simd::ABSMASK);
+    _mm_storeu_ps(&result.array[0 * 4], a);
+    _mm_storeu_ps(&result.array[1 * 4], b);
+    _mm_storeu_ps(&result.array[2 * 4], c);
+    return result;
+}
 #else
 
 // dot product of each column of a matrix with itself
@@ -388,8 +498,8 @@ real Determinant(const Mat33& m) {
 
 Mat33 Inverse(const Mat33& A) {
     real s = Determinant(A);
-     if (s > 0.0) {
-    return Adjoint(A) * real(1.0 / s);
+    if (s > 0.0) {
+        return Adjoint(A) * real(1.0 / s);
     } else {
         return Mat33(0);
     }
