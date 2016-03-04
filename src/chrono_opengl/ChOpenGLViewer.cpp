@@ -163,6 +163,7 @@ bool ChOpenGLViewer::Initialize() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glLineWidth(10);
     // glEnable(GL_LINE_SMOOTH);
+    return 1;
 }
 bool ChOpenGLViewer::Update(double time_step) {
     if (pause_sim == true && single_step == false) {
