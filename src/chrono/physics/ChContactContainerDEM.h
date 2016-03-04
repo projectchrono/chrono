@@ -109,8 +109,10 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     // STATE FUNCTIONS
     //
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    // Override/implement interfaces for global state vectors (see ChPhysicsItem)
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override;
 
     //
     // LCP INTERFACE

@@ -13,10 +13,11 @@
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
 
-#include "lcp/ChLcpConstraintTuple.h"
-#include "physics/ChMaterialSurfaceBase.h"
-#include "core/ChVectorDynamic.h"
-#include "core/ChMatrix33.h"
+#include "chrono/lcp/ChLcpConstraintTuple.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChMatrix33.h"
+#include "chrono/timestepper/ChState.h"
 
 namespace chrono {
 
@@ -28,42 +29,72 @@ class ChPhysicsItem;
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
 /// on the number of ChVariable objects contained in the object (i.e. the variable chuncks
 /// to whom the contact point position depends, also the variables affected by contact force).
-
-class ChContactable  {
-public:
-        /// Tell if the object must be considered in collision detection
+class ChContactable {
+  public:
+    /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() = 0;
 
-        /// Return the pointer to the surface material. 
-        /// Use dynamic cast to understand if this is a 
-        /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
-        /// This function returns a reference to the shared pointer member
-        /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() =0;
+    /// Get the number of DOFs affected by this object (position part)
+    virtual int ContactableGet_ndof_x() = 0;
 
-        /// Get the absolute speed of point abs_point if attached to the 
-        /// surface.
+    /// Get the number of DOFs affected by this object (speed part)
+    virtual int ContactableGet_ndof_w() = 0;
+
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) = 0;
+
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) = 0;
+
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
+
+    /// Return the pointer to the surface material.
+    /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() = 0;
+
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) = 0;
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.  
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point, const ChState& state_x, const ChStateDelta& state_w) = 0;
+
+    /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) = 0;
 
-        /// ChCollisionModel might call this to get the position of the 
-        /// contact model (when rigid) and sync it
-     virtual ChCoordsys<> GetCsysForCollisionModel() =0;
+    /// Return the coordinate system for the associated collision model.
+    /// ChCollisionModel might call this to get the position of the
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() = 0;
 
-        /// Apply the force, expressed in absolute reference, applied in pos, to the 
-        /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                ChVectorDynamic<>& R) = 0;
+    /// Apply the given force at the given location and load into the global generalized force array.
+    /// The force and its application point are given in the absolute reference frame. Each object must 
+    /// update the entries in R corresponding to its variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) = 0;
 
-        /// This can be useful in some DEM code:
+    /// Apply the given force at the given point and load the generalized force array.
+    /// The force and its application point are specified in the gloabl frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactForceLoadQ(const ChVector<>& F,
+                                   const ChVector<>& point,
+                                   const ChState& state_x,
+                                   ChVectorDynamic<>& Q,
+                                   int offset) = 0;
+
+    /// This can be useful in some DEM code:
     virtual double GetContactableMass() = 0;
 
-        /// This is only for backward compatibility. Note that in recent code
-        /// the reference to the ChPhysicsItem should disappear. 
-        /// The ChPhysicsItem could be the ChContactable itself (ex. see the ChBody) or 
-        /// a container (ex. the ChMEsh, for ChContactTriangle)
+    /// This is only for backward compatibility. Note that in recent code
+    /// the reference to the ChPhysicsItem should disappear.
+    /// The ChPhysicsItem could be the ChContactable itself (ex. see the ChBody) or
+    /// a container (ex. the ChMEsh, for ChContactTriangle)
     virtual ChPhysicsItem* GetPhysicsItem() = 0;
 };
-
 
 // Note that template T1 is the number of DOFs in the referenced ChVariable, 
 // for instance = 6 for rigid bodies, =3 for ChNodeXYZ, etc. 

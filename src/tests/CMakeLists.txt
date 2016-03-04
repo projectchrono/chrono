@@ -28,6 +28,7 @@ option(BUILD_ADDITIONAL_TESTS_BASE "Build additional test programs for base Chro
 mark_as_advanced(FORCE BUILD_ADDITIONAL_TESTS_BASE)
 if(BUILD_ADDITIONAL_TESTS_BASE)
 	add_subdirectory(timestepper)
+	add_subdirectory(contact)
 endif()
 
 if(ENABLE_MODULE_FEA)
