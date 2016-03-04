@@ -80,7 +80,7 @@ static real N_tight(const real3& X, real inv_grid_dx) {
 static real dN(const real x) {
     if (Abs(x) < real(1.0)) {
         return real(1.5) * Sign(x) * Sqr(x) - real(2.0) * x;
-    } else if (abs(x) < real(2.0)) {
+    } else if (Abs(x) < real(2.0)) {
         return -real(0.5) * Sign(x) * Sqr(x) + real(2.0) * x - real(2.0) * Sign(x);
     }
     return real(0.0);
@@ -103,7 +103,7 @@ static real3 dN(const real3& X, real inv_grid_dx) {
     //                val[axis] *= N(X[other_axis] * inv_grid_dx);
     //        }
     //    }
-    return val;
+    //return val;
 }
 
 static inline int GridCoord(real x, real inv_bin_edge, real minimum) {
