@@ -307,8 +307,93 @@ source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 # --------------- TRACKED VEHICLE FILES
 
 set(CV_TV_BASE_FILES
-
+    tracked_vehicle/ChIdler.h
+    tracked_vehicle/ChIdler.cpp
+    tracked_vehicle/ChRoadWheel.h 
+    tracked_vehicle/ChRoadWheel.cpp 
+    tracked_vehicle/ChRoadWheelAssembly.h
+    tracked_vehicle/ChRoadWheelAssembly.cpp
+    tracked_vehicle/ChSprocket.h
+    tracked_vehicle/ChSprocket.cpp
+    tracked_vehicle/ChTrackAssembly.h
+    tracked_vehicle/ChTrackAssembly.cpp
+    tracked_vehicle/ChTrackBrake.h
+    tracked_vehicle/ChTrackBrake.cpp
+    tracked_vehicle/ChTrackDriveline.h
+    tracked_vehicle/ChTrackDriveline.cpp
+    tracked_vehicle/ChTrackedVehicle.h
+    tracked_vehicle/ChTrackedVehicle.cpp
+    tracked_vehicle/ChTrackShoe.h
+    tracked_vehicle/ChTrackShoe.cpp
+    tracked_vehicle/ChTrackSubsysDefs.h
+    tracked_vehicle/ChTrackContactManager.h
+    tracked_vehicle/ChTrackContactManager.cpp
 )
+source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
+
+set(CV_TV_BRAKE_FILES
+    tracked_vehicle/brake/ChTrackBrakeSimple.h
+    tracked_vehicle/brake/ChTrackBrakeSimple.cpp
+)
+source_group("tracked_vehicle\\brake" FILES ${CV_TV_BRAKE_FILES})
+
+set(CV_TV_DRIVELINE_FILES
+    tracked_vehicle/driveline/ChTrackDrivelineBDS.h
+    tracked_vehicle/driveline/ChTrackDrivelineBDS.cpp
+    tracked_vehicle/driveline/ChSimpleTrackDriveline.h
+    tracked_vehicle/driveline/ChSimpleTrackDriveline.cpp
+)
+source_group("tracked_vehicle\\driveline" FILES ${CV_TV_DRIVELINE_FILES})
+
+set(CV_TV_IDLER_FILES
+    tracked_vehicle/idler/ChSingleIdler.h
+    tracked_vehicle/idler/ChSingleIdler.cpp
+    tracked_vehicle/idler/ChDoubleIdler.h
+    tracked_vehicle/idler/ChDoubleIdler.cpp
+)
+source_group("tracked_vehicle\\idler" FILES ${CV_TV_IDLER_FILES})
+
+set(CV_TV_ROADWHEEL_FILES
+    tracked_vehicle/road_wheel/ChSingleRoadWheel.h
+    tracked_vehicle/road_wheel/ChSingleRoadWheel.cpp
+    tracked_vehicle/road_wheel/ChDoubleRoadWheel.h
+    tracked_vehicle/road_wheel/ChDoubleRoadWheel.cpp
+)
+source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
+
+set(CV_TV_SPROCKET_FILES
+    tracked_vehicle/sprocket/ChArcSprocket.h
+    tracked_vehicle/sprocket/ChArcSprocket.cpp
+)
+source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
+
+set(CV_TV_SUSPENSION_FILES
+    tracked_vehicle/suspension/ChLinearDamperRWAssembly.h
+    tracked_vehicle/suspension/ChLinearDamperRWAssembly.cpp
+)
+source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
+
+set(CV_TV_TRACKSHOE_FILES
+    tracked_vehicle/track_shoe/ChSinglePinShoe.h
+    tracked_vehicle/track_shoe/ChSinglePinShoe.cpp
+)
+source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
+
+set(CV_TV_UTILS_FILES
+    tracked_vehicle/utils/ChTrackTestRig.h
+    tracked_vehicle/utils/ChTrackTestRig.cpp
+)
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_TV_UTILS_FILES
+        tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
+        tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
+        tracked_vehicle/utils/ChIrrGuiDriverTTR.h
+        tracked_vehicle/utils/ChIrrGuiDriverTTR.cpp
+    )
+else()
+    set(CVIRR_TV_UTILS_FILES "")
+endif()
+source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
 
 # --------------- THIRD-PARTY FILES
 
@@ -357,6 +442,15 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_WHEEL_FILES}
 #
     ${CV_TV_BASE_FILES}
+    ${CV_TV_BRAKE_FILES}
+    ${CV_TV_DRIVELINE_FILES}
+    ${CV_TV_IDLER_FILES}
+    ${CV_TV_ROADWHEEL_FILES}
+    ${CV_TV_SPROCKET_FILES}
+    ${CV_TV_SUSPENSION_FILES}
+    ${CV_TV_TRACKSHOE_FILES}
+    ${CV_TV_UTILS_FILES}
+    ${CVIRR_TV_UTILS_FILES}
 #
     ${CV_EASYBMP_FILES}
 )
