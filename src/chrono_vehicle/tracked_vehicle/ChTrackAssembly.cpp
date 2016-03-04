@@ -45,6 +45,17 @@ BodyState ChTrackAssembly::GetTrackShoeState(size_t id) const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the complete states for all track shoes.
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
+    size_t num_shoes = m_shoes.size();
+    assert(states.size() == num_shoes);
+
+    for (size_t i = 0; i < num_shoes; ++i)
+        states[i] = GetTrackShoeState(i);
+}
+
+// -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,

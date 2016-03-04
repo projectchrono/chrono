@@ -346,9 +346,10 @@ int main(int argc, char* argv[]) {
     int num_contacts = 0;
 
     // Inter-module communication data
-    TrackShoeForces shoe_forces_left(vehicle.GetTrackAssembly(LEFT)->GetNumTrackShoes());
-    TrackShoeForces shoe_forces_right(vehicle.GetTrackAssembly(RIGHT)->GetNumTrackShoes());
-
+    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
+    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
+    TrackShoeForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
+    TrackShoeForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     while (time < time_end) {
         // Release the vehicle chassis at the end of the hold time.
@@ -363,6 +364,8 @@ int main(int argc, char* argv[]) {
         double braking_input = driver.GetBraking();
         double powertrain_torque = powertrain.GetOutputTorque();
         double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
+        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();

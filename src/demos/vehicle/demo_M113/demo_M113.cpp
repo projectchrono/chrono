@@ -191,8 +191,10 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TrackShoeForces shoe_forces_left(vehicle.GetTrackAssembly(LEFT)->GetNumTrackShoes());
-    TrackShoeForces shoe_forces_right(vehicle.GetTrackAssembly(RIGHT)->GetNumTrackShoes());
+    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
+    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
+    TrackShoeForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
+    TrackShoeForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -230,6 +232,8 @@ int main(int argc, char* argv[]) {
         double braking_input = driver.GetBraking();
         double powertrain_torque = powertrain.GetOutputTorque();
         double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
+        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();

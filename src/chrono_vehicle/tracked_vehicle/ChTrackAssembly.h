@@ -112,6 +112,12 @@ class CH_VEHICLE_API ChTrackAssembly {
     /// all expressed in the global reference frame.
     BodyState GetTrackShoeState(size_t id) const;
 
+    /// Get the complete states for all track shoes.
+    /// These include the locations, orientations, linear and angular velocities for
+    /// all track shoes in this track assembly, all expressed in the global reference frame.
+    /// It is assumed that the vector of body states was properly sized.
+    void GetTrackShoeStates(BodyStates& states) const;
+
     /// Get the total mass of the track assembly.
     /// This includes the masses of the sprocket, idler, suspensions, and track shoes.
     double GetMass() const;

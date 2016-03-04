@@ -84,6 +84,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// powertrain system.
     virtual double GetDriveshaftSpeed() const override { return m_driveline->GetDriveshaftSpeed(); }
 
+    /// Get the number of suspensions in the specified track assembly.
+    size_t GetNumRoadWheelAssemblies(VehicleSide side) const { return m_tracks[side]->GetNumRoadWheelAssemblies(); }
+
+    /// Get the number of shoes in the specified track assembly.
+    size_t GetNumTrackShoes(VehicleSide side) const { return m_tracks[side]->GetNumTrackShoes(); }
+
     /// Get a handle to the specified track shoe.
     std::shared_ptr<ChTrackShoe> GetTrackShoe(VehicleSide side, size_t id) const {
         return m_tracks[side]->GetTrackShoe(id);
@@ -94,6 +100,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// all expressed in the global reference frame.
     BodyState GetTrackShoeState(VehicleSide side, size_t shoe_id) const {
         return m_tracks[side]->GetTrackShoeState(shoe_id);
+    }
+
+    /// Get the complete states for all track shoes of the specified track assembly.
+    /// It is assumed that the vector of body states was properly sized.
+    void GetTrackShoeStates(VehicleSide side, BodyStates& states) const {
+        m_tracks[side]->GetTrackShoeStates(states);
     }
 
     /// Set collision flags for the various subsystems.
