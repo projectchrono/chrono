@@ -42,13 +42,17 @@ namespace fsi {
 	typedef thrust::tuple<r3IterH, r3IterH, r4IterH> iterTupleH;
 	typedef thrust::zip_iterator<iterTupleH> zipIterH;
 
+
+
 	struct SphMarkerDataD {
 		thrust::device_vector<Real3> posRadD;
 		thrust::device_vector<Real3> velMasD;
 		thrust::device_vector<Real4> rhoPresMuD;
 
 		// Arman TODO: fix error. make it function, or something like thrust
-		zipIterD iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin()));
+		zipIterD iterator() {
+			return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin()));
+		}
 	};
 
 	struct SphMarkerDataH {
@@ -57,7 +61,9 @@ namespace fsi {
 		thrust::host_vector<Real4> rhoPresMuH;
 
 		// Arman TODO: fix error. make it function, or something like thrust
-		zipIterH iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin()));
+		zipIterH iterator() {
+			return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin()));
+		}
 	};
 
 	struct FsiBodiesDataD {
@@ -131,8 +137,8 @@ public:
 	ChFsiDataManager();
 	~ChFsiDataManager();
 
-	AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu);
-	FinalizeDataManager();
+	void AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu);
+	void FinalizeDataManager();
 
 	SphMarkerDataD sphMarkersD1;
 	SphMarkerDataD sphMarkersD2;
@@ -148,8 +154,8 @@ public:
 
 	ProximityDataD markersProximityD;
 private:
-	ArrangeDataManager();
-	ConstructReferenceArray();
+	void ArrangeDataManager();
+	void ConstructReferenceArray();
 };
 
 } // end namespace fsi

@@ -45,8 +45,7 @@ private:
 	int DoStepChronoSystem(Real dT,
 		double mTime);
 
-	void SetNumObjects(NumberOfObjects& numObjects,
-		const thrust::host_vector<int4>& referenceArray, int numAllMarkers);
+	void SetNumObjects();
 
 
 	ChFsiDataManager* fsiData;

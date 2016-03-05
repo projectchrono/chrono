@@ -47,8 +47,8 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetNumObjects() {
-	thrust::host_vector<int4>::iterator refIter = fsiData.fsiGeneralData.referenceArray.begin();
-	int numComps = fsiData.fsiGeneralData.referenceArray.size();
+	thrust::host_vector<int4>::iterator refIter = fsiData->fsiGeneralData.referenceArray.begin();
+	int numComps = fsiData->fsiGeneralData.referenceArray.size();
 	numObjectsH->numAllMarkers = 0;
 	bool foundRigid = false;
 	bool foundFlex = false;

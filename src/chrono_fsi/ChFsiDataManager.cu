@@ -15,7 +15,9 @@
 // Base class for managing data in chrono_fsi, aka fluid system.//
 // =============================================================================
 
+#include <thrust/sort.h>
 #include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChDeviceUtils.cuh" 
 
 namespace chrono {
 namespace fsi {
@@ -26,23 +28,23 @@ ChFsiDataManager::ChFsiDataManager() {
 
 ChFsiDataManager::~ChFsiDataManager() {}
 
-ChFsiDataManager::AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu) {
+void ChFsiDataManager::AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu) {
 	sphMarkersH.posRadH.push_back(pos);
 	sphMarkersH.velMasH.push_back(vel);
 	sphMarkersH.rhoPresMuH.push_back(rhoPresMu);
 }
 
-ChFsiDataManager::ArrangeDataManager() {
+void ChFsiDataManager::ArrangeDataManager() {
 	thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkersH.rhoPresMuH;
 
 	// arrange data based on type: fluid, boundary, bce1, bce2, ....
-	thrust::sort_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), sphMarkersH.iterator, sphTypeComp());
+	thrust::sort_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), sphMarkersH.iterator(), sphTypeComp());
 	dummyRhoPresMuH.clear();
 
 	ConstructReferenceArray();
 }
 
-ChFsiDataManager::ConstructReferenceArray() {
+void ChFsiDataManager::ConstructReferenceArray() {
 	ArrangeDataManager();
 
 	// determine the number of each component
@@ -51,10 +53,10 @@ ChFsiDataManager::ConstructReferenceArray() {
 	thrust::fill(numComponentMarkers.begin(), numComponentMarkers.end(), 1);
 	thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkersH.rhoPresMuH;
 	thrust::copy(sphMarkersH.rhoPresMuH.begin(), sphMarkersH.rhoPresMuH.end(), dummyRhoPresMuH.begin());
-	thrust::pair<int*,int*> new_end = thrust::reduce_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), numComponentMarkers.begin(), 
-			dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeComp());
+	int numberOfComponents = (thrust::reduce_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), numComponentMarkers.begin(), 
+			dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeComp())).second 
+			- numComponentMarkers.begin();
 
-	int numberOfComponents = new_end.second - numComponentMarkers.begin();
 	// if (numberOfComponents == 0) {
 	// 	std::cout << "Error! no marker found! Thrown from ConstructReferenceArray\n";
 	// 	return;
@@ -79,7 +81,7 @@ ChFsiDataManager::ConstructReferenceArray() {
 	numComponentMarkers.clear();
 }
 
-ChFsiDataManager::FinalizeDataManager() {
+void ChFsiDataManager::FinalizeDataManager() {
 	ConstructReferenceArray();
 	int numMarkers = sphMarkersH.rhoPresMuH.size();
 
