@@ -156,7 +156,7 @@ struct real3Max {
 // code adopted from http://stackoverflow.com/questions/17371275/implementing-max-reduce-in-cuda
 // ========================================================================================
 
-static CUDA_DEVICE double atomicAdd(double* address, double value) {
+static CUDA_DEVICE double atomicAdd_d(double* address, double value) {
     unsigned long long int* address_as_ull = (unsigned long long int*)address;
     unsigned long long int old = *address_as_ull, assumed;
     do {
@@ -212,9 +212,15 @@ static inline CUDA_DEVICE float AtomicMin(float* address, float value) {
 }
 
 static inline CUDA_DEVICE void AtomicAdd(real3* pointer, real3 val) {
+#ifdef CHRONO_PARALLEL_USE_DOUBLE
+    atomicAdd_d(&pointer->x, val.x);
+    atomicAdd_d(&pointer->y, val.y);
+    atomicAdd_d(&pointer->z, val.z);
+#else
     atomicAdd(&pointer->x, val.x);
     atomicAdd(&pointer->y, val.y);
     atomicAdd(&pointer->z, val.z);
+#endif
 }
 
 static inline CUDA_DEVICE void AtomicMax(real3* pointer, real3 val) {
