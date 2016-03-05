@@ -2,48 +2,32 @@ Chrono Frequently Asked Questions {#faq_root}
 ==========================
 
 
-### Where can I start to read the documentation?
+### Does Chrono have a graphical user interface?
 
-If you are a new user, we suggest you to start from the [main page](index.html) of
-this WIKI, or directly go to this [quick installation guide](@ref tutorial_table_of_content_install).
+No, it doesn't. However, if you need a CAD-like interface, consider the use of the 
+[Chrono::SolidWorks](@ref tutorial_table_of_content_chrono_solidworks) plug-in. It allows a work flow in which you can develop a model in SolidWorks&copy; and then export it as a model that can be subsequently imported and simulated in Chrono.
 
-### Does CHRONO::ENGINE have a graphical user interface?
+### Is Chrono free?
+The entire {% include module.html first="PROJECT" second="CHRONO" %} software infrastructure is open source and released under a permissive BSD3 license. As such, you can use, modify, redistribute, sell, etc., the software as you wish. 
 
-No, it is a C++ library and you must be a software programmer in order
-to take advantage of it. However, if you need a CAD-like interface, you
-may give a look at
-[Chrono::SolidWorks](ChronoSolidWorks:Introduction "wikilink"), our
-add-in for the SolidWorks CAD; this allows you to create the assets for
-Chrono::Engine simulations using powerful graphical-user interface
-tools.
+### Who owns Chrono?
+Chrono is owned and copyrighted by {% include module.html first="PROJECT" second="CHRONO" %}, a nonprofit set up in the US. 
 
-### Is CHRONO::ENGINE free, or should I pay a fee?
+### I want to use Chrono. Do I have to be a good programmer?
+No. You only need to be able to install the software and go through a couple of [examples/tutorials](@ref tutorial_root) to get the gist of it. Moreover, if you need a jump start to your project you might want to take a look at the [Chrono model repository](@ref model_root). If you are lucky, you'll find a model close to what you need, in which case you'll get a jump start to your project.
 
-Since 2013, Chrono::Engine got a permissive license of BSD style, so you
-can use it freely in your projects (read the details in the license.txt
-file in the repository).
+### How can I contribute?
+You can contribute in many ways:
+- If you want to add to the {% include module.html first="PROJECT" second="CHRONO" %} software infrastructure, make a pull request in [GitHub](https://github.com/projectchrono/chrono)
+- If you put together a model and want to make it part of the [Chrono model repository](@ref model_root) you can make a pull request in [GitHub](https://github.com/projectchrono/chrono)
+- If you put together a tutorial or generated a well documented Chrono example, follow the same [GitHub](https://github.com/projectchrono/chrono) pull request path
+- If you feel like Chrono is the best thing since slice bread and you want to support its development, make a tax deductible donation to the University of Wisconsin-Madison or University of Parma, Italy. Let us know if you follow this  path since we want to  channel your financial contribution into our labs to fund the development of Chrono.
+- If you can't make a donation but still like Chrono, you can still contribute by letting us know you used Chrono and sharing your experience with us
 
-### I want to use CHRONO::ENGINE, but I have few knowledge about C++ language..
-
-Using CHRONO::ENGINE requires adequate knowledge about the C++ language.
-If you don't know what's 'templating', 'polimorphism' or such, please
-learn some basic lessons about C++ (for example see [these
-links](http://www.deltaknowledge.com/chronoengine/links.html)).
-
-### How can I contribute to the development of Chrono::Engine?
-
-Look at the instructions in the page about the [GIT
-repository](ChronoEngine:GIT_repository "wikilink"). If you feel like
-contributing to the development, just fork the chrono GIT, then submit
-us a pull request when you think you have interesting contributions.
-
-##Build
-
-### Can CHRONO::ENGINE be compiled on platform XXX with compiler YYY?
-
-Yes, probably it can, but currently we test it under Windows (32 and 64
-bit, XP and Vista, with MingW GNU compiler and Microsoft VisualC++
-compilers) and Linux (32 and 64 bit, GNU compiler)
+### Can Chrono be compiled on platform X with compiler Y?
+That's pretty likely to happen. Currently we build Chrono under Windows (32 and 64
+bit with the MingW GNU compiler,  Microsoft VisualC++, and Intel
+compilers) and Linux (32 and 64 bit, GNU and Intel compilers)
 
 ### Should I need to build all sub units?
 
