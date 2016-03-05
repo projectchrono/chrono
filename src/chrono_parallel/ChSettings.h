@@ -121,6 +121,7 @@ class solver_settings {
         use_power_iteration = false;
         max_power_iteration = 15;
         power_iter_tolerance = 0.1;
+        skip_residual = 1;
     }
 
     // The solver type variable defines name of the solver that will be used to
@@ -204,6 +205,8 @@ class solver_settings {
     // This variable defines the tolerance if the solver is using the objective
     // termination condition
     real tolerance_objective;
+    //Compute residual every x iterations
+    int skip_residual;
 };
 
 class settings_container {

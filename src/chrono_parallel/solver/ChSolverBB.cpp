@@ -37,8 +37,14 @@ uint ChSolverBB::Solve(ChShurProduct& ShurProduct,
     real& lastgoodres = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
-    // ChTimer<> t1, t2, t3, t4;
-    // t1.start();
+//    ChTimer<> t1, t2, t3, t4, t5;
+//    t1.reset();
+//    t2.reset();
+//    t3.reset();
+//    t4.reset();
+//    t5.reset();
+//
+//    t1.start();
 
     temp.resize(size);
     ml.resize(size);
@@ -102,10 +108,10 @@ uint ChSolverBB::Solve(ChShurProduct& ShurProduct,
     int n_armijo = 10;
     int max_armijo_backtrace = 3;
     std::vector<real> f_hist;
-    // t1.stop();
+    //t1.stop();
 
     for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-        // t2.start();
+        //t2.start();
         temp = (ml - alpha * mg);
         Project(temp.data());
         mdir = temp - ml;
@@ -114,80 +120,87 @@ uint ChSolverBB::Solve(ChShurProduct& ShurProduct,
         real lambda = 1.0;
         int n_backtracks = 0;
         bool armijo_repeat = true;
-        // t2.stop();
-        // t3.start();
-        while (armijo_repeat) {
-            ml_p = ml + lambda * mdir;
+        //t2.stop();
+        //t3.start();
+        // while (armijo_repeat) {
+        ml_p = ml + lambda * mdir;
 
-            ShurProduct(ml_p, temp);
-            mg_p = temp - r;
+        ShurProduct(ml_p, temp);
+        mg_p = temp - r;
+        if (current_iteration % data_manager->settings.solver.skip_residual == 0) {
             mf_p = (ml_p, 0.5 * temp - r);
-
-            f_hist.push_back(mf_p);
-
-            real max_compare = 10e29;
-            for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
-                real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
-                if (compare > max_compare)
-                    max_compare = compare;
-            }
-            if (mf_p > max_compare) {
-                armijo_repeat = true;
-                if (current_iteration > 0)
-                    mf = f_hist[current_iteration - 1];
-                real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
-                lambda = Max(sigma_min * lambda, Min(sigma_max * lambda, lambdanew));
-                printf("Repeat Armijo, new lambda = %f \n", lambda);
-            } else {
-                armijo_repeat = false;
-            }
-            n_backtracks = n_backtracks + 1;
-            if (n_backtracks > max_armijo_backtrace)
-                armijo_repeat = false;
         }
-        // t3.stop();
-        // t4.start();
+        //
+        //            f_hist.push_back(mf_p);
+        //
+        //            real max_compare = 10e29;
+        //            for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
+        //                real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
+        //                if (compare > max_compare)
+        //                    max_compare = compare;
+        //            }
+        //            if (mf_p > max_compare) {
+        //                armijo_repeat = true;
+        //                if (current_iteration > 0)
+        //                    mf = f_hist[current_iteration - 1];
+        //                real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
+        //                lambda = Max(sigma_min * lambda, Min(sigma_max * lambda, lambdanew));
+        //                printf("Repeat Armijo, new lambda = %f \n", lambda);
+        //            } else {
+        //                armijo_repeat = false;
+        //            }
+        //            n_backtracks = n_backtracks + 1;
+        //            if (n_backtracks > max_armijo_backtrace)
+        //                armijo_repeat = false;
+        //        }
+        //t3.stop();
+        //t4.start();
         ms = ml_p - ml;
         my = mg_p - mg;
         ml = ml_p;
         mg = mg_p;
 
+        //memcpy((void*)mg.data(), (void*)mg_p.data(), size * sizeof(real));
+        //memcpy((void*)ml.data(), (void*)ml_p.data(), size * sizeof(real));
+
         if (current_iteration % 2 == 0) {
-            real sDs = (ms, ms);
             real sy = (ms, my);
             if (sy <= 0) {
                 alpha = neg_BB1_fallback;
             } else {
+                real sDs = (ms, ms);
                 alpha = Min(a_max, Max(a_min, sDs / sy));
             }
         } else {
             real sy = (ms, my);
-            real yDy = (my, my);
             if (sy <= 0) {
                 alpha = neg_BB2_fallback;
             } else {
+                real yDy = (my, my);
                 alpha = Min(a_max, Max(a_min, sy / yDy));
             }
         }
-        temp = ml - gdiff * mg;
-        Project(temp.data());
-        temp = (ml - temp) / (-gdiff);
+        //t4.stop();
+        //t5.start();
+        if (current_iteration % data_manager->settings.solver.skip_residual == 0) {
+            temp = ml - gdiff * mg;
+            Project(temp.data());
+            temp = (ml - temp) / (-gdiff);
 
-        real g_proj_norm = Sqrt((temp, temp));
-        if (g_proj_norm < lastgoodres) {
-            lastgoodres = g_proj_norm;
-            objective_value = mf_p;
-            ml_candidate = ml;
+            real g_proj_norm = Sqrt((temp, temp));
+            if (g_proj_norm < lastgoodres) {
+                lastgoodres = g_proj_norm;
+                objective_value = mf_p;
+                ml_candidate = ml;
+            }
         }
-
         AtIterationEnd(lastgoodres, objective_value);
         if (lastgoodres < data_manager->settings.solver.tol_speed) {
             break;
         }
-
-        // t4.stop();
+        //t5.stop();
     }
-    // printf("TIME: [%f %f %f %f]\n", t1(), t2(), t3(), t4());
+    //printf("TIME: [%f %f %f %f %f]\n", t1(), t2(), t3(), t4(), t5());
     if (data_manager->settings.solver.solver_mode == NORMAL) {
         data_manager->measures.solver.normal_apgd_step_length = alpha;
     } else if (data_manager->settings.solver.solver_mode == SLIDING) {
