@@ -493,19 +493,17 @@ class HCPSampler : public Sampler<T> {
     int nz = (int)(2 * this->m_size.z / (m_cos30 * m_spacing)) + 1;
     double offset_x = 0, offset_z = 0;
     for (int j = 0; j < ny; j++) {
-      //need to offset each alternate layer by radius in both x and z direction
-      offset_x = offset_z = (j % 2 != 0) ? 0.5 * m_spacing : 0;
-      for (int i = 0; i < nx; i++) {
-        for (int k = 0; k < nz; k++) {
-          // need to offset alternate rows by radius
-          T offset = (k % 2 != 0) ? 0.5 * m_spacing : 0;
-          ChVector<T> p = bl + ChVector<T>(i * m_spacing + offset + offset_x,
-                                           j * (m_cos30 * m_spacing),
-                                           k * (m_cos30 * m_spacing) + offset_z);
-          if (this->accept(t, p))
-            out_points.push_back(p);
+        for (int i = 0; i < nx; i++) {
+            for (int k = 0; k < nz; k++) {
+                ChVector<T> p = bl +
+                                ChVector<T>((2.0 * i + (k % 2 + j % 2)),  //
+                                            2.0 * sqrt(6.0) / 3.0 * j,    //
+                                            sqrt(3.0) * (k + 1.0 / 3.0 * (j % 2))) *
+                                    m_spacing * 0.5;
+                if (this->accept(t, p))
+                    out_points.push_back(p);
+            }
         }
-      }
     }
     return out_points;
   }
