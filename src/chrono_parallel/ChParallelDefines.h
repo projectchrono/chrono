@@ -38,7 +38,7 @@ typedef int shape_type;
 #define custom_vector std::vector
 #endif
 
-#if defined _MSC_VER || defined __clang__
+#if defined _MSC_VER
 class NullBuffer : public std::streambuf {
   public:
     int overflow(int c) { return c; }
