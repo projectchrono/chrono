@@ -528,7 +528,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     real3 global_origin = data_manager->measures.collision.global_origin;
     int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
-    const real radius = sphere_radius + collision_envelope;
+    const real radius = sphere_radius;
 
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
     is_rigid_bin_active.resize(total_bins);
@@ -545,8 +545,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 #pragma omp parallel for
     for (int p = 0; p < num_spheres; p++) {
         real3 pos_sphere = pos_spheres[p];
-        int3 gmin = HashMin(pos_sphere - real3(radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_sphere + real3(radius) - global_origin, inv_bin_size);
+        int3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
         f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
@@ -561,8 +561,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     for (int p = 0; p < num_spheres; p++) {
         uint count = 0, i, j, k;
         real3 pos_sphere = pos_spheres[p];
-        int3 gmin = HashMin(pos_sphere - real3(radius) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_sphere + real3(radius) - global_origin, inv_bin_size);
+        int3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        int3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
         uint mInd = f_bin_intersections[p];
         for (i = gmin.x; i <= gmax.x; i++) {
             for (j = gmin.y; j <= gmax.y; j++) {
@@ -607,8 +607,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             for (uint i = start; i < end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 pos_sphere = pos_spheres[p];
-                real3 Bmin = pos_sphere - real3(radius) - global_origin;
-                real3 Bmax = pos_sphere + real3(radius) - global_origin;
+                real3 Bmin = pos_sphere - real3(radius + collision_envelope) - global_origin;
+                real3 Bmax = pos_sphere + real3(radius + collision_envelope) - global_origin;
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
@@ -620,7 +620,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                     }
 
                     ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
-                    ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius);
+                    ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius * .5);
 
                     real3 ptA, ptB, norm;
                     real depth;
