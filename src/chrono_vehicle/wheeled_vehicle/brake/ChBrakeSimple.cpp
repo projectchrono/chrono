@@ -42,7 +42,7 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChLinkLockRevolute> hub) {
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
-    m_brake->Initialize(mb1, mb2, hub->GetMarker2()->GetCoord());
+    m_brake->Initialize(mb1, mb2, true, hub->GetMarker1()->GetCoord(), hub->GetMarker2()->GetCoord());
     my_system->AddLink(m_brake);
 }
 
