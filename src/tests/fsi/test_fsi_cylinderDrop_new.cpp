@@ -505,75 +505,58 @@ int main(int argc, char* argv[]) {
 			<< endl;
 	printSimulationParameters();
 	// ***************************** Create Fluid ********************************************
-	thrust::host_vector<::int4> referenceArray;
-	thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
-	thrust::host_vector<Real3> velMasH;
-	thrust::host_vector<Real4> rhoPresMuH;
-	thrust::host_vector<uint> bodyIndex;
-
-	thrust::host_vector<Real3> pos_ChSystemBackupH;
-	thrust::host_vector<Real3> vel_ChSystemBackupH;
-	thrust::host_vector<Real3> acc_ChSystemBackupH;
-	thrust::host_vector<Real4> quat_ChSystemBackupH;
-	thrust::host_vector<Real3> omegaVelGRF_ChSystemBackupH;
-	thrust::host_vector<Real3> omegaAccGRF_ChSystemBackupH;
-
-	std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
-
-	Real sphMarkerMass = 0; // To be initialized in CreateFluidMarkers, and used in other places
-
-	SetupParamsH(paramsH);
-
-	if (initializeFluidFromFile) {
-		// call to CheckPointMarkers_Read should be as close to the top as possible
-		CheckPointMarkers_Read(initializeFluidFromFile, posRadH, velMasH,
-				rhoPresMuH, bodyIndex, referenceArray, paramsH, numObjects);
-		if (numObjects.numAllMarkers == 0) {
-			ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex,
-					referenceArray);
-			return 0;
-		}
-#if !haveFluid
-		printf("Error! Initialized from file But haveFluid is false! \n");
-		return -1;
-#endif
-	} else {
-#if haveFluid
-		//*** default num markers
-
-		int numAllMarkers = 0;
-
-		//*** initialize fluid particles
-		::int2 num_fluidOrBoundaryMarkers = CreateFluidMarkers(posRadH, velMasH,
-				rhoPresMuH, bodyIndex, paramsH);
-		printf("num_fluidOrBoundaryMarkers %d %d \n",
-				num_fluidOrBoundaryMarkers.x, num_fluidOrBoundaryMarkers.y);
-		referenceArray.push_back(mI4(0, num_fluidOrBoundaryMarkers.x, -1, -1)); // map fluid -1
-		numAllMarkers += num_fluidOrBoundaryMarkers.x;
-		referenceArray.push_back(
-		mI4(numAllMarkers, numAllMarkers + num_fluidOrBoundaryMarkers.y, 0, 0));
-		numAllMarkers += num_fluidOrBoundaryMarkers.y;
-
-		//*** set num objects
-
-		SetNumObjects(numObjects, referenceArray, numAllMarkers);
-		//        assert(posRadH.size() == numObjects.numAllMarkers && "(1) numObjects is not set correctly");
-		if (posRadH.size() != numObjects.numAllMarkers) {
-			printf(
-					"\n\n\n\n Error! (1) numObjects is not set correctly \n\n\n\n");
-			return -1;
-		}
-		if (numObjects.numAllMarkers == 0) {
-			ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex,
-					referenceArray);
-			std::cout << "No marker to begin with " << numObjects.numAllMarkers
-					<< std::endl;
-			return 0;
-		}
-#endif
-	}
-	// ***************************** Create Rigid ********************************************
 	ChSystemParallelDVI mphysicalSystem;
+	fsi::ChSystemFsi myFsiSystem(&mphysicalSystem);
+
+
+			thrust::host_vector<::int4> referenceArray;
+			thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
+			thrust::host_vector<Real3> velMasH;
+			thrust::host_vector<Real4> rhoPresMuH;
+			thrust::host_vector<uint> bodyIndex;
+
+			thrust::host_vector<Real3> pos_ChSystemBackupH;
+			thrust::host_vector<Real3> vel_ChSystemBackupH;
+			thrust::host_vector<Real3> acc_ChSystemBackupH;
+			thrust::host_vector<Real4> quat_ChSystemBackupH;
+			thrust::host_vector<Real3> omegaVelGRF_ChSystemBackupH;
+			thrust::host_vector<Real3> omegaAccGRF_ChSystemBackupH;
+
+			std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
+
+
+
+
+#if haveFluid
+
+										SetupParamsH(paramsH);
+										Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML
+												utils::GridSampler<> sampler(initSpace0);
+										Real3 boxCenter = 0.5 * (paramsH.cMax + paramsH.cMin);
+										Real3 boxHalfDim = paramsH.cMax - boxCenter;
+										utils::Generator::PointVector points = sampler.SampleBox(fsi::utils::ConvertRealToChVector(boxCenter), fsi::utils::ConvertRealToChVector(boxHalfDim));
+
+										int numPart = points.size();
+			for (int i = 0; i < numPart; i++) {
+
+				myFsiSystem.GetDataManager->AddSphMarker(mR3(points[i].x, points[i].y, points[i].z),
+						mR3(0), mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
+			}
+
+			int numPhases = myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.size(); //Arman TODO: either rely on pointers, or stack entirely, combination of '.' and '->' is not good
+			if (numPhases != 0 ) {
+				std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
+				std::cin.get();
+				return;
+			} else {
+				myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.push_back(mI4(0, numPart, -1, -1)); // map fluid -1, Arman : this will later be removed, relying on finalize function and automatic sorting
+				myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.push_back(mI4(numPart, numPart, 0, 0)); // Arman : delete later
+			}
+
+#endif
+
+
+	// ***************************** Create Rigid ********************************************
 	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
 
 	// This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
