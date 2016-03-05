@@ -18,7 +18,10 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <cstdlib>  //for atof#include "chrono_fsi/custom_cutil_math.h"#include "chrono_fsi/SPHCudaUtils.h"#include "chrono_fsi/MyStructs.cuh"
+#include <cstdlib>  //for atof
+#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/SPHCudaUtils.h"
+#include "chrono_fsi/MyStructs.cuh"
 #include "chrono_fsi/checkPointReduced.h"
 
 using namespace std;
@@ -175,7 +178,6 @@ void CheckPointMarkers_Write(const thrust::host_vector<Real3>& mPosRad,
 
 	outProbParams << numObjects.numRigidBodies << endl;
 	outProbParams << numObjects.numFlexBodies << endl;
-	outProbParams << numObjects.numFlBcRigid << endl;
 	outProbParams << numObjects.numFluidMarkers << endl;
 	outProbParams << numObjects.numBoundaryMarkers << endl;
 	outProbParams << numObjects.startRigidMarkers << endl;
@@ -357,7 +359,6 @@ void CheckPointMarkers_Read(bool shouldIRead,
 
 	inProbParams >> numObjects.numRigidBodies;
 	inProbParams >> numObjects.numFlexBodies;
-	inProbParams >> numObjects.numFlBcRigid;
 	inProbParams >> numObjects.numFluidMarkers;
 	inProbParams >> numObjects.numBoundaryMarkers;
 	inProbParams >> numObjects.startRigidMarkers;

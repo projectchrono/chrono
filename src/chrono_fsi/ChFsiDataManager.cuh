@@ -18,6 +18,8 @@
 #ifndef CH_FSI_DATAMANAGER_H_
 #define CH_FSI_DATAMANAGER_H_
 
+#include <thrust/iterator/zip_iterator.h>
+#include <thrust/tuple.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include "chrono_fsi/ChApiFsi.h"
@@ -28,16 +30,34 @@
 namespace chrono {
 namespace fsi {
 
+	// typedef device iterators for shorthand
+	typedef thrust::device_vector<Real3>::iterator r3IterD;
+	typedef thrust::device_vector<Real4>::iterator r4IterD;
+	typedef thrust::tuple<r3IterD, r3IterD, r4IterD> iterTupleD;
+	typedef thrust::zip_iterator<iterTupleD> zipIterD;
+
+	// typedef host iterators for shorthand
+	typedef thrust::host_vector<Real3>::iterator r3IterH;
+	typedef thrust::host_vector<Real4>::iterator r4IterH;
+	typedef thrust::tuple<r3IterH, r3IterH, r4IterH> iterTupleH;
+	typedef thrust::zip_iterator<iterTupleH> zipIterH;
+
 	struct SphMarkerDataD {
 		thrust::device_vector<Real3> posRadD;
 		thrust::device_vector<Real3> velMasD;
 		thrust::device_vector<Real4> rhoPresMuD;
+
+		// Arman TODO: fix error. make it function, or something like thrust
+		zipIterD iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin()));
 	};
 
 	struct SphMarkerDataH {
 		thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
 		thrust::host_vector<Real3> velMasH;
 		thrust::host_vector<Real4> rhoPresMuH;
+
+		// Arman TODO: fix error. make it function, or something like thrust
+		zipIterH iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin()));
 	};
 
 	struct FsiBodiesDataD {
@@ -100,10 +120,19 @@ namespace fsi {
 		thrust::device_vector<Real3> rigid_FSI_TorquesD;
 	};
 
+	struct sphTypeComp {
+	 	__host__ __device__ bool operator()(const Real4& o1, const Real4& o2) {
+	    	return o1.w < o2.w;
+	  	}
+	};
+
 class CH_FSI_API ChFsiDataManager {
 public:
 	ChFsiDataManager();
 	~ChFsiDataManager();
+
+	AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu);
+	FinalizeDataManager();
 
 	SphMarkerDataD sphMarkersD1;
 	SphMarkerDataD sphMarkersD2;
@@ -119,6 +148,8 @@ public:
 
 	ProximityDataD markersProximityD;
 private:
+	ArrangeDataManager();
+	ConstructReferenceArray();
 };
 
 } // end namespace fsi

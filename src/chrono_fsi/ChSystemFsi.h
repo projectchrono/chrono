@@ -33,7 +33,7 @@ namespace fsi {
 class CH_FSI_API ChSystemFsi : public ChFsiGeneral{
 
 public:
-	ChSystemFsi();
+	ChSystemFsi(ChSystemParallelDVI * other_physicalSystem);
 	~ChSystemFsi();
 
 	void DoStepDynamics_FSI();
@@ -44,6 +44,10 @@ public:
 private:
 	int DoStepChronoSystem(Real dT,
 		double mTime);
+
+	void SetNumObjects(NumberOfObjects& numObjects,
+		const thrust::host_vector<int4>& referenceArray, int numAllMarkers);
+
 
 	ChFsiDataManager* fsiData;
 	// map fsi to chrono bodies

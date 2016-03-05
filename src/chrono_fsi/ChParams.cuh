@@ -101,10 +101,10 @@ struct SimParams {
  * @details
  * 		The description of each variable is in front of it
  */
+ // Arman : see if you need all of these guys since you rely on chrono for rigid and flex
 struct NumberOfObjects {
 	int numRigidBodies; /* Number of rigid bodies */
 	int numFlexBodies; /* Number of Flexible bodies*/
-	int numFlBcRigid; /* */
 	int numFluidMarkers; /* Number of fluid SPH markers*/
 	int numBoundaryMarkers; /* Number of boundary SPH markers */
 	int startRigidMarkers; /* */
