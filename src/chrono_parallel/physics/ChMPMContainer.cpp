@@ -14,7 +14,7 @@
 #include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real3.h"        // for real3
-#include "chrono_parallel/math/matrix.h"        // for quaternion, real4
+#include "chrono_parallel/math/matrix.h"       // for quaternion, real4
 
 namespace chrono {
 
@@ -458,21 +458,30 @@ void ChMPMContainer::Build_b() {
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(
-                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
+            Loop_Over_Rigid_Neighbors(real depth =
+                                          data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];  //
+                                      real bi = 0;                                                                //
+                                      if (contact_cohesion) { depth = Min(depth, 0); } else {
+                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                      }
 
-                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); b[start_boundary + index + 0] = bi;
+                                      b[start_boundary + index + 0] = bi;
 
-                // printf("bi: %f\n", bi);
+                                      // printf("bi: %f\n", bi);
 
-                );
+                                      );
         } else {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(
-                real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
-                real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); b[start_boundary + index + 0] = bi;
-                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
-                b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
+            Loop_Over_Rigid_Neighbors(real depth =
+                                          data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];  //
+                                      real bi = 0;                                                                //
+                                      if (contact_cohesion) { depth = Min(depth, 0); } else {
+                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                      }
+
+                                      b[start_boundary + index + 0] = bi;
+                                      b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
+                                      b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
         }
     }
     if (num_mpm_contacts > 0) {
@@ -484,8 +493,6 @@ void ChMPMContainer::Build_b() {
                                   if (cohesion) {
                                       depth = Min(depth, 0);  //
                                       bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                  } else if (depth > 0) {
-                                      bi = 0;                                                                      //
                                   } else { real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); }  //
                                   b[start_contact + index + 0] = bi;);
     }
@@ -814,13 +821,13 @@ void ChMPMContainer::PostSolve() {
         marker_Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
-//
-//        real JE = Determinant(marker_Fe[p]);  //
-//        real JP = Determinant(marker_Fp[p]);  //
-//        real current_mu = mu * Exp(hardening_coefficient * (real(1.) - JP));
-//        real current_lambda = lambda * Exp(hardening_coefficient * (real(1.) - JP));
-//        real current_stiffness = current_lambda * (1.0 + nu) * (1.0 - 2.0 * nu) / (nu);
-//        printf("JU: %d [%f %f] [%f %f %f]\n", p, JE, JP, current_mu, current_lambda, current_stiffness);
+        //
+        //        real JE = Determinant(marker_Fe[p]);  //
+        //        real JP = Determinant(marker_Fp[p]);  //
+        //        real current_mu = mu * Exp(hardening_coefficient * (real(1.) - JP));
+        //        real current_lambda = lambda * Exp(hardening_coefficient * (real(1.) - JP));
+        //        real current_stiffness = current_lambda * (1.0 + nu) * (1.0 - 2.0 * nu) / (nu);
+        //        printf("JU: %d [%f %f] [%f %f %f]\n", p, JE, JP, current_mu, current_lambda, current_stiffness);
     }
 }
 

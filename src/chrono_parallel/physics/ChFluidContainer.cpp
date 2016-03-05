@@ -12,7 +12,7 @@
 #include "chrono_parallel/math/real2.h"        // for real2
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
-#include "chrono_parallel/math/matrix.h"        // for quaternion, real4
+#include "chrono_parallel/math/matrix.h"       // for quaternion, real4
 
 namespace chrono {
 
@@ -392,9 +392,9 @@ void ChFluidContainer::Build_b() {
         Loop_Over_Rigid_Neighbors(real depth = data_manager->host_data.dpth_rigid_fluid[p * max_rigid_neighbors + i];
 
                                   real bi = 0;  //
-                                  if (contact_cohesion) { depth = Min(depth, 0); } else if (depth > 0) {
-                                      bi = 0;
-                                  } else { real bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); }  //
+                                  if (contact_cohesion) { depth = Min(depth, 0); } else {
+                                      bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                  }  //
 
                                   b[start_boundary + index + 0] = bi;
                                   b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
