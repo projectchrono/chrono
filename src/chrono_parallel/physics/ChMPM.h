@@ -16,16 +16,16 @@
 // as input, outputs updated positions and velocities
 // =============================================================================
 #include "chrono_parallel/ChCudaHelper.cuh"
-#include "chrono_parallel/physics/MPMUtils.h"
+#include "chrono_parallel/math/matrix.h"
 namespace chrono {
 class ChMPM {
   public:
     ChMPM() {}
     ~ChMPM() {}
-    void Initialize();
+    void Initialize(const real marker_mass, const real radius, std::vector<real3>& positions);
     void Solve(const real kernel_radius, std::vector<real3>& positions, std::vector<real3>& velocities);
     void UpdateState();
-
+    void Bounds(const real kernel_radius, std::vector<real3>& positions);
     uint num_mpm_markers;
     uint num_mpm_nodes;
 
@@ -37,9 +37,7 @@ class ChMPM {
     real inv_bin_edge;
     real mass;
     real kernel_radius;
-    custom_vector<real> old_vel_node_mpm;
 
-    custom_vector<real> delta_v;
 
     custom_vector<int> particle_node_mapping;
     custom_vector<int> node_particle_mapping;
@@ -55,8 +53,9 @@ class ChMPM {
     gpu_vector<real3> pos, vel;
     gpu_vector<real> node_mass;
     gpu_vector<real> marker_volume;
-    gpu_vector<real> grid_vel;
+    gpu_vector<real> grid_vel, delta_v;
     gpu_vector<real> rhs;
     gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
+    gpu_vector<real> old_vel_node_mpm;
 };
 }
