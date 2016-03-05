@@ -28,19 +28,19 @@
 
 // SPH includes
 #include "chrono_fsi/MyStructs.cuh"  //just for SimParams
-#include "chrono_fsi/collideSphereSphere.cuh"
-#include "chrono_fsi/printToFile.cuh"
-#include "chrono_fsi/custom_cutil_math.h"
-#include "chrono_fsi/SPHCudaUtils.h"
-#include "chrono_fsi/checkPointReduced.h"
+//#include "chrono_fsi/collideSphereSphere.cuh"
+//#include "chrono_fsi/printToFile.cuh"
+//#include "chrono_fsi/custom_cutil_math.h"
+//#include "chrono_fsi/SPHCudaUtils.h"
+//#include "chrono_fsi/checkPointReduced.h"
 
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 
 // Chrono Vehicle Include
-#include "chrono_fsi/VehicleExtraProperties.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
+//#include "chrono_fsi/VehicleExtraProperties.h"
+//#include "chrono_vehicle/ChVehicleModelData.h"
 
 //#include "chrono_utils/ChUtilsVehicle.h"
 #include "utils/ChUtilsGeometry.h"
@@ -53,15 +53,15 @@
 #include <core/ChTransform.h>  //transform acc from GF to LF for post process
 
 //#include "BallDropParams.h"
-#include "chrono_fsi/SphInterface.h"
-#include "chrono_fsi/InitializeSphMarkers.h"
-#include "chrono_fsi/FSI_Integrate.h"
+//#include "chrono_fsi/SphInterface.h"
+//#include "chrono_fsi/InitializeSphMarkers.h"
+//#include "chrono_fsi/FSI_Integrate.h"
+#include "chrono_fsi/ChSystemFsi.h"
 
 // FSI Interface Includes
 #include "params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
 
 #define haveFluid true
-#define haveVehicle false
 
 // Chrono namespaces
 using namespace chrono;
@@ -371,76 +371,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 			mphysicalSystem, FSI_Bodies, numObjects, paramsH,
 			cyl_radius, cyl_length, mat_g, paramsH.rho0, cyl_pos, cyl_rot);
 
-	if (haveVehicle) {
-		//        // version 1
-		//        // -----------------------------------------
-		//        // Create and initialize the vehicle system.
-		//        // -----------------------------------------
-		//        // Create the vehicle assembly and the callback object for tire contact
-		//        // according to the specified type of tire/wheel.
-		//        switch (wheel_type) {
-		//            case CYLINDRICAL: {
-		//                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_cyl,
-		//                simplepowertrain_file);
-		//                tire_cb = new MyCylindricalTire();
-		//            } break;
-		//            case LUGGED: {
-		//                mVehicle = new ChWheeledVehicleAssembly(&mphysicalSystem, vehicle_file_lug,
-		//                simplepowertrain_file);
-		//                tire_cb = new MyLuggedTire();
-		//            } break;
-		//        }
-		//        mVehicle->SetTireContactCallback(tire_cb);
-		//        // Set the callback object for chassis.
-		//        switch (chassis_type) {
-		//            case CBOX: {
-		//                chassis_cb =
-		//                    new MyChassisBoxModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1, .5,
-		//                    .4));
-		//                ChVector<> boxSize(1, .5, .2);
-		//                ((MyChassisBoxModel_vis*)chassis_cb)->SetAttributes(boxSize);
-		//                mVehicle->SetChassisContactCallback(chassis_cb);
-		//            } break;
-		//
-		//            case CSPHERE: {
-		//                chassis_cb =
-		//                    new MyChassisSphereModel_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-		//                    .5, .4));
-		//                Real radius = 1;
-		//                ((MyChassisSphereModel_vis*)chassis_cb)->SetAttributes(radius);
-		//                mVehicle->SetChassisContactCallback(chassis_cb);
-		//            } break;
-		//
-		//            case C_SIMPLE_CONVEX_MESH: {
-		//                chassis_cb =
-		//                    new MyChassisSimpleConvexMesh();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-		//                    .5, .4));
-		//                mVehicle->SetChassisContactCallback(chassis_cb);
-		//            } break;
-		//
-		//            case C_SIMPLE_TRI_MESH: {
-		//                chassis_cb =
-		//                    new MyChassisSimpleTriMesh_vis();  //(mVehicle->GetVehicle()->GetChassis(), ChVector<>(1,
-		//                    .5, .4));
-		//                mVehicle->SetChassisContactCallback(chassis_cb);
-		//            } break;
-		//        }
-		//
-		//        // Set the callback object for driver inputs. Pass the hold time as a delay in
-		//        // generating driver inputs.
-		//        driver_cb = new MyDriverInputs(time_hold_vehicle);
-		//        mVehicle->SetDriverInputsCallback(driver_cb);
-		//
-		//        // Initialize the vehicle at a height above the terrain.
-		//        mVehicle->Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
-		//
-		//        // Initially, fix the chassis (will be released after time_hold_vehicle).
-		//        mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(true);
-		//        // Initially, fix the wheels (will be released after time_hold_vehicle).
-		//        for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-		//            mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
-		//        }
-	}
 	// extra objects
 	// -----------------------------------------
 	// Add extra collision body to test the collision shape
@@ -516,49 +446,6 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep,
 	}
 }
 
-// =============================================================================
-
-void OutputVehicleData(ChSystemParallelDVI& mphysicalSystem, int tStep) {
-	std::ofstream outVehicleData;
-	const std::string vehicleDataFile = out_dir + "/vehicleData.txt";
-
-	if (tStep == 0) {
-		outVehicleData.open(vehicleDataFile);
-	} else {
-		outVehicleData.open(vehicleDataFile, std::ios::app);
-	}
-	ChVector<> accLF = ChTransform<>::TransformParentToLocal(
-			mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt(), ChVector<>(0),
-			mVehicle->GetVehicle()->GetChassis()->GetRot());
-
-	outVehicleData << mphysicalSystem.GetChTime() << ", " <<
-
-	mVehicle->GetVehicle()->GetChassis()->GetPos().x << ", "
-			<< mVehicle->GetVehicle()->GetChassis()->GetPos().y << ", "
-			<< mVehicle->GetVehicle()->GetChassis()->GetPos().z << ", " <<
-
-			mVehicle->GetVehicle()->GetChassis()->GetPos_dt().x << ", "
-			<< mVehicle->GetVehicle()->GetChassis()->GetPos_dt().y << ", "
-			<< mVehicle->GetVehicle()->GetChassis()->GetPos_dt().z << ", " <<
-
-			mVehicle->GetVehicle()->GetChassis()->GetPos_dt().Length() << ", "
-			<<
-
-			mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().x << ", "
-			<< mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().y << ", "
-			<< mVehicle->GetVehicle()->GetChassis()->GetPos_dtdt().z << ", " <<
-
-			accLF.x << ", " << accLF.y << ", " << accLF.z << ", " <<
-
-			mVehicle->GetPowertrain()->GetMotorTorque() << ", "
-			<< mVehicle->GetPowertrain()->GetMotorSpeed() << ", "
-			<< mVehicle->GetPowertrain()->GetOutputTorque() << ", "
-			<< mVehicle->GetPowertrain()->GetCurrentTransmissionGear() << ", "
-			<< mVehicle->GetPowertrain()->GetMaxTorque() << ", "
-			<< mVehicle->GetPowertrain()->GetMaxSpeed() << ", " <<
-
-			std::endl;
-}
 // =============================================================================
 void printSimulationParameters() {
 	simParams << " time_hold_vehicle: " << time_hold_vehicle << endl
@@ -934,8 +821,6 @@ int main(int argc, char* argv[]) {
 		// -------------------
 
 		SavePovFilesMBD(mphysicalSystem, tStep, mTime);
-
-//    OutputVehicleData(mphysicalSystem, tStep);
 
 // -------------------
 // SPH Block
