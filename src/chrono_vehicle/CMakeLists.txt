@@ -133,7 +133,7 @@ set(CV_TERRAIN_FILES
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
-	terrain/DeformableTerrain.h
+    terrain/DeformableTerrain.h
     terrain/DeformableTerrain.cpp
 )
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
@@ -143,8 +143,8 @@ set(CV_UTILS_FILES
     utils/ChSteeringController.cpp
     utils/ChSpeedController.h
     utils/ChSpeedController.cpp
-	utils/ChAdaptiveSpeedController.h
-	utils/ChAdaptiveSpeedController.cpp
+    utils/ChAdaptiveSpeedController.h
+    utils/ChAdaptiveSpeedController.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_UTILS_FILES
@@ -272,7 +272,15 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/FialaTire.h
     wheeled_vehicle/tire/FialaTire.cpp
 )
-source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
+if(ENABLE_MODULE_FEA)
+    set(CV_WV_FEATIRE_FILES
+        wheeled_vehicle/tire/ChANCFTire.h
+        wheeled_vehicle/tire/ChANCFTire.cpp
+    )
+else()
+    set(CV_WV_FEATIRE_FILES "")
+endif()
+source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES} ${CV_WV_FEATIRE_FILES})
 
 set(CV_WV_UTILS_FILES
     wheeled_vehicle/utils/ChWheeledVehicleAssembly.h
@@ -416,7 +424,11 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBRARIES ChronoEngine_irrlicht)
     list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-    include_directories( ${CH_IRRLICHTINC} )
+    include_directories(${CH_IRRLICHTINC})
+endif()
+
+if(ENABLE_MODULE_FEA)
+    list(APPEND LIBRARIES ChronoEngine_fea)
 endif()
 
 add_library(ChronoEngine_vehicle SHARED
@@ -436,6 +448,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_STEERING_FILES}
     ${CV_WV_SUSPENSION_FILES}
     ${CV_WV_TIRE_FILES}
+    ${CV_WV_FEATIRE_FILES}
     ${CV_WV_UTILS_FILES}
     ${CVIRR_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}

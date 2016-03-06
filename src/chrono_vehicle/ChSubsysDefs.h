@@ -197,7 +197,8 @@ enum TireModelType {
     RIGID,    ///< rigid tire
     PACEJKA,  ///< Pacejka (magic formula) tire
     LUGRE,    ///< Lugre frition model tire
-    FIALA     ///< Fiala tire
+    FIALA,    ///< Fiala tire
+    ANCF      ///< ANCF shell element-based tire
 };
 
 /// Enum for available powertrain model templates.
