@@ -541,7 +541,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     }
     f_bin_intersections.resize(num_spheres + 1);
     f_bin_intersections[num_spheres] = 0;
-
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere is_rigid_bin_active";
 #pragma omp parallel for
     for (int p = 0; p < num_spheres; p++) {
         real3 pos_sphere = pos_spheres[p];
@@ -551,7 +551,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
     uint f_number_of_bin_intersections = f_bin_intersections.back();
-
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan";
     f_bin_number.resize(f_number_of_bin_intersections);
     f_bin_number_out.resize(f_number_of_bin_intersections);
     f_bin_fluid_number.resize(f_number_of_bin_intersections);
@@ -574,6 +574,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             }
         }
     }
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Hash";
     Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
     uint f_number_of_bins_active = Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index);
 
@@ -582,7 +583,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     Thrust_Exclusive_Scan(f_bin_start_index);
     custom_vector<uint> f_bin_num_contact(f_number_of_bins_active + 1);
     f_bin_num_contact[f_number_of_bins_active] = 0;
-
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan 2";
     norm_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
     cpta_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
     dpth_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
@@ -641,6 +642,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             }
         }
     }
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Narrowphase";
     Thrust_Exclusive_Scan(contact_counts);
     num_contacts = contact_counts[num_spheres];
 }
