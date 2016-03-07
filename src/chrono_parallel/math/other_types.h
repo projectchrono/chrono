@@ -73,7 +73,7 @@ class int3 {
     inline int3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
     inline int operator[](unsigned int i) const { return array[i]; }
     inline int& operator[](unsigned int i) { return array[i]; }
-#if defined(CHRONO_HAS_SSE) || defined(CHRONO_HAS_AVX)
+#if defined(USE_SSE)
     inline int3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
     inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
     inline int3& operator=(const __m128i& rhs) {
