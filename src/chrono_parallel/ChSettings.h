@@ -48,9 +48,7 @@ class collision_settings {
         bins_per_axis = int3(20, 20, 20);
         narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
         grid_density = 5;
-        leaf_density = 1;
         fixed_bins = true;
-        use_two_level = false;
     }
 
     real3 min_bounding_point, max_bounding_point;
@@ -77,10 +75,8 @@ class collision_settings {
     // the type of narrowphase used at runtime.
     NARROWPHASETYPE narrowphase_algorithm;
     real grid_density;
-    real leaf_density;
     // use fixed number of bins instead of tuning them
     bool fixed_bins;
-    bool use_two_level;
 };
 
 // solver_settings, like the name implies is the structure that contains all
@@ -205,7 +201,7 @@ class solver_settings {
     // This variable defines the tolerance if the solver is using the objective
     // termination condition
     real tolerance_objective;
-    //Compute residual every x iterations
+    // Compute residual every x iterations
     int skip_residual;
 };
 

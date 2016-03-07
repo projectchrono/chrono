@@ -74,7 +74,6 @@ int main(int argc, char* argv[]) {
     my_system.GetSettings()->solver.tolerance = 0;
     my_system.GetSettings()->solver.alpha = 0;
     my_system.GetSettings()->solver.use_full_inertia_tensor = false;
-    my_system.GetSettings()->collision.use_two_level = false;
     my_system.GetSettings()->solver.contact_recovery_speed = 1;
     my_system.GetSettings()->solver.cache_step_length = true;
     my_system.ChangeSolverType(BB);

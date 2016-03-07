@@ -232,7 +232,6 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.tolerance = 0;
     msystem.GetSettings()->solver.alpha = 0;
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
-    msystem.GetSettings()->collision.use_two_level = false;
     msystem.GetSettings()->solver.contact_recovery_speed = 10000;
     msystem.GetSettings()->solver.cache_step_length = true;
     msystem.ChangeSolverType(APGD);
