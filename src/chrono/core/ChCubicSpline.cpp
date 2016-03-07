@@ -31,7 +31,7 @@ ChCubicSpline::ChCubicSpline(const std::vector<double>& t, const std::vector<dou
     int n = (int)t.size();
     assert(n >= 2);
     assert(n == y.size());
-    assert(std : is_sorted(t.begin(), t.end()));
+    assert(std::is_sorted(t.begin(), t.end()));
     m_ypp.resize(n);
 }
 
