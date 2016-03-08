@@ -2,6 +2,8 @@
 #include "chrono_parallel/math/real.h"
 using namespace chrono;
 
+#pragma message "SIMD_AVX"
+
 #define set_m128r(lo, hi) _mm256_insertf128_ps(_mm256_castps128_ps256(lo), (hi), 1)
 
 template <int i0, int i1, int i2, int i3>

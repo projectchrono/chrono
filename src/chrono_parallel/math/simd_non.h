@@ -4,6 +4,8 @@
 #include "chrono_parallel/math/other_types.h"
 using namespace chrono;
 
+#pragma message "SIMD_NON"
+
 namespace simd {
 
 CUDA_HOST_DEVICE inline real3 Add(real3 a, real3 b) {

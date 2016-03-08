@@ -2,6 +2,8 @@
 #include "chrono_parallel/math/real.h"
 using namespace chrono;
 
+#pragma message "SIMD_SSE"
+
 namespace simd {
 
 // http://fastcpp.blogspot.com/2011/03/changing-sign-of-float-values-using-sse.html
