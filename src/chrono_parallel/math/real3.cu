@@ -8,7 +8,6 @@
 #endif
 
 #include "chrono_parallel/math/real3.h"
-#include <algorithm>
 
 namespace chrono {
 
