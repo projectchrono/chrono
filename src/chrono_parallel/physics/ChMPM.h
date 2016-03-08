@@ -40,12 +40,12 @@ class ChMPM {
     real mass;
     real kernel_radius;
 
-    custom_vector<int> particle_node_mapping;
-    custom_vector<int> node_particle_mapping;
-    custom_vector<int> node_start_index;
-    custom_vector<int> particle_number;
+    std::vector<int> particle_node_mapping;
+    std::vector<int> node_particle_mapping;
+    std::vector<int> node_start_index;
+    std::vector<int> particle_number;
     uint num_mpm_nodes_active;
-    custom_vector<Mat33> volume_Ap_Fe_transpose;
+    std::vector<Mat33> volume_Ap_Fe_transpose;
 
     // GPU Things
     real3* lower_bound;

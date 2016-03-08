@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "chrono_parallel/ChParallelDefines.h"
+#include "chrono_parallel/ChCudaDefines.h"
 #include "chrono_parallel/math/real2.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/real4.h"
@@ -26,32 +26,32 @@ namespace chrono {
 class Mat33 {
   public:
     // Zero constructor
-	CUDA_HOST_DEVICE Mat33() : array{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} {}
+    CUDA_HOST_DEVICE Mat33() : array{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} {}
     // Diagonal matrix constructor
-	CUDA_HOST_DEVICE Mat33(real v) : array{v, 0, 0, 0, 0, v, 0, 0, 0, 0, v, 0} {}
+    CUDA_HOST_DEVICE Mat33(real v) : array{v, 0, 0, 0, 0, v, 0, 0, 0, 0, v, 0} {}
     // Diagonal matrix constructor
-	CUDA_HOST_DEVICE Mat33(real3 v) : array{v.x, 0, 0, 0, 0, v.y, 0, 0, 0, 0, v.z, 0} {}
+    CUDA_HOST_DEVICE Mat33(real3 v) : array{v.x, 0, 0, 0, 0, v.y, 0, 0, 0, 0, v.z, 0} {}
 
     // Constructor that takes three columns of the matrix
-	CUDA_HOST_DEVICE Mat33(const real3& col1, const real3& col2, const real3& col3)
+    CUDA_HOST_DEVICE Mat33(const real3& col1, const real3& col2, const real3& col3)
         : array{col1.x, col1.y, col1.z, 0, col2.x, col2.y, col2.z, 0, col3.x, col3.y, col3.z, 0} {}
 
     // Constructor that takes individial elements
-        CUDA_HOST_DEVICE Mat33(const real& v11,
-          const real& v21,
-          const real& v31,
-          const real& v12,
-          const real& v22,
-          const real& v32,
-          const real& v13,
-          const real& v23,
-          const real& v33)
+    CUDA_HOST_DEVICE Mat33(const real& v11,
+                           const real& v21,
+                           const real& v31,
+                           const real& v12,
+                           const real& v22,
+                           const real& v32,
+                           const real& v13,
+                           const real& v23,
+                           const real& v33)
         : array{v11, v21, v31, 0, v12, v22, v32, 0, v13, v23, v33, 0} {}
     // Copy constructor
-        CUDA_HOST_DEVICE Mat33(const Mat33& M) { memcpy(array, M.array, 12 * sizeof(real)); }
+    CUDA_HOST_DEVICE Mat33(const Mat33& M) { memcpy(array, M.array, 12 * sizeof(real)); }
 
     // Constructor that takes a quaternion and generates a rotation matrix
-        CUDA_HOST_DEVICE Mat33(const quaternion& q) {
+    CUDA_HOST_DEVICE Mat33(const quaternion& q) {
         array[0] = real(1.0) - real(2.0) * q.y * q.y - real(2.0) * q.z * q.z;
         array[1] = real(2.0) * q.x * q.y + real(2.0) * q.z * q.w;
         array[2] = real(2.0) * q.x * q.z - real(2.0) * q.y * q.w;
@@ -69,8 +69,12 @@ class Mat33 {
     CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
     CUDA_HOST_DEVICE inline real operator()(int i, int j) const { return array[j * 4 + i]; }
     CUDA_HOST_DEVICE inline real& operator()(int i, int j) { return array[j * 4 + i]; }
-    CUDA_HOST_DEVICE inline real3 col(unsigned int i) const { return real3(array[i * 4], array[i * 4 + 1], array[i * 4 + 2]); }
-    CUDA_HOST_DEVICE inline real3 row(unsigned int i) const { return real3(array[0 * 4 + i], array[1 * 4 + i], array[2 * 4 + i]); }
+    CUDA_HOST_DEVICE inline real3 col(unsigned int i) const {
+        return real3(array[i * 4], array[i * 4 + 1], array[i * 4 + 2]);
+    }
+    CUDA_HOST_DEVICE inline real3 row(unsigned int i) const {
+        return real3(array[0 * 4 + i], array[1 * 4 + i], array[2 * 4 + i]);
+    }
 
     CUDA_HOST_DEVICE inline Mat33& operator=(const Mat33& M) {
         memcpy(array, M.array, 12 * sizeof(real));
@@ -96,18 +100,18 @@ CUDA_HOST_DEVICE Mat33 operator*(const Mat33& M, const Mat33& N);
 CUDA_HOST_DEVICE Mat33 operator+(const Mat33& M, const Mat33& N);
 CUDA_HOST_DEVICE Mat33 operator-(const Mat33& M, const Mat33& N);
 
-CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, real, Mat33)
-CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, Mat33, Mat33)
-CUDA_HOST_DEVICE OPERATOR_EQUALSALT(+, Mat33, Mat33)
-CUDA_HOST_DEVICE OPERATOR_EQUALSALT(-, Mat33, Mat33)
+CUDA_HOST_DEVICE OPERATOR_EQUALSALT(*, real, Mat33) CUDA_HOST_DEVICE
+    OPERATOR_EQUALSALT(*, Mat33, Mat33) CUDA_HOST_DEVICE OPERATOR_EQUALSALT(+, Mat33, Mat33) CUDA_HOST_DEVICE
+    OPERATOR_EQUALSALT(-, Mat33, Mat33)
 
-CUDA_HOST_DEVICE Mat33 operator-(const Mat33& M);
+        CUDA_HOST_DEVICE Mat33
+        operator-(const Mat33& M);
 
 CUDA_HOST_DEVICE static inline Mat33 operator*(const real s, const Mat33& a) {
     return a * s;
 }
 CUDA_HOST_DEVICE Mat33 SkewSymmetric(const real3& r);
-//This form generates a skew symmetric structure without flipping signs
+// This form generates a skew symmetric structure without flipping signs
 CUDA_HOST_DEVICE Mat33 SkewSymmetricAlt(const real3& r);
 CUDA_HOST_DEVICE real Determinant(const Mat33& m);
 CUDA_HOST_DEVICE Mat33 Abs(const Mat33& m);
@@ -145,7 +149,12 @@ CUDA_HOST_DEVICE real3 operator*(const DiagMat33& M, const real3& v);
 struct SymMat33 {
     CUDA_HOST_DEVICE SymMat33() : x11(0), x21(0), x31(0), x22(0), x32(0), x33(0) {}
 
-    CUDA_HOST_DEVICE SymMat33(const real y11, const real y21, const real y31, const real y22, const real y32, const real y33)
+    CUDA_HOST_DEVICE SymMat33(const real y11,
+                              const real y21,
+                              const real y31,
+                              const real y22,
+                              const real y32,
+                              const real y33)
         : x11(y11), x21(y21), x31(y31), x22(y22), x32(y32), x33(y33) {}
     CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
@@ -170,7 +179,8 @@ CUDA_HOST_DEVICE SymMat33 operator-(const SymMat33& M, const real& v);
 
 struct Mat32 {
     CUDA_HOST_DEVICE Mat32() {}
-    CUDA_HOST_DEVICE Mat32(const real3 col1, const real3 col2) : array{col1.x, col1.y, col1.z, 0, col2.x, col2.y, col2.z, 0} {}
+    CUDA_HOST_DEVICE Mat32(const real3 col1, const real3 col2)
+        : array{col1.x, col1.y, col1.z, 0, col2.x, col2.y, col2.z, 0} {}
     CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
     real array[8];
@@ -185,7 +195,8 @@ CUDA_HOST_DEVICE real3 operator*(const Mat32& M, const real2& v);
 
 struct Mat23 {
     CUDA_HOST_DEVICE Mat23() {}
-    CUDA_HOST_DEVICE Mat23(const real3 row1, const real3 row2) : array{row1.x, row1.y, row1.z, 0, row2.x, row2.y, row2.z, 0} {}
+    CUDA_HOST_DEVICE Mat23(const real3 row1, const real3 row2)
+        : array{row1.x, row1.y, row1.z, 0, row2.x, row2.y, row2.z, 0} {}
     real array[8];
     // 0 1 2 3
     // 4 5 6 7
@@ -217,44 +228,15 @@ CUDA_HOST_DEVICE SymMat22 TransposeTimesWithSymmetricResult(const Mat32& A, cons
 //
 CUDA_HOST_DEVICE SymMat22 ConjugateWithTranspose(const Mat32& A, const SymMat33& B);
 
-CUDA_HOST_DEVICE static void Print(const Mat33& A, const char* name) {
-    printf("%s\n", name);
-    printf("%f %f %f\n", A[0], A[4], A[8]);
-    printf("%f %f %f\n", A[1], A[5], A[9]);
-    printf("%f %f %f\n", A[2], A[6], A[10]);
-}
-CUDA_HOST_DEVICE static void Print(const Mat32& A, const char* name) {
-    printf("%s\n", name);
-    printf("%f %f\n", A[0], A[4]);
-    printf("%f %f\n", A[1], A[5]);
-    printf("%f %f\n", A[2], A[6]);
-}
-CUDA_HOST_DEVICE static void Print(const SymMat33& A, const char* name) {
-    printf("%s\n", name);
+CUDA_HOST_DEVICE void Print(const Mat33& A, const char* name);
+CUDA_HOST_DEVICE void Print(const Mat32& A, const char* name);
+CUDA_HOST_DEVICE void Print(const SymMat33& A, const char* name);
+CUDA_HOST_DEVICE void Print(const SymMat22& A, const char* name);
 
-    printf("%f %f %f\n", A.x11, A.x21, A.x31);
-    printf("%f %f %f\n", A.x21, A.x22, A.x32);
-    printf("%f %f %f\n", A.x31, A.x32, A.x33);
-}
-CUDA_HOST_DEVICE static void Print(const SymMat22& A, const char* name) {
-    printf("%s\n", name);
-
-    printf("%f %f\n", A.x11, A.x21);
-    printf("%f %f\n", A.x21, A.x22);
-}
-
-CUDA_HOST_DEVICE static void PrintLine(const Mat33& A, const char* name) {
-    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6], A[8], A[9], A[10]);
-}
-CUDA_HOST_DEVICE static void PrintLine(const Mat32& A, const char* name) {
-    printf("%s: [%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6]);
-}
-CUDA_HOST_DEVICE static void PrintLine(const SymMat33& A, const char* name) {
-    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x31, A.x21, A.x22, A.x32, A.x31, A.x32, A.x33);
-}
-CUDA_HOST_DEVICE static void PrintLine(const SymMat22& A, const char* name) {
-    printf("%s: [%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x21, A.x22);
-}
+CUDA_HOST_DEVICE void PrintLine(const Mat33& A, const char* name);
+CUDA_HOST_DEVICE void PrintLine(const Mat32& A, const char* name);
+CUDA_HOST_DEVICE void PrintLine(const SymMat33& A, const char* name);
+CUDA_HOST_DEVICE void PrintLine(const SymMat22& A, const char* name);
 
 //[U.x,V.x,W.x]
 //[U.y,V.y,W.y]

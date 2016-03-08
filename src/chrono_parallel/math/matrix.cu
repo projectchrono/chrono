@@ -7,6 +7,9 @@
 #elif defined(USE_AVX)
 #include "chrono_parallel/math/simd_avx.h"
 #endif
+
+#include <iostream>
+
 namespace chrono {
 
 #if defined(USE_AVX)
@@ -644,5 +647,44 @@ CUDA_HOST_DEVICE SymMat22 TransposeTimesWithSymmetricResult(const Mat32& A, cons
 
 CUDA_HOST_DEVICE SymMat22 ConjugateWithTranspose(const Mat32& A, const SymMat33& B) {
     return TransposeTimesWithSymmetricResult(B * A, A);
+}
+
+CUDA_HOST_DEVICE void Print(const Mat33& A, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f %f\n", A[0], A[4], A[8]);
+    printf("%f %f %f\n", A[1], A[5], A[9]);
+    printf("%f %f %f\n", A[2], A[6], A[10]);
+}
+CUDA_HOST_DEVICE void Print(const Mat32& A, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f\n", A[0], A[4]);
+    printf("%f %f\n", A[1], A[5]);
+    printf("%f %f\n", A[2], A[6]);
+}
+CUDA_HOST_DEVICE void Print(const SymMat33& A, const char* name) {
+    printf("%s\n", name);
+
+    printf("%f %f %f\n", A.x11, A.x21, A.x31);
+    printf("%f %f %f\n", A.x21, A.x22, A.x32);
+    printf("%f %f %f\n", A.x31, A.x32, A.x33);
+}
+CUDA_HOST_DEVICE void Print(const SymMat22& A, const char* name) {
+    printf("%s\n", name);
+
+    printf("%f %f\n", A.x11, A.x21);
+    printf("%f %f\n", A.x21, A.x22);
+}
+
+CUDA_HOST_DEVICE void PrintLine(const Mat33& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6], A[8], A[9], A[10]);
+}
+CUDA_HOST_DEVICE void PrintLine(const Mat32& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6]);
+}
+CUDA_HOST_DEVICE void PrintLine(const SymMat33& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x31, A.x21, A.x22, A.x32, A.x31, A.x32, A.x33);
+}
+CUDA_HOST_DEVICE void PrintLine(const SymMat22& A, const char* name) {
+    printf("%s: [%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x21, A.x22);
 }
 }
