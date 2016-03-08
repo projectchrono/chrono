@@ -184,7 +184,6 @@ void ChOpenGLViewer::Render() {
         render_camera.window_width = window_size.x;
         render_camera.window_height = window_size.y;
         render_camera.Update();
-        model, view, projection, modelview;
         render_camera.GetMatricies(projection, view, model);
 
         main_shader.SetViewport(window_size);
