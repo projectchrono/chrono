@@ -13,7 +13,7 @@
 // ----------------------------------------------------------------------------
 // CUDA headers
 // ----------------------------------------------------------------------------
- #include "chrono_fsi/ChDeviceUtils.cuh" 
+#include "chrono_fsi/ChDeviceUtils.cuh"
 // #include <cuda.h>
 // #include <cuda_runtime.h>
 // #include <device_functions.h>

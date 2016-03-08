@@ -41,6 +41,8 @@ public:
 	void CopyDeviceDataToHalfStep();
 	void SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle);
 	ChFsiDataManager* GetDataManager(){return fsiData;}
+	SimParams* GetSimParams() {return paramsH};
+	NumberOfObjects* GetNObjects() {return numObjectsH};
 
 private:
 	int DoStepChronoSystem(Real dT,

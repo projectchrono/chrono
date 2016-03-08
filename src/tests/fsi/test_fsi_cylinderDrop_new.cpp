@@ -57,6 +57,7 @@
 //#include "chrono_fsi/InitializeSphMarkers.h"
 //#include "chrono_fsi/FSI_Integrate.h"
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChDeviceUtils.cuh"
 
 // FSI Interface Includes
 #include "params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
@@ -69,9 +70,6 @@ using namespace chrono::collision;
 
 using std::cout;
 using std::endl;
-
-// Define General variables
-SimParams paramsH;
 
 // =============================================================================
 // Define Graphics
@@ -218,14 +216,8 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 // =============================================================================
 
 // Arman you still need local position of bce markers
-void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
-		thrust::host_vector<Real3>& posRadH, // do not set the size here since you are using push back later
-		thrust::host_vector<Real3>& velMasH,
-		thrust::host_vector<Real4>& rhoPresMuH,
-		thrust::host_vector<uint>& bodyIndex,
-		std::vector<ChSharedPtr<ChBody> >& FSI_Bodies,
-		thrust::host_vector<::int4>& referenceArray,
-		NumberOfObjects& numObjects, const SimParams& paramsH) {
+void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::ChSystemFsi &myFsiSystem) {
+
 	// Set common material Properties
 	mat_g->SetFriction(0.8);
 	mat_g->SetCohesion(0);
@@ -261,6 +253,15 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 	double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
 	double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi)
 			+ smallBuffer;
+
+
+	SimParams* paramsH = myFsiSystem.GetSimParams();
+	SimParams* numObjects = myFsiSystem.GetNumObjects();
+	thrust::host_vector<Real3> & posRadH =  myFsiSystem.GetDataManager->sphMarkersH.posRadH;
+	thrust::host_vector<Real3> & velMasH =  myFsiSystem.GetDataManager->sphMarkersH.velMasH;
+	thrust::host_vector<Real4> & rhoPresMuH =  myFsiSystem.GetDataManager->sphMarkersH.rhoPresMuH;
+	thrust::host_vector<int4> & referenceArray =  myFsiSystem.GetDataManager->fsiGeneralData.referenceArray;
+
 
 	if (!initializeFluidFromFile) {
 
@@ -509,50 +510,31 @@ int main(int argc, char* argv[]) {
 	fsi::ChSystemFsi myFsiSystem(&mphysicalSystem);
 
 
-			thrust::host_vector<::int4> referenceArray;
-			thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
-			thrust::host_vector<Real3> velMasH;
-			thrust::host_vector<Real4> rhoPresMuH;
-			thrust::host_vector<uint> bodyIndex;
-
-			thrust::host_vector<Real3> pos_ChSystemBackupH;
-			thrust::host_vector<Real3> vel_ChSystemBackupH;
-			thrust::host_vector<Real3> acc_ChSystemBackupH;
-			thrust::host_vector<Real4> quat_ChSystemBackupH;
-			thrust::host_vector<Real3> omegaVelGRF_ChSystemBackupH;
-			thrust::host_vector<Real3> omegaAccGRF_ChSystemBackupH;
-
-			std::vector<ChSharedPtr<ChBody> > FSI_Bodies;
-
-
-
 
 #if haveFluid
-
-										SetupParamsH(paramsH);
-										Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML
-												utils::GridSampler<> sampler(initSpace0);
-										Real3 boxCenter = 0.5 * (paramsH.cMax + paramsH.cMin);
-										Real3 boxHalfDim = paramsH.cMax - boxCenter;
-										utils::Generator::PointVector points = sampler.SampleBox(fsi::utils::ConvertRealToChVector(boxCenter), fsi::utils::ConvertRealToChVector(boxHalfDim));
+		SetupParamsH(paramsH);
+		Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML
+				utils::GridSampler<> sampler(initSpace0);
+		Real3 boxCenter = 0.5 * (paramsH.cMax + paramsH.cMin);
+		Real3 boxHalfDim = paramsH.cMax - boxCenter;
+		utils::Generator::PointVector points = sampler.SampleBox(fsi::utils::ConvertRealToChVector(boxCenter), fsi::utils::ConvertRealToChVector(boxHalfDim));
 
 										int numPart = points.size();
-			for (int i = 0; i < numPart; i++) {
+		for (int i = 0; i < numPart; i++) {
 
-				myFsiSystem.GetDataManager->AddSphMarker(mR3(points[i].x, points[i].y, points[i].z),
-						mR3(0), mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
-			}
+			myFsiSystem.GetDataManager->AddSphMarker(mR3(points[i].x, points[i].y, points[i].z),
+					mR3(0), mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
+		}
 
-			int numPhases = myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.size(); //Arman TODO: either rely on pointers, or stack entirely, combination of '.' and '->' is not good
-			if (numPhases != 0 ) {
-				std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
-				std::cin.get();
-				return;
-			} else {
-				myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.push_back(mI4(0, numPart, -1, -1)); // map fluid -1, Arman : this will later be removed, relying on finalize function and automatic sorting
-				myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.push_back(mI4(numPart, numPart, 0, 0)); // Arman : delete later
-			}
-
+		int numPhases = myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.size(); //Arman TODO: either rely on pointers, or stack entirely, combination of '.' and '->' is not good
+		if (numPhases != 0 ) {
+			std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
+			std::cin.get();
+			return;
+		} else {
+			myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.push_back(mI4(0, numPart, -1, -1)); // map fluid -1, Arman : this will later be removed, relying on finalize function and automatic sorting
+			myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.push_back(mI4(numPart, numPart, 0, 0)); // Arman : delete later
+		}
 #endif
 
 
@@ -561,14 +543,12 @@ int main(int argc, char* argv[]) {
 
 	// This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
 
-	CreateMbdPhysicalSystemObjects(mphysicalSystem, posRadH, velMasH,
-			rhoPresMuH, bodyIndex, FSI_Bodies, referenceArray, numObjects,
-			paramsH);
+	CreateMbdPhysicalSystemObjects(mphysicalSystem, myFsiSystem);
 
 	// ***************************** Create Interface ********************************************
 
 	//    assert(posRadH.size() == numObjects.numAllMarkers && "(2) numObjects is not set correctly");
-	if (posRadH.size() != numObjects.numAllMarkers) {
+	if (myFsiSystem.GetDataManager->sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
 		printf("\n\n\n\n Error! (2) numObjects is not set correctly \n\n\n\n");
 		return -1;
 	}
@@ -577,14 +557,9 @@ int main(int argc, char* argv[]) {
 
 	int startIndexSph = 0;
 #if haveFluid
-	thrust::device_vector<Real3> posRadD = posRadH;
-	thrust::device_vector<Real3> velMasD = velMasH;
-	thrust::device_vector<Real4> rhoPresMuD = rhoPresMuH;
-	thrust::device_vector<uint> bodyIndexD = bodyIndex;
-	thrust::device_vector<Real4> derivVelRhoD;
-	ResizeR4(derivVelRhoD, numObjects.numAllMarkers);
 
-	int numFsiBodies = FSI_Bodies.size();
+
+	int numFsiBodies = myFsiSystem.GetFsiBodiesPtr()->size();
 	thrust::device_vector<Real3> posRigid_fsiBodies_D;
 	thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
 	thrust::device_vector<Real3> accRigid_fsiBodies_D;
@@ -686,7 +661,7 @@ int main(int argc, char* argv[]) {
 	printf("stepEnd %d\n", stepEnd);
 	Real realTime = 0;
 
-	SimParams paramsH_B = paramsH;
+	SimParams* paramsH_B = paramsH;
 	paramsH_B.bodyForce3 = mR3(0);
 	paramsH_B.dT = paramsH.dT;
 
@@ -698,7 +673,7 @@ int main(int argc, char* argv[]) {
 					(paramsH.timePauseRigidFlex - paramsH.timePause)
 							/ paramsH.dT + paramsH.timePause / paramsH_B.dT));
 	//  InitSystem(paramsH, numObjects);
-	SimParams currentParamsH = paramsH;
+	SimParams* currentParamsH = paramsH;
 
 	simParams.close();
 

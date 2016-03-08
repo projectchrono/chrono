@@ -69,8 +69,8 @@ chrono::ChVector<> TransformBCEToCOG(chrono::ChBody* body, const Real3 & pos3) {
 void CreateBceGlobalMarkersFromBceLocalPos(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH,
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	const thrust::host_vector<Real3>& posRadBCE,
 	chrono::ChSharedPtr<chrono::ChBody> body,
 	chrono::ChVector<> collisionShapeRelativePos,
@@ -118,7 +118,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 		sphMarkersH.velMasH.push_back(v3);
 
 		sphMarkersH.rhoPresMuH.push_back(
-		mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, type));
+		mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, type));
 	}
 
 	// ------------------------
@@ -126,9 +126,9 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 	// ------------------------
 
 	int numBce = posRadBCE.size();
-	numObjects.numAllMarkers += numBce;
+	numObjects->numAllMarkers += numBce;
 	if (type == 0) {
-		numObjects.numBoundaryMarkers += numBce;
+		numObjects->numBoundaryMarkers += numBce;
 		if (fsiGeneralData.referenceArray.size() == 1) {
 			fsiGeneralData.referenceArray.push_back(
 			mI4(refSize4.y, refSize4.y + numBce, 0, 0));
@@ -146,12 +146,12 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 					"Error! Boundary markers are not initialized while trying to initialize rigid marker!\n\n");
 			std::cin.get();
 		}
-		numObjects.numRigid_SphMarkers += numBce;
-		numObjects.numRigidBodies += 1;
-		numObjects.startRigidMarkers = fsiGeneralData.referenceArray[1].y;
+		numObjects->numRigid_SphMarkers += numBce;
+		numObjects->numRigidBodies += 1;
+		numObjects->startRigidMarkers = fsiGeneralData.referenceArray[1].y;
 		fsiGeneralData.referenceArray.push_back(
 		mI4(refSize4.y, refSize4.y + numBce, 1, type)); // 1: for rigid
-		if (numObjects.numRigidBodies != fsiGeneralData.referenceArray.size() - 2) {
+		if (numObjects->numRigidBodies != fsiGeneralData.referenceArray.size() - 2) {
 			printf(
 					"Error! num rigid bodies does not match reference array size!\n\n");
 			std::cin.get();
@@ -164,8 +164,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH,
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	const thrust::host_vector<Real3>& posRadBCE,
 	chrono::ChSharedPtr<chrono::ChBody> body,
 	chrono::ChVector<> collisionShapeRelativePos,
@@ -179,8 +179,8 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 void AddSphereBce(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH, 
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body, 
 	chrono::ChVector<> relPos,
 	chrono::ChQuaternion<> relRot,
@@ -189,9 +189,9 @@ void AddSphereBce(
 	thrust::host_vector<Real3> posRadBCE;
 	CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
 
-	if (sphMarkersH.posRadH.size() != numObjects.numAllMarkers) {
+	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects.numAllMarkers, sphMarkersH.posRadH.size());
+				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
 
@@ -206,8 +206,8 @@ void AddSphereBce(
 void AddCylinderBce(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH, 
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body, 
 	chrono::ChVector<> relPos,
 	chrono::ChQuaternion<> relRot,
@@ -217,9 +217,9 @@ void AddCylinderBce(
 	thrust::host_vector<Real3> posRadBCE;
 	CreateBCE_On_Cylinder(posRadBCE, radius, height, paramsH);
 
-	if (sphMarkersH.posRadH.size() != numObjects.numAllMarkers) {
+	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects.numAllMarkers, sphMarkersH.posRadH.size());
+				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
 	CreateBceGlobalMarkersFromBceLocalPos(sphMarkersH, fsiGeneralData,
@@ -233,11 +233,13 @@ void AddCylinderBce(
 
 // Arman thrust::host_vector<uint>& bodyIndex,
 
+// Arman later on, you can remove numObjects since the Finalize function will take care of setting up the numObjects
+
 void AddBoxBce(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH, 
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body, 
 	chrono::ChVector<> relPos,
 	chrono::ChQuaternion<> relRot,
@@ -248,9 +250,9 @@ void AddBoxBce(
 
 	CreateBCE_On_Box(posRadBCE, ConvertChVectorToR3(size), 12, paramsH);
 
-	if (sphMarkersH.posRadH.size() != numObjects.numAllMarkers) {
+	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects.numAllMarkers, sphMarkersH.posRadH.size());
+				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
 
@@ -264,8 +266,8 @@ void AddBoxBce(
 void AddBCE_FromFile(
 	SphMarkerDataH& sphMarkersH,
 	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH, 
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body,
 	std::string dataPath) {
 	//----------------------------
@@ -274,9 +276,9 @@ void AddBCE_FromFile(
 	thrust::host_vector<Real3> posRadBCE;
 
 	LoadBCE_fromFile(posRadBCE, dataPath);
-	if (sphMarkersH.posRadH.size() != numObjects.numAllMarkers) {
+	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects.numAllMarkers, sphMarkersH.posRadH.size());
+				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
 
@@ -305,8 +307,8 @@ void CreateSphereFSI(
 	FsiGeneralData& fsiGeneralData,
 	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	chrono::ChSystem& mphysicalSystem,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH,
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
 	chrono::ChVector<> pos,
@@ -348,8 +350,8 @@ void CreateCylinderFSI(
 	FsiGeneralData& fsiGeneralData,
 	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	chrono::ChSystem& mphysicalSystem,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH,
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
 	chrono::ChVector<> pos,
@@ -388,8 +390,8 @@ void CreateBoxFSI(
 	FsiGeneralData& fsiGeneralData,
 	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	chrono::ChSystem& mphysicalSystem,
-	NumberOfObjects& numObjects,
-	const SimParams& paramsH,
+	NumberOfObjects* numObjects,
+	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
 	chrono::ChVector<> pos,
