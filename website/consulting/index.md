@@ -4,7 +4,7 @@ title: Consulting
 permalink: /consulting/
 ---
 
-#### Please consider making us part of your plans related to Chrono use. These consulting activities fund the  development of Chrono.
+#### Please consider engaging us in Chrono-related consulting activities. These consulting activities will allow us to keep developing Chrono.
    
 
 #### If you are in academia:
