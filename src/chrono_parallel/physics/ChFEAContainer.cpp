@@ -8,7 +8,7 @@
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 #include "chrono_parallel/math/svd.h"
 
-#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real2.h"        // for real2
 #include "chrono_parallel/math/real3.h"        // for real3
@@ -24,23 +24,23 @@ using namespace geometry;
 //////////////////////////////////////
 
 /// CLASS FOR TETRAHEDRAL FEA ELEMENTS
-uint3 SortedFace(int face, const uint4& tetrahedron) {
+uvec3 SortedFace(int face, const uint4& tetrahedron) {
     int i = tetrahedron.x;
     int j = tetrahedron.y;
     int k = tetrahedron.z;
     int l = tetrahedron.w;
     switch (face) {
         case 0:
-            return Sort(_make_uint3(j, k, l));
+            return Sort(_make_uvec3(j, k, l));
             break;
         case 1:
-            return Sort(_make_uint3(i, k, l));
+            return Sort(_make_uvec3(i, k, l));
             break;
         case 2:
-            return Sort(_make_uint3(i, j, l));
+            return Sort(_make_uvec3(i, j, l));
             break;
         case 3:
-            return Sort(_make_uint3(i, j, k));
+            return Sort(_make_uvec3(i, j, k));
             break;
     }
 }
@@ -510,7 +510,7 @@ void ChFEAContainer::Build_D() {
                 SetRow6Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
                 real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
-                uint3 sortedf = SortedFace(face.w, tetind);
+                uvec3 sortedf = SortedFace(face.w, tetind);
 
                 SetRow3Check(D_T, start_boundary + index + 0, b_off + sortedf.x * 3, U * face.x);
                 SetRow3Check(D_T, start_boundary + index + 0, b_off + sortedf.y * 3, U * face.y);
@@ -793,7 +793,7 @@ void ChFEAContainer::GenerateSparsity() {
                 int i = index - start;  // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
                 real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
-                uint3 sortedf = SortedFace(face.w, tetind);
+                uvec3 sortedf = SortedFace(face.w, tetind);
                 AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
                 AppendRow3(D_T, start_boundary + index + 0, body_offset + sortedf.x * 3, 0);
                 AppendRow3(D_T, start_boundary + index + 0, body_offset + sortedf.y * 3, 0);
@@ -809,7 +809,7 @@ void ChFEAContainer::GenerateSparsity() {
                 int i = index - start;  // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
                 real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
-                uint3 sf = SortedFace(face.w, tetind);
+                uvec3 sf = SortedFace(face.w, tetind);
 
                 AppendRow6(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 0, rigid * 6, 0);
                 AppendRow3(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 0, body_offset + sf.x * 3, 0);
@@ -869,17 +869,17 @@ void ChFEAContainer::PostSolve() {
 }
 
 struct FaceData {
-    uint3 tri;
+    uvec3 tri;
     int f;
     uint element;
     FaceData(){};
-    FaceData(const uint3& t, int face, uint e) : tri(t), f(face), element(e) {}
+    FaceData(const uvec3& t, int face, uint e) : tri(t), f(face), element(e) {}
 };
 
 struct {
     bool operator()(const FaceData& face1, const FaceData& face2) {
-        uint3 a = face1.tri;
-        uint3 b = face2.tri;
+        uvec3 a = face1.tri;
+        uvec3 b = face2.tri;
 
         if (a.x < b.x) {
             return true;
@@ -904,8 +904,8 @@ struct {
 } customSort;
 
 bool customCompare(const FaceData& face1, const FaceData& face2) {
-    uint3 a = face1.tri;
-    uint3 b = face2.tri;
+    uvec3 a = face1.tri;
+    uvec3 b = face2.tri;
     return (a.x == b.x && a.y == b.y && a.z == b.z);
 }
 
@@ -937,10 +937,10 @@ void ChFEAContainer::FindSurface() {
         int k = tet_indices[e].z;
         int l = tet_indices[e].w;
 
-        faces[4 * e + 0] = FaceData(Sort(_make_uint3(j, k, l)), 0, e);
-        faces[4 * e + 1] = FaceData(Sort(_make_uint3(i, k, l)), 1, e);
-        faces[4 * e + 2] = FaceData(Sort(_make_uint3(i, j, l)), 2, e);
-        faces[4 * e + 3] = FaceData(Sort(_make_uint3(i, j, k)), 3, e);
+        faces[4 * e + 0] = FaceData(Sort(_make_uvec3(j, k, l)), 0, e);
+        faces[4 * e + 1] = FaceData(Sort(_make_uvec3(i, k, l)), 1, e);
+        faces[4 * e + 2] = FaceData(Sort(_make_uvec3(i, j, l)), 2, e);
+        faces[4 * e + 3] = FaceData(Sort(_make_uvec3(i, j, k)), 3, e);
     }
 
     std::sort(faces.begin(), faces.end(), customSort);
@@ -949,8 +949,8 @@ void ChFEAContainer::FindSurface() {
 
     while (face < 4 * num_tets) {
         if (face < 4 * num_tets - 1) {
-            uint3 tri1 = faces[face].tri;
-            uint3 tri2 = faces[face + 1].tri;
+            uvec3 tri1 = faces[face].tri;
+            uvec3 tri2 = faces[face + 1].tri;
 
             if (tri1.x == tri2.x && tri1.y == tri2.y && tri1.z == tri2.z) {
                 face += 2;
@@ -958,7 +958,7 @@ void ChFEAContainer::FindSurface() {
             }
         }
 
-        uint3 tri = faces[face].tri;
+        uvec3 tri = faces[face].tri;
         boundary_node_mask_fea[tri.x] = 1;
         boundary_node_mask_fea[tri.y] = 1;
         boundary_node_mask_fea[tri.z] = 1;

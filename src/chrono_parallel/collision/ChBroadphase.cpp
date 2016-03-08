@@ -60,7 +60,7 @@ void ChCBroadphase::ComputeTopLevelResolution() {
     const real3& global_origin = data_manager->measures.collision.global_origin;
     const real density = data_manager->settings.collision.grid_density;
 
-    int3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
+    vec3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3& inv_bin_size = data_manager->measures.collision.inv_bin_size;
     real3& bin_size = data_manager->measures.collision.bin_size;
 
@@ -112,7 +112,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     custom_vector<uint>& bin_start_index = data_manager->host_data.bin_start_index;
     custom_vector<uint>& bin_num_contact = data_manager->host_data.bin_num_contact;
 
-    int3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
+    vec3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
     const int num_shapes = data_manager->num_rigid_shapes;
 
     real3& inv_bin_size = data_manager->measures.collision.inv_bin_size;

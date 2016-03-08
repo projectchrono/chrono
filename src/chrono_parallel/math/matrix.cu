@@ -1,6 +1,12 @@
 #include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/real3.h"
-#include "chrono_parallel/math/simd.h"
+#if defined(__CUDACC__)
+#include "chrono_parallel/math/simd_non.h"
+#elif defined(USE_SSE)
+#include "chrono_parallel/math/simd_sse.h"
+#elif defined(USE_AVX)
+#include "chrono_parallel/math/simd_avx.h"
+#endif
 namespace chrono {
 
 #if defined(USE_AVX)

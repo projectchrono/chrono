@@ -48,7 +48,7 @@ class ChPhysicsItem;
 class real2;
 class real3;
 class real4;
-class int3;
+class vec3;
 class Ch3DOFContainer;
 class ChFEAContainer;
 class ChFluidContainer;
@@ -250,7 +250,7 @@ struct host_container {
     custom_vector<real3> ct_body_torque;  // Total contact torque on these bodies
 
     // Contact shear history (DEM)
-    custom_vector<int3> shear_neigh;  // Neighbor list of contacting bodies and shapes
+    custom_vector<vec3> shear_neigh;  // Neighbor list of contacting bodies and shapes
     custom_vector<real3> shear_disp;  // Accumulated shear displacement for each neighbor
 
     // Mapping from all bodies in the system to bodies involved in a contact.

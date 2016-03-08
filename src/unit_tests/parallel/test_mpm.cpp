@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     real3 diag = max_bounding_point - min_bounding_point;
 
-    int3 bins_per_axis = int3(diag / (radius * 2));
+    vec3 bins_per_axis = vec3(diag / (radius * 2));
 
     real3 point_a = real3(0.44236, 0.65093, 0.24482);
     real3 point_b = real3(0.63257, 0.83347, 0.74071);

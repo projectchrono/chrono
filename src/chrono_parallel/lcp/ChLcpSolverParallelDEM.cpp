@@ -58,7 +58,7 @@ void function_CalcContactForces(
     real3* normal,                                        // contact normal (per contact)
     real* depth,                                          // penetration depth (per contact)
     real* eff_radius,                                     // effective contact radius (per contact)
-    int3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
+    vec3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
     char* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
     real3* shear_disp,      // accumulated shear displacement for each neighbor (max_shear per body)
     int* ext_body_id,       // [output] body IDs (two per contact)

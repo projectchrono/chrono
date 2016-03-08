@@ -45,7 +45,7 @@ class collision_settings {
         // the number of objects in a bin/grid cell should not exceed 100.
         // NOTE!!! this really depends on the architecture that you run on and how
         // many cores you are using.
-        bins_per_axis = int3(20, 20, 20);
+        bins_per_axis = vec3(20, 20, 20);
         narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
         grid_density = 5;
         fixed_bins = true;
@@ -69,7 +69,7 @@ class collision_settings {
     // As the name suggests, it is the number of slices along each axis. During
     // the broadphase stage the extents of the simulation are computed and then
     // sliced according to the variable.
-    int3 bins_per_axis;
+    vec3 bins_per_axis;
     // There are multiple narrowphase algorithms implemented in the collision
     // detection code. The narrowphase_algorithm parameter can be used to change
     // the type of narrowphase used at runtime.

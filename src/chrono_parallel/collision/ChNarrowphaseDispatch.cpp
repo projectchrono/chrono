@@ -336,7 +336,7 @@ inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     return c;
 }
 
-inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
+inline int GridHash(int x, int y, int z, const vec3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
 
@@ -355,7 +355,7 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
                                                  custom_vector<int>& contact_counts,
                                                  custom_vector<int>& particle_indices,
                                                  custom_vector<int>& reverse_mapping,
-                                                 int3& bins_per_axis,
+                                                 vec3& bins_per_axis,
                                                  uint& num_fluid_contacts) {
     const real radius_envelope = radius + collision_envelope;
     const real radius_squared = radius_envelope * radius_envelope;
@@ -366,7 +366,7 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
     res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
 
     real3 diag = max_bounding_point - min_bounding_point;
-    bins_per_axis = int3(diag / (radius_envelope * 2));
+    bins_per_axis = vec3(diag / (radius_envelope * 2));
     real inv_bin_edge = real(1.0) / (radius_envelope * 2);
     size_t grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
@@ -526,7 +526,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                                                 uint& num_contacts) {
     int num_rigid_shapes = data_manager->num_rigid_shapes;
     real3 global_origin = data_manager->measures.collision.global_origin;
-    int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
+    vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
     const real radius = sphere_radius;
 
@@ -545,8 +545,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 #pragma omp parallel for
     for (int p = 0; p < num_spheres; p++) {
         real3 pos_sphere = pos_spheres[p];
-        int3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        vec3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
         f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
@@ -561,13 +561,13 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     for (int p = 0; p < num_spheres; p++) {
         uint count = 0, i, j, k;
         real3 pos_sphere = pos_spheres[p];
-        int3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
-        int3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        vec3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
         uint mInd = f_bin_intersections[p];
         for (i = gmin.x; i <= gmax.x; i++) {
             for (j = gmin.y; j <= gmax.y; j++) {
                 for (k = gmin.z; k <= gmax.z; k++) {
-                    f_bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
+                    f_bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
                     f_bin_fluid_number[mInd + count] = p;
                     count++;
                 }
@@ -658,7 +658,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                                              uint& num_contacts) {
     int num_rigid_shapes = data_manager->num_rigid_shapes;
     real3 global_origin = data_manager->measures.collision.global_origin;
-    int3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
+    vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
 
     int num_tets = data_manager->host_data.boundary_element_fea.size();
@@ -677,8 +677,8 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     f_bin_intersections[num_tets] = 0;
 #pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
-        int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
-        int3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
+        vec3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
         f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
@@ -692,13 +692,13 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
 #pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
         uint count = 0, i, j, k;
-        int3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
-        int3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
+        vec3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
         uint mInd = f_bin_intersections[p];
         for (i = gmin.x; i <= gmax.x; i++) {
             for (j = gmin.y; j <= gmax.y; j++) {
                 for (k = gmin.z; k <= gmax.z; k++) {
-                    f_bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
+                    f_bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
                     f_bin_fluid_number[mInd + count] = p;
                     count++;
                 }

@@ -21,7 +21,7 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "parallel/ChOpenMP.h"
-#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real2.h"        // for real2
 #include "chrono_parallel/math/real3.h"        // for real3
@@ -42,15 +42,15 @@ class collision_measures {
 
         ff_min_bounding_point = real3(0);
         ff_max_bounding_point = real3(0);
-        ff_bins_per_axis = int3(0);
+        ff_bins_per_axis = vec3(0);
 
         tet_min_bounding_point = real3(0);
         tet_max_bounding_point = real3(0);
-        tet_bins_per_axis = int3(0);
+        tet_bins_per_axis = vec3(0);
 
         mpm_min_bounding_point = real3(0);
         mpm_max_bounding_point = real3(0);
-        mpm_bins_per_axis = int3(0);
+        mpm_bins_per_axis = vec3(0);
     }
     real3 min_bounding_point;          // The minimal global bounding point
     real3 max_bounding_point;          // The maximum global bounding point
@@ -62,11 +62,11 @@ class collision_measures {
     uint number_of_contacts_possible;  // Number of contacts possible from broadphase
 
     // Fluid Collision info
-    int3 ff_bins_per_axis;
+    vec3 ff_bins_per_axis;
     real3 ff_min_bounding_point;
     real3 ff_max_bounding_point;
     // Tet Collision info
-    int3 tet_bins_per_axis;
+    vec3 tet_bins_per_axis;
     real3 tet_min_bounding_point;
     real3 tet_max_bounding_point;
 
@@ -74,7 +74,7 @@ class collision_measures {
 
     real3 mpm_min_bounding_point;
     real3 mpm_max_bounding_point;
-    int3 mpm_bins_per_axis;
+    vec3 mpm_bins_per_axis;
 };
 // solver_measures, like the name implies is the structure that contains all
 // measures associated with the parallel solver.

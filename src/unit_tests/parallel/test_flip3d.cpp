@@ -21,7 +21,7 @@
 
 //#include "unit_testing.h"
 
-#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/matrix.h"        // for quaternion, real4
@@ -39,7 +39,7 @@ real3 min_bounding_point = real3(-0.020000, -0.020000, -0.020000);
 real3 max_bounding_point = real3(0.040000, 0.040000, 0.040000);
 
 real3 diag = max_bounding_point - min_bounding_point;
-int3 bins_per_axis = int3(diag / bin_edge);
+vec3 bins_per_axis = vec3(diag / bin_edge);
 real inv_bin_edge = real(1.) / bin_edge;
 uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
@@ -82,7 +82,7 @@ class CH_PARALLEL_API ChProjectFLIP : public ChProjectConstraints {
     // Project the Lagrange multipliers
     virtual void operator()(real* data) {
         for (int i = 0; i < grid_size; i++) {
-            int3 g = GridDecode(i, bins_per_axis);
+            vec3 g = GridDecode(i, bins_per_axis);
             if ((g.x + 1) >= bins_per_axis.x) {
                 data[i] = 0;
             }
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     //    density[GridHash(3, 3, bins_per_axis)] = 1;
 
     for (int i = 0; i < grid_size; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
         if (density[i] <= 0) {
             v[i * 3 + 0] = 0;
             v[i * 3 + 1] = 0;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
     // v[GridHash(4, 1, bins_per_axis) * 2 + 0] = 1;
 
     for (int i = 0; i < grid_size; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
         if (density[i] > 0) {
             M_inv(i * 3 + 0, i * 3 + 0) = dt / density[i];
             M_inv(i * 3 + 1, i * 3 + 1) = dt / density[i];
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     Print(std::cout, M_inv);
 
     for (int i = 0; i < grid_size; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
 
         int g_left = GridHash(g.x - 1, g.y, g.z, bins_per_axis);
         int g_right = GridHash(g.x + 1, g.y, g.z, bins_per_axis);
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
     rhs = -rhs;
 
     for (int i = 0; i < grid_size; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
         printf("rhs: [%d %d %d ] [%f] [%f %f %f]\n", g.x, g.y, g.z, rhs[i], hf[i * 3 + 0], hf[i * 3 + 1],
                hf[i * 3 + 2]);
     }
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     v = v + M_inv * hf + M_inv * D * pressure;
 
     for (int i = 0; i < grid_size; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
 
         // printf("v: [%d %d] [%f %f] [%f] [%f]\n", g.x, g.y, v[i * 2 + 0], v[i * 2 + 1], node_mass[i],
         //  pressure[i]);

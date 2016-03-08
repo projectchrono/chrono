@@ -8,7 +8,7 @@
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
-#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real3.h"        // for real3
 
@@ -30,14 +30,14 @@ using namespace geometry;
 #define MIN_OFF 2
 #endif
 
-void Print(std::ostream& os, const CompressedMatrix<real>& M, int3 bins_per_axis) {
+void Print(std::ostream& os, const CompressedMatrix<real>& M, vec3 bins_per_axis) {
     for (size_t i = 0UL; i < (~M).rows(); ++i) {
         // os << "";
         for (size_t j = 0UL; j < (~M).columns(); ++j) {
             // os << std::setw(1) << (~M)(i, j) << ", ";
             if ((~M)(i, j) != 0) {
-                int3 g = GridDecode(i, bins_per_axis);
-                int3 f = GridDecode(j / 3, bins_per_axis);
+                vec3 g = GridDecode(i, bins_per_axis);
+                vec3 f = GridDecode(j / 3, bins_per_axis);
                 printf("[%d %d] [%f] [%d %d %d] [%d %d %d]\n", i, j, (~M)(i, j), g.x, g.y, g.z, f.x, f.y, f.z);
             }
         }
@@ -111,7 +111,7 @@ void ChFLIPContainer::ComputeDOF() {
 
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
-    bins_per_axis = int3(diag / bin_edge);
+    bins_per_axis = vec3(diag / bin_edge);
     inv_bin_edge = real(1.) / bin_edge;
     uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
     num_mpm_nodes = grid_size;
@@ -165,7 +165,7 @@ void ChFLIPContainer::Update(double ChTime) {
     real3 h_gravity = mass * g_acc;
 #pragma omp parallel for
     for (int i = 0; i < num_mpm_nodes; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
         int g_left = GridHash(g.x - 1, g.y, g.z, bins_per_axis);
         int g_right = GridHash(g.x + 1, g.y, g.z, bins_per_axis);
 
@@ -243,7 +243,7 @@ void ChFLIPContainer::ComputeInvMass(int offset) {
     for (int i = 0; i < num_mpm_nodes; i++) {
         real3 inv_mass = real3(0);
 
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
 
         real density = node_mass[i] / (bin_edge * bin_edge * bin_edge);
         if (node_mass[i] > 0) {
@@ -269,7 +269,7 @@ void ChFLIPContainer::ComputeMass(int offset) {
     const real dt = data_manager->settings.step_size;
 
     for (int i = 0; i < num_mpm_nodes; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
 
         //        M.append(offset + i * 3 + 0, offset + i * 3 + 0, face_density[i].x / dt);
         //        M.finalize(offset + i * 3 + 0);
@@ -324,7 +324,7 @@ void ChFLIPContainer::Project(real* gamma) {
     }
 
     for (int i = 0; i < num_mpm_nodes; i++) {
-        int3 g = GridDecode(i, bins_per_axis);
+        vec3 g = GridDecode(i, bins_per_axis);
 
         // Dirchlet pressure boundary condition for empty cells
         if (node_mass[i] <= 0) {
@@ -370,7 +370,7 @@ void ChFLIPContainer::Build_D() {
                 Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
                                  T2, T3);
 
-                int3 g;
+                vec3 g;
 
                 g.x = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
                 g.y = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
@@ -412,7 +412,7 @@ void ChFLIPContainer::Build_D() {
     }
 
     for (int n = 0; n < num_mpm_nodes; n++) {
-        int3 g = GridDecode(n, bins_per_axis);
+        vec3 g = GridDecode(n, bins_per_axis);
         int g_left = GridHash(g.x - 1, g.y, g.z, bins_per_axis);
         int g_right = GridHash(g.x + 1, g.y, g.z, bins_per_axis);
         int g_down = GridHash(g.x, g.y - 1, g.z, bins_per_axis);
@@ -525,7 +525,7 @@ void ChFLIPContainer::GenerateSparsity() {
                 int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
 
                 AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
-                int3 g;
+                vec3 g;
 
                 g.x = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);
                 g.y = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);
@@ -571,7 +571,7 @@ void ChFLIPContainer::GenerateSparsity() {
     }
 
     for (int n = 0; n < num_mpm_nodes; n++) {
-        int3 g = GridDecode(n, bins_per_axis);
+        vec3 g = GridDecode(n, bins_per_axis);
 
         int g_left = GridHash(g.x - 1, g.y, g.z, bins_per_axis);
         int g_right = GridHash(g.x + 1, g.y, g.z, bins_per_axis);
@@ -615,7 +615,7 @@ void ChFLIPContainer::PostSolve() {
     SubVectorType v_sub = blaze::subvector(data_manager->host_data.v, body_offset, num_mpm_nodes * 3);
     SubVectorType R_sub = blaze::subvector(data_manager->host_data.R_full, start_node, num_mpm_nodes);
     //    for (int i = 0; i < gamma_sub.size(); i++) {
-    //        int3 g = GridDecode(i, bins_per_axis);
+    //        vec3 g = GridDecode(i, bins_per_axis);
     //        int hash = GridHash(g.x, g.y, g.z, bins_per_axis);
     //        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
     //        if (gamma_sub[i] != 0) {
@@ -632,7 +632,7 @@ void ChFLIPContainer::PostSolve() {
     //        dt;
     //
     //    for (int i = 0; i < gamma_sub.size(); i++) {
-    //        int3 g = GridDecode(i, bins_per_axis);
+    //        vec3 g = GridDecode(i, bins_per_axis);
     //        printf("v: [%f,%f,%f] r: [%.10f] gam: [%.10f] i:[%d] g:[%d %d %d]  v:[%.10f]  force :[ % f, % f % f]\n ",
     //               v_sub[i * 3 + 0], v_sub[i * 3 + 1], v_sub[i * 3 + 2], R_sub[i], gamma_sub[i], i, g.x, g.y, g.z,
     //               node_mass[i] / (bin_edge * bin_edge * bin_edge), force[i * 3 + 0], force[i * 3 + 1], force[i * 3 +

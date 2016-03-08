@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     my_system.ChangeSolverType(BB);
     my_system.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     my_system.GetSettings()->collision.collision_envelope = (fea_container->kernel_radius * .05);
-    my_system.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
+    my_system.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     my_system.SetLoggingLevel(LOG_TRACE, true);
     my_system.SetLoggingLevel(LOG_INFO, true);
     double gravity = 9.81;

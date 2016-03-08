@@ -11,7 +11,7 @@
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
-#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/matrix.h"       // for quaternion, real4
@@ -48,7 +48,7 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
         real lambda = container->lambda;
         real inv_bin_edge = container->inv_bin_edge;
         real bin_edge = container->bin_edge;
-        int3 bins_per_axis = container->bins_per_axis;
+        vec3 bins_per_axis = container->bins_per_axis;
         real3 min_bounding_point = container->min_bounding_point;
         container->volume_Ap_Fe_transpose.resize(num_mpm_markers);
 
@@ -100,7 +100,7 @@ class CH_PARALLEL_API ChShurProductMPM : public ChShurProduct {
             uint start = container->node_start_index[index];
             uint end = container->node_start_index[index + 1];
             const int current_node = container->node_particle_mapping[index];
-            int3 g = GridDecode(current_node, bins_per_axis);
+            vec3 g = GridDecode(current_node, bins_per_axis);
             real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
             real3 res = real3(0);
             for (uint i = start; i < end; i++) {
@@ -202,7 +202,7 @@ void ChMPMContainer::ComputeDOF() {
 
     real3 diag = max_bounding_point - min_bounding_point;
     bin_edge = kernel_radius * 2;
-    bins_per_axis = int3(diag / bin_edge);
+    bins_per_axis = vec3(diag / bin_edge);
     inv_bin_edge = real(1.) / bin_edge;
     uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
     num_mpm_nodes = grid_size;
@@ -279,7 +279,7 @@ void ChMPMContainer::Update(double ChTime) {
     //        uint start = node_start_index[index];
     //        uint end = node_start_index[index + 1];
     //        const int current_node = node_particle_mapping[index];
-    //        int3 g = GridDecode(current_node, bins_per_axis);
+    //        vec3 g = GridDecode(current_node, bins_per_axis);
     //        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
     //
     //        for (uint i = start; i < end; i++) {
@@ -639,7 +639,7 @@ void ChMPMContainer::PreSolve() {
         uint start = node_start_index[index];
         uint end = node_start_index[index + 1];
         const int current_node = node_particle_mapping[index];
-        int3 g = GridDecode(current_node, bins_per_axis);
+        vec3 g = GridDecode(current_node, bins_per_axis);
         real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
         real3 vel_mass = real3(0);
         real mass_w = 0;
@@ -871,7 +871,7 @@ void ChMPMContainer::UpdateRhs() {
         uint start = node_start_index[index];
         uint end = node_start_index[index + 1];
         const int current_node = node_particle_mapping[index];
-        int3 g = GridDecode(current_node, bins_per_axis);
+        vec3 g = GridDecode(current_node, bins_per_axis);
         real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
         real3 force = real3(0);
         for (uint i = start; i < end; i++) {

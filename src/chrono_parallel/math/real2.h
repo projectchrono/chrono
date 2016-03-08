@@ -17,9 +17,7 @@
 
 #pragma once
 
-#include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
-#include <iostream>
 
 namespace chrono {
 class real2 {
@@ -37,65 +35,38 @@ class real2 {
         y = y_;
     }
 
-    CUDA_HOST_DEVICE inline real2 operator+(real b) const { return real2(x + b, y + b); }
-    CUDA_HOST_DEVICE inline real2 operator-(real b) const { return real2(x - b, y - b); }
-    CUDA_HOST_DEVICE inline real2 operator*(real b) const { return real2(x * b, y * b); }
-    CUDA_HOST_DEVICE inline real2 operator/(real b) const { return real2(x / b, y / b); }
-
-    CUDA_HOST_DEVICE inline real2 operator+(const real2& b) const { return real2(x + b.x, y + b.y); }
-    CUDA_HOST_DEVICE inline real2 operator-(const real2& b) const { return real2(x - b.x, y - b.y); }
-    CUDA_HOST_DEVICE inline real2 operator*(const real2& b) const { return real2(x * b.x, y * b.y); }
-    CUDA_HOST_DEVICE inline real2 operator/(const real2& b) const { return real2(x / b.x, y / b.y); }
-    CUDA_HOST_DEVICE inline real2 operator-() const { return real2(-x, -y); }
-
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(*, real, real2)
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(/, real, real2)
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(+, real, real2)
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(-, real, real2)
-
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(*, real2, real2)
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(/, real2, real2)
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(+, real2, real2)
-    CUDA_HOST_DEVICE OPERATOR_EQUALS(-, real2, real2)
-
     real x;
     real y;
 };
 
-CUDA_HOST_DEVICE static real2 operator*(real lhs, const real2& rhs) {
-    real2 r(rhs);
-    r *= lhs;
-    return r;
-}
+CUDA_HOST_DEVICE real2 operator+(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator*(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator/(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator+(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator*(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator/(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a);
 
-CUDA_HOST_DEVICE static bool operator==(const real2& lhs, const real2& rhs) {
-    return (lhs.x == rhs.x && lhs.y == rhs.y);
-}
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(*, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(/, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(+, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(-, real, real2);
 
-CUDA_HOST_DEVICE static real2 Max(const real2& a, const real2& b) {
-    return real2(Max(a.x, b.x), Max(a.y, b.y));
-}
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(*, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(/, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(+, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(-, real2, real2);
 
-CUDA_HOST_DEVICE static real2 Min(const real2& a, const real2& b) {
-    return real2(Min(a.x, b.x), Min(a.y, b.y));
-}
+CUDA_HOST_DEVICE real2 operator*(real lhs, const real2& rhs);
 
-CUDA_HOST_DEVICE static inline real Dot(const real2& v1, const real2& v2) {
-    return v1.x * v2.x + v1.y * v2.y;
-}
-
-CUDA_HOST_DEVICE static inline real Dot(const real2& v) {
-    return v.x * v.x + v.y * v.y;
-}
-
-CUDA_HOST_DEVICE static inline real Length2(const real2& v1) {
-    return v1.x * v1.x + v1.y * v1.y;
-}
-CUDA_HOST_DEVICE static inline real2 Normalize(const real2& v1) {
-    return v1/Sqrt(Dot(v1));
-}
-CUDA_HOST_DEVICE static void Print(real2 v, const char* name) {
-    printf("%s\n", name);
-    printf("%f %f\n", v.x, v.y);
-}
+CUDA_HOST_DEVICE bool operator==(const real2& lhs, const real2& rhs);
+CUDA_HOST_DEVICE real2 Max(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 Min(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real Dot(const real2& v1, const real2& v2);
+CUDA_HOST_DEVICE real Dot(const real2& v);
+CUDA_HOST_DEVICE real Length2(const real2& v1);
+CUDA_HOST_DEVICE real2 Normalize(const real2& v1);
+CUDA_HOST_DEVICE void Print(real2 v, const char* name);
 }

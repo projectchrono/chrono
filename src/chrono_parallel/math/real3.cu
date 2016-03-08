@@ -1,8 +1,23 @@
 #include "chrono_parallel/math/sse.h"
-#include "chrono_parallel/math/simd.h"
+#if defined(__CUDACC__)
+#include "chrono_parallel/math/simd_non.h"
+#elif defined(USE_SSE)
+#include "chrono_parallel/math/simd_sse.h"
+#elif defined(USE_AVX)
+#include "chrono_parallel/math/simd_avx.h"
+#endif
+
 #include "chrono_parallel/math/real3.h"
+#include <algorithm>
 
 namespace chrono {
+
+CUDA_HOST_DEVICE real3 Set3(real x) {
+    return real3(x);
+}
+CUDA_HOST_DEVICE real3 Set3(real x, real y, real z) {
+    return real3(x, y, z);
+}
 
 //========================================================
 CUDA_HOST_DEVICE real3 operator+(const real3& a, const real3& b) {
@@ -19,27 +34,37 @@ CUDA_HOST_DEVICE real3 operator/(const real3& a, const real3& b) {
 }
 //========================================================
 CUDA_HOST_DEVICE real3 operator+(const real3& a, real b) {
-    return simd::Add(a, real3::Set(b));
+    return simd::Add(a, Set3(b));
 }
 CUDA_HOST_DEVICE real3 operator-(const real3& a, real b) {
-    return simd::Sub(a, real3::Set(b));
+    return simd::Sub(a, Set3(b));
 }
 CUDA_HOST_DEVICE real3 operator*(const real3& a, real b) {
-    return simd::Mul(a, real3::Set(b));
+    return simd::Mul(a, Set3(b));
 }
 CUDA_HOST_DEVICE real3 operator/(const real3& a, real b) {
-    return simd::Div(a, real3::Set(b));
+    return simd::Div(a, Set3(b));
 }
 CUDA_HOST_DEVICE real3 operator*(real lhs, const real3& rhs) {
-    return simd::Mul(real3::Set(lhs), rhs);
+    return simd::Mul(Set3(lhs), rhs);
 }
 CUDA_HOST_DEVICE real3 operator/(real lhs, const real3& rhs) {
-    return simd::Div(real3::Set(lhs), rhs);
+    return simd::Div(Set3(lhs), rhs);
 }
 CUDA_HOST_DEVICE real3 operator-(const real3& a) {
     return simd::Negate(a);
 }
 //========================================================
+
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(*, real, real3);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(/, real, real3);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(+, real, real3);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(-, real, real3);
+
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(*, real3, real3);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(/, real3, real3);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(+, real3, real3);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(-, real3, real3);
 
 CUDA_HOST_DEVICE real Dot(const real3& v1, const real3& v2) {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
@@ -68,7 +93,7 @@ CUDA_HOST_DEVICE real3 Abs(const real3& v) {
     return simd::Abs(v);
 }
 CUDA_HOST_DEVICE real3 Sign(const real3& v) {
-    return simd::Max(simd::Min(v, real3::Set(1)), real3::Set(-1));
+    return simd::Max(simd::Min(v, Set3(1)), Set3(-1));
 }
 CUDA_HOST_DEVICE real3 Max(const real3& a, const real3& b) {
     return simd::Max(a, b);
@@ -79,11 +104,11 @@ CUDA_HOST_DEVICE real3 Min(const real3& a, const real3& b) {
 }
 
 CUDA_HOST_DEVICE real3 Max(const real3& a, const real& b) {
-    return simd::Max(a, real3::Set(b));
+    return simd::Max(a, Set3(b));
 }
 
 CUDA_HOST_DEVICE real3 Min(const real3& a, const real& b) {
-    return simd::Min(a, real3::Set(b));
+    return simd::Min(a, Set3(b));
 }
 CUDA_HOST_DEVICE real Max(const real3& a) {
     return simd::Max(a);
@@ -91,9 +116,44 @@ CUDA_HOST_DEVICE real Max(const real3& a) {
 CUDA_HOST_DEVICE real Min(const real3& a) {
     return simd::Min(a);
 }
+
+CUDA_HOST_DEVICE real Length2(const real3& v1) {
+    return Dot(v1);
+}
+
+CUDA_HOST_DEVICE real SafeLength(const real3& v) {
+    real len_sq = Length2(v);
+    if (len_sq) {
+        return Sqrt(len_sq);
+    } else {
+        return 0.0f;
+    }
+}
+
+CUDA_HOST_DEVICE real3 SafeNormalize(const real3& v, const real3& safe) {
+    real len_sq = Length2(v);
+    if (len_sq > real(0)) {
+        return v * InvSqrt(len_sq);
+    } else {
+        return safe;
+    }
+}
+
 CUDA_HOST_DEVICE real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max) {
     return simd::Max(clamp_min, simd::Min(a, clamp_max));
 }
+
+CUDA_HOST_DEVICE real3 Clamp(const real3& v, real max_length) {
+    real3 x = v;
+    real len_sq = Dot(x);
+    real inv_len = InvSqrt(len_sq);
+
+    if (len_sq > Sqr(max_length))
+        x *= inv_len * max_length;
+
+    return x;
+}
+
 CUDA_HOST_DEVICE bool operator<(const real3& a, const real3& b) {
     if (a.x < b.x) {
         return true;
@@ -156,5 +216,19 @@ CUDA_HOST_DEVICE real3 OrthogonalVector(const real3& v) {
 }
 CUDA_HOST_DEVICE real3 UnitOrthogonalVector(const real3& v) {
     return Normalize(OrthogonalVector(v));
+}
+
+CUDA_HOST_DEVICE void Sort(real& a, real& b, real& c) {
+    if (a > b)
+        Swap(a, b);
+    if (b > c)
+        Swap(b, c);
+    if (a > b)
+        Swap(a, b);
+}
+
+CUDA_HOST_DEVICE void Print(real3 v, const char* name) {
+    printf("%s\n", name);
+    printf("%f %f %f\n", v[0], v[1], v[2]);
 }
 }

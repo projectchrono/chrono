@@ -12,14 +12,21 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: definition of some convenience functions for math operations
+// Description: lots of useful definitions for thrust, includes and enums
 // =============================================================================
 
 #pragma once
 
-#include "real.h"
-#include "real2.h"
-#include "real3.h"
-#include "real4.h"
-#include "other_types.h"
-#include "utility.h"
+#ifdef __CUDACC__
+#define CUDA_HOST_DEVICE __host__ __device__
+#define CUDA_DEVICE __device__
+#define CUDA_CONSTANT __device__ __constant__
+#define CUDA_SHARED __shared__
+#define CUDA_GLOBAL __global__
+#else
+#define CUDA_HOST_DEVICE
+#define CUDA_DEVICE
+#define CUDA_CONSTANT
+#define CUDA_SHARED
+#define CUDA_GLOBAL
+#endif

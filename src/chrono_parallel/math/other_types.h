@@ -12,15 +12,16 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: definition of other types such as int3 and int2
+// Description: definition of other types such as vec3 and int2
 // =============================================================================
 
 #pragma once
-
+#include "chrono_parallel/ChCudaDefines.h"
 #include "chrono_parallel/math/real3.h"  // for real3
+#include <iostream>
 
 #define S2 _make_short2
-#define U3 _make_uint3
+#define U3 _make_uvec3
 #define I2 _make_int2
 
 typedef unsigned int uint;
@@ -64,30 +65,30 @@ class int2 {
     };
 };
 
-class int3 {
+class vec3 {
   public:
-    inline int3() : x(0), y(0), z(0), w(0) {}
-    inline int3(int a) : x(a), y(a), z(a), w(0) {}
-    inline int3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
-    inline int3(const int3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
-    inline int3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
-    inline int operator[](unsigned int i) const { return array[i]; }
-    inline int& operator[](unsigned int i) { return array[i]; }
-#if defined(USE_SSE)
-    inline int3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
-    inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
-    inline int3& operator=(const __m128i& rhs) {
-        _mm_storeu_si128((__m128i*)&array[0], rhs);
-        return *this;
-    }
-#endif
-    inline int3& operator=(const int3& rhs) {
+	CUDA_HOST_DEVICE inline vec3() : x(0), y(0), z(0), w(0) {}
+	CUDA_HOST_DEVICE inline vec3(int a) : x(a), y(a), z(a), w(0) {}
+	CUDA_HOST_DEVICE inline vec3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
+	CUDA_HOST_DEVICE inline vec3(const vec3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+	CUDA_HOST_DEVICE inline vec3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+	CUDA_HOST_DEVICE inline int operator[](unsigned int i) const { return array[i]; }
+	CUDA_HOST_DEVICE inline int& operator[](unsigned int i) { return array[i]; }
+//#if defined(USE_SSE)
+//    inline vec3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
+//    inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
+//    inline vec3& operator=(const __m128i& rhs) {
+//        _mm_storeu_si128((__m128i*)&array[0], rhs);
+//        return *this;
+//    }
+//#endif
+	CUDA_HOST_DEVICE inline vec3& operator=(const vec3& rhs) {
         x = rhs.x;
         y = rhs.y;
         z = rhs.z;
         return *this;
     }
-    inline int3& operator=(const real3& rhs) {
+	CUDA_HOST_DEVICE inline vec3& operator=(const real3& rhs) {
         x = rhs.x;
         y = rhs.y;
         z = rhs.z;
@@ -108,13 +109,13 @@ struct int4 {
 struct uint4 {
     unsigned int x, y, z, w;
 };
-int3 operator-(const int3& a, const int3& b);
-int3 operator-(const int3& a, const int& b);
-int3 operator+(const int3& a, const int3& b);
-int3 operator+(const int3& a, const int& b);
-int3 Clamp(const int3& a, const int3& clamp_min, const int3& clamp_max);
+CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const vec3& b);
+CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const int& b);
+CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const vec3& b);
+CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const int& b);
+CUDA_HOST_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max);
 
-struct uint3 {
+struct uvec3 {
     unsigned int x, y, z;
 };
 
@@ -132,16 +133,16 @@ static inline int2 _make_int2(const int& a, const int& b) {
     return t;
 }
 
-static inline uint3 _make_uint3(const real3& a) {
-    uint3 t;
+static inline uvec3 _make_uvec3(const real3& a) {
+    uvec3 t;
     t.x = uint(a.x);
     t.y = uint(a.y);
     t.z = uint(a.z);
     return t;
 }
 
-static inline uint3 _make_uint3(const uint& a, const uint& b, const uint& c) {
-    uint3 t;
+static inline uvec3 _make_uvec3(const uint& a, const uint& b, const uint& c) {
+    uvec3 t;
     t.x = a;
     t.y = b;
     t.z = c;
@@ -180,14 +181,14 @@ static inline uint4 Sort(const uint4& a) {
     }
     return t;
 }
-static inline uint3 Sort(const uint3& a) {
-    uint3 t = a;
+static inline uvec3 Sort(const uvec3& a) {
+    uvec3 t = a;
     SwapIfGreater(t.x, t.y);
     SwapIfGreater(t.x, t.z);
     SwapIfGreater(t.y, t.z);
     return t;
 }
-static inline uint3 operator-(const uint3& a, const uint3& b) {
+static inline uvec3 operator-(const uvec3& a, const uvec3& b) {
     return U3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
@@ -195,12 +196,12 @@ static inline std::ostream& operator<<(std::ostream& out, const int2& a) {
     out << "[" << a.x << ", " << a.y << "]" << std::endl;
     return out;
 }
-static inline std::ostream& operator<<(std::ostream& out, const int3& a) {
+static inline std::ostream& operator<<(std::ostream& out, const vec3& a) {
     out << "[" << a.x << ", " << a.y << ", " << a.z << "]" << std::endl;
     return out;
 }
 
-static bool operator<(const uint3& a, const uint3& b) {
+static bool operator<(const uvec3& a, const uvec3& b) {
     if (a.x < b.x) {
         return true;
     }
@@ -221,7 +222,7 @@ static bool operator<(const uint3& a, const uint3& b) {
     }
     return false;
 }
-static bool operator>(const uint3& a, const uint3& b) {
+static bool operator>(const uvec3& a, const uvec3& b) {
     if (a.x > b.x) {
         return true;
     }
@@ -242,7 +243,7 @@ static bool operator>(const uint3& a, const uint3& b) {
     }
     return false;
 }
-static bool operator==(const uint3& lhs, const uint3& rhs) {
+static bool operator==(const uvec3& lhs, const uvec3& rhs) {
     return (lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z);
 }
 }

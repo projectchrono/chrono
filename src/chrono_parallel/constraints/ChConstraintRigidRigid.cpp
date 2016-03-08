@@ -4,7 +4,7 @@
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
-#include "chrono_parallel/math/quartic.h"
+//#include "chrono_parallel/math/quartic.h"
 #include <thrust/iterator/constant_iterator.h>
 
 using namespace chrono;

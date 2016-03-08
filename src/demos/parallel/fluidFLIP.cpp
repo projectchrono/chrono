@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     AddFluid(&msystem);
 
     msystem.GetSettings()->collision.collision_envelope = (mpm_container->kernel_radius * .05);
-    msystem.GetSettings()->collision.bins_per_axis = int3(2, 2, 2);
+    msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     msystem.SetLoggingLevel(LOG_TRACE, true);
     msystem.SetLoggingLevel(LOG_INFO, true);
     // Create the fixed and moving bodies

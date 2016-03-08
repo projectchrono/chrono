@@ -18,7 +18,9 @@
 
 #pragma once
 
+#include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
+#include "chrono_parallel/ChCudaDefines.h"
 
 #ifndef __CUDACC__
 // Check if SSE was found in CMake

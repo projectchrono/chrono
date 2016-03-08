@@ -579,7 +579,7 @@ void ChOpenGLViewer::RenderGrid() {
     }
     grid_data.clear();
     if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-        int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
+        vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size;
         real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
         real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
@@ -623,7 +623,7 @@ void ChOpenGLViewer::RenderGrid() {
     mpm_grid_data.clear();
     mpm_node_data.clear();
     if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-        int3 bins_per_axis;
+        vec3 bins_per_axis;
         real3 bin_size_vec;
         real3 min_pt;
         real3 max_pt;
@@ -651,7 +651,7 @@ void ChOpenGLViewer::RenderGrid() {
         }
         mpm_node_data.resize(num_mpm_nodes);
         for (int i = 0; i < num_mpm_nodes; i++) {
-            int3 g = GridDecode(i, bins_per_axis);
+            vec3 g = GridDecode(i, bins_per_axis);
             real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_pt);
             mpm_node_data[i] = glm::vec3(current_node_location.x, current_node_location.y, current_node_location.z);
         }

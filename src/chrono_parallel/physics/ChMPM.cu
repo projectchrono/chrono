@@ -17,31 +17,35 @@ struct Settings {
     real mass;
     real p1, p2, p3;
     int num_iterations;
-    int3 bins_per_axis;
+    int bins_per_axis_x;
+    int bins_per_axis_y;
+    int bins_per_axis_z;
 };
 
 CUDA_CONSTANT Settings system_settings;
 CUDA_CONSTANT Bounds system_bounds;
 
-#define LOOP_TWO_RING_GPU(X)                                                               \
-    const real bin_edge = system_settings.bin_edge;                                        \
-    const real inv_bin_edge = 1.f / bin_edge;                                              \
-                                                                                           \
-    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                \
-    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                \
-    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);                \
-                                                                                           \
-    for (int k = cz - 2; k <= cz + 2; ++k) {                                               \
-        for (int j = cy - 2; j <= cy + 2; ++j) {                                           \
-            for (int i = cx - 2; i <= cx + 2; ++i) {                                       \
-                const int current_node = GridHash(i, j, k, system_settings.bins_per_axis); \
-                real3 current_node_location;                                               \
-                current_node_location.x = i * bin_edge + system_bounds.minimum[0];         \
-                current_node_location.y = j * bin_edge + system_bounds.minimum[1];         \
-                current_node_location.z = k * bin_edge + system_bounds.minimum[2];         \
-                X                                                                          \
-            }                                                                              \
-        }                                                                                  \
+#define LOOP_TWO_RING_GPU(X)                                                                         \
+    const real bin_edge = system_settings.bin_edge;                                                  \
+    const real inv_bin_edge = 1.f / bin_edge;                                                        \
+                                                                                                     \
+    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                          \
+    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                          \
+    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);                          \
+                                                                                                     \
+    for (int k = cz - 2; k <= cz + 2; ++k) {                                                         \
+        for (int j = cy - 2; j <= cy + 2; ++j) {                                                     \
+            for (int i = cx - 2; i <= cx + 2; ++i) {                                                 \
+                vec3 bins_per_axis(system_settings.bins_per_axis_x, system_settings.bins_per_axis_y, \
+                                   system_settings.bins_per_axis_z);                                 \
+                const int current_node = GridHash(i, j, k, bins_per_axis);                           \
+                real3 current_node_location;                                                         \
+                current_node_location.x = i * bin_edge + system_bounds.minimum[0];                   \
+                current_node_location.y = j * bin_edge + system_bounds.minimum[1];                   \
+                current_node_location.z = k * bin_edge + system_bounds.minimum[2];                   \
+                X                                                                                    \
+            }                                                                                        \
+        }                                                                                            \
     }
 
 //////========================================================================================================================================================================
@@ -280,4 +284,7 @@ void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::
                                       marker_volume.data_d);
     delta_v.resize(num_mpm_nodes);
     delta_v.set(0);
+
+    // Solver Kernels
+    // Resize
 }

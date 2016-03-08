@@ -17,6 +17,7 @@
 
 #pragma once
 #include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/math/svd.h"
 #define one_third 1. / 3
 #define two_thirds 2. / 3
@@ -112,11 +113,11 @@ CUDA_HOST_DEVICE static inline int GridCoord(real x, real inv_bin_edge, real min
     return c;
 }
 
-CUDA_HOST_DEVICE static inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
+CUDA_HOST_DEVICE static inline int GridHash(int x, int y, int z, const vec3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
-CUDA_HOST_DEVICE static inline int3 GridDecode(int hash, const int3& bins_per_axis) {
-    int3 decoded_hash;
+CUDA_HOST_DEVICE static inline vec3 GridDecode(int hash, const vec3& bins_per_axis) {
+    vec3 decoded_hash;
     decoded_hash.x = hash % (bins_per_axis.x * bins_per_axis.y) % bins_per_axis.x;
     decoded_hash.y = (hash % (bins_per_axis.x * bins_per_axis.y)) / bins_per_axis.x;
     decoded_hash.z = hash / (bins_per_axis.x * bins_per_axis.y);

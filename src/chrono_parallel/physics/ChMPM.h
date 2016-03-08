@@ -17,6 +17,8 @@
 // =============================================================================
 #include "chrono_parallel/ChCudaHelper.cuh"
 #include "chrono_parallel/math/matrix.h"
+#include "chrono_parallel/math/other_types.h"
+
 namespace chrono {
 class ChMPM {
   public:
@@ -32,12 +34,11 @@ class ChMPM {
     real3 min_bounding_point;
     real3 max_bounding_point;
 
-    int3 bins_per_axis;
+    vec3 bins_per_axis;
     real bin_edge;
     real inv_bin_edge;
     real mass;
     real kernel_radius;
-
 
     custom_vector<int> particle_node_mapping;
     custom_vector<int> node_particle_mapping;

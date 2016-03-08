@@ -286,7 +286,7 @@ void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
   if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
+    vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
     real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
     real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
     real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;

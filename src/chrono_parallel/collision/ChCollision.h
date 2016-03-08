@@ -88,7 +88,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                              custom_vector<int>& contact_counts,
                              custom_vector<int>& particle_indices,
                              custom_vector<int>& reverse_mapping,
-                             int3& bins_per_axis,
+                             vec3& bins_per_axis,
                              uint& num_fluid_contacts);
 
     void RigidSphereContact(const real sphere_radius,

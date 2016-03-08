@@ -48,8 +48,8 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 // HASHING FUNCTIONS =======================================================================================
 // Convert a position into a bin index
 template <class T>
-inline int3 HashMin(const T& A, const real3& inv_bin_size_vec) {
-    int3 temp;
+inline vec3 HashMin(const T& A, const real3& inv_bin_size_vec) {
+    vec3 temp;
     temp.x = Floor(A.x * inv_bin_size_vec.x);
     temp.y = Floor(A.y * inv_bin_size_vec.y);
     temp.z = Floor(A.z * inv_bin_size_vec.z);
@@ -57,8 +57,8 @@ inline int3 HashMin(const T& A, const real3& inv_bin_size_vec) {
 }
 
 template <class T>
-inline int3 HashMax(const T& A, const real3& inv_bin_size_vec) {
-    int3 temp;
+inline vec3 HashMax(const T& A, const real3& inv_bin_size_vec) {
+    vec3 temp;
     temp.x = Ceil(A.x * inv_bin_size_vec.x) - 1;
     temp.y = Ceil(A.y * inv_bin_size_vec.y) - 1;
     temp.z = Ceil(A.z * inv_bin_size_vec.z) - 1;
@@ -66,12 +66,12 @@ inline int3 HashMax(const T& A, const real3& inv_bin_size_vec) {
 }
 
 // Convert a bin index into a unique hash value
-static inline uint Hash_Index(const int3& A, int3 bins_per_axis) {
+static inline uint Hash_Index(const vec3& A, vec3 bins_per_axis) {
     return ((A.z * bins_per_axis.y) * bins_per_axis.x) + (A.y * bins_per_axis.x) + A.x;
 }
 // Decodes a hash into it's associated bin position
-static inline int3 Hash_Decode(uint hash, int3 bins_per_axis) {
-    int3 decoded_hash;
+static inline vec3 Hash_Decode(uint hash, vec3 bins_per_axis) {
+    vec3 decoded_hash;
     decoded_hash.x = hash % (bins_per_axis.x * bins_per_axis.y) % bins_per_axis.x;
     decoded_hash.y = (hash % (bins_per_axis.x * bins_per_axis.y)) / bins_per_axis.x;
     decoded_hash.z = hash / (bins_per_axis.x * bins_per_axis.y);
@@ -95,7 +95,7 @@ static inline bool overlap(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax) {
 }
 
 static inline bool
-current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_vec, int3 bins_per_axis, uint bin) {
+current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_vec, vec3 bins_per_axis, uint bin) {
     real3 min_p = Max(Amin, Bmin);
     real3 max_p = Min(Amax, Bmax);
 
@@ -111,14 +111,14 @@ current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_v
 
 // for a given number of aabbs in a grid, the grids maximum and minimum point along with the density factor
 // compute the size of the grid
-static int3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1) {
-    int3 grid_size = int3(0);
+static vec3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1) {
+    vec3 grid_size = vec3(0);
     real V = d.x * d.y * d.z;
     grid_size.x = int(d.x * Pow(k * num_aabb / V, real(1.0 / 3.0)));
     grid_size.y = int(d.y * Pow(k * num_aabb / V, real(1.0 / 3.0)));
     grid_size.z = int(d.z * Pow(k * num_aabb / V, real(1.0 / 3.0)));
 
-    grid_size = Clamp(grid_size, int3(1), grid_size);
+    grid_size = Clamp(grid_size, vec3(1), grid_size);
 
     return grid_size;
 }
@@ -146,7 +146,7 @@ static void f_TL_Count_Leaves(const uint index,
     uint end = bin_start_index[index + 1];
     uint num_aabb_in_cell = end - start;
 
-    int3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
+    vec3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
 
     leaves_per_bin[index] = cell_res.x * cell_res.y * cell_res.z;
 }
@@ -154,7 +154,7 @@ static void f_TL_Count_Leaves(const uint index,
 static void f_TL_Count_AABB_Leaf_Intersection(const uint index,
                                        const real density,
                                        const real3& bin_size,
-                                       const int3& bins_per_axis,
+                                       const vec3& bins_per_axis,
                                        const custom_vector<uint>& bin_start_index,
                                        const custom_vector<uint>& bin_number,
                                        const custom_vector<uint>& shape_number,
@@ -165,9 +165,9 @@ static void f_TL_Count_AABB_Leaf_Intersection(const uint index,
     uint end = bin_start_index[index + 1];
     uint count = 0;
     uint num_aabb_in_cell = end - start;
-    int3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
+    vec3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
     real3 inv_leaf_size = real3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
-    int3 bin_index = Hash_Decode(bin_number[index], bins_per_axis);
+    vec3 bin_index = Hash_Decode(bin_number[index], bins_per_axis);
     real3 bin_position = real3(bin_index.x * bin_size.x, bin_index.y * bin_size.y, bin_index.z * bin_size.z);
 
     for (uint i = start; i < end; i++) {
@@ -180,12 +180,12 @@ static void f_TL_Count_AABB_Leaf_Intersection(const uint index,
         Amin = Clamp(Amin, real3(0), Amax);
 
         // Find the extents
-        int3 gmin = HashMin(Amin, inv_leaf_size);
-        int3 gmax = HashMax(Amax, inv_leaf_size);
+        vec3 gmin = HashMin(Amin, inv_leaf_size);
+        vec3 gmax = HashMax(Amax, inv_leaf_size);
         // Make sure that the maximum bin value does not exceed the bounds of this grid
-        int3 max_clamp = cell_res - int3(1);
-        gmin = Clamp(gmin, int3(0), max_clamp);
-        gmax = Clamp(gmax, int3(0), max_clamp);
+        vec3 max_clamp = cell_res - vec3(1);
+        gmin = Clamp(gmin, vec3(0), max_clamp);
+        gmax = Clamp(gmax, vec3(0), max_clamp);
 
         count += (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
@@ -196,7 +196,7 @@ static void f_TL_Count_AABB_Leaf_Intersection(const uint index,
 static void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
                                        const real density,
                                        const real3& bin_size,
-                                       const int3& bin_resolution,
+                                       const vec3& bin_resolution,
                                        const custom_vector<uint>& bin_start_index,
                                        const custom_vector<uint>& bin_number,
                                        const custom_vector<uint>& bin_shape_number,
@@ -211,10 +211,10 @@ static void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
     uint mInd = leaves_intersected[index];
     uint count = 0;
     uint num_aabb_in_cell = end - start;
-    int3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
+    vec3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
     real3 inv_leaf_size = real3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
 
-    int3 bin_index = Hash_Decode(bin_number[index], bin_resolution);
+    vec3 bin_index = Hash_Decode(bin_number[index], bin_resolution);
 
     real3 bin_position = real3(bin_index.x * bin_size.x, bin_index.y * bin_size.y, bin_index.z * bin_size.z);
 
@@ -228,19 +228,19 @@ static void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
         Amin = Clamp(Amin, real3(0), Amax);
 
         // Find the extents
-        int3 gmin = HashMin(Amin, inv_leaf_size);
-        int3 gmax = HashMax(Amax, inv_leaf_size);
+        vec3 gmin = HashMin(Amin, inv_leaf_size);
+        vec3 gmax = HashMax(Amax, inv_leaf_size);
 
         // Make sure that the maximum bin value does not exceed the bounds of this grid
-        int3 max_clamp = cell_res - int3(1);
-        gmin = Clamp(gmin, int3(0), max_clamp);
-        gmax = Clamp(gmax, int3(0), max_clamp);
+        vec3 max_clamp = cell_res - vec3(1);
+        gmin = Clamp(gmin, vec3(0), max_clamp);
+        gmax = Clamp(gmax, vec3(0), max_clamp);
 
         int a, b, c;
         for (a = gmin.x; a <= gmax.x; a++) {
             for (b = gmin.y; b <= gmax.y; b++) {
                 for (c = gmin.z; c <= gmax.z; c++) {
-                    leaf_number[mInd + count] = leaves_per_bin[index] + Hash_Index(int3(a, b, c), cell_res);
+                    leaf_number[mInd + count] = leaves_per_bin[index] + Hash_Index(vec3(a, b, c), cell_res);
                     leaf_shape_number[mInd + count] = shape;
                     count++;
                 }
@@ -257,14 +257,14 @@ static inline void f_Count_AABB_BIN_Intersection(const uint index,
                                           const custom_vector<real3>& aabb_min,
                                           const custom_vector<real3>& aabb_max,
                                           custom_vector<uint>& bins_intersected) {
-    int3 gmin = HashMin(aabb_min[index], inv_bin_size);
-    int3 gmax = HashMax(aabb_max[index], inv_bin_size);
+    vec3 gmin = HashMin(aabb_min[index], inv_bin_size);
+    vec3 gmax = HashMax(aabb_max[index], inv_bin_size);
     bins_intersected[index] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
 }
 
 // Function to Store AABB Bin Intersections=================================================================
 static inline void f_Store_AABB_BIN_Intersection(const uint index,
-                                          const int3& bins_per_axis,
+                                          const vec3& bins_per_axis,
                                           const real3& inv_bin_size,
                                           const custom_vector<real3>& aabb_min_data,
                                           const custom_vector<real3>& aabb_max_data,
@@ -272,13 +272,13 @@ static inline void f_Store_AABB_BIN_Intersection(const uint index,
                                           custom_vector<uint>& bin_number,
                                           custom_vector<uint>& aabb_number) {
     uint count = 0, i, j, k;
-    int3 gmin = HashMin(aabb_min_data[index], inv_bin_size);
-    int3 gmax = HashMax(aabb_max_data[index], inv_bin_size);
+    vec3 gmin = HashMin(aabb_min_data[index], inv_bin_size);
+    vec3 gmax = HashMax(aabb_max_data[index], inv_bin_size);
     uint mInd = bins_intersected[index];
     for (i = gmin.x; i <= gmax.x; i++) {
         for (j = gmin.y; j <= gmax.y; j++) {
             for (k = gmin.z; k <= gmax.z; k++) {
-                bin_number[mInd + count] = Hash_Index(int3(i, j, k), bins_per_axis);
+                bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
                 aabb_number[mInd + count] = index;
                 count++;
             }
@@ -289,7 +289,7 @@ static inline void f_Store_AABB_BIN_Intersection(const uint index,
 // Function to count AABB AABB intersection=================================================================
 static inline void f_Count_AABB_AABB_Intersection(const uint index,
                                            const real3 inv_bin_size_vec,
-                                           const int3 bins_per_axis,
+                                           const vec3 bins_per_axis,
                                            const custom_vector<real3>& aabb_min_data,
                                            const custom_vector<real3>& aabb_max_data,
                                            const custom_vector<uint>& bin_number,
@@ -342,7 +342,7 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
 // Function to store AABB-AABB intersections================================================================
 static inline void f_Store_AABB_AABB_Intersection(const uint index,
                                            const real3 inv_bin_size_vec,
-                                           const int3 bins_per_axis,
+                                           const vec3 bins_per_axis,
                                            const custom_vector<real3>& aabb_min_data,
                                            const custom_vector<real3>& aabb_max_data,
                                            const custom_vector<uint>& bin_number,

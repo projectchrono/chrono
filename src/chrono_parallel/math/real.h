@@ -18,179 +18,22 @@
 
 #pragma once
 
-#include "chrono_parallel/ChParallelDefines.h"
+#include "chrono_parallel/ChApiParallel.h"
+#include "chrono_parallel/ChConfigParallel.h"
+#include "chrono_parallel/ChCudaDefines.h"
+
 #include <cmath>
 #include <float.h>
 
-namespace chrono {
-
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
-typedef double real;
-#define C_LARGE_REAL DBL_MAX
-#define C_EPSILON DBL_EPSILON
+#if defined(CHRONO_PARALLEL_USE_DOUBLE)
+#include "real_double.h"
 #else
-typedef float real;
-#define C_LARGE_REAL FLT_MAX
-#define C_EPSILON FLT_EPSILON
+#include "real_single.h"
 #endif
 
-//#define C_Pi 4 * ATan(real(1.0))
-//#define C_2Pi real(2.0) * C_Pi
-//#define C_InvPi real(1.0) / C_Pi
-//#define C_Inv2Pi real(0.5) / C_Pi
-//
-//#define C_DegToRad C_Pi / real(180.0)
-//#define C_RadToDeg real(180.0 / C_Pi
-
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
-
-// Trig Functions
-// ========================================================================================
-CUDA_HOST_DEVICE static inline real Sin(const real theta) {
-    return sin(theta);
-}
-CUDA_HOST_DEVICE static inline real Cos(const real theta) {
-    return cos(theta);
-}
-CUDA_HOST_DEVICE static inline real Tan(const real theta) {
-    return tan(theta);
-}
-CUDA_HOST_DEVICE static inline real ASin(const real theta) {
-    return asin(theta);
-}
-CUDA_HOST_DEVICE static inline real ACos(const real theta) {
-    return acos(theta);
-}
-CUDA_HOST_DEVICE static inline real ATan(const real theta) {
-    return atan(theta);
-}
-CUDA_HOST_DEVICE static inline real ATan2(const real x, const real y) {
-    return atan2(x, y);
-}
-// Geometric Functions
-// ========================================================================================
-CUDA_HOST_DEVICE static inline real Sqr(const real x) {
-    return x * x;
-}
-CUDA_HOST_DEVICE static inline real Cube(const real x) {
-    return x * x * x;
-}
-CUDA_HOST_DEVICE static inline real Sqrt(const real x) {
-    return sqrt(x);
-}
-CUDA_HOST_DEVICE static inline real InvSqrt(const real x) {
-    return 1.0 / sqrt(x);  // could also use rsqrtf(x) here and avoid division
-}
-CUDA_HOST_DEVICE static inline real Abs(const real x) {
-    return fabs(x);
-}
-CUDA_HOST_DEVICE static inline real Pow(const real b, const real e) {
-    return pow(b, e);
-}
-CUDA_HOST_DEVICE static inline real Mod(const real x, const real y) {
-    return fmod(x, y);
-}
-CUDA_HOST_DEVICE static inline real Exp(const real x) {
-    return exp(x);
-}
-CUDA_HOST_DEVICE static inline real Min(const real a, const real b) {
-    return fmin(a, b);
-}
-CUDA_HOST_DEVICE static inline real Max(const real a, const real b) {
-    return fmax(a, b);
-}
-CUDA_HOST_DEVICE static inline real Floor(const real a) {
-    return floor(a);
-}
-CUDA_HOST_DEVICE static inline real Ceil(const real a) {
-    return ceil(a);
-}
-CUDA_HOST_DEVICE static inline real Round(const real a) {
-    return round(a);
-}
-CUDA_HOST_DEVICE static inline real Log(const real a) {
-    return log(a);
-}
-#else
-
-// Trig Functions
-// ========================================================================================
-CUDA_HOST_DEVICE static inline real Sin(const real theta) {
-    return sinf(theta);
-}
-CUDA_HOST_DEVICE static inline real Cos(const real theta) {
-    return cosf(theta);
-}
-CUDA_HOST_DEVICE static inline real Tan(const real theta) {
-    return tanf(theta);
-}
-CUDA_HOST_DEVICE static inline real ASin(const real theta) {
-    return asinf(theta);
-}
-CUDA_HOST_DEVICE static inline real ACos(const real theta) {
-    return acosf(theta);
-}
-CUDA_HOST_DEVICE static inline real ATan(const real theta) {
-    return atanf(theta);
-}
-CUDA_HOST_DEVICE static inline real ATan2(const real x, const real y) {
-    return atan2f(x, y);
-}
-// CUDA_HOST_DEVICE static inline real DegToRad(const real t) {
-//    return t * C_DegToRad;
-//}
-// CUDA_HOST_DEVICE static inline real RadToDeg(const real t) {
-//    return t * C_RadToDeg;
-//}
-
-// Geometric Functions
-// ========================================================================================
-CUDA_HOST_DEVICE static inline real Sqr(const real x) {
-    return x * x;
-}
-CUDA_HOST_DEVICE static inline real Cube(const real x) {
-    return x * x * x;
-}
-CUDA_HOST_DEVICE static inline real Sqrt(const real x) {
-    return sqrtf(x);
-}
-CUDA_HOST_DEVICE static inline real InvSqrt(const real x) {
-    return 1.0f / sqrtf(x);  // could also use rsqrtf(x) here and avoid division
-}
-CUDA_HOST_DEVICE static inline real Abs(const real x) {
-    return fabsf(x);
-}
-CUDA_HOST_DEVICE static inline real Pow(const real b, const real e) {
-    return powf(b, e);
-}
-CUDA_HOST_DEVICE static inline real Mod(const real x, const real y) {
-    return fmod(x, y);
-}
-CUDA_HOST_DEVICE static inline real Exp(const real x) {
-    return expf(x);
-}
-CUDA_HOST_DEVICE static inline real Min(const real a, const real b) {
-    return fminf(a, b);
-}
-CUDA_HOST_DEVICE static inline real Max(const real a, const real b) {
-    return fmaxf(a, b);
-}
-CUDA_HOST_DEVICE static inline real Floor(const real a) {
-    return floorf(a);
-}
-CUDA_HOST_DEVICE static inline real Ceil(const real a) {
-    return ceilf(a);
-}
-CUDA_HOST_DEVICE static inline real Round(const real a) {
-    return roundf(a);
-}
-CUDA_HOST_DEVICE static inline real Log(const real a) {
-    return logf(a);
-}
-#endif
-
+namespace chrono {
 // CUDA_HOST_DEVICE static inline real DegToRad(real t) {
 //    return t * C_DegToRad;
 //}
@@ -299,4 +142,12 @@ CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
     static inline tout& operator op##=(tout & a, const tin& scale) { \
         a = a op scale;                                              \
         return a;                                                    \
+    }
+
+#define OPERATOR_EQUALS_PROTO(op, tin, tout) tout& operator op##=(tout & a, const tin& scale);
+
+#define OPERATOR_EQUALS_IMPL(op, tin, tout)            \
+    tout& operator op##=(tout & a, const tin& scale) { \
+        a = a op scale;                                \
+        return a;                                      \
     }

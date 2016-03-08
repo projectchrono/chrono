@@ -21,7 +21,7 @@
 
 //#include "unit_testing.h"
 
-#include "chrono_parallel/math/other_types.h"  // for uint, int2, int3
+#include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/matrix.h"        // for quaternion, real4
@@ -69,6 +69,12 @@ static inline int2 GridDecode(int hash, const int2& bins_per_axis) {
     decoded_hash.x = hash % bins_per_axis.x;
     decoded_hash.y = hash / bins_per_axis.x;
     return decoded_hash;
+}
+static inline real2 NodeLocation(int i, int j, real bin_edge, real2 min_bounding_point) {
+    real2 node_location;
+    node_location.x = i * bin_edge + min_bounding_point.x;
+    node_location.y = j * bin_edge + min_bounding_point.y;
+    return node_location;
 }
 
 class CH_PARALLEL_API ChShurProductFLIP : public ChShurProduct {
@@ -137,11 +143,17 @@ int main(int argc, char* argv[]) {
     node_mass = 1;
     v = 0;
     hf = 0;
-
-    density[GridHash(2, 2, bins_per_axis)] = 1;
-    density[GridHash(3, 2, bins_per_axis)] = 1;
     density[GridHash(2, 3, bins_per_axis)] = 1;
     density[GridHash(3, 3, bins_per_axis)] = 1;
+    density[GridHash(4, 3, bins_per_axis)] = 1;
+
+    //density[GridHash(2, 4, bins_per_axis)] = 1;
+    density[GridHash(3, 4, bins_per_axis)] = 1;
+    //density[GridHash(4, 4, bins_per_axis)] = 1;
+
+    //density[GridHash(2, 2, bins_per_axis)] = 1;
+    density[GridHash(3, 2, bins_per_axis)] = 1;
+    //density[GridHash(4, 2, bins_per_axis)] = 1;
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
@@ -162,16 +174,7 @@ int main(int argc, char* argv[]) {
         printf("HERE : [%d %d] [%f %f]\n", g.x, g.y, hf[i * 2 + 0], hf[i * 2 + 1]);
     }
 
-    v[GridHash(2, 2, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(3, 2, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(4, 2, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(2, 3, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(3, 3, bins_per_axis) * 2 + 0] = 0.013717;
-    v[GridHash(4, 3, bins_per_axis) * 2 + 0] = 0.013717;
-
-
-    // v[GridHash(3, 1, bins_per_axis) * 2 + 0] = -1;
-    // v[GridHash(4, 1, bins_per_axis) * 2 + 0] = 1;
+    v[GridHash(3, 3, bins_per_axis) * 2 + 0] = 1;
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
@@ -183,6 +186,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << "M_inv:\n";
     Print(std::cout, M_inv);
+    real Aij = bin_edge;
+    real lij = bin_edge * .5;
 
     for (int i = 0; i < grid_size; i++) {
         int2 g = GridDecode(i, bins_per_axis);
@@ -193,20 +198,51 @@ int main(int argc, char* argv[]) {
         int g_down = GridHash(g.x, g.y - 1, bins_per_axis);
 
         bool cell_active = (density[i] != 0);
-        if ((g.x + 1) >= bins_per_axis.x) {
-        } else if ((g.y + 1) >= bins_per_axis.y) {
-            //        } else if (g.x == 0) {
-            //        } else if (g.y == 0) {
-        } else {
-            if (cell_active) {
-                D_T(i, i * 2 + 0) = -1;
-                D_T(i, i * 2 + 1) = -1;
-                D_T(i, g_right * 2 + 0) = 1;
-                D_T(i, g_up * 2 + 1) = 1;
+
+        if (cell_active) {
+            real2 sum_d = real2(0, 0);
+            real2 cell_d, qj, bij;
+            real2 qi = NodeLocation(g.x, g.y, bin_edge, min_bounding_point);  // Node location
+
+            {
+                qj = NodeLocation(g.x - 1, g.y, bin_edge, min_bounding_point);  // Node location
+                bij = qi - real2(.5 * bin_edge, 0);                             // face barycenter
+                cell_d = Aij / lij * (qj - bij);
+                sum_d -= cell_d;
+                D_T(i, g_left * 2 + 0) = cell_d.x;
+                D_T(i, g_left * 2 + 1) = cell_d.y;
             }
+
+            {
+                qj = NodeLocation(g.x + 1, g.y, bin_edge, min_bounding_point);  // Node location
+                bij = qi + real2(.5 * bin_edge, 0);                             // face barycenter
+                cell_d = Aij / lij * (qj - bij);
+                sum_d -= cell_d;
+                D_T(i, g_right * 2 + 0) = cell_d.x;
+                D_T(i, g_right * 2 + 1) = cell_d.y;
+            }
+            {
+                qj = NodeLocation(g.x, g.y - 1, bin_edge, min_bounding_point);  // Node location
+                bij = qi - real2(0, .5 * bin_edge);                             // face barycenter
+                cell_d = Aij / lij * (qj - bij);
+                sum_d -= cell_d;
+                D_T(i, g_down * 2 + 0) = cell_d.x;
+                D_T(i, g_down * 2 + 1) = cell_d.y;
+            }
+
+            {
+                qj = NodeLocation(g.x, g.y + 1, bin_edge, min_bounding_point);  // Node location
+                bij = qi + real2(0, .5 * bin_edge);                             // face barycenter
+                cell_d = Aij / lij * (qj - bij);
+                sum_d -= cell_d;
+                D_T(i, g_up * 2 + 0) = cell_d.x;
+                D_T(i, g_up * 2 + 1) = cell_d.y;
+            }
+
+            D_T(i, i * 2 + 0) = sum_d.x;
+            D_T(i, i * 2 + 1) = sum_d.y;
         }
     }
-    D_T = D_T * inv_bin_edge;
 
     std::cout << "D_T:\n";
     Print(std::cout, D_T);
