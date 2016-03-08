@@ -34,9 +34,7 @@ class ChSystemParallel;  // forward declaration
 
 namespace collision {
 
-class ChCBroadphase;           // forward declaration
-class ChCNarrowphaseDispatch;  // forward declaration
-class ChCAABBGenerator;        // forward declaration
+
 
 ///
 /// Class for collision engine based on the spatial subdivision method.
@@ -108,11 +106,6 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     }
 
   private:
-    ChCBroadphase* broadphase;
-    ChCNarrowphaseDispatch* narrowphase;
-
-    ChCAABBGenerator* aabb_generator;
-
     ChParallelDataManager* data_manager;
 
     friend class chrono::ChSystemParallel;

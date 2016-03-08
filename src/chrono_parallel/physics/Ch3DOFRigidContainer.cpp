@@ -5,6 +5,7 @@
 #include <chrono_parallel/physics/Ch3DOFContainer.h>
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
+#include "chrono_parallel/collision/ChCollision.h"
 
 #include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
@@ -65,6 +66,7 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
     uint num_shafts = data_manager->num_shafts;
 
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
+    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
@@ -81,6 +83,54 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
         }
         vel_fluid[original_index] = vel;
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
+        sorted_pos_fluid[i] = pos_fluid[original_index];
+    }
+
+    new_pos = sorted_pos_fluid;
+
+    if (data_manager->num_fluid_bodies != 0) {
+        data_manager->narrowphase->DispatchRigidFluid();
+    }
+
+    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+    custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep isnt
+    // too large.
+
+    if (data_manager->num_rigid_fluid_contacts > 0) {
+#pragma omp parallel for
+        for (int p = 0; p < num_fluid_bodies; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            real3 delta = real3(0);
+            real weight = 0;
+            for (int index = start; index < end; index++) {
+                int i = index - start;
+                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+                // if (data_manager->host_data.active_rigid[rigid] == false) {
+                real3 U = norm[p * max_rigid_neighbors + i];
+                real depth = dpth[p * max_rigid_neighbors + i];
+                if (depth < 0) {
+                    real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
+                    delta -= w * depth * U;
+                    weight++;
+                }
+                //}
+            }
+            if (weight > 0) {
+                new_pos[p] = new_pos[p] + delta / weight;
+            }
+        }
+
+#pragma omp parallel for
+        for (int p = 0; p < num_fluid_bodies; p++) {
+            // real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
+            int original_index = data_manager->host_data.particle_indices_3dof[p];
+            pos_fluid[original_index] = new_pos[p];
+        }
     }
 }
 
@@ -488,8 +538,6 @@ void Ch3DOFRigidContainer::GenerateSparsity() {
     }
 }
 
-void Ch3DOFRigidContainer::PostSolve() {}
-
 void Ch3DOFRigidContainer::CalculateContactForces() {
     uint num_contacts = data_manager->num_rigid_fluid_contacts;
     if (num_contacts <= 0) {
@@ -524,11 +572,51 @@ real3 Ch3DOFRigidContainer::GetBodyContactTorque(uint body_id) {
     }
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
+void Ch3DOFRigidContainer::PreSolve() {}
+void Ch3DOFRigidContainer::PostSolve() {
+    // return;
 
-void Ch3DOFRigidContainer::PreSolve() {
-    if (max_iterations == 0) {
-        return;
-    }
+    //    // Run PBD to get updated velocities for fluid
+    //    // Loop over all boundaries
+    //    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+    //    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+    //    custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
+    //    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    //    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    //    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
+    //    custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
+    //
+    //    custom_vector<real3> new_pos = pos_fluid;
+    //
+    //    for (int p = 0; p < num_fluid_bodies; p++) {
+    //        int start = contact_counts[p];
+    //        int end = contact_counts[p + 1];
+    //        real3 delta = real3(0);
+    //        real weight = 0;
+    //        for (int index = start; index < end; index++) {
+    //            int i = index - start;
+    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+    //            if (data_manager->host_data.active_rigid[rigid] == false) {
+    //                real3 U = norm[p * max_rigid_neighbors + i];
+    //                real depth = dpth[p * max_rigid_neighbors + i];
+    //                if (depth < 0) {
+    //                    real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
+    //                    delta -= w * depth * U;
+    //                    weight++;
+    //                }
+    //            }
+    //        }
+    //        const real invWeight = 1.0 / weight;
+    //        new_pos[p] = new_pos[p] + delta * weight;
+    //    }
+    //    for (int p = 0; p < num_fluid_bodies; p++) {
+    //        real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
+    //        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0] += vnew.x;
+    //        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1] += vnew.y;
+    //        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2] += vnew.z;
+    //
+    //        // pos_fluid[p] = new_pos[p];
+    //    }
 }
 }  // END_OF_NAMESPACE____
 

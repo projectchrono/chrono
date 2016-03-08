@@ -1,9 +1,10 @@
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
+#include "chrono_parallel/collision/ChCollision.h"
 #include "core/ChFileutils.h"
 #include "core/ChStream.h"
 using namespace chrono;
-
+using namespace chrono::collision;
 ChParallelDataManager::ChParallelDataManager()
     : num_rigid_contacts(0),
       num_rigid_fluid_contacts(0),
@@ -22,9 +23,22 @@ ChParallelDataManager::ChParallelDataManager()
       nnz_bilaterals(0) {
     node_container = new Ch3DOFContainer();
     fea_container = new Ch3DOFContainer();
+
+    broadphase = new ChCBroadphase;
+    narrowphase = new ChCNarrowphaseDispatch;
+    aabb_generator = new ChCAABBGenerator;
+    broadphase->data_manager = this;
+    narrowphase->data_manager = this;
+    aabb_generator->data_manager = this;
 }
 
-ChParallelDataManager::~ChParallelDataManager() {}
+ChParallelDataManager::~ChParallelDataManager() {
+    delete narrowphase;
+    delete broadphase;
+    delete aabb_generator;
+    delete node_container;
+    delete fea_container;
+}
 
 int ChParallelDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
     const char* numformat = "%.16g";

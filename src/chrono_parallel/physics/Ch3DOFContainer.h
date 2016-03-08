@@ -75,8 +75,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     virtual int GetNumConstraints() { return 0; }
     virtual int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
-    virtual real3 GetBodyContactForce(uint body_id) {return real3(0);}
-    virtual real3 GetBodyContactTorque(uint body_id) {return real3(0);}
+    virtual real3 GetBodyContactForce(uint body_id) { return real3(0); }
+    virtual real3 GetBodyContactTorque(uint body_id) { return real3(0); }
     // Integrate happens after the solve
     // void Integrate(double ChTime);
     // Position of the node - in absolute csys.
@@ -165,6 +165,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     real artificial_pressure_dq;
     bool enable_viscosity;
     bool initialize_mass;
+    custom_vector<real3> new_pos;
 
   private:
     uint body_offset;
@@ -234,8 +235,8 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
     DynamicVector<real> delta_v;
 
-    //Reverse mapping, for each partticle have node
-    custom_vector<int> particle_node_mapping; //num_particles * 125
+    // Reverse mapping, for each partticle have node
+    custom_vector<int> particle_node_mapping;  // num_particles * 125
     custom_vector<int> node_particle_mapping;
     custom_vector<int> node_start_index;
     custom_vector<int> particle_number;
@@ -328,6 +329,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real cohesion;
     real mass;
     uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
+    custom_vector<real3> new_pos;
 
   private:
     uint body_offset;

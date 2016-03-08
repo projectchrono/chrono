@@ -57,6 +57,11 @@ class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
 
+namespace collision {
+class ChCBroadphase;           // forward declaration
+class ChCNarrowphaseDispatch;  // forward declaration
+class ChCAABBGenerator;        // forward declaration
+}
 template <typename TT>
 class ChSharedPtr;
 
@@ -390,6 +395,10 @@ class CH_PARALLEL_API ChParallelDataManager {
 
     ChConstraintRigidRigid* rigid_rigid;
     ChConstraintBilateral* bilateral;
+
+    collision::ChCBroadphase* broadphase;
+    collision::ChCNarrowphaseDispatch* narrowphase;
+    collision::ChCAABBGenerator* aabb_generator;
 
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure

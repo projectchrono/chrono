@@ -14,20 +14,9 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dm) : data_manager(dm) {
-    broadphase = new ChCBroadphase;
-    narrowphase = new ChCNarrowphaseDispatch;
-    aabb_generator = new ChCAABBGenerator;
-    broadphase->data_manager = dm;
-    narrowphase->data_manager = dm;
-    aabb_generator->data_manager = dm;
-}
+ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dm) : data_manager(dm) {}
 
-ChCollisionSystemParallel::~ChCollisionSystemParallel() {
-    delete narrowphase;
-    delete broadphase;
-    delete aabb_generator;
-}
+ChCollisionSystemParallel::~ChCollisionSystemParallel() {}
 
 void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
     if (model->GetPhysicsItem()->GetCollide() == true) {
@@ -147,27 +136,27 @@ void ChCollisionSystemParallel::Run() {
         }
     }
     data_manager->system_timer.start("collision_broad");
-    aabb_generator->GenerateAABB();
+    data_manager->aabb_generator->GenerateAABB();
     data_manager->system_timer.stop("collision_broad");
 
     if (data_manager->num_fluid_bodies != 0) {
         data_manager->system_timer.start("collision_narrow");
         // do this first so that we can augment the min/max for rigids to get a larger grid
-        narrowphase->DispatchFluid();
+        data_manager->narrowphase->DispatchFluid();
         data_manager->system_timer.stop("collision_narrow");
     }
     if (data_manager->num_fea_tets != 0) {
         data_manager->system_timer.start("collision_narrow");
-        broadphase->DispatchTets();
+        data_manager->broadphase->DispatchTets();
         // narrowphase->DispatchTets();
         data_manager->system_timer.stop("collision_narrow");
     }
     if (data_manager->num_rigid_shapes != 0) {
         data_manager->system_timer.start("collision_broad");
-        broadphase->DetectPossibleCollisions();
+        data_manager->broadphase->DetectPossibleCollisions();
         data_manager->system_timer.stop("collision_broad");
         data_manager->system_timer.start("collision_narrow");
-        narrowphase->ProcessRigids();
+        data_manager->narrowphase->ProcessRigids();
         data_manager->system_timer.stop("collision_narrow");
     } else {
         data_manager->host_data.c_counts_rigid_tet.clear();
@@ -180,7 +169,7 @@ void ChCollisionSystemParallel::Run() {
 }
 
 void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
-    aabb_generator->GenerateAABB();
+    data_manager->aabb_generator->GenerateAABB();
 #pragma omp parallel for
     for (int i = 0; i < data_manager->shape_data.typ_rigid.size(); i++) {
         real3 Bmin = data_manager->host_data.aabb_min[i];
