@@ -360,11 +360,6 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
     const real radius_envelope = radius + collision_envelope;
     const real radius_squared = radius_envelope * radius_envelope;
 
-    bbox res(pos_fluid[0], pos_fluid[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
-
     real3 diag = max_bounding_point - min_bounding_point;
     bins_per_axis = vec3(diag / (radius_envelope * 2));
     real inv_bin_edge = real(1.0) / (radius_envelope * 2);
@@ -385,7 +380,6 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
     //====================================
     Thrust_Fill(ff_bin_starts, 0);
     Thrust_Fill(ff_bin_ends, 0);
-    Thrust_Fill(contact_counts, 0);
     Thrust_Fill(contact_counts, 0);
     Thrust_Fill(neighbor_fluid_fluid, 0);
 //====================================
@@ -477,19 +471,19 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     bbox_reduction binary_op;
     res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
 
-    res.first.x = radius * Round(res.first.x / radius);
-    res.first.y = radius * Round(res.first.y / radius);
-    res.first.z = radius * Round(res.first.z / radius);
+    res.first.x = radius * Floor(res.first.x / radius);
+    res.first.y = radius * Floor(res.first.y / radius);
+    res.first.z = radius * Floor(res.first.z / radius);
 
-    res.second.x = radius * Round(res.second.x / radius);
-    res.second.y = radius * Round(res.second.y / radius);
-    res.second.z = radius * Round(res.second.z / radius);
+    res.second.x = radius * Ceil(res.second.x / radius);
+    res.second.y = radius * Ceil(res.second.y / radius);
+    res.second.z = radius * Ceil(res.second.z / radius);
 
     real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
 
-    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + radius * 6;
-    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - radius * 6;
+    max_bounding_point = res.second + radius * 6;
+    min_bounding_point = res.first - radius * 6;
 
     SphereSphereContact(data_manager->num_fluid_bodies, data_manager->num_rigid_bodies * 6 + data_manager->num_shafts,
                         radius, data_manager->node_container->collision_envelope, min_bounding_point,
@@ -551,7 +545,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
     uint f_number_of_bin_intersections = f_bin_intersections.back();
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan " << f_number_of_bin_intersections;
     f_bin_number.resize(f_number_of_bin_intersections);
     f_bin_number_out.resize(f_number_of_bin_intersections);
     f_bin_fluid_number.resize(f_number_of_bin_intersections);
@@ -583,7 +577,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     Thrust_Exclusive_Scan(f_bin_start_index);
     custom_vector<uint> f_bin_num_contact(f_number_of_bins_active + 1);
     f_bin_num_contact[f_number_of_bins_active] = 0;
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan 2";
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan 2" << f_number_of_bins_active;
     norm_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
     cpta_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
     dpth_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
@@ -595,13 +589,9 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
         uint start = f_bin_start_index[index];
         uint end = f_bin_start_index[index + 1];
         uint count = 0;
-        // Terminate early if there is only one object in the bin
-        if (end - start == 1) {
-            continue;
-        }
+
         unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
-        bool rigid_is_active = rigid_index != 1000000000;
-        if (rigid_is_active) {
+        if (rigid_index != 1000000000) {
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
@@ -610,6 +600,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                 real3 pos_sphere = pos_spheres[p];
                 real3 Bmin = pos_sphere - real3(radius + collision_envelope) - global_origin;
                 real3 Bmax = pos_sphere + real3(radius + collision_envelope) - global_origin;
+                ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius);
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
@@ -619,9 +610,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                     if (!overlap(Amin, Amax, Bmin, Bmax)) {
                         continue;
                     }
-
                     ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
-                    ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius);
 
                     real3 ptA, ptB, norm;
                     real depth;
@@ -633,12 +622,13 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                             dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = depth;
                             neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
                             contact_counts[p]++;
+                        } else {
+                            printf("Too Many Neighbors!\n");
                         }
                     }
-
                     delete shapeA;
-                    delete shapeB;
                 }
+                delete shapeB;
             }
         }
     }
