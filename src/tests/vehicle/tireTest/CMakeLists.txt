@@ -6,14 +6,6 @@ endif()
 # ------------------------------------------------------
 
 set(TEST_FILES test_tire.cpp)
-
-if(ENABLE_MODULE_FEA)
-    set(TEST_FILES ${TEST_FILES}
-        ANCFToroidalTire.h
-        ANCFToroidalTire.cpp
-    )
-endif()
-
 source_group("" FILES ${TEST_FILES})
 
 # ------------------------------------------------------

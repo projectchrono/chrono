@@ -19,8 +19,6 @@
 //
 // One of the following types of tires can be attached to the wheel body:
 // RIGID, FIALA, LUGRE, or ANCF (toroidal).
-// - the RIGID, LUGRE, and FIALA tires use JSON specification files
-// - the ANCF tire uses concrete custom implementation: ANCFToroidal.{h,cpp}
 //
 // Either DEM-P or DEM-C contact models can be specified. The integrator can be
 // set as either Euler semi-implicit or HHT.  The solver can be one of: SOR,
@@ -59,10 +57,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
-
-#ifdef CHRONO_FEA
-#include "ANCFToroidalTire.h"
-#endif
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChLcpMklSolver.h"
@@ -80,12 +75,13 @@ using namespace irr;
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
 // Type of tire model
-TireModelType tire_model = RIGID;
+TireModelType tire_model = ANCF;
 
 // JSON file names for tire models
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string lugretire_file("generic/tire/LugreTire.json");
 std::string fialatire_file("generic/tire/FialaTire.json");
+std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
 
 // Quarter-vehicle chassis mass
 double chassis_mass = 500;
@@ -194,11 +190,11 @@ int main(int argc, char* argv[]) {
         }
         case ANCF: {
 #ifdef CHRONO_FEA
-            auto tire_ancf = std::make_shared<ANCFToroidalTire>("ANCF_Tire");
+            auto tire_ancf = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
 
-            tire_ancf->EnablePressure(true);
+            tire_ancf->EnablePressure(false);
             tire_ancf->EnableContact(false);
-            tire_ancf->EnableRimConnection(true);
+            tire_ancf->EnableRimConnection(false);
 
             tire_ancf->Initialize(wheel, LEFT);
             tire_radius = tire_ancf->GetTireRadius();
@@ -346,7 +342,7 @@ int main(int argc, char* argv[]) {
             auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
             integrator->SetAlpha(-0.2);
             integrator->SetMaxiters(20);
-            integrator->SetAbsTolerances(5e-05, 5e-03);
+            integrator->SetAbsTolerances(5e-05, 5e-01);
             integrator->SetMode(ChTimestepperHHT::POSITION);
             integrator->SetScaling(true);
             integrator->SetVerbose(true);
