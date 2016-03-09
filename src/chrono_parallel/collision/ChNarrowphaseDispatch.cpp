@@ -621,7 +621,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                     }
 
                     ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
-                    ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius * .5);
+                    ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius);
 
                     real3 ptA, ptB, norm;
                     real depth;
