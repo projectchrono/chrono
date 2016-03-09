@@ -42,7 +42,8 @@ ChANCFTire::ChANCFTire(const std::string& name)
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
       m_friction(0.6f),
-      m_restitution(0.1f) {}
+      m_restitution(0.1f),
+      m_pressure(-1) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -74,11 +75,16 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     system->Add(load_container);
 
     if (m_pressure_enabled) {
+        // If pressure was not explicitly specified, fall back to the
+        // default value.
+        if (m_pressure < 0)
+            m_pressure = GetDefaultPressure();
+
         // Create a pressure load for each element in the mesh
         for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ie++) {
             auto load = std::make_shared<ChLoad<ChLoaderPressure>>(
                 std::static_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie)));
-            load->loader.SetPressure(GetPressure());
+            load->loader.SetPressure(m_pressure);
             load->loader.SetStiff(false);          //// TODO:  user control?
             load->loader.SetIntegrationPoints(2);  //// TODOL  user control?
             load_container->Add(load);
@@ -95,20 +101,20 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
         // Create the contact surface
         switch (m_contact_type) {
-        case NODE_CLOUD: {
-            auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
-            m_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddAllNodes(m_contact_node_radius);
-            contact_surf->SetMaterialSurface(contact_mat);
-            break;
-        }
-        case TRIANGLE_MESH: {
-            auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
-            m_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddFacesFromBoundary(m_contact_face_thickness);
-            contact_surf->SetMaterialSurface(contact_mat);
-            break;
-        }
+            case NODE_CLOUD: {
+                auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
+                m_mesh->AddContactSurface(contact_surf);
+                contact_surf->AddAllNodes(m_contact_node_radius);
+                contact_surf->SetMaterialSurface(contact_mat);
+                break;
+            }
+            case TRIANGLE_MESH: {
+                auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
+                m_mesh->AddContactSurface(contact_surf);
+                contact_surf->AddFacesFromBoundary(m_contact_face_thickness);
+                contact_surf->SetMaterialSurface(contact_mat);
+                break;
+            }
         }
     }
 

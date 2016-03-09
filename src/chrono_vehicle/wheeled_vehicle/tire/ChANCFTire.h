@@ -77,6 +77,9 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     /// Enable/disable tire-rim connection.
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
 
+    /// Set the tire pressure.
+    void SetPressure(double pressure) { m_pressure = pressure; }
+
     /// Get total tire mass.
     double GetMass() const;
 
@@ -103,8 +106,8 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     /// Return the tire width.
     virtual double GetWidth() const = 0;
 
-    /// Return the tire pressure.
-    virtual double GetPressure() const = 0;
+    /// Return the default tire pressure.
+    virtual double GetDefaultPressure() const = 0;
 
     /// Return list of nodes connected to the rim.
     virtual NodeList GetConnectedNodes(const std::shared_ptr<fea::ChMesh>& mesh) const = 0;
@@ -122,6 +125,8 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     bool m_connection_enabled;
     bool m_pressure_enabled;
     bool m_contact_enabled;
+
+    double m_pressure;
 
     ContactSurfaceType m_contact_type;
     double m_contact_node_radius;

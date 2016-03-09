@@ -31,7 +31,7 @@ const double ANCFToroidalTire::m_thickness = 0.014;
 const int ANCFToroidalTire::m_div_diameter = 60;
 const int ANCFToroidalTire::m_div_thread = 12;
 
-const double ANCFToroidalTire::m_pressure = 3.2e5;
+const double ANCFToroidalTire::m_default_pressure = 320.0e3;
 const double ANCFToroidalTire::m_alpha = 0.15;
 
 ANCFToroidalTire::ANCFToroidalTire(const std::string& name) : ChANCFTire(name) {
