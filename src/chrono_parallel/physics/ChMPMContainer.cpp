@@ -10,11 +10,11 @@
 #include <thrust/iterator/constant_iterator.h>
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
-
 #include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/matrix.h"       // for quaternion, real4
+#include "chrono_parallel/physics/ChMPM.cuh"
 
 namespace chrono {
 
@@ -634,161 +634,166 @@ void ChMPMContainer::PreSolve() {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
     const real dt = data_manager->settings.step_size;
 
-#pragma omp parallel for
-    for (int index = 0; index < num_mpm_nodes_active; index++) {
-        uint start = node_start_index[index];
-        uint end = node_start_index[index + 1];
-        const int current_node = node_particle_mapping[index];
-        vec3 g = GridDecode(current_node, bins_per_axis);
-        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
-        real3 vel_mass = real3(0);
-        real mass_w = 0;
-        for (uint i = start; i < end; i++) {
-            int p = particle_number[i];
-            real weight = N(pos_marker[p] - current_node_location, inv_bin_edge) * mass;  //
-            mass_w += weight;
-            vel_mass += weight * vel_marker[p];
-        }
+    MPM_Initialize(mass, kernel_radius, pos_marker);
 
-        node_mass[current_node] = mass_w;
-        grid_vel[current_node * 3 + 0] = vel_mass.x;  //
-        grid_vel[current_node * 3 + 1] = vel_mass.y;  //
-        grid_vel[current_node * 3 + 2] = vel_mass.z;  //
-    }
-
-// normalize weights for the velocity (to conserve momentum)
-#pragma omp parallel for
-    for (int i = 0; i < num_mpm_nodes; i++) {
-        real n_mass = node_mass[i];
-        if (n_mass > C_EPSILON) {
-            grid_vel[i * 3 + 0] /= n_mass;
-            grid_vel[i * 3 + 1] /= n_mass;
-            grid_vel[i * 3 + 2] /= n_mass;
-        }
-        // printf("N: %d [%f %f %f]\n", i, grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-    }
-    old_vel_node_mpm = grid_vel;
-    SVD_Fe_hat_R.resize(num_mpm_markers);
-    SVD_Fe_hat_S.resize(num_mpm_markers);
-
-// printf("Compute_Elastic_Deformation_Gradient_Hat\n");
-#pragma omp parallel for
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        marker_Fe_hat[p] = Mat33(1.0);
-        Mat33 Fe_hat_t(1);
-        LOOPOVERNODES(  //
-            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
-            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
-            )
-        Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
-        marker_Fe_hat[p] = Fe_hat;
-        Mat33 U, V;
-        real3 E;
-        SVD(Fe_hat, U, E, V);
-        SVD_Fe_hat_R[p] = MultTranspose(U, V);
-        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
-    }
-
-    UpdateRhs();
-
-    //    if (num_rigid_fluid_contacts > 0) {
-    //        LOG(INFO) << "ChMPMContainer::RigidContact";
+    //#pragma omp parallel for
+    //    for (int index = 0; index < num_mpm_nodes_active; index++) {
+    //        uint start = node_start_index[index];
+    //        uint end = node_start_index[index + 1];
+    //        const int current_node = node_particle_mapping[index];
+    //        vec3 g = GridDecode(current_node, bins_per_axis);
+    //        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
+    //        real3 vel_mass = real3(0);
+    //        real mass_w = 0;
+    //        for (uint i = start; i < end; i++) {
+    //            int p = particle_number[i];
+    //            real weight = N(pos_marker[p] - current_node_location, inv_bin_edge) * mass;  //
+    //            mass_w += weight;
+    //            vel_mass += weight * vel_marker[p];
+    //        }
     //
-    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-    //
-    //        custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
-    //        custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
-    //
-    //        // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
-    //        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-    //        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-    //
-    //        Loop_Over_Rigid_Neighbors(                                          //
-    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  //
-    //            real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
-    //            Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
-    //            real3 c_pt = cpta[p * max_rigid_neighbors + i];
-    //
-    //            real3 v_rigid = real3(data_manager->host_data.v[rigid * 6 + 0], data_manager->host_data.v[rigid * 6 +
-    //            1],
-    //                                  data_manager->host_data.v[rigid * 6 + 2]);
-    //
-    //            real3 o_rigid = real3(data_manager->host_data.v[rigid * 6 + 3], data_manager->host_data.v[rigid * 6 +
-    //            4],
-    //                                  data_manager->host_data.v[rigid * 6 + 5]);
-    //
-    //            real3 pt1_loc = TransformParentToLocal(pos_rigid[rigid], rot_rigid[rigid], c_pt);
-    //            // Velocity of the contact point on the body:
-    //            real3 vel1 = v_rigid + Rotate(Cross(o_rigid, pt1_loc), rot_rigid[rigid]);
-    //
-    //            // Find the grid cell
-    //
-    //            real3 xi = c_pt;
-    //            LOOPOVERNODESY(                                                 //
-    //                real weight = N(xi - current_node_location, inv_bin_edge);  //
-    //                grid_vel[current_node * 3 + 0] = vel1.x;                    //
-    //                grid_vel[current_node * 3 + 1] = vel1.y;                    //
-    //                grid_vel[current_node * 3 + 2] = vel1.z;                    //
-    //                old_vel_node_mpm[current_node * 3 + 0] = vel1.x;            //
-    //                old_vel_node_mpm[current_node * 3 + 1] = vel1.y;            //
-    //                old_vel_node_mpm[current_node * 3 + 2] = vel1.z;, 2         //
-    //                )
-    //
-    //            //
-    //            //            const int cx = GridCoord(c_pt.x, inv_bin_edge, min_bounding_point.x);
-    //            //            const int cy = GridCoord(c_pt.y, inv_bin_edge, min_bounding_point.y);
-    //            //            const int cz = GridCoord(c_pt.z, inv_bin_edge, min_bounding_point.z);
-    //            //            const int current_node = GridHash(cx, cy, cz, bins_per_axis);
-    //            //
-    //            //            real3 current_node_location = NodeLocation(cx, cy, cz, bin_edge, min_bounding_point);
-    //            //            real weight = N(c_pt - current_node_location, inv_bin_edge);  //
-    //            //            grid_vel[current_node * 3 + 0] = vel1.x;                      //
-    //            //            grid_vel[current_node * 3 + 1] = vel1.y;                      //
-    //            //            grid_vel[current_node * 3 + 2] = vel1.z;
-    //            //
-    //            //            printf("rigid_cvel: [%f %f %f]\n", vel1.x, vel1.y, vel1.z);  //
-    //            );
+    //        node_mass[current_node] = mass_w;
+    //        grid_vel[current_node * 3 + 0] = vel_mass.x;  //
+    //        grid_vel[current_node * 3 + 1] = vel_mass.y;  //
+    //        grid_vel[current_node * 3 + 2] = vel_mass.z;  //
     //    }
-
-    delta_v.resize(num_mpm_nodes * 3);
-    delta_v = 0;
-    Solve(rhs, delta_v);
-    grid_vel += delta_v;
-
-    const real3 gravity = data_manager->settings.gravity;
-#pragma omp parallel for
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        real3 V_flip = vel_marker[p];
-
-        real3 V_pic = real3(0.0);
-
-        LOOPOVERNODES(                                                  //
-            real weight = N(xi - current_node_location, inv_bin_edge);  //
-
-            V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                              //
-            V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                              //
-            V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                              //
-            V_flip.x += (grid_vel[current_node * 3 + 0] - old_vel_node_mpm[current_node * 3 + 0]) * weight;  //
-            V_flip.y += (grid_vel[current_node * 3 + 1] - old_vel_node_mpm[current_node * 3 + 1]) * weight;  //
-            V_flip.z += (grid_vel[current_node * 3 + 2] - old_vel_node_mpm[current_node * 3 + 2]) * weight;  //
-            )
-        real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
-
-        real speed = Length(new_vel);
-        if (speed > max_velocity) {
-            new_vel = new_vel * max_velocity / speed;
-        }
-
-        int index = data_manager->host_data.reverse_mapping_3dof[p];
-
-        data_manager->host_data.v[body_offset + index * 3 + 0] = new_vel.x;
-        data_manager->host_data.v[body_offset + index * 3 + 1] = new_vel.y;
-        data_manager->host_data.v[body_offset + index * 3 + 2] = new_vel.z;
-    }
+    //
+    //// normalize weights for the velocity (to conserve momentum)
+    //#pragma omp parallel for
+    //    for (int i = 0; i < num_mpm_nodes; i++) {
+    //        real n_mass = node_mass[i];
+    //        if (n_mass > C_EPSILON) {
+    //            grid_vel[i * 3 + 0] /= n_mass;
+    //            grid_vel[i * 3 + 1] /= n_mass;
+    //            grid_vel[i * 3 + 2] /= n_mass;
+    //        }
+    //        // printf("N: %d [%f %f %f]\n", i, grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
+    //    }
+    //    old_vel_node_mpm = grid_vel;
+    //    SVD_Fe_hat_R.resize(num_mpm_markers);
+    //    SVD_Fe_hat_S.resize(num_mpm_markers);
+    //
+    //// printf("Compute_Elastic_Deformation_Gradient_Hat\n");
+    //#pragma omp parallel for
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //        marker_Fe_hat[p] = Mat33(1.0);
+    //        Mat33 Fe_hat_t(1);
+    //        LOOPOVERNODES(  //
+    //            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
+    //            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+    //            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
+    //            )
+    //        Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
+    //        marker_Fe_hat[p] = Fe_hat;
+    //        Mat33 U, V;
+    //        real3 E;
+    //        SVD(Fe_hat, U, E, V);
+    //        SVD_Fe_hat_R[p] = MultTranspose(U, V);
+    //        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
+    //    }
+    //
+    //    UpdateRhs();
+    //
+    //    //    if (num_rigid_fluid_contacts > 0) {
+    //    //        LOG(INFO) << "ChMPMContainer::RigidContact";
+    //    //
+    //    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    //    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    //    //
+    //    //        custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
+    //    //        custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+    //    //
+    //    //        // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
+    //    //        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+    //    //        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+    //    //
+    //    //        Loop_Over_Rigid_Neighbors(                                          //
+    //    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  //
+    //    //            real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
+    //    //            Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
+    //    //            real3 c_pt = cpta[p * max_rigid_neighbors + i];
+    //    //
+    //    //            real3 v_rigid = real3(data_manager->host_data.v[rigid * 6 + 0], data_manager->host_data.v[rigid
+    //    * 6 +
+    //    //            1],
+    //    //                                  data_manager->host_data.v[rigid * 6 + 2]);
+    //    //
+    //    //            real3 o_rigid = real3(data_manager->host_data.v[rigid * 6 + 3], data_manager->host_data.v[rigid
+    //    * 6 +
+    //    //            4],
+    //    //                                  data_manager->host_data.v[rigid * 6 + 5]);
+    //    //
+    //    //            real3 pt1_loc = TransformParentToLocal(pos_rigid[rigid], rot_rigid[rigid], c_pt);
+    //    //            // Velocity of the contact point on the body:
+    //    //            real3 vel1 = v_rigid + Rotate(Cross(o_rigid, pt1_loc), rot_rigid[rigid]);
+    //    //
+    //    //            // Find the grid cell
+    //    //
+    //    //            real3 xi = c_pt;
+    //    //            LOOPOVERNODESY(                                                 //
+    //    //                real weight = N(xi - current_node_location, inv_bin_edge);  //
+    //    //                grid_vel[current_node * 3 + 0] = vel1.x;                    //
+    //    //                grid_vel[current_node * 3 + 1] = vel1.y;                    //
+    //    //                grid_vel[current_node * 3 + 2] = vel1.z;                    //
+    //    //                old_vel_node_mpm[current_node * 3 + 0] = vel1.x;            //
+    //    //                old_vel_node_mpm[current_node * 3 + 1] = vel1.y;            //
+    //    //                old_vel_node_mpm[current_node * 3 + 2] = vel1.z;, 2         //
+    //    //                )
+    //    //
+    //    //            //
+    //    //            //            const int cx = GridCoord(c_pt.x, inv_bin_edge, min_bounding_point.x);
+    //    //            //            const int cy = GridCoord(c_pt.y, inv_bin_edge, min_bounding_point.y);
+    //    //            //            const int cz = GridCoord(c_pt.z, inv_bin_edge, min_bounding_point.z);
+    //    //            //            const int current_node = GridHash(cx, cy, cz, bins_per_axis);
+    //    //            //
+    //    //            //            real3 current_node_location = NodeLocation(cx, cy, cz, bin_edge,
+    //    min_bounding_point);
+    //    //            //            real weight = N(c_pt - current_node_location, inv_bin_edge);  //
+    //    //            //            grid_vel[current_node * 3 + 0] = vel1.x;                      //
+    //    //            //            grid_vel[current_node * 3 + 1] = vel1.y;                      //
+    //    //            //            grid_vel[current_node * 3 + 2] = vel1.z;
+    //    //            //
+    //    //            //            printf("rigid_cvel: [%f %f %f]\n", vel1.x, vel1.y, vel1.z);  //
+    //    //            );
+    //    //    }
+    //
+    //    delta_v.resize(num_mpm_nodes * 3);
+    //    delta_v = 0;
+    //    Solve(rhs, delta_v);
+    //    grid_vel += delta_v;
+    //
+    //    const real3 gravity = data_manager->settings.gravity;
+    //#pragma omp parallel for
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //        real3 V_flip = vel_marker[p];
+    //
+    //        real3 V_pic = real3(0.0);
+    //
+    //        LOOPOVERNODES(                                                  //
+    //            real weight = N(xi - current_node_location, inv_bin_edge);  //
+    //
+    //            V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                              //
+    //            V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                              //
+    //            V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                              //
+    //            V_flip.x += (grid_vel[current_node * 3 + 0] - old_vel_node_mpm[current_node * 3 + 0]) * weight;  //
+    //            V_flip.y += (grid_vel[current_node * 3 + 1] - old_vel_node_mpm[current_node * 3 + 1]) * weight;  //
+    //            V_flip.z += (grid_vel[current_node * 3 + 2] - old_vel_node_mpm[current_node * 3 + 2]) * weight;  //
+    //            )
+    //        real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
+    //
+    //        real speed = Length(new_vel);
+    //        if (speed > max_velocity) {
+    //            new_vel = new_vel * max_velocity / speed;
+    //        }
+    //
+    //        int index = data_manager->host_data.reverse_mapping_3dof[p];
+    //
+    //        data_manager->host_data.v[body_offset + index * 3 + 0] = new_vel.x;
+    //        data_manager->host_data.v[body_offset + index * 3 + 1] = new_vel.y;
+    //        data_manager->host_data.v[body_offset + index * 3 + 2] = new_vel.z;
+    //    }
 
     printf("Done Pre solve\n");
 }

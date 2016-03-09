@@ -1,6 +1,44 @@
-#include "chrono_parallel/physics/ChMPM.h"
+#include "chrono_parallel/physics/ChMPM.cuh"
 #include "chrono_parallel/physics/MPMUtils.h"
+#include "chrono_parallel/ChCudaHelper.cuh"
 using namespace chrono;
+
+uint num_mpm_markers;
+uint num_mpm_nodes;
+
+real3 min_bounding_point;
+real3 max_bounding_point;
+
+vec3 bins_per_axis;
+real bin_edge;
+real inv_bin_edge;
+real mass;
+real kernel_radius;
+
+std::vector<int> particle_node_mapping;
+std::vector<int> node_particle_mapping;
+std::vector<int> node_start_index;
+std::vector<int> particle_number;
+uint num_mpm_nodes_active;
+std::vector<Mat33> volume_Ap_Fe_transpose;
+
+// GPU Things
+real3* lower_bound;
+real3* upper_bound;
+
+gpu_vector<real3> pos, vel;
+gpu_vector<real> node_mass;
+gpu_vector<real> marker_volume;
+gpu_vector<real> grid_vel, delta_v;
+gpu_vector<real> rhs;
+gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
+gpu_vector<real> old_vel_node_mpm;
+gpu_vector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
+
+void MPM_UpdateState();
+void MPM_ComputeBounds(const real kernel_radius, std::vector<real3>& positions);
+void MPM_Multiply(gpu_vector<real>& input, gpu_vector<real>& output, gpu_vector<real>& r);
+void MPM_BBSolver(gpu_vector<real>& rhs, gpu_vector<real>& delta_v);
 
 struct Bounds {
     real minimum[3];
@@ -250,7 +288,7 @@ CUDA_GLOBAL void kMultiplyB(const real* v_array,
     }
 }
 
-void ChMPM::Bounds(const real kernel_radius, std::vector<real3>& positions) {
+void MPM_ComputeBounds(const real kernel_radius, std::vector<real3>& positions) {
     num_mpm_markers = positions.size();
     max_bounding_point = real3(-FLT_MAX);
     min_bounding_point = real3(FLT_MAX);
@@ -285,7 +323,7 @@ void ChMPM::Bounds(const real kernel_radius, std::vector<real3>& positions) {
            num_mpm_nodes, num_mpm_markers);
 }
 //
-void ChMPM::Initialize(const real marker_mass, const real radius, std::vector<real3>& positions) {
+void MPM_Initialize(const real marker_mass, const real radius, std::vector<real3>& positions) {
     num_mpm_markers = positions.size();
     mass = marker_mass;
     kernel_radius = radius;
@@ -295,7 +333,7 @@ void ChMPM::Initialize(const real marker_mass, const real radius, std::vector<re
 
     pos.data_h = positions;
     pos.copyHostToDevice();
-    Bounds(kernel_radius, positions);
+    MPM_ComputeBounds(kernel_radius, positions);
     marker_volume.resize(num_mpm_markers);
     node_mass.resize(num_mpm_nodes);
     node_mass.set(0);
@@ -307,7 +345,7 @@ void ChMPM::Initialize(const real marker_mass, const real radius, std::vector<re
                                                          node_mass.data_d,  // output
                                                          marker_volume.data_d);
 }
-void ChMPM::Multiply(gpu_vector<real>& input, gpu_vector<real>& output, gpu_vector<real>& r) {
+void Multiply(gpu_vector<real>& input, gpu_vector<real>& output, gpu_vector<real>& r) {
     //    int size = input.size();
     //    kMultiplyA<<<CONFIG(size)>>>(sorted_pos,  // input
     //                                 input.data_d, old_vel_node_mpm.data_d,
@@ -406,36 +444,20 @@ CUDA_GLOBAL void kResidual(int num_items, real* mg, real* dot_g_proj_norm) {
         }
     }
 }
-void ChMPM::BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
+void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
     const uint size = rhs.size();
-
-    temp.resize(size);
+    gpu_vector<real> dot_g_proj_norm(1);
     ml.resize(size);
     mg.resize(size);
     mg_p.resize(size);
     ml_candidate.resize(size);
-    ms.resize(size);
-    my.resize(size);
     mdir.resize(size);
     ml_p.resize(size);
 
-    temp = 0;
-    ml = 0;
     mg = 0;
     mg_p = 0;
-    ml_candidate = 0;
-    ms = 0;
-    my = 0;
-    mdir = 0;
-    ml_p = 0;
-
-    real sigma_min = 0.1;
-    real sigma_max = 0.9;
-    real alpha = 0.0001;
-    real gmma = 1e-4;
 
     real lastgoodres = 10e30;
-    real lastgoodfval = 10e30;
 
     // Kernel 1
     Multiply(delta_v, mg, r);
@@ -443,9 +465,6 @@ void ChMPM::BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
     ml = delta_v;
     ml_candidate = delta_v;
 
-    // real mf_p = 0;
-
-    gpu_vector<real> dot_g_proj_norm(1);
     kResetGlobals<false><<<CONFIG(1)>>>(size);
 
     for (int current_iteration = 0; current_iteration < 40; current_iteration++) {
@@ -469,7 +488,6 @@ void ChMPM::BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
         real g_proj_norm = Sqrt(dot_g_proj_norm.data_h[0]);
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
-            // objective_value = mf_p;
             ml_candidate = ml;
         }
     }
@@ -477,10 +495,10 @@ void ChMPM::BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
     delta_v = ml_candidate;
 }
 
-void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::vector<real3>& velocities) {
+void Solve(const real kernel_radius, std::vector<real3>& positions, std::vector<real3>& velocities) {
     num_mpm_markers = positions.size();
 
-    Bounds(kernel_radius, positions);
+    MPM_ComputeBounds(kernel_radius, positions);
 
     // ========================================================================================
     kRasterize<<<CONFIG(num_mpm_markers)>>>(pos.data_d,        // input
@@ -489,9 +507,8 @@ void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::
                                             grid_vel.data_d    // output
                                             );
 
-    kRasterize<<<CONFIG(num_mpm_nodes)>>>(pos.data_d,       // input
-                                          node_mass.data_d  // output
-                                          );
+    kNormalizeWeights<<<CONFIG(num_mpm_nodes)>>>(node_mass.data_d,  // output
+                                                 grid_vel.data_d);
 
     old_vel_node_mpm = grid_vel;
 
@@ -502,10 +519,10 @@ void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::
                                       marker_volume.data_d,  // input
                                       rhs.data_d,            // output
                                       marker_volume.data_d);
-    delta_v.resize(num_mpm_nodes);
-    delta_v.set(0);
-
-    BBSolver(rhs, delta_v);
+    //    delta_v.resize(num_mpm_nodes);
+    //    delta_v.set(0);
+    //
+    //    BBSolver(rhs, delta_v);
 
     // Solver Kernels
     // Resize
