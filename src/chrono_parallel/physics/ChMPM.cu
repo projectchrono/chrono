@@ -163,10 +163,10 @@ CUDA_GLOBAL void kComputeParticleVolumes(const real3* sorted_pos,  // input
         LOOP_TWO_RING_GPU(                                              //
             real weight = N(xi - current_node_location, inv_bin_edge);  //
             particle_density += grid_mass[current_node] * weight;       //
-            atomicAdd(&grid_mass[current_node], weight);                //
             )
-        particle_density /= bin_edge * bin_edge * bin_edge;
-        volume[p] = device_settings.mass / particle_density;
+        // Inverse density to remove division
+        particle_density = (bin_edge * bin_edge * bin_edge) / particle_density;
+        volume[p] = device_settings.mass * particle_density;
     }
 }
 
@@ -316,38 +316,7 @@ void MPM_ComputeBounds() {
            host_settings.bin_edge, host_settings.num_mpm_nodes, host_settings.num_mpm_markers);
 }
 //
-void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
-    host_settings = settings;
 
-    cudaCheck(cudaMalloc(&lower_bound, sizeof(real3)));
-    cudaCheck(cudaMalloc(&upper_bound, sizeof(real3)));
-
-    pos.data_h = positions;
-    pos.copyHostToDevice();
-
-    cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
-
-    MPM_ComputeBounds();
-    marker_volume.resize(host_settings.num_mpm_markers);
-    node_mass.resize(host_settings.num_mpm_nodes);
-    node_mass = 0;
-
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
-
-    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,         // input
-                                                          node_mass.data_d);  // output
-
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
-
-    kComputeParticleVolumes<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
-                                                                       node_mass.data_d,  // output
-                                                                       marker_volume.data_d);
-
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
-}
 void Multiply(gpu_vector<real>& input, gpu_vector<real>& output, gpu_vector<real>& r) {
     //    int size = input.size();
     //    kMultiplyA<<<CONFIG(size)>>>(sorted_pos,  // input
@@ -500,20 +469,41 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
 
 void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities) {
     host_settings = settings;
+
+    pos.data_h = positions;
+    pos.copyHostToDevice();
+
+    vel.data_h = velocities;
+    vel.copyHostToDevice();
+
+    cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
+
     MPM_ComputeBounds();
-    //
-    //    // ========================================================================================
-    //    kRasterize<<<CONFIG(num_mpm_markers)>>>(pos.data_d,        // input
-    //                                            vel.data_d,        // input
-    //                                            node_mass.data_d,  // output
-    //                                            grid_vel.data_d    // output
-    //                                            );
-    //
-    //    kNormalizeWeights<<<CONFIG(num_mpm_nodes)>>>(node_mass.data_d,  // output
-    //                                                 grid_vel.data_d);
-    //
-    //    old_vel_node_mpm = grid_vel;
-    //
+
+    node_mass.resize(host_settings.num_mpm_nodes);
+    node_mass = 0;
+
+    grid_vel.resize(host_settings.num_mpm_nodes * 3);
+    grid_vel = 0;
+
+    // ========================================================================================
+    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
+                                                          vel.data_d,        // input
+                                                          node_mass.data_d,  // output
+                                                          grid_vel.data_d    // output
+                                                          );
+
+    kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
+                                                               grid_vel.data_d);
+
+    old_vel_node_mpm.resize(host_settings.num_mpm_nodes * 3);
+    old_vel_node_mpm = grid_vel;
+
+    cudaCheck(cudaPeekAtLastError());
+    cudaCheck(cudaDeviceSynchronize());
+
+    rhs.resize(host_settings.num_mpm_nodes * 3);
+    rhs = 0;
     //    kRhs<<<CONFIG(num_mpm_markers)>>>(pos.data_d,            // input
     //                                      marker_Fe_hat.data_d,  // input
     //                                      marker_Fe.data_d,      // input
@@ -528,5 +518,48 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
 
     // Solver Kernels
     // Resize
+}
+
+CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < device_settings.num_mpm_markers) {
+        marker_Fe[i] = Mat33(1);
+        marker_Fp[i] = Mat33(1);
+    }
+}
+
+void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
+    host_settings = settings;
+
+    cudaCheck(cudaMalloc(&lower_bound, sizeof(real3)));
+    cudaCheck(cudaMalloc(&upper_bound, sizeof(real3)));
+
+    pos.data_h = positions;
+    pos.copyHostToDevice();
+
+    cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
+
+    MPM_ComputeBounds();
+    marker_volume.resize(host_settings.num_mpm_markers);
+    node_mass.resize(host_settings.num_mpm_nodes);
+    node_mass = 0;
+
+    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,         // input
+                                                          node_mass.data_d);  // output
+
+    kComputeParticleVolumes<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
+                                                                       node_mass.data_d,  // input
+                                                                       marker_volume.data_d);  // output
+
+    marker_Fe.resize(host_settings.num_mpm_markers);
+    marker_Fe_hat.resize(host_settings.num_mpm_markers);
+    marker_Fp.resize(host_settings.num_mpm_markers);
+    marker_delta_F.resize(host_settings.num_mpm_markers);
+
+    kInitFeFp<<<CONFIG(host_settings.num_mpm_markers)>>>(marker_Fe.data_d,   // output
+                                                         marker_Fp.data_d);  // output
+
+    cudaCheck(cudaPeekAtLastError());
+    cudaCheck(cudaDeviceSynchronize());
 }
 }
