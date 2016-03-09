@@ -81,7 +81,10 @@ class gpu_vector {
         size_d = 0;
     }
     // Set the contents of a gpu_vector to a certain value
-    void set(T value) { cudaMemsetAsync(data_d, value, sizeof(T) * size_d); }
+    template <typename U>
+    void set(U value) {
+        cudaMemsetAsync(data_d, value, sizeof(T) * size_d);
+    }
     // return the size of a gpu vector
     size_t size() const { return size_d; }
     // Get a pointer to the gpu memory, useful when passing to a kernel
@@ -134,7 +137,10 @@ class gpu_vector {
         size_t count = size() * sizeof(T);
         cudaCheck(cudaMemcpy((void*)data_d, rhs.data_d, count, cudaMemcpyDeviceToDevice));
     }
-    void operator=(const real rhs) { set(rhs); }
+    template <typename U>
+    void operator=(const U rhs) {
+        set(rhs);
+    }
 
     T* data_d;
     std::vector<T> data_h;
