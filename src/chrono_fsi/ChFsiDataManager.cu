@@ -83,7 +83,11 @@ void ChFsiDataManager::ConstructReferenceArray() {
 
 void ChFsiDataManager::FinalizeDataManager() {
 	ConstructReferenceArray();
-	int numMarkers = sphMarkersH.rhoPresMuH.size();
+	int numMarkers = sphMarkersH.rhoPresMuH.size(); // Arman : do it with numObjects and such
+	sphMarkersD1.resize(numMarkers);
+	sphMarkersD2.resize(numMarkers);
+	fsiGeneralData.derivVelRhoD.resize(numMarkers);
+	fsiGeneralData.vel_XSPH_D.resize(numMarkers);
 
 	thrust::copy(sphMarkersH.posRadH.begin(), sphMarkersH.posRadH.end(), sphMarkersD1.posRadD.begin());
 	thrust::copy(sphMarkersH.velMasH.begin(), sphMarkersH.velMasH.end(), sphMarkersD1.velMasD.begin());
@@ -92,6 +96,28 @@ void ChFsiDataManager::FinalizeDataManager() {
 	thrust::copy(sphMarkersD1.posRadD.begin(), sphMarkersD1.posRadD.end(), sphMarkersD2.posRadD.begin());
 	thrust::copy(sphMarkersD1.velMasD.begin(), sphMarkersD1.velMasD.end(), sphMarkersD2.velMasD.begin());
 	thrust::copy(sphMarkersD1.rhoPresMuD.begin(), sphMarkersD1.rhoPresMuD.end(), sphMarkersD2.rhoPresMuD.begin());
+
+	// copy rigids
+	int numFsiBodies = fsiBodiesH.posRigid_fsiBodies_H.size(); // Arman : do it with numObjects and such or do it externally
+	fsiBodiesD1.resize(numFsiBodies);
+	fsiBodiesD2.resize(numFsiBodies);
+	fsiGeneralData.rigid_FSI_ForcesD.resize(numFsiBodies);
+	fsiGeneralData.rigid_FSI_TorquesD.resize(numFsiBodies);
+
+	// Arman: do it with zip iterator
+	thrust::copy(fsiBodiesH.posRigid_fsiBodies_H.begin(), fsiBodiesH.posRigid_fsiBodies_H.end(), fsiBodiesD1.posRigid_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesH.velMassRigid_fsiBodies_H.begin(), fsiBodiesH.velMassRigid_fsiBodies_H.end(), fsiBodiesD1.velMassRigid_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesH.accRigid_fsiBodies_H.begin(), fsiBodiesH.accRigid_fsiBodies_H.end(), fsiBodiesD1.accRigid_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesH.q_fsiBodies_H.begin(), fsiBodiesH.q_fsiBodies_H.end(), fsiBodiesD1.q_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesH.omegaVelLRF_fsiBodies_H.begin(), fsiBodiesH.omegaVelLRF_fsiBodies_H.end(), fsiBodiesD1.omegaVelLRF_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesH.omegaAccLRF_fsiBodies_H.begin(), fsiBodiesH.omegaAccLRF_fsiBodies_H.end(), fsiBodiesD1.omegaAccLRF_fsiBodies_D.begin());
+
+	thrust::copy(fsiBodiesD1.posRigid_fsiBodies_H.begin(), fsiBodiesD1.posRigid_fsiBodies_H.end(), fsiBodiesD2.posRigid_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesD1.velMassRigid_fsiBodies_H.begin(), fsiBodiesD1.velMassRigid_fsiBodies_H.end(), fsiBodiesD2.velMassRigid_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesD1.accRigid_fsiBodies_H.begin(), fsiBodiesD1.accRigid_fsiBodies_H.end(), fsiBodiesD2.accRigid_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesD1.q_fsiBodies_H.begin(), fsiBodiesD1.q_fsiBodies_H.end(), fsiBodiesD1.fsiBodiesD2.begin());
+	thrust::copy(fsiBodiesD1.omegaVelLRF_fsiBodies_H.begin(), fsiBodiesD1.omegaVelLRF_fsiBodies_H.end(), fsiBodiesD2.omegaVelLRF_fsiBodies_D.begin());
+	thrust::copy(fsiBodiesD1.omegaAccLRF_fsiBodies_H.begin(), fsiBodiesD1.omegaAccLRF_fsiBodies_H.end(), fsiBodiesD2.omegaAccLRF_fsiBodies_D.begin());
 }
 
 } // end namespace fsi

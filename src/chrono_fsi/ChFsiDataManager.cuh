@@ -30,18 +30,25 @@
 namespace chrono {
 namespace fsi {
 
-	// typedef device iterators for shorthand
+	// typedef device iterators for shorthand sph operation
 	typedef thrust::device_vector<Real3>::iterator r3IterD;
 	typedef thrust::device_vector<Real4>::iterator r4IterD;
-	typedef thrust::tuple<r3IterD, r3IterD, r4IterD> iterTupleD;
-	typedef thrust::zip_iterator<iterTupleD> zipIterD;
+	typedef thrust::tuple<r3IterD, r3IterD, r4IterD> iterTupleSphD;
+	typedef thrust::zip_iterator<iterTupleSphD> zipIterSphD;
 
 	// typedef host iterators for shorthand
 	typedef thrust::host_vector<Real3>::iterator r3IterH;
 	typedef thrust::host_vector<Real4>::iterator r4IterH;
 	typedef thrust::tuple<r3IterH, r3IterH, r4IterH> iterTupleH;
-	typedef thrust::zip_iterator<iterTupleH> zipIterH;
+	typedef thrust::zip_iterator<iterTupleH> zipIterSphH;
 
+	// typedef device iterators for shorthand rigid operations
+	typedef thrust::tuple<r3IterD, r4IterD, r3IterD, r4IterD, r3IterD, r3IterD> iterTupleRigidD;
+	typedef thrust::zip_iterator<iterTupleRigidD> zipIterRigidD;
+
+	// typedef device iterators for shorthand rigid operations
+	typedef thrust::tuple<r3IterH, r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleRigidH;
+	typedef thrust::zip_iterator<iterTupleRigidH> zipIterRigidH;
 
 
 	struct SphMarkerDataD {
@@ -50,7 +57,7 @@ namespace fsi {
 		thrust::device_vector<Real4> rhoPresMuD;
 
 		// Arman TODO: fix error. make it function, or something like thrust
-		zipIterD iterator() {
+		zipIterSphD iterator() {
 			return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin()));
 		}
 	};
@@ -61,7 +68,7 @@ namespace fsi {
 		thrust::host_vector<Real4> rhoPresMuH;
 
 		// Arman TODO: fix error. make it function, or something like thrust
-		zipIterH iterator() {
+		zipIterSphH iterator() {
 			return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin()));
 		}
 	};
@@ -73,6 +80,10 @@ namespace fsi {
 		thrust::device_vector<Real4> q_fsiBodies_D;
 		thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
 		thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
+		zipIterRigidD iterator() {
+			return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_D.begin(), velMassRigid_fsiBodies_D.begin(), accRigid_fsiBodies_D.begin(),
+				q_fsiBodies_D.begin(), omegaVelLRF_fsiBodies_D.begin(), omegaAccLRF_fsiBodies_D.begin()));
+		}
 	};
 
 	// dummy fsi bodies
@@ -83,6 +94,10 @@ namespace fsi {
 		thrust::host_vector<Real4> q_fsiBodies_H;
 		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;
 		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;
+		zipIterRigidH iterator() {
+			return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.begin(), accRigid_fsiBodies_H.begin(),
+				q_fsiBodies_H.begin(), omegaVelLRF_fsiBodies_H.begin(), omegaAccLRF_fsiBodies_H.begin()));
+		}
 	};
 
 	struct ProximityDataD {

@@ -559,48 +559,8 @@ int main(int argc, char* argv[]) {
 #if haveFluid
 
 
-	int numFsiBodies = myFsiSystem.GetFsiBodiesPtr()->size();
-	thrust::device_vector<Real3> posRigid_fsiBodies_D;
-	thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
-	thrust::device_vector<Real3> accRigid_fsiBodies_D;
-	thrust::device_vector<Real4> q_fsiBodies_D;
-	thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
-	thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
-	ResizeR3(posRigid_fsiBodies_D, numFsiBodies);
-	ResizeR4(velMassRigid_fsiBodies_D, numFsiBodies);
-	ResizeR3(accRigid_fsiBodies_D, numFsiBodies);
-	ResizeR4(q_fsiBodies_D, numFsiBodies);
-	ResizeR3(omegaVelLRF_fsiBodies_D, numFsiBodies);
-	ResizeR3(omegaAccLRF_fsiBodies_D, numFsiBodies);
-
-	thrust::host_vector<Real3> posRigid_fsiBodies_dummyH(numFsiBodies);
-	thrust::host_vector<Real4> velMassRigid_fsiBodies_dummyH(numFsiBodies);
-	thrust::host_vector<Real3> accRigid_fsiBodies_dummyH(numFsiBodies);
-	thrust::host_vector<Real4> q_fsiBodies_dummyH(numFsiBodies);
-	thrust::host_vector<Real3> omegaVelLRF_fsiBodies_dummyH(numFsiBodies);
-	thrust::host_vector<Real3> omegaAccLRF_fsiBodies_dummyH(numFsiBodies);
-
-
-
-	Copy_fsiBodies_ChSystem_to_FluidSystem(
-			posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, accRigid_fsiBodies_D,
-			q_fsiBodies_D, omegaVelLRF_fsiBodies_D, omegaAccLRF_fsiBodies_D,
-			posRigid_fsiBodies_dummyH, velMassRigid_fsiBodies_dummyH, accRigid_fsiBodies_dummyH,
-			q_fsiBodies_dummyH, omegaVelLRF_fsiBodies_dummyH, omegaAccLRF_fsiBodies_dummyH,
-			FSI_Bodies, mphysicalSystem);
-
-	thrust::device_vector<Real3> posRigid_fsiBodies_D2 = posRigid_fsiBodies_D;
-	thrust::device_vector<Real4> velMassRigid_fsiBodies_D2 = velMassRigid_fsiBodies_D;
-	thrust::device_vector<Real3> accRigid_fsiBodies_D2 = accRigid_fsiBodies_D;
-
-	thrust::device_vector<Real4> q_fsiBodies_D2 = q_fsiBodies_D;
-	thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D2 = omegaVelLRF_fsiBodies_D;
-	thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D2 = omegaAccLRF_fsiBodies_D;
-
-	thrust::device_vector<Real3> rigid_FSI_ForcesD;
-	thrust::device_vector<Real3> rigid_FSI_TorquesD;
-	ResizeR3(rigid_FSI_ForcesD, numFsiBodies);
-	ResizeR3(rigid_FSI_TorquesD, numFsiBodies);
+	myFsiSystem.FinalizeData();
+// here
 	// assert
 	if ((numObjects.numRigidBodies != numFsiBodies)
 			|| (referenceArray.size() - 2 != numFsiBodies)) {

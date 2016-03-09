@@ -191,6 +191,11 @@ void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mV
 	mVehicle = other_mVehicle;
 	haveVehicle = true;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+void Finalize() {
+	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));
+	fsiData->FinalizeDataManager();
+}
 
 } // end namespace fsi
 } // end namespace chrono
