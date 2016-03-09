@@ -365,31 +365,52 @@ void ChMPMContainer::Initialize() {
     printf("ChMPMContainer::Initialize()\n");
     ComputeDOF();
     const real dt = data_manager->settings.step_size;
-    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+    // custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
 
-    marker_volume.resize(num_mpm_markers);
-    node_mass.resize(num_mpm_nodes);
-    std::fill(node_mass.begin(), node_mass.end(), 0);
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        LOOPOVERNODES(                                                                //
-            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
-            node_mass[current_node] += weight;                                        //
-            )
-    }
+    MPM_Settings temp_settings;
+    temp_settings.dt = dt;
+    temp_settings.kernel_radius = kernel_radius;
+    temp_settings.inv_radius = 1.0 / kernel_radius;
+    temp_settings.bin_edge = kernel_radius * 2;
+    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+    temp_settings.max_velocity = max_velocity;
+    temp_settings.mu = mu;
+    temp_settings.lambda = lambda;
+    temp_settings.hardening_coefficient = hardening_coefficient;
+    temp_settings.theta_c = theta_c;
+    temp_settings.theta_s = theta_s;
+    temp_settings.alpha_flip = alpha;
+    temp_settings.youngs_modulus = youngs_modulus;
+    temp_settings.poissons_ratio = nu;
+    temp_settings.num_mpm_markers = num_mpm_markers;
+    temp_settings.mass = mass;
+    temp_settings.num_iterations = max_iterations;
 
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        real particle_density = 0;
+    MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
 
-        LOOPOVERNODES(                                                  //
-            real weight = N(xi - current_node_location, inv_bin_edge);  //
-            particle_density += node_mass[current_node] * weight;       //
-            )
-        particle_density /= (bin_edge * bin_edge * bin_edge);
-        marker_volume[p] = mass / particle_density;
-        // printf("Volumes: %.20f \n", marker_volume[p], particle_density);
-    }
+    //    marker_volume.resize(num_mpm_markers);
+    //    node_mass.resize(num_mpm_nodes);
+    //    std::fill(node_mass.begin(), node_mass.end(), 0);
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //        LOOPOVERNODES(                                                                //
+    //            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
+    //            node_mass[current_node] += weight;                                        //
+    //            )
+    //    }
+    //
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        const real3 xi = pos_marker[p];
+    //        real particle_density = 0;
+    //
+    //        LOOPOVERNODES(                                                  //
+    //            real weight = N(xi - current_node_location, inv_bin_edge);  //
+    //            particle_density += node_mass[current_node] * weight;       //
+    //            )
+    //        particle_density /= (bin_edge * bin_edge * bin_edge);
+    //        marker_volume[p] = mass / particle_density;
+    //        // printf("Volumes: %.20f \n", marker_volume[p], particle_density);
+    //    }
 }
 
 void ChMPMContainer::Build_D() {
@@ -634,7 +655,26 @@ void ChMPMContainer::PreSolve() {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
     const real dt = data_manager->settings.step_size;
 
-    MPM_Initialize(mass, kernel_radius, pos_marker);
+    MPM_Settings temp_settings;
+    temp_settings.dt = dt;
+    temp_settings.kernel_radius = kernel_radius;
+    temp_settings.inv_radius = 1.0 / kernel_radius;
+    temp_settings.bin_edge = kernel_radius * 2;
+    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+    temp_settings.max_velocity = max_velocity;
+    temp_settings.mu = mu;
+    temp_settings.lambda = lambda;
+    temp_settings.hardening_coefficient = hardening_coefficient;
+    temp_settings.theta_c = theta_c;
+    temp_settings.theta_s = theta_s;
+    temp_settings.alpha_flip = alpha;
+    temp_settings.youngs_modulus = youngs_modulus;
+    temp_settings.poissons_ratio = nu;
+    temp_settings.num_mpm_markers = num_mpm_markers;
+    temp_settings.mass = mass;
+    temp_settings.num_iterations = max_iterations;
+
+    MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
 
     //#pragma omp parallel for
     //    for (int index = 0; index < num_mpm_nodes_active; index++) {

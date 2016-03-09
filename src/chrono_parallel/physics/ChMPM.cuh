@@ -22,6 +22,21 @@
 
 namespace chrono {
 
-void MPM_Initialize(const real marker_mass, const real radius, std::vector<real3>& positions);
-void MPM_Solve(const real kernel_radius, std::vector<real3>& positions, std::vector<real3>& velocities);
+struct MPM_Settings {
+    real dt, kernel_radius, inv_radius, bin_edge;
+    real inv_bin_edge, max_velocity, mu, lambda;
+    real hardening_coefficient, theta_c, theta_s, alpha_flip;
+    real youngs_modulus, poissons_ratio;
+    int num_mpm_markers;
+    int num_mpm_nodes;
+    real mass;
+    real p1, p2, p3;
+    int num_iterations;
+    int bins_per_axis_x;
+    int bins_per_axis_y;
+    int bins_per_axis_z;
+};
+
+void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions);
+void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities);
 }
