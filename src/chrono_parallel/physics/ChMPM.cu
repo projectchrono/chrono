@@ -25,6 +25,18 @@ struct Settings {
 CUDA_CONSTANT Settings system_settings;
 CUDA_CONSTANT Bounds system_bounds;
 
+/////// BB Constants
+__device__ real alpha = 0.0001;
+__device__ real dot_ms_ms = 0;
+__device__ real dot_ms_my = 0;
+__device__ real dot_my_my = 0;
+__device__ real gdiff = 1;
+
+CUDA_CONSTANT real a_min = 1e-13;
+CUDA_CONSTANT real a_max = 1e13;
+CUDA_CONSTANT real neg_BB1_fallback = 0.11;
+CUDA_CONSTANT real neg_BB2_fallback = 0.12;
+
 #define LOOP_TWO_RING_GPU(X)                                                                         \
     const real bin_edge = system_settings.bin_edge;                                                  \
     const real inv_bin_edge = 1.f / bin_edge;                                                        \
@@ -219,20 +231,25 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
 CUDA_GLOBAL void kMultiplyB(const real* v_array,
                             const real* old_vel_node_mpm,
                             const real* node_mass,
+                            const real* offset_array,
                             real* result_array) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < system_settings.num_nodes) {
         real mass = node_mass[i];
         if (mass > C_EPSILON) {
             result_array[i * 3 + 0] =
-                mass * (v_array[i * 3 + 0] + old_vel_node_mpm[i * 3 + 0]) + result_array[i * 3 + 0];
+                (mass * (v_array[i * 3 + 0] + old_vel_node_mpm[i * 3 + 0]) + result_array[i * 3 + 0]) -
+                offset_array[i * 3 + 0];
             result_array[i * 3 + 1] =
-                mass * (v_array[i * 3 + 1] + old_vel_node_mpm[i * 3 + 1]) + result_array[i * 3 + 1];
+                (mass * (v_array[i * 3 + 1] + old_vel_node_mpm[i * 3 + 1]) + result_array[i * 3 + 1]) -
+                offset_array[i * 3 + 1];
             result_array[i * 3 + 2] =
-                mass * (v_array[i * 3 + 2] + old_vel_node_mpm[i * 3 + 2]) + result_array[i * 3 + 2];
+                (mass * (v_array[i * 3 + 2] + old_vel_node_mpm[i * 3 + 2]) + result_array[i * 3 + 2]) -
+                offset_array[i * 3 + 2];
         }
     }
 }
+
 void ChMPM::Bounds(const real kernel_radius, std::vector<real3>& positions) {
     num_mpm_markers = positions.size();
     max_bounding_point = real3(-FLT_MAX);
@@ -290,14 +307,174 @@ void ChMPM::Initialize(const real marker_mass, const real radius, std::vector<re
                                                          node_mass.data_d,  // output
                                                          marker_volume.data_d);
 }
+void ChMPM::Multiply(gpu_vector<real>& input, gpu_vector<real>& output, gpu_vector<real>& r) {
+    //    int size = input.size();
+    //    kMultiplyA<<<CONFIG(size)>>>(sorted_pos,  // input
+    //                                 input.data_d, old_vel_node_mpm.data_d,
+    //                                 marker_Fe_hat.data_d,  // input
+    //                                 marker_Fe.data_d,      // input
+    //                                 marker_Fp.data_d,      // input
+    //                                 marker_volume.data_d,  // input
+    //                                 output.data_d);
+    //
+    //    kMultiplyB<<<CONFIG(size)>>>(input, old_vel_node_mpm.data_d, node_mass.data_d, r.data_d, result_array.data_d);
+}
+template <bool inner>
+CUDA_GLOBAL void kResetGlobals(int size) {
+    if (inner) {
+        dot_ms_ms = 0;
+        dot_ms_my = 0;
+        dot_my_my = 0;
+    } else {
+        alpha = 0.0001;
+        gdiff = 1.0 / pow(size, 2.0);
+    }
+}
 
-void ChMPM::BBSolver(gpu_vector<real>& rhs, gpu_vector<real>& delta_v) {
+template <bool even>
+CUDA_GLOBAL void kUpdateAlpha(int num_items, real* ml_p, real* ml, real* mg_p, real* mg) {
+    typedef cub::BlockReduce<real, num_threads_per_block> BlockReduce;
+    __shared__ typename BlockReduce::TempStorage temp_storage;
+    const int block_start = blockDim.x * blockIdx.x;
+    const int num_valid = min(num_items - block_start, blockDim.x);
 
+    const int tid = block_start + threadIdx.x;
+    if (tid < num_items) {
+        real data, block_sum;
+        real ms = ml_p[tid] - ml[tid];
+        real my = mg_p[tid] - mg[tid];
 
+        if (even) {
+            data = ms * ms;
+            block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
+            if (threadIdx.x == 0) {
+                atomicAdd(&dot_ms_ms, block_sum);
+            }
+        } else {
+            data = my * my;
+            block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
+            if (threadIdx.x == 0) {
+                atomicAdd(&dot_my_my, block_sum);
+            }
+        }
+        __syncthreads();
+        data = ms * my;
+        block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
 
+        if (threadIdx.x == 0) {
+            atomicAdd(&dot_ms_my, block_sum);
+        }
+    }
+}
 
+template <bool even>
+CUDA_GLOBAL void kAlpha() {
+    if (even) {
+        if (dot_ms_my <= 0) {
+            alpha = neg_BB1_fallback;
+        } else {
+            alpha = Min(a_max, Max(a_min, dot_ms_ms / dot_ms_my));
+        }
+    } else {
+        if (dot_ms_my <= 0) {
+            alpha = neg_BB2_fallback;
+        } else {
+            alpha = Min(a_max, Max(a_min, dot_ms_my / dot_my_my));
+        }
+    }
+}
 
+CUDA_GLOBAL void kCompute_ml_p(int num_items, real* ml, real* mg, real* ml_p) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < num_items) {
+        ml_p[i] = ml[i] + alpha * mg[i];
+    }
+}
+CUDA_GLOBAL void kResidual(int num_items, real* mg, real* dot_g_proj_norm) {
+    typedef cub::BlockReduce<real, num_threads_per_block> BlockReduce;
+    __shared__ typename BlockReduce::TempStorage temp_storage;
+    const int block_start = blockDim.x * blockIdx.x;
+    const int num_valid = min(num_items - block_start, blockDim.x);
+    real data, block_sum;
+    const int tid = block_start + threadIdx.x;
+    if (tid < num_items) {
+        data = gdiff * mg[tid] / (-gdiff);
+        block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
 
+        if (threadIdx.x == 0) {
+            atomicAdd(&dot_g_proj_norm[0], block_sum);
+        }
+    }
+}
+void ChMPM::BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
+    const uint size = rhs.size();
+
+    temp.resize(size);
+    ml.resize(size);
+    mg.resize(size);
+    mg_p.resize(size);
+    ml_candidate.resize(size);
+    ms.resize(size);
+    my.resize(size);
+    mdir.resize(size);
+    ml_p.resize(size);
+
+    temp = 0;
+    ml = 0;
+    mg = 0;
+    mg_p = 0;
+    ml_candidate = 0;
+    ms = 0;
+    my = 0;
+    mdir = 0;
+    ml_p = 0;
+
+    real sigma_min = 0.1;
+    real sigma_max = 0.9;
+    real alpha = 0.0001;
+    real gmma = 1e-4;
+
+    real lastgoodres = 10e30;
+    real lastgoodfval = 10e30;
+
+    // Kernel 1
+    Multiply(delta_v, mg, r);
+    //
+    ml = delta_v;
+    ml_candidate = delta_v;
+
+    // real mf_p = 0;
+
+    gpu_vector<real> dot_g_proj_norm(1);
+    kResetGlobals<false><<<CONFIG(1)>>>(size);
+
+    for (int current_iteration = 0; current_iteration < 40; current_iteration++) {
+        kResetGlobals<true><<<CONFIG(1)>>>(size);
+
+        kCompute_ml_p<<<CONFIG(size)>>>(size, ml.data_d, mg.data_d, ml_p.data_d);
+        Multiply(ml_p, mg_p, r);
+        ml = ml_p;
+        mg = mg_p;
+
+        if (current_iteration % 2 == 0) {
+            kUpdateAlpha<true><<<CONFIG(size)>>>(size, ml_p.data_d, ml.data_d, mg_p.data_d, mg.data_d);
+            kAlpha<true><<<CONFIG(1)>>>();
+        } else {
+            kUpdateAlpha<false><<<CONFIG(size)>>>(size, ml_p.data_d, ml.data_d, mg_p.data_d, mg.data_d);
+            kAlpha<false><<<CONFIG(1)>>>();
+        }
+
+        kResidual<<<CONFIG(size)>>>(size, mg.data_d, dot_g_proj_norm.data_d);
+        dot_g_proj_norm.copyDeviceToHost();
+        real g_proj_norm = Sqrt(dot_g_proj_norm.data_h[0]);
+        if (g_proj_norm < lastgoodres) {
+            lastgoodres = g_proj_norm;
+            // objective_value = mf_p;
+            ml_candidate = ml;
+        }
+    }
+
+    delta_v = ml_candidate;
 }
 
 void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::vector<real3>& velocities) {
