@@ -79,22 +79,22 @@ void ANCFToroidalTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFra
             int node0, node1, node2, node3;
             if (j == m_div_diameter - 1) {
                 node0 = i + j * (m_div_thread + 1);
-                node1 = i;
-                node2 = i + 1;
-                node3 = i + 1 + j * (m_div_thread + 1);
+                node1 = i + j * (m_div_thread + 1) + 1;
+                node2 = i;
+                node3 = i + 1;
             } else {
                 node0 = i + j * (m_div_thread + 1);
-                node1 = i + (j + 1) * (m_div_thread + 1);
-                node2 = i + 1 + (j + 1) * (m_div_thread + 1);
-                node3 = i + 1 + j * (m_div_thread + 1);
+                node1 = i + j * (m_div_thread + 1) + 1;
+                node2 = i + (j + 1) * (m_div_thread + 1);
+                node3 = i + 1 + (j + 1) * (m_div_thread + 1);
             }
 
             // Create the element and set its nodes.
             auto element = std::make_shared<ChElementShellANCF>();
-            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)));
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
 
             // Set element dimensions
             element->SetDimensions(dx, dy);
