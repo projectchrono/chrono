@@ -170,35 +170,69 @@ CUDA_GLOBAL void kRhs(const real3* sorted_pos,     // input
     }
 }
 
-CUDA_GLOBAL void kMultiply(const real3* sorted_pos,     // input
-                           const Mat33* marker_Fe_hat,  // input
-                           const Mat33* marker_Fe,      // input
-                           const Mat33* marker_Fp,      // input
-                           const real* marker_volume,   // input
-                           real* rhs,                   // output
-                           real* volume) {
+CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
+                            const real* v_array,
+                            const real* old_vel_node_mpm,
+                            const Mat33* marker_Fe_hat,  // input
+                            const Mat33* marker_Fe,      // input
+                            const Mat33* marker_Fp,      // input
+                            const real* marker_volume,   // input
+                            real* result_array) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < system_settings.num_particles) {
         const real3 xi = sorted_pos[p];
-
-        Mat33 PED =
-            Potential_Energy_Derivative_Deviatoric(marker_Fe_hat[p], marker_Fp[p], system_settings.mu,
-                                                   system_settings.lambda, system_settings.hardening_coefficient);
-        Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, marker_Fe[p]);
-        real JE = Determinant(marker_Fe[p]);  //
-        real JP = Determinant(marker_Fp[p]);
-
-        LOOP_TWO_RING_GPU(                                                  //
-            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
-            real3 force = system_settings.dt * (vPEDFepT * d_weight) / (JE * JP);
-
-            rhs[current_node * 3 + 0] -= force.x;  //
-            rhs[current_node * 3 + 1] -= force.y;  //
-            rhs[current_node * 3 + 2] -= force.z;  //
+        Mat33 delta_F(0);
+        LOOP_TWO_RING_GPU(  //
+            real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
+            real3 vold(old_vel_node_mpm[current_node * 3 + 0], old_vel_node_mpm[current_node * 3 + 1],
+                       old_vel_node_mpm[current_node * 3 + 2]);
+            real3 v0 = vold + vnew;                                   //
+            real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
+            delta_F += OuterProduct(v0, v1);                          //
             )
+
+        real plastic_determinant = Determinant(marker_Fp[p]);
+        real J = Determinant(marker_Fe_hat[p]);
+        real current_mu = system_settings.mu * Exp(system_settings.hardening_coefficient * (1.0 - plastic_determinant));
+        real current_lambda =
+            system_settings.lambda * Exp(system_settings.hardening_coefficient * (1.0 - plastic_determinant));
+        Mat33 Fe_hat_inv_transpose = InverseTranspose(marker_Fe_hat[p]);
+
+        real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
+        Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
+        Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
+        Mat33 RD = Rotational_Derivative(marker_Fe_hat[p], delta_F);
+
+        Mat33 volume_Ap_Fe_transpose =
+            marker_volume[p] * (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
+                                (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
+            Transpose(marker_Fe[p]);
+        {
+            LOOP_TWO_RING_GPU(  //
+                real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);
+                atomicAdd(&result_array[current_node * 3 + 0], res.x);
+                atomicAdd(&result_array[current_node * 3 + 1], res.y);
+                atomicAdd(&result_array[current_node * 3 + 2], res.z););
+        }
     }
 }
-
+CUDA_GLOBAL void kMultiplyB(const real* v_array,
+                            const real* old_vel_node_mpm,
+                            const real* node_mass,
+                            real* result_array) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < system_settings.num_nodes) {
+        real mass = node_mass[i];
+        if (mass > C_EPSILON) {
+            result_array[i * 3 + 0] =
+                mass * (v_array[i * 3 + 0] + old_vel_node_mpm[i * 3 + 0]) + result_array[i * 3 + 0];
+            result_array[i * 3 + 1] =
+                mass * (v_array[i * 3 + 1] + old_vel_node_mpm[i * 3 + 1]) + result_array[i * 3 + 1];
+            result_array[i * 3 + 2] =
+                mass * (v_array[i * 3 + 2] + old_vel_node_mpm[i * 3 + 2]) + result_array[i * 3 + 2];
+        }
+    }
+}
 void ChMPM::Bounds(const real kernel_radius, std::vector<real3>& positions) {
     num_mpm_markers = positions.size();
     max_bounding_point = real3(-FLT_MAX);
@@ -256,7 +290,16 @@ void ChMPM::Initialize(const real marker_mass, const real radius, std::vector<re
                                                          node_mass.data_d,  // output
                                                          marker_volume.data_d);
 }
-//
+
+void ChMPM::BBSolver(gpu_vector<real>& rhs, gpu_vector<real>& delta_v) {
+
+
+
+
+
+
+}
+
 void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::vector<real3>& velocities) {
     num_mpm_markers = positions.size();
 
@@ -284,6 +327,8 @@ void ChMPM::Solve(const real kernel_radius, std::vector<real3>& positions, std::
                                       marker_volume.data_d);
     delta_v.resize(num_mpm_nodes);
     delta_v.set(0);
+
+    BBSolver(rhs, delta_v);
 
     // Solver Kernels
     // Resize

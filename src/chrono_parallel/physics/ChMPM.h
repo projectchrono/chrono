@@ -28,6 +28,7 @@ class ChMPM {
     void Solve(const real kernel_radius, std::vector<real3>& positions, std::vector<real3>& velocities);
     void UpdateState();
     void Bounds(const real kernel_radius, std::vector<real3>& positions);
+    void BBSolver(gpu_vector<real> & rhs, gpu_vector<real>& delta_v);
     uint num_mpm_markers;
     uint num_mpm_nodes;
 
