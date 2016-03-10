@@ -30,6 +30,8 @@ class gpu_vector {
     gpu_vector() : size_d(0), data_d(0) {}
     // Construct and allocate a gpu_vector with a certain size
     gpu_vector(size_t size) { allocate(size); }
+    // Provide pointer to device data and size
+    gpu_vector(T* ptr, size_t size) : size_d(size), data_d(ptr) {}
     // Clear the vector on destruct
     ~gpu_vector() { clear(); }
     // Allocate a vector if it has zero size, otherwise resize it
