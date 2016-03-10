@@ -54,27 +54,26 @@ CUDA_CONSTANT real a_max = 1e13;
 CUDA_CONSTANT real neg_BB1_fallback = 0.11;
 CUDA_CONSTANT real neg_BB2_fallback = 0.12;
 
-#define LOOP_TWO_RING_GPU(X)                                                                         \
-    const real bin_edge = device_settings.bin_edge;                                                  \
-    const real inv_bin_edge = 1.f / bin_edge;                                                        \
-                                                                                                     \
-    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                          \
-    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                          \
-    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);                          \
-                                                                                                     \
-    for (int k = cz - 2; k <= cz + 2; ++k) {                                                         \
-        for (int j = cy - 2; j <= cy + 2; ++j) {                                                     \
-            for (int i = cx - 2; i <= cx + 2; ++i) {                                                 \
-                vec3 bins_per_axis(device_settings.bins_per_axis_x, device_settings.bins_per_axis_y, \
-                                   device_settings.bins_per_axis_z);                                 \
-                const int current_node = GridHash(i, j, k, bins_per_axis);                           \
-                real3 current_node_location;                                                         \
-                current_node_location.x = i * bin_edge + system_bounds.minimum[0];                   \
-                current_node_location.y = j * bin_edge + system_bounds.minimum[1];                   \
-                current_node_location.z = k * bin_edge + system_bounds.minimum[2];                   \
-                X                                                                                    \
-            }                                                                                        \
-        }                                                                                            \
+#define LOOP_TWO_RING_GPU(X)                                                             \
+    const real bin_edge = device_settings.bin_edge;                                      \
+    const real inv_bin_edge = 1.f / bin_edge;                                            \
+                                                                                         \
+    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);              \
+    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);              \
+    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);              \
+    vec3 bins_per_axis(device_settings.bins_per_axis_x, device_settings.bins_per_axis_y, \
+                       device_settings.bins_per_axis_z);                                 \
+    for (int i = cx - 2; i <= cx + 2; ++i) {                                             \
+        for (int j = cy - 2; j <= cy + 2; ++j) {                                         \
+            for (int k = cz - 2; k <= cz + 2; ++k) {                                     \
+                const int current_node = GridHash(i, j, k, bins_per_axis);               \
+                real3 current_node_location;                                             \
+                current_node_location.x = i * bin_edge + system_bounds.minimum[0];       \
+                current_node_location.y = j * bin_edge + system_bounds.minimum[1];       \
+                current_node_location.z = k * bin_edge + system_bounds.minimum[2];       \
+                X                                                                        \
+            }                                                                            \
+        }                                                                                \
     }
 
 //////========================================================================================================================================================================
@@ -180,7 +179,7 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
         marker_Fe_hat[p] = Mat33(1.0);
-        Mat33 Fe_hat_t(1);
+        Mat33 Fe_hat_t(1.0);
         LOOP_TWO_RING_GPU(                                                             //
             real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);  //
             real3 kern = dN(xi - current_node_location, inv_bin_edge);                 //
@@ -213,9 +212,10 @@ CUDA_GLOBAL void kRhs(const real3* sorted_pos,     // input
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
             real3 force = device_settings.dt * (vPEDFepT * d_weight) / (JE * JP);
 
-            rhs[current_node * 3 + 0] -= force.x;  //
-            rhs[current_node * 3 + 1] -= force.y;  //
-            rhs[current_node * 3 + 2] -= force.z;  //
+            atomicAdd(&rhs[current_node * 3 + 0], -force.x);
+            atomicAdd(&rhs[current_node * 3 + 1], -force.y);
+            atomicAdd(&rhs[current_node * 3 + 2], -force.z);
+
             //            printf("rhs: [%f %f %f] %f %f\n", d_weight.x, d_weight.y, d_weight.z, device_settings.dt, (JE
             //            * JP));
 
@@ -235,34 +235,27 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
         Mat33 delta_F(0);
-        LOOP_TWO_RING_GPU(  //
-            real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
-            real3 vold(old_vel_node_mpm[current_node * 3 + 0], old_vel_node_mpm[current_node * 3 + 1],
-                       old_vel_node_mpm[current_node * 3 + 2]);
-            real3 v0 = vold + vnew;  //
+        {
+            LOOP_TWO_RING_GPU(  //
+                real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
+                real3 vold(old_vel_node_mpm[current_node * 3 + 0], old_vel_node_mpm[current_node * 3 + 1],
+                           old_vel_node_mpm[current_node * 3 + 2]);
+                real3 v0 = vold + vnew;                                   //
+                real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
+                delta_F += OuterProduct(v0, v1);                          //
+                )
+        }
+        // Mat33 A = delta_F;
+        //        printf("%s %d: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", "vold", p, A[0], A[1], A[2], A[4], A[5], A[6], A[8],
+        //        A[9],
+        //               A[10]);
 
-            real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
-
-            delta_F += OuterProduct(v0, v1);  //
-            )
+        delta_F = delta_F * marker_Fe[p];
 
         real plastic_determinant = Determinant(marker_Fp[p]);
-        real J = Determinant(marker_Fe_hat[p]);
         real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (1.0 - plastic_determinant));
-        real current_lambda =
-            device_settings.lambda * Exp(device_settings.hardening_coefficient * (1.0 - plastic_determinant));
-        Mat33 Fe_hat_inv_transpose = InverseTranspose(marker_Fe_hat[p]);
-
-        real dJ = J * InnerProduct(Fe_hat_inv_transpose, delta_F);
-        // printf("gJ: %f %d\n", dJ, p);
-        Mat33 dF_inverse_transposed = -Fe_hat_inv_transpose * Transpose(delta_F) * Fe_hat_inv_transpose;
-        Mat33 dJF_inverse_transposed = dJ * Fe_hat_inv_transpose + J * dF_inverse_transposed;
         Mat33 RD = Rotational_Derivative(marker_Fe_hat[p], delta_F);
-
-        Mat33 volume_Ap_Fe_transpose =
-            marker_volume[p] * (2 * current_mu * (delta_F - RD) + (current_lambda * J * dJ) * Fe_hat_inv_transpose +
-                                (current_lambda * (J - 1.0)) * dJF_inverse_transposed) *
-            Transpose(marker_Fe[p]);
+        Mat33 volume_Ap_Fe_transpose = marker_volume[p] * MultTranspose(2 * current_mu * (delta_F - RD), marker_Fe[p]);
         {
             LOOP_TWO_RING_GPU(  //
                 real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);
@@ -279,15 +272,10 @@ CUDA_GLOBAL void kMultiplyB(const real* v_array,
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < device_settings.num_mpm_nodes) {
         real mass = node_mass[i];
-        if (mass > C_EPSILON) {
-            result_array[i * 3 + 0] =
-                mass * (v_array[i * 3 + 0] + old_vel_node_mpm[i * 3 + 0]) + result_array[i * 3 + 0];
-
-            result_array[i * 3 + 1] =
-                mass * (v_array[i * 3 + 1] + old_vel_node_mpm[i * 3 + 1]) + result_array[i * 3 + 1];
-
-            result_array[i * 3 + 2] =
-                mass * (v_array[i * 3 + 2] + old_vel_node_mpm[i * 3 + 2]) + result_array[i * 3 + 2];
+        if (mass > 0) {
+            result_array[i * 3 + 0] += mass * (v_array[i * 3 + 0] + old_vel_node_mpm[i * 3 + 0]);
+            result_array[i * 3 + 1] += mass * (v_array[i * 3 + 1] + old_vel_node_mpm[i * 3 + 1]);
+            result_array[i * 3 + 2] += mass * (v_array[i * 3 + 2] + old_vel_node_mpm[i * 3 + 2]);
         }
     }
 }
@@ -344,13 +332,30 @@ void MPM_ComputeBounds() {
 
 void Multiply(gpu_vector<real>& input, gpu_vector<real>& output) {
     int size = input.size();
-    kMultiplyA<<<CONFIG(size)>>>(pos.data_d,  // input
-                                 input.data_d, old_vel_node_mpm.data_d,
+
+    //    old_vel_node_mpm.copyDeviceToHost();
+    // pos.copyDeviceToHost();
+
+    //    for (int i = 0; i < host_settings.num_mpm_nodes; i++) {
+    //        printf("pd: %d [%.20f %.20f %.20f]\n", i, pos.data_h[i * 3 + 0], pos.data_h[i * 3 + 1], pos.data_h[i * 3 +
+    //        2]);
+    //    }
+    //    for (int i = 0; i < host_settings.num_mpm_markers; i++) {
+    //        printf("pd: %d [%.20f %.20f %.20f]\n", i, pos.data_h[i].x, pos.data_h[i].y, pos.data_h[i].z);
+    //    }
+    kMultiplyA<<<CONFIG(size)>>>(pos.data_d,    // input
+                                 input.data_d,  //
+                                 old_vel_node_mpm.data_d,
                                  marker_Fe_hat.data_d,  // input
                                  marker_Fe.data_d,      // input
                                  marker_Fp.data_d,      // input
                                  marker_volume.data_d,  // input
                                  output.data_d);
+    //    output.copyDeviceToHost();
+    //
+    //    for (int i = 0; i < host_settings.num_mpm_nodes; i++) {
+    //        printf("Nd: %d [%.20f %.20f %.20f]\n", i, output[i * 3 + 0], output[i * 3 + 1], output[i * 3 + 2]);
+    //    }
 
     kMultiplyB<<<CONFIG(size)>>>(input.data_d, old_vel_node_mpm.data_d, node_mass.data_d, output.data_d);
 }
@@ -427,7 +432,7 @@ CUDA_GLOBAL void kAlpha() {
             alpha = Min(a_max, Max(a_min, dot_ms_my / dot_my_my));
         }
     }
-    printf("alpha: %f %f %f %f \n", alpha, dot_ms_ms, dot_ms_my, dot_my_my);
+    // printf("alpha: %f %f %f %f \n", alpha, dot_ms_ms, dot_ms_my, dot_my_my);
 }
 
 CUDA_GLOBAL void kCompute_ml_p(int num_items, real* ml, real* mg, real* ml_p) {
@@ -483,12 +488,6 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
     // Kernel 1
 
     Multiply(ml, mg);
-
-    // mg.copyDeviceToHost();
-
-    //    for (int i = 0; i < size; i++) {
-    //        printf("ng: %d %f\n", i, mg.data_h[i]);
-    //    }
 
     kSubtract<<<CONFIG(size)>>>(size, r.data_d, mg.data_d);
 
@@ -620,8 +619,8 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
     old_vel_node_mpm.resize(host_settings.num_mpm_nodes * 3);
     old_vel_node_mpm = grid_vel;
 
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
+    //    cudaCheck(cudaPeekAtLastError());
+    //    cudaCheck(cudaDeviceSynchronize());
 
     rhs.resize(host_settings.num_mpm_nodes * 3);
     rhs = 0;
@@ -637,13 +636,24 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
                                                     rhs.data_d,            // output
                                                     marker_volume.data_d);
 
+    //    rhs.copyDeviceToHost();
+    //
+    //    for (int i = 0; i < host_settings.num_mpm_nodes; i++) {
+    //        printf("Rd: %d [%.20f %.20f %.20f]\n", i, rhs.data_h[i * 3 + 0], rhs.data_h[i * 3 + 1], rhs.data_h[i * 3 +
+    //        2]);
+    //    }
+
     delta_v.resize(host_settings.num_mpm_nodes * 3);
     delta_v = 0;
 
     MPM_BBSolver(rhs, delta_v);
+
     kIncrementVelocity<<<CONFIG(host_settings.num_mpm_nodes)>>>(delta_v.data_d, grid_vel.data_d);
     kUpdateParticleVelocity<<<CONFIG(host_settings.num_mpm_markers)>>>(
         grid_vel.data_d, old_vel_node_mpm.data_d, pos.data_d, vel.data_d, marker_Fe.data_d, marker_Fp.data_d);
+    vel.copyDeviceToHost();
+
+    velocities = vel.data_h;
 }
 
 CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp) {
