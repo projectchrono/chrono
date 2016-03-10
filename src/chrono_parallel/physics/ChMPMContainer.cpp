@@ -21,6 +21,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
+#define USE_CPU 1
 //////////////////////////////////////
 //////////////////////////////////////
 
@@ -203,50 +204,53 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     std::fill(marker_Fp.begin(), marker_Fp.end(), Mat33(1));
 }
 void ChMPMContainer::ComputeDOF() {
-//    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-//    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-//    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-//
-//    bbox res(pos_marker[0], pos_marker[0]);
-//    bbox_transformation unary_op;
-//    bbox_reduction binary_op;
-//    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
-//
-//    res.first.x = kernel_radius * Round(res.first.x / kernel_radius);
-//    res.first.y = kernel_radius * Round(res.first.y / kernel_radius);
-//    res.first.z = kernel_radius * Round(res.first.z / kernel_radius);
-//
-//    res.second.x = kernel_radius * Round(res.second.x / kernel_radius);
-//    res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
-//    res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
-//    // Note that 8 and 6 are the optimal values here, 6 and 4 will cause memory errors in valgrind
-//    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 8;
-//    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 6;
-//
-//    real3 diag = max_bounding_point - min_bounding_point;
-//    bin_edge = kernel_radius * 2;
-//    bins_per_axis = vec3(diag / bin_edge);
-//    inv_bin_edge = real(1.) / bin_edge;
-//    uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
-//    num_mpm_nodes = grid_size;
-//
-//    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
-//    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-//    printf("Compute DOF [%d] [%d %d %d] [%f] %d %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
-//           bin_edge, num_mpm_nodes, num_mpm_markers);
+#if USE_CPU
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
+
+    bbox res(pos_marker[0], pos_marker[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
+
+    res.first.x = kernel_radius * Round(res.first.x / kernel_radius);
+    res.first.y = kernel_radius * Round(res.first.y / kernel_radius);
+    res.first.z = kernel_radius * Round(res.first.z / kernel_radius);
+
+    res.second.x = kernel_radius * Round(res.second.x / kernel_radius);
+    res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
+    res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
+    // Note that 8 and 6 are the optimal values here, 6 and 4 will cause memory errors in valgrind
+    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 8;
+    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 6;
+
+    real3 diag = max_bounding_point - min_bounding_point;
+    bin_edge = kernel_radius * 2;
+    bins_per_axis = vec3(diag / bin_edge);
+    inv_bin_edge = real(1.) / bin_edge;
+    uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
+    num_mpm_nodes = grid_size;
+
+    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
+    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
+    printf("Compute DOF [%d] [%d %d %d] [%f] %d %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
+           bin_edge, num_mpm_nodes, num_mpm_markers);
+#endif
 }
 
 void ChMPMContainer::Update(double ChTime) {
     Setup(0);
     ComputeDOF();
-//    node_mass.resize(num_mpm_nodes);
-//    old_vel_node_mpm.resize(num_mpm_nodes * 3);
-//    rhs.resize(num_mpm_nodes * 3);
-//    grid_vel.resize(num_mpm_nodes * 3);
+#if USE_CPU
+    node_mass.resize(num_mpm_nodes);
+    old_vel_node_mpm.resize(num_mpm_nodes * 3);
+    rhs.resize(num_mpm_nodes * 3);
+    grid_vel.resize(num_mpm_nodes * 3);
 
-//    std::fill(node_mass.begin(), node_mass.end(), 0);
-//    std::fill(grid_vel.begin(), grid_vel.end(), 0);
-
+    std::fill(node_mass.begin(), node_mass.end(), 0);
+    std::fill(grid_vel.begin(), grid_vel.end(), 0);
+#endif
     real3 g_acc = data_manager->settings.gravity;
     real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
 #pragma omp parallel for
@@ -256,65 +260,48 @@ void ChMPMContainer::Update(double ChTime) {
         data_manager->host_data.hf[body_offset + i * 3 + 1] = h_gravity.y;
         data_manager->host_data.hf[body_offset + i * 3 + 2] = h_gravity.z;
     }
+#if USE_CPU
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
 
-//    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-//
-//    particle_node_mapping.resize(num_mpm_markers * 125);
-//    particle_number.resize(num_mpm_markers * 125);
+    particle_node_mapping.resize(num_mpm_markers * 125);
+    particle_number.resize(num_mpm_markers * 125);
 // For each particle determine nodes
-//#pragma omp parallel for
-//    for (int p = 0; p < num_mpm_markers; p++) {
-//        const real3 xi = pos_marker[p];
-//        int counter = 0;
-//
-//        LOOPOVERNODES(                                                //
-//            particle_node_mapping[p * 125 + counter] = current_node;  //
-//            particle_number[p * 125 + counter] = p;                   //
-//            counter++;)
-//
-//        // printf("Counter: %d\n", counter);
-//    }
+#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        int counter = 0;
+
+        LOOPOVERNODES(                                                //
+            particle_node_mapping[p * 125 + counter] = current_node;  //
+            particle_number[p * 125 + counter] = p;                   //
+            counter++;)
+
+        // printf("Counter: %d\n", counter);
+    }
 
     // After sorting we have a list of nodes in order with the particle at each node
-    //thrust::sort_by_key(particle_node_mapping.begin(), particle_node_mapping.end(), particle_number.begin());
+    thrust::sort_by_key(particle_node_mapping.begin(), particle_node_mapping.end(), particle_number.begin());
 
-    //    for (int i = 0; i < particle_node_mapping.size(); i++) {
-    //        printf("%d %d \n", particle_node_mapping[i], particle_number[i]);
-    //    }
+    //        for (int i = 0; i < particle_node_mapping.size(); i++) {
+    //            printf("%d %d \n", particle_node_mapping[i], particle_number[i]);
+    //        }
 
     // Next we need to count the number of particles per node
-//    node_particle_mapping.resize(num_mpm_markers * 125);
-//    node_start_index.resize(num_mpm_nodes);
-//    // Input sorted list of nodes and the output list, get the start_index which is the number of particles in the
-//    // node
-//    num_mpm_nodes_active = Run_Length_Encode(particle_node_mapping, node_particle_mapping, node_start_index);
-//    node_particle_mapping.resize(num_mpm_nodes_active);
-//
-//    node_start_index.resize(num_mpm_nodes_active + 1);
-//    node_start_index[num_mpm_nodes_active] = 0;
-//    Thrust_Exclusive_Scan(node_start_index);
+    node_particle_mapping.resize(num_mpm_markers * 125);
+    node_start_index.resize(num_mpm_nodes);
+    // Input sorted list of nodes and the output list, get the start_index which is the number of particles in the
+    // node
+    num_mpm_nodes_active = Run_Length_Encode(particle_node_mapping, node_particle_mapping, node_start_index);
+    node_particle_mapping.resize(num_mpm_nodes_active);
 
-    //    custom_vector<int> test(num_mpm_markers);
-    //    std::fill(test.begin(), test.end(), 0);
-    //
-    //    // CHECK we should get 125 for each particle
-    //    //#pragma omp parallel for
-    //    for (int index = 0; index < num_mpm_nodes_active; index++) {
-    //        uint start = node_start_index[index];
-    //        uint end = node_start_index[index + 1];
-    //        const int current_node = node_particle_mapping[index];
-    //        vec3 g = GridDecode(current_node, bins_per_axis);
-    //        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
-    //
-    //        for (uint i = start; i < end; i++) {
-    //            int p = particle_number[i];
-    //            test[p]++;
-    //        }
-    //    }
-    //
-    //    for (int i = 0; i < num_mpm_markers; i++) {
-    //        printf("%d \n", test[i]);
-    //    }
+    node_start_index.resize(num_mpm_nodes_active + 1);
+    node_start_index[num_mpm_nodes_active] = 0;
+    Thrust_Exclusive_Scan(node_start_index);
+
+    custom_vector<int> test(num_mpm_markers);
+    std::fill(test.begin(), test.end(), 0);
+
+#endif
 }
 
 void ChMPMContainer::UpdatePosition(double ChTime) {
@@ -390,6 +377,31 @@ void ChMPMContainer::Initialize() {
     ComputeDOF();
     const real dt = data_manager->settings.step_size;
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+#if USE_CPU
+    marker_volume.resize(num_mpm_markers);
+    node_mass.resize(num_mpm_nodes);
+    std::fill(node_mass.begin(), node_mass.end(), 0);
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        LOOPOVERNODES(                                                                //
+            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
+            node_mass[current_node] += weight;                                        //
+            )
+    }
+
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        real particle_density = 0;
+
+        LOOPOVERNODES(                                                  //
+            real weight = N(xi - current_node_location, inv_bin_edge);  //
+            particle_density += node_mass[current_node] * weight;       //
+            )
+        particle_density /= (bin_edge * bin_edge * bin_edge);
+        marker_volume[p] = mass / particle_density;
+        // printf("Volumes: %.20f \n", marker_volume[p], particle_density);
+    }
+#else
 
     MPM_Settings temp_settings;
     temp_settings.dt = dt;
@@ -411,30 +423,7 @@ void ChMPMContainer::Initialize() {
     temp_settings.num_iterations = max_iterations;
 
     MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
-
-//    marker_volume.resize(num_mpm_markers);
-//    node_mass.resize(num_mpm_nodes);
-//    std::fill(node_mass.begin(), node_mass.end(), 0);
-//    for (int p = 0; p < num_mpm_markers; p++) {
-//        const real3 xi = pos_marker[p];
-//        LOOPOVERNODES(                                                                //
-//            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
-//            node_mass[current_node] += weight;                                        //
-//            )
-//    }
-//
-//    for (int p = 0; p < num_mpm_markers; p++) {
-//        const real3 xi = pos_marker[p];
-//        real particle_density = 0;
-//
-//        LOOPOVERNODES(                                                  //
-//            real weight = N(xi - current_node_location, inv_bin_edge);  //
-//            particle_density += node_mass[current_node] * weight;       //
-//            )
-//        particle_density /= (bin_edge * bin_edge * bin_edge);
-//        marker_volume[p] = mass / particle_density;
-//        // printf("Volumes: %.20f \n", marker_volume[p], particle_density);
-//    }
+#endif
 }
 
 void ChMPMContainer::Build_D() {
@@ -678,7 +667,7 @@ void ChMPMContainer::PreSolve() {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
     const real dt = data_manager->settings.step_size;
-
+#if !USE_CPU
     MPM_Settings temp_settings;
     temp_settings.dt = dt;
     temp_settings.kernel_radius = kernel_radius;
@@ -700,144 +689,155 @@ void ChMPMContainer::PreSolve() {
 
     MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
 
-    LOG(INFO) << "ChMPMContainer::DonePreSolve()";
-
-    //#pragma omp parallel for
-    //    for (int index = 0; index < num_mpm_nodes_active; index++) {
-    //        uint start = node_start_index[index];
-    //        uint end = node_start_index[index + 1];
-    //        const int current_node = node_particle_mapping[index];
-    //        vec3 g = GridDecode(current_node, bins_per_axis);
-    //        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
-    //        real3 vel_mass = real3(0);
-    //        real mass_w = 0;
-    //        for (uint i = start; i < end; i++) {
-    //            int p = particle_number[i];
-    //            real weight = N(pos_marker[p] - current_node_location, inv_bin_edge) * mass;  //
-    //            mass_w += weight;
-    //            vel_mass += weight * vel_marker[p];
-    //        }
-    //
-    //        node_mass[current_node] = mass_w;
-    //        grid_vel[current_node * 3 + 0] = vel_mass.x;  //
-    //        grid_vel[current_node * 3 + 1] = vel_mass.y;  //
-    //        grid_vel[current_node * 3 + 2] = vel_mass.z;  //
-    //    }
-    //
-    //// normalize weights for the velocity (to conserve momentum)
-    //#pragma omp parallel for
-    //    for (int i = 0; i < num_mpm_nodes; i++) {
-    //        real n_mass = node_mass[i];
-    //        if (n_mass > C_EPSILON) {
-    //            grid_vel[i * 3 + 0] /= n_mass;
-    //            grid_vel[i * 3 + 1] /= n_mass;
-    //            grid_vel[i * 3 + 2] /= n_mass;
-    //        }
-    //        // printf("N: %d [%f %f %f]\n", i, grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-    //    }
-    //    old_vel_node_mpm = grid_vel;
-    //    SVD_Fe_hat_R.resize(num_mpm_markers);
-    //    SVD_Fe_hat_S.resize(num_mpm_markers);
-    //
-    //// printf("Compute_Elastic_Deformation_Gradient_Hat\n");
-    //#pragma omp parallel for
-    //    for (int p = 0; p < num_mpm_markers; p++) {
-    //        const real3 xi = pos_marker[p];
-    //        marker_Fe_hat[p] = Mat33(1.0);
-    //        Mat33 Fe_hat_t(1.0);
-    //        LOOPOVERNODES(  //
-    //            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
-    //            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
-    //            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
-    //            )
-    //        Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
-    //        marker_Fe_hat[p] = Fe_hat;
-    //        Mat33 U, V;
-    //        real3 E;
-    //        SVD(Fe_hat, U, E, V);
-    //        SVD_Fe_hat_R[p] = MultTranspose(U, V);
-    //        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
-    //    }
-    //
-    //    UpdateRhs();
-    //
-    //    delta_v.resize(num_mpm_nodes * 3);
-    //    delta_v = 0;
-    //    Solve(rhs, delta_v);
-    //    grid_vel += delta_v;
-
-    const real3 gravity = data_manager->settings.gravity;
 #pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
-        //        const real3 xi = pos_marker[p];
-        //        real3 V_flip = vel_marker[p];
-        //
-        //        real3 V_pic = real3(0.0);
-        //
-        //        LOOPOVERNODES(                                                  //
-        //            real weight = N(xi - current_node_location, inv_bin_edge);  //
-        //
-        //            V_pic.x += grid_vel[current_node * 3 + 0] * weight; //
-        //            V_pic.y += grid_vel[current_node * 3 + 1] * weight; //
-        //            V_pic.z += grid_vel[current_node * 3 + 2] * weight; //
-        //            V_flip.x += (grid_vel[current_node * 3 + 0] - old_vel_node_mpm[current_node * 3 + 0]) * weight; //
-        //            V_flip.y += (grid_vel[current_node * 3 + 1] - old_vel_node_mpm[current_node * 3 + 1]) * weight; //
-        //            V_flip.z += (grid_vel[current_node * 3 + 2] - old_vel_node_mpm[current_node * 3 + 2]) * weight; //
-        //            )
-        //        real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
-        //
-        //        real speed = Length(new_vel);
-        //        if (speed > max_velocity) {
-        //            new_vel = new_vel * max_velocity / speed;
-        //        }
-
         int index = data_manager->host_data.reverse_mapping_3dof[p];
-
         data_manager->host_data.v[body_offset + index * 3 + 0] = data_manager->host_data.vel_3dof[p].x;
         data_manager->host_data.v[body_offset + index * 3 + 1] = data_manager->host_data.vel_3dof[p].y;
         data_manager->host_data.v[body_offset + index * 3 + 2] = data_manager->host_data.vel_3dof[p].z;
     }
+
+    LOG(INFO) << "ChMPMContainer::DonePreSolve()";
+#else
+
+#pragma omp parallel for
+    for (int index = 0; index < num_mpm_nodes_active; index++) {
+        uint start = node_start_index[index];
+        uint end = node_start_index[index + 1];
+        const int current_node = node_particle_mapping[index];
+        vec3 g = GridDecode(current_node, bins_per_axis);
+        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
+        real3 vel_mass = real3(0);
+        real mass_w = 0;
+        for (uint i = start; i < end; i++) {
+            int p = particle_number[i];
+            real weight = N(pos_marker[p] - current_node_location, inv_bin_edge) * mass;  //
+            mass_w += weight;
+            vel_mass += weight * vel_marker[p];
+        }
+
+        node_mass[current_node] = mass_w;
+        grid_vel[current_node * 3 + 0] = vel_mass.x;  //
+        grid_vel[current_node * 3 + 1] = vel_mass.y;  //
+        grid_vel[current_node * 3 + 2] = vel_mass.z;  //
+    }
+
+// normalize weights for the velocity (to conserve momentum)
+#pragma omp parallel for
+    for (int i = 0; i < num_mpm_nodes; i++) {
+        real n_mass = node_mass[i];
+        if (n_mass > C_EPSILON) {
+            grid_vel[i * 3 + 0] /= n_mass;
+            grid_vel[i * 3 + 1] /= n_mass;
+            grid_vel[i * 3 + 2] /= n_mass;
+        }
+        // printf("N: %d [%f %f %f]\n", i, grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
+    }
+    old_vel_node_mpm = grid_vel;
+    SVD_Fe_hat_R.resize(num_mpm_markers);
+    SVD_Fe_hat_S.resize(num_mpm_markers);
+
+// printf("Compute_Elastic_Deformation_Gradient_Hat\n");
+#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        marker_Fe_hat[p] = Mat33(1.0);
+        Mat33 Fe_hat_t(1.0);
+        LOOPOVERNODES(  //
+            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
+            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+            Fe_hat_t += OuterProduct(dt * vel, kern);                   //
+            )
+        Mat33 Fe_hat = Fe_hat_t * marker_Fe[p];
+        marker_Fe_hat[p] = Fe_hat;
+        Mat33 U, V;
+        real3 E;
+        SVD(Fe_hat, U, E, V);
+        SVD_Fe_hat_R[p] = MultTranspose(U, V);
+        SVD_Fe_hat_S[p] = V * MultTranspose(Mat33(E), V);
+    }
+
+    UpdateRhs();
+
+    delta_v.resize(num_mpm_nodes * 3);
+    delta_v = 0;
+    Solve(rhs, delta_v);
+    grid_vel += delta_v;
+
+    const real3 gravity = data_manager->settings.gravity;
+#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        real3 V_flip = vel_marker[p];
+
+        real3 V_pic = real3(0.0);
+
+        LOOPOVERNODES(                                                  //
+            real weight = N(xi - current_node_location, inv_bin_edge);  //
+
+            V_pic.x += grid_vel[current_node * 3 + 0] * weight;                                              //
+            V_pic.y += grid_vel[current_node * 3 + 1] * weight;                                              //
+            V_pic.z += grid_vel[current_node * 3 + 2] * weight;                                              //
+            V_flip.x += (grid_vel[current_node * 3 + 0] - old_vel_node_mpm[current_node * 3 + 0]) * weight;  //
+            V_flip.y += (grid_vel[current_node * 3 + 1] - old_vel_node_mpm[current_node * 3 + 1]) * weight;  //
+            V_flip.z += (grid_vel[current_node * 3 + 2] - old_vel_node_mpm[current_node * 3 + 2]) * weight;  //
+            )
+        real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
+
+        real speed = Length(new_vel);
+        if (speed > max_velocity) {
+            new_vel = new_vel * max_velocity / speed;
+        }
+
+        int index = data_manager->host_data.reverse_mapping_3dof[p];
+
+        data_manager->host_data.v[body_offset + index * 3 + 0] = new_vel.x;
+        data_manager->host_data.v[body_offset + index * 3 + 1] = new_vel.y;
+        data_manager->host_data.v[body_offset + index * 3 + 2] = new_vel.z;
+    }
+
+#endif
+
     LOG(INFO) << "ChMPMContainer::DoneSetVEL()";
     printf("Done Pre solve\n");
 }
 void ChMPMContainer::PostSolve() {
-    //    const real dt = data_manager->settings.step_size;
-    //    const real3 gravity = data_manager->settings.gravity;
-    //    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-    //    custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
-    //
-    //    printf("Update_Deformation_Gradient\n");
-    //#pragma omp parallel for
-    //    for (int p = 0; p < num_mpm_markers; p++) {
-    //        const real3 xi = pos_marker[p];
-    //        Mat33 velocity_gradient(0);
-    //        LOOPOVERNODES(  //
-    //            real3 g_vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3
-    //            + 2]);
-    //            velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));)
-    //
-    //        Mat33 Fe_tmp = (Mat33(1.0) + dt * velocity_gradient) * marker_Fe[p];
-    //        Mat33 F_tmp = Fe_tmp * marker_Fp[p];
-    //        Mat33 U, V;
-    //        real3 E;
-    //        SVD(Fe_tmp, U, E, V);
-    //        real3 E_clamped;
-    //
-    //        E_clamped.x = Clamp(E.x, 1.0 - theta_c, 1.0 + theta_s);
-    //        E_clamped.y = Clamp(E.y, 1.0 - theta_c, 1.0 + theta_s);
-    //        E_clamped.z = Clamp(E.z, 1.0 - theta_c, 1.0 + theta_s);
-    //
-    //        marker_Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
-    //        // Inverse of Diagonal E_clamped matrix is 1/E_clamped
-    //        marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
-    //        //
-    //        //        real JE = Determinant(marker_Fe[p]);  //
-    //        //        real JP = Determinant(marker_Fp[p]);  //
-    //        //        real current_mu = mu * Exp(hardening_coefficient * (real(1.) - JP));
-    //        //        real current_lambda = lambda * Exp(hardening_coefficient * (real(1.) - JP));
-    //        //        real current_stiffness = current_lambda * (1.0 + nu) * (1.0 - 2.0 * nu) / (nu);
-    //        //        printf("JU: %d [%f %f] [%f %f %f]\n", p, JE, JP, current_mu, current_lambda, current_stiffness);
-    //    }
+    const real dt = data_manager->settings.step_size;
+    const real3 gravity = data_manager->settings.gravity;
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+    custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
+
+    printf("Update_Deformation_Gradient\n");
+#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+        Mat33 velocity_gradient(0);
+        LOOPOVERNODES(  //
+            real3 g_vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
+            velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));)
+
+        Mat33 Fe_tmp = (Mat33(1.0) + dt * velocity_gradient) * marker_Fe[p];
+        Mat33 F_tmp = Fe_tmp * marker_Fp[p];
+        Mat33 U, V;
+        real3 E;
+        SVD(Fe_tmp, U, E, V);
+        real3 E_clamped;
+
+        E_clamped.x = Clamp(E.x, 1.0 - theta_c, 1.0 + theta_s);
+        E_clamped.y = Clamp(E.y, 1.0 - theta_c, 1.0 + theta_s);
+        E_clamped.z = Clamp(E.z, 1.0 - theta_c, 1.0 + theta_s);
+
+        marker_Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
+        // Inverse of Diagonal E_clamped matrix is 1/E_clamped
+        marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
+        //
+        //        real JE = Determinant(marker_Fe[p]);  //
+        //        real JP = Determinant(marker_Fp[p]);  //
+        //        real current_mu = mu * Exp(hardening_coefficient * (real(1.) - JP));
+        //        real current_lambda = lambda * Exp(hardening_coefficient * (real(1.) - JP));
+        //        real current_stiffness = current_lambda * (1.0 + nu) * (1.0 - 2.0 * nu) / (nu);
+        //        printf("JU: %d [%f %f] [%f %f %f]\n", p, JE, JP, current_mu, current_lambda, current_stiffness);
+    }
 }
 void BBSOLVER(ChShurProduct& ShurProduct,
               ChProjectConstraints& Project,
@@ -956,67 +956,75 @@ void BBSOLVER(ChShurProduct& ShurProduct,
     gamma = ml_candidate;
 }
 void ChMPMContainer::Solve(const DynamicVector<real>& r, DynamicVector<real>& gamma) {
-    //    LOG(INFO) << "ChMPMContainer::Solve";
-    //    ChShurProductMPM Multiply;
-    //    Multiply.Setup(this, data_manager);
-    //    ChProjectNone ProjectNone;
-    //#if 0
-    //    solver->Solve(Multiply, ProjectNone, max_iterations, num_mpm_nodes * 3, r, gamma);
-    //
-    //    int size = data_manager->measures.solver.maxd_hist.size();
-    //    for (int i = 0; i < size; i++) {
-    //        printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
-    //               data_manager->measures.solver.maxdeltalambda_hist[i]);
-    //    }
-    //#else
-    //    BBSOLVER(Multiply, ProjectNone, max_iterations, num_mpm_nodes * 3, r, gamma);
-    //#endif
+    LOG(INFO) << "ChMPMContainer::Solve";
+    ChShurProductMPM Multiply;
+    Multiply.Setup(this, data_manager);
+    ChProjectNone ProjectNone;
+#if 0
+        solver->Solve(Multiply, ProjectNone, max_iterations, num_mpm_nodes * 3, r, gamma);
+
+        int size = data_manager->measures.solver.maxd_hist.size();
+        for (int i = 0; i < size; i++) {
+            printf("[%f %f]\n", data_manager->measures.solver.maxd_hist[i],
+                   data_manager->measures.solver.maxdeltalambda_hist[i]);
+        }
+#else
+    BBSOLVER(Multiply, ProjectNone, max_iterations, num_mpm_nodes * 3, r, gamma);
+#endif
 }
 
 void ChMPMContainer::UpdateRhs() {
-    //    LOG(INFO) << "ChMPMContainer::UpdateRhs()";
-    //    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-    //    const real dt = data_manager->settings.step_size;
-    //
-    //    // Precompute force for particle
-    //    rhs = 0;
-    //
-    //    custom_vector<Mat33> rhs_temp(num_mpm_markers);
-    //#pragma omp parallel for
-    //    for (int p = 0; p < num_mpm_markers; p++) {
-    //        const real3 xi = pos_marker[p];
-    //
-    //        Mat33 PED =
-    //            Potential_Energy_Derivative_Deviatoric(marker_Fe_hat[p], marker_Fp[p], mu, lambda,
-    //            hardening_coefficient);
-    //
-    //        Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, marker_Fe[p]);
-    //        real JE = Determinant(marker_Fe[p]);  //
-    //        real JP = Determinant(marker_Fp[p]);  //
-    //        rhs_temp[p] = (vPEDFepT) * (1.0 / (JE * JP));
+    LOG(INFO) << "ChMPMContainer::UpdateRhs()";
+    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+    const real dt = data_manager->settings.step_size;
+
+    // Precompute force for particle
+    rhs = 0;
+
+    custom_vector<Mat33> rhs_temp(num_mpm_markers);
+#pragma omp parallel for
+    for (int p = 0; p < num_mpm_markers; p++) {
+        const real3 xi = pos_marker[p];
+
+        Mat33 PED =
+            Potential_Energy_Derivative_Deviatoric(marker_Fe_hat[p], marker_Fp[p], mu, lambda, hardening_coefficient);
+
+        Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, marker_Fe[p]);
+        real JE = Determinant(marker_Fe[p]);  //
+        real JP = Determinant(marker_Fp[p]);  //
+        rhs_temp[p] = (vPEDFepT) * (1.0 / (JE * JP));
+    }
+
+#pragma omp parallel for
+    for (int index = 0; index < num_mpm_nodes_active; index++) {
+        uint start = node_start_index[index];
+        uint end = node_start_index[index + 1];
+        const int current_node = node_particle_mapping[index];
+        vec3 g = GridDecode(current_node, bins_per_axis);
+        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
+        real3 force = real3(0);
+        for (uint i = start; i < end; i++) {
+            int p = particle_number[i];
+            force += dt * rhs_temp[p] * dN(pos_marker[p] - current_node_location, inv_bin_edge);  //;
+        }
+        if (node_mass[current_node] > 0) {
+            grid_vel[current_node * 3 + 0] += -dt * force.x / node_mass[current_node];  //
+            grid_vel[current_node * 3 + 1] += -dt * force.y / node_mass[current_node];  //
+            grid_vel[current_node * 3 + 2] += -dt * force.z / node_mass[current_node];  //
+
+            rhs[current_node * 3 + 0] = node_mass[current_node] * grid_vel[current_node * 3 + 0];  //
+            rhs[current_node * 3 + 1] = node_mass[current_node] * grid_vel[current_node * 3 + 1];  //
+            rhs[current_node * 3 + 2] = node_mass[current_node] * grid_vel[current_node * 3 + 2];  //
+        } else {
+            rhs[current_node * 3 + 0] = 0;
+            rhs[current_node * 3 + 1] = 0;
+            rhs[current_node * 3 + 2] = 0;
+        }
+    }
+
+    //    for (int i = 0; i < num_mpm_nodes; i++) {
+    //        printf("Rh: %d [%.20f %.20f %.20f]\n", i, rhs[i * 3 + 0], rhs[i * 3 + 1], rhs[i * 3 + 2]);
     //    }
-    //
-    //#pragma omp parallel for
-    //    for (int index = 0; index < num_mpm_nodes_active; index++) {
-    //        uint start = node_start_index[index];
-    //        uint end = node_start_index[index + 1];
-    //        const int current_node = node_particle_mapping[index];
-    //        vec3 g = GridDecode(current_node, bins_per_axis);
-    //        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
-    //        real3 force = real3(0);
-    //        for (uint i = start; i < end; i++) {
-    //            int p = particle_number[i];
-    //            force += dt * rhs_temp[p] * dN(pos_marker[p] - current_node_location, inv_bin_edge);  //;
-    //        }
-    //
-    //        rhs[current_node * 3 + 0] = -force.x;  //
-    //        rhs[current_node * 3 + 1] = -force.y;  //
-    //        rhs[current_node * 3 + 2] = -force.z;  //
-    //    }
-    //
-    //    //    for (int i = 0; i < num_mpm_nodes; i++) {
-    //    //        printf("Rh: %d [%.20f %.20f %.20f]\n", i, rhs[i * 3 + 0], rhs[i * 3 + 1], rhs[i * 3 + 2]);
-    //    //    }
 }
 
 }  // END_OF_NAMESPACE____

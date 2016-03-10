@@ -241,12 +241,13 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
                 delta_F += OuterProduct(v0, v1);                          //
                 )
         }
-        delta_F = delta_F * marker_Fe[p];
+        Mat33 m_FE = marker_Fe[p];
+        delta_F = delta_F * m_FE;
 
         real plastic_determinant = Determinant(marker_Fp[p]);
         real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (1.0 - plastic_determinant));
         Mat33 RD = Rotational_Derivative(marker_Fe_hat[p], delta_F);
-        Mat33 volume_Ap_Fe_transpose = marker_volume[p] * MultTranspose(2 * current_mu * (delta_F - RD), marker_Fe[p]);
+        Mat33 volume_Ap_Fe_transpose = marker_volume[p] * MultTranspose(2 * current_mu * (delta_F - RD), m_FE);
         {
             LOOP_TWO_RING_GPU(  //
                 real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);
