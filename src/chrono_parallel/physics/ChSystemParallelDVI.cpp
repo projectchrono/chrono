@@ -76,6 +76,9 @@ void ChSystemParallelDVI::CalculateContactForces() {
         Fc = 0;
         return;
     }
+
+    LOG(INFO) << "ChSystemParallelDVI::CalculateContactForces() ";
+
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     Fc = data_manager->host_data.D * gamma / data_manager->settings.step_size;
 }

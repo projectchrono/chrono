@@ -603,6 +603,7 @@ void ChFluidContainer::PreSolve() {
 
 void ChFluidContainer::PostSolve() {
     if (num_fluid_bodies > 0) {
+    	 LOG(INFO) << "ChFluidContainer::PostSolve() ";
         if (enable_viscosity) {
             gamma_old.resize(num_fluid_bodies + num_fluid_bodies * 3);
             gamma_old =
@@ -648,7 +649,7 @@ void ChFluidContainer::CalculateContactForces() {
     if (num_contacts <= 0) {
         return;
     }
-
+    LOG(INFO) << "ChFluidContainer::CalculateContactForces() ";
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
     SubVectorType gamma_t = subvector(gamma, start_boundary + _num_rf_c_, 2 * _num_rf_c_);

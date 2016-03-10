@@ -577,7 +577,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     Thrust_Exclusive_Scan(f_bin_start_index);
     custom_vector<uint> f_bin_num_contact(f_number_of_bins_active + 1);
     f_bin_num_contact[f_number_of_bins_active] = 0;
-    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan 2" << f_number_of_bins_active;
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Thrust_Exclusive_Scan 2 " << f_number_of_bins_active;
     norm_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
     cpta_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
     dpth_rigid_sphere.resize(num_spheres * max_rigid_neighbors);
