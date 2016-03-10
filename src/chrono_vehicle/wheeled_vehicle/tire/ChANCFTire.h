@@ -78,7 +78,10 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
 
     /// Set the tire pressure.
-    void SetPressure(double pressure) { m_pressure = pressure; }
+    void SetPressure(double pressure) {
+        assert(m_pressure > 0);
+        m_pressure = pressure;
+    }
 
     /// Get total tire mass.
     double GetMass() const;
