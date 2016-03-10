@@ -83,55 +83,56 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
         }
         vel_fluid[original_index] = vel;
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
-        //sorted_pos_fluid[i] = pos_fluid[original_index];
+        // sorted_pos_fluid[i] = pos_fluid[original_index];
     }
-//
-//    new_pos = sorted_pos_fluid;
-//
-//    if (data_manager->num_fluid_bodies != 0) {
-//        data_manager->narrowphase->DispatchRigidFluid();
-//    }
-//
-//    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-//    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-//    custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
-//    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-//    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-//    // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep isnt
-//    // too large.
-//
-//    if (data_manager->num_rigid_fluid_contacts > 0) {
-//#pragma omp parallel for
-//        for (int p = 0; p < num_fluid_bodies; p++) {
-//            int start = contact_counts[p];
-//            int end = contact_counts[p + 1];
-//            real3 delta = real3(0);
-//            real weight = 0;
-//            for (int index = start; index < end; index++) {
-//                int i = index - start;
-//                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-//                // if (data_manager->host_data.active_rigid[rigid] == false) {
-//                real3 U = norm[p * max_rigid_neighbors + i];
-//                real depth = dpth[p * max_rigid_neighbors + i];
-//                if (depth < 0) {
-//                    real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
-//                    delta -= w * depth * U;
-//                    weight++;
-//                }
-//                //}
-//            }
-//            if (weight > 0) {
-//                new_pos[p] = new_pos[p] + delta / weight;
-//            }
-//        }
-//
-//#pragma omp parallel for
-//        for (int p = 0; p < num_fluid_bodies; p++) {
-//            // real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
-//            int original_index = data_manager->host_data.particle_indices_3dof[p];
-//            pos_fluid[original_index] = new_pos[p];
-//        }
-//    }
+    //
+    //    new_pos = sorted_pos_fluid;
+    //
+    //    if (data_manager->num_fluid_bodies != 0) {
+    //        data_manager->narrowphase->DispatchRigidFluid();
+    //    }
+    //
+    //    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+    //    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+    //    custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
+    //    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    //    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    //    // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep
+    //    isnt
+    //    // too large.
+    //
+    //    if (data_manager->num_rigid_fluid_contacts > 0) {
+    //#pragma omp parallel for
+    //        for (int p = 0; p < num_fluid_bodies; p++) {
+    //            int start = contact_counts[p];
+    //            int end = contact_counts[p + 1];
+    //            real3 delta = real3(0);
+    //            real weight = 0;
+    //            for (int index = start; index < end; index++) {
+    //                int i = index - start;
+    //                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+    //                // if (data_manager->host_data.active_rigid[rigid] == false) {
+    //                real3 U = norm[p * max_rigid_neighbors + i];
+    //                real depth = dpth[p * max_rigid_neighbors + i];
+    //                if (depth < 0) {
+    //                    real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
+    //                    delta -= w * depth * U;
+    //                    weight++;
+    //                }
+    //                //}
+    //            }
+    //            if (weight > 0) {
+    //                new_pos[p] = new_pos[p] + delta / weight;
+    //            }
+    //        }
+    //
+    //#pragma omp parallel for
+    //        for (int p = 0; p < num_fluid_bodies; p++) {
+    //            // real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
+    //            int original_index = data_manager->host_data.particle_indices_3dof[p];
+    //            pos_fluid[original_index] = new_pos[p];
+    //        }
+    //    }
 }
 
 int Ch3DOFRigidContainer::GetNumConstraints() {
@@ -543,19 +544,19 @@ void Ch3DOFRigidContainer::CalculateContactForces() {
     if (num_contacts <= 0) {
         return;
     }
+    LOG(INFO) << "Ch3DOFRigidContainer::CalculateContactForces() ";
 
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
-    SubVectorType gamma_t = subvector(gamma, start_boundary + _num_rf_c_, 2 * _num_rf_c_);
 
     contact_forces = submatrix(data_manager->host_data.D, 0, start_boundary, _num_dof_, _num_rf_c_) * gamma_n /
                      data_manager->settings.step_size;
 
     if (contact_mu != 0) {
-        contact_forces =
-            contact_forces +
+        SubVectorType gamma_t = subvector(gamma, start_boundary + _num_rf_c_, 2 * _num_rf_c_);
+        contact_forces +=
             submatrix(data_manager->host_data.D, 0, start_boundary + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) * gamma_t /
-                data_manager->settings.step_size;
+            data_manager->settings.step_size;
     }
 }
 
