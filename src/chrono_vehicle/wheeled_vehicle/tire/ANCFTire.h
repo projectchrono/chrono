@@ -51,9 +51,9 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
-    virtual void CreateMesh(std::shared_ptr<fea::ChMesh> mesh,  ///< containing mesh
-                            const ChFrame<>& wheel_frame,       ///< frame of associated wheel
-                            VehicleSide side                    ///< left/right vehicle side
+    virtual void CreateMesh(std::shared_ptr<fea::ChMesh> mesh,   ///< containing mesh
+                            const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
+                            VehicleSide side                     ///< left/right vehicle side
                             ) override;
 
   private:

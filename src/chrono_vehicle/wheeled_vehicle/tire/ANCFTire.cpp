@@ -179,7 +179,7 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 // Create the FEA mesh
 // -----------------------------------------------------------------------------
-void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrame<>& wheel_frame, VehicleSide side) {
+void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create piece-wise cubic spline approximation of the tire profile.
     //   x - radial direction
     //   y - transversal direction
@@ -212,6 +212,11 @@ void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrame<>& wh
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
             auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+
+            // Node velocity
+            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+            node->SetPos_dt(vel);
+
             node->SetMass(0);
             mesh->AddNode(node);
         }

@@ -39,7 +39,9 @@ ANCFToroidalTire::ANCFToroidalTire(const std::string& name) : ChANCFTire(name) {
     SetContactSurfaceType(ChANCFTire::NODE_CLOUD);
 }
 
-void ANCFToroidalTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrame<>& wheel_frame, VehicleSide side) {
+void ANCFToroidalTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh,
+                                  const ChFrameMoving<>& wheel_frame,
+                                  VehicleSide side) {
     // Create an isotropic material (shared by all elements)
     auto mat = std::make_shared<ChMaterialShellANCF>(500, 9.0e7, 0.3);
 
