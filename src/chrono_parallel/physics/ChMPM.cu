@@ -1,6 +1,8 @@
 #include "chrono_parallel/physics/ChMPM.cuh"
 #include "chrono_parallel/physics/MPMUtils.h"
 #include "chrono_parallel/ChCudaHelper.cuh"
+#include "chrono_parallel/ChGPUVector.cuh"
+#include "thirdparty/cub/cub.cuh"
 namespace chrono {
 
 real3 min_bounding_point;
