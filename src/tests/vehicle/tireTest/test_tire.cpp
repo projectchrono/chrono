@@ -228,28 +228,15 @@ int main(int argc, char* argv[]) {
     // Add wheel visualization
     // -----------------------
 
-    if (tire_model == ANCF) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetChronoDataFile("fea/tractor_wheel_rim.obj"), false, false);
-        trimesh.Transform(ChVector<>(0, 0, 0), ChMatrix33<>(CH_C_PI_2, ChVector<>(0, 0, 1)));
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        wheel->AddAsset(trimesh_shape);
+    auto wheel_cyl = std::make_shared<ChCylinderShape>();
+    wheel_cyl->GetCylinderGeometry().rad = wheel_radius;
+    wheel_cyl->GetCylinderGeometry().p1 = ChVector<>(0, tire_width / 2, 0);
+    wheel_cyl->GetCylinderGeometry().p2 = ChVector<>(0, -tire_width / 2, 0);
+    wheel->AddAsset(wheel_cyl);
 
-        auto color = std::make_shared<ChColorAsset>(0.95f, 0.82f, 0.38f);
-        wheel->AddAsset(color);
-    }
-    else {
-        auto wheel_cyl = std::make_shared<ChCylinderShape>();
-        wheel_cyl->GetCylinderGeometry().rad = wheel_radius;
-        wheel_cyl->GetCylinderGeometry().p1 = ChVector<>(0, tire_width / 2, 0);
-        wheel_cyl->GetCylinderGeometry().p2 = ChVector<>(0, -tire_width / 2, 0);
-        wheel->AddAsset(wheel_cyl);
-
-        auto tex = std::make_shared<ChTexture>();
-        tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-        wheel->AddAsset(tex);
-    }
+    auto tex = std::make_shared<ChTexture>();
+    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    wheel->AddAsset(tex);
 
     // Create the terrain
     // ------------------
