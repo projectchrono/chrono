@@ -184,13 +184,13 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
         marker_Fe_hat[p] = Fe_hat_t * marker_Fe[p];
     }
 }
-CUDA_GLOBAL void kRhs(const real3* sorted_pos,     // input
-                      const Mat33* marker_Fe_hat,  // input
-                      const Mat33* marker_Fe,      // input
-                      const Mat33* marker_Fp,      // input
-                      const real* marker_volume,   // input
-                      real* rhs,                   // output
-                      real* volume) {
+CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
+                              const Mat33* marker_Fe_hat,  // input
+                              const Mat33* marker_Fe,      // input
+                              const Mat33* marker_Fp,      // input
+                              const real* marker_volume,   // input
+                              const real* node_mass,       // input
+                              real* grid_vel) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
@@ -198,8 +198,6 @@ CUDA_GLOBAL void kRhs(const real3* sorted_pos,     // input
         Mat33 PED =
             Potential_Energy_Derivative_Deviatoric(marker_Fe_hat[p], marker_Fp[p], device_settings.mu,
                                                    device_settings.lambda, device_settings.hardening_coefficient);
-
-        // Print(PED, "PED");
 
         Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, marker_Fe[p]);
         real JE = Determinant(marker_Fe[p]);  //
@@ -209,13 +207,29 @@ CUDA_GLOBAL void kRhs(const real3* sorted_pos,     // input
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
             real3 force = device_settings.dt * (vPEDFepT * d_weight) / (JE * JP);
 
-            atomicAdd(&rhs[current_node * 3 + 0], -force.x); atomicAdd(&rhs[current_node * 3 + 1], -force.y);
-            atomicAdd(&rhs[current_node * 3 + 2], -force.z);
-
-            //            printf("rhs: [%f %f %f] %f %f\n", d_weight.x, d_weight.y, d_weight.z, device_settings.dt, (JE
-            //            * JP));
-
-            )
+            real mass = node_mass[current_node];  //
+            if (mass > 0) {
+                atomicAdd(&grid_vel[current_node * 3 + 0], -device_settings.dt * force.x / mass);  //
+                atomicAdd(&grid_vel[current_node * 3 + 1], -device_settings.dt * force.y / mass);  //
+                atomicAdd(&grid_vel[current_node * 3 + 2], -device_settings.dt * force.z / mass);  //
+            })
+    }
+}
+CUDA_GLOBAL void kRhs(const real* node_mass,  // input
+                      const real* grid_vel,
+                      real* rhs) {
+    const int current_node = blockIdx.x * blockDim.x + threadIdx.x;
+    if (current_node < device_settings.num_mpm_nodes) {
+        real mass = node_mass[current_node];  //
+        if (mass > 0) {
+            rhs[current_node * 3 + 0] = mass * grid_vel[current_node * 3 + 0];  //
+            rhs[current_node * 3 + 1] = mass * grid_vel[current_node * 3 + 1];  //
+            rhs[current_node * 3 + 2] = mass * grid_vel[current_node * 3 + 2];  //
+        } else {
+            rhs[current_node * 3 + 0] = 0;
+            rhs[current_node * 3 + 1] = 0;
+            rhs[current_node * 3 + 2] = 0;
+        }
     }
 }
 
@@ -234,11 +248,12 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
         {
             LOOP_TWO_RING_GPU(  //
                 real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
-                real3 vold(old_vel_node_mpm[current_node * 3 + 0], old_vel_node_mpm[current_node * 3 + 1],
-                           old_vel_node_mpm[current_node * 3 + 2]);
-                real3 v0 = vold + vnew;                                   //
+                //                real3 vold(old_vel_node_mpm[current_node * 3 + 0], old_vel_node_mpm[current_node * 3 +
+                //                1],
+                //                           old_vel_node_mpm[current_node * 3 + 2]);
+                //                real3 v0 = vold + vnew;                                   //
                 real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
-                delta_F += OuterProduct(v0, v1);                          //
+                delta_F += OuterProduct(vnew, v1);                        //
                 )
         }
         Mat33 m_FE = marker_Fe[p];
@@ -265,9 +280,9 @@ CUDA_GLOBAL void kMultiplyB(const real* v_array,
     if (i < device_settings.num_mpm_nodes) {
         real mass = node_mass[i];
         if (mass > 0) {
-            result_array[i * 3 + 0] += mass * (v_array[i * 3 + 0] + old_vel_node_mpm[i * 3 + 0]);
-            result_array[i * 3 + 1] += mass * (v_array[i * 3 + 1] + old_vel_node_mpm[i * 3 + 1]);
-            result_array[i * 3 + 2] += mass * (v_array[i * 3 + 2] + old_vel_node_mpm[i * 3 + 2]);
+            result_array[i * 3 + 0] += mass * (v_array[i * 3 + 0]);
+            result_array[i * 3 + 1] += mass * (v_array[i * 3 + 1]);
+            result_array[i * 3 + 2] += mass * (v_array[i * 3 + 2]);
         }
     }
 }
@@ -325,16 +340,6 @@ void MPM_ComputeBounds() {
 void Multiply(gpu_vector<real>& input, gpu_vector<real>& output) {
     int size = input.size();
 
-    //    old_vel_node_mpm.copyDeviceToHost();
-    // pos.copyDeviceToHost();
-
-    //    for (int i = 0; i < host_settings.num_mpm_nodes; i++) {
-    //        printf("pd: %d [%.20f %.20f %.20f]\n", i, pos.data_h[i * 3 + 0], pos.data_h[i * 3 + 1], pos.data_h[i * 3 +
-    //        2]);
-    //    }
-    //    for (int i = 0; i < host_settings.num_mpm_markers; i++) {
-    //        printf("pd: %d [%.20f %.20f %.20f]\n", i, pos.data_h[i].x, pos.data_h[i].y, pos.data_h[i].z);
-    //    }
     kMultiplyA<<<CONFIG(size)>>>(pos.data_d,    // input
                                  input.data_d,  //
                                  old_vel_node_mpm.data_d,
@@ -343,11 +348,6 @@ void Multiply(gpu_vector<real>& input, gpu_vector<real>& output) {
                                  marker_Fp.data_d,      // input
                                  marker_volume.data_d,  // input
                                  output.data_d);
-    //    output.copyDeviceToHost();
-    //
-    //    for (int i = 0; i < host_settings.num_mpm_nodes; i++) {
-    //        printf("Nd: %d [%.20f %.20f %.20f]\n", i, output[i * 3 + 0], output[i * 3 + 1], output[i * 3 + 2]);
-    //    }
 
     kMultiplyB<<<CONFIG(size)>>>(input.data_d, old_vel_node_mpm.data_d, node_mass.data_d, output.data_d);
 }
@@ -512,12 +512,12 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
 
     delta_v = ml_candidate;
 }
-CUDA_GLOBAL void kIncrementVelocity(real* delta_v, real* grid_vel) {
+CUDA_GLOBAL void kIncrementVelocity(real* delta_v, real* old_vel_node_mpm, real* grid_vel) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < device_settings.num_mpm_nodes) {
-        grid_vel[i * 3 + 0] += delta_v[i * 3 + 0];
-        grid_vel[i * 3 + 1] += delta_v[i * 3 + 1];
-        grid_vel[i * 3 + 2] += delta_v[i * 3 + 2];
+        grid_vel[i * 3 + 0] += delta_v[i * 3 + 0] - old_vel_node_mpm[i * 3 + 0];
+        grid_vel[i * 3 + 1] += delta_v[i * 3 + 1] - old_vel_node_mpm[i * 3 + 1];
+        grid_vel[i * 3 + 2] += delta_v[i * 3 + 2] - old_vel_node_mpm[i * 3 + 2];
     }
 }
 
@@ -599,24 +599,27 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
                                                                grid_vel.data_d);
 
     old_vel_node_mpm.resize(host_settings.num_mpm_nodes * 3);
+    rhs.resize(host_settings.num_mpm_nodes * 3);
     old_vel_node_mpm = grid_vel;
 
     //    cudaCheck(cudaPeekAtLastError());
     //    cudaCheck(cudaDeviceSynchronize());
 
-    rhs.resize(host_settings.num_mpm_nodes * 3);
-    rhs = 0;
-
     kFeHat<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d, marker_Fe.data_d, grid_vel.data_d,
                                                       marker_Fe_hat.data_d);
 
-    kRhs<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,            // input
-                                                    marker_Fe_hat.data_d,  // input
-                                                    marker_Fe.data_d,      // input
-                                                    marker_Fp.data_d,      // input
-                                                    marker_volume.data_d,  // input
-                                                    rhs.data_d,            // output
-                                                    marker_volume.data_d);
+    kApplyForces<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,            // input
+                                                            marker_Fe_hat.data_d,  // input
+                                                            marker_Fe.data_d,      // input
+                                                            marker_Fp.data_d,      // input
+                                                            marker_volume.data_d,  // input
+                                                            node_mass.data_d,      // input
+                                                            grid_vel.data_d);      // output
+
+    kRhs<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d, grid_vel.data_d, rhs.data_d);
+
+    // Compute the force on each node, add to grid velocities
+    // Comptue rhs from grid velocity
 
     //    rhs.copyDeviceToHost();
     //
@@ -626,11 +629,12 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
     //    }
 
     delta_v.resize(host_settings.num_mpm_nodes * 3);
-    delta_v = 0;
+    delta_v = old_vel_node_mpm;
 
     MPM_BBSolver(rhs, delta_v);
 
-    kIncrementVelocity<<<CONFIG(host_settings.num_mpm_nodes)>>>(delta_v.data_d, grid_vel.data_d);
+    kIncrementVelocity<<<CONFIG(host_settings.num_mpm_nodes)>>>(delta_v.data_d, old_vel_node_mpm.data_d,
+                                                                grid_vel.data_d);
     kUpdateParticleVelocity<<<CONFIG(host_settings.num_mpm_markers)>>>(
         grid_vel.data_d, old_vel_node_mpm.data_d, pos.data_d, vel.data_d, marker_Fe.data_d, marker_Fp.data_d);
     vel.copyDeviceToHost();
