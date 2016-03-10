@@ -97,6 +97,7 @@ namespace chrono
 			GetLog() << "Pardiso reorder&factorization error code = " << pardiso_message_phase12 << "\n";
 			GetLog() << "Pardiso solve&refinement error code = " << pardiso_message_phase33 << "\n";
             GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
+			GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
         }
 
 
