@@ -5,10 +5,16 @@
 #include "thirdparty/cub/cub.cuh"
 namespace chrono {
 
+struct Bounds {
+    real minimum[3];
+    real maximum[3];
+};
+
 real3 min_bounding_point;
 real3 max_bounding_point;
-
 vec3 bins_per_axis;
+
+MPM_Settings host_settings;
 
 std::vector<int> particle_node_mapping;
 std::vector<int> node_particle_mapping;
@@ -29,17 +35,7 @@ gpu_vector<real> rhs;
 gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
 gpu_vector<real> old_vel_node_mpm;
 gpu_vector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
-
-void MPM_UpdateState();
-void MPM_ComputeBounds();
-void MPM_BBSolver(gpu_vector<real>& rhs, gpu_vector<real>& delta_v);
-
-struct Bounds {
-    real minimum[3];
-    real maximum[3];
-};
-
-MPM_Settings host_settings;
+gpu_vector<real> dot_g_proj_norm;
 
 CUDA_CONSTANT MPM_Settings device_settings;
 CUDA_CONSTANT Bounds system_bounds;
@@ -49,12 +45,11 @@ __device__ real alpha = 0.0001;
 __device__ real dot_ms_ms = 0;
 __device__ real dot_ms_my = 0;
 __device__ real dot_my_my = 0;
-__device__ real gdiff = 1;
 
-CUDA_CONSTANT real a_min = 1e-13;
-CUDA_CONSTANT real a_max = 1e13;
-CUDA_CONSTANT real neg_BB1_fallback = 0.11;
-CUDA_CONSTANT real neg_BB2_fallback = 0.12;
+#define a_min 1e-13
+#define a_max 1e13
+#define neg_BB1_fallback 0.11
+#define neg_BB2_fallback 0.12
 
 #define LOOP_TWO_RING_GPU(X)                                                             \
     const real bin_edge = device_settings.bin_edge;                                      \
@@ -214,8 +209,7 @@ CUDA_GLOBAL void kRhs(const real3* sorted_pos,     // input
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
             real3 force = device_settings.dt * (vPEDFepT * d_weight) / (JE * JP);
 
-            atomicAdd(&rhs[current_node * 3 + 0], -force.x);
-            atomicAdd(&rhs[current_node * 3 + 1], -force.y);
+            atomicAdd(&rhs[current_node * 3 + 0], -force.x); atomicAdd(&rhs[current_node * 3 + 1], -force.y);
             atomicAdd(&rhs[current_node * 3 + 2], -force.z);
 
             //            printf("rhs: [%f %f %f] %f %f\n", d_weight.x, d_weight.y, d_weight.z, device_settings.dt, (JE
@@ -247,11 +241,6 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
                 delta_F += OuterProduct(v0, v1);                          //
                 )
         }
-        // Mat33 A = delta_F;
-        //        printf("%s %d: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", "vold", p, A[0], A[1], A[2], A[4], A[5], A[6], A[8],
-        //        A[9],
-        //               A[10]);
-
         delta_F = delta_F * marker_Fe[p];
 
         real plastic_determinant = Determinant(marker_Fp[p]);
@@ -378,8 +367,6 @@ CUDA_GLOBAL void kResetGlobals(int size) {
         dot_my_my = 0;
     } else {
         alpha = 0.0001;
-        gdiff = 1.0 / pow(size, 2.0);
-        // printf("gdiff, alpha, [%.20f %f] \n", gdiff, alpha);
     }
 }
 
@@ -464,7 +451,7 @@ CUDA_GLOBAL void kResidual(int num_items, real* mg, real* dot_g_proj_norm) {
 }
 void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
     const uint size = r.size();
-    gpu_vector<real> dot_g_proj_norm(1);
+    dot_g_proj_norm.resize(1);
     ml.resize(size);
     mg.resize(size);
     mg_p.resize(size);
@@ -472,21 +459,12 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
     mdir.resize(size);
     ml_p.resize(size);
 
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
-
     mg = 0;
     mg_p = 0;
     ml = delta_v;
     ml_candidate = delta_v;
 
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
-
     real lastgoodres = 10e30;
-
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
     // Kernel 1
 
     Multiply(ml, mg);
@@ -523,11 +501,12 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
         kResidual<<<CONFIG(size)>>>(size, mg.data_d, dot_g_proj_norm.data_d);
         dot_g_proj_norm.copyDeviceToHost();
         real g_proj_norm = Sqrt(dot_g_proj_norm.data_h[0]);
-        printf("[%f %f]\n", g_proj_norm, dot_g_proj_norm.data_h[0]);
+
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
             ml_candidate = ml;
         }
+        printf("[%f]\n", lastgoodres);
     }
 
     delta_v = ml_candidate;

@@ -203,49 +203,49 @@ void ChMPMContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     std::fill(marker_Fp.begin(), marker_Fp.end(), Mat33(1));
 }
 void ChMPMContainer::ComputeDOF() {
-    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
-    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
-
-    bbox res(pos_marker[0], pos_marker[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
-
-    res.first.x = kernel_radius * Round(res.first.x / kernel_radius);
-    res.first.y = kernel_radius * Round(res.first.y / kernel_radius);
-    res.first.z = kernel_radius * Round(res.first.z / kernel_radius);
-
-    res.second.x = kernel_radius * Round(res.second.x / kernel_radius);
-    res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
-    res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
-    // Note that 8 and 6 are the optimal values here, 6 and 4 will cause memory errors in valgrind
-    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 8;
-    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 6;
-
-    real3 diag = max_bounding_point - min_bounding_point;
-    bin_edge = kernel_radius * 2;
-    bins_per_axis = vec3(diag / bin_edge);
-    inv_bin_edge = real(1.) / bin_edge;
-    uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
-    num_mpm_nodes = grid_size;
-
-    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
-    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
-    printf("Compute DOF [%d] [%d %d %d] [%f] %d %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
-           bin_edge, num_mpm_nodes, num_mpm_markers);
+//    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+//    real3& min_bounding_point = data_manager->measures.collision.mpm_min_bounding_point;
+//    real3& max_bounding_point = data_manager->measures.collision.mpm_max_bounding_point;
+//
+//    bbox res(pos_marker[0], pos_marker[0]);
+//    bbox_transformation unary_op;
+//    bbox_reduction binary_op;
+//    res = thrust::transform_reduce(pos_marker.begin(), pos_marker.end(), unary_op, res, binary_op);
+//
+//    res.first.x = kernel_radius * Round(res.first.x / kernel_radius);
+//    res.first.y = kernel_radius * Round(res.first.y / kernel_radius);
+//    res.first.z = kernel_radius * Round(res.first.z / kernel_radius);
+//
+//    res.second.x = kernel_radius * Round(res.second.x / kernel_radius);
+//    res.second.y = kernel_radius * Round(res.second.y / kernel_radius);
+//    res.second.z = kernel_radius * Round(res.second.z / kernel_radius);
+//    // Note that 8 and 6 are the optimal values here, 6 and 4 will cause memory errors in valgrind
+//    max_bounding_point = real3(res.second.x, res.second.y, res.second.z) + kernel_radius * 8;
+//    min_bounding_point = real3(res.first.x, res.first.y, res.first.z) - kernel_radius * 6;
+//
+//    real3 diag = max_bounding_point - min_bounding_point;
+//    bin_edge = kernel_radius * 2;
+//    bins_per_axis = vec3(diag / bin_edge);
+//    inv_bin_edge = real(1.) / bin_edge;
+//    uint grid_size = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
+//    num_mpm_nodes = grid_size;
+//
+//    printf("max_bounding_point [%f %f %f]\n", max_bounding_point.x, max_bounding_point.y, max_bounding_point.z);
+//    printf("min_bounding_point [%f %f %f]\n", min_bounding_point.x, min_bounding_point.y, min_bounding_point.z);
+//    printf("Compute DOF [%d] [%d %d %d] [%f] %d %d\n", grid_size, bins_per_axis.x, bins_per_axis.y, bins_per_axis.z,
+//           bin_edge, num_mpm_nodes, num_mpm_markers);
 }
 
 void ChMPMContainer::Update(double ChTime) {
     Setup(0);
     ComputeDOF();
-    node_mass.resize(num_mpm_nodes);
-    old_vel_node_mpm.resize(num_mpm_nodes * 3);
-    rhs.resize(num_mpm_nodes * 3);
-    grid_vel.resize(num_mpm_nodes * 3);
+//    node_mass.resize(num_mpm_nodes);
+//    old_vel_node_mpm.resize(num_mpm_nodes * 3);
+//    rhs.resize(num_mpm_nodes * 3);
+//    grid_vel.resize(num_mpm_nodes * 3);
 
-    std::fill(node_mass.begin(), node_mass.end(), 0);
-    std::fill(grid_vel.begin(), grid_vel.end(), 0);
+//    std::fill(node_mass.begin(), node_mass.end(), 0);
+//    std::fill(grid_vel.begin(), grid_vel.end(), 0);
 
     real3 g_acc = data_manager->settings.gravity;
     real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
@@ -257,42 +257,42 @@ void ChMPMContainer::Update(double ChTime) {
         data_manager->host_data.hf[body_offset + i * 3 + 2] = h_gravity.z;
     }
 
-    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
-
-    particle_node_mapping.resize(num_mpm_markers * 125);
-    particle_number.resize(num_mpm_markers * 125);
+//    custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
+//
+//    particle_node_mapping.resize(num_mpm_markers * 125);
+//    particle_number.resize(num_mpm_markers * 125);
 // For each particle determine nodes
-#pragma omp parallel for
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        int counter = 0;
-
-        LOOPOVERNODES(                                                //
-            particle_node_mapping[p * 125 + counter] = current_node;  //
-            particle_number[p * 125 + counter] = p;                   //
-            counter++;)
-
-        // printf("Counter: %d\n", counter);
-    }
+//#pragma omp parallel for
+//    for (int p = 0; p < num_mpm_markers; p++) {
+//        const real3 xi = pos_marker[p];
+//        int counter = 0;
+//
+//        LOOPOVERNODES(                                                //
+//            particle_node_mapping[p * 125 + counter] = current_node;  //
+//            particle_number[p * 125 + counter] = p;                   //
+//            counter++;)
+//
+//        // printf("Counter: %d\n", counter);
+//    }
 
     // After sorting we have a list of nodes in order with the particle at each node
-    thrust::sort_by_key(particle_node_mapping.begin(), particle_node_mapping.end(), particle_number.begin());
+    //thrust::sort_by_key(particle_node_mapping.begin(), particle_node_mapping.end(), particle_number.begin());
 
     //    for (int i = 0; i < particle_node_mapping.size(); i++) {
     //        printf("%d %d \n", particle_node_mapping[i], particle_number[i]);
     //    }
 
     // Next we need to count the number of particles per node
-    node_particle_mapping.resize(num_mpm_markers * 125);
-    node_start_index.resize(num_mpm_nodes);
-    // Input sorted list of nodes and the output list, get the start_index which is the number of particles in the
-    // node
-    num_mpm_nodes_active = Run_Length_Encode(particle_node_mapping, node_particle_mapping, node_start_index);
-    node_particle_mapping.resize(num_mpm_nodes_active);
-
-    node_start_index.resize(num_mpm_nodes_active + 1);
-    node_start_index[num_mpm_nodes_active] = 0;
-    Thrust_Exclusive_Scan(node_start_index);
+//    node_particle_mapping.resize(num_mpm_markers * 125);
+//    node_start_index.resize(num_mpm_nodes);
+//    // Input sorted list of nodes and the output list, get the start_index which is the number of particles in the
+//    // node
+//    num_mpm_nodes_active = Run_Length_Encode(particle_node_mapping, node_particle_mapping, node_start_index);
+//    node_particle_mapping.resize(num_mpm_nodes_active);
+//
+//    node_start_index.resize(num_mpm_nodes_active + 1);
+//    node_start_index[num_mpm_nodes_active] = 0;
+//    Thrust_Exclusive_Scan(node_start_index);
 
     //    custom_vector<int> test(num_mpm_markers);
     //    std::fill(test.begin(), test.end(), 0);
@@ -412,29 +412,29 @@ void ChMPMContainer::Initialize() {
 
     MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
 
-    marker_volume.resize(num_mpm_markers);
-    node_mass.resize(num_mpm_nodes);
-    std::fill(node_mass.begin(), node_mass.end(), 0);
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        LOOPOVERNODES(                                                                //
-            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
-            node_mass[current_node] += weight;                                        //
-            )
-    }
-
-    for (int p = 0; p < num_mpm_markers; p++) {
-        const real3 xi = pos_marker[p];
-        real particle_density = 0;
-
-        LOOPOVERNODES(                                                  //
-            real weight = N(xi - current_node_location, inv_bin_edge);  //
-            particle_density += node_mass[current_node] * weight;       //
-            )
-        particle_density /= (bin_edge * bin_edge * bin_edge);
-        marker_volume[p] = mass / particle_density;
-        // printf("Volumes: %.20f \n", marker_volume[p], particle_density);
-    }
+//    marker_volume.resize(num_mpm_markers);
+//    node_mass.resize(num_mpm_nodes);
+//    std::fill(node_mass.begin(), node_mass.end(), 0);
+//    for (int p = 0; p < num_mpm_markers; p++) {
+//        const real3 xi = pos_marker[p];
+//        LOOPOVERNODES(                                                                //
+//            real weight = N(real3(xi) - current_node_location, inv_bin_edge) * mass;  //
+//            node_mass[current_node] += weight;                                        //
+//            )
+//    }
+//
+//    for (int p = 0; p < num_mpm_markers; p++) {
+//        const real3 xi = pos_marker[p];
+//        real particle_density = 0;
+//
+//        LOOPOVERNODES(                                                  //
+//            real weight = N(xi - current_node_location, inv_bin_edge);  //
+//            particle_density += node_mass[current_node] * weight;       //
+//            )
+//        particle_density /= (bin_edge * bin_edge * bin_edge);
+//        marker_volume[p] = mass / particle_density;
+//        // printf("Volumes: %.20f \n", marker_volume[p], particle_density);
+//    }
 }
 
 void ChMPMContainer::Build_D() {
@@ -699,7 +699,9 @@ void ChMPMContainer::PreSolve() {
     temp_settings.num_iterations = max_iterations;
 
     MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
-    //
+
+    LOG(INFO) << "ChMPMContainer::DonePreSolve()";
+
     //#pragma omp parallel for
     //    for (int index = 0; index < num_mpm_nodes_active; index++) {
     //        uint start = node_start_index[index];
@@ -795,7 +797,7 @@ void ChMPMContainer::PreSolve() {
         data_manager->host_data.v[body_offset + index * 3 + 1] = data_manager->host_data.vel_3dof[p].y;
         data_manager->host_data.v[body_offset + index * 3 + 2] = data_manager->host_data.vel_3dof[p].z;
     }
-
+    LOG(INFO) << "ChMPMContainer::DoneSetVEL()";
     printf("Done Pre solve\n");
 }
 void ChMPMContainer::PostSolve() {
