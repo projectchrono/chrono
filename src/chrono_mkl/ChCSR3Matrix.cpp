@@ -87,6 +87,9 @@ namespace chrono {
 			symmetry == LOWER_SYMMETRY && insrow>inscol)
 			return;
 
+		// WARNING: you MUST check if insval!=0 because of known issues of current release of Pardiso (11.2 Update 2);
+		// if the matrix is filled with too many zeros it gives unpredictable behaviour
+		// if you need to insert a 0 use Element() instead
 		int col_sel = rowIndex[insrow];
 		while (1)
 		{
