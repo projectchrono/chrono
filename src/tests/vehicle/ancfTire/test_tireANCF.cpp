@@ -83,10 +83,6 @@ double step_size = 1e-3;  // integration step size
 // Main driver program
 
 int main(int argc, char* argv[]) {
-#ifndef CHRONO_FEA
-    if (tire_model == ANCF)
-        tire_model = RIGID;
-#endif
 
     // Create the mechanical system
     // ----------------------------
