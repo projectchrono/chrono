@@ -37,8 +37,6 @@ ChClassRegister<ChShaftsGear> a_registration_ChShaftsGear;
 ChShaftsGear::ChShaftsGear() {
     this->ratio = 1;
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
@@ -55,8 +53,6 @@ void ChShaftsGear::Copy(ChShaftsGear* source) {
     // copy class data
     ratio = source->ratio;
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
 }
 
 bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
@@ -179,24 +175,6 @@ void ChShaftsGear::ConstraintsLoadJacobians() {
 void ChShaftsGear::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     this->torque_react = constraint.Get_l_i() * factor;
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsGear::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsGear::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsGear::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsGear::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
 }
 
 //////// FILE I/O

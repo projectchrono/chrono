@@ -98,10 +98,10 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// The powertrain system is provided the current driver throttle input, a
     /// value in the range [0,1], and the current angular speed of the transmission
     /// shaft (from the driveline).
-    virtual void Update(double time,        ///< [in] current time
-                        double throttle,    ///< [in] current throttle input [0,1]
-                        double shaft_speed  ///< [in] current angular speed of the transmission shaft
-                        ) override;
+    virtual void Synchronize(double time,        ///< [in] current time
+                             double throttle,    ///< [in] current throttle input [0,1]
+                             double shaft_speed  ///< [in] current angular speed of the transmission shaft
+                             ) override;
 
     /// Advance the state of this powertrain system by the specified time step.
     /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle

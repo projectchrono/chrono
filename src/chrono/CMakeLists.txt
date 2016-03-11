@@ -38,6 +38,7 @@ set(ChronoEngine_core_SOURCES
     core/ChLinkedListMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
+    core/ChCubicSpline.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -76,6 +77,7 @@ set(ChronoEngine_core_HEADERS
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
+    core/ChCubicSpline.h
     )
 
 source_group(core FILES
@@ -503,6 +505,7 @@ set(ChronoEngine_timestepper_HEADERS
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
     timestepper/ChStaticAnalysis.h
+	timestepper/ChAssemblyAnalysis.h
     )
 
 source_group(timestepper FILES

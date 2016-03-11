@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChUtilsFEA.h"
+#include <cmath>
 
 namespace chrono {
 namespace fea {
@@ -586,7 +587,6 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     CalcCoordMatrix(m_d);
     CalcCoordDerivMatrix(m_d_dt);
     m_ddT.MatrMultiplyT(m_d, m_d);
-
     // Assumed Natural Strain (ANS):  Calculate m_strainANS and m_strainANS_D
     CalcStrainANSbilinearShell();
 
@@ -1564,8 +1564,8 @@ void ChElementShellANCF::Inverse55_Numerical(ChMatrixNM<double, 5, 5>& a, int n)
         count = 0;
         preValue = 0.0;
         for (int ii = k; ii < n; ii++) {
-            if (preValue < abs(b(ii, k))) {
-                preValue = abs(b(ii, k));
+            if (preValue < std::abs(b(ii, k))) {
+                preValue = std::abs(b(ii, k));
                 count = count + 1;
             }
             imax(1) = count + k;

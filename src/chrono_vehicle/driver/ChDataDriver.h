@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChDataDriver : public ChDriver {
     /// Update the driver system at the specified time.
     /// The driver inputs are obtained through linear interpolation between the
     /// provided data points.
-    virtual void Update(double time) override;
+    virtual void Synchronize(double time) override;
 
   private:
     static bool compare(const Entry& a, const Entry& b) { return a.m_time < b.m_time; }

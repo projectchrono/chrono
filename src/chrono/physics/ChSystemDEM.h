@@ -56,7 +56,8 @@ class ChApi ChSystemDEM : public ChSystem {
     virtual ~ChSystemDEM() {}
 
     virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
-    virtual ChBody* NewBody() { return new ChBody(ChMaterialSurfaceBase::DEM); }
+    virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurfaceBase::DEM); }
+    virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM); }
 
     virtual void SetLcpSolverType(eCh_lcpSolver mval);
     // virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
@@ -64,21 +65,24 @@ class ChApi ChSystemDEM : public ChSystem {
 
     bool UseMaterialProperties() const { return m_use_mat_props; }
     bool UseContactHistory() const { return m_use_history; }
+
     void SetContactForceModel(ContactForceModel model) { m_contact_model = model; }
     ContactForceModel GetContactForceModel() const { return m_contact_model; }
 
     void SetAdhesionForceModel(AdhesionForceModel model) { m_adhesion_model = model; }
     AdhesionForceModel GetAdhesionForceModel() const { return m_adhesion_model; }
 
+    void SetStiffContact(bool val) { m_stiff_contact = val; }
+    bool GetStiffContact() const { return m_stiff_contact; }
 
     /// Slip velocity threshold. No tangential contact forces are generated
     /// if the magnitude of the tangential relative velocity is below this.
     void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = vel; }
-    double GetSlipVelocitythreshold()  {return m_minSlipVelocity;}
+    double GetSlipVelocitythreshold() const {return m_minSlipVelocity;}
 
     /// Characteristic impact velocity (Hooke)
     void SetCharacteristicImpactVelocity(double vel) { m_characteristicVelocity = vel; }
-    double GetCharacteristicImpactVelocity() {return m_characteristicVelocity;}
+    double GetCharacteristicImpactVelocity() const {return m_characteristicVelocity;}
 
     //
     // SERIALIZATION
@@ -91,12 +95,13 @@ class ChApi ChSystemDEM : public ChSystem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   private:
-    bool m_use_mat_props;
-    bool m_use_history;
-    ContactForceModel m_contact_model;
-    AdhesionForceModel m_adhesion_model;
-    double m_minSlipVelocity;
-    double m_characteristicVelocity;
+    bool m_use_mat_props;                 ///< flag indicating if contact parameters are based on physical mat. props.
+    bool m_use_history;                   ///< flag indicating whether or not tangential displacement is considered
+    ContactForceModel m_contact_model;    ///< type of the contact force model
+    AdhesionForceModel m_adhesion_model;  ///< type of the adhesion force model
+    bool m_stiff_contact;                 ///< flag indicating stiff contacts (triggers Jacobian calculation)
+    double m_minSlipVelocity;             ///< slip velocity below which no tangential forces are generated
+    double m_characteristicVelocity;      ///< characteristic impact velocity (Hooke model)
 };
 
 }  // end namespace chrono

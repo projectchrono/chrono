@@ -86,7 +86,7 @@ public:
         if (this->local_application)
             abs_application = mbody->TransformPointLocalToParent(this->application);
         else
-            abs_application =this->force;
+            abs_application =this->application;
 
         // ChBody assumes F={force_abs, torque_abs}
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());

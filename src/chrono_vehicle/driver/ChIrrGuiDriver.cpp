@@ -145,13 +145,13 @@ void ChIrrGuiDriver::SetInputMode(InputMode mode) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrGuiDriver::Update(double time) {
+void ChIrrGuiDriver::Synchronize(double time) {
     // Do nothing if no embedded DataDriver.
     if (m_mode != DATAFILE || !m_data_driver)
         return;
 
     // Call the update function of the embedded DataDriver, with shifted time.
-    m_data_driver->Update(time - m_time_shift);
+    m_data_driver->Synchronize(time - m_time_shift);
 
     // Use inputs from embedded DataDriver
     m_throttle = m_data_driver->GetThrottle();

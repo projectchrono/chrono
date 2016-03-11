@@ -40,8 +40,6 @@ ChShaftsPlanetary::ChShaftsPlanetary() {
     this->r3 = 1;
 
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     this->shaft1 = 0;
     this->shaft2 = 0;
@@ -65,8 +63,6 @@ void ChShaftsPlanetary::Copy(ChShaftsPlanetary* source) {
     r3 = source->r3;
 
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
     this->shaft1 = 0;
     this->shaft2 = 0;
     this->shaft3 = 0;
@@ -201,24 +197,6 @@ void ChShaftsPlanetary::ConstraintsLoadJacobians() {
 void ChShaftsPlanetary::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     this->torque_react = constraint.Get_l_i() * factor;
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsPlanetary::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsPlanetary::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsPlanetary::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsPlanetary::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
 }
 
 //////// FILE I/O

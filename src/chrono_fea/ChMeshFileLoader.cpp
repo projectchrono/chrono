@@ -425,17 +425,18 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                                             const char* filename,
                                             std::shared_ptr<ChMaterialShellANCF> my_material,
-                                            std::vector<int>& BC_nodes,
+                                            std::vector<double>& node_ave_area,
+                                            std::vector<int>& Boundary_nodes,
                                             ChVector<> pos_transform,
                                             ChMatrix33<> rot_transform,
                                             double scaleFactor,
-                                            bool printBC,
                                             bool printNodes,
                                             bool printElements) {
     int added_nodes = 0;
     int added_elements = 0;
     double dx, dy;
     int nodes_offset = mesh->GetNnodes();
+    printf("Current number of nodes in mesh is %d \n", nodes_offset);
     ChMatrixDynamic<double> nodesXYZ(1, 4);
     ChMatrixDynamic<int> NumBEdges(1, 3);  // To store boundary nodes
     ChMatrixNM<double, 1, 6> BoundingBox;  // (xmin xmax ymin ymax zmin zmax) bounding box of the mesh
@@ -469,6 +470,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
             cout << "Reading nodal information ..." << endl;
             getline(fin, line);
             Normals.resize(TotalNumNodes);
+            node_ave_area.resize(nodes_offset + TotalNumNodes);
             num_Normals.resize(TotalNumNodes);
             for (int inode = 0; inode < TotalNumNodes; inode++) {
                 double loc_x, loc_y, loc_z;
@@ -538,16 +540,9 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                     ++ntoken;
                 }
 
-                BC_nodes.push_back(nodes_offset + NumBEdges(0, 0) - 1);
-
                 if (ntoken != 3)
                     throw ChException("ERROR in .mesh file, Edges require 3 node IDs, see line:\n" + line + "\n");
-                if (printBC) {
-                    cout << edge << " ";
-                    for (int i = 0; i < 2; i++)
-                        cout << NumBEdges(0, i) << " ";
-                    cout << endl;
-                }
+
                 getline(fin, line);
             }
         }
@@ -567,7 +562,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                 string token;
                 std::istringstream ss(line);
                 elementsVector.resize(ele + 1);
-                elementsVector[ele].resize(4);
+                elementsVector[ele].resize(5);
                 elementsdxdy.resize(ele + 1);
                 elementsdxdy[ele].resize(2);
                 while (std::getline(ss, token, ' ') && ntoken < 20) {
@@ -627,9 +622,16 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
 
     GetLog() << "-----------------------------------------------------------\n\n";
     //
-    for (int inode = 0; inode < 0 + TotalNumNodes; inode++) {
+    for (int inode = 0; inode < TotalNumNodes; inode++) {
         ChVector<> node_normal = (Normals[inode] / num_Normals[inode]);
+        // Very useful information to store: 1/4 of area of neighbouring elements contribute to each node's average area
+        node_ave_area[nodes_offset + inode] = Normals[inode].Length() / 4;
+
+
+        if (num_Normals[inode] <= 2)
+            Boundary_nodes.push_back(nodes_offset + inode);
         node_normal.Normalize();
+
         ChVector<> node_position = nodesVector[inode]->GetPos();
         auto node = std::make_shared<ChNodeFEAxyzD>(node_position, node_normal);
         node->SetMass(0);

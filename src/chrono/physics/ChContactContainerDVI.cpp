@@ -199,44 +199,40 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
-
 template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback2* mcallback) {
+void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        bool proceed =
-            mcallback->ReportContactCallback2((*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(),
-                                             *(*itercontact)->GetContactPlane(), (*itercontact)->GetContactDistance(),
-                                             (*itercontact)->GetContactForce(),
-                                             VNULL,  // no react torques
-                                             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
-        if (!proceed)
-            break;
-        ++itercontact;
-    }
-}
-template <class Tcont>
-void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChReportContactCallback2* mcallback) {
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        bool proceed =
-            mcallback->ReportContactCallback2((*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(),
-                                             *(*itercontact)->GetContactPlane(), (*itercontact)->GetContactDistance(),
-                                             (*itercontact)->GetContactForce(),
-                                             (*itercontact)->GetContactTorque(),  
-                                             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+        bool proceed = mcallback->ReportContactCallback(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
+            VNULL,  // no react torques
+            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
         if (!proceed)
             break;
         ++itercontact;
     }
 }
 
-void ChContactContainerDVI::ReportAllContacts2(ChReportContactCallback2* mcallback) {
-    
+template <class Tcont>
+void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    while (itercontact != contactlist.end()) {
+        bool proceed = mcallback->ReportContactCallback(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(), (*itercontact)->GetContactTorque(),
+            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+        if (!proceed)
+            break;
+        ++itercontact;
+    }
+}
+
+void ChContactContainerDVI::ReportAllContacts(ChReportContactCallback* mcallback) {
     _ReportAllContacts(contactlist_6_6, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_3_3, mcallback);
-    _ReportAllContactsRolling(contactlist_6_6_rolling, mcallback); 
+    _ReportAllContactsRolling(contactlist_6_6_rolling, mcallback);
 }
 
 ////////// STATE INTERFACE ////
@@ -416,8 +412,6 @@ void ChContactContainerDVI::InjectConstraints(ChLcpSystemDescriptor& mdescriptor
     _InjectConstraints(contactlist_6_6_rolling, mdescriptor);
 }
 
-
-
 template <class Tcont>
 void _ConstraintsBiReset(std::list<Tcont*>& contactlist) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
@@ -433,7 +427,6 @@ void ChContactContainerDVI::ConstraintsBiReset() {
     _ConstraintsBiReset(contactlist_3_3);
     _ConstraintsBiReset(contactlist_6_6_rolling);
 }
-
 
 template <class Tcont>
 void _ConstraintsBiLoad_C(std::list<Tcont*>& contactlist, double factor, double recovery_clamp, bool do_clamp) {
@@ -451,11 +444,9 @@ void ChContactContainerDVI::ConstraintsBiLoad_C(double factor, double recovery_c
     _ConstraintsBiLoad_C(contactlist_6_6_rolling, factor, recovery_clamp, do_clamp);
 }
 
-
 void ChContactContainerDVI::ConstraintsLoadJacobians() {
     // already loaded when contact objects are created
 }
-
 
 template <class Tcont>
 void _ConstraintsFetch_react(std::list<Tcont*>& contactlist, double factor) {
@@ -474,83 +465,5 @@ void ChContactContainerDVI::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
-
-
-// Following functions are for exploiting the contact persistence
-
-template <class Tcont>
-void _ConstraintsLiLoadSuggestedSpeedSolution(std::list<Tcont*>& contactlist) {
-    // Fetch the last computed impulsive reactions from the persistent contact manifold (could
-    // be used for warm starting the CCP speed solver):
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        (*itercontact)->ConstraintsLiLoadSuggestedSpeedSolution();
-        ++itercontact;
-    }
-}
-
-void ChContactContainerDVI::ConstraintsLiLoadSuggestedSpeedSolution() {
-   _ConstraintsLiLoadSuggestedSpeedSolution(contactlist_6_6);
-   _ConstraintsLiLoadSuggestedSpeedSolution(contactlist_6_3);
-   _ConstraintsLiLoadSuggestedSpeedSolution(contactlist_3_3);
-   _ConstraintsLiLoadSuggestedSpeedSolution(contactlist_6_6_rolling);
-}
-
-
-template <class Tcont>
-void _ConstraintsLiLoadSuggestedPositionSolution(std::list<Tcont*>& contactlist) {
-    // Fetch the last computed 'positional' reactions from the persistent contact manifold (could
-    // be used for warm starting the CCP position stabilization solver):
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        (*itercontact)->ConstraintsLiLoadSuggestedPositionSolution();
-        ++itercontact;
-    }
-}
-
-void ChContactContainerDVI::ConstraintsLiLoadSuggestedPositionSolution() {
-    _ConstraintsLiLoadSuggestedPositionSolution(contactlist_6_6);
-    _ConstraintsLiLoadSuggestedPositionSolution(contactlist_6_3);
-    _ConstraintsLiLoadSuggestedPositionSolution(contactlist_3_3);
-    _ConstraintsLiLoadSuggestedPositionSolution(contactlist_6_6_rolling);
-}
-
-
-template <class Tcont>
-void _ConstraintsLiFetchSuggestedSpeedSolution(std::list<Tcont*>& contactlist) {
-    // Store the last computed reactions into the persistent contact manifold (might
-    // be used for warm starting CCP the speed solver):
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        (*itercontact)->ConstraintsLiFetchSuggestedSpeedSolution();
-        ++itercontact;
-    }
-}
-
-void ChContactContainerDVI::ConstraintsLiFetchSuggestedSpeedSolution() {
-    _ConstraintsLiFetchSuggestedSpeedSolution(contactlist_6_6);
-    _ConstraintsLiFetchSuggestedSpeedSolution(contactlist_6_3);
-    _ConstraintsLiFetchSuggestedSpeedSolution(contactlist_3_3);
-    _ConstraintsLiFetchSuggestedSpeedSolution(contactlist_6_6_rolling);
-}
-
-
-template <class Tcont>
-void _ConstraintsLiFetchSuggestedPositionSolution(std::list<Tcont*>& contactlist) {
-    // Store the last computed 'positional' reactions into the persistent contact manifold (might
-    // be used for warm starting the CCP position stabilization solver):
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        (*itercontact)->ConstraintsLiFetchSuggestedPositionSolution();
-        ++itercontact;
-    }
-}
-
-void ChContactContainerDVI::ConstraintsLiFetchSuggestedPositionSolution() {
-    _ConstraintsLiFetchSuggestedPositionSolution(contactlist_6_6);
-    _ConstraintsLiFetchSuggestedPositionSolution(contactlist_6_3);
-    _ConstraintsLiFetchSuggestedPositionSolution(contactlist_3_3);
-    _ConstraintsLiFetchSuggestedPositionSolution(contactlist_6_6_rolling);
-}
 
 }  // END_OF_NAMESPACE____

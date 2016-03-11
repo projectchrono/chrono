@@ -21,13 +21,15 @@ in this directory run "jekyll serve", this does several things:
 jekyll will keep watching and regenerating the website until it is closed
 
 
+For projectchrono.org and api.projectchrono.org:
 
-
-jekyll hook is running under sbel_bot
+hookshot is running under sbel_bot
 'forever list' to check, look at the listed log file to see whats up
 
 To reset the hook:
 
-cd jekyll-hook/
-forever stop 1
-forever start jekyll-hook.js 
+forever restart hookshot.js
+
+hookshot.js will execute build_chrono_website.sh which will pull the latest changes, compile the website and then copy it to the site directory. build_chrono_website.sh will also run doxygen and update that on every push to the repository. Note that only the "develop" branch is currently watched
+
+For more information see [here](http://hamelot.co.uk/other/jekyll-github-hook/)

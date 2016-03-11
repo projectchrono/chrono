@@ -111,8 +111,8 @@ namespace chrono
 		void SetProblemSize(int new_size) { n = new_size; }
 
 		// Output functions
-		void GetResidual(double* res);
-		void GetResidual(ChMatrix<>& res) { GetResidual(res.GetAddress()); }
+		void GetResidual(double* res) const;
+		void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
 		double GetResidualNorm(double* res) const;
 		double GetResidualNorm(ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
 

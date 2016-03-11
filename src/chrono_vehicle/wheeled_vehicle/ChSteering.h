@@ -72,9 +72,12 @@ class CH_VEHICLE_API ChSteering {
     /// The steering subsystem is provided the current steering driver input (a
     /// value between -1 and +1).  Positive steering input indicates steering
     /// to the left. This function is called during the vehicle update.
-    virtual void Update(double time,     ///< [in] current time
-                        double steering  ///< [in] current steering input [-1,+1]
-                        ) = 0;
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double steering  ///< [in] current steering input [-1,+1]
+                             ) = 0;
+
+    /// Get the total mass of the steering subsystem.
+    virtual double GetMass() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}

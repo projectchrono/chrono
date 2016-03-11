@@ -125,10 +125,6 @@ class ChApi ChLinkRevolute : public ChLink {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();
     virtual void ConstraintsFetch_react(double factor = 1.);
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
         
     //
     // SERIALIZATION
@@ -160,9 +156,8 @@ class ChApi ChLinkRevolute : public ChLink {
     // Current constraint violations
     ChMatrix<>* m_C;
 
-    // Caching of multipliers to allow warm starting
-    double m_cache_speed[5];
-    double m_cache_pos[5];
+    // Lagrange multipliers
+    double m_multipliers[5];
 };
 
 }  // END_OF_NAMESPACE____

@@ -43,7 +43,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 RigidTerrain::RigidTerrain(ChSystem* system) {
     // Create the ground body and add it to the system.
-    m_ground = std::make_shared<ChBody>(system->GetContactMethod());
+    m_ground = std::shared_ptr<ChBody>(system->NewBody());
     m_ground->SetIdentifier(-1);
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));
@@ -69,7 +69,7 @@ static ChColor loadColor(const Value& a) {
 
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename) {
     // Create the ground body and add it to the system.
-    m_ground = std::make_shared<ChBody>(system->GetContactMethod());
+    m_ground = std::shared_ptr<ChBody>(system->NewBody());
     m_ground->SetIdentifier(-1);
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector<>(0, 0, 0));

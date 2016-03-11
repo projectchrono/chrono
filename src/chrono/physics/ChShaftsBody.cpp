@@ -33,8 +33,6 @@ ChClassRegister<ChShaftsBody> a_registration_ChShaftsBody;
 
 ChShaftsBody::ChShaftsBody() {
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     this->shaft = 0;
     this->body = 0;
@@ -53,8 +51,6 @@ void ChShaftsBody::Copy(ChShaftsBody* source) {
     // copy class data
 
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
     this->shaft_dir = source->shaft_dir;
     this->shaft = 0;
     this->body = 0;
@@ -187,26 +183,7 @@ void ChShaftsBody::ConstraintsFetch_react(double factor) {
     this->torque_react = constraint.Get_l_i() * factor;
 }
 
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsBody::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsBody::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsBody::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsBody::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
-}
-
 //////// FILE I/O
-
 
 void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive)
 {

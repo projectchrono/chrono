@@ -47,7 +47,7 @@ namespace chrono{
 	* Reset() function initializes arrays to their default values. Always succesfull.
 	* Resize() always preserve data in the arrays. The return value tells the user if the resizing has been done.
 	* 
-	* Reset() and Resize() expands the arrays dimension (increase occupancy)
+	* Reset() and Resize() eventually expands the arrays dimension (increase occupancy)
 	* but they DO NOT REDUCE the occupancy. Eventually it has to be done manually with Trim().
 	*/
 	
@@ -132,13 +132,13 @@ namespace chrono{
 		symmetry_type GetSymmetry() const { return symmetry; }
 
 		// Testing functions
-		bool CheckArraysAlignment(int alignment = 0);
-		void GetMemoryInfo();
-		int VerifyMatrix();
+		bool CheckArraysAlignment(int alignment = 0) const;
+		void GetMemoryInfo() const;
+		int VerifyMatrix() const;
 
 		// Import/Export functions
 		void ImportFromDatFile(std::string filepath);
-		void ExportToDatFile(std::string filepath, int precision = 12);
+		void ExportToDatFile(std::string filepath, int precision = 12) const;
 
 
 	};

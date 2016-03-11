@@ -16,6 +16,8 @@
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChFaceTetra_4.h"
 #include "chrono_fea/ChMesh.h"
 
@@ -108,9 +110,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
             std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
             std::shared_ptr<ChNodeFEAxyz> nD = mshell->GetNodeD();
             std::array<ChNodeFEAxyz*,3> tri1 = {nA.get(),nB.get(),nC.get()};
-            std::array<ChNodeFEAxyz*,3> tri2 = {nA.get(),nC.get(),nD.get()};
+            std::array<ChNodeFEAxyz*,3> tri2 = {nB.get(),nC.get(),nD.get()};
             std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri1_ptrs = {nA,nB,nC};
-            std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri2_ptrs = {nA,nC,nD};
+            std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri2_ptrs = {nB,nC,nD};
             triangles.push_back( tri1 );
             triangles.push_back( tri2 );
             triangles_ptrs.push_back( tri1_ptrs );
@@ -118,6 +120,50 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
         }
     }
 
+
+    ///
+    /// Case3. EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
+    ///
+    /*
+    for (unsigned int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
+        if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(mmesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
+            std::array<ChNodeFEAxyz*,3> tri1 = {nA.get(),nB.get(),nB.get()};
+            std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri1_ptrs = {nA,nB,nB};
+            triangles.push_back( tri1 );
+            triangles_ptrs.push_back( tri1_ptrs );
+        }
+    }
+    */
+
+    ///
+    /// Case4. ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
+    ///
+    for (unsigned int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
+        if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF>(mmesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
+
+            auto contact_triangle = std::make_shared<ChContactTriangleXYZ>();
+            contact_triangle->SetNode1(nA);
+            contact_triangle->SetNode2(nB);
+            contact_triangle->SetNode3(nB);
+            this->vfaces.push_back(contact_triangle);
+            contact_triangle->SetContactSurface(this);
+
+            contact_triangle->GetCollisionModel()->ClearModel();
+            ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())->AddTriangleProxy(
+                                    &nA->pos, 
+                                    &nB->pos,
+                                    &nB->pos, 
+                                    0, 0, 0, // no wing vertexes
+                                    false, false, false, // are vertexes owned by this triangle?
+                                    true, false, true, // are edges owned by this triangle? 
+                                    mbeam->GetSection()->GetDrawCircularRadius());
+            contact_triangle->GetCollisionModel()->BuildModel();
+        }
+    }
 
     // Compute triangles connectivity 
 

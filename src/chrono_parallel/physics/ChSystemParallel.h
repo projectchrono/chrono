@@ -38,7 +38,6 @@
 #include "chrono_parallel/ChMeasures.h"
 #include "chrono_fea/ChMesh.h"
 
-
 namespace chrono {
 
 class ChParallelDataManager;
@@ -132,12 +131,13 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     ChSystemParallelDVI(unsigned int max_objects = 1000);
 
     void ChangeSolverType(SOLVERTYPE type);
+    void Initialize();
+
     virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
-    virtual ChBody* NewBody();
+    virtual ChBody* NewBody() override;
+    virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
-
-    void Initialize();
 
     void CalculateContactForces();
     real CalculateKineticEnergy();
@@ -157,7 +157,8 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     ChSystemParallelDEM(unsigned int max_objects = 1000);
 
     virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
-    virtual ChBody* NewBody();
+    virtual ChBody* NewBody() override;
+    virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 

@@ -78,7 +78,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
@@ -88,7 +88,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
-    m_upright[side] = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_upright[side]->SetNameString(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
@@ -149,6 +149,13 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
+}
+
+// -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
+// -----------------------------------------------------------------------------
+double ChDoubleWishboneReduced::GetMass() const {
+    return 2 * (getSpindleMass() + getUprightMass());
 }
 
 // -----------------------------------------------------------------------------

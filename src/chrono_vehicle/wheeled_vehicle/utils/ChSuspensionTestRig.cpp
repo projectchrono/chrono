@@ -184,8 +184,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
 
-    // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
+    // Create the chassis (ground) body, fixed, no visualization
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
@@ -253,7 +253,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(d.HasMember("Name"));
 
     // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::make_shared<ChBodyAuxRef>(m_system->GetContactMethod());
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
     m_chassis->SetIdentifier(0);
     m_chassis->SetName("ground");
     m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
@@ -318,7 +318,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     ChVector<> post_L_pos = spindle_L_pos;
     post_L_pos.z -= (m_wheels[LEFT]->GetRadius() + post_height / 2.0);
 
-    m_post_L = std::make_shared<ChBody>(m_system->GetContactMethod());
+    m_post_L = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_L->SetPos(post_L_pos);
     m_system->Add(m_post_L);
     AddVisualize_post(m_post_L, m_chassis, post_height, post_rad, ChColor(0.1f, 0.8f, 0.15f));
@@ -328,7 +328,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     ChVector<> post_R_pos = spindle_R_pos;
     post_R_pos.z -= (m_wheels[RIGHT]->GetRadius() + post_height / 2.0);
 
-    m_post_R = std::make_shared<ChBody>(m_system->GetContactMethod());
+    m_post_R = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_R->SetPos(post_R_pos);
     m_system->Add(m_post_R);
     AddVisualize_post(m_post_R, m_chassis, post_height, post_rad, ChColor(0.8f, 0.1f, 0.1f));
@@ -401,6 +401,18 @@ WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChSuspensionTestRig::GetVehicleMass() const {
+    double mass = m_suspension->GetMass();
+    if (HasSteering())
+        mass += m_steering->GetMass();
+    for (size_t i = 0; i < m_wheels.size(); i++)
+        mass += m_wheels[i]->GetMass();
+
+    return mass;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 double ChSuspensionTestRig::GetActuatorDisp(VehicleSide side) {
     double time = GetSystem()->GetChTime();
     if (side == LEFT)
@@ -425,14 +437,14 @@ double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSuspensionTestRig::Update(double time,
-                                 double steering,
-                                 double disp_L,
-                                 double disp_R,
-                                 const TireForces& tire_forces) {
+void ChSuspensionTestRig::Synchronize(double time,
+                                      double steering,
+                                      double disp_L,
+                                      double disp_R,
+                                      const TireForces& tire_forces) {
     if (HasSteering()) {
         // Let the steering subsystem process the steering input.
-        m_steering->Update(time, steering);
+        m_steering->Synchronize(time, steering);
     }
 
     // Apply the displacements to the left/right post actuators
@@ -442,8 +454,8 @@ void ChSuspensionTestRig::Update(double time,
         func_R->Set_yconst(disp_R);
 
     // Apply tire forces to spindle bodies.
-    m_suspension->Update(LEFT, tire_forces[0]);
-    m_suspension->Update(RIGHT, tire_forces[1]);
+    m_suspension->Synchronize(LEFT, tire_forces[0]);
+    m_suspension->Synchronize(RIGHT, tire_forces[1]);
 
     // Cache driver inputs.
     m_steer = steering;

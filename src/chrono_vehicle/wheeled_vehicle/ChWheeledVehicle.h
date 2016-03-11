@@ -77,6 +77,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
 
+    /// Get the vehicle total mass.
+    /// This includes the mass of the chassis and all vehicle subsystems.
+    virtual double GetVehicleMass() const override;
+
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
@@ -124,12 +128,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
     /// from the powertrain, and tire forces (expressed in the global reference
     /// frame).
-    virtual void Update(double time,                   ///< [in] current time
-                        double steering,               ///< [in] current steering input [-1,+1]
-                        double braking,                ///< [in] current braking input [0,1]
-                        double powertrain_torque,      ///< [in] input torque from powertrain
-                        const TireForces& tire_forces  ///< [in] vector of tire force structures
-                        );
+    virtual void Synchronize(double time,                   ///< [in] current time
+                             double steering,               ///< [in] current steering input [-1,+1]
+                             double braking,                ///< [in] current braking input [0,1]
+                             double powertrain_torque,      ///< [in] input torque from powertrain
+                             const TireForces& tire_forces  ///< [in] vector of tire force structures
+                             );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

@@ -12,24 +12,19 @@
 #ifndef CHCONTACTCONTAINERDEM_H
 #define CHCONTACTCONTAINERDEM_H
 
-
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChContactable.h"
-#include "physics/ChContactDEM.h"
-#include <list>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <list>
+
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactDEM.h"
+#include "chrono/physics/ChContactable.h"
 
 namespace chrono {
 
-///
-/// Class representing a container of many contacts,
-/// implemented as a typical linked list of ChContactDEM
-/// objects (that is, contacts between two ChContactable objects).
-/// This is the default contact container used in most
-/// cases.
-///
-
+/// Class representing a container of many penalty contacts.
+/// This is implemented as a typical linked list of ChContactDEM objects
+/// (that is, contacts between two ChContactable objects).
 class ChApi ChContactContainerDEM : public ChContactContainerBase {
     CH_RTTI(ChContactContainerDEM, ChContactContainerBase);
 
@@ -80,7 +75,9 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     // FUNCTIONS
     //
     /// Tell the number of added contacts
-    virtual int GetNcontacts() { return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_333_6 + n_added_333_3 + n_added_333_333;} 
+    virtual int GetNcontacts() {
+        return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_333_6 + n_added_333_3 + n_added_333_333;
+    }
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts();
@@ -100,14 +97,11 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     /// purges the end of the list of contacts that were not reused (if any).
     virtual void EndAddContact();
 
-    /// Scans all the contacts and for each contact exacutes the ReportContactCallback()
+    /// Scans all the contacts and for each contact executes the ReportContactCallback()
     /// function of the user object inherited from ChReportContactCallback.
-    /// Child classes of ChContactContainerBase should try to implement this (although
-    /// in some highly-optimized cases as in ChContactContainerGPU it could be impossible to
-    /// report all contacts).
-    virtual void ReportAllContacts2(ChReportContactCallback2* mcallback);
+    virtual void ReportAllContacts(ChReportContactCallback* mcallback) override;
 
-     /// In detail, it computes jacobians, violations, etc. and stores
+    /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true);
 
@@ -115,9 +109,10 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     // STATE FUNCTIONS
     //
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
-
+    // Override/implement interfaces for global state vectors (see ChPhysicsItem)
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override;
 
     //
     // LCP INTERFACE
@@ -129,8 +124,7 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -140,8 +134,7 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -150,11 +143,7 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
         RemoveAllContacts();
         // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
     }
-    
 };
-
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
 
 }  // END_OF_NAMESPACE____
 

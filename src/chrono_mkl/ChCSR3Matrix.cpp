@@ -311,23 +311,7 @@ namespace chrono {
 		colIndex[col_sel] = inscol;
 	}
 
-	void ChCSR3Matrix::initialize(int colIndex_length)
-	{
-		if (!rowIndex_lock || rowIndex_lock_broken)
-		{
-			if (colIndex_length == 0)
-				colIndex_length = colIndex_occupancy;
 
-			// rowIndex is initialized with equally spaced indexes
-			for (int row_sel = 0; row_sel <= rows; row_sel++)
-			{
-				rowIndex[row_sel] = static_cast<int>(ceil(static_cast<double>(row_sel)* (static_cast<double>(colIndex_length)+1.0) / (static_cast<double>(rows) +1.0) ));
-			}
-			isCompressed = false;
-		}
-
-		initialize_ValuesColIndex();
-	}
 
 
 	/** Initialize the arrays giving, for each row, the exact space needed;
@@ -344,25 +328,38 @@ namespace chrono {
 		}
 
 		initialize_ValuesColIndex();
-		rowIndex_lock = true;
+	}
+
+	void ChCSR3Matrix::initialize(int colIndex_length)
+	{
+		if (!rowIndex_lock || rowIndex_lock_broken)
+		{
+			if (colIndex_length == 0)
+				colIndex_length = colIndex_occupancy;
+
+			// rowIndex is initialized with equally spaced indexes
+			for (int row_sel = 0; row_sel <= rows; row_sel++)
+				rowIndex[row_sel] = static_cast<int>(ceil(static_cast<double>(row_sel)* (static_cast<double>(colIndex_length)+1.0) / (static_cast<double>(rows)+1.0)));
+
+			isCompressed = false;
+		}
+
+		initialize_ValuesColIndex();
 	}
 
 	void ChCSR3Matrix::initialize_ValuesColIndex()
 	{
 		if (colIndex_lock && !colIndex_lock_broken)
-		{
 			for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
-			{
 				values[col_sel] = 0;
-			}
-		}
+
 		else
 		{
 			// colIndex is initialized with -1; it means that the cell has been stored but contains an uninitialized value
 			for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
-			{
 				colIndex[col_sel] = -1;
-			}
+
+			isCompressed = false;
 		}
 		
 	}
@@ -457,7 +454,7 @@ namespace chrono {
 			nonzeros_vector[row_sel] = rowIndex[row_sel + 1] - rowIndex[row_sel];
 	}
 
-	bool ChCSR3Matrix::CheckArraysAlignment(int alignment)
+	bool ChCSR3Matrix::CheckArraysAlignment(int alignment) const
 	{
 		if (alignment == 0)
 			alignment = array_alignment;
@@ -469,7 +466,7 @@ namespace chrono {
 		return (dec_part_a == 0 && dec_part_ia == 0 && dec_part_ja == 0) ? true : false;
 	}
 
-	void ChCSR3Matrix::GetMemoryInfo()
+	void ChCSR3Matrix::GetMemoryInfo() const
 	{
 		printf("\nMemory allocated: %.2f MB", static_cast<double>( (2*colIndex_occupancy*sizeof(double) + rowIndex_occupancy* sizeof(int)) )/1000000  );
 	}
@@ -482,7 +479,7 @@ namespace chrono {
 	// -2 - error message: there's a row that has some an uninitialized element NOT at the end of its space in colIndex
 	// -4 - error message: colIndex has not ascending indexes within the rows
 
-	int ChCSR3Matrix::VerifyMatrix()
+	int ChCSR3Matrix::VerifyMatrix() const
 	{
 		bool uninitialized_elements_found = false;
 		for (int row_sel = 0; row_sel < rows; row_sel++)
@@ -760,50 +757,59 @@ namespace chrono {
 	{
 		assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
-		
+		// if nonzeros are not specified then the current size is kept
+		int nonzeros_old = GetColIndexLength();
 		if (nonzeros == 0)
-			nonzeros = GetColIndexLength();
+			nonzeros = nonzeros_old;
 
+		// exception: if the current size is lower than the new number of rows then it must be updated
 		nonzeros = std::max(nrows, nonzeros);
 
-		if (nrows > rows)
+		if (nrows != rows || ncols != columns || nonzeros != nonzeros_old)
 		{
-			mkl_free(rowIndex);
-			rowIndex = static_cast<int*>(mkl_malloc((nrows + 1)*sizeof(int), array_alignment));
-			reallocation_occurred = true;
 			isCompressed = false;
-			rowIndex_occupancy = nrows + 1;
 			rowIndex_lock_broken = true;
 			colIndex_lock_broken = true;
 		}
 
 
-		if (nonzeros > rowIndex[rows])
+		/* Size update */
+		// after this stage the length of all the arrays must be at LEAST as long as needed;
+		// all the memory-descripting variables are updated;
+		if (nrows > rows)
+		{
+			mkl_free(rowIndex);
+			rowIndex = static_cast<int*>(mkl_malloc((nrows + 1)*sizeof(int), array_alignment));
+			reallocation_occurred = true;
+			rowIndex_occupancy = nrows + 1;
+		}
+
+
+		if (nonzeros > colIndex_occupancy)
 		{
 			mkl_free(values);
 			mkl_free(colIndex);
 			values = static_cast<double*>(mkl_malloc(nonzeros*sizeof(double), array_alignment));
 			colIndex = static_cast<int*>(mkl_malloc(nonzeros*sizeof(int), array_alignment));
 			reallocation_occurred = true;
-			isCompressed = false;
 			colIndex_occupancy = nonzeros;
-			rowIndex_lock_broken = true;
-			colIndex_lock_broken = true;
 		}
 
-		
-		if (!rowIndex_lock_broken && !colIndex_lock_broken && rows == nrows && columns == ncols && nonzeros == GetColIndexLength())
-		{
-			initialize_ValuesColIndex();
-		}
-		else
-		{
-			rows = nrows;
-			columns = ncols;
 
-			initialize(nonzeros);
-		}
-		
+		/* Values initialization */
+		// at the end of this stage colIndex will be initialized with '-1' or kept unchanged, depending on sparsity lock status;
+		// values are left as they are or zeroed, depending on sparsity lock status;
+		// rowIndex is filled so that each row is ready to hold the same number of nonzeros or kept unchanged, depending on sparsity lock status;
+		// rows and columns are updated;
+
+		rows = nrows;
+		columns = ncols;
+
+		initialize(nonzeros);
+
+		rowIndex_lock_broken = false;
+		colIndex_lock_broken = false;
+
 	} // Reset
 
 	void ChCSR3Matrix::Compress()
@@ -942,7 +948,7 @@ namespace chrono {
 				this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
 	}
 
-	void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision)
+	void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision) const
 	{
 		std::ofstream a_file, ia_file, ja_file;
 		a_file.open(filepath+"a.dat");

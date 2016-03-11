@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChDriver {
     double GetBraking() const { return m_braking; }
 
     /// Update the state of this driver system at the current time.
-    virtual void Update(double time) {}
+    virtual void Synchronize(double time) {}
 
     /// Advance the state of this driver system by the specified time step.
     virtual void Advance(double step) {}

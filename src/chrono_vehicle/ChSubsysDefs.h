@@ -106,6 +106,16 @@ struct TireForce {
 /// Vector of tire force structures.
 typedef std::vector<TireForce> TireForces;
 
+/// Structure to communicate a set of generalized track shoe forces.
+struct TrackShoeForce {
+    ChVector<> force;   ///< force vector, epxressed in the global frame
+    ChVector<> point;   ///< global location of the force application point
+    ChVector<> moment;  ///< moment vector, expressed in the global frame
+};
+
+/// Vector of tire force structures.
+typedef std::vector<TrackShoeForce> TrackShoeForces;
+
 /// Utility class for specifying a linear spring force.
 class LinearSpringForce : public ChSpringForceCallback {
   public:
@@ -187,7 +197,8 @@ enum TireModelType {
     RIGID,    ///< rigid tire
     PACEJKA,  ///< Pacejka (magic formula) tire
     LUGRE,    ///< Lugre frition model tire
-    FIALA     ///< Fiala tire
+    FIALA,    ///< Fiala tire
+    ANCF      ///< ANCF shell element-based tire
 };
 
 /// Enum for available powertrain model templates.
@@ -211,6 +222,12 @@ enum DrivelineType {
     FWD,  ///< front-wheel drive
     RWD,  ///< rear-wheel drive
     AWD   ///< all-wheel drive
+};
+
+/// Enum for track shoe types
+enum TrackShoeType {
+    CENTRAL_PIN,  ///< track shoes with central guiding pin
+    LATERAL_PIN   ///< track shoes with lateral guiding pins
 };
 
 /// Flags for output (log/debug).

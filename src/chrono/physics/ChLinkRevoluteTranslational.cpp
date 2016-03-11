@@ -33,8 +33,7 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational()
     m_C = new ChMatrixDynamic<>(4, 1);
 
     for (int i = 0; i < 4; i++) {
-        m_cache_speed[i] = 0;
-        m_cache_pos[i] = 0;
+        m_multipliers[i] = 0;
     }
 }
 
@@ -69,8 +68,7 @@ void ChLinkRevoluteTranslational::Copy(ChLinkRevoluteTranslational* source) {
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
 
     for (int i = 0; i < 4; i++) {
-        m_cache_speed[i] = source->m_cache_speed[i];
-        m_cache_pos[i] = source->m_cache_pos[i];
+        m_multipliers[i] = source->m_multipliers[i];
     }
 }
 
@@ -337,26 +335,26 @@ void ChLinkRevoluteTranslational::IntStateGatherReactions(const unsigned int off
     if (!this->IsActive())
         return;
 
-    L(off_L + 0) = m_cache_speed[0];
-    L(off_L + 1) = m_cache_speed[1];
-    L(off_L + 2) = m_cache_speed[2];
-    L(off_L + 3) = m_cache_speed[3];
+    L(off_L + 0) = m_multipliers[0];
+    L(off_L + 1) = m_multipliers[1];
+    L(off_L + 2) = m_multipliers[2];
+    L(off_L + 3) = m_multipliers[3];
 }
 
 void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     if (!this->IsActive())
         return;
 
-    m_cache_speed[0] = L(off_L + 0);
-    m_cache_speed[1] = L(off_L + 1);
-    m_cache_speed[2] = L(off_L + 2);
-    m_cache_speed[3] = L(off_L + 3);
+    m_multipliers[0] = L(off_L + 0);
+    m_multipliers[1] = L(off_L + 1);
+    m_multipliers[2] = L(off_L + 2);
+    m_multipliers[3] = L(off_L + 3);
 
     // Also compute 'intuitive' reactions:
-    double lam_par1 = m_cache_speed[0];
-    double lam_par2 = m_cache_speed[1];
-    double lam_dot = m_cache_speed[2];
-    double lam_dist = m_cache_speed[3];
+    double lam_par1 = m_multipliers[0];
+    double lam_par2 = m_multipliers[1];
+    double lam_dot = m_multipliers[2];
+    double lam_dist = m_multipliers[3];
 
     ////
     //// TODO
@@ -579,41 +577,6 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body2() {
     //  axis defined for the joint)
     //  react_torque = (0,0,0)
     return VNULL;
-}
-
-// -----------------------------------------------------------------------------
-// Load and store multipliers (caching to allow warm starting)
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_par1.Set_l_i(m_cache_speed[0]);
-    m_cnstr_par2.Set_l_i(m_cache_speed[1]);
-    m_cnstr_dot.Set_l_i(m_cache_speed[2]);
-    m_cnstr_dist.Set_l_i(m_cache_speed[3]);
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_par1.Set_l_i(m_cache_pos[0]);
-    m_cnstr_par2.Set_l_i(m_cache_pos[1]);
-    m_cnstr_dot.Set_l_i(m_cache_pos[2]);
-    m_cnstr_dist.Set_l_i(m_cache_pos[3]);
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Cache current multipliers.
-    m_cache_speed[0] = m_cnstr_par1.Get_l_i();
-    m_cache_speed[1] = m_cnstr_par2.Get_l_i();
-    m_cache_speed[2] = m_cnstr_dot.Get_l_i();
-    m_cache_speed[3] = m_cnstr_dist.Get_l_i();
-}
-
-void ChLinkRevoluteTranslational::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Cache current multipliers.
-    m_cache_pos[0] = m_cnstr_par1.Get_l_i();
-    m_cache_pos[1] = m_cnstr_par2.Get_l_i();
-    m_cache_pos[2] = m_cnstr_dot.Get_l_i();
-    m_cache_pos[3] = m_cnstr_dist.Get_l_i();
 }
 
 

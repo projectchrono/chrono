@@ -116,12 +116,12 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         double time = rig.GetChTime();
-        driver.Update(time);
-        flat_terrain.Update(time);
-        tire_L->Update(time, wheel_states[0], flat_terrain);
-        tire_R->Update(time, wheel_states[1], flat_terrain);
-        rig.Update(time, steering_input, left_input, right_input, tire_forces);
-        app.Update("", steering_input, 0, 0);
+        driver.Synchronize(time);
+        flat_terrain.Synchronize(time);
+        tire_L->Synchronize(time, wheel_states[0], flat_terrain);
+        tire_R->Synchronize(time, wheel_states[1], flat_terrain);
+        rig.Synchronize(time, steering_input, left_input, right_input, tire_forces);
+        app.Synchronize("", steering_input, 0, 0);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);

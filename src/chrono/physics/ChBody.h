@@ -614,25 +614,63 @@ class ChApi ChBody :            public ChPhysicsItem,
     // INTERFACE TO ChContactable
     //
 
-
-    virtual ChLcpVariables* GetVariables1() {return &this->variables; }
+    virtual ChLcpVariables* GetVariables1() override {return &this->variables; }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return this->IsActive(); }
 
+    /// Get the number of DOFs affected by this object (position part)
+    virtual int ContactableGet_ndof_x() override { return 7; }
+
+    /// Get the number of DOFs affected by this object (speed part)
+    virtual int ContactableGet_ndof_w() override { return 6; }
+
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
+
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
+        w.PasteVector(this->GetPos_dt(), 0, 0);
+        w.PasteVector(this->GetWvel_loc(), 3, 0);
+    }
+
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        IntStateIncrement(0, x_new, x, 0, dw);
+    }
+
     /// Return the pointer to the surface material.
-    /// Use dynamic cast to understand if this is a
-    /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
-    /// This function returns a reference to the shared pointer member
-    /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
+    /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
 
-    /// Get the absolute speed of point abs_point if attached to the
-    /// surface.
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        return csys.TransformPointLocalToParent(loc_point);
+    }
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChVector<> abs_vel = state_w.ClipVector(0, 0);
+        ChVector<> loc_omg = state_w.ClipVector(3, 0);
+        ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
+
+        return abs_vel + Vcross(abs_omg, loc_point);
+    }
+
+    /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
 
+    /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it
+    /// contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->GetFrame_REF_to_abs().coord); }
 
     /// Apply the force, expressed in absolute reference, applied in pos, to the
@@ -641,32 +679,48 @@ class ChApi ChBody :            public ChPhysicsItem,
                                             const ChVector<>& abs_point,
                                             ChVectorDynamic<>& R) override;
 
-    /// Compute the jacobian(s) part(s) for this contactable item. For example,
-    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    /// Apply the given force at the given point and load the generalized force array.
+    /// The force and its application point are specified in the gloabl frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactForceLoadQ(const ChVector<>& F,
+                                   const ChVector<>& point,
+                                   const ChState& state_x,
+                                   ChVectorDynamic<>& Q,
+                                   int offset) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChVector<> point_loc = csys.TransformPointParentToLocal(point);
+        ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
+        ChVector<> torque_loc = Vcross(point_loc, force_loc);
+        Q.PasteVector(F, offset + 0, 0);
+        Q.PasteVector(torque_loc, offset + 3, 0);
+    }
+
+    /// Compute the jacobian(s) part(s) for this contactable item.
+    /// For a ChBody, this updates the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-        /// (used only for rolling friction DVI contacts)
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
+    /// Used only for rolling friction DVI contacts.
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-        /// Used by some DEM code
-    virtual double GetContactableMass()  {return this->GetMass();}
+    /// Used by some DEM code
+    virtual double GetContactableMass() override { return this->GetMass(); }
 
-        /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem() { return this;}
-
+    /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem() override { return this; }
 
     //
     // INTERFACE to ChLoadable 

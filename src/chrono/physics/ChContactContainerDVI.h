@@ -13,26 +13,22 @@
 #ifndef CHCONTACTCONTAINERDVI_H
 #define CHCONTACTCONTAINERDVI_H
 
-
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChContactable.h"
-#include "physics/ChContactDVI.h"
-#include "physics/ChContactDVIrolling.h"
 #include <list>
+
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactDVI.h"
+#include "chrono/physics/ChContactDVIrolling.h"
+#include "chrono/physics/ChContactable.h"
 
 namespace chrono {
 
-///
-/// Class representing a container of many contacts,
-/// implemented as a typical linked list of ChContactDVI
-/// objects (that is, contacts between two ChContactable objects, with 3 reactions).
-/// It might also contain ChContactDVIrolling objects (extended 
-/// versions of ChContactDVI, with 6 reactions, that account
-/// also for rolling and spinning resistance), but also for '6dof vs 6dof' contactables.
-/// This is the default contact container used in most
-/// cases.
-///
-
+/// Class representing a container of many complementarity contacts.
+/// This is implemented as a typical linked list of ChContactDVI objects
+/// (that is, contacts between two ChContactable objects, with 3 reactions).
+/// It might also contain ChContactDVIrolling objects (extended versions of ChContactDVI,
+/// with 6 reactions, that account also for rolling and spinning resistance), but also
+/// for '6dof vs 6dof' contactables.
+/// This is the default contact container used in most cases.
 class ChApi ChContactContainerDVI : public ChContactContainerBase {
     CH_RTTI(ChContactContainerDVI, ChContactContainerBase);
 
@@ -75,12 +71,7 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     // FUNCTIONS
     //
     /// Tell the number of added contacts
-    virtual int GetNcontacts() { 
-        return  n_added_6_6 + 
-                n_added_6_3 + 
-                n_added_3_3 + 
-                n_added_6_6_rolling;
-    } 
+    virtual int GetNcontacts() { return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_6_6_rolling; }
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts();
@@ -100,22 +91,13 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     /// purges the end of the list of contacts that were not reused (if any).
     virtual void EndAddContact();
 
-    /// Scans all the contacts and for each contact exacutes the ReportContactCallback()
+    /// Scans all the contacts and for each contact executes the ReportContactCallback()
     /// function of the user object inherited from ChReportContactCallback.
-    /// Child classes of ChContactContainerBase should try to implement this (although
-    /// in some highly-optimized cases as in ChContactContainerGPU it could be impossible to
-    /// report all contacts).
-    virtual void ReportAllContacts2(ChReportContactCallback2* mcallback);
+    virtual void ReportAllContacts(ChReportContactCallback* mcallback) override;
 
     /// Tell the number of scalar bilateral constraints (actually, friction
     /// constraints aren't exactly as unilaterals, but count them too)
-    virtual int GetDOC_d() { 
-        return 3* ( n_added_6_6 + 
-                    n_added_6_3 + 
-                    n_added_3_3 )
-                    + 
-               6* ( n_added_6_6_rolling );
-    } 
+    virtual int GetDOC_d() { return 3 * (n_added_6_6 + n_added_6_3 + n_added_3_3) + 6 * (n_added_6_6_rolling); }
 
     /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures of contacts.
@@ -152,21 +134,14 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    // virtual void ConstraintsBiLoad_Ct(double factor=1.) {};
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
-
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -176,8 +151,7 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -187,9 +161,6 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
         // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
     }
 };
-
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
 
 }  // END_OF_NAMESPACE____
 

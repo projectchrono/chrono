@@ -38,7 +38,8 @@ private:
     std::vector< std::shared_ptr<ChLoadBase> > loadlist;
 
 public:
-    ChLoadContainer () {};
+    ChLoadContainer () {}
+    virtual ~ChLoadContainer() {}
 
         /// Add a load to the container list of loads
     void Add(std::shared_ptr<ChLoadBase> newload) {
@@ -57,6 +58,8 @@ public:
         for (size_t i=0; i<loadlist.size(); ++i)  {
             loadlist[i]->Update();
         }
+        // Overloading of base class:
+        ChPhysicsItem::Update(mytime, update_assets);
     }
 
 

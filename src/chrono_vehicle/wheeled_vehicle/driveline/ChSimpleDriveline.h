@@ -57,7 +57,7 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
     /// Update the driveline subsystem: apply the specified motor torque.
     /// This represents the input to the driveline subsystem from the powertrain
     /// system.
-    virtual void Update(double torque) override;
+    virtual void Synchronize(double torque) override;
 
     /// Get the motor torque to be applied to the specified wheel.
     virtual double GetWheelTorque(const WheelID& wheel_id) const override;

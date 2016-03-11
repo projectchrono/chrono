@@ -116,9 +116,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     ChMatrix<>* C;  // residuals
 
-    ChMatrix<>* cache_li_pos;
-    ChMatrix<>* cache_li_speed;
-
   public:
     //
     // CONSTRUCTORS
@@ -251,10 +248,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     //

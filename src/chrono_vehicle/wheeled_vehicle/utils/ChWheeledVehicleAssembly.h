@@ -124,7 +124,7 @@ class CH_VEHICLE_API ChWheeledVehicleAssembly {
                     );
 
     /// Update the vehicle model at the specified time.
-    void Update(double time);
+    void Synchronize(double time);
 
     /// Get handle to the underlying vehicle subsystem.
     std::shared_ptr<WheeledVehicle> GetVehicle() const { return m_vehicle; }

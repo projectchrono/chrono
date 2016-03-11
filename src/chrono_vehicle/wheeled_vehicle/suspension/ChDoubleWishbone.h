@@ -77,6 +77,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
                             std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) override;
 
+    /// Get the total mass of the suspension subsystem.
+    virtual double GetMass() const override;
+
     /// Get the force in the spring element.
     double GetSpringForce(VehicleSide side) const { return m_spring[side]->Get_SpringReact(); }
 

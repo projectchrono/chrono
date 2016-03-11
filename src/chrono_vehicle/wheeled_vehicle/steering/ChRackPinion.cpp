@@ -52,7 +52,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> link_local(0, GetSteeringLinkCOM(), 0);
     ChVector<> link_abs = steering_to_abs.TransformPointLocalToParent(link_local);
 
-    m_link = std::make_shared<ChBody>(chassis->GetSystem()->GetContactMethod());
+    m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(link_abs);
     m_link->SetRot(steering_to_abs.GetRot());
@@ -85,7 +85,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::Update(double time, double steering) {
+void ChRackPinion::Synchronize(double time, double steering) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
     double angle = steering * GetMaxAngle();
@@ -93,6 +93,13 @@ void ChRackPinion::Update(double time, double steering) {
 
     if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_actuator->Get_dist_funct()))
         fun->Set_yconst(displ);
+}
+
+// -----------------------------------------------------------------------------
+// Get the total mass of the steering subsystem
+// -----------------------------------------------------------------------------
+double ChRackPinion::GetMass() const {
+    return GetSteeringLinkMass();
 }
 
 // -----------------------------------------------------------------------------

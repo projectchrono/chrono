@@ -84,10 +84,10 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     /// Update the state of this tire system at the current time.
     /// Set the PacTire spindle state data from the global wheel body state.
-    virtual void Update(double time,                      ///< [in] current time
-                        const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                        const ChTerrain& terrain          ///< [in] reference to the terrain system
-                        ) override;
+    virtual void Synchronize(double time,                    ///< [in] current time
+                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             ) override;
 
     /// Advance the state of this tire by the specified time step.
     /// Use the new body state, calculate all the relevant quantities over the

@@ -208,6 +208,9 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
         if (auto v_asset = std::dynamic_pointer_cast<ChVisualization>(k_asset)) {
             if (v_asset->IsVisible()) {
                 if (auto myobj = std::dynamic_pointer_cast<ChObjShapeFile>(k_asset)) {
+                    bool irrmesh_already_loaded = false;
+                    if (scenemanager->getMeshCache()->getMeshByName(myobj->GetFilename().c_str()))
+                        irrmesh_already_loaded = true;
                     IAnimatedMesh* genericMesh = scenemanager->getMesh(myobj->GetFilename().c_str());
                     if (genericMesh) {
                         ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(myobj, mnode);
@@ -220,7 +223,8 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         // this goes wrong with our assemblies and links. So we rather accept that the display is X mirrored, and we
                         // restore the X flipping of the mesh (also the normals and triangle indexes ordering must be flipped otherwise 
                         // back culling is not working):
-                        mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh()); 
+                        if (!irrmesh_already_loaded) // flag to avoid multiple flipping in shared meshes
+                            mflipSurfacesOnX(((IAnimatedMeshSceneNode*)mchildnode)->getMesh()); 
 
                         mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING,true);  
                     }

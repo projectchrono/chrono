@@ -161,12 +161,15 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringController(ChBezierCurve* path);
+    ChPathSteeringController(ChBezierCurve* path, bool isClosedPath = false);
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the
     /// specified JSON file.
-    ChPathSteeringController(const std::string& filename, ChBezierCurve* path);
+    ChPathSteeringController(const std::string& filename, 
+                             ChBezierCurve* path, 
+                             bool isClosedPath = false
+                             );
 
     /// Destructor for ChPathSteeringController.
     ~ChPathSteeringController();

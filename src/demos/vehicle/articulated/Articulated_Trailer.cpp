@@ -60,7 +60,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
     // -------------------------------------------
     // Create the chassis body
     // -------------------------------------------
-    m_chassis = std::make_shared<ChBodyAuxRef>(mysystem->GetContactMethod());
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(mysystem->NewBodyAuxRef());
 
     m_chassis->SetIdentifier(100);
     m_chassis->SetName("trailer");
@@ -79,7 +79,7 @@ Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
     // -------------------------------------------
     // Create the front steering axle body
     // -------------------------------------------
-    m_frontaxle = std::make_shared<ChBodyAuxRef>(mysystem->GetContactMethod());
+    m_frontaxle = std::shared_ptr<ChBodyAuxRef>(mysystem->NewBodyAuxRef());
 
     m_frontaxle->SetIdentifier(101);
     m_frontaxle->SetMass(m_frontaxleMass);
@@ -251,18 +251,18 @@ double Articulated_Trailer::GetShockVelocity(const WheelID& wheel_id) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Articulated_Trailer::Update(double time, double braking, const TireForces& tire_forces) {
+void Articulated_Trailer::Synchronize(double time, double braking, const TireForces& tire_forces) {
     // Apply tire forces to spindle bodies.
-    m_suspensions[0]->Update(LEFT, tire_forces[FRONT_LEFT.id()]);
-    m_suspensions[0]->Update(RIGHT, tire_forces[FRONT_RIGHT.id()]);
-    m_suspensions[1]->Update(LEFT, tire_forces[REAR_LEFT.id()]);
-    m_suspensions[1]->Update(RIGHT, tire_forces[REAR_RIGHT.id()]);
+    m_suspensions[0]->Synchronize(LEFT, tire_forces[FRONT_LEFT.id()]);
+    m_suspensions[0]->Synchronize(RIGHT, tire_forces[FRONT_RIGHT.id()]);
+    m_suspensions[1]->Synchronize(LEFT, tire_forces[REAR_LEFT.id()]);
+    m_suspensions[1]->Synchronize(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
     // Apply braking
-    m_front_left_brake->Update(braking);
-    m_front_right_brake->Update(braking);
-    m_rear_left_brake->Update(braking);
-    m_rear_right_brake->Update(braking);
+    m_front_left_brake->Synchronize(braking);
+    m_front_right_brake->Synchronize(braking);
+    m_rear_left_brake->Synchronize(braking);
+    m_rear_right_brake->Synchronize(braking);
 }
 
 // -----------------------------------------------------------------------------

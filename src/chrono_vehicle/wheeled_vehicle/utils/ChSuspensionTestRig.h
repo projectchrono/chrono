@@ -91,6 +91,11 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Return true if a steering system is attached.
     bool HasSteering() const { return m_steering != 0; }
 
+    /// Get the rig total mass.
+    /// This includes the mass of the suspension and wheels, and (if present) the mass of the
+    /// steering mechanism.
+    virtual double GetVehicleMass() const override;
+
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
@@ -107,12 +112,12 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     /// Update the state at the current time.
     /// steering between -1 and +1, and no force need be applied if using external actuation
-    void Update(double time,                     ///< [in] current time
-                double steering,                 ///< [in] current steering input [-1,+1]
-                double disp_L,                   ///< [in] left post displacement
-                double disp_R,                   ///< [in] right post displacement
-                const TireForces& tire_forces  ///< [in] tires force to apply to wheel
-                );
+    void Synchronize(double time,                   ///< [in] current time
+                     double steering,               ///< [in] current steering input [-1,+1]
+                     double disp_L,                 ///< [in] left post displacement
+                     double disp_R,                 ///< [in] right post displacement
+                     const TireForces& tire_forces  ///< [in] tires force to apply to wheel
+                     );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

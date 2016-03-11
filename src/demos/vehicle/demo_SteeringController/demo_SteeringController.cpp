@@ -386,12 +386,12 @@ int main(int argc, char* argv[]) {
         }
 
         // Update modules (process inputs from other modules)
-        driver_follower.Update(time);
-        driver_gui.Update(time);
-        terrain.Update(time);
-        my_hmmwv.Update(time, steering_input, braking_input, throttle_input, terrain);
+        driver_follower.Synchronize(time);
+        driver_gui.Synchronize(time);
+        terrain.Synchronize(time);
+        my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
         std::string msg = selector.UsingGUI() ? "GUI driver" : "Follower driver";
-        app.Update(msg, steering_input, throttle_input, braking_input);
+        app.Synchronize(msg, steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
