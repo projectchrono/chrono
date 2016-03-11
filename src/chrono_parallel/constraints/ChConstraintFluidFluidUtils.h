@@ -3,7 +3,7 @@
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/math/matrix.h"               // for quaternion, real4
+#include "chrono_parallel/math/matrix.h"  // for quaternion, real4
 #define F_PI 3.141592653589793238462643383279
 #define INVPI 1 / F_PI
 
@@ -19,9 +19,19 @@ namespace chrono {
 ///
 #define CPOLY6 315.0 / (64.0 * F_PI * H9)
 #define KPOLY6 CPOLY6* Pow((H2 - dist * dist), 3)
+
+#define CGPOLY6 -945.0 / (32.0 * F_PI * H9)
+#define KGPOLY6 CGPOLY6* Pow((H2 - dist * dist), 2)
+
+#define CLPOLY6 945.0 / (32.0 * F_PI * H9)
+#define KLPOLY6 CLPOLY6*(H2 - dist * dist) * (7 * dist * dist - 3 * H2)
+
 ///
 #define CGSPIKY -45.0 / (F_PI * H6)
 #define KGSPIKY CGSPIKY* Pow(h - dist, 2)
+
+#define CLVISC 45.0 / (F_PI * H6)
+#define KLVISC CLVISC*(h - dist)
 
 inline real N(const real& dist, const real& h) {
     real x = Abs(dist) / h;
