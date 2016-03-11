@@ -28,7 +28,8 @@ namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 HMMWV::HMMWV()
-    : m_vehicle(NULL),
+    : m_system(NULL),
+      m_vehicle(NULL),
       m_powertrain(NULL),
       m_tireFL(NULL),
       m_tireFR(NULL),
@@ -45,6 +46,25 @@ HMMWV::HMMWV()
       m_wheelVis(PRIMITIVES),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {
 }
+
+HMMWV::HMMWV(ChSystem* system)
+    : m_system(system),
+      m_vehicle(NULL),
+      m_powertrain(NULL),
+      m_tireFL(NULL),
+      m_tireFR(NULL),
+      m_tireRL(NULL),
+      m_tireRR(NULL),
+      m_contactMethod(ChMaterialSurfaceBase::DVI),
+      m_fixed(false),
+      m_driveType(AWD),
+      m_powertrainType(SHAFTS),
+      m_tireType(RIGID),
+      m_tire_step_size(-1),
+      m_pacejkaParamFile(""),
+      m_chassisVis(PRIMITIVES),
+      m_wheelVis(PRIMITIVES),
+      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::~HMMWV() {
     delete m_vehicle;
