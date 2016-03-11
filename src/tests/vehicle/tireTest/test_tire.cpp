@@ -74,7 +74,7 @@ using namespace irr;
 // Contact method type
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
-// Type of tire model
+// Type of tire model (RIGID, PACEJKA, LUGRE, FIALA, ANCF)
 TireModelType tire_model = ANCF;
 
 // JSON file names for tire models
@@ -192,9 +192,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_FEA
             auto tire_ancf = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
 
-            tire_ancf->EnablePressure(false);
-            tire_ancf->EnableContact(false);
-            tire_ancf->EnableRimConnection(false);
+            tire_ancf->EnablePressure(true);
+            tire_ancf->EnableContact(true);
+            tire_ancf->EnableRimConnection(true);
 
             tire_ancf->Initialize(wheel, LEFT);
             tire_radius = tire_ancf->GetTireRadius();
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
     auto terrain = std::make_shared<RigidTerrain>(system);
     terrain->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain->Initialize(-tire_radius - tire_offset - 0.2, terrain_length, terrain_width);
+    terrain->Initialize(-tire_radius - tire_offset, terrain_length, terrain_width);
 
     // Create joints
     // -------------
@@ -275,6 +275,7 @@ int main(int argc, char* argv[]) {
     if (tire_model == ANCF) {
         solver_type = MKL;
         integrator_type = HHT;
+        step_size = ChMin(step_size, 1e-4);
     }
 
     if (solver_type == MKL) {
@@ -336,6 +337,8 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
+
+    GetLog() << "Using step_size = " << step_size << "\n";
 
     // Create the Irrlicht app
     // -----------------------

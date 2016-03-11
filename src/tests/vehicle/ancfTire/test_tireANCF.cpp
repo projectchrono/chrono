@@ -67,7 +67,7 @@ double wheel_mass = 40;
 ChVector<> wheel_inertia(1, 1, 1);
 
 // Initial offset of the tire above the terrain
-double tire_offset = 0.1;
+double tire_offset = 0.03;
 
 // Rigid terrain dimensions
 double terrain_length = 100.0;  // size in X direction
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     auto tire = std::make_shared<ANCFToroidalTire>("ANCF_Tire");
 
     tire->EnablePressure(true);
-    tire->EnableContact(false);
+    tire->EnableContact(true);
     tire->EnableRimConnection(true);
 
     tire->Initialize(wheel, LEFT);
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     auto terrain = std::make_shared<RigidTerrain>(&system);
     terrain->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain->Initialize(-tire_radius - tire_offset - 0.2, terrain_length, terrain_width);
+    terrain->Initialize(-tire_radius - tire_offset, terrain_length, terrain_width);
 
     // Create joints
     // -------------
@@ -286,6 +286,6 @@ int main(int argc, char* argv[]) {
 
         // Advance simulation
         tire->Advance(step_size);
-        system.DoStepDynamics(step_size);
+        app.DoStep();
     }
 }

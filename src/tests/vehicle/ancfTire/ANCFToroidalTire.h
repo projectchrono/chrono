@@ -42,8 +42,8 @@ class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
     static const double m_height;
     static const double m_thickness;
 
-    static const int m_div_diameter;
-    static const int m_div_thread;
+    static const int m_div_circumference;
+    static const int m_div_width;
 
     static const double m_default_pressure;
     static const double m_alpha;

@@ -28,8 +28,8 @@ const double ANCFToroidalTire::m_rim_radius = 0.35;
 const double ANCFToroidalTire::m_height = 0.195;
 const double ANCFToroidalTire::m_thickness = 0.014;
 
-const int ANCFToroidalTire::m_div_diameter = 60;
-const int ANCFToroidalTire::m_div_thread = 12;
+const int ANCFToroidalTire::m_div_circumference = 60;
+const int ANCFToroidalTire::m_div_width = 12;
 
 const double ANCFToroidalTire::m_default_pressure = 320.0e3;
 const double ANCFToroidalTire::m_alpha = 0.15;
@@ -48,11 +48,11 @@ void ANCFToroidalTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh,
     // Create the mesh nodes.
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
     // and are then transformed to the global frame.
-    for (int j = 0; j < m_div_diameter; j++) {
-        double phi = (CH_C_2PI * j) / m_div_diameter;
+    for (int i = 0; i < m_div_circumference; i++) {
+        double phi = (CH_C_2PI * i) / m_div_circumference;
 
-        for (int i = 0; i <= m_div_thread; i++) {
-            double theta = -CH_C_PI_2 + (CH_C_PI * i) / m_div_thread;
+        for (int j = 0; j <= m_div_width; j++) {
+            double theta = -CH_C_PI_2 + (CH_C_PI * j) / m_div_width;
 
             double x = (m_rim_radius + m_height * cos(theta)) * cos(phi);
             double y = m_height * sin(theta);
@@ -72,31 +72,33 @@ void ANCFToroidalTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh,
 
     // Element dimensions
     double dz = m_thickness;
-    double dx = CH_C_2PI * (m_rim_radius + m_height) / (2 * m_div_diameter);
-    double dy = CH_C_PI * m_height / m_div_thread;
+    double dx = CH_C_2PI * (m_rim_radius + m_height) / (2 * m_div_circumference);
+    double dy = CH_C_PI * m_height / m_div_width;
 
     // Create the ANCF shell elements
-    for (int j = 0; j < m_div_diameter; j++) {
-        for (int i = 0; i < m_div_thread; i++) {
-            int node0, node1, node2, node3;
-            if (j == m_div_diameter - 1) {
-                node0 = i + j * (m_div_thread + 1);
-                node1 = i + j * (m_div_thread + 1) + 1;
-                node2 = i;
-                node3 = i + 1;
-            } else {
-                node0 = i + j * (m_div_thread + 1);
-                node1 = i + j * (m_div_thread + 1) + 1;
-                node2 = i + (j + 1) * (m_div_thread + 1);
-                node3 = i + 1 + (j + 1) * (m_div_thread + 1);
+    for (int i = 0; i < m_div_circumference; i++) {
+        for (int j = 0; j < m_div_width; j++) {
+            // Adjacent nodes
+            int inode0, inode1, inode2, inode3;
+            inode1 = j + i * (m_div_width + 1);
+            inode3 = j + 1 + i * (m_div_width + 1);
+            if (i == m_div_circumference - 1) {
+                inode0 = j;
+                inode2 = j + 1;
             }
+            else {
+                inode0 = j + (i + 1) * (m_div_width + 1);
+                inode2 = j + 1 + (i + 1) * (m_div_width + 1);
+            }
+
+            auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode0));
+            auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode1));
+            auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode2));
+            auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
             auto element = std::make_shared<ChElementShellANCF>();
-            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
+            element->SetNodes(node0, node1, node2, node3);
 
             // Set element dimensions
             element->SetDimensions(dx, dy);
@@ -117,16 +119,15 @@ void ANCFToroidalTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh,
     mesh->SetAutomaticGravity(false);
 }
 
-NodeList ANCFToroidalTire::GetConnectedNodes(
-    const std::shared_ptr<fea::ChMesh>& mesh) const {
+NodeList ANCFToroidalTire::GetConnectedNodes(const std::shared_ptr<fea::ChMesh>& mesh) const {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> nodes;
 
-    for (int j = 0; j < m_div_diameter; j++) {
-        for (int i = 0; i <= m_div_thread; i++) {
-            int index = i + j * (m_div_thread + 1);
-            if (index % (m_div_thread + 1) == 0) {
+    for (int i = 0; i < m_div_circumference; i++) {
+        for (int j = 0; j <= m_div_width; j++) {
+            int index = j + i * (m_div_width + 1);
+            if (index % (m_div_width + 1) == 0) {
                 nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(index)));
-                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(index + m_div_thread)));
+                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(index + m_div_width)));
             }
         }
     }

@@ -227,14 +227,14 @@ void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrameMoving
         for (int j = 0; j < m_div_width; j++) {
             // Adjacent nodes
             int inode0, inode1, inode2, inode3;
-            inode0 = j + i * (m_div_width + 1);
-            inode1 = j + 1 + i * (m_div_width + 1);
+            inode1 = j + i * (m_div_width + 1);
+            inode3 = j + 1 + i * (m_div_width + 1);
             if (i == m_div_circumference - 1) {
-                inode2 = j;
-                inode3 = j + 1;
+                inode0 = j;
+                inode2 = j + 1;
             } else {
-                inode2 = j + (i + 1) * (m_div_width + 1);
-                inode3 = j + 1 + (i + 1) * (m_div_width + 1);
+                inode0 = j + (i + 1) * (m_div_width + 1);
+                inode2 = j + 1 + (i + 1) * (m_div_width + 1);
             }
 
             auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode0));
@@ -254,25 +254,25 @@ void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrameMoving
             element->SetDimensions(len_circumference, len_width);
 
             // Figure out the section for this element
-            unsigned int b1 = m_num_elements_bead;
-            unsigned int b2 = m_div_width - m_num_elements_bead;
-            unsigned int s1 = b1 + m_num_elements_sidewall;
-            unsigned int s2 = b2 - m_num_elements_sidewall;
+            int b1 = m_num_elements_bead;
+            int b2 = m_div_width - m_num_elements_bead;
+            int s1 = b1 + m_num_elements_sidewall;
+            int s2 = b2 - m_num_elements_sidewall;
             if (j < b1 || j >= b2) {
                 // Bead section
-                for (int im = 0; im < m_num_layers_bead; im++) {
+                for (unsigned int im = 0; im < m_num_layers_bead; im++) {
                     element->AddLayer(m_layer_thickness_bead[im], CH_C_DEG_TO_RAD * m_ply_angle_bead[im],
                                       m_materials[m_material_id_bead[im]]);
                 }
             } else if (j < s1 || j >= s2) {
                 // Sidewall section
-                for (int im = 0; im < m_num_layers_sidewall; im++) {
+                for (unsigned int im = 0; im < m_num_layers_sidewall; im++) {
                     element->AddLayer(m_layer_thickness_sidewall[im], CH_C_DEG_TO_RAD * m_ply_angle_sidewall[im],
                                       m_materials[m_material_id_sidewall[im]]);
                 }
             } else {
                 // Tread section
-                for (int im = 0; im < m_num_layers_tread; im++) {
+                for (unsigned int im = 0; im < m_num_layers_tread; im++) {
                     element->AddLayer(m_layer_thickness_tread[im], CH_C_DEG_TO_RAD * m_ply_angle_tread[im],
                                       m_materials[m_material_id_tread[im]]);
                 }

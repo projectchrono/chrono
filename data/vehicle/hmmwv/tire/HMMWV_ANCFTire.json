@@ -64,9 +64,9 @@
 
   "Tread Section":
   {
-      "Layer Thickness":   [ 0.5e-03 , 0.3e-03 , 0.3e-03 , 0.1e-02 ],
-      "Ply Angle":         [ 90 , 20 , -20 , 0 ],
-      "Material ID":       [ 0 , 1 , 1 , 2 ],
+      "Layer Thickness":   [ 0.1e-02 , 0.3e-03 , 0.3e-03 , 0.5e-03 ],
+      "Ply Angle":         [ 0 , -20 , 20 , 90 ],
+      "Material ID":       [ 2 , 1 , 1 , 0 ],
       "Number Elements":   3
  },
 
