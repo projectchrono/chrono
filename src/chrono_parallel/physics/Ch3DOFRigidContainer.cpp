@@ -296,6 +296,10 @@ void Ch3DOFRigidContainer::Build_D() {
 }
 
 void Ch3DOFRigidContainer::Build_b() {
+    real inv_h = 1 / data_manager->settings.step_size;
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + data_manager->settings.solver.alpha);
+    real inv_hhpa = inv_h * inv_hpa;
+
     real dt = data_manager->settings.step_size;
     DynamicVector<real>& b = data_manager->host_data.b;
     custom_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
@@ -333,7 +337,11 @@ void Ch3DOFRigidContainer::Build_b() {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;  //
                                       real bi = 0;                               //
                                       if (cohesion) { depth = Min(depth, 0); } else {
-                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                          if (data_manager->settings.solver.alpha) {
+                                              bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                          } else {
+                                              bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                          }
                                       }
 
                                       b[start_contact + index + 0] = bi;);
@@ -341,7 +349,11 @@ void Ch3DOFRigidContainer::Build_b() {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;  //
                                       real bi = 0;                               //
                                       if (cohesion) { depth = Min(depth, 0); } else {
-                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                          if (data_manager->settings.solver.alpha) {
+                                              bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                          } else {
+                                              bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
+                                          }
                                       }                                                           //
                                       b[start_contact + index + 0] = bi;                          //
                                       b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;  //
@@ -367,17 +379,20 @@ void Ch3DOFRigidContainer::Build_E() {
             }
         }
     }
+    real inv_h = 1.0 / data_manager->settings.step_size;
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + data_manager->settings.solver.alpha);
+    real inv_hhpa = inv_h * inv_hpa;
 
     if (num_rigid_contacts > 0) {
         if (mu == 0) {
 #pragma omp parallel for
             for (int index = 0; index < num_rigid_contacts; index++) {
-                E[start_contact + index + 0] = 0;
+                E[start_contact + index + 0] = inv_hhpa * compliance;
             }
         } else {
 #pragma omp parallel for
             for (int index = 0; index < num_rigid_contacts; index++) {
-                E[start_contact + index + 0] = 0;
+                E[start_contact + index + 0] = inv_hhpa * compliance;
                 E[start_contact + num_rigid_contacts + index * 2 + 0] = 0;
                 E[start_contact + num_rigid_contacts + index * 2 + 1] = 0;
             }
