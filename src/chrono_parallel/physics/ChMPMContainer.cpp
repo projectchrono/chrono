@@ -21,7 +21,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-#define USE_CPU 1
+#define USE_CPU 0
 //////////////////////////////////////
 //////////////////////////////////////
 
@@ -421,8 +421,9 @@ void ChMPMContainer::Initialize() {
     temp_settings.num_mpm_markers = num_mpm_markers;
     temp_settings.mass = mass;
     temp_settings.num_iterations = max_iterations;
-
-    MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
+    if (max_iterations > 0) {
+        MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
+    }
 #endif
 }
 
@@ -667,6 +668,18 @@ void ChMPMContainer::PreSolve() {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
     const real dt = data_manager->settings.step_size;
+
+// MPM doesn't know about any rigid objects... how to tell it?
+// Apply force from the last time step?
+// Set the velocities of nodes in rigid bodies to zero
+// Collide nodes against rigid bodies
+
+// Get list of nodes
+// For each node get its location
+// Check if node is colliding
+// If so, set it to colliding and store the velocity of the rigid body
+// Pass the list of node states and rigid velocities to MPM
+
 #if !USE_CPU
     MPM_Settings temp_settings;
     temp_settings.dt = dt;
@@ -686,9 +699,9 @@ void ChMPMContainer::PreSolve() {
     temp_settings.num_mpm_markers = num_mpm_markers;
     temp_settings.mass = mass;
     temp_settings.num_iterations = max_iterations;
-
-    MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
-
+    if (max_iterations > 0) {
+        MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
+    }
 #pragma omp parallel for
     for (int p = 0; p < num_mpm_markers; p++) {
         int index = data_manager->host_data.reverse_mapping_3dof[p];
@@ -803,9 +816,50 @@ void ChMPMContainer::PreSolve() {
 }
 void ChMPMContainer::PostSolve() {
     const real dt = data_manager->settings.step_size;
+
     const real3 gravity = data_manager->settings.gravity;
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
+#if !USE_CPU
+
+//#pragma omp parallel for
+//    for (int p = 0; p < num_mpm_markers; p++) {
+//        int index = data_manager->host_data.reverse_mapping_3dof[p];
+//        data_manager->host_data.vel_3dof[p].x = data_manager->host_data.v[body_offset + index * 3 + 0];
+//        data_manager->host_data.vel_3dof[p].y = data_manager->host_data.v[body_offset + index * 3 + 1];
+//        data_manager->host_data.vel_3dof[p].z = data_manager->host_data.v[body_offset + index * 3 + 2];
+//    }
+//
+//    MPM_Settings temp_settings;
+//    temp_settings.dt = dt;
+//    temp_settings.kernel_radius = kernel_radius;
+//    temp_settings.inv_radius = 1.0 / kernel_radius;
+//    temp_settings.bin_edge = kernel_radius * 2;
+//    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+//    temp_settings.max_velocity = max_velocity;
+//    temp_settings.mu = mu;
+//    temp_settings.lambda = lambda;
+//    temp_settings.hardening_coefficient = hardening_coefficient;
+//    temp_settings.theta_c = theta_c;
+//    temp_settings.theta_s = theta_s;
+//    temp_settings.alpha_flip = alpha;
+//    temp_settings.youngs_modulus = youngs_modulus;
+//    temp_settings.poissons_ratio = nu;
+//    temp_settings.num_mpm_markers = num_mpm_markers;
+//    temp_settings.mass = mass;
+//    temp_settings.num_iterations = max_iterations;
+//    if (max_iterations > 0) {
+//        MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
+//    }
+//#pragma omp parallel for
+//    for (int p = 0; p < num_mpm_markers; p++) {
+//        int index = data_manager->host_data.reverse_mapping_3dof[p];
+//        data_manager->host_data.v[body_offset + index * 3 + 0] = data_manager->host_data.vel_3dof[p].x;
+//        data_manager->host_data.v[body_offset + index * 3 + 1] = data_manager->host_data.vel_3dof[p].y;
+//        data_manager->host_data.v[body_offset + index * 3 + 2] = data_manager->host_data.vel_3dof[p].z;
+//    }
+
+#else
 
     printf("Update_Deformation_Gradient\n");
 #pragma omp parallel for
@@ -838,6 +892,7 @@ void ChMPMContainer::PostSolve() {
         //        real current_stiffness = current_lambda * (1.0 + nu) * (1.0 - 2.0 * nu) / (nu);
         //        printf("JU: %d [%f %f] [%f %f %f]\n", p, JE, JP, current_mu, current_lambda, current_stiffness);
     }
+#endif
 }
 void BBSOLVER(ChShurProduct& ShurProduct,
               ChProjectConstraints& Project,
@@ -857,9 +912,6 @@ void BBSOLVER(ChShurProduct& ShurProduct,
 
     real lastgoodres = 0;
     real objective_value = 0;
-
-    // ChTimer<> t1, t2, t3, t4;
-    // t1.start();
 
     temp.resize(size);
     ml.resize(size);
@@ -893,10 +945,6 @@ void BBSOLVER(ChShurProduct& ShurProduct,
     ShurProduct(ml, temp);
     mg = temp - r;
 
-    //    for (int i = 0; i < size; i++) {
-    //        printf("mg: %d %f\n", i, temp[i]);
-    //    }
-
     mg_p = mg;
 
     real mf_p = 0;
@@ -904,20 +952,15 @@ void BBSOLVER(ChShurProduct& ShurProduct,
     int n_armijo = 10;
     int max_armijo_backtrace = 3;
     std::vector<real> f_hist;
-    // t1.stop();
     for (int current_iteration = 0; current_iteration < max_iter; current_iteration++) {
-        // This works
-
         ml_p = ml - alpha * mg;
         mg_p = 0;
         ShurProduct(ml_p, mg_p);
         mg_p = mg_p - r;
         // mf_p = (ml_p, 0.5 * temp - r);
-
+        ms = ml_p - ml;
+        my = mg_p - mg;
         if (current_iteration % 2 == 0) {
-            ms = ml_p - ml;
-            my = mg_p - mg;
-
             real sDs = (ms, ms);
             real sy = (ms, my);
             if (sy <= 0) {
@@ -925,11 +968,7 @@ void BBSOLVER(ChShurProduct& ShurProduct,
             } else {
                 alpha = Min(a_max, Max(a_min, sDs / sy));
             }
-            printf("alpha: %f %f %f %f \n", alpha, (ms, ms), (ms, my), (my, my));
         } else {
-            ms = ml_p - ml;
-            my = mg_p - mg;
-
             real sy = (ms, my);
             real yDy = (my, my);
             if (sy <= 0) {
@@ -937,7 +976,6 @@ void BBSOLVER(ChShurProduct& ShurProduct,
             } else {
                 alpha = Min(a_max, Max(a_min, sy / yDy));
             }
-            printf("alpha: %f %f %f %f \n", alpha, (ms, ms), (ms, my), (my, my));
         }
 
         ml = ml_p;
@@ -950,7 +988,6 @@ void BBSOLVER(ChShurProduct& ShurProduct,
             ml_candidate = ml;
         }
         printf("[%f %f]\n", lastgoodres, objective_value);
-        // t4.stop();
     }
 
     gamma = ml_candidate;
