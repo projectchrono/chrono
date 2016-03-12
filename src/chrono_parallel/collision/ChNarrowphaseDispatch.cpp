@@ -600,7 +600,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                 real3 pos_sphere = pos_spheres[p];
                 real3 Bmin = pos_sphere - real3(radius + collision_envelope) - global_origin;
                 real3 Bmax = pos_sphere + real3(radius + collision_envelope) - global_origin;
-                ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius);
+                ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius * .5);
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
@@ -713,7 +713,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     contact_counts.resize(num_tets + 1);
     short2 family = data_manager->fea_container->family;
     Thrust_Fill(contact_counts, 0);
-#pragma omp parallel for
+
     for (int index = 0; index < f_number_of_bins_active; index++) {
         uint start = f_bin_start_index[index];
         uint end = f_bin_start_index[index + 1];
@@ -723,11 +723,10 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
             continue;
         }
         unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
-        bool rigid_is_active = rigid_index != 1000000000;
-        if (rigid_is_active) {
+        if (rigid_index != 1000000000) {
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
-            //#pragma omp parallel for
+#pragma omp parallel for
             for (uint i = start; i < end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 Bmin = aabb_min_tet[p] - global_origin;
@@ -735,7 +734,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
 
                 uint4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
                 real3* node_pos = data_manager->host_data.pos_node_fea.data();
-
+                ConvexShapeTetradhedron* shapeB = new ConvexShapeTetradhedron(tet_index, node_pos);
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
                     real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
@@ -747,7 +746,6 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     if (!collide(family, fam_data[shape_id_a]))
                         continue;
                     ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
-                    ConvexShapeTetradhedron* shapeB = new ConvexShapeTetradhedron(tet_index, node_pos);
 
                     real3 ptA, ptB, norm;
                     real depth;
@@ -767,8 +765,8 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                         }
                     }
                     delete shapeA;
-                    delete shapeB;
                 }
+                delete shapeB;
             }
         }
     }
