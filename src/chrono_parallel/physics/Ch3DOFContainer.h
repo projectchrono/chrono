@@ -328,6 +328,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real mu;
     real cohesion;
     real mass;
+    real alpha;
     uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
     custom_vector<real3> new_pos;
 

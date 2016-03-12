@@ -297,7 +297,7 @@ void Ch3DOFRigidContainer::Build_D() {
 
 void Ch3DOFRigidContainer::Build_b() {
     real inv_h = 1 / data_manager->settings.step_size;
-    real inv_hpa = 1.0 / (data_manager->settings.step_size + data_manager->settings.solver.alpha);
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
     real inv_hhpa = inv_h * inv_hpa;
 
     real dt = data_manager->settings.step_size;
@@ -337,7 +337,7 @@ void Ch3DOFRigidContainer::Build_b() {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;  //
                                       real bi = 0;                               //
                                       if (cohesion) { depth = Min(depth, 0); } else {
-                                          if (data_manager->settings.solver.alpha) {
+                                          if (alpha) {
                                               bi = std::max(inv_hpa * depth, -contact_recovery_speed);
                                           } else {
                                               bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
@@ -349,7 +349,7 @@ void Ch3DOFRigidContainer::Build_b() {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;  //
                                       real bi = 0;                               //
                                       if (cohesion) { depth = Min(depth, 0); } else {
-                                          if (data_manager->settings.solver.alpha) {
+                                          if (alpha) {
                                               bi = std::max(inv_hpa * depth, -contact_recovery_speed);
                                           } else {
                                               bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
@@ -380,7 +380,7 @@ void Ch3DOFRigidContainer::Build_E() {
         }
     }
     real inv_h = 1.0 / data_manager->settings.step_size;
-    real inv_hpa = 1.0 / (data_manager->settings.step_size + data_manager->settings.solver.alpha);
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
     real inv_hhpa = inv_h * inv_hpa;
 
     if (num_rigid_contacts > 0) {
