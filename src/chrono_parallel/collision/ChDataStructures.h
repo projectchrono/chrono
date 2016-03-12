@@ -103,5 +103,18 @@ class ConvexShapeTetradhedron : public ConvexBase {
     real3* nodes;
 };
 
+class ConvexShapeTriangle : public ConvexBase {
+  public:
+    ConvexShapeTriangle(real3& t1, real3& t2, real3 t3) {tri[0] = t1;
+    tri[1] = t2;
+    tri[2] = t3;
+    }
+    virtual ~ConvexShapeTriangle() {}
+    const inline int Type() const { return TRIANGLEMESH; }
+    const inline real3 A() const { return real3(0); }
+    virtual const real3* Triangles() const { return &tri[0]; }
+    real3 tri[3];
+};
+
 }  // end namespace collision
 }  // end namespace chrono
