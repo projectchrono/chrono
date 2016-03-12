@@ -13,7 +13,7 @@
 #include "chrono_parallel/math/real2.h"        // for real2
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
-#include "chrono_parallel/math/matrix.h"        // for quaternion, real4
+#include "chrono_parallel/math/matrix.h"       // for quaternion, real4
 
 namespace chrono {
 
@@ -44,7 +44,26 @@ uvec3 SortedFace(int face, const uint4& tetrahedron) {
             break;
     }
 }
-
+uvec3 UnSortedFace(int face, const uint4& tetrahedron) {
+    int i = tetrahedron.x;
+    int j = tetrahedron.y;
+    int k = tetrahedron.z;
+    int l = tetrahedron.w;
+    switch (face) {
+        case 0:
+            return (_make_uvec3(j, k, l));
+            break;
+        case 1:
+            return (_make_uvec3(i, k, l));
+            break;
+        case 2:
+            return (_make_uvec3(i, j, l));
+            break;
+        case 3:
+            return (_make_uvec3(i, j, k));
+            break;
+    }
+}
 ChFEAContainer::ChFEAContainer(ChSystemParallelDVI* system) {
     data_manager = system->data_manager;
     data_manager->AddFEAContainer(this);
@@ -402,7 +421,7 @@ void ChFEAContainer::Build_D() {
         real3 r3 = 1. / 6. * Cross(c1, c2);
         real3 r0 = -r1 - r2 - r3;
 
-        real vf = (0.5 / (volSqrt));
+        real vf = 0;//(0.5 / (volSqrt));
         // This helps to scale jacboian so boundaries aren't ignored
         real cf = 2 * volSqrt;  // 2 * volSqrt;
         // diagonal elements of strain matrix
@@ -510,25 +529,30 @@ void ChFEAContainer::Build_D() {
                 SetRow6Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
                 real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
-                uvec3 sortedf = SortedFace(face.w, tetind);
+                uvec3 sortedf = UnSortedFace(face.w, tetind);
+                // printf("%f %f %f \n", face.x, face.y, face.z);
 
+                // if (face.x > face.y && face.x > face.z) {
                 SetRow3Check(D_T, start_boundary + index + 0, b_off + sortedf.x * 3, U * face.x);
-                SetRow3Check(D_T, start_boundary + index + 0, b_off + sortedf.y * 3, U * face.y);
-                SetRow3Check(D_T, start_boundary + index + 0, b_off + sortedf.z * 3, U * face.z);
 
                 SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 0, b_off + sortedf.x * 3,
                              V * face.x);
-                SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 0, b_off + sortedf.y * 3,
-                             V * face.y);
-                SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 0, b_off + sortedf.z * 3,
-                             V * face.z);
-
                 SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 1, b_off + sortedf.x * 3,
                              W * face.x);
+                // } else if (face.y > face.z && face.y > face.x) {
+                SetRow3Check(D_T, start_boundary + index + 0, b_off + sortedf.y * 3, U * face.y);
+
+                SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 0, b_off + sortedf.y * 3,
+                             V * face.y);
                 SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 1, b_off + sortedf.y * 3,
                              W * face.y);
+                // } else if (face.z > face.x && face.z > face.y) {
+                SetRow3Check(D_T, start_boundary + index + 0, b_off + sortedf.z * 3, U * face.z);
+                SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 0, b_off + sortedf.z * 3,
+                             V * face.z);
                 SetRow3Check(D_T, start_boundary + num_rigid_tet_contacts + index * 2 + 1, b_off + sortedf.z * 3,
                              W * face.z);
+                // }
             }
         }
     }
@@ -638,15 +662,21 @@ void ChFEAContainer::Build_b() {
     custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_tet;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
     int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
+    custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
+
     if (num_rigid_tet_contacts > 0) {
-#pragma omp parallel for
+        //#pragma omp parallel for
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
+            uint4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 real bi = 0;
                 real depth = data_manager->host_data.dpth_rigid_tet[p * max_rigid_neighbors + i];
+
+                // real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
+                // uvec3 sortedf = SortedFace(face.w, tetind);
 
                 bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
                 //
@@ -850,7 +880,7 @@ void ChFEAContainer::GenerateSparsity() {
 void ChFEAContainer::PreSolve() {
     if (gamma_old.size() > 0 && gamma_old.size() == data_manager->num_fea_tets * (6 + 1)) {
         blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) =
-            gamma_old * 0.9;
+            gamma_old * 0.95;
     }
 
     if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
@@ -965,17 +995,16 @@ void ChFEAContainer::FindSurface() {
 
         int f = faces[face].f;
         uint e = faces[face].element;
-
         boundary_element_mask_fea[e] = 1;
 
         if (f == 0) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w, e));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w, 0));
         } else if (f == 1) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].z, tet_indices[e].w, e));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].z, tet_indices[e].w, 1));
         } else if (f == 2) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].w, e));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].w, 2));
         } else if (f == 3) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z, e));
+            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z, 3));
         }
 
         face++;
