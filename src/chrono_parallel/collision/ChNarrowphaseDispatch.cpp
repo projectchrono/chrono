@@ -734,6 +734,11 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
 
                 uint4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
                 real3* node_pos = data_manager->host_data.pos_node_fea.data();
+                uint4 bface = data_manager->host_data.boundary_triangles_fea[p];
+                real3 t1 = node_pos[bface.x];
+                real3 t2 = node_pos[bface.y];
+                real3 t3 = node_pos[bface.z];
+                uint bf = bface.w;
                 ConvexShapeTetradhedron* shapeB = new ConvexShapeTetradhedron(tet_index, node_pos);
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
@@ -751,16 +756,20 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     real depth;
                     real3 barycentric;
                     int face;
+                    real3 res;
                     if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
-                            FindTriIndex(ptB, tet_index, node_pos, face, barycentric);
+                            // FindTriIndex(ptB, tet_index, node_pos, face, barycentric);
+                        	//instead of finding the closest face, always use the surface face
+
+                            SnapeToFaceBary(t1, t2, t3, ptB, res, barycentric);
 
                             norm_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = norm;
                             cpta_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = ptA;
                             cptb_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = ptB;
                             dpth_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = depth;
                             neighbor_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
-                            face_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = real4(barycentric, face);
+                            face_rigid_tet[p * max_rigid_neighbors + contact_counts[p]] = real4(barycentric, bf);
                             contact_counts[p]++;
                         }
                     }
@@ -770,6 +779,9 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
             }
         }
     }
+
+    // Compute a mapping with weights for each vertex in contact (sum up weights)
+
     Thrust_Exclusive_Scan(contact_counts);
     num_contacts = contact_counts[num_tets];
 }
