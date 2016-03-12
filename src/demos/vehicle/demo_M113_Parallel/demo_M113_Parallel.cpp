@@ -15,9 +15,13 @@
 //
 // =============================================================================
 
+#include <iostream>
+
 // Chrono::Engine header files
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
@@ -25,7 +29,11 @@
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 
 // Chrono::Parallel OpenGL header files
+//#undef CHRONO_OPENGL
+
+#ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
+#endif
 
 // Chrono utility header files
 #include "utils/ChUtilsGeometry.h"
@@ -47,15 +55,18 @@ using namespace chrono::vehicle;
 using namespace chrono::collision;
 using namespace m113;
 
+using std::cout;
+using std::endl;
+
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
 
 // Comment the following line to use Chrono::Parallel
-#define USE_SEQ
+//#define USE_SEQ
 
 // Comment the following line to use DVI contact
-#define USE_DEM
+//#define USE_DEM
 
 // -----------------------------------------------------------------------------
 // Specification of the terrain
@@ -70,7 +81,7 @@ TerrainType terrain_type = RIGID_TERRAIN;
 bool visible_walls = false;
 
 // Dimensions
-double hdimX = 5.5;
+double hdimX = 5.5; //// 2.5;
 double hdimY = 2.5;
 double hdimZ = 0.5;
 double hthick = 0.25;
@@ -85,7 +96,7 @@ ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
 
 float mu_g = 0.8f;
 
-int num_particles = 100;
+int num_particles = 100; //// 40000;
 
 // -----------------------------------------------------------------------------
 // Specification of the vehicle model
@@ -131,6 +142,14 @@ float contact_recovery_speed = -1;
 bool monitor_bilaterals = false;
 int bilateral_frame_interval = 100;
 
+// Output directories
+bool povray_output = false;
+
+const std::string out_dir = "../M113_PARALLEL";
+const std::string pov_dir = out_dir + "/POVRAY";
+
+int out_fps = 60;
+
 // =============================================================================
 
 double CreateParticles(ChSystem* system) {
@@ -175,7 +194,43 @@ double CreateParticles(ChSystem* system) {
 }
 
 // =============================================================================
+// Utility function for displaying an ASCII progress bar for the quantity x
+// which must be a value between 0 and n. The width 'w' represents the number
+// of '=' characters corresponding to 100%.
+
+void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
+  if ((x != n) && (x % (n / 100 + 1) != 0))
+    return;
+
+  float ratio = x / (float)n;
+  int c = ratio * w;
+
+  std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
+  for (int x = 0; x < c; x++)
+    std::cout << "=";
+  for (int x = c; x < w; x++)
+    std::cout << " ";
+  std::cout << "]\r" << std::flush;
+}
+
+// =============================================================================
 int main(int argc, char* argv[]) {
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (povray_output) {
+        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
+        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << pov_dir << std::endl;
+            return 1;
+        }
+    }
+
     // --------------
     // Create system.
     // --------------
@@ -221,6 +276,7 @@ int main(int argc, char* argv[]) {
     ////system->SetIterLCPsharpnessLambda(1.0);
 
 #else
+
     // Set number of threads
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
@@ -313,8 +369,15 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create and initialize vehicle system
-    M113_Vehicle vehicle(false, system);
+    M113_Vehicle vehicle(true, system);
     ////vehicle.SetStepsize(0.0001);
+
+    vehicle.SetChassisVisType(NONE);
+    vehicle.SetRoadWheelVisType(MESH);
+    vehicle.SetIdlerVisType(MESH);
+    vehicle.SetSprocketVisType(MESH);
+    vehicle.SetTrackShoeVisType(MESH);
+
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     ////vehicle.SetCollide(TrackCollide::NONE);
@@ -333,15 +396,22 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+#ifdef CHRONO_OPENGL
     // Initialize OpenGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "M113", system);
     gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
+#endif
+
+    // Number of simulation steps between two 3D view render frames
+    int out_steps = std::ceil((1.0 / time_step) / out_fps);
 
     // Run simulation for specified time.
     double time = 0;
     int sim_frame = 0;
+    int out_frame = 0;
+    int next_out_frame = 0;
     double exec_time = 0;
     int num_contacts = 0;
 
@@ -352,6 +422,25 @@ int main(int argc, char* argv[]) {
     TrackShoeForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     while (time < time_end) {
+        if (sim_frame == next_out_frame) {
+            cout << endl;
+            cout << "---- Frame:          " << out_frame + 1 << endl;
+            cout << "     Sim frame:      " << sim_frame << endl;
+            cout << "     Time:           " << time << endl;
+            cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
+            cout << "     Execution time: " << exec_time << endl;
+
+            if (povray_output) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), out_frame + 1);
+                utils::WriteShapesPovray(system, filename);
+            }
+
+            out_frame++;
+            next_out_frame += out_steps;
+            num_contacts = 0;
+        }
+
         // Release the vehicle chassis at the end of the hold time.
         if (vehicle.GetChassis()->GetBodyFixed() && time > time_hold) {
             std::cout << std::endl << "Release vehicle t = " << time << std::endl;
@@ -368,7 +457,6 @@ int main(int argc, char* argv[]) {
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
@@ -378,10 +466,14 @@ int main(int argc, char* argv[]) {
         powertrain.Advance(time_step);
         vehicle.Advance(time_step);
 
+#ifdef CHRONO_OPENGL
         if (gl_window.Active())
             gl_window.Render();
         else
             break;
+#endif
+
+        progressbar(out_steps + sim_frame - next_out_frame + 1, out_steps);
 
         // Periodically display maximum constraint violation
         if (monitor_bilaterals && sim_frame % bilateral_frame_interval == 0) {
