@@ -42,7 +42,7 @@ class int2 {
   public:
     inline int2() : x(0), y(0) {}
     inline int2(int a) : x(a), y(a) {}
-    inline int2(int a, int b, int c) : x(a), y(b) {}
+    inline int2(int a, int b) : x(a), y(b) {}
     inline int2(const int2& v) : x(v.x), y(v.y) {}
     inline int2(const real2& v) : x(v.x), y(v.y) {}
     inline int operator[](unsigned int i) const { return array[i]; }
@@ -67,28 +67,28 @@ class int2 {
 
 class vec3 {
   public:
-	CUDA_HOST_DEVICE inline vec3() : x(0), y(0), z(0), w(0) {}
-	CUDA_HOST_DEVICE inline vec3(int a) : x(a), y(a), z(a), w(0) {}
-	CUDA_HOST_DEVICE inline vec3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
-	CUDA_HOST_DEVICE inline vec3(const vec3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
-	CUDA_HOST_DEVICE inline vec3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
-	CUDA_HOST_DEVICE inline int operator[](unsigned int i) const { return array[i]; }
-	CUDA_HOST_DEVICE inline int& operator[](unsigned int i) { return array[i]; }
-//#if defined(USE_SSE)
-//    inline vec3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
-//    inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
-//    inline vec3& operator=(const __m128i& rhs) {
-//        _mm_storeu_si128((__m128i*)&array[0], rhs);
-//        return *this;
-//    }
-//#endif
-	CUDA_HOST_DEVICE inline vec3& operator=(const vec3& rhs) {
+    CUDA_HOST_DEVICE inline vec3() : x(0), y(0), z(0), w(0) {}
+    CUDA_HOST_DEVICE inline vec3(int a) : x(a), y(a), z(a), w(0) {}
+    CUDA_HOST_DEVICE inline vec3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
+    CUDA_HOST_DEVICE inline vec3(const vec3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+    CUDA_HOST_DEVICE inline vec3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+    CUDA_HOST_DEVICE inline int operator[](unsigned int i) const { return array[i]; }
+    CUDA_HOST_DEVICE inline int& operator[](unsigned int i) { return array[i]; }
+    //#if defined(USE_SSE)
+    //    inline vec3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
+    //    inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
+    //    inline vec3& operator=(const __m128i& rhs) {
+    //        _mm_storeu_si128((__m128i*)&array[0], rhs);
+    //        return *this;
+    //    }
+    //#endif
+    CUDA_HOST_DEVICE inline vec3& operator=(const vec3& rhs) {
         x = rhs.x;
         y = rhs.y;
         z = rhs.z;
         return *this;
     }
-	CUDA_HOST_DEVICE inline vec3& operator=(const real3& rhs) {
+    CUDA_HOST_DEVICE inline vec3& operator=(const real3& rhs) {
         x = rhs.x;
         y = rhs.y;
         z = rhs.z;
