@@ -50,6 +50,8 @@ public:
 		SphMarkerDataD* sphMarkersD,
 		FsiBodiesDataD * fsiBodiesD) ;
 
+	void Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD, FsiBodiesDataD * fsiBodiesD);
+
 private:
 
 	FsiGeneralData* fsiGeneralData;
@@ -85,6 +87,8 @@ private:
 		const thrust::device_vector<uint>& mapOriginalToSorted,
 		const thrust::device_vector<Real3>& bceAcc,
 		int2 updatePortion);
+
+	void MakeRigidIdentifier();
 };
 } // end namespace fsi
 } // end namespace chrono

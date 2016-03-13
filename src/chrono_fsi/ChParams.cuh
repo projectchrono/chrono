@@ -96,25 +96,8 @@ struct SimParams {
 	BceVersion bceType; /* */
 };
 
-/**
- * @brief Number of fluid markers, solid bodies, solid markers, boundary markers
- * @details
- * 		The description of each variable is in front of it
- */
- // Arman : see if you need all of these guys since you rely on chrono for rigid and flex
-struct NumberOfObjects {
-	int numRigidBodies; /* Number of rigid bodies */
-	int numFlexBodies; /* Number of Flexible bodies*/
-	int numFluidMarkers; /* Number of fluid SPH markers*/
-	int numBoundaryMarkers; /* Number of boundary SPH markers */
-	int startRigidMarkers; /* */
-	int startFlexMarkers; /* */
-	int numRigid_SphMarkers; /* */
-	int numFlex_SphMarkers; /* */
-	int numAllMarkers; /* Total number of SPH markers */
-};
 
-}
-}
+} // end namespace fsi
+} // end namespace chrono
 
 #endif /* MYSTRUCTS_CUH_ */

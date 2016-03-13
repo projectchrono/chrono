@@ -40,18 +40,14 @@ public:
 	void DoStepDynamics_ChronoRK2(); 
 	void CopyDeviceDataToHalfStep();
 	void SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle);
-	void Finalize();
+	void FinalizeData();
 	ChFsiDataManager* GetDataManager(){return fsiData;}
 	SimParams* GetSimParams() {return paramsH};
-	NumberOfObjects* GetNObjects() {return numObjectsH};
 	std::vector<ChSharedPtr<ChBody> > * GetFsiBodiesPtr() {return & fsiBodeisPtr;}
 
 private:
 	int DoStepChronoSystem(Real dT,
 		double mTime);
-
-	void SetNumObjects();
-
 
 	ChFsiDataManager* fsiData;
 	// map fsi to chrono bodies

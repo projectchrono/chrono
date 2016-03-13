@@ -30,12 +30,13 @@ namespace fsi {
 
 // Arman: have a default constructor where you create mphysical system.
 // Arman: have a function to set mphysical system
+//--------------------------------------------------------------------------------------------------------------------------------
 
 ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysicalSystem(other_physicalSystem), mTime(0), haveVehicle(false), mVehicle(NULL) {
 	fsiData = new ChFsiDataManager();
 	fsiBodeisPtr.resize(0);
 	paramsH = new SimParams; // Arman: define a function to set paramsH default values
-	numObjectsH = new NumberOfObjects;
+	numObjectsH = fsiData->numObjects;
 
 	bceWorker = new ChBce(&(fsiData->fsiGeneralData), paramsH, numObjectsH);
 	fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH);
@@ -43,48 +44,6 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 		mphysicalSystem, &fsiBodeisPtr,
 		&(fsiData->fsiGeneralData.rigid_FSI_ForcesD),
 		&(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetNumObjects() {
-	thrust::host_vector<int4>::iterator refIter = fsiData->fsiGeneralData.referenceArray.begin();
-	int numComps = fsiData->fsiGeneralData.referenceArray.size();
-	numObjectsH->numAllMarkers = 0;
-	bool foundRigid = false;
-	bool foundFlex = false;
-	for (int i = 0; i < numComps; i++) {
-		int phaseType = refIter[i].z;
-		int numMarkers = refIter[i].y - refIter[i].x;
-		numObjectsH->numAllMarkers += numMarkers;
-		switch (phaseType) {
-			case -1:
-				numObjectsH->numFluidMarkers = numMarkers;
-				break;
-			case 0:
-				numObjectsH->numBoundaryMarkers = numMarkers;
-				break;
-			case 1:
-				numObjectsH->numRigid_SphMarkers = numMarkers;
-				numObjectsH->numRigidBodies += 1;
-				if (!foundRigid) {
-					foundRigid = true;
-					numObjectsH->startRigidMarkers = refIter[i].x;
-				}
-				break;
-			case 2:
-				std::cout << "Error! phase not implemented. Thrown from SetNumObjects\n";
-				numObjectsH->numFlex_SphMarkers = numMarkers;
-				numObjectsH->numFlexBodies += 1;
-				if (!foundFlex) {
-					foundFlex = true;
-					numObjectsH->startFlexMarkers = refIter[i].x;
-				}
-				break;
-			default:
-				std::cout << "Error! phase not known. Thrown from SetNumObjects\n";
-				break;
-		}
-	}
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -192,9 +151,12 @@ void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mV
 	haveVehicle = true;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void Finalize() {
-	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));
-	fsiData->FinalizeDataManager();
+void FinalizeData() {
+	// Arman: very important: you cannot change the order of (1-3). Fix the issue later
+	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1)); //(1)
+	fsiData->FinalizeDataManager();	// (2)
+	bceWorker->Populate_RigidSPH_MeshPos_LRF(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); // (3)
+	bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); //(4)
 }
 
 } // end namespace fsi

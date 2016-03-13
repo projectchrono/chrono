@@ -51,14 +51,38 @@ namespace fsi {
 	typedef thrust::zip_iterator<iterTupleRigidH> zipIterRigidH;
 
 
+	/**
+	 * @brief Number of fluid markers, solid bodies, solid markers, boundary markers
+	 * @details
+	 * 		The description of each variable is in front of it
+	 */
+	 // Arman : see if you need all of these guys since you rely on chrono for rigid and flex
+	struct NumberOfObjects {
+		int numRigidBodies; /* Number of rigid bodies */
+		int numFlexBodies; /* Number of Flexible bodies*/
+		int numFluidMarkers; /* Number of fluid SPH markers*/
+		int numBoundaryMarkers; /* Number of boundary SPH markers */
+		int startRigidMarkers; /* */
+		int startFlexMarkers; /* */
+		int numRigid_SphMarkers; /* */
+		int numFlex_SphMarkers; /* */
+		int numAllMarkers; /* Total number of SPH markers */
+	};
+
 	struct SphMarkerDataD {
 		thrust::device_vector<Real3> posRadD;
 		thrust::device_vector<Real3> velMasD;
 		thrust::device_vector<Real4> rhoPresMuD;
 
-		// Arman TODO: fix error. make it function, or something like thrust
 		zipIterSphD iterator() {
 			return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin()));
+		}
+
+		// resize
+		void resize(int s) {
+			posRadD.resize(s);
+			velMasD.resize(s);
+			rhoPresMuD.resize(s);
 		}
 	};
 
@@ -67,9 +91,15 @@ namespace fsi {
 		thrust::host_vector<Real3> velMasH;
 		thrust::host_vector<Real4> rhoPresMuH;
 
-		// Arman TODO: fix error. make it function, or something like thrust
 		zipIterSphH iterator() {
 			return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin()));
+		}
+
+		// resize
+		void resize(int s) {
+			posRadH.resize(s);
+			velMasH.resize(s);
+			rhoPresMuH.resize(s);
 		}
 	};
 
@@ -80,9 +110,20 @@ namespace fsi {
 		thrust::device_vector<Real4> q_fsiBodies_D;
 		thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
 		thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
+
 		zipIterRigidD iterator() {
 			return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_D.begin(), velMassRigid_fsiBodies_D.begin(), accRigid_fsiBodies_D.begin(),
 				q_fsiBodies_D.begin(), omegaVelLRF_fsiBodies_D.begin(), omegaAccLRF_fsiBodies_D.begin()));
+		}
+
+		// resize
+		void resize(int s) {
+			posRigid_fsiBodies_D.resize(s);
+			velMassRigid_fsiBodies_D.resize(s);
+			accRigid_fsiBodies_D.resize(s);
+			q_fsiBodies_D.resize(s);
+			omegaVelLRF_fsiBodies_D.resize(s);
+			omegaAccLRF_fsiBodies_D.resize(s);
 		}
 	};
 
@@ -94,9 +135,20 @@ namespace fsi {
 		thrust::host_vector<Real4> q_fsiBodies_H;
 		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;
 		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;
+		
 		zipIterRigidH iterator() {
 			return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.begin(), accRigid_fsiBodies_H.begin(),
 				q_fsiBodies_H.begin(), omegaVelLRF_fsiBodies_H.begin(), omegaAccLRF_fsiBodies_H.begin()));
+		}
+
+		// resize
+		void resize(int s) {
+			posRigid_fsiBodies_H.resize(s);
+			velMassRigid_fsiBodies_H.resize(s);
+			accRigid_fsiBodies_H.resize(s);
+			q_fsiBodies_H.resize(s);
+			omegaVelLRF_fsiBodies_H.resize(s);
+			omegaAccLRF_fsiBodies_H.resize(s);
 		}
 	};
 
@@ -141,12 +193,6 @@ namespace fsi {
 		thrust::device_vector<Real3> rigid_FSI_TorquesD;
 	};
 
-	struct sphTypeComp {
-	 	__host__ __device__ bool operator()(const Real4& o1, const Real4& o2) {
-	    	return o1.w < o2.w;
-	  	}
-	};
-
 class CH_FSI_API ChFsiDataManager {
 public:
 	ChFsiDataManager();
@@ -154,6 +200,8 @@ public:
 
 	void AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu);
 	void FinalizeDataManager();
+
+	NumberOfObjects numObjects;
 
 	SphMarkerDataD sphMarkersD1;
 	SphMarkerDataD sphMarkersD2;
@@ -171,6 +219,8 @@ public:
 private:
 	void ArrangeDataManager();
 	void ConstructReferenceArray();
+	void InitNumObjects();
+	void CalcNumObjects();
 };
 
 } // end namespace fsi

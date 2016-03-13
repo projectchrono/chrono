@@ -64,8 +64,6 @@ bool initializeFluidFromFile = false; // 	IMPORTANT: when true, "haveFluid" in f
 // very important, since this option will overwrite the BCE pressure and
 // paramsH->LARGE_PRES is only used for the initialization of the BCE markers
 
-NumberOfObjects numObjects;
-
 /**
  * @brief
  *    Fills in paramsH with simulation parameters.

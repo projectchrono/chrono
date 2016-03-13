@@ -21,6 +21,26 @@
 namespace chrono {
 namespace fsi {
 
+
+//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
+		Real3* rigidSPH_MeshPos_LRF_D, Real3* posRadD, uint* rigidIdentifierD,
+		Real3* posRigidD, Real4* qD) {
+	uint index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index >= numObjectsD.numRigid_SphMarkers) {
+		return;
+	}
+	int rigidIndex = rigidIdentifierD[index];
+	uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers; // updatePortion = [start, end] index of the update portion
+	Real4 q4 = qD[rigidIndex];
+	;
+	Real3 a1, a2, a3;
+	RotationMatirixFromQuaternion(a1, a2, a3, q4);
+	Real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIndex];
+	Real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3,
+			dist3);
+	rigidSPH_MeshPos_LRF_D[index] = dist3LF;
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 // Arman : revisit equation 10 of tech report, is it only on fluid or it is on all markers
@@ -252,6 +272,49 @@ ChBce::ChBce(FsiGeneralData* otherFsiGeneralData,
 	velMas_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
 	rhoPreMu_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
 }
+
+////--------------------------------------------------------------------------------------------------------------------------------
+void ChBce::MakeRigidIdentifier() {
+	if (numObjectsH->numRigidBodies > 0) {
+		for (int rigidSphereA = 0; rigidSphereA < numObjectsH->numRigidBodies;
+				rigidSphereA++) {
+			int4 referencePart = fsiGeneralData->referenceArray[2 + rigidSphereA];
+			if (referencePart.z != 1) {
+				printf(
+						" Error! in accessing rigid bodies. Reference array indexing is wrong\n");
+				return;
+			}
+			int2 updatePortion =
+			mI2(referencePart); // first two component of the referenceArray denote to the fluid and boundary particles
+			thrust::fill(
+					fsiGeneralData->rigidIdentifierD.begin()
+							+ (updatePortion.x - numObjectsH->startRigidMarkers),
+					fsiGeneralData->rigidIdentifierD.begin()
+							+ (updatePortion.y - numObjectsH->startRigidMarkers),
+					rigidSphereA);
+		}
+	}
+}
+////--------------------------------------------------------------------------------------------------------------------------------
+
+void ChBce::Populate_RigidSPH_MeshPos_LRF(
+	SphMarkerDataD* sphMarkersD,
+	FsiBodiesDataD * fsiBodiesD) {
+	MakeRigidIdentifier();
+
+	uint nBlocks_numRigid_SphMarkers;
+	uint nThreads_SphMarkers;
+	computeGridSize(numObjectsH->numRigid_SphMarkers, 256,
+			nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
+
+	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers,
+			nThreads_SphMarkers>>>(mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
+			mR3CAST(sphMarkersD->posRadD), U1CAST(fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+			mR4CAST(fsiBodiesD->q_fsiBodies_D));
+	cudaThreadSynchronize();
+	cudaCheckError();
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::RecalcSortedVelocityPressure_BCE(
 		thrust::device_vector<Real3>& velMas_ModifiedBCE,
