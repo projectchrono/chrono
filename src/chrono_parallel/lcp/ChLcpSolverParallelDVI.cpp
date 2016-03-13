@@ -1,12 +1,16 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 
-
 using namespace chrono;
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
-    clear(M);                                    \
-    M.reserve(nnz);                              \
-    M.resize(rows, cols, false);
+    {                                            \
+        uint current = M.capacity();             \
+        clear(M);                                \
+        if (current < nnz) {                     \
+            M.reserve(nnz * 1.5);                \
+        }                                        \
+        M.resize(rows, cols, false);             \
+    }
 
 void ChLcpSolverParallelDVI::RunTimeStep() {
     // Compute the offsets and number of constrains depending on the solver mode
@@ -193,7 +197,8 @@ void ChLcpSolverParallelDVI::ComputeD() {
     uint nnz_fem = data_manager->fea_container->GetNumNonZeros();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-
+    CompressedMatrix<real>& D = data_manager->host_data.D;
+    CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
     int nnz_total = nnz_bilaterals + nnz_fluid_fluid + nnz_fem;
@@ -216,8 +221,8 @@ void ChLcpSolverParallelDVI::ComputeD() {
     }
 
     CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
-    // CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
-    // CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
+    CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
+    CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
 
     data_manager->rigid_rigid->GenerateSparsity();
     data_manager->bilateral->GenerateSparsity();
