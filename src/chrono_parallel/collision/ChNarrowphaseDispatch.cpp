@@ -715,15 +715,11 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     Thrust_Fill(contact_counts, 0);
 
     for (int index = 0; index < f_number_of_bins_active; index++) {
-        uint start = f_bin_start_index[index];
-        uint end = f_bin_start_index[index + 1];
-        uint count = 0;
-        // Terminate early if there is only one object in the bin
-        if (end - start == 1) {
-            continue;
-        }
-        unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
+        uint bin_number = f_bin_number_out[index];
+        unsigned int rigid_index = is_rigid_bin_active[bin_number];
         if (rigid_index != 1000000000) {
+            uint start = f_bin_start_index[index];
+            uint end = f_bin_start_index[index + 1];
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
@@ -745,6 +741,9 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
                     real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
                     uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
+                    if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == false) {
+                        continue;
+                    }
                     if (!overlap(Amin, Amax, Bmin, Bmax)) {
                         continue;
                     }
