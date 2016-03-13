@@ -585,13 +585,16 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     contact_counts.resize(num_spheres + 1);
 
     Thrust_Fill(contact_counts, 0);
+    // For each rigid bin
     for (int index = 0; index < f_number_of_bins_active; index++) {
-        uint start = f_bin_start_index[index];
-        uint end = f_bin_start_index[index + 1];
-        uint count = 0;
-
-        unsigned int rigid_index = is_rigid_bin_active[f_bin_number_out[index]];
+        uint bin_number = f_bin_number_out[index];
+        uint rigid_index = is_rigid_bin_active[bin_number];
+        // check if the bin is active
         if (rigid_index != 1000000000) {
+            // start and end of fluid in this bin
+            uint start = f_bin_start_index[index];
+            uint end = f_bin_start_index[index + 1];
+            // start and end of rigid bodies in this bin
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
@@ -603,30 +606,27 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                 ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius * .5);
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
-                    uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
-                    real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
-                    real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
-                    uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
-                    if (!overlap(Amin, Amax, Bmin, Bmax)) {
-                        continue;
-                    }
-                    ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
-
-                    real3 ptA, ptB, norm;
-                    real depth;
-
-                    if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
-                        if (contact_counts[p] < max_rigid_neighbors) {
-                            norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = norm;
-                            cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = ptA;
-                            dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = depth;
-                            neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
-                            contact_counts[p]++;
-                        } else {
-                            printf("Too Many Neighbors!\n");
+                    if (contact_counts[p] < max_rigid_neighbors) {
+                        uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
+                        real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
+                        real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
+                        // if the sphere and the rigid body appear in the same bin more than once, dont count
+                        if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == true) {
+                            if (overlap(Amin, Amax, Bmin, Bmax)) {
+                                ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
+                                real3 ptB;
+                                if (MPRCollision(shapeA, shapeB, collision_envelope,
+                                                 norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]],
+                                                 cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]], ptB,
+                                                 dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]])) {
+                                    uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
+                                    neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
+                                    contact_counts[p]++;
+                                }
+                                delete shapeA;
+                            }
                         }
                     }
-                    delete shapeA;
                 }
                 delete shapeB;
             }
@@ -760,7 +760,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
                             // FindTriIndex(ptB, tet_index, node_pos, face, barycentric);
-                        	//instead of finding the closest face, always use the surface face
+                            // instead of finding the closest face, always use the surface face
 
                             SnapeToFaceBary(t1, t2, t3, ptB, res, barycentric);
 
