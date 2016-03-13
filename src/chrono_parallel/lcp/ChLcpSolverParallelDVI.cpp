@@ -1,15 +1,18 @@
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"
 
 using namespace chrono;
+#define xstr(s) str(s)
+#define str(s) #s
 
-#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
-    {                                            \
-        uint current = M.capacity();             \
-        clear(M);                                \
-        if (current < nnz) {                     \
-            M.reserve(nnz * 1.5);                \
-        }                                        \
-        M.resize(rows, cols, false);             \
+#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols)                                             \
+    {                                                                                        \
+        uint current = M.capacity();                                                         \
+        clear(M);                                                                            \
+        if (current < nnz) {                                                                 \
+            M.reserve(nnz * 1.5);                                                            \
+            LOG(INFO) << "Increase Capacity of: " << str(M) << " " << current << " " << nnz; \
+        }                                                                                    \
+        M.resize(rows, cols, false);                                                         \
     }
 
 void ChLcpSolverParallelDVI::RunTimeStep() {
@@ -221,7 +224,8 @@ void ChLcpSolverParallelDVI::ComputeD() {
     }
 
     CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
-    CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
+    // D is automatically reserved during transpose!
+    // CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
     CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
 
     data_manager->rigid_rigid->GenerateSparsity();
@@ -235,7 +239,7 @@ void ChLcpSolverParallelDVI::ComputeD() {
     data_manager->fea_container->Build_D();
 
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - D = trans(D_T)";
-
+    // using the .transpose(); function will do in place transpose and copy
     data_manager->host_data.D = trans(D_T);
     LOG(INFO) << "ChLcpSolverParallelDVI::ComputeD - M_inv * D";
 
