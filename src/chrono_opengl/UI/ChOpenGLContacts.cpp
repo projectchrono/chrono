@@ -63,7 +63,8 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
         return;
     }
 
-    contact_data.resize(num_contacts * 2);
+    contact_data.resize(data_manager->num_rigid_contacts * 2 + data_manager->num_rigid_tet_contacts * 2 +
+                        data_manager->num_rigid_fluid_contacts);
 
     //#pragma omp parallel for
     for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
@@ -92,14 +93,15 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
     }
 
     offset = (data_manager->num_rigid_contacts + data_manager->num_rigid_tet_contacts) * 2;
-
+    index = 0;
     for (int p = 0; p < data_manager->num_fluid_bodies; p++) {
         int start = data_manager->host_data.c_counts_rigid_fluid[p];
         int end = data_manager->host_data.c_counts_rigid_fluid[p + 1];
         for (int index = start; index < end; index++) {
             int i = index - start;
             real3 cpta = data_manager->host_data.cpta_rigid_fluid[p * max_rigid_neighbors + i];
-            contact_data[i + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
+            contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
+            index++;
         }
     }
 }
