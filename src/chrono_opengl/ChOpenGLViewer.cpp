@@ -125,10 +125,10 @@ bool ChOpenGLViewer::Initialize() {
     }
 
     // Setup the generic shapes and load them from file
-    sphere.InitializeString(sphere_mesh_data, slate, &main_shader);
-    box.InitializeString(box_mesh_data, t3, &main_shader);
-    cylinder.InitializeString(cylinder_mesh_data, apple, &main_shader);
-    cone.InitializeString(cone_mesh_data, white, &main_shader);
+    sphere.InitializeString(sphere_mesh_data, sphere_color, &main_shader);
+    box.InitializeString(box_mesh_data, box_color, &main_shader);
+    cylinder.InitializeString(cylinder_mesh_data, cylinder_color, &main_shader);
+    cone.InitializeString(cone_mesh_data, cone_color, &main_shader);
 
     HUD_renderer.Initialize(&render_camera, &timer);
 
@@ -140,16 +140,16 @@ bool ChOpenGLViewer::Initialize() {
     mpm_node_data.push_back(glm::vec3(0, 0, 0));
 
     cloud.Initialize(cloud_data, white, &cloud_shader);
-    fluid.Initialize(cloud_data, blue_jeans, &sphere_shader);
-    grid.Initialize(grid_data, darkriver, &cloud_shader);
-    mpm_grid.Initialize(grid_data, darkriver, &cloud_shader);
-    mpm_node.Initialize(cloud_data, apple, &cloud_shader);
+    fluid.Initialize(cloud_data, white, &sphere_shader);
+    grid.Initialize(grid_data, white, &cloud_shader);
+    mpm_grid.Initialize(grid_data, white, &cloud_shader);
+    mpm_node.Initialize(cloud_data, white, &cloud_shader);
 
-    fea_nodes.Initialize(fea_node_data, darkred, &dot_shader);
-    fea_elements.Initialize(fea_element_data, greyslate, &cloud_shader);
+    fea_nodes.Initialize(fea_node_data, fea_color, &dot_shader);
+    fea_elements.Initialize(fea_element_data, fea_color, &cloud_shader);
 
-    contact_renderer.Initialize(darkred, &cloud_shader);
-    graph_renderer.Initialize(darkriver, &cloud_shader);
+    contact_renderer.Initialize(contact_color, &dot_shader);
+    graph_renderer.Initialize(white, &cloud_shader);
 
     timer.AddTimer("render");
     timer.AddTimer("text");
@@ -437,10 +437,8 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
 
             if (obj_files.find(trimesh_shape->GetName()) == obj_files.end()) {
-                ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f * .5f,
-                                        glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
                 std::cout << trimesh_shape->GetName() << std::endl;
-                obj_files[trimesh_shape->GetName()].Initialize(trimesh_shape, pillow);
+                obj_files[trimesh_shape->GetName()].Initialize(trimesh_shape, mesh_color);
                 obj_files[trimesh_shape->GetName()].AttachShader(&main_shader);
                 model_obj[trimesh_shape->GetName()].push_back(model);
             } else {
@@ -525,19 +523,19 @@ void ChOpenGLViewer::RenderFluid() {
         }
         if (ChMPMContainer* flip_container =
                 dynamic_cast<ChMPMContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(flip_container->kernel_radius*.75);
+            fluid.SetPointSize(flip_container->kernel_radius * .75);
         }
         if (ChFLIPContainer* mpm_container =
                 dynamic_cast<ChFLIPContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(mpm_container->kernel_radius*.75);
+            fluid.SetPointSize(mpm_container->kernel_radius * .75);
         }
         if (ChFluidContainer* fluid_container =
                 dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(fluid_container->kernel_radius*.75);
+            fluid.SetPointSize(fluid_container->kernel_radius * .75);
         }
         if (Ch3DOFRigidContainer* rigid_container =
                 dynamic_cast<Ch3DOFRigidContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(rigid_container->kernel_radius*.75);
+            fluid.SetPointSize(rigid_container->kernel_radius * .75);
         }
         fluid.Update(fluid_data);
         glm::mat4 model(1);
