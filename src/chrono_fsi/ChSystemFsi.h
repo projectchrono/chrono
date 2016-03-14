@@ -41,8 +41,8 @@ public:
 	void CopyDeviceDataToHalfStep();
 	void SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle);
 	void FinalizeData();
-	ChFsiDataManager* GetDataManager(){return fsiData;}
-	SimParams* GetSimParams() {return paramsH};
+	ChFsiDataManager* GetDataManager() {return fsiData;}
+	SimParams* GetSimParams() {return paramsH;}
 	std::vector<ChSharedPtr<ChBody> > * GetFsiBodiesPtr() {return & fsiBodeisPtr;}
 
 private:

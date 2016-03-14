@@ -69,41 +69,34 @@ namespace fsi {
 		int numAllMarkers; /* Total number of SPH markers */
 	};
 
-	struct SphMarkerDataD {
+	class SphMarkerDataD {
+	public:
 		thrust::device_vector<Real3> posRadD;
 		thrust::device_vector<Real3> velMasD;
 		thrust::device_vector<Real4> rhoPresMuD;
 
-		zipIterSphD iterator() {
-			return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin()));
-		}
+		zipIterSphD iterator();
 
 		// resize
-		void resize(int s) {
-			posRadD.resize(s);
-			velMasD.resize(s);
-			rhoPresMuD.resize(s);
-		}
+		void resize(int s);
+	private:
 	};
 
-	struct SphMarkerDataH {
+	class SphMarkerDataH {
+	public:
 		thrust::host_vector<Real3> posRadH; // do not set the size here since you are using push back later
 		thrust::host_vector<Real3> velMasH;
 		thrust::host_vector<Real4> rhoPresMuH;
 
-		zipIterSphH iterator() {
-			return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin()));
-		}
+		zipIterSphH iterator();
 
 		// resize
-		void resize(int s) {
-			posRadH.resize(s);
-			velMasH.resize(s);
-			rhoPresMuH.resize(s);
-		}
+		void resize(int s);
+	private:
 	};
 
-	struct FsiBodiesDataD {
+	class FsiBodiesDataD {
+	public:
 		thrust::device_vector<Real3> posRigid_fsiBodies_D;
 		thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
 		thrust::device_vector<Real3> accRigid_fsiBodies_D;
@@ -111,24 +104,16 @@ namespace fsi {
 		thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
 		thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
 
-		zipIterRigidD iterator() {
-			return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_D.begin(), velMassRigid_fsiBodies_D.begin(), accRigid_fsiBodies_D.begin(),
-				q_fsiBodies_D.begin(), omegaVelLRF_fsiBodies_D.begin(), omegaAccLRF_fsiBodies_D.begin()));
-		}
+		zipIterRigidD iterator();
 
 		// resize
-		void resize(int s) {
-			posRigid_fsiBodies_D.resize(s);
-			velMassRigid_fsiBodies_D.resize(s);
-			accRigid_fsiBodies_D.resize(s);
-			q_fsiBodies_D.resize(s);
-			omegaVelLRF_fsiBodies_D.resize(s);
-			omegaAccLRF_fsiBodies_D.resize(s);
-		}
+		void resize(int s);
+	private:
 	};
 
 	// dummy fsi bodies
-	struct FsiBodiesDataH {
+	class FsiBodiesDataH {
+	public:
 		thrust::host_vector<Real3> posRigid_fsiBodies_H;
 		thrust::host_vector<Real4> velMassRigid_fsiBodies_H;
 		thrust::host_vector<Real3> accRigid_fsiBodies_H;
@@ -136,41 +121,37 @@ namespace fsi {
 		thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;
 		thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;
 		
-		zipIterRigidH iterator() {
-			return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.begin(), accRigid_fsiBodies_H.begin(),
-				q_fsiBodies_H.begin(), omegaVelLRF_fsiBodies_H.begin(), omegaAccLRF_fsiBodies_H.begin()));
-		}
+		zipIterRigidH iterator();
 
 		// resize
-		void resize(int s) {
-			posRigid_fsiBodies_H.resize(s);
-			velMassRigid_fsiBodies_H.resize(s);
-			accRigid_fsiBodies_H.resize(s);
-			q_fsiBodies_H.resize(s);
-			omegaVelLRF_fsiBodies_H.resize(s);
-			omegaAccLRF_fsiBodies_H.resize(s);
-		}
+		void resize(int s);
+	private:
 	};
 
-	struct ProximityDataD {
+	class ProximityDataD {
+	public:
 		thrust::device_vector<uint> gridMarkerHashD;//(numAllMarkers);
 		thrust::device_vector<uint> gridMarkerIndexD;//(numAllMarkers);
 		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
 		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
 		thrust::device_vector<uint> mapOriginalToSorted;
+	private:
 	};
 
-	struct ChronoBodiesDataH {
+	class ChronoBodiesDataH {
+	public:
 		thrust::host_vector<Real3> pos_ChSystemH;
 		thrust::host_vector<Real3> vel_ChSystemH;
 		thrust::host_vector<Real3> acc_ChSystemH;
 		thrust::host_vector<Real4> quat_ChSystemH;
 		thrust::host_vector<Real3> omegaVelGRF_ChSystemH;
 		thrust::host_vector<Real3> omegaAccGRF_ChSystemH;
+	private:
 	};
 
 // make them classes
-	struct FsiGeneralData {
+	class FsiGeneralData {
+	public:
 
 		// ----------------
 		//  host
@@ -191,6 +172,7 @@ namespace fsi {
 		// fsi bodies
 		thrust::device_vector<Real3> rigid_FSI_ForcesD;
 		thrust::device_vector<Real3> rigid_FSI_TorquesD;
+	private:
 	};
 
 class CH_FSI_API ChFsiDataManager {

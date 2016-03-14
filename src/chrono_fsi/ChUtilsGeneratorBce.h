@@ -29,13 +29,13 @@ namespace fsi {
 namespace utils {
 // =============================================================================
 void CreateBCE_On_Sphere(thrust::host_vector<Real3>& posRadBCE, Real rad,
-		const SimParams& paramsH);
+		SimParams* paramsH);
 
 void CreateBCE_On_Cylinder(thrust::host_vector<Real3>& posRadBCE, Real cyl_rad,
-		Real cyl_h, const SimParams& paramsH);
+		Real cyl_h, SimParams* paramsH);
 
 void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE, const Real3& hsize,
-		int face, const SimParams& paramsH);
+		int face, SimParams* paramsH);
 
 
 void LoadBCE_fromFile(thrust::host_vector<Real3>& posRadBCE, // do not set the size here since you are using push back later

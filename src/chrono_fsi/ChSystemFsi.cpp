@@ -36,7 +36,7 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 	fsiData = new ChFsiDataManager();
 	fsiBodeisPtr.resize(0);
 	paramsH = new SimParams; // Arman: define a function to set paramsH default values
-	numObjectsH = fsiData->numObjects;
+	numObjectsH = &(fsiData->numObjects);
 
 	bceWorker = new ChBce(&(fsiData->fsiGeneralData), paramsH, numObjectsH);
 	fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH);
@@ -151,7 +151,7 @@ void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mV
 	haveVehicle = true;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void FinalizeData() {
+void ChSystemFsi::FinalizeData() {
 	// Arman: very important: you cannot change the order of (1-3). Fix the issue later
 	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1)); //(1)
 	fsiData->FinalizeDataManager();	// (2)

@@ -4,23 +4,14 @@
  *  Created on: Mar 2, 2015
  *      Author: Arman Pazouki
  */
-#ifndef FSI_HMMWV_PARAMS_H_
-#define FSI_HMMWV_PARAMS_H_
+#ifndef FSI_TEST_CYLINDERDROP_NEW_
+#define FSI_TEST_CYLINDERDROP_NEW_
 
 /* C/C++ standard library*/
-#include <fstream>  // for simParams definition
-
 /* Chrono::FSI Library*/
-#include "chrono_fsi/SPHCudaUtils.h"
-#include "chrono_fsi/MyStructs.cuh"  //just for SimParams
-#include "chrono_fsi/VehicleExtraProperties.h"
 #include "chrono_fsi/include/utils.h"
+#include "chrono_fsi/ChParams.cuh"
 
-// -----------------------------------------------------------------------------
-// Specification post processing directory
-// -----------------------------------------------------------------------------
-
-const std::string out_dir = "FSI_OUTPUT"; //"../FSI_OUTPUT";
 
 // -----------------------------------------------------------------------------
 // Simulation parameters FSI
@@ -28,16 +19,11 @@ const std::string out_dir = "FSI_OUTPUT"; //"../FSI_OUTPUT";
 
 // Duration of the "hold time" (vehicle chassis fixed and no driver inputs).
 // This can be used to allow the granular material to settle.
-Real time_hold_vehicle = 0.2;              // 0.1;  // 0.2;
-Real time_pause_fluid_external_force = 0;  //.05;//0.1;//0.1;  // 0.2;
-
-Real contact_recovery_speed = 1;
-Real maxFlowVelocity = 1;//12;  // in an ideal case, these two need to be the same
-
-// Total simulation duration.
-Real time_end = 2;//15;
 
 // Dimensions
+namespace chrono {
+namespace fsi {
+
 Real hdimX = 14;  // 5.5;
 Real hdimY = 1.75;
 
@@ -45,18 +31,11 @@ Real hthick = 0.25;
 Real basinDepth = 2;
 
 Real fluidInitDimX = 2;
-Real fluidInitDimY = hdimY;
 Real fluidHeight = 1.4;  // 2.0;
-
-int fluidCollisionFamily = 1;  // 2 and 3 are reserved for tire and chassis
 
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
-const std::string pov_dir_fluid = out_dir + "/povFilesFluid";
-
-int tStepsCheckPoint = 1000;
-bool initializeFluidFromFile = false; // 	IMPORTANT: when true, "haveFluid" in fsi_hmmwv.cpp should be true too.
 //	when adding functionality using "useWallBce" and "haveFluid" macros, pay attention to  "initializeFluidFromFile"
 // options.
 //	for a double security, do your best to set "haveFluid" and "useWallBce" based on the data you have from
@@ -90,12 +69,12 @@ void SetupParamsH(SimParams* paramsH) {
 	paramsH->rho0 = 1000;
 	paramsH->markerMass = pow(paramsH->MULT_INITSPACE * paramsH->HSML, 3) * paramsH->rho0;
 	paramsH->mu0 = .001;
-	paramsH->v_Max = maxFlowVelocity; // Arman, I changed it to 0.1 for vehicle. Check this
+	paramsH->v_Max = 1; // Arman, I changed it to 0.1 for vehicle. Check this
 									 // later;//10;//50e-3;//18e-3;//1.5;//2e-1; /*0.2 for Re = 100 */ //2e-3;
 	paramsH->EPS_XSPH = .5f;
 	paramsH->dT = 1e-3; // 0.2e-4;//1.0e-4;  // 2e-3;  // note you are using half of this for MBD system
-	paramsH->tFinal = time_end;                         // 20 * paramsH->dT; //400
-	paramsH->timePause = time_pause_fluid_external_force; //.0001 * paramsH->tFinal;//.0001 * paramsH->tFinal; 	// time
+	paramsH->tFinal = 2;                         // 20 * paramsH->dT; //400
+	paramsH->timePause = 0; //.0001 * paramsH->tFinal;//.0001 * paramsH->tFinal; 	// time
 	// before applying any
 	// bodyforce. Particles move only due to initialization. keep it as small as possible.
 	// the time step will be 1/10 * dT.
@@ -210,79 +189,31 @@ void SetupParamsH(SimParams* paramsH) {
 }
 
 // -----------------------------------------------------------------------------
-// Specification of the vehicle model
-// -----------------------------------------------------------------------------
-enum WheelType {
-	CYLINDRICAL, LUGGED
-};
-
-// Type of wheel/tire (controls both contact and visualization)
-WheelType wheel_type = CYLINDRICAL;  // CYLINDRICAL;
-
-enum ChassisType {
-	CSPHERE, CBOX, C_SIMPLE_CONVEX_MESH, C_SIMPLE_TRI_MESH, CORIGINAL
-};
-
-// Type of chassis (controls both contact and visualization)
-ChassisType chassis_type = CBOX;
-
-// JSON files for vehicle model (using different wheel visualization meshes)
-// std::string vehicle_file_cyl("hmmwv/vehicle/myHMMWV.json");
-// std::string vehicle_file_lug("hmmwv/vehicle/myHMMWV_lugged.json");
-std::string vehicle_file_cyl("hmmwv/vehicle/HMMWV_Vehicle_simple.json");
-std::string vehicle_file_lug("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
-
-// JSON files for powertrain (simple)
-std::string simplepowertrain_file(
-		"hmmwv/powertrain/HMMWV_SimplePowertrain.json");
-// std::string simplepowertrain_file("hmmwv/powertrain/HMMWV_SimplePowertrain_Arman.json");  // yo yo yo yo Arman Arman
-
-// Initial vehicle position and orientation
-// ChVector<> initLoc(-3.0, 0, 0.75);
-chrono::ChVector<> initLoc(-9.5, 0, 0.75);
-chrono::ChQuaternion<> initRot(1, 0, 0, 0);
-
-// -----------------------------------------------------------------------------
-// Simulation parameters MBD ground
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
 // Specification of the terrain
 // -----------------------------------------------------------------------------
-
-// Control visibility of containing bin walls
-bool visible_walls = false;
-
-int Id_g = 100;
-Real r_g = 0.02;
-Real rho_g = 2500;
-Real vol_g = (4.0 / 3) * chrono::CH_C_PI * r_g * r_g * r_g; // Arman: PI or CH_C_PI
-Real mass_g = rho_g * vol_g;
-chrono::ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g
-		* chrono::ChVector<>(1, 1, 1);
-
-chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_g(new chrono::ChMaterialSurface);
-
-
-int num_particles = 1000;
+//
+//// Control visibility of containing bin walls
+//bool visible_walls = false;
+//
+//int Id_g = 100;
+//Real r_g = 0.02;
+//Real rho_g = 2500;
+//Real vol_g = (4.0 / 3) * chrono::CH_C_PI * r_g * r_g * r_g; // Arman: PI or CH_C_PI
+//Real mass_g = rho_g * vol_g;
+//chrono::ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g
+//		* chrono::ChVector<>(1, 1, 1);
+//
+//
+//
+//int num_particles = 1000;
 
 // -----------------------------------------------------------------------------
 // Output parameters
 // -----------------------------------------------------------------------------
 
-std::ofstream simParams;
 
-bool povray_output = true;
+//Real vertical_offset = 0;  // vehicle vertical offset
 
-const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";
-
-int out_fps = 30;
-
-Real vertical_offset = 0;  // vehicle vertical offset
-
-chrono::vehicle::ChWheeledVehicleAssembly* mVehicle;
-chrono::vehicle::ChTireContactCallback* tire_cb;
-chrono::vehicle::ChChassisContactCallback* chassis_cb;
-MyDriverInputs* driver_cb;
-
+} // end namespace fsi
+} // end namespace chrono
 #endif  // end of FSI_HMMWV_PARAMS_H_

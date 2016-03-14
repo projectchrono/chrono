@@ -26,11 +26,11 @@ namespace fsi {
 namespace utils {
 // =============================================================================
 void CreateBCE_On_Sphere(thrust::host_vector<Real3>& posRadBCE, Real rad,
-		const SimParams& paramsH) {
+		SimParams* paramsH) {
 
-	Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
+	Real spacing = paramsH->MULT_INITSPACE * paramsH->HSML;
 
-	for (Real r = spacing; r < rad - paramsH.solidSurfaceAdjust; r += spacing) {
+	for (Real r = spacing; r < rad - paramsH->solidSurfaceAdjust; r += spacing) {
 		Real deltaTeta = spacing / r;
 		Real deltaPhi = deltaTeta;
 
@@ -50,13 +50,13 @@ void CreateBCE_On_Sphere(thrust::host_vector<Real3>& posRadBCE, Real rad,
 // =============================================================================
 
 void CreateBCE_On_Cylinder(thrust::host_vector<Real3>& posRadBCE, Real cyl_rad,
-		Real cyl_h, const SimParams& paramsH) {
+		Real cyl_h, SimParams* paramsH) {
 	// Arman : take care of velocity and w stuff for BCE
-	Real spacing = paramsH.MULT_INITSPACE * paramsH.HSML;
+	Real spacing = paramsH->MULT_INITSPACE * paramsH->HSML;
 	for (Real s = -0.5 * cyl_h; s <= 0.5 * cyl_h; s += spacing) {
 		Real3 centerPointLF = mR3(0, s, 0);
 		posRadBCE.push_back(centerPointLF);
-		for (Real r = spacing; r < cyl_rad - paramsH.solidSurfaceAdjust; r +=
+		for (Real r = spacing; r < cyl_rad - paramsH->solidSurfaceAdjust; r +=
 				spacing) {
 			Real deltaTeta = spacing / r;
 			for (Real teta = .1 * deltaTeta;
@@ -74,9 +74,9 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real3>& posRadBCE, Real cyl_rad,
 // x=1, y=2, z =3; therefore 12 means creating markers on the top surface parallel to xy plane,
 // similarly -12 means bottom face paralel to xy. similarly 13, -13, 23, -23
 void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE, const Real3& hsize,
-		int face, const SimParams& paramsH) {
+		int face, SimParams* paramsH) {
 
-	Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML;
+	Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 	int nFX = ceil(hsize.x / (initSpace0));
 	int nFY = ceil(hsize.y / (initSpace0));
 	int nFZ = ceil(hsize.z / (initSpace0));
@@ -91,22 +91,22 @@ void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE, const Real3& hsize,
 
 	switch (face) {
 	case 12:
-		kBound = mI2(nFZ - paramsH.NUM_BOUNDARY_LAYERS + 1, nFZ);
+		kBound = mI2(nFZ - paramsH->NUM_BOUNDARY_LAYERS + 1, nFZ);
 		break;
 	case -12:
-		kBound = mI2(-nFZ, -nFZ + paramsH.NUM_BOUNDARY_LAYERS - 1);
+		kBound = mI2(-nFZ, -nFZ + paramsH->NUM_BOUNDARY_LAYERS - 1);
 		break;
 	case 13:
-		jBound = mI2(nFY - paramsH.NUM_BOUNDARY_LAYERS + 1, nFY);
+		jBound = mI2(nFY - paramsH->NUM_BOUNDARY_LAYERS + 1, nFY);
 		break;
 	case -13:
-		jBound = mI2(-nFY, -nFY + paramsH.NUM_BOUNDARY_LAYERS - 1);
+		jBound = mI2(-nFY, -nFY + paramsH->NUM_BOUNDARY_LAYERS - 1);
 		break;
 	case 23:
-		iBound = mI2(nFX - paramsH.NUM_BOUNDARY_LAYERS + 1, nFX);
+		iBound = mI2(nFX - paramsH->NUM_BOUNDARY_LAYERS + 1, nFX);
 		break;
 	case -23:
-		iBound = mI2(-nFX, -nFX + paramsH.NUM_BOUNDARY_LAYERS - 1);
+		iBound = mI2(-nFX, -nFX + paramsH->NUM_BOUNDARY_LAYERS - 1);
 		break;
 	default:
 		printf("wrong argument box bce initialization\n");
@@ -119,12 +119,12 @@ void CreateBCE_On_Box(thrust::host_vector<Real3>& posRadBCE, const Real3& hsize,
 				Real3 relMarkerPos = mR3(i * initSpaceX, j * initSpaceY,
 						k * initSpaceZ);
 
-				if ((relMarkerPos.x < paramsH.cMin.x
-						|| relMarkerPos.x > paramsH.cMax.x)
-						|| (relMarkerPos.y < paramsH.cMin.y
-								|| relMarkerPos.y > paramsH.cMax.y)
-						|| (relMarkerPos.z < paramsH.cMin.z
-								|| relMarkerPos.z > paramsH.cMax.z)) {
+				if ((relMarkerPos.x < paramsH->cMin.x
+						|| relMarkerPos.x > paramsH->cMax.x)
+						|| (relMarkerPos.y < paramsH->cMin.y
+								|| relMarkerPos.y > paramsH->cMax.y)
+						|| (relMarkerPos.z < paramsH->cMin.z
+								|| relMarkerPos.z > paramsH->cMax.z)) {
 					continue;
 				}
 				posRadBCE.push_back(relMarkerPos);

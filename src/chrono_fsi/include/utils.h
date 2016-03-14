@@ -11,6 +11,8 @@
 /* Chrono::FSI Library */
 #include "../custom_cutil_math.h"
 
+namespace chrono {
+namespace fsi {
 const void printStruct(struct Real2 &s)
 {
     std::cout << "x = " << s.x << ", ";
@@ -80,6 +82,10 @@ const void printThrustVector(thrust::host_vector<Real4> &v)
         printStruct(v[i]);
     }
 }
+
+} // end namespace fsi
+} // end namespace chrono
+
 
 #endif
 

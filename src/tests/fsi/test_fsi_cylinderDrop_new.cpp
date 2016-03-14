@@ -27,7 +27,6 @@
 #include <stdlib.h>  // system
 
 // SPH includes
-#include "chrono_fsi/MyStructs.cuh"  //just for SimParams
 //#include "chrono_fsi/collideSphereSphere.cuh"
 //#include "chrono_fsi/printToFile.cuh"
 //#include "chrono_fsi/custom_cutil_math.h"
@@ -70,8 +69,9 @@ using namespace chrono::collision;
 
 using std::cout;
 using std::endl;
-
+std::ofstream simParams;
 // =============================================================================
+
 // Define Graphics
 #define irrlichtVisualization false
 
@@ -90,6 +90,17 @@ using namespace gui;
 
 std::shared_ptr<ChIrrApp> application;
 #endif
+
+// =============================================================================
+
+
+const std::string out_dir = "FSI_OUTPUT"; //"../FSI_OUTPUT";
+const std::string pov_dir_fluid = out_dir + "/povFilesFluid";
+const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";
+bool povray_output = true;
+int out_fps = 30;
+
+Real contact_recovery_speed = 1;
 
 // =============================================================================
 void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads,
@@ -134,7 +145,7 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads,
 }
 // =============================================================================
 
-void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
+void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int argc,
 		char* argv[]) {
 	// Desired number of OpenMP threads (will be clamped to maximum available)
 	int threads = 1;
@@ -167,7 +178,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 	cout << "Using " << threads << " threads" << endl;
 
 	mphysicalSystem.GetSettings()->perform_thread_tuning = thread_tuning;
-	mphysicalSystem.GetSettings()->min_threads = max(1, threads / 2);
+	mphysicalSystem.GetSettings()->min_threads = std::max(1, threads / 2);
 	mphysicalSystem.GetSettings()->max_threads = int(3.0 * threads / 2);
 
 	// ---------------------
@@ -183,13 +194,13 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 
 	// ---------------------
 	// Edit mphysicalSystem settings.
-	// ---------------------
+	// ---------------------\
 
 	double tolerance = 0.1;  // 1e-3;  // Arman, move it to paramsH
-	// double collisionEnvelop = 0.04 * paramsH.HSML;
+	// double collisionEnvelop = 0.04 * paramsH->HSML;
 	mphysicalSystem.Set_G_acc(
-			ChVector<>(paramsH.gravity.x, paramsH.gravity.y,
-					paramsH.gravity.z));
+			ChVector<>(paramsH->gravity.x, paramsH->gravity.y,
+					paramsH->gravity.z));
 
 	mphysicalSystem.GetSettings()->solver.solver_mode = SLIDING; // NORMAL, SPINNING
 	mphysicalSystem.GetSettings()->solver.max_iteration_normal =
@@ -216,8 +227,9 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, int argc,
 // =============================================================================
 
 // Arman you still need local position of bce markers
-void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::ChSystemFsi &myFsiSystem) {
+void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::ChSystemFsi &myFsiSystem, chrono::fsi::SimParams* paramsH) {
 
+	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_g(new chrono::ChMaterialSurface);
 	// Set common material Properties
 	mat_g->SetFriction(0.8);
 	mat_g->SetCohesion(0);
@@ -237,40 +249,36 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	ground->GetCollisionModel()->ClearModel();
 
 	// Bottom box
-	double hdimSide = hdimX / 4.0;
-	double midSecDim = hdimX - 2 * hdimSide;
+	double hdimSide = chrono::fsi::hdimX / 4.0;
+	double midSecDim = chrono::fsi::hdimX - 2 * hdimSide;
 
 	// basin info
 	double phi = CH_C_PI / 9;
-	double bottomWidth = midSecDim - basinDepth / tan(phi); // for a 45 degree slope
+	double bottomWidth = midSecDim - chrono::fsi::basinDepth / tan(phi); // for a 45 degree slope
 	double bottomBuffer = .4 * bottomWidth;
 
 	double inclinedWidth = 0.5 * basinDepth / sin(phi); // for a 45 degree slope
 
-	double smallBuffer = .7 * hthick;
+	double smallBuffer = .7 * chrono::fsi::hthick;
 	double x1I = -midSecDim + inclinedWidth * cos(phi) - hthick * sin(phi)
 			- smallBuffer;
 	double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
 	double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi)
 			+ smallBuffer;
 
+	chrono::fsi::SimParams* numObjects = myFsiSystem.GetDataManager()->numObjects;
+	thrust::host_vector<chrono::fsi::Real3> & posRadH =  myFsiSystem.GetDataManager->sphMarkersH.posRadH;
+	thrust::host_vector<chrono::fsi::Real3> & velMasH =  myFsiSystem.GetDataManager->sphMarkersH.velMasH;
+	thrust::host_vector<chrono::fsi::Real4> & rhoPresMuH =  myFsiSystem.GetDataManager->sphMarkersH.rhoPresMuH;
+	thrust::host_vector<chrono::fsi::int4> & referenceArray =  myFsiSystem.GetDataManager->fsiGeneralData.referenceArray;
 
-	SimParams* paramsH = myFsiSystem.GetSimParams();
-	SimParams* numObjects = myFsiSystem.GetNumObjects();
-	thrust::host_vector<Real3> & posRadH =  myFsiSystem.GetDataManager->sphMarkersH.posRadH;
-	thrust::host_vector<Real3> & velMasH =  myFsiSystem.GetDataManager->sphMarkersH.velMasH;
-	thrust::host_vector<Real4> & rhoPresMuH =  myFsiSystem.GetDataManager->sphMarkersH.rhoPresMuH;
-	thrust::host_vector<int4> & referenceArray =  myFsiSystem.GetDataManager->fsiGeneralData.referenceArray;
-
-
-	if (!initializeFluidFromFile) {
 
 #if haveFluid
 
 		// beginning third
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, paramsH, ground,
-				ChVector<>(hdimSide, hdimY, hthick),
+				ChVector<>(hdimSide, chrono::fsi::hdimY, hthick),
 				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 
@@ -278,32 +286,31 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, paramsH, ground,
-				ChVector<>(hdimSide, hdimY, hthick),
+				ChVector<>(hdimSide, chrono::fsi::hdimY, hthick),
 				ChVector<>(midSecDim + hdimSide, 0, -hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 
 		// basin
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, paramsH, ground,
-				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
+				ChVector<>(bottomWidth + bottomBuffer, chrono::fsi::hdimY, hthick),
 				ChVector<>(0, 0, -basinDepth - hthick),
 				ChQuaternion<>(1, 0, 0, 0));
 		// slope 1
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, paramsH, ground,
-				ChVector<>(inclinedWidth, hdimY, hthick),
+				ChVector<>(inclinedWidth, chrono::fsi::hdimY, hthick),
 				ChVector<>(x1I, 0, zI),
 				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
 
 		// slope 2
 		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
 				numObjects, paramsH, ground,
-				ChVector<>(inclinedWidth, hdimY, hthick),
+				ChVector<>(inclinedWidth, chrono::fsi::hdimY, hthick),
 				ChVector<>(x2I, 0, zI),
 				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
 
 #endif
-	}
 
 	ground->GetCollisionModel()->BuildModel();
 
@@ -329,7 +336,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	double sphereRad = 0.3;
 	double volume = utils::CalcSphereVolume(sphereRad);
 	ChVector<> gyration = utils::CalcSphereGyration(sphereRad).Get_Diag();
-	double density = paramsH.rho0;
+	double density = paramsH->rho0;
 	double mass = density * volume;
 	body->SetMass(mass);
 	body->SetInertiaXX(mass * gyration);
@@ -370,7 +377,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 
 	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
 			mphysicalSystem, FSI_Bodies, numObjects, paramsH,
-			cyl_radius, cyl_length, mat_g, paramsH.rho0, cyl_pos, cyl_rot);
+			cyl_radius, cyl_length, mat_g, paramsH->rho0, cyl_pos, cyl_rot);
 
 	// extra objects
 	// -----------------------------------------
@@ -381,7 +388,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	//  // NOTE: mass properties and shapes are all for sphere
 	//  double volume = utils::CalcSphereVolume(rad);
 	//  ChVector<> gyration = utils::CalcSphereGyration(rad).Get_Diag();
-	//  double density = paramsH.rho0;
+	//  double density = paramsH->rho0;
 	//  double mass = density * volume;
 	//  double muFriction = 0;
 	//
@@ -414,10 +421,10 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 
 // =============================================================================
 
-void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep,
+void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int tStep,
 		double mTime) {
 	static double exec_time;
-	int out_steps = std::ceil((1.0 / paramsH.dT) / out_fps);
+	int out_steps = std::ceil((1.0 / paramsH->dT) / out_fps);
 	exec_time += mphysicalSystem.GetTimerStep();
 	int num_contacts = mphysicalSystem.GetNcontacts();
 
@@ -448,21 +455,20 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, int tStep,
 }
 
 // =============================================================================
-void printSimulationParameters() {
+void printSimulationParameters(chrono::fsi::SimParams* paramsH) {
 	simParams << " time_hold_vehicle: " << time_hold_vehicle << endl
 			<< " time_pause_fluid_external_force: "
-			<< time_pause_fluid_external_force << endl
+			<< paramsH->timePause << endl
 			<< " contact_recovery_speed: " << contact_recovery_speed << endl
-			<< " maxFlowVelocity " << maxFlowVelocity << endl
-			<< " time_step (paramsH.dT): " << paramsH.dT << endl
-			<< " time_end: " << time_end << endl;
+			<< " maxFlowVelocity " << paramsH->v_Max << endl
+			<< " time_step (paramsH->dT): " << paramsH->dT << endl
+			<< " time_end: " << paramsH->tFinal << endl;
 }
 
 // =============================================================================
 
-void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem) {
-	//	Real3 domainCenter = 0.5 * (paramsH.cMin + paramsH.cMax);
-	//	ChVector<> CameraLocation = ChVector<>(2 * paramsH.cMax.x, 2 * paramsH.cMax.y, 2 * paramsH.cMax.z);
+void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH) {
+	//	ChVector<> CameraLocation = ChVector<>(2 * paramsH->cMax.x, 2 * paramsH->cMax.y, 2 * paramsH->cMax.z);
 	//	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
 	chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
 	chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
@@ -475,7 +481,7 @@ void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem) {
 
 // Uncomment the following two lines for the OpenGL manager to automatically un the simulation in an infinite loop.
 
-// gl_window.StartDrawLoop(paramsH.dT);
+// gl_window.StartDrawLoop(paramsH->dT);
 // return 0;
 #endif
 }
@@ -527,7 +533,8 @@ int main(int argc, char* argv[]) {
 	simParams.open(simulationParams);
 	simParams << " Job was submitted at date/time: " << asctime(timeinfo)
 			<< endl;
-	printSimulationParameters();
+	printSimulationParameters(paramsH);
+	simParams.close();
 	// ***************************** Create Fluid ********************************************
 	ChSystemParallelDVI mphysicalSystem;
 	fsi::ChSystemFsi myFsiSystem(&mphysicalSystem);
@@ -535,18 +542,19 @@ int main(int argc, char* argv[]) {
 
 
 #if haveFluid
+	chrono::fsi::SimParams* paramsH = myFsiSystem.GetSimParams();
 		SetupParamsH(paramsH);
-		Real initSpace0 = paramsH.MULT_INITSPACE * paramsH.HSML
+		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML
 				utils::GridSampler<> sampler(initSpace0);
-		Real3 boxCenter = 0.5 * (paramsH.cMax + paramsH.cMin);
-		Real3 boxHalfDim = paramsH.cMax - boxCenter;
+		chrono::fsi::Real3 boxCenter = 0.5 * (paramsH->cMax + paramsH->cMin);
+		chrono::fsi::Real3 boxHalfDim = paramsH->cMax - boxCenter;
 		utils::Generator::PointVector points = sampler.SampleBox(fsi::utils::ConvertRealToChVector(boxCenter), fsi::utils::ConvertRealToChVector(boxHalfDim));
 
 										int numPart = points.size();
 		for (int i = 0; i < numPart; i++) {
 
 			myFsiSystem.GetDataManager->AddSphMarker(mR3(points[i].x, points[i].y, points[i].z),
-					mR3(0), mR4(paramsH.rho0, paramsH.BASEPRES, paramsH.mu0, -1));
+					mR3(0), mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
 		}
 
 		int numPhases = myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.size(); //Arman TODO: either rely on pointers, or stack entirely, combination of '.' and '->' is not good
@@ -562,11 +570,11 @@ int main(int argc, char* argv[]) {
 
 
 	// ***************************** Create Rigid ********************************************
-	InitializeMbdPhysicalSystem(mphysicalSystem, argc, argv);
+	InitializeMbdPhysicalSystem(mphysicalSystem, paramsH, argc, argv);
 
 	// This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
 
-	CreateMbdPhysicalSystemObjects(mphysicalSystem, myFsiSystem);
+	CreateMbdPhysicalSystemObjects(mphysicalSystem, myFsiSystem, paramsH);
 
 	myFsiSystem.FinalizeData();
 
@@ -585,13 +593,13 @@ int main(int argc, char* argv[]) {
 
 	// ***************************** System Initialize ********************************************
 
-	InitializeChronoGraphics(mphysicalSystem);
+	InitializeChronoGraphics(mphysicalSystem, paramsH);
 
 	double mTime = 0;
 
 	DOUBLEPRECISION ?
 			printf("Double Precision\n") : printf("Single Precision\n");
-
+	int stepEnd = int(paramsH->tFinal / paramsH->dT);
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
 
 
@@ -605,25 +613,9 @@ int main(int argc, char* argv[]) {
 
 //		SavePovFilesMBD(mphysicalSystem, tStep, mTime);
 
-// -------------------
-// SPH Block
-// -------------------
-#if haveFluid
-		if (tStep % 2 == 0) {
-			printf(
-					"step: %d, realTime: %f, step Time (CUDA): %f, step Time (CPU): %f\n ",
-					tStep, realTime, (Real) myGpuTimer.Elapsed(),
-					1000 * mCpuTimer.Elapsed());
-		}
-#endif
 	}
 //	ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
 	FSI_Bodies.clear();
-//
-//	delete mVehicle;
-//	delete tire_cb;
-//	delete chassis_cb;
-//	delete driver_cb;
 
 	return 0;
 }

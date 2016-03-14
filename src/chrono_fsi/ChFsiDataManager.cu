@@ -27,7 +27,75 @@ struct sphTypeComp {
     	return o1.w < o2.w;
   	}
 };
-	
+
+//---------------------------------------------------------------------------------------
+zipIterSphD SphMarkerDataD::iterator() {
+			return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin()));
+}
+
+// resize
+void SphMarkerDataD::resize(int s) {
+	posRadD.resize(s);
+	velMasD.resize(s);
+	rhoPresMuD.resize(s);
+}
+
+
+//---------------------------------------------------------------------------------------
+
+zipIterSphH SphMarkerDataH::iterator() {
+	return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin()));
+}
+
+// resize
+void SphMarkerDataH::resize(int s) {
+	posRadH.resize(s);
+	velMasH.resize(s);
+	rhoPresMuH.resize(s);
+}
+
+//---------------------------------------------------------------------------------------
+
+zipIterRigidD FsiBodiesDataD::iterator() {
+	return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_D.begin(), velMassRigid_fsiBodies_D.begin(), accRigid_fsiBodies_D.begin(),
+		q_fsiBodies_D.begin(), omegaVelLRF_fsiBodies_D.begin(), omegaAccLRF_fsiBodies_D.begin()));
+}
+
+// resize
+void FsiBodiesDataD::resize(int s) {
+	posRigid_fsiBodies_D.resize(s);
+	velMassRigid_fsiBodies_D.resize(s);
+	accRigid_fsiBodies_D.resize(s);
+	q_fsiBodies_D.resize(s);
+	omegaVelLRF_fsiBodies_D.resize(s);
+	omegaAccLRF_fsiBodies_D.resize(s);
+}
+
+
+//---------------------------------------------------------------------------------------
+
+zipIterRigidH FsiBodiesDataH::iterator() {
+	return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.begin(), accRigid_fsiBodies_H.begin(),
+		q_fsiBodies_H.begin(), omegaVelLRF_fsiBodies_H.begin(), omegaAccLRF_fsiBodies_H.begin()));
+}
+
+// resize
+void FsiBodiesDataH::resize(int s) {
+	posRigid_fsiBodies_H.resize(s);
+	velMassRigid_fsiBodies_H.resize(s);
+	accRigid_fsiBodies_H.resize(s);
+	q_fsiBodies_H.resize(s);
+	omegaVelLRF_fsiBodies_H.resize(s);
+	omegaAccLRF_fsiBodies_H.resize(s);
+}
+
+//---------------------------------------------------------------------------------------
+
+
+
+//---------------------------------------------------------------------------------------
+
+
 ChFsiDataManager::ChFsiDataManager() {
 	InitNumObjects();
 }
