@@ -551,7 +551,17 @@ CUDA_GLOBAL void kUpdateParticleVelocity(real* grid_vel,
             new_vel = new_vel * device_settings.max_velocity / speed;
         }
         vel_marker[p] = new_vel;
-
+    }
+}
+CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, Mat33* marker_Fe, Mat33* marker_Fp) {
+    const int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p < device_settings.num_mpm_markers) {
+        const real3 xi = pos_marker[p];
+        Mat33 velocity_gradient(0);
+        LOOP_TWO_RING_GPU(  //
+            real3 g_vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
+            velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));  //
+            )
         Mat33 Fe_tmp = (Mat33(1.0) + device_settings.dt * velocity_gradient) * marker_Fe[p];
         Mat33 F_tmp = Fe_tmp * marker_Fp[p];
         Mat33 U, V;
@@ -568,7 +578,6 @@ CUDA_GLOBAL void kUpdateParticleVelocity(real* grid_vel,
         marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
     }
 }
-
 void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities) {
     host_settings = settings;
 
@@ -597,6 +606,10 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
 
     kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
                                                                grid_vel.data_d);
+
+
+    kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d, marker_Fe.data_d,
+                                                                          marker_Fp.data_d);
 
     old_vel_node_mpm.resize(host_settings.num_mpm_nodes * 3);
     rhs.resize(host_settings.num_mpm_nodes * 3);
@@ -649,7 +662,25 @@ CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp) {
         marker_Fp[i] = Mat33(1);
     }
 }
+void MPM_Update_Deformation_Gradient(MPM_Settings& settings, std::vector<real3>& velocities) {
+    vel.data_h = velocities;
+    vel.copyHostToDevice();
+    host_settings = settings;
+    // ========================================================================================
+    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
+                                                          vel.data_d,        // input
+                                                          node_mass.data_d,  // output
+                                                          grid_vel.data_d    // output
+                                                          );
 
+    kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
+                                                               grid_vel.data_d);
+
+    kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d, marker_Fe.data_d,
+                                                                          marker_Fp.data_d);
+    vel.copyDeviceToHost();
+    velocities = vel.data_h;
+}
 void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
     host_settings = settings;
 

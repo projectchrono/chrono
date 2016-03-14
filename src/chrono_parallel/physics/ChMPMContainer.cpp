@@ -15,6 +15,7 @@
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/matrix.h"       // for quaternion, real4
 #include "chrono_parallel/physics/ChMPM.cuh"
+#include "chrono_parallel/collision/ChCollision.h"
 
 namespace chrono {
 
@@ -776,6 +777,7 @@ void ChMPMContainer::PreSolve() {
     delta_v = 0;
     Solve(rhs, delta_v);
     grid_vel += delta_v;
+    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
 
     const real3 gravity = data_manager->settings.gravity;
 #pragma omp parallel for
@@ -807,8 +809,61 @@ void ChMPMContainer::PreSolve() {
         data_manager->host_data.v[body_offset + index * 3 + 0] = new_vel.x;
         data_manager->host_data.v[body_offset + index * 3 + 1] = new_vel.y;
         data_manager->host_data.v[body_offset + index * 3 + 2] = new_vel.z;
+        int original_index = data_manager->host_data.particle_indices_3dof[index];
+        sorted_pos_fluid[index] = pos_marker[original_index];
     }
 
+//    custom_vector<real3> new_pos = sorted_pos_fluid;
+//    if (num_mpm_markers != 0) {
+//        data_manager->narrowphase->DispatchRigidFluid();
+//
+//        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+//        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+//        custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
+//        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+//        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+//        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep
+//        // isnt
+//        // too large.
+//
+//        if (data_manager->num_rigid_fluid_contacts > 0) {
+//#pragma omp parallel for
+//            for (int p = 0; p < num_fluid_bodies; p++) {
+//                int start = contact_counts[p];
+//                int end = contact_counts[p + 1];
+//                real3 delta = real3(0);
+//                real weight = 0;
+//                for (int index = start; index < end; index++) {
+//                    int i = index - start;
+//                    int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+//                    // if (data_manager->host_data.active_rigid[rigid] == false) {
+//                    real3 U = norm[p * max_rigid_neighbors + i];
+//                    real depth = dpth[p * max_rigid_neighbors + i];
+//                    if (depth < 0) {
+//                        real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
+//                        delta -= w * depth * U;
+//                        weight++;
+//                    }
+//                    //}
+//                }
+//                if (weight > 0) {
+//                    new_pos[p] = new_pos[p] + delta / weight;
+//                }
+//            }
+//
+//#pragma omp parallel for
+//            for (int p = 0; p < num_fluid_bodies; p++) {
+//                // real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
+//                int original_index = data_manager->host_data.particle_indices_3dof[p];
+//                real3 vv = real3((new_pos[p] - sorted_pos_fluid[p]) * 1.0 / dt);
+//                data_manager->host_data.v[body_offset + p * 3 + 0] = vv.x;
+//                data_manager->host_data.v[body_offset + p * 3 + 1] = vv.y;
+//                data_manager->host_data.v[body_offset + p * 3 + 2] = vv.z;
+//
+//                pos_marker[original_index] = new_pos[p];
+//            }
+//        }
+//    }
 #endif
 
     LOG(INFO) << "ChMPMContainer::DoneSetVEL()";
@@ -822,6 +877,36 @@ void ChMPMContainer::PostSolve() {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
 #if !USE_CPU
 
+    //#pragma omp parallel for
+    //    for (int p = 0; p < num_mpm_markers; p++) {
+    //        int index = data_manager->host_data.reverse_mapping_3dof[p];
+    //        data_manager->host_data.vel_3dof[p].x = data_manager->host_data.v[body_offset + index * 3 + 0];
+    //        data_manager->host_data.vel_3dof[p].y = data_manager->host_data.v[body_offset + index * 3 + 1];
+    //        data_manager->host_data.vel_3dof[p].z = data_manager->host_data.v[body_offset + index * 3 + 2];
+    //    }
+    //
+    MPM_Settings temp_settings;
+    temp_settings.dt = dt;
+    temp_settings.kernel_radius = kernel_radius;
+    temp_settings.inv_radius = 1.0 / kernel_radius;
+    temp_settings.bin_edge = kernel_radius * 2;
+    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+    temp_settings.max_velocity = max_velocity;
+    temp_settings.mu = mu;
+    temp_settings.lambda = lambda;
+    temp_settings.hardening_coefficient = hardening_coefficient;
+    temp_settings.theta_c = theta_c;
+    temp_settings.theta_s = theta_s;
+    temp_settings.alpha_flip = alpha;
+    temp_settings.youngs_modulus = youngs_modulus;
+    temp_settings.poissons_ratio = nu;
+    temp_settings.num_mpm_markers = num_mpm_markers;
+    temp_settings.mass = mass;
+    temp_settings.num_iterations = max_iterations;
+//    if (max_iterations > 0) {
+//        MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
+//    }
+//
 //#pragma omp parallel for
 //    for (int p = 0; p < num_mpm_markers; p++) {
 //        int index = data_manager->host_data.reverse_mapping_3dof[p];
@@ -830,27 +915,8 @@ void ChMPMContainer::PostSolve() {
 //        data_manager->host_data.vel_3dof[p].z = data_manager->host_data.v[body_offset + index * 3 + 2];
 //    }
 //
-//    MPM_Settings temp_settings;
-//    temp_settings.dt = dt;
-//    temp_settings.kernel_radius = kernel_radius;
-//    temp_settings.inv_radius = 1.0 / kernel_radius;
-//    temp_settings.bin_edge = kernel_radius * 2;
-//    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
-//    temp_settings.max_velocity = max_velocity;
-//    temp_settings.mu = mu;
-//    temp_settings.lambda = lambda;
-//    temp_settings.hardening_coefficient = hardening_coefficient;
-//    temp_settings.theta_c = theta_c;
-//    temp_settings.theta_s = theta_s;
-//    temp_settings.alpha_flip = alpha;
-//    temp_settings.youngs_modulus = youngs_modulus;
-//    temp_settings.poissons_ratio = nu;
-//    temp_settings.num_mpm_markers = num_mpm_markers;
-//    temp_settings.mass = mass;
-//    temp_settings.num_iterations = max_iterations;
-//    if (max_iterations > 0) {
-//        MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
-//    }
+//    MPM_Update_Deformation_Gradient(temp_settings, data_manager->host_data.vel_3dof);
+
 //#pragma omp parallel for
 //    for (int p = 0; p < num_mpm_markers; p++) {
 //        int index = data_manager->host_data.reverse_mapping_3dof[p];
@@ -860,6 +926,40 @@ void ChMPMContainer::PostSolve() {
 //    }
 
 #else
+
+#pragma omp parallel for
+    for (int index = 0; index < num_mpm_nodes_active; index++) {
+        uint start = node_start_index[index];
+        uint end = node_start_index[index + 1];
+        const int current_node = node_particle_mapping[index];
+        vec3 g = GridDecode(current_node, bins_per_axis);
+        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_bounding_point);
+        real3 vel_mass = real3(0);
+        real mass_w = 0;
+        for (uint i = start; i < end; i++) {
+            int p = particle_number[i];
+            real weight = N(pos_marker[p] - current_node_location, inv_bin_edge) * mass;  //
+            mass_w += weight;
+            vel_mass += weight * vel_marker[p];
+        }
+
+        node_mass[current_node] = mass_w;
+        grid_vel[current_node * 3 + 0] = vel_mass.x;  //
+        grid_vel[current_node * 3 + 1] = vel_mass.y;  //
+        grid_vel[current_node * 3 + 2] = vel_mass.z;  //
+    }
+
+// normalize weights for the velocity (to conserve momentum)
+#pragma omp parallel for
+    for (int i = 0; i < num_mpm_nodes; i++) {
+        real n_mass = node_mass[i];
+        if (n_mass > C_EPSILON) {
+            grid_vel[i * 3 + 0] /= n_mass;
+            grid_vel[i * 3 + 1] /= n_mass;
+            grid_vel[i * 3 + 2] /= n_mass;
+        }
+        // printf("N: %d [%f %f %f]\n", i, grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);
+    }
 
     printf("Update_Deformation_Gradient\n");
 #pragma omp parallel for
@@ -1015,8 +1115,54 @@ void ChMPMContainer::UpdateRhs() {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     const real dt = data_manager->settings.step_size;
 
-    // Precompute force for particle
-    rhs = 0;
+    // Collide grid with
+
+    //    printf("Loop over rigid bodies\n");
+    //    if (num_rigid_fluid_contacts > 0) {
+    //        LOG(INFO) << "ChConstraintRigidFluid::GenerateSparsity";
+    //
+    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    //
+    //        custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
+    //        custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
+    //
+    //        // custom_vector<int2>& bids = data_manager->host_data.bids_rigid_fluid;
+    //        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+    //        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+    //
+    //        Loop_Over_Rigid_Neighbors(                                          //
+    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  //
+    //            real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
+    //            Orthogonalize(U, V, W); real3 T1; real3 T2; real3 T3;           //
+    //            real3 c_pt = cpta[p * max_rigid_neighbors + i];
+    //
+    //            real3 v_rigid = real3(data_manager->host_data.v[rigid * 6 + 0], data_manager->host_data.v[rigid * 6 +
+    //            1],
+    //                                  data_manager->host_data.v[rigid * 6 + 2]);
+    //
+    //            real3 o_rigid = real3(data_manager->host_data.v[rigid * 6 + 3], data_manager->host_data.v[rigid * 6 +
+    //            4],
+    //                                  data_manager->host_data.v[rigid * 6 + 5]);
+    //
+    //            real3 pt1_loc = TransformParentToLocal(pos_rigid[rigid], rot_rigid[rigid], c_pt);
+    //            // Velocity of the contact point on the body:
+    //            real3 vel1 = v_rigid + Rotate(Cross(o_rigid, pt1_loc), rot_rigid[rigid]);
+    //
+    //            // Find the grid cell
+    //
+    //            const int cx = GridCoord(c_pt.x, inv_bin_edge, min_bounding_point.x);
+    //            const int cy = GridCoord(c_pt.y, inv_bin_edge, min_bounding_point.y);
+    //            const int cz = GridCoord(c_pt.z, inv_bin_edge, min_bounding_point.z);
+    //            const int current_node = GridHash(cx, cy, cz, bins_per_axis);
+    //
+    //            real3 current_node_location = NodeLocation(cx, cy, cz, bin_edge, min_bounding_point);
+    //            real weight = N(c_pt - current_node_location, inv_bin_edge);  //
+    //            //printf("%f %f %f \n", vel1.x, vel1.y, vel1.z);                //
+    //            grid_vel[current_node * 3 + 0] = vel1.x;                      //
+    //            grid_vel[current_node * 3 + 1] = vel1.y;                      //
+    //            grid_vel[current_node * 3 + 2] = vel1.z;);
+    //    }
 
     custom_vector<Mat33> rhs_temp(num_mpm_markers);
 #pragma omp parallel for

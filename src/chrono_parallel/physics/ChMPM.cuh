@@ -36,7 +36,7 @@ struct MPM_Settings {
     int bins_per_axis_z;
 };
 
-
 void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions);
 void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities);
+void MPM_Update_Deformation_Gradient(MPM_Settings& settings, std::vector<real3>& velocities);
 }
