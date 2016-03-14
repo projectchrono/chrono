@@ -55,7 +55,9 @@ class gpu_vector {
     }
     // Free allocated memory
     void clear() {
-        cudaFree(data_d);
+        if (size_d > 0) {
+            cudaFree(data_d);
+        }
         size_d = 0;
     }
     // Set the contents of a gpu_vector to a certain value
