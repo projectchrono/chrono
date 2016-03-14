@@ -33,6 +33,12 @@
 #include "real_single.h"
 #endif
 
+#ifdef __CUDA_ARCH__
+#define VECEXT sisd
+#else
+#define VECEXT simd
+#endif
+
 namespace chrono {
 // CUDA_HOST_DEVICE static inline real DegToRad(real t) {
 //    return t * C_DegToRad;

@@ -38,11 +38,7 @@
 //#warning non-nvcc code trajectory
 //#endif
 
-#ifdef __CUDA_ARCH__
-#define VECEXT sisd
-#else
-#define VECEXT simd
-#endif
+
 
 #ifndef __CUDA_ARCH__
 // Check if SSE was found in CMake

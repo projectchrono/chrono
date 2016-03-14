@@ -18,6 +18,7 @@
 #pragma once
 
 #include "chrono_parallel/ChCudaDefines.h"
+#include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real2.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/real4.h"

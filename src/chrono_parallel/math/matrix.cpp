@@ -1,11 +1,314 @@
 #include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/sse.h"
 
-#if defined(__CUDA_ARCH__)
+#if defined(USE_SSE)
+#include "chrono_parallel/math/simd_sse.h"
+#elif defined(USE_AVX)
+#include "chrono_parallel/math/simd_avx.h"
+#else
 #include "chrono_parallel/math/simd_non.h"
+#endif
+
 #include <iostream>
 
 namespace chrono {
+
+#if defined(USE_AVX)
+
+// dot product of each column of a matrix with itself
+inline __m256d DotMM(const real* M) {
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    __m256d xy0 = _mm256_mul_pd(a, a);
+    __m256d xy1 = _mm256_mul_pd(b, b);
+    __m256d xy2 = _mm256_mul_pd(c, c);
+    __m256d xy3 = _mm256_set1_pd(0);  // last dot prod is a dud
+
+    // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+    __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
+
+    // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+    __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
+
+    // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+    __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+
+    // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+
+    __m256d dotproduct = _mm256_add_pd(swapped, blended);
+    return dotproduct;
+}  // dot product of each column of a matrix with itself
+inline __m256d DotMM(const real* M, const real* N) {
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    __m256d x = _mm256_loadu_pd(&N[0]);  // Load first column of M
+    __m256d y = _mm256_loadu_pd(&N[4]);  // Load second column of M
+    __m256d z = _mm256_loadu_pd(&N[8]);  // Load third column of M
+
+    __m256d xy0 = _mm256_mul_pd(a, x);
+    __m256d xy1 = _mm256_mul_pd(b, y);
+    __m256d xy2 = _mm256_mul_pd(c, z);
+    __m256d xy3 = _mm256_set1_pd(0);  // last dot prod is a dud
+
+    // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+    __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
+
+    // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+    __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
+
+    // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+    __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+
+    // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+
+    __m256d dotproduct = _mm256_add_pd(swapped, blended);
+    return dotproduct;
+}
+// http://fhtr.blogspot.com/2010/02/4x4-float-matrix-multiplication-using.html
+inline Mat33 MulMM(const real* M, const real* N) {
+    Mat33 r;
+    __m256d r_line;
+    int i;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    for (i = 0; i < 3; i++) {
+        r_line = _mm256_mul_pd(a, _mm256_set1_pd(N[i * 4 + 0]));
+        r_line = _mm256_add_pd(_mm256_mul_pd(b, _mm256_set1_pd(N[i * 4 + 1])), r_line);
+        r_line = _mm256_add_pd(_mm256_mul_pd(c, _mm256_set1_pd(N[i * 4 + 2])), r_line);
+        _mm256_storeu_pd(&r.array[i * 4], r_line);
+    }
+    return r;
+}
+
+inline Mat33 MulM_TM(const real* M, const real* N) {
+    Mat33 result;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    for (int i = 0; i < 3; i++) {
+        __m256d v = _mm256_loadu_pd(&N[i * 4]);  // load ith column column of N
+        __m256d xy0 = _mm256_mul_pd(v, a);
+        __m256d xy1 = _mm256_mul_pd(v, b);
+        __m256d xy2 = _mm256_mul_pd(v, c);
+        __m256d xy3 = _mm256_set1_pd(0);  // last dot prod is not used
+
+        __m256d temp01 = _mm256_hadd_pd(xy0, xy1);  // low to high: xy00+xy01 xy10+xy11 xy02+xy03 xy12+xy13
+        __m256d temp23 = _mm256_hadd_pd(xy2, xy3);  // low to high: xy20+xy21 xy30+xy31 xy22+xy23 xy32+xy33
+        // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
+        __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+        // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
+        __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+        __m256d dotproduct = _mm256_add_pd(swapped, blended);
+        _mm256_storeu_pd(&result.array[i * 4], dotproduct);
+    }
+    return result;
+}
+
+inline real3 MulMV(const real* a, const real* b) {
+    real3 r;
+    __m256d v1 = _mm256_loadu_pd(&a[0]) * _mm256_set1_pd(b[0]);
+    __m256d v2 = _mm256_loadu_pd(&a[4]) * _mm256_set1_pd(b[1]);
+    __m256d v3 = _mm256_loadu_pd(&a[8]) * _mm256_set1_pd(b[2]);
+    __m256d out = _mm256_add_pd(_mm256_add_pd(v1, v2), v3);
+    _mm256_storeu_pd(&r.array[0], out);
+
+    return r;
+}
+
+inline Mat33 OuterProductVV(const real* a, const real* b) {
+    Mat33 r;
+    __m256d u = _mm256_loadu_pd(a);  // Load the first vector
+    __m256d col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        col = _mm256_mul_pd(u, _mm256_set1_pd(b[i]));
+        _mm256_storeu_pd(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline Mat33 ScaleMat(const real* a, const real b) {
+    Mat33 r;
+    __m256d s = _mm256_set1_pd(b);
+    __m256d c, col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        c = _mm256_loadu_pd(&a[i * 4]);
+        col = _mm256_mul_pd(c, s);
+        _mm256_storeu_pd(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline SymMat33 NormalEquations(const real* M) {
+    SymMat33 result;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+
+    __m256d xy0 = _mm256_mul_pd(a, a);
+    __m256d xy1 = _mm256_mul_pd(a, b);
+    __m256d xy2 = _mm256_mul_pd(a, c);
+    __m256d xy3 = _mm256_mul_pd(b, b);
+
+    __m256d xy4 = _mm256_mul_pd(b, c);
+    __m256d xy5 = _mm256_mul_pd(c, c);
+    __m256d xy6 = _mm256_set1_pd(0);
+    __m256d xy7 = _mm256_set1_pd(0);
+
+    __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
+    __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
+    __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    __m256d dotproduct = _mm256_add_pd(swapped, blended);
+
+    _mm256_storeu_pd(&result.array[0], dotproduct);
+
+    temp01 = _mm256_hadd_pd(xy4, xy5);
+    temp23 = _mm256_hadd_pd(xy6, xy7);  // This should be zero
+    swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
+    blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    dotproduct = _mm256_add_pd(swapped, blended);
+    _mm256_storeu_pd(&result.array[4], dotproduct);
+    return result;
+}
+
+inline Mat33 MAbs(const real* M) {
+    Mat33 result;
+    __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
+    __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
+    __m256d c = _mm256_loadu_pd(&M[8]);  // Load third column of M
+    a = _mm256_and_pd(a, simd::ABSMASK);
+    b = _mm256_and_pd(b, simd::ABSMASK);
+    c = _mm256_and_pd(c, simd::ABSMASK);
+    _mm256_storeu_pd(&result.array[0 * 4], a);
+    _mm256_storeu_pd(&result.array[1 * 4], b);
+    _mm256_storeu_pd(&result.array[2 * 4], c);
+    return result;
+}
+
+#elif defined(USE_SSE)
+inline real3 DotMM(const real* M) {
+    real3 result;
+    result.x = M[0] * M[0] + M[1] * M[1] + M[2] * M[2];
+    result.y = M[4] * M[4] + M[5] * M[5] + M[6] * M[6];
+    result.z = M[8] * M[8] + M[9] * M[9] + M[10] * M[10];
+    return result;
+}  // dot product of each column of a matrix with another matrix
+inline real3 DotMM(const real* M, const real* N) {
+    real3 result;
+    result.x = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
+    result.y = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
+    result.z = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    return result;
+}
+// http://fhtr.blogspot.com/2010/02/4x4-float-matrix-multiplication-using.html
+inline Mat33 MulMM(const real* M, const real* N) {
+    Mat33 r;
+    __m128 r_line;
+    int i;
+    __m128 a = _mm_loadu_ps(&M[0]);  // Load first column of M
+    __m128 b = _mm_loadu_ps(&M[4]);  // Load second column of M
+    __m128 c = _mm_loadu_ps(&M[8]);  // Load third column of M
+
+    for (i = 0; i < 3; i++) {
+        r_line = _mm_mul_ps(a, _mm_set1_ps(N[i * 4 + 0]));
+        r_line = _mm_add_ps(_mm_mul_ps(b, _mm_set1_ps(N[i * 4 + 1])), r_line);
+        r_line = _mm_add_ps(_mm_mul_ps(c, _mm_set1_ps(N[i * 4 + 2])), r_line);
+        _mm_storeu_ps(&r.array[i * 4], r_line);
+    }
+    return r;
+}
+
+inline Mat33 MulM_TM(const real* M, const real* N) {
+    Mat33 r;
+    r[0] = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
+    r[1] = M[4] * N[0] + M[5] * N[1] + M[6] * N[2];
+    r[2] = M[8] * N[0] + M[9] * N[1] + M[10] * N[2];
+
+    r[4] = M[0] * N[4] + M[1] * N[5] + M[2] * N[6];
+    r[5] = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
+    r[6] = M[8] * N[4] + M[9] * N[5] + M[10] * N[6];
+
+    r[8] = M[0] * N[8] + M[1] * N[9] + M[2] * N[10];
+    r[9] = M[4] * N[8] + M[5] * N[9] + M[6] * N[10];
+    r[10] = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    return r;
+}
+
+inline real3 MulMV(const real* a, const real* b) {
+    real3 r;
+    __m128 v1 = _mm_loadu_ps(&a[0]) * _mm_set1_ps(b[0]);
+    __m128 v2 = _mm_loadu_ps(&a[4]) * _mm_set1_ps(b[1]);
+    __m128 v3 = _mm_loadu_ps(&a[8]) * _mm_set1_ps(b[2]);
+    __m128 out = _mm_add_ps(_mm_add_ps(v1, v2), v3);
+    _mm_storeu_ps(&r.array[0], out);
+
+    return r;
+}
+
+inline Mat33 OuterProductVV(const real* a, const real* b) {
+    Mat33 r;
+    __m128 u = _mm_loadu_ps(a);  // Load the first vector
+    __m128 col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        col = _mm_mul_ps(u, _mm_set1_ps(b[i]));
+        _mm_storeu_ps(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline Mat33 ScaleMat(const real* a, const real b) {
+    Mat33 r;
+    __m128 s = _mm_set1_ps(b);
+    __m128 c, col;
+    int i;
+    for (i = 0; i < 3; i++) {
+        c = _mm_loadu_ps(&a[i * 4]);
+        col = _mm_mul_ps(c, s);
+        _mm_storeu_ps(&r.array[i * 4], col);
+    }
+    return r;
+}
+
+inline SymMat33 NormalEquations(const real* A) {
+    SymMat33 T;
+
+    T.x11 = A[0] * A[0] + A[1] * A[1] + A[2] * A[2];
+    T.x21 = A[0] * A[4] + A[1] * A[5] + A[2] * A[6];
+    T.x31 = A[0] * A[8] + A[1] * A[9] + A[2] * A[10];
+    T.x22 = A[4] * A[4] + A[5] * A[5] + A[6] * A[6];
+    T.x32 = A[4] * A[8] + A[5] * A[9] + A[6] * A[10];
+    T.x33 = A[8] * A[8] + A[9] * A[9] + A[10] * A[10];
+
+    return T;
+}
+
+inline Mat33 MAbs(const real* M) {
+    Mat33 result;
+    __m128 a = _mm_loadu_ps(&M[0]);  // Load first column of M
+    __m128 b = _mm_loadu_ps(&M[4]);  // Load second column of M
+    __m128 c = _mm_loadu_ps(&M[8]);  // Load third column of M
+    a = _mm_and_ps(a, simd::ABSMASK);
+    b = _mm_and_ps(b, simd::ABSMASK);
+    c = _mm_and_ps(c, simd::ABSMASK);
+    _mm_storeu_ps(&result.array[0 * 4], a);
+    _mm_storeu_ps(&result.array[1 * 4], b);
+    _mm_storeu_ps(&result.array[2 * 4], c);
+    return result;
+}
+#else
 
 // dot product of each column of a matrix with itself
 CUDA_HOST_DEVICE inline real3 DotMM(const real* M) {
@@ -104,6 +407,7 @@ CUDA_HOST_DEVICE inline Mat33 MAbs(const real* M) {
     return Mat33(Abs(M[0]), Abs(M[1]), Abs(M[2]), Abs(M[4]), Abs(M[5]), Abs(M[6]), Abs(M[8]), Abs(M[9]), Abs(M[10]));
 }
 
+#endif
 //[0,4,8 ]
 //[1,5,9 ]
 //[2,6,10]
@@ -162,7 +466,8 @@ CUDA_HOST_DEVICE Mat33 OuterProduct(const real3& a, const real3& b) {
 }
 
 CUDA_HOST_DEVICE real InnerProduct(const Mat33& A, const Mat33& B) {
-    return VECEXT::HorizontalAdd(DotMM(A.array, B.array));
+    real3 temp = DotMM(A.array, B.array);
+    return temp[0] + temp[1] + temp[2];
 }
 
 CUDA_HOST_DEVICE Mat33 Adjoint(const Mat33& A) {
@@ -386,4 +691,3 @@ CUDA_HOST_DEVICE void PrintLine(const SymMat22& A, const char* name) {
     printf("%s: [%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x21, A.x22);
 }
 }
-#endif
