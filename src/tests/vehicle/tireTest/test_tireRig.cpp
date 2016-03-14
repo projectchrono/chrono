@@ -38,7 +38,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/FlatTerrain.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -147,9 +147,6 @@ int main() {
     my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
     my_system.SetTol(1e-10);
     my_system.SetTolForce(1e-8);
-
-    // flat rigid terrain, height = 0
-    FlatTerrain flat_terrain(0);
 
     // create the Fiala tire
     auto test_tire = std::make_shared<FialaTire>(vehicle::GetDataFile(Fiala_testfile));
@@ -276,6 +273,11 @@ int main() {
     auto tex_wheel = std::make_shared<ChTexture>();
     tex_wheel->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     wheel->AddAsset(tex_wheel);
+     
+    RigidTerrain terrain(&my_system);
+    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
+    terrain.Initialize(0, 20, 0.8);
 
     // Create the joints for the mechanical system
     // -------------------------------------------
@@ -458,7 +460,7 @@ int main() {
         wheelstate.omega = wheel->GetWvel_loc().y;  ///< wheel angular speed about its rotation axis
 
         // Advance tire by one step
-        test_tire->Synchronize(simTime, wheelstate, flat_terrain);
+        test_tire->Synchronize(simTime, wheelstate, terrain);
         test_tire->Advance(sim_step);
 
         // Apply the desired veritical force to the system (accounting
