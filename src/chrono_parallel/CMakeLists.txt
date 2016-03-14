@@ -172,6 +172,7 @@ SET(ChronoEngine_Parallel_MATH
     math/real3.cpp
     math/real4.h
     math/real4.cu
+    math/real4.cpp
     math/simd_128i.cu
     math/simd_128i.cpp
     )

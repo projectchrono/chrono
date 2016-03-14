@@ -1,6 +1,12 @@
+#include "chrono_parallel/math/sse.h"
 
-#if defined(__CUDA_ARCH__)
+#if defined(USE_SSE)
+#include "chrono_parallel/math/simd_sse.h"
+#elif defined(USE_AVX)
+#include "chrono_parallel/math/simd_avx.h"
+#else
 #include "chrono_parallel/math/simd_non.h"
+#endif
 
 #include "chrono_parallel/math/real4.h"
 #include <stdio.h>
@@ -169,4 +175,3 @@ CUDA_HOST_DEVICE void Print(quaternion v, const char* name) {
     printf("%f %f %f %f\n", v.w, v[0], v[1], v[2]);
 }
 }
-#endif
