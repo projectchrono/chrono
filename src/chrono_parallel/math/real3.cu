@@ -86,7 +86,7 @@ CUDA_HOST_DEVICE real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
 }
 CUDA_HOST_DEVICE real3 Cross(const real3& b, const real3& c) {
-    return simd::Cross3(b.array, c.array);
+    return simd::Cross3(b, c);
 }
 CUDA_HOST_DEVICE real3 Abs(const real3& v) {
     return simd::Abs(v);
