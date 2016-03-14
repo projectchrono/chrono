@@ -1,6 +1,11 @@
-
-#if defined(__CUDA_ARCH__)
+#include "chrono_parallel/math/sse.h"
+#if defined(__CUDACC__)
 #include "chrono_parallel/math/simd_non.h"
+#elif defined(USE_SSE)
+#include "chrono_parallel/math/simd_sse.h"
+#elif defined(USE_AVX)
+#include "chrono_parallel/math/simd_avx.h"
+#endif
 
 #include "chrono_parallel/math/real4.h"
 #include <stdio.h>
@@ -16,35 +21,35 @@ CUDA_HOST_DEVICE real4 Set4(real x, real y, real z, real w) {
 }
 
 CUDA_HOST_DEVICE real4 operator+(const real4& a, const real4& b) {
-    return VECEXT::Add(a, b);
+    return simd::Add(a, b);
 }
 CUDA_HOST_DEVICE real4 operator-(const real4& a, const real4& b) {
-    return VECEXT::Sub(a, b);
+    return simd::Sub(a, b);
 }
 CUDA_HOST_DEVICE real4 operator*(const real4& a, const real4& b) {
-    return VECEXT::Mul(a, b);
+    return simd::Mul(a, b);
 }
 CUDA_HOST_DEVICE real4 operator/(const real4& a, const real4& b) {
-    return VECEXT::Div(a, b);
+    return simd::Div(a, b);
 }
 //========================================================
 CUDA_HOST_DEVICE real4 operator+(const real4& a, real b) {
-    return VECEXT::Add(a, Set4(b));
+    return simd::Add(a, Set4(b));
 }
 CUDA_HOST_DEVICE real4 operator-(const real4& a, real b) {
-    return VECEXT::Sub(a, Set4(b));
+    return simd::Sub(a, Set4(b));
 }
 CUDA_HOST_DEVICE real4 operator*(const real4& a, real b) {
-    return VECEXT::Mul(a, Set4(b));
+    return simd::Mul(a, Set4(b));
 }
 CUDA_HOST_DEVICE real4 operator/(const real4& a, real b) {
-    return VECEXT::Div(a, Set4(b));
+    return simd::Div(a, Set4(b));
 }
 CUDA_HOST_DEVICE real4 operator-(const real4& a) {
-    return VECEXT::Negate(a);
+    return simd::Negate(a);
 }
 CUDA_HOST_DEVICE real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4) {
-    return VECEXT::Dot4(v, v1, v2, v3, v4);
+    return simd::Dot4(v, v1, v2, v3, v4);
 }
 
 CUDA_HOST_DEVICE OPERATOR_EQUALS_IMPL(*, real, real4);
@@ -67,38 +72,38 @@ CUDA_HOST_DEVICE quaternion SetQ(real w, real x, real y, real z) {
 }
 
 CUDA_HOST_DEVICE quaternion operator+(const quaternion& a, real b) {
-    return VECEXT::Add(a, SetQ(b));
+    return simd::Add(a, SetQ(b));
 }
 CUDA_HOST_DEVICE quaternion operator-(const quaternion& a, real b) {
-    return VECEXT::Sub(a, SetQ(b));
+    return simd::Sub(a, SetQ(b));
 }
 CUDA_HOST_DEVICE quaternion operator*(const quaternion& a, real b) {
-    return VECEXT::Mul(a, SetQ(b));
+    return simd::Mul(a, SetQ(b));
 }
 CUDA_HOST_DEVICE quaternion operator/(const quaternion& a, real b) {
-    return VECEXT::Div(a, SetQ(b));
+    return simd::Div(a, SetQ(b));
 }
 CUDA_HOST_DEVICE quaternion operator-(const quaternion& a) {
-    return VECEXT::Negate(a);
+    return simd::Negate(a);
 }
 CUDA_HOST_DEVICE quaternion operator~(const quaternion& a) {
-    return VECEXT::change_sign<0, 1, 1, 1>(a);
+    return simd::change_sign<0, 1, 1, 1>(a);
 }
 CUDA_HOST_DEVICE quaternion Inv(const quaternion& a) {
     real t1 = Dot(a);
     return (~a) / t1;
 }
 CUDA_HOST_DEVICE real Dot(const quaternion& v1, const quaternion& v2) {
-    return VECEXT::Dot4(v1, v2);
+    return simd::Dot4(v1, v2);
 }
 CUDA_HOST_DEVICE real Dot(const quaternion& v) {
-    return VECEXT::Dot4(v);
+    return simd::Dot4(v);
 }
 CUDA_HOST_DEVICE quaternion Mult(const quaternion& a, const quaternion& b) {
-    return VECEXT::QuatMult(a, b);
+    return simd::QuatMult(a, b);
 }
 CUDA_HOST_DEVICE quaternion Normalize(const quaternion& v) {
-    return VECEXT::Normalize(v);
+    return simd::Normalize(v);
 }
 
 CUDA_HOST_DEVICE real3 Rotate(const real3& v, const quaternion& q) {
@@ -169,4 +174,3 @@ CUDA_HOST_DEVICE void Print(quaternion v, const char* name) {
     printf("%f %f %f %f\n", v.w, v[0], v[1], v[2]);
 }
 }
-#endif

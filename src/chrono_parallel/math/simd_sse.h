@@ -1,11 +1,7 @@
-#pragma once
 #include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real.h"
-#include "chrono_parallel/math/real3.h"
-#include "chrono_parallel/math/real4.h"
-#include <stdio.h>
 using namespace chrono;
-#warning simd_sse
+
 namespace simd {
 
 // http://fastcpp.blogspot.com/2011/03/changing-sign-of-float-values-using-sse.html
@@ -40,11 +36,11 @@ inline __m128 Div(__m128 a, __m128 b) {
 inline __m128 Negate(__m128 a) {
     return _mm_xor_ps(a, NEGATEMASK);
 }
-inline real Dot3(__m128 a, __m128 b) {
-    return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x71));
-}
 inline real Dot3(__m128 a) {
     return _mm_cvtss_f32(_mm_dp_ps(a, a, 0x71));
+}
+inline real Dot3(__m128 a, __m128 b) {
+    return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x71));
 }
 inline real Dot4(__m128 a) {
     return _mm_cvtss_f32(_mm_dp_ps(a, a, 0xF1));
@@ -60,7 +56,9 @@ inline __m128 Cross(__m128 a, __m128 b) {
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 1, 0, 2))),
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1))));
 }
-inline __m128 Cross3(__m128 a, __m128 b) {
+inline __m128 Cross3(const real* x, const real* y) {
+    __m128 a = _mm_loadu_ps(x);
+    __m128 b = _mm_loadu_ps(y);
     __m128 tmp = _mm_sub_ps(
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 1, 0, 2))),
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1))));
@@ -150,10 +148,6 @@ inline __m128 Dot4(__m128 v, __m128 a, __m128 b, __m128 c, __m128 d) {
     return _mm_hadd_ps(_mm_hadd_ps(prod1, prod2), _mm_hadd_ps(prod3, prod4));
 }
 inline real HorizontalAdd(real4 a) {
-    //    a = _mm_hadd_ps(a, a);
-    //    a = _mm_hadd_ps(a, a);
-    //    return _mm_cvtss_f32(a);
-
     return a[0] + a[1] + a[2] + a[3];
 }
 inline real HorizontalAdd(real3 a) {
@@ -163,21 +157,21 @@ inline bool IsZero(const real3& v, const real& a) {
     return chrono::Abs(v.x) < a && chrono::Abs(v.y) < a && chrono::Abs(v.z) < a;
 }
 
-inline __m128i Set(int x) {
+CUDA_HOST_DEVICE __m128i Set(int x) {
     return _mm_set1_epi32(x);
 }
-inline __m128i Sub(__m128i a, __m128i b) {
+CUDA_HOST_DEVICE __m128i Sub(__m128i a, __m128i b) {
     return _mm_sub_epi32(a, b);
 }
 
-inline __m128i Add(__m128i a, __m128i b) {
+CUDA_HOST_DEVICE __m128i Add(__m128i a, __m128i b) {
     return _mm_add_epi32(a, b);
 }
 
-inline __m128i Max(__m128i a, __m128i b) {
+CUDA_HOST_DEVICE __m128i Max(__m128i a, __m128i b) {
     return _mm_max_epi32(a, b);
 }
-inline __m128i Min(__m128i a, __m128i b) {
+CUDA_HOST_DEVICE __m128i Min(__m128i a, __m128i b) {
     return _mm_min_epi32(a, b);
 }
 }

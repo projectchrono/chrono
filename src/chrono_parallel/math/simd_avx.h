@@ -1,7 +1,7 @@
 #include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real.h"
 using namespace chrono;
-#warning simd_avx
+
 #define set_m128r(lo, hi) _mm256_insertf128_ps(_mm256_castps128_ps256(lo), (hi), 1)
 
 template <int i0, int i1, int i2, int i3>
@@ -186,7 +186,7 @@ static inline __m256d permute4d(__m256d const& a) {
     return _mm256_shuffle_pd(r1, r2, sm);
 }
 
-namespace avx {
+namespace simd {
 
 static const __m256d NEGATEMASK = _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000));
 static const __m256d ABSMASK =
@@ -224,20 +224,14 @@ inline real HorizontalAdd(__m256d a) {
     __m128d dot_prod = _mm_add_pd(lo128, hi128);
     return _mm_cvtsd_f64(dot_prod);
 }
-// inline real Dot3(__m256d a) {
-//    //__m256d xy = _mm256_and_pd(a, REAL3MASK);
-//    __m256d xy = _mm256_mul_pd(a, a);
-//    return HorizontalAdd(xy);
-//}
-// inline real Dot3(__m256d a, __m256d b) {
-//    __m256d xy = _mm256_mul_pd(a, b);
-//    return HorizontalAdd(xy);
-//}
-inline real Dot3(const real3& a, const real3& b) {
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+inline real Dot3(__m256d a) {
+    //__m256d xy = _mm256_and_pd(a, REAL3MASK);
+    __m256d xy = _mm256_mul_pd(a, a);
+    return HorizontalAdd(xy);
 }
-inline real Dot3(const real3& a) {
-    return a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
+inline real Dot3(__m256d a, __m256d b) {
+    __m256d xy = _mm256_mul_pd(a, b);
+    return HorizontalAdd(xy);
 }
 inline real Dot4(__m256d a) {
     __m256d xy = _mm256_mul_pd(a, a);

@@ -16,31 +16,13 @@
 // (increased speed on some architectures) or a double (increased precision)
 // =============================================================================
 
-//#pragma once
+#pragma once
 
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/ChCudaDefines.h"
 
-//#ifdef __CUDACC__
-//#warning using nvcc
-//#ifdef __CUDA_ARCH__
-//#warning device code trajectory
-//#if __CUDA_ARCH__ > 120
-//#warning compiling with double precision
-//#else
-//#warning compiling with single precision
-//#endif
-//#else
-//#warning nvcc host code trajectory
-//#endif
-//#else
-//#warning non-nvcc code trajectory
-//#endif
-
-
-
-#ifndef __CUDA_ARCH__
+#ifndef __CUDACC__
 // Check if SSE was found in CMake
 #ifdef CHRONO_HAS_SSE
 // Depending on the SSE variable in CMake include the proper header file for that
@@ -58,7 +40,7 @@
 #endif
 #endif
 
-#if defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+#ifdef CHRONO_HAS_AVX
 #include <immintrin.h>
 #endif
 

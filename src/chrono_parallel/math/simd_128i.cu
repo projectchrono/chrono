@@ -1,23 +1,31 @@
+#include "chrono_parallel/math/sse.h"
+#include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/real4.h"
 #include "chrono_parallel/math/other_types.h"
 
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDACC__)
 #include "chrono_parallel/math/simd_non.h"
+#elif defined(USE_SSE)
+#include "chrono_parallel/math/simd_sse.h"
+#elif defined(USE_AVX)
+#include "chrono_parallel/math/simd_avx.h"
+#endif
+
 namespace chrono {
 
-CUDA_DEVICE vec3 operator-(const vec3& a, const vec3& b) {
-    return sisd::Sub(a, b);
+CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const vec3& b) {
+    return simd::Sub(a, b);
 }
-CUDA_DEVICE vec3 operator-(const vec3& a, const int& b) {
-    return sisd::Sub(a, sisd::Set(b));
+CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const int& b) {
+    return simd::Sub(a, simd::Set(b));
 }
-CUDA_DEVICE vec3 operator+(const vec3& a, const vec3& b) {
-    return sisd::Add(a, b);
+CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const vec3& b) {
+    return simd::Add(a, b);
 }
-CUDA_DEVICE vec3 operator+(const vec3& a, const int& b) {
-    return sisd::Add(a, sisd::Set(b));
+CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const int& b) {
+    return simd::Add(a, simd::Set(b));
 }
-CUDA_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max) {
-    return sisd::Max(clamp_min, sisd::Min(a, clamp_max));
+CUDA_HOST_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max) {
+    return simd::Max(clamp_min, simd::Min(a, clamp_max));
 }
 }
-#endif

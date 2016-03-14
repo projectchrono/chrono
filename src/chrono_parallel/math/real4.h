@@ -20,10 +20,6 @@
 #include "chrono_parallel/math/real2.h"
 #include "chrono_parallel/math/real3.h"
 
-#if !defined(__CUDACC__)
-#include "chrono_parallel/math/sse.h"
-#endif
-
 namespace chrono {
 
 class real4 {
@@ -48,25 +44,25 @@ class real4 {
         return *this;  // Return a reference to myself.
     }
 
-#if defined(USE_AVX)
-    inline real4(__m256d m) { _mm256_storeu_pd(&array[0], m); }
-    inline operator __m256d() const { return _mm256_loadu_pd(&array[0]); }
-    inline real4& operator=(const __m256d& rhs) {
-        _mm256_storeu_pd(&array[0], rhs);
-        return *this;  // Return a reference to myself.
-    }
-    static inline __m256d Set(real x) { return _mm256_set1_pd(x); }
-    static inline __m256d Set(real x, real y, real z, real w) { return _mm256_setr_pd(x, y, z, w); }
-#elif defined(USE_SSE)
-    inline real4(__m128 m) { _mm_storeu_ps(&array[0], m); }
-    inline operator __m128() const { return _mm_loadu_ps(&array[0]); }
-    inline real4& operator=(const __m128& rhs) {
-        _mm_storeu_ps(&array[0], rhs);
-        return *this;  // Return a reference to myself.
-    }
-    static inline __m128 Set(real x) { return _mm_set1_ps(x); }
-    static inline __m128 Set(real x, real y, real z, real w) { return _mm_setr_ps(x, y, z, w); }
-#endif
+    //#if defined(USE_AVX)
+    //    inline real4(__m256d m) { _mm256_storeu_pd(&array[0], m); }
+    //    inline operator __m256d() const { return _mm256_loadu_pd(&array[0]); }
+    //    inline real4& operator=(const __m256d& rhs) {
+    //        _mm256_storeu_pd(&array[0], rhs);
+    //        return *this;  // Return a reference to myself.
+    //    }
+    //    static inline __m256d Set(real x) { return _mm256_set1_pd(x); }
+    //    static inline __m256d Set(real x, real y, real z, real w) { return _mm256_setr_pd(x, y, z, w); }
+    //#elif defined(USE_SSE)
+    //    inline real4(__m128 m) { _mm_storeu_ps(&array[0], m); }
+    //    inline operator __m128() const { return _mm_loadu_ps(&array[0]); }
+    //    inline real4& operator=(const __m128& rhs) {
+    //        _mm_storeu_ps(&array[0], rhs);
+    //        return *this;  // Return a reference to myself.
+    //    }
+    //    static inline __m128 Set(real x) { return _mm_set1_ps(x); }
+    //    static inline __m128 Set(real x, real y, real z, real w) { return _mm_setr_ps(x, y, z, w); }
+    //#endif
 
     // ========================================================================================
 
@@ -121,27 +117,27 @@ class quaternion {
     }
     CUDA_HOST_DEVICE inline real3 vect() const { return real3(x, y, z); }
 
-#if defined(USE_AVX)
-    inline quaternion(__m256d m) { _mm256_storeu_pd(&w, m); }
-    inline operator __m256d() const { return _mm256_loadu_pd(&w); }
-    inline quaternion& operator=(const __m256d& rhs) {
-        _mm256_storeu_pd(&w, rhs);
-        return *this;  // Return a reference to myself.
-    }
-    static inline __m256d Set(real x) { return _mm256_set1_pd(x); }
-    static inline __m256d Set(real w, real x, real y, real z) { return _mm256_setr_pd(w, x, y, z); }
-#elif defined(USE_SSE)
-    inline quaternion(__m128 m) { _mm_storeu_ps(&w, m); }
-    inline operator __m128() const { return _mm_loadu_ps(&w); }
-    inline quaternion& operator=(const __m128& rhs) {
-        _mm_storeu_ps(&w, rhs);
-        return *this;  // Return a reference to myself.
-    }
-    static inline __m128 Set(real x) { return _mm_set1_ps(x); }
-    static inline __m128 Set(real w, real x, real y, real z) { return _mm_setr_ps(w, x, y, z); }
-#else
+    //#if defined(USE_AVX)
+    //    inline quaternion(__m256d m) { _mm256_storeu_pd(&w, m); }
+    //    inline operator __m256d() const { return _mm256_loadu_pd(&w); }
+    //    inline quaternion& operator=(const __m256d& rhs) {
+    //        _mm256_storeu_pd(&w, rhs);
+    //        return *this;  // Return a reference to myself.
+    //    }
+    //    static inline __m256d Set(real x) { return _mm256_set1_pd(x); }
+    //    static inline __m256d Set(real w, real x, real y, real z) { return _mm256_setr_pd(w, x, y, z); }
+    //#elif defined(USE_SSE)
+    //    inline quaternion(__m128 m) { _mm_storeu_ps(&w, m); }
+    //    inline operator __m128() const { return _mm_loadu_ps(&w); }
+    //    inline quaternion& operator=(const __m128& rhs) {
+    //        _mm_storeu_ps(&w, rhs);
+    //        return *this;  // Return a reference to myself.
+    //    }
+    //    static inline __m128 Set(real x) { return _mm_set1_ps(x); }
+    //    static inline __m128 Set(real w, real x, real y, real z) { return _mm_setr_ps(w, x, y, z); }
+    //#else
 
-#endif
+    //#endif
 
     union {
         real array[4];
