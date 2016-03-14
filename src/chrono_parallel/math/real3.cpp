@@ -1,6 +1,13 @@
-#if defined(__CUDA_ARCH__)
-#include "chrono_parallel/math/simd_non.h"
+#include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real3.h"
+
+#if defined(USE_SSE)
+#include "chrono_parallel/math/simd_sse.h"
+#elif defined(USE_AVX)
+#include "chrono_parallel/math/simd_avx.h"
+#else
+#include "chrono_parallel/math/simd_non.h"
+#endif
 
 namespace chrono {
 
@@ -224,4 +231,3 @@ CUDA_HOST_DEVICE void Print(real3 v, const char* name) {
     printf("%f %f %f\n", v[0], v[1], v[2]);
 }
 }
-#endif
