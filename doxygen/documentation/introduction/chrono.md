@@ -1,39 +1,8 @@
-About Chrono {#introduction_chrono}
+Chrono: Brief Intro {#introduction_chrono}
 ==========================
 
-Chrono is split into multiple **Modules** which are are additional libraries that can be *optionally* used to expand the features of Chrono::Engine. In this sense, the Chrono::Engine framework is a modular concept that can be expanded or simplified, depending on user's needs.
 
-There are various motivations for modularity:
-
--   the compilation of module, usually, depends on additional software
-    components that require some installation and configuration from the
-    user (for instance, the unit for GPU computation requires that the
-    user has the CUDA SDK installed in his system, the Matlab unit
-    requires the Matlab API to be installed, etc.) We do not want to
-    force the user to have all these prerequisites - one can compile and
-    use only the module that fit into his system;
-
--   splitting the project in smaller components avoid dealing with a
-    monolithic, huge dll;
-
--   further module could be developed in future without changing the core
-    library of the project.
-
-For these and other reasons, we decided to make the compilation of the
-module *conditional*: the user can enable their compilation -if
-interested-, otherwise disable them to make the build process easier and
-with minimum requirements.
-
-<!-- In the following picture one can get an idea of how module can depend on
-external libraries, whereas the core system of Chrono::Engine just
-depends on the plain operating system.
-
-![](/images/module.png "module.png") -->
-
-Features
-==========================
-
-The following is a short list of main features of Chrono
+The following is a short list of main attributes of Chrono.
 
 ### Physical modeling
 
@@ -57,15 +26,15 @@ The following is a short list of main features of Chrono
 -   All physical items can have an arbitrary number of 'assets' used for defining visualization shapes, custom properties, etc.
 
 ### Solver
--   HHT solver for index 3 differential algebraic equations
--   Symplectic first order half-implicit Euler solver for large frictional contact problems
+-   HHT solver for index 3 differential algebraic equations.
+-   Symplectic first order half-implicit Euler solver for large frictional contact problems.
 -   Speed-impulse level solver for handling large frictional contact problems.
 -   Handling of redundant/ill posed constraints.
 -   Stabilization or projection methods to avoid constraint drifting.
 -   Static analysis solver.
 -   Inverse kinematics and interactive manipulation.
 
-### Collision features
+### Collision detection features
 
 -   Supports compounds of spheres, cubes, convex geometries, triangle meshes, etc.
 -   Additional collision support provided by the Bullet collision detection engine, which is wrapped inside Chrono::Engine.
@@ -97,10 +66,9 @@ The following is a short list of main features of Chrono
 - Cosimulation with Simulink
 - Import STEP cad files to define complex geometries
 - Online/offline visualization with Irrlicht and POV-Ray, respectively.
--   Classes for genetic & classical optimization.
--   Classes for Newton-Raphson solution of non-linear equations.
--   Classes for interfacing external geometric data (NURBS, splines).
--   Scripting via Python.
--   Makefile system based on CMake (cross-platform, on Windows 32/64 bit, Linux, OSX).
+- Classes for genetic & classical optimization.
+- Classes for interfacing external geometric data (NURBS, splines).
+- Scripting via Python.
+- Makefile system based on CMake (cross-platform, on Windows 32/64 bit, Linux, OSX).
 
 

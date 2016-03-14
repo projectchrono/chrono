@@ -1,4 +1,4 @@
-Chrono Solidworks Support {#tutorial_table_of_content_chrono_solidworks}
+Chrono SolidWorks&copy; Support {#tutorial_table_of_content_chrono_solidworks}
 ==========================
 
 Tutorials for users that installed the Chrono::SolidWorks add-in for SolidWorks
@@ -26,7 +26,7 @@ Tutorials for users that installed the Chrono::SolidWorks add-in for SolidWorks
 
 -   @subpage tutorial_chrono_solidworks_demo_shapes
 	
-    This tutorial is about how to define collision shapes when using the Chrono::SolidWorks add-in for SolidWorks.
+    Learn how to define collision shapes when using the Chrono::SolidWorks add-in for SolidWorks&copy;.
 
     - assign collision shapes to parts in SolidWorks
     - create and assign surface materials to parts using Python

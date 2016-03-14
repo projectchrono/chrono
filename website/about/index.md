@@ -12,9 +12,9 @@ permalink: /about/
 - Chrono::Parallel, a library for enabling parallel computation in Chrono
 - Chrono::Vehicle, which provides support for vehicle dynamics simulation
 - Chrono::FEA, which provides support for linear and nonlinear Finite Element Analysis
-- Chrono::FSI, which provides support for fluid-solid interaction problems
+- Chrono::FSI, which provides support for Fluid-Solid Interaction problems
 - Chrono::PyEngine, which enables one to use Chrono::Engine in Python
-- Chrono::SolidWorks, an add-in for the SolidWorks 3D CAD, which can be used to export 3D models and geometries from the CAD to a file to be used in Chrono::Engine
+- Chrono::SolidWorks, an add-in for SolidWorks&copy;, which can be used to export 3D models and geometries from a  CAD file into Chrono
 
 
 <h4> Project Leaders</h4>
@@ -46,39 +46,14 @@ permalink: /about/
 
 The first version of the Chrono::Engine was developed in 1998 by [Prof. Alessandro Tasora](http://dynamics.eng.unipr.it/tasora) when he was a student at the Politecnico di Milano. It was the result of a thesis in Mechanical Engineering. Originally, Chrono::Engine was meant to be a multibody simulation tool for robotics and biomechanics applications.
 
-Until 2002, Chrono::Engine was tightly linked to the Realsoft3D modeler. In 2002-2005 the software was gradually reorganized in the form of a standalone library, just like it is today. Alessandro started working in 2005 with [Professor Mihai Anitescu](http://www.mcs.anl.gov/~anitescu/) from University of Chicago and Argonne National Laboratories. This joint work led to a set of advanced solvers for the case of frictional contacts. 
+Until 2002, Chrono::Engine was tightly linked to the Realsoft3D modeller. In 2002-2005 the software was gradually reorganized in the form of a standalone library, just like it is today. Alessandro started working in 2005 with [Professor Mihai Anitescu](http://www.mcs.anl.gov/~anitescu/) from University of Chicago and Argonne National Laboratories. Their work strengthened the handling of large frictional contact models in Chrono. 
 
 [Professor Dan Negrut](http://homepages.cae.wisc.edu/~negrut/index.htm) joined the Project Chrono effort in 2007. The members of Simulation-Based Engineering Lab [\(SBEL\)](http://sbel.wisc.edu) at the University of Wisconsin-Madison have been active in its development ever since. 
 
-We took the decision to release Chrono as open source in 2013, when we started to use the name {% include module.html first="PROJECT" second="CHRONO" %} to recognize the fact that this software infrastructure had become a multi-physics simulation engine. Chrono's biggest break came in 2014, when the US Army decided to invest US $1.8 million in its development as an open source platform for physics-based modeling and simulation. Chrono development is going strong with the next release planned for August 15, 2016. 
+We took the decision to release Chrono as open source in 2013, when we started to use the name {% include module.html first="PROJECT" second="CHRONO" %} to recognize the fact that this software infrastructure had become a multi-physics simulation engine. Chrono's biggest break came in 2014, when the US Army decided to invest US $1.8 million in its development as an open source platform for physics-based modelling and simulation. Chrono development is going strong with the next release planned for August 15, 2016. 
 
 ### Copyright
 Chrono is copyrighted by {% include module.html first="PROJECT" second="CHRONO" %}, a nonprofit set up in the US, and released under a BSD 3 license. 
 
-### References
-
-- A. Tasora, R. Serban, H. Mazhar, A. Pazouki, D. Melanz, J. Fleischmann, M. Taylor, H. Sugiyama, and D. Negrut, *Chrono: An Open Source Multi-Physics Dynamics Engine*, Springer's Lecture Notes in Computer Science, 2015
-
-<!-- -->
-
--   A. Tasora, M. Anitescu *A matrix-free cone complementarity
-approach for solving large-scale, nonsmooth, rigid body dynamics*,
-Computer Methods in Applied Mechanics and Engineering, 2011, 200,
-439 - 45. (also preprint version from [this
-link](http://www.mcs.anl.gov/~anitescu/PUBLICATIONS/2010/preprint_TASORA_ANITESCU_COMP.pdf))
-
-<!-- -->
-
--   M. Anitescu, A. Tasora, *An iterative approach for cone
-complementarity problems for nonsmooth dynamics*, Computational
-Optimization and Applications, 2010, 47(2), 207-235. (also preprint
-version from [this
-link](http://www.mcs.anl.gov/uploads/cels/papers/P1413.pdf))
-
-<!-- -->
-
--   A. Tasora, D. Negrut, M. Anitescu, M. *Large-scale parallel
-multi-body dynamics with frictional contact on the graphical
-processing unit*. Journal of Multi-body Dynamics, 2008, 222, 315-32
 
 <br><br>

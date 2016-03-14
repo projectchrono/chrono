@@ -19,8 +19,6 @@
 #include <vector>
 #include <cmath>
 
-#include "unit_testing.h"
-
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/math/mat33.h"
 
@@ -28,6 +26,8 @@
 #include "chrono/core/ChMathematics.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "unit_testing.h"
 
 using namespace chrono;
 using namespace chrono::collision;

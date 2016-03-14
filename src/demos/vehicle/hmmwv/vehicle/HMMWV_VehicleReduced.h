@@ -43,6 +43,12 @@ class HMMWV_VehicleReduced : public chrono::vehicle::ChWheeledVehicle {
         chrono::vehicle::VisualizationType wheelVis = chrono::vehicle::PRIMITIVES,
         chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
+    HMMWV_VehicleReduced(chrono::ChSystem* system,
+                         const bool fixed = false,
+                         chrono::vehicle::DrivelineType driveType = chrono::vehicle::AWD,
+                         chrono::vehicle::VisualizationType chassisVis = chrono::vehicle::NONE,
+                         chrono::vehicle::VisualizationType wheelVis = chrono::vehicle::PRIMITIVES);
+
     ~HMMWV_VehicleReduced();
 
     virtual int GetNumberAxles() const override { return 2; }
@@ -54,6 +60,8 @@ class HMMWV_VehicleReduced : public chrono::vehicle::ChWheeledVehicle {
     void ExportMeshPovray(const std::string& out_dir);
 
   private:
+    void Create(bool fixed, chrono::vehicle::VisualizationType chassisVis, chrono::vehicle::VisualizationType wheelVis);
+
     chrono::vehicle::DrivelineType m_driveType;
 
     // Chassis visualization mesh
