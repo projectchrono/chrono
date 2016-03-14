@@ -162,6 +162,7 @@ SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
     math/matrix.h
     math/matrix.cu
+    math/matrix.cpp
     math/sse.h
     math/real.h
     math/real2.h
