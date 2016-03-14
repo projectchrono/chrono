@@ -18,7 +18,10 @@
 #pragma once
 #include "chrono_parallel/ChCudaDefines.h"
 #include "chrono_parallel/math/real3.h"  // for real3
+
+#if defined(CHRONO_HAS_SSE)
 #include "chrono_parallel/math/sse.h"
+#endif
 #include <iostream>
 
 #define S2 _make_short2
