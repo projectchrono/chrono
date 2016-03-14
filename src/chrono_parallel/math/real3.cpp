@@ -9,6 +9,8 @@
 #include "chrono_parallel/math/simd_non.h"
 #endif
 
+#include <iostream>
+
 namespace chrono {
 
 CUDA_HOST_DEVICE real3 Set3(real x) {

@@ -1,5 +1,7 @@
 #include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real.h"
+#include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/real4.h"
 using namespace chrono;
 
 namespace simd {
@@ -56,9 +58,7 @@ inline __m128 Cross(__m128 a, __m128 b) {
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 1, 0, 2))),
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1))));
 }
-inline __m128 Cross3(const real* x, const real* y) {
-    __m128 a = _mm_loadu_ps(x);
-    __m128 b = _mm_loadu_ps(y);
+inline __m128 Cross3(__m128 a, __m128 b) {
     __m128 tmp = _mm_sub_ps(
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 1, 0, 2))),
         _mm_mul_ps(_mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1))));
@@ -157,21 +157,21 @@ inline bool IsZero(const real3& v, const real& a) {
     return chrono::Abs(v.x) < a && chrono::Abs(v.y) < a && chrono::Abs(v.z) < a;
 }
 
-CUDA_HOST_DEVICE __m128i Set(int x) {
+inline __m128i Set(int x) {
     return _mm_set1_epi32(x);
 }
-CUDA_HOST_DEVICE __m128i Sub(__m128i a, __m128i b) {
+inline __m128i Sub(__m128i a, __m128i b) {
     return _mm_sub_epi32(a, b);
 }
 
-CUDA_HOST_DEVICE __m128i Add(__m128i a, __m128i b) {
+inline __m128i Add(__m128i a, __m128i b) {
     return _mm_add_epi32(a, b);
 }
 
-CUDA_HOST_DEVICE __m128i Max(__m128i a, __m128i b) {
+inline __m128i Max(__m128i a, __m128i b) {
     return _mm_max_epi32(a, b);
 }
-CUDA_HOST_DEVICE __m128i Min(__m128i a, __m128i b) {
+inline __m128i Min(__m128i a, __m128i b) {
     return _mm_min_epi32(a, b);
 }
 }

@@ -20,6 +20,10 @@
 #include "chrono_parallel/math/real3.h"  // for real3
 #include <iostream>
 
+#if !defined(__CUDACC__)
+#include "chrono_parallel/math/sse.h"
+#endif
+
 #define S2 _make_short2
 #define U3 _make_uvec3
 #define I2 _make_int2
@@ -74,14 +78,14 @@ class vec3 {
     CUDA_HOST_DEVICE inline vec3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
     CUDA_HOST_DEVICE inline int operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline int& operator[](unsigned int i) { return array[i]; }
-    //#if defined(USE_SSE)
-    //    inline vec3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
-    //    inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
-    //    inline vec3& operator=(const __m128i& rhs) {
-    //        _mm_storeu_si128((__m128i*)&array[0], rhs);
-    //        return *this;
-    //    }
-    //#endif
+#if defined(USE_SSE)
+    inline vec3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
+    inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
+    inline vec3& operator=(const __m128i& rhs) {
+        _mm_storeu_si128((__m128i*)&array[0], rhs);
+        return *this;
+    }
+#endif
     CUDA_HOST_DEVICE inline vec3& operator=(const vec3& rhs) {
         x = rhs.x;
         y = rhs.y;
