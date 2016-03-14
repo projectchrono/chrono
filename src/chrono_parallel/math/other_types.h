@@ -110,11 +110,17 @@ struct int4 {
 struct uint4 {
     unsigned int x, y, z, w;
 };
-CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const vec3& b);
-CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const int& b);
-CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const vec3& b);
-CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const int& b);
-CUDA_HOST_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max);
+vec3 operator-(const vec3& a, const vec3& b);
+vec3 operator-(const vec3& a, const int& b);
+vec3 operator+(const vec3& a, const vec3& b);
+vec3 operator+(const vec3& a, const int& b);
+vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max);
+
+CUDA_DEVICE vec3 operator-(const vec3& a, const vec3& b);
+CUDA_DEVICE vec3 operator-(const vec3& a, const int& b);
+CUDA_DEVICE vec3 operator+(const vec3& a, const vec3& b);
+CUDA_DEVICE vec3 operator+(const vec3& a, const int& b);
+CUDA_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max);
 
 struct uvec3 {
     unsigned int x, y, z;
