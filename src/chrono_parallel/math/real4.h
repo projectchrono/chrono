@@ -17,9 +17,12 @@
 
 #pragma once
 #include <string.h>
-#include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real2.h"
 #include "chrono_parallel/math/real3.h"
+
+#if !defined(__CUDACC__)
+#include "chrono_parallel/math/sse.h"
+#endif
 
 namespace chrono {
 

@@ -20,7 +20,7 @@
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real2.h"
 
-#if defined(CHRONO_HAS_SSE)
+#if !defined(__CUDACC__)
 #include "chrono_parallel/math/sse.h"
 #endif
 
