@@ -308,6 +308,8 @@ void ChMPMContainer::Update(double ChTime) {
 void ChMPMContainer::UpdatePosition(double ChTime) {
     custom_vector<real3>& pos_marker = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
+    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
+
     printf("Update_Particle_Velocities\n");
 
 #pragma omp parallel for
@@ -325,6 +327,54 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
 
         vel_marker[original_index] = new_vel;
         pos_marker[original_index] += new_vel * data_manager->settings.step_size;
+        sorted_pos_fluid[p] = pos_marker[original_index];
+    }
+
+    custom_vector<real3> new_pos = sorted_pos_fluid;
+    if (num_mpm_markers != 0) {
+        data_manager->narrowphase->DispatchRigidFluid();
+
+        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+        custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
+        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep
+        // isnt too large.
+
+        if (data_manager->num_rigid_fluid_contacts > 0) {
+#pragma omp parallel for
+            for (int p = 0; p < num_fluid_bodies; p++) {
+                int start = contact_counts[p];
+                int end = contact_counts[p + 1];
+                real3 delta = real3(0);
+                real weight = 0;
+                for (int index = start; index < end; index++) {
+                    int i = index - start;
+                    // int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+                    // if (data_manager->host_data.active_rigid[rigid] == false) {
+                    real3 U = norm[p * max_rigid_neighbors + i];
+                    real depth = dpth[p * max_rigid_neighbors + i];
+                    if (depth < 0) {
+                        real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
+                        delta -= w * depth * U;
+                        weight++;
+                    }
+                    //}
+                }
+                if (weight > 0) {
+                    new_pos[p] = new_pos[p] + delta / weight;
+                }
+            }
+            real inv_dt = 1.0 / data_manager->settings.step_size;
+#pragma omp parallel for
+            for (int p = 0; p < num_fluid_bodies; p++) {
+                int original_index = data_manager->host_data.particle_indices_3dof[p];
+                real3 vv = real3((new_pos[p] - sorted_pos_fluid[p]) * inv_dt);
+                //vel_marker[original_index] = vv;
+                pos_marker[original_index] = new_pos[p];
+            }
+        }
     }
 }
 
@@ -813,57 +863,6 @@ void ChMPMContainer::PreSolve() {
         sorted_pos_fluid[index] = pos_marker[original_index];
     }
 
-//    custom_vector<real3> new_pos = sorted_pos_fluid;
-//    if (num_mpm_markers != 0) {
-//        data_manager->narrowphase->DispatchRigidFluid();
-//
-//        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-//        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-//        custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
-//        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-//        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-//        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep
-//        // isnt
-//        // too large.
-//
-//        if (data_manager->num_rigid_fluid_contacts > 0) {
-//#pragma omp parallel for
-//            for (int p = 0; p < num_fluid_bodies; p++) {
-//                int start = contact_counts[p];
-//                int end = contact_counts[p + 1];
-//                real3 delta = real3(0);
-//                real weight = 0;
-//                for (int index = start; index < end; index++) {
-//                    int i = index - start;
-//                    int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-//                    // if (data_manager->host_data.active_rigid[rigid] == false) {
-//                    real3 U = norm[p * max_rigid_neighbors + i];
-//                    real depth = dpth[p * max_rigid_neighbors + i];
-//                    if (depth < 0) {
-//                        real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
-//                        delta -= w * depth * U;
-//                        weight++;
-//                    }
-//                    //}
-//                }
-//                if (weight > 0) {
-//                    new_pos[p] = new_pos[p] + delta / weight;
-//                }
-//            }
-//
-//#pragma omp parallel for
-//            for (int p = 0; p < num_fluid_bodies; p++) {
-//                // real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
-//                int original_index = data_manager->host_data.particle_indices_3dof[p];
-//                real3 vv = real3((new_pos[p] - sorted_pos_fluid[p]) * 1.0 / dt);
-//                data_manager->host_data.v[body_offset + p * 3 + 0] = vv.x;
-//                data_manager->host_data.v[body_offset + p * 3 + 1] = vv.y;
-//                data_manager->host_data.v[body_offset + p * 3 + 2] = vv.z;
-//
-//                pos_marker[original_index] = new_pos[p];
-//            }
-//        }
-//    }
 #endif
 
     LOG(INFO) << "ChMPMContainer::DoneSetVEL()";
@@ -877,32 +876,32 @@ void ChMPMContainer::PostSolve() {
     custom_vector<real3>& vel_marker = data_manager->host_data.vel_3dof;
 #if !USE_CPU
 
-    //#pragma omp parallel for
-    //    for (int p = 0; p < num_mpm_markers; p++) {
-    //        int index = data_manager->host_data.reverse_mapping_3dof[p];
-    //        data_manager->host_data.vel_3dof[p].x = data_manager->host_data.v[body_offset + index * 3 + 0];
-    //        data_manager->host_data.vel_3dof[p].y = data_manager->host_data.v[body_offset + index * 3 + 1];
-    //        data_manager->host_data.vel_3dof[p].z = data_manager->host_data.v[body_offset + index * 3 + 2];
-    //    }
-    //
-    MPM_Settings temp_settings;
-    temp_settings.dt = dt;
-    temp_settings.kernel_radius = kernel_radius;
-    temp_settings.inv_radius = 1.0 / kernel_radius;
-    temp_settings.bin_edge = kernel_radius * 2;
-    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
-    temp_settings.max_velocity = max_velocity;
-    temp_settings.mu = mu;
-    temp_settings.lambda = lambda;
-    temp_settings.hardening_coefficient = hardening_coefficient;
-    temp_settings.theta_c = theta_c;
-    temp_settings.theta_s = theta_s;
-    temp_settings.alpha_flip = alpha;
-    temp_settings.youngs_modulus = youngs_modulus;
-    temp_settings.poissons_ratio = nu;
-    temp_settings.num_mpm_markers = num_mpm_markers;
-    temp_settings.mass = mass;
-    temp_settings.num_iterations = max_iterations;
+//#pragma omp parallel for
+//    for (int p = 0; p < num_mpm_markers; p++) {
+//        int index = data_manager->host_data.reverse_mapping_3dof[p];
+//        data_manager->host_data.vel_3dof[p].x = data_manager->host_data.v[body_offset + index * 3 + 0];
+//        data_manager->host_data.vel_3dof[p].y = data_manager->host_data.v[body_offset + index * 3 + 1];
+//        data_manager->host_data.vel_3dof[p].z = data_manager->host_data.v[body_offset + index * 3 + 2];
+//    }
+//
+//    MPM_Settings temp_settings;
+//    temp_settings.dt = dt;
+//    temp_settings.kernel_radius = kernel_radius;
+//    temp_settings.inv_radius = 1.0 / kernel_radius;
+//    temp_settings.bin_edge = kernel_radius * 2;
+//    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+//    temp_settings.max_velocity = max_velocity;
+//    temp_settings.mu = mu;
+//    temp_settings.lambda = lambda;
+//    temp_settings.hardening_coefficient = hardening_coefficient;
+//    temp_settings.theta_c = theta_c;
+//    temp_settings.theta_s = theta_s;
+//    temp_settings.alpha_flip = alpha;
+//    temp_settings.youngs_modulus = youngs_modulus;
+//    temp_settings.poissons_ratio = nu;
+//    temp_settings.num_mpm_markers = num_mpm_markers;
+//    temp_settings.mass = mass;
+//    temp_settings.num_iterations = max_iterations;
 //    if (max_iterations > 0) {
 //        MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
 //    }

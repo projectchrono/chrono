@@ -34,7 +34,7 @@ gpu_vector<real> grid_vel, delta_v;
 gpu_vector<real> rhs;
 gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
 gpu_vector<real> old_vel_node_mpm;
-gpu_vector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
+gpu_vector<real> ml, mg, mg_p, ml_p;
 gpu_vector<real> dot_g_proj_norm;
 
 CUDA_CONSTANT MPM_Settings device_settings;
@@ -89,16 +89,10 @@ CUDA_GLOBAL void kComputeBounds(const real3* pos,  // input
     const int index = block_start + threadIdx.x;
     if (index < device_settings.num_mpm_markers) {
         real3 data = pos[index];
-
         real3 blockUpper = BlockReduce(temp_storage).Reduce(data, real3Max(), num_valid);
-
-        // sync threads because second reduce uses same temp storage as first
         __syncthreads();
-
         real3 blockLower = BlockReduce(temp_storage).Reduce(data, real3Min(), num_valid);
-
         if (threadIdx.x == 0) {
-            // write out block results, expanded by the radius
             AtomicMax(upper, blockUpper);
             AtomicMin(lower, blockLower);
         }
@@ -118,9 +112,7 @@ CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
             atomicAdd(&grid_mass[current_node], weight);                                       //
             atomicAdd(&grid_vel[current_node * 3 + 0], weight * vi.x);
             atomicAdd(&grid_vel[current_node * 3 + 1], weight * vi.y);
-            atomicAdd(&grid_vel[current_node * 3 + 2], weight * vi.z);
-            // AtomicAdd(&((real3*)grid_vel)[current_node * 3], weight * real3(vi));  //
-            )
+            atomicAdd(&grid_vel[current_node * 3 + 2], weight * vi.z);)
     }
 }
 CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
@@ -248,10 +240,7 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
         {
             LOOP_TWO_RING_GPU(  //
                 real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
-                //                real3 vold(old_vel_node_mpm[current_node * 3 + 0], old_vel_node_mpm[current_node * 3 +
-                //                1],
-                //                           old_vel_node_mpm[current_node * 3 + 2]);
-                //                real3 v0 = vold + vnew;                                   //
+
                 real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
                 delta_F += OuterProduct(vnew, v1);                        //
                 )
@@ -355,7 +344,6 @@ void Multiply(gpu_vector<real>& input, gpu_vector<real>& output) {
 CUDA_GLOBAL void kSubtract(int size, real* x, real* y) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < size) {
-        // printf("sg: %d %f\n", i, y[i]);
         y[i] = y[i] - x[i];
     }
 }
@@ -456,18 +444,11 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
     ml.resize(size);
     mg.resize(size);
     mg_p.resize(size);
-    ml_candidate.resize(size);
-    mdir.resize(size);
     ml_p.resize(size);
 
-    mg = 0;
-    mg_p = 0;
     ml = delta_v;
-    ml_candidate = delta_v;
-
     real lastgoodres = 10e30;
-    // Kernel 1
-
+    mg = 0;
     Multiply(ml, mg);
 
     kSubtract<<<CONFIG(size)>>>(size, r.data_d, mg.data_d);
@@ -498,19 +479,16 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
         mg = mg_p;
 
         dot_g_proj_norm = 0;
-
         kResidual<<<CONFIG(size)>>>(size, mg.data_d, dot_g_proj_norm.data_d);
         dot_g_proj_norm.copyDeviceToHost();
         real g_proj_norm = Sqrt(dot_g_proj_norm.data_h[0]);
 
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
-            ml_candidate = ml;
+            delta_v = ml;
         }
         printf("[%f]\n", lastgoodres);
     }
-
-    delta_v = ml_candidate;
 }
 CUDA_GLOBAL void kIncrementVelocity(real* delta_v, real* old_vel_node_mpm, real* grid_vel) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -607,7 +585,6 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
     kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
                                                                grid_vel.data_d);
 
-
     kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d, marker_Fe.data_d,
                                                                           marker_Fp.data_d);
 
@@ -630,16 +607,6 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
                                                             grid_vel.data_d);      // output
 
     kRhs<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d, grid_vel.data_d, rhs.data_d);
-
-    // Compute the force on each node, add to grid velocities
-    // Comptue rhs from grid velocity
-
-    //    rhs.copyDeviceToHost();
-    //
-    //    for (int i = 0; i < host_settings.num_mpm_nodes; i++) {
-    //        printf("Rd: %d [%.20f %.20f %.20f]\n", i, rhs.data_h[i * 3 + 0], rhs.data_h[i * 3 + 1], rhs.data_h[i * 3 +
-    //        2]);
-    //    }
 
     delta_v.resize(host_settings.num_mpm_nodes * 3);
     delta_v = old_vel_node_mpm;
@@ -666,6 +633,9 @@ void MPM_Update_Deformation_Gradient(MPM_Settings& settings, std::vector<real3>&
     vel.data_h = velocities;
     vel.copyHostToDevice();
     host_settings = settings;
+
+    cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
+
     // ========================================================================================
     kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
                                                           vel.data_d,        // input
@@ -712,7 +682,7 @@ void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
     kInitFeFp<<<CONFIG(host_settings.num_mpm_markers)>>>(marker_Fe.data_d,   // output
                                                          marker_Fp.data_d);  // output
 
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
+    //    cudaCheck(cudaPeekAtLastError());
+    //    cudaCheck(cudaDeviceSynchronize());
 }
 }
