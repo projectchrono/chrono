@@ -1,6 +1,7 @@
+#include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/real3.h"
-#if defined(__CUDACC__)
+#if defined(__CUDA_ARCH__)
 #include "chrono_parallel/math/simd_non.h"
 #elif defined(USE_SSE)
 #include "chrono_parallel/math/simd_sse.h"
@@ -464,7 +465,7 @@ CUDA_HOST_DEVICE Mat33 OuterProduct(const real3& a, const real3& b) {
 }
 
 CUDA_HOST_DEVICE real InnerProduct(const Mat33& A, const Mat33& B) {
-    return simd::HorizontalAdd(DotMM(A.array, B.array));
+    return VECEXT::HorizontalAdd(DotMM(A.array, B.array));
 }
 
 CUDA_HOST_DEVICE Mat33 Adjoint(const Mat33& A) {
@@ -530,7 +531,7 @@ CUDA_HOST_DEVICE real Norm(const Mat33& A) {
 
 CUDA_HOST_DEVICE real3 LargestColumnNormalized(const Mat33& A) {
     real3 scale = DotMM(A.array);
-    real3 sqrt_scale = simd::SquareRoot(scale);
+    real3 sqrt_scale = VECEXT::SquareRoot(scale);
     if (scale.x > scale.y) {
         if (scale.x > scale.z) {
             return A.col(0) / sqrt_scale.x;

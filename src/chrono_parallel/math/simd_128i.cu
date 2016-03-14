@@ -3,7 +3,7 @@
 #include "chrono_parallel/math/real4.h"
 #include "chrono_parallel/math/other_types.h"
 
-#if defined(__CUDACC__)
+#if defined(__CUDA_ARCH__)
 #include "chrono_parallel/math/simd_non.h"
 #elif defined(USE_SSE)
 #include "chrono_parallel/math/simd_sse.h"
@@ -14,18 +14,18 @@
 namespace chrono {
 
 CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const vec3& b) {
-    return simd::Sub(a, b);
+    return VECEXT::Sub(a, b);
 }
 CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const int& b) {
-    return simd::Sub(a, simd::Set(b));
+    return VECEXT::Sub(a, VECEXT::Set(b));
 }
 CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const vec3& b) {
-    return simd::Add(a, b);
+    return VECEXT::Add(a, b);
 }
 CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const int& b) {
-    return simd::Add(a, simd::Set(b));
+    return VECEXT::Add(a, VECEXT::Set(b));
 }
 CUDA_HOST_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max) {
-    return simd::Max(clamp_min, simd::Min(a, clamp_max));
+    return VECEXT::Max(clamp_min, VECEXT::Min(a, clamp_max));
 }
 }

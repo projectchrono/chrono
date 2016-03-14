@@ -3,36 +3,37 @@
 #include "chrono_parallel/math/real4.h"
 #include "chrono_parallel/math/other_types.h"
 using namespace chrono;
+#warning simd_non
 
-namespace simd {
+namespace sisd {
 
-CUDA_HOST_DEVICE inline real3 Add(real3 a, real3 b) {
+CUDA_HOST_DEVICE inline real3 Add(const real3& a, const real3& b) {
     return real3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
 }
-CUDA_HOST_DEVICE inline real3 Sub(real3 a, real3 b) {
+CUDA_HOST_DEVICE inline real3 Sub(const real3& a, const real3& b) {
     return real3(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 }
-CUDA_HOST_DEVICE inline real3 Mul(real3 a, real3 b) {
+CUDA_HOST_DEVICE inline real3 Mul(const real3& a, const real3& b) {
     return real3(a[0] * b[0], a[1] * b[1], a[2] * b[2]);
 }
-CUDA_HOST_DEVICE inline real3 Div(real3 a, real3 b) {
+CUDA_HOST_DEVICE inline real3 Div(const real3& a, const real3& b) {
     return real3(a[0] / b[0], a[1] / b[1], a[2] / b[2]);
 }
 
-CUDA_HOST_DEVICE inline real3 Add(real3 a, real b) {
+CUDA_HOST_DEVICE inline real3 Add(const real3& a, const real b) {
     return real3(a[0] + b, a[1] + b, a[2] + b);
 }
-CUDA_HOST_DEVICE inline real3 Sub(real3 a, real b) {
+CUDA_HOST_DEVICE inline real3 Sub(const real3& a, const real b) {
     return real3(a[0] - b, a[1] - b, a[2] - b);
 }
-CUDA_HOST_DEVICE inline real3 Mul(real3 a, real b) {
+CUDA_HOST_DEVICE inline real3 Mul(const real3& a, const real b) {
     return real3(a[0] * b, a[1] * b, a[2] * b);
 }
-CUDA_HOST_DEVICE inline real3 Div(real3 a, real b) {
+CUDA_HOST_DEVICE inline real3 Div(const real3& a, const real b) {
     return real3(a[0] / b, a[1] / b, a[2] / b);
 }
 
-CUDA_HOST_DEVICE inline real3 Negate(real3 a) {
+CUDA_HOST_DEVICE inline real3 Negate(const real3& a) {
     return real3(-a[0], -a[1], -a[2]);
 }
 CUDA_HOST_DEVICE inline real Dot(const real3& v1, const real3& v2) {
@@ -41,7 +42,7 @@ CUDA_HOST_DEVICE inline real Dot(const real3& v1, const real3& v2) {
 CUDA_HOST_DEVICE inline real Dot(const real3& v) {
     return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 }
-CUDA_HOST_DEVICE inline real3 SquareRoot(real3 v) {
+CUDA_HOST_DEVICE inline real3 SquareRoot(const real3& v) {
     return real3(Sqrt(v[0]), Sqrt(v[1]), Sqrt(v[2]));
 }
 CUDA_HOST_DEVICE inline real3 Cross(const real3& a, const real3& b) {
@@ -98,55 +99,59 @@ CUDA_HOST_DEVICE inline real4 Negate(real4 a) {
     return real4(-a[0], -a[1], -a[2], -a.w);
 }
 
-CUDA_HOST_DEVICE inline real HorizontalAdd(real4 a) {
+CUDA_HOST_DEVICE inline real HorizontalAdd(const real4& a) {
     return a[0] + a[1] + a[2] + a[3];
 }
-CUDA_HOST_DEVICE inline real HorizontalAdd(real3 a) {
+CUDA_HOST_DEVICE inline real HorizontalAdd(const real3& a) {
     return a[0] + a[1] + a[2];
 }
-CUDA_HOST_DEVICE inline real4 SquareRoot(real4 v) {
+CUDA_HOST_DEVICE inline real4 SquareRoot(const real4& v) {
     return real4(Sqrt(v[0]), Sqrt(v[1]), Sqrt(v[2]), Sqrt(v[3]));
 }
 
-CUDA_HOST_DEVICE inline real3 Cross3(const real* a, const real* b) {
+CUDA_HOST_DEVICE inline real3 Cross3(const real3& a, const real3& b) {
     real3 result;
     result[0] = (a[1] * b[2]) - (a[2] * b[1]);
     result[1] = (a[2] * b[0]) - (a[0] * b[2]);
     result[2] = (a[0] * b[1]) - (a[1] * b[0]);
     return result;
 }
-CUDA_HOST_DEVICE inline real3 Abs(real3 v) {
+CUDA_HOST_DEVICE inline real3 Abs(const real3& v) {
     return real3(chrono::Abs(v[0]), chrono::Abs(v[1]), chrono::Abs(v[2]));
 }
-CUDA_HOST_DEVICE inline real3 Max(real3 a, real3 b) {
+CUDA_HOST_DEVICE inline real3 Max(const real3& a, const real3& b) {
     return real3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
 }
-CUDA_HOST_DEVICE inline real3 Max(real3 a, real b) {
+CUDA_HOST_DEVICE inline real3 Max(const real3& a, const real& b) {
     return real3(chrono::Max(a[0], b), chrono::Max(a[1], b), chrono::Max(a[2], b));
 }
-CUDA_HOST_DEVICE inline real3 Min(real3 a, real3 b) {
+CUDA_HOST_DEVICE inline real3 Min(const real3& a, const real3& b) {
     return real3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
 }
-CUDA_HOST_DEVICE inline real3 Min(real3 a, real b) {
+CUDA_HOST_DEVICE inline real3 Min(const real3& a, const real& b) {
     return real3(chrono::Min(a[0], b), chrono::Min(a[1], b), chrono::Min(a[2], b));
 }
-CUDA_HOST_DEVICE inline real3 Round(real3 a) {
+CUDA_HOST_DEVICE inline real3 Round(const real3& a) {
     return real3(chrono::Round(a[0]), chrono::Round(a[1]), chrono::Round(a[2]));
 }
 CUDA_HOST_DEVICE inline bool IsZero(const real3& v, const real& a) {
     return chrono::Abs(v.x) < a && chrono::Abs(v.y) < a && chrono::Abs(v.z) < a;
 }
-CUDA_HOST_DEVICE inline real Max(real3 a) {
+CUDA_HOST_DEVICE inline real Max(const real3& a) {
     return chrono::Max(a[0], chrono::Max(a[1], a[2]));
 }
-CUDA_HOST_DEVICE inline real Min(real3 a) {
+CUDA_HOST_DEVICE inline real Min(const real3& a) {
     return chrono::Min(a[0], chrono::Min(a[1], a[2]));
 }
 
-CUDA_HOST_DEVICE inline real Dot3(real3 a, real3 b) {
+CUDA_HOST_DEVICE inline real Dot3(const real3& a, const real3& b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
-CUDA_HOST_DEVICE inline real4 Dot4(real3 v, real3 a, real3 b, real3 c, real3 d) {
+CUDA_HOST_DEVICE inline real Dot3(const real3& a) {
+    return a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
+}
+
+CUDA_HOST_DEVICE inline real4 Dot4(const real3& v, const real3& a, const real3& b, const real3& c, const real3& d) {
     real4 result;
     result.x = Dot3(v, a);
     result.y = Dot3(v, b);
@@ -186,7 +191,7 @@ CUDA_HOST_DEVICE inline quaternion Negate(const quaternion& a) {
     return quaternion(-a[0], -a[1], -a[2], -a[3]);
 }
 template <int i0, int i1, int i2, int i3>
-CUDA_HOST_DEVICE quaternion change_sign(quaternion a) {
+CUDA_HOST_DEVICE quaternion change_sign(const quaternion& a) {
     quaternion q = a;
     if (i0) {
         q.w = -a.w;
@@ -212,23 +217,23 @@ CUDA_HOST_DEVICE inline quaternion Normalize(const quaternion& a) {
     return quaternion(a.w * length, a.x * length, a.y * length, a.z * length);
 }
 
-CUDA_HOST_DEVICE inline vec3 Set(int x) {
+CUDA_HOST_DEVICE inline vec3 Set(const int x) {
     return vec3(x, x, x);
 }
 
-CUDA_HOST_DEVICE inline vec3 Sub(vec3 a, vec3 b) {
+CUDA_HOST_DEVICE inline vec3 Sub(const vec3& a, const vec3& b) {
     return vec3(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 }
 
-CUDA_HOST_DEVICE inline vec3 Add(vec3 a, vec3 b) {
+CUDA_HOST_DEVICE inline vec3 Add(const vec3& a, const vec3& b) {
     return vec3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
 }
 
-CUDA_HOST_DEVICE inline vec3 Max(vec3 a, vec3 b) {
+CUDA_HOST_DEVICE inline vec3 Max(const vec3& a, const vec3& b) {
     return vec3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
 }
 
-CUDA_HOST_DEVICE inline vec3 Min(vec3 a, vec3 b) {
+CUDA_HOST_DEVICE inline vec3 Min(const vec3& a, const vec3& b) {
     return vec3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
 }
 }

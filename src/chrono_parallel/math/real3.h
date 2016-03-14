@@ -16,7 +16,7 @@
 // =============================================================================
 
 #pragma once
-
+#include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real2.h"
 
@@ -38,28 +38,28 @@ class real3 {
         return *this;  // Return a reference to myself.
     }
 
-    //#if defined(USE_AVX)
-    //    inline real3(__m256d m) { _mm256_storeu_pd(&array[0], m); }
-    //    inline operator __m256d() const { return _mm256_loadu_pd(&array[0]); }
-    //    inline real3& operator=(const __m256d& rhs) {
-    //        _mm256_storeu_pd(&array[0], rhs);
-    //        return *this;
-    //    }
-    //    static inline __m256d Set(real x) { return _mm256_set1_pd(x); }
-    //    static inline __m256d Set(real x, real y, real z) { return _mm256_setr_pd(x, y, z, 0.0); }
-    //
-    //#elif defined(USE_SSE)
-    //    inline real3(__m128 m) { _mm_storeu_ps(&array[0], m); }
-    //    inline operator __m128() const { return _mm_loadu_ps(&array[0]); }
-    //    inline real3& operator=(const __m128& rhs) {
-    //        _mm_storeu_ps(&array[0], rhs);
-    //        return *this;
-    //    }
-    //    static inline __m128 Set(real x) { return _mm_set1_ps(x); }
-    //    static inline __m128 Set(real x, real y, real z) { return _mm_setr_ps(x, y, z, 0.0f); }
-    //#else
+#if defined(USE_AVX)
+    inline real3(__m256d m) { _mm256_storeu_pd(&array[0], m); }
+    inline operator __m256d() const { return _mm256_loadu_pd(&array[0]); }
+    inline real3& operator=(const __m256d& rhs) {
+        _mm256_storeu_pd(&array[0], rhs);
+        return *this;
+    }
+    static inline __m256d Set(real x) { return _mm256_set1_pd(x); }
+    static inline __m256d Set(real x, real y, real z) { return _mm256_setr_pd(x, y, z, 0.0); }
 
-    ///#endif
+#elif defined(USE_SSE)
+    inline real3(__m128 m) { _mm_storeu_ps(&array[0], m); }
+    inline operator __m128() const { return _mm_loadu_ps(&array[0]); }
+    inline real3& operator=(const __m128& rhs) {
+        _mm_storeu_ps(&array[0], rhs);
+        return *this;
+    }
+    static inline __m128 Set(real x) { return _mm_set1_ps(x); }
+    static inline __m128 Set(real x, real y, real z) { return _mm_setr_ps(x, y, z, 0.0f); }
+#else
+
+#endif
 
     // ========================================================================================
     union {
