@@ -614,11 +614,24 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                         if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == true) {
                             if (overlap(Amin, Amax, Bmin, Bmax)) {
                                 ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
-                                real3 ptB;
-                                if (MPRCollision(shapeA, shapeB, collision_envelope,
-                                                 norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]],
-                                                 cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]], ptB,
-                                                 dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]])) {
+                                real3 ptA, ptB, norm;
+                                real depth, erad = 0;
+                                int nC = 0;
+                                if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm, &ptA, &ptB, &depth, &erad,
+                                               nC)) {
+                                    if (nC == 1) {
+                                        uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
+                                        neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
+                                        norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = norm;
+                                        cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = ptA;
+                                        dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = depth;
+                                        contact_counts[p]++;
+                                    }
+                                } else if (MPRCollision(
+                                               shapeA, shapeB, collision_envelope,
+                                               norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]],
+                                               cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]], ptB,
+                                               dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]])) {
                                     uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
                                     neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
                                     contact_counts[p]++;
