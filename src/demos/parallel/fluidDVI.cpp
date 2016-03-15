@@ -62,7 +62,8 @@ void AddContainer(ChSystemParallelDVI* sys) {
 
     ChVector<> hdim(.55, .6, .55);
 
-    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.05, Vector(0, 0, 0), Q_from_AngAxis(-10, VECT_Y), true, false, true, true);
+    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.05, Vector(0, 0, .3), Q_from_AngAxis(-10, VECT_Y), true, false, true,
+                              true);
 }
 
 // -----------------------------------------------------------------------------
@@ -73,10 +74,10 @@ void AddFluid(ChSystemParallelDVI* sys) {
 
     fluid_container->tau = time_step * 4;
     fluid_container->contact_cohesion = 0;
-    fluid_container->epsilon = 0;  // 1e-3;
-    fluid_container->kernel_radius = .016;
+    fluid_container->epsilon = 1e-3;
+    fluid_container->kernel_radius = .016 * 2;
     fluid_container->mass = .007 * 5.5;
-    fluid_container->viscosity = 20;
+    fluid_container->viscosity = .01;
     fluid_container->enable_viscosity = false;
 
     fluid_container->contact_mu = 0;
@@ -84,12 +85,12 @@ void AddFluid(ChSystemParallelDVI* sys) {
     fluid_container->initialize_mass = false;
     // msystem.GetSettings()->fluid.max_interactions = 30;
     fluid_container->artificial_pressure = true;
-    fluid_container->artificial_pressure_k = .001;
-    fluid_container->artificial_pressure_dq = 0;  //.2 * system->GetSettings()->fluid.kernel_radius;
+    fluid_container->artificial_pressure_k = .01;
+    fluid_container->artificial_pressure_dq = .2 * fluid_container->kernel_radius;
     fluid_container->artificial_pressure_n = 4;
-    fluid_container->collision_envelope = 0;//fluid_container->kernel_radius * .05;
+    fluid_container->collision_envelope = 0;  // fluid_container->kernel_ra dius * .05;
 
-    real radius = .1;  //*5
+    real radius = .2;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, -.2);
@@ -180,7 +181,6 @@ int main(int argc, char* argv[]) {
     // Create the fixed and moving bodies
     // ----------------------------------
     AddContainer(&msystem);
-
 
 // Perform the simulation
 // ----------------------

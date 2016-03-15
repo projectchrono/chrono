@@ -42,7 +42,7 @@
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
-
+double time_step = 1e-3;
 using namespace chrono;
 using namespace chrono::collision;
 ChMPMContainer* mpm_container;
@@ -130,18 +130,19 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->nu = poissons_ratio;
     mpm_container->alpha = .95;
     mpm_container->hardening_coefficient = 10.0;
-
-    real initial_density = 1000;
+    mpm_container->rho = 400;
     mpm_container->mass = .01;
     mpm_container->max_iterations = 20;
-    mpm_container->kernel_radius = .016 * 2 * .9;
-    mpm_container->collision_envelope = mpm_container->kernel_radius * 0.05;
-    mpm_container->contact_recovery_speed = .5;
+    mpm_container->kernel_radius = .016 * 2;
+    mpm_container->collision_envelope = 0;  // mpm_container->kernel_radius * 0.05;
+    mpm_container->contact_recovery_speed = 100;
     mpm_container->contact_cohesion = 0;
     mpm_container->contact_mu = .5;
     mpm_container->cohesion = 0;
     mpm_container->max_velocity = 2;
-    real radius = .5;  //*5
+    mpm_container->tau = time_step * 4;
+    mpm_container->epsilon = 1e-3;
+    real radius = .2;  //*5
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, .1);
@@ -151,13 +152,13 @@ void AddFluid(ChSystemParallelDVI* sys) {
     std::vector<real3> vel_fluid;
 
 #if 1
-    double dist = mpm_container->kernel_radius;
-    vol = dist * dist * dist;
-    mpm_container->mass = initial_density * vol;
+    double dist = mpm_container->kernel_radius * .9;
+    vol = dist * dist * dist * .7;
+    mpm_container->mass = mpm_container->rho * vol;
 
     utils::HCPSampler<> sampler(dist);
     utils::Generator::PointVector points =
-        sampler.SampleBox(ChVector<>(0, 0, radius + radius * .5), ChVector<>(radius, radius, radius));
+        sampler.SampleSphere(ChVector<>(0, 0, radius + radius * .5), radius);  // ChVector<>(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
@@ -188,7 +189,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
 
     pos_fluid[0] = real3(.05, 0, 0);
     vel_fluid[0] = real3(-1, 0, 0);
-    //mpm_container->AddNodes(pos_fluid, vel_fluid);
+// mpm_container->AddNodes(pos_fluid, vel_fluid);
 #endif
 }
 // -----------------------------------------------------------------------------
@@ -201,7 +202,7 @@ int main(int argc, char* argv[]) {
     // ---------------------
 
     double gravity = 9.81;
-    double time_step = 2e-3;
+
     double time_end = 1;
 
     double out_fps = 50;
@@ -254,7 +255,7 @@ int main(int argc, char* argv[]) {
 // Perform the simulation
 // ----------------------
 //#undef CHRONO_OPENGL
-#if 0
+#if 1
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
     gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1);
