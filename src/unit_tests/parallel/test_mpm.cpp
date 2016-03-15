@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     {
         printf("N\n");
         WeakEqual(N(point_a - NodeLocation(5, 5, 4, bin_edge, min_bounding_point), inv_bin_edge), 0);
-        WeakEqual(N(point_a - NodeLocation(7, 7, 7, bin_edge, min_bounding_point), inv_bin_edge), 0.1822061256, 1e-10);
+        WeakEqual(N(point_a - NodeLocation(7, 7, 7, bin_edge, min_bounding_point), inv_bin_edge), 0.1822061256, C_EPSILON);
     }
     {  // Each node should have 125 surrounding nodes
         int ind = 0;
@@ -97,6 +97,7 @@ int main(int argc, char* argv[]) {
     real hardening_coefficient = (real)10.;
 
     {
+        printf("Potential_Energy_Derivative\n");
         const Mat33 FE = Mat33(0.8147, 0.9058, 0.1270, 0.9134, 0.6324, .0975, 0.2785, 0.5469, 0.9575) * 100;
         const Mat33 FP = Mat33(1, 0, 5, 2, 1, 6, 3, 4, 0) * (.001);
         Mat33 PED = Potential_Energy_Derivative(FE, FP, mu, lambda, hardening_coefficient);
@@ -104,13 +105,37 @@ int main(int argc, char* argv[]) {
     }
 
     {
+        printf("Rotational_Derivative\n");
         const Mat33 FE = Mat33(0.8147, 0.9058, 0.1270, 0.9134, 0.6324, .0975, 0.2785, 0.5469, 0.9575);
         const Mat33 FP = Mat33(1, 0, 5, 2, 1, 6, 3, 4, 0);
         Mat33 RD = Rotational_Derivative(FE, FP);
+
         // Print(RD, "RD");
         WeakEqual(RD, Mat33(-0.4388320607360907121829996, -2.5644905725011524211254255, 2.6523953516380869288582289,
                             3.3403002881859262807040523, -0.3555579545919572703738254, -0.1151537247848418710205465,
                             -1.6067063031830095543028847, 0.5767590099191256536315109, -0.3543936405970238290308316),
                   1e-6);
+    }
+    {
+        printf("Rotational_Derivative_Simple\n");
+        const Mat33 FE = Mat33(0.8147, 0.9058, 0.1270, 0.9134, 0.6324, .0975, 0.2785, 0.5469, 0.9575);
+        const Mat33 FP = Mat33(1, 0, 5, 2, 1, 6, 3, 4, 0);
+        Mat33 U, V, R, S, W;
+        real3 E;
+        SVD(FE, U, E, V);
+        // Perform polar decomposition F = R*S
+        R = MultTranspose(U, V);
+        S = V * MultTranspose(Mat33(E), V);
+        // See tech report end of page 2
+        W = TransposeMult(R, FP);
+
+        Mat33 RD1 = Rotational_Derivative_Simple(R, S, FP);
+
+        Mat33 RD2 = Rotational_Derivative(FE, FP);
+
+//        Print(RD1,"RD1");
+//        Print(RD2,"RD2");
+
+        WeakEqual(RD1, RD2, 1e-6);
     }
 }
