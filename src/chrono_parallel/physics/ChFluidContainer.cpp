@@ -524,7 +524,7 @@ void ChFluidContainer::Build_E() {
     if (num_fluid_bodies > 0) {
 #pragma omp parallel for
         for (int index = 0; index < num_fluid_bodies; index++) {
-            E[start_density + index] = 0;  // compliance;
+            E[start_density + index] = compliance;
             if (enable_viscosity) {
                 E[start_viscous + index * 3 + 0] = 0;
                 E[start_viscous + index * 3 + 1] = 0;
@@ -649,32 +649,32 @@ void ChFluidContainer::GenerateSparsity() {
 }
 
 void ChFluidContainer::PreSolve() {
-//    if (gamma_old.size() > 0) {
-//        if (enable_viscosity) {
-//            if (gamma_old.size() == (num_fluid_bodies + num_fluid_bodies * 3)) {
-//                blaze::subvector(data_manager->host_data.gamma, start_density,
-//                                 num_fluid_bodies + num_fluid_bodies * 3) = gamma_old * .9;
-//            }
-//        } else {
-//            if (gamma_old.size() == num_fluid_bodies) {
-//                blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies) = gamma_old * .9;
-//            }
-//        }
-//    }
+    if (gamma_old.size() > 0) {
+        if (enable_viscosity) {
+            if (gamma_old.size() == (num_fluid_bodies + num_fluid_bodies * 3)) {
+                blaze::subvector(data_manager->host_data.gamma, start_density,
+                                 num_fluid_bodies + num_fluid_bodies * 3) = gamma_old * .9;
+            }
+        } else {
+            if (gamma_old.size() == num_fluid_bodies) {
+                blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies) = gamma_old * .9;
+            }
+        }
+    }
 }
 
 void ChFluidContainer::PostSolve() {
     LOG(INFO) << "ChFluidContainer::PostSolve() ";
-//    if (num_fluid_bodies > 0) {
-//        if (enable_viscosity) {
-//            gamma_old.resize(num_fluid_bodies + num_fluid_bodies * 3);
-//            gamma_old =
-//                blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies + num_fluid_bodies * 3);
-//        } else {
-//            gamma_old.resize(num_fluid_bodies);
-//            gamma_old = blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies);
-//        }
-//    }
+    if (num_fluid_bodies > 0) {
+        if (enable_viscosity) {
+            gamma_old.resize(num_fluid_bodies + num_fluid_bodies * 3);
+            gamma_old =
+                blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies + num_fluid_bodies * 3);
+        } else {
+            gamma_old.resize(num_fluid_bodies);
+            gamma_old = blaze::subvector(data_manager->host_data.gamma, start_density, num_fluid_bodies);
+        }
+    }
 
     if (artificial_pressure == false) {
         return;
