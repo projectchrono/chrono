@@ -151,11 +151,11 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChANCFTire::GetMass() const {
-    double mass = 0;
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        auto element = std::static_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie));
-        //// TODO
-    }
+    double mass;
+    ChVector<> com;
+    ChMatrix33<> inertia;
+
+    m_mesh->ComputeMassProperties(mass, com, inertia);
     return mass;
 }
 

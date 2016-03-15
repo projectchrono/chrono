@@ -219,7 +219,13 @@ void ChElementShellANCF::ComputeMassMatrix() {
         m_MassMatrix += TempMassMatrix;
     }
 }
-
+/// This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
+void ChElementShellANCF::ComputeNodalMass(){
+    m_nodes[0]->m_TotalMass += m_MassMatrix(0, 0);
+    m_nodes[1]->m_TotalMass += m_MassMatrix(6, 6);
+    m_nodes[2]->m_TotalMass += m_MassMatrix(12, 12);
+    m_nodes[3]->m_TotalMass += m_MassMatrix(18, 18);
+}
 // -----------------------------------------------------------------------------
 // Gravitational force calculation
 // -----------------------------------------------------------------------------

@@ -156,19 +156,25 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
     /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
 	void SetAutomaticGravity(bool mg, int num_points = 1) { automatic_gravity_load = mg; num_points_gravity = num_points; }
-    /// Tell if this mesh will add automatically a gravity load to all contained elements 
-    bool GetAutomaticGravity() {return automatic_gravity_load;} 
+    /// Tell if this mesh will add automatically a gravity load to all contained elements
+    bool GetAutomaticGravity() { return automatic_gravity_load; }
+
+    /// Get ChMesh mass properties
+    void ComputeMassProperties(double& mass,          ///< ChMesh object mass
+                               ChVector<>& com,       ///< ChMesh center of gravity
+                               ChMatrix33<>& inertia  ///< ChMesh inertia tensor
+                               );
 
     //
     // STATE FUNCTIONS
     //
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGather(const unsigned int off_x,
-                                ChState& x,
-                                const unsigned int off_v,
-                                ChStateDelta& v,
-                                double& T);
+        // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+        virtual void IntStateGather(const unsigned int off_x,
+                                    ChState& x,
+                                    const unsigned int off_v,
+                                    ChStateDelta& v,
+                                    double& T);
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
