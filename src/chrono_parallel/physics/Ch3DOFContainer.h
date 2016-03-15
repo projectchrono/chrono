@@ -24,8 +24,10 @@
 #include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/math/matrix.h"
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono_parallel/physics/ChMPM.cuh"
 
 #include "physics/ChBody.h"
+#include <thread>
 
 #include <blaze/math/DynamicVector.h>
 
@@ -174,7 +176,9 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     real alpha_flip;
 
     int mpm_iterations;
-
+    std::thread mpm_thread;
+    bool mpm_init;
+    MPM_Settings temp_settings;
   private:
     uint body_offset;
 };
@@ -278,6 +282,9 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
 
     int mpm_iterations;
 
+    std::thread mpm_thread;
+    bool mpm_init;
+    MPM_Settings temp_settings;
     custom_vector<real3> new_pos;
 
   private:

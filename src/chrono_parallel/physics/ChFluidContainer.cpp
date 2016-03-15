@@ -14,7 +14,6 @@
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
 #include "chrono_parallel/math/matrix.h"       // for quaternion, real4
 #include "chrono_parallel/collision/ChCollision.h"
-#include "chrono_parallel/physics/ChMPM.cuh"
 
 namespace chrono {
 
@@ -48,6 +47,7 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     theta_s = 7.5e-3;
     theta_c = 2.5e-2;
     alpha_flip = .95;
+    mpm_init = false;
 }
 ChFluidContainer::~ChFluidContainer() {}
 
@@ -69,6 +69,32 @@ void ChFluidContainer::Update(double ChTime) {
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     real3 g_acc = data_manager->settings.gravity;
     real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
+
+    if (mpm_init) {
+        temp_settings.dt = data_manager->settings.step_size;
+        temp_settings.kernel_radius = kernel_radius;
+        temp_settings.inv_radius = 1.0 / kernel_radius;
+        temp_settings.bin_edge = kernel_radius * 2;
+        temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+        temp_settings.max_velocity = max_velocity;
+        temp_settings.mu = lame_mu;
+        temp_settings.lambda = lame_lambda;
+        temp_settings.hardening_coefficient = hardening_coefficient;
+        temp_settings.theta_c = theta_c;
+        temp_settings.theta_s = theta_s;
+        temp_settings.alpha_flip = alpha_flip;
+        temp_settings.youngs_modulus = youngs_modulus;
+        temp_settings.poissons_ratio = nu;
+        temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
+        temp_settings.mass = mass;
+        temp_settings.num_iterations = mpm_iterations;
+        if (mpm_iterations > 0) {
+            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(data_manager->host_data.pos_3dof),
+                                     std::ref(data_manager->host_data.vel_3dof));
+        }
+    }
+
+#pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
@@ -107,7 +133,6 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
         sorted_pos_fluid[i] = pos_fluid[original_index];
     }
-    custom_vector<real3> new_pos = sorted_pos_fluid;
 
     if (num_fluid_bodies != 0) {
         data_manager->narrowphase->DispatchRigidFluid();
@@ -141,16 +166,16 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
                     //}
                 }
                 if (weight > 0) {
-                    new_pos[p] = new_pos[p] + delta / weight;
+                    sorted_pos_fluid[p] = sorted_pos_fluid[p] + delta / weight;
                 }
             }
             real inv_dt = 1.0 / data_manager->settings.step_size;
 #pragma omp parallel for
             for (int p = 0; p < num_fluid_bodies; p++) {
                 int original_index = data_manager->host_data.particle_indices_3dof[p];
-                real3 vv = real3((new_pos[p] - sorted_pos_fluid[p]) * inv_dt);
+                real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
                 if (contact_counts[p + 1] - contact_counts[p] > 0) {
-                    // vel_marker[original_index] = vv;
+                    // vel_fluid[original_index] = vv;
                     pos_fluid[original_index] = new_pos[p];
                 }
             }
@@ -235,7 +260,6 @@ void ChFluidContainer::Setup(int start_constraint) {
 }
 
 void ChFluidContainer::Initialize() {
-    MPM_Settings temp_settings;
     temp_settings.dt = data_manager->settings.step_size;
     temp_settings.kernel_radius = kernel_radius;
     temp_settings.inv_radius = 1.0 / kernel_radius;
@@ -256,6 +280,7 @@ void ChFluidContainer::Initialize() {
     if (mpm_iterations > 0) {
         MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
     }
+    mpm_init = true;
 }
 
 void ChFluidContainer::Density_Fluid() {
@@ -625,27 +650,7 @@ void ChFluidContainer::GenerateSparsity() {
 }
 
 void ChFluidContainer::PreSolve() {
-    MPM_Settings temp_settings;
-    temp_settings.dt = data_manager->settings.step_size;
-    temp_settings.kernel_radius = kernel_radius;
-    temp_settings.inv_radius = 1.0 / kernel_radius;
-    temp_settings.bin_edge = kernel_radius * 2;
-    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
-    temp_settings.max_velocity = max_velocity;
-    temp_settings.mu = lame_mu;
-    temp_settings.lambda = lame_lambda;
-    temp_settings.hardening_coefficient = hardening_coefficient;
-    temp_settings.theta_c = theta_c;
-    temp_settings.theta_s = theta_s;
-    temp_settings.alpha_flip = alpha_flip;
-    temp_settings.youngs_modulus = youngs_modulus;
-    temp_settings.poissons_ratio = nu;
-    temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
-    temp_settings.mass = mass;
-    temp_settings.num_iterations = mpm_iterations;
-    if (mpm_iterations > 0) {
-        MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
-    }
+    mpm_thread.join();
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         int index = data_manager->host_data.reverse_mapping_3dof[p];
