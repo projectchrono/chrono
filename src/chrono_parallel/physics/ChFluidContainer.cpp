@@ -112,7 +112,6 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
-
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
@@ -133,7 +132,6 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
         sorted_pos_fluid[i] = pos_fluid[original_index];
     }
-
     if (num_fluid_bodies != 0) {
         data_manager->narrowphase->DispatchRigidFluid();
 
@@ -144,7 +142,6 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
         // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep
         // isnt too large.
-
         if (data_manager->num_rigid_fluid_contacts > 0) {
 #pragma omp parallel for
             for (int p = 0; p < num_fluid_bodies; p++) {
@@ -175,8 +172,8 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
                 int original_index = data_manager->host_data.particle_indices_3dof[p];
                 real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
                 if (contact_counts[p + 1] - contact_counts[p] > 0) {
-                    // vel_fluid[original_index] = vv;
-                    pos_fluid[original_index] = new_pos[p];
+                    vel_fluid[original_index] = vv;
+                    pos_fluid[original_index] = sorted_pos_fluid[p];
                 }
             }
         }

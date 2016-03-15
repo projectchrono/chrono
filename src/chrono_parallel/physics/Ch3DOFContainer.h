@@ -164,7 +164,6 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     real artificial_pressure_n;
     real artificial_pressure_dq;
     bool enable_viscosity;
-    custom_vector<real3> new_pos;
 
     real nu;
     real youngs_modulus;
@@ -285,8 +284,6 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     std::thread mpm_thread;
     bool mpm_init;
     MPM_Settings temp_settings;
-    custom_vector<real3> new_pos;
-
   private:
     uint body_offset;
 };
