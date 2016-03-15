@@ -140,11 +140,3 @@ void ChParallelDataManager::AddFEAContainer(ChFEAContainer* container) {
     delete fea_container;
     fea_container = container;
 }
-void ChParallelDataManager::AddMPMContainer(ChMPMContainer* container) {
-    delete node_container;
-    node_container = container;
-}
-void ChParallelDataManager::AddFLIPContainer(ChFLIPContainer* container) {
-    delete node_container;
-    node_container = container;
-}

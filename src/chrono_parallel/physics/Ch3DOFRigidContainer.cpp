@@ -13,6 +13,7 @@
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
 #include "chrono_parallel/math/matrix.h"       // for quaternion, real4
+#include "chrono_parallel/physics/ChMPM.cuh"
 
 namespace chrono {
 
@@ -29,6 +30,7 @@ Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelDVI* physics_system) 
     mass = 0.037037;
     start_boundary = 0;
     start_contact = 0;
+    mpm_iterations = 0;
 }
 Ch3DOFRigidContainer::~Ch3DOFRigidContainer() {}
 
@@ -83,56 +85,58 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
         }
         vel_fluid[original_index] = vel;
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
-        // sorted_pos_fluid[i] = pos_fluid[original_index];
+        sorted_pos_fluid[i] = pos_fluid[original_index];
     }
-    //
-    //    new_pos = sorted_pos_fluid;
-    //
-    //    if (data_manager->num_fluid_bodies != 0) {
-    //        data_manager->narrowphase->DispatchRigidFluid();
-    //    }
-    //
-    //    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-    //    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-    //    custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
-    //    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    //    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-    //    // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep
-    //    isnt
-    //    // too large.
-    //
-    //    if (data_manager->num_rigid_fluid_contacts > 0) {
-    //#pragma omp parallel for
-    //        for (int p = 0; p < num_fluid_bodies; p++) {
-    //            int start = contact_counts[p];
-    //            int end = contact_counts[p + 1];
-    //            real3 delta = real3(0);
-    //            real weight = 0;
-    //            for (int index = start; index < end; index++) {
-    //                int i = index - start;
-    //                int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-    //                // if (data_manager->host_data.active_rigid[rigid] == false) {
-    //                real3 U = norm[p * max_rigid_neighbors + i];
-    //                real depth = dpth[p * max_rigid_neighbors + i];
-    //                if (depth < 0) {
-    //                    real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
-    //                    delta -= w * depth * U;
-    //                    weight++;
-    //                }
-    //                //}
-    //            }
-    //            if (weight > 0) {
-    //                new_pos[p] = new_pos[p] + delta / weight;
-    //            }
-    //        }
-    //
-    //#pragma omp parallel for
-    //        for (int p = 0; p < num_fluid_bodies; p++) {
-    //            // real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
-    //            int original_index = data_manager->host_data.particle_indices_3dof[p];
-    //            pos_fluid[original_index] = new_pos[p];
-    //        }
-    //    }
+
+    custom_vector<real3> new_pos = sorted_pos_fluid;
+
+    if (num_fluid_bodies != 0) {
+        data_manager->narrowphase->DispatchRigidFluid();
+
+        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+        custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
+        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the timestep
+        // isnt too large.
+
+        if (data_manager->num_rigid_fluid_contacts > 0) {
+#pragma omp parallel for
+            for (int p = 0; p < num_fluid_bodies; p++) {
+                int start = contact_counts[p];
+                int end = contact_counts[p + 1];
+                real3 delta = real3(0);
+                real weight = 0;
+                for (int index = start; index < end; index++) {
+                    int i = index - start;
+                    // int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+                    // if (data_manager->host_data.active_rigid[rigid] == false) {
+                    real3 U = norm[p * max_rigid_neighbors + i];
+                    real depth = dpth[p * max_rigid_neighbors + i];
+                    if (depth < 0) {
+                        real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
+                        delta -= w * depth * U;
+                        weight++;
+                    }
+                    //}
+                }
+                if (weight > 0) {
+                    new_pos[p] = new_pos[p] + delta / weight;
+                }
+            }
+            real inv_dt = 1.0 / data_manager->settings.step_size;
+#pragma omp parallel for
+            for (int p = 0; p < num_fluid_bodies; p++) {
+                int original_index = data_manager->host_data.particle_indices_3dof[p];
+                real3 vv = real3((new_pos[p] - sorted_pos_fluid[p]) * inv_dt);
+                if (contact_counts[p + 1] - contact_counts[p] > 0) {
+                    // vel_marker[original_index] = vv;
+                    pos_fluid[original_index] = new_pos[p];
+                }
+            }
+        }
+    }
 }
 
 int Ch3DOFRigidContainer::GetNumConstraints() {
@@ -212,7 +216,27 @@ void Ch3DOFRigidContainer::Setup(int start_constraint) {
 }
 
 void Ch3DOFRigidContainer::Initialize() {
-    printf("Computed mass: %f\n", mass);
+    MPM_Settings temp_settings;
+    temp_settings.dt = data_manager->settings.step_size;
+    temp_settings.kernel_radius = kernel_radius;
+    temp_settings.inv_radius = 1.0 / kernel_radius;
+    temp_settings.bin_edge = kernel_radius * 2;
+    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+    temp_settings.max_velocity = max_velocity;
+    temp_settings.mu = lame_mu;
+    temp_settings.lambda = lame_lambda;
+    temp_settings.hardening_coefficient = hardening_coefficient;
+    temp_settings.theta_c = theta_c;
+    temp_settings.theta_s = theta_s;
+    temp_settings.alpha_flip = alpha_flip;
+    temp_settings.youngs_modulus = youngs_modulus;
+    temp_settings.poissons_ratio = nu;
+    temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
+    temp_settings.mass = mass;
+    temp_settings.num_iterations = mpm_iterations;
+    if (mpm_iterations > 0) {
+        MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
+    }
 }
 
 void Ch3DOFRigidContainer::Build_D() {
@@ -588,52 +612,37 @@ real3 Ch3DOFRigidContainer::GetBodyContactTorque(uint body_id) {
     }
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
-void Ch3DOFRigidContainer::PreSolve() {}
-void Ch3DOFRigidContainer::PostSolve() {
-    // return;
-
-    //    // Run PBD to get updated velocities for fluid
-    //    // Loop over all boundaries
-    //    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-    //    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-    //    custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
-    //    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    //    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-    //    custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    //    custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
-    //
-    //    custom_vector<real3> new_pos = pos_fluid;
-    //
-    //    for (int p = 0; p < num_fluid_bodies; p++) {
-    //        int start = contact_counts[p];
-    //        int end = contact_counts[p + 1];
-    //        real3 delta = real3(0);
-    //        real weight = 0;
-    //        for (int index = start; index < end; index++) {
-    //            int i = index - start;
-    //            int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-    //            if (data_manager->host_data.active_rigid[rigid] == false) {
-    //                real3 U = norm[p * max_rigid_neighbors + i];
-    //                real depth = dpth[p * max_rigid_neighbors + i];
-    //                if (depth < 0) {
-    //                    real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
-    //                    delta -= w * depth * U;
-    //                    weight++;
-    //                }
-    //            }
-    //        }
-    //        const real invWeight = 1.0 / weight;
-    //        new_pos[p] = new_pos[p] + delta * weight;
-    //    }
-    //    for (int p = 0; p < num_fluid_bodies; p++) {
-    //        real3 vnew = (new_pos[p] - pos_fluid[p]) / data_manager->settings.step_size;
-    //        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 0] += vnew.x;
-    //        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 1] += vnew.y;
-    //        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + p * 3 + 2] += vnew.z;
-    //
-    //        // pos_fluid[p] = new_pos[p];
-    //    }
+void Ch3DOFRigidContainer::PreSolve() {
+    MPM_Settings temp_settings;
+    temp_settings.dt = data_manager->settings.step_size;
+    temp_settings.kernel_radius = kernel_radius;
+    temp_settings.inv_radius = 1.0 / kernel_radius;
+    temp_settings.bin_edge = kernel_radius * 2;
+    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
+    temp_settings.max_velocity = max_velocity;
+    temp_settings.mu = lame_mu;
+    temp_settings.lambda = lame_lambda;
+    temp_settings.hardening_coefficient = hardening_coefficient;
+    temp_settings.theta_c = theta_c;
+    temp_settings.theta_s = theta_s;
+    temp_settings.alpha_flip = alpha_flip;
+    temp_settings.youngs_modulus = youngs_modulus;
+    temp_settings.poissons_ratio = nu;
+    temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
+    temp_settings.mass = mass;
+    temp_settings.num_iterations = mpm_iterations;
+    if (mpm_iterations > 0) {
+        MPM_Solve(temp_settings, data_manager->host_data.pos_3dof, data_manager->host_data.vel_3dof);
+    }
+#pragma omp parallel for
+    for (int p = 0; p < num_fluid_bodies; p++) {
+        int index = data_manager->host_data.reverse_mapping_3dof[p];
+        data_manager->host_data.v[body_offset + index * 3 + 0] = data_manager->host_data.vel_3dof[p].x;
+        data_manager->host_data.v[body_offset + index * 3 + 1] = data_manager->host_data.vel_3dof[p].y;
+        data_manager->host_data.v[body_offset + index * 3 + 2] = data_manager->host_data.vel_3dof[p].z;
+    }
 }
+void Ch3DOFRigidContainer::PostSolve() {}
 }  // END_OF_NAMESPACE____
 
 /////////////////////

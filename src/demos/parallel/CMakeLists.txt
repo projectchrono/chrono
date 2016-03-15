@@ -35,7 +35,6 @@ SET(DEMOS
     mixerDVI
     fluidDVI
     snowMPM
-    fluidFLIP
     rigid3DOFDVI
     benchmarkSolver
     

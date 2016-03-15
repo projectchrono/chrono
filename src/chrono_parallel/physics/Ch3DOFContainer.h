@@ -97,8 +97,6 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real max_velocity;  // limit on the maximum speed the fluid can move at
     uint start_row;
 
-    int max_iterations;
-
     // Store boundary forces here for rigid bodies
     DynamicVector<real> contact_forces;
     DynamicVector<real> gamma_old;
@@ -167,65 +165,21 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     bool initialize_mass;
     custom_vector<real3> new_pos;
 
+    real nu;
+    real youngs_modulus;
+    real hardening_coefficient;
+    real lame_lambda;
+    real lame_mu;
+    real theta_s;
+    real theta_c;
+    real alpha_flip;
+
+    int mpm_iterations;
+
   private:
     uint body_offset;
 };
 
-class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
-  public:
-    ChMPMContainer(ChSystemParallelDVI* system);
-    ~ChMPMContainer();
-    void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    void ComputeDOF();
-    void Update(double ChTime);
-    void UpdatePosition(double ChTime);
-    void Setup(int start_constraint);
-    void Initialize();
-    void PreSolve();
-    void Build_D();
-    void Build_b();
-    void Build_E();
-    void UpdateRhs();
-    void Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma);
-    void Project(real* gamma);
-    void GenerateSparsity();
-    void ComputeInvMass(int offset);
-    void ComputeMass(int offset);
-    void PostSolve();
-    int GetNumConstraints();
-    int GetNumNonZeros();
-
-    uint start_boundary;
-    uint start_contact;
-    real cohesion;
-    real compliance;
-    real mass;
-    real mu;
-    real nu;
-    real youngs_modulus;
-    real hardening_coefficient;
-    real lambda;
-    real theta_s;
-    real theta_c;
-    real alpha_flip;
-    real rho;
-    real tau;
-    real epsilon;
-    real alpha;
-
-    real3 min_bounding_point;
-    real3 max_bounding_point;
-    vec3 bins_per_axis;
-    real bin_edge;
-    real inv_bin_edge;
-    uint body_offset;
-
-    uint num_mpm_contacts;  // number of mpm marker contacts
-    uint num_mpm_markers;
-    uint num_mpm_nodes;
-
-    custom_vector<real> density;
-};
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
     ChFEAContainer(ChSystemParallelDVI* system);
@@ -311,62 +265,23 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real mass;
     real alpha;
     uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
+
+    //
+
+    real nu;
+    real youngs_modulus;
+    real hardening_coefficient;
+    real lame_lambda;
+    real lame_mu;
+    real theta_s;
+    real theta_c;
+    real alpha_flip;
+
+    int mpm_iterations;
+
     custom_vector<real3> new_pos;
 
   private:
     uint body_offset;
-};
-
-class CH_PARALLEL_API ChFLIPContainer : public Ch3DOFContainer {
-  public:
-    ChFLIPContainer(ChSystemParallelDVI* system);
-    ~ChFLIPContainer();
-    void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    void ComputeDOF();
-    void Update(double ChTime);
-    void UpdatePosition(double ChTime);
-    void Setup(int start_constraint);
-    void Initialize();
-    void PreSolve();
-    void Build_D();
-    void Build_b();
-    void Build_E();
-    void UpdateRhs();
-    void Solve(const DynamicVector<real>& s, DynamicVector<real>& gamma);
-    void Project(real* gamma);
-    void GenerateSparsity();
-    void ComputeInvMass(int offset);
-    void ComputeMass(int offset);
-    void PostSolve();
-    int GetNumConstraints();
-    int GetNumNonZeros();
-
-    custom_vector<real3> face_density;
-    custom_vector<real> face_volume;
-
-    uint start_node;
-    uint start_boundary;
-    real mass;
-    real mu;
-    real hardening_coefficient;
-    real lambda;
-    real theta_s;
-    real theta_c;
-    real alpha;
-
-    uint num_mpm_markers;
-    uint num_mpm_nodes;
-
-    real3 min_bounding_point;
-    real3 max_bounding_point;
-    vec3 bins_per_axis;
-    real bin_edge;
-    real inv_bin_edge;
-    uint body_offset;
-    real rho;
-    custom_vector<real> node_mass;
-    custom_vector<real> old_vel_node_mpm;
-
-    ChSolverParallel* solver;
 };
 }

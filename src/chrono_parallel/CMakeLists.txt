@@ -139,10 +139,8 @@ SET(ChronoEngine_Parallel_PHYSICS
     physics/ChSystemParallelDEM.cpp
     physics/Ch3DOFContainer.cpp
     physics/ChFluidContainer.cpp
-    physics/ChMPMContainer.cpp
     physics/ChFEAContainer.cpp
     physics/Ch3DOFRigidContainer.cpp
-    physics/ChFLIPContainer.cpp
     physics/ChMPM.cu
     )
 

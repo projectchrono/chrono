@@ -380,8 +380,6 @@ class CH_PARALLEL_API ChParallelDataManager {
     ~ChParallelDataManager();
     void Add3DOFContainer(Ch3DOFContainer* container);
     void AddFEAContainer(ChFEAContainer* container);
-    void AddMPMContainer(ChMPMContainer* container);
-    void AddFLIPContainer(ChFLIPContainer* container);
     // Structure that contains the data on the host, the naming convention is
     // from when the code supported the GPU (host vs device)
     host_container host_data;
