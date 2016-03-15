@@ -375,8 +375,10 @@ void ChMPMContainer::UpdatePosition(double ChTime) {
             for (int p = 0; p < num_fluid_bodies; p++) {
                 int original_index = data_manager->host_data.particle_indices_3dof[p];
                 real3 vv = real3((new_pos[p] - sorted_pos_fluid[p]) * inv_dt);
-                // vel_marker[original_index] = vv;
-                pos_marker[original_index] = new_pos[p];
+                if (contact_counts[p + 1] - contact_counts[p] > 0) {
+                    vel_marker[original_index] = vv;
+                    pos_marker[original_index] = new_pos[p];
+                }
             }
         }
     }
