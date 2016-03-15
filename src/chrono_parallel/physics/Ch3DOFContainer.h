@@ -195,16 +195,10 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     int GetNumConstraints();
     int GetNumNonZeros();
 
-    DynamicVector<real> rhs;
-    DynamicVector<real> grid_vel;
-
-    custom_vector<real> det_marker_Fp;
-    custom_vector<Mat33> SVD_Fe_hat_R;
-    custom_vector<Mat33> SVD_Fe_hat_S;
-
     uint start_boundary;
     uint start_contact;
     real cohesion;
+    real compliance;
     real mass;
     real mu;
     real nu;
@@ -213,10 +207,11 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real lambda;
     real theta_s;
     real theta_c;
-    real alpha;
+    real alpha_flip;
     real rho;
     real tau;
     real epsilon;
+    real alpha;
 
     real3 min_bounding_point;
     real3 max_bounding_point;
@@ -226,29 +221,10 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     uint body_offset;
 
     uint num_mpm_contacts;  // number of mpm marker contacts
-
     uint num_mpm_markers;
     uint num_mpm_nodes;
 
-    custom_vector<real3> vel_node_mpm;
-
-    custom_vector<real> node_mass;
-    DynamicVector<real> old_vel_node_mpm;
-    custom_vector<real> marker_volume;
-    custom_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F;
-    DynamicVector<real> delta_v;
-
-    // Reverse mapping, for each partticle have node
-    custom_vector<int> particle_node_mapping;  // num_particles * 125
-    custom_vector<int> node_particle_mapping;
-    custom_vector<int> node_start_index;
-    custom_vector<int> particle_number;
-    uint num_mpm_nodes_active;
-    custom_vector<Mat33> volume_Ap_Fe_transpose;
-
     custom_vector<real> density;
-
-    ChSolverParallel* solver;
 };
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
