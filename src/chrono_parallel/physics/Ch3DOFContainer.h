@@ -214,6 +214,9 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     real theta_s;
     real theta_c;
     real alpha;
+    real rho;
+    real tau;
+    real epsilon;
 
     real3 min_bounding_point;
     real3 max_bounding_point;
@@ -242,6 +245,8 @@ class CH_PARALLEL_API ChMPMContainer : public Ch3DOFContainer {
     custom_vector<int> particle_number;
     uint num_mpm_nodes_active;
     custom_vector<Mat33> volume_Ap_Fe_transpose;
+
+    custom_vector<real> density;
 
     ChSolverParallel* solver;
 };
