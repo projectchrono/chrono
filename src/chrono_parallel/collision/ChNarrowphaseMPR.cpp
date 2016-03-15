@@ -11,7 +11,8 @@ using namespace chrono;
 using namespace chrono::collision;
 
 #define MPR_TOLERANCE C_EPSILON
-#define MAX_ITERATIONS 1000
+#define MAX_ITERATIONS 100
+#define WHILE_LOOP_MAX 1000
 struct support {
     real3 v, v1, v2;
 };
@@ -464,7 +465,7 @@ void FindPenetrationSegment(const ConvexBase* shapeA,
 
 bool FindPortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const real& envelope, simplex& portal, real3& n) {
     // Phase One: Identify a portal
-    while (true) {
+    for (int wi = 0; wi < WHILE_LOOP_MAX; wi++) {
         // Obtain the support point in a direction perpendicular to the existing plane
         // Note: This point is guaranteed to lie off the plane
         MPRSupport(shapeA, shapeB, n, envelope, portal.s3);
@@ -535,7 +536,7 @@ int DiscoverPortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const rea
     }
     int cont;
     // FindPortal code
-    while (true) {
+    for (int wi = 0; wi < WHILE_LOOP_MAX; wi++) {
         // Obtain the support point in a direction perpendicular to the existing plane
         // Note: This point is guaranteed to lie off the plane
         MPRSupport(shapeA, shapeB, n, envelope, portal.s3);
