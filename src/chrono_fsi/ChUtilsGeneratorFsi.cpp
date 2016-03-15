@@ -67,22 +67,20 @@ chrono::ChVector<> TransformBCEToCOG(chrono::ChBody* body, const Real3 & pos3) {
 }
 // =============================================================================
 void CreateBceGlobalMarkersFromBceLocalPos(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects* numObjects,
+	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	const thrust::host_vector<Real3>& posRadBCE,
 	chrono::ChSharedPtr<chrono::ChBody> body,
 	chrono::ChVector<> collisionShapeRelativePos,
 	chrono::ChQuaternion<> collisionShapeRelativeRot,
 	bool isSolid) {
-	if (fsiGeneralData.referenceArray.size() < 1) {
+	if (fsiData->fsiGeneralData.referenceArray.size() < 1) {
 		printf(
 				"\n\n\n\n Error! fluid need to be initialized before boundary. Reference array should have two "
 						"components \n\n\n\n");
 		std::cin.get();
 	}
-	::int4 refSize4 = fsiGeneralData.referenceArray[fsiGeneralData.referenceArray.size() - 1];
+	::int4 refSize4 = fsiData->fsiGeneralData.referenceArray[fsiData->fsiGeneralData.referenceArray.size() - 1];
 	int type = 0;
 	if (isSolid) {
 		type = refSize4.w + 1;
@@ -91,7 +89,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 		printf(
 				"\n\n\n\n Error! reference array type is not correct. It does not denote boundary or rigid \n\n\n\n");
 		std::cin.get();
-	} else if (type > 0 && (fsiGeneralData.referenceArray.size() - 1 != type)) {
+	} else if (type > 0 && (fsiData->fsiGeneralData.referenceArray.size() - 1 != type)) {
 		printf(
 				"\n\n\n\n Error! reference array size does not match type \n\n\n\n");
 		std::cin.get();
@@ -111,13 +109,13 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 		chrono::ChVector<> posGlob =
 				chrono::ChTransform<>::TransformLocalToParent(posLoc_COG,
 						body->GetPos(), body->GetRot());
-		sphMarkersH.posRadH.push_back(ConvertChVectorToR3(posGlob));
+		fsiData->sphMarkersH.posRadH.push_back(ConvertChVectorToR3(posGlob));
 
 		chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
 		Real3 v3 = ConvertChVectorToR3(vAbs);
-		sphMarkersH.velMasH.push_back(v3);
+		fsiData->sphMarkersH.velMasH.push_back(v3);
 
-		sphMarkersH.rhoPresMuH.push_back(
+		fsiData->sphMarkersH.rhoPresMuH.push_back(
 		mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, type));
 	}
 
@@ -126,32 +124,32 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 	// ------------------------
 
 	int numBce = posRadBCE.size();
-	numObjects->numAllMarkers += numBce;
+	fsiData->numObjects.numAllMarkers += numBce;
 	if (type == 0) {
-		numObjects->numBoundaryMarkers += numBce;
-		if (fsiGeneralData.referenceArray.size() == 1) {
-			fsiGeneralData.referenceArray.push_back(
+		fsiData->numObjects.numBoundaryMarkers += numBce;
+		if (fsiData->fsiGeneralData.referenceArray.size() == 1) {
+			fsiData->fsiGeneralData.referenceArray.push_back(
 			mI4(refSize4.y, refSize4.y + numBce, 0, 0));
-		} else if (fsiGeneralData.referenceArray.size() == 2) {
+		} else if (fsiData->fsiGeneralData.referenceArray.size() == 2) {
 			refSize4.y = refSize4.y + numBce;
-			fsiGeneralData.referenceArray[1] = refSize4;
+			fsiData->fsiGeneralData.referenceArray[1] = refSize4;
 		} else {
 			printf(
 					"Error! reference array size is greater than 2 while marker type is 0 \n\n");
 			std::cin.get();
 		}
 	} else {
-		if (fsiGeneralData.referenceArray.size() < 2) {
+		if (fsiData->fsiGeneralData.referenceArray.size() < 2) {
 			printf(
 					"Error! Boundary markers are not initialized while trying to initialize rigid marker!\n\n");
 			std::cin.get();
 		}
-		numObjects->numRigid_SphMarkers += numBce;
-		numObjects->numRigidBodies += 1;
-		numObjects->startRigidMarkers = fsiGeneralData.referenceArray[1].y;
-		fsiGeneralData.referenceArray.push_back(
+		fsiData->numObjects.numRigid_SphMarkers += numBce;
+		fsiData->numObjects.numRigidBodies += 1;
+		fsiData->numObjects.startRigidMarkers = fsiData->fsiGeneralData.referenceArray[1].y;
+		fsiData->fsiGeneralData.referenceArray.push_back(
 		mI4(refSize4.y, refSize4.y + numBce, 1, type)); // 1: for rigid
-		if (numObjects->numRigidBodies != fsiGeneralData.referenceArray.size() - 2) {
+		if (fsiData->numObjects.numRigidBodies != fsiData->fsiGeneralData.referenceArray.size() - 2) {
 			printf(
 					"Error! num rigid bodies does not match reference array size!\n\n");
 			std::cin.get();
@@ -162,24 +160,19 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 }
 // =============================================================================
 void CreateBceGlobalMarkersFromBceLocalPosBoundary(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects* numObjects,
+	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	const thrust::host_vector<Real3>& posRadBCE,
 	chrono::ChSharedPtr<chrono::ChBody> body,
 	chrono::ChVector<> collisionShapeRelativePos,
 	chrono::ChQuaternion<> collisionShapeRelativeRot) {
 
-	CreateBceGlobalMarkersFromBceLocalPos(sphMarkersH, fsiGeneralData,
-			numObjects, paramsH, posRadBCE, body,
+	CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body,
 			collisionShapeRelativePos, collisionShapeRelativeRot, false);
 }
 // =============================================================================
 void AddSphereBce(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects* numObjects,
+	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body, 
 	chrono::ChVector<> relPos,
@@ -189,14 +182,13 @@ void AddSphereBce(
 	thrust::host_vector<Real3> posRadBCE;
 	CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
 
-	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
+	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
+				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
 
-	CreateBceGlobalMarkersFromBceLocalPos(sphMarkersH, fsiGeneralData,
-			numObjects, paramsH, posRadBCE, body);
+	CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
 
 	posRadBCE.clear();
 
@@ -204,9 +196,7 @@ void AddSphereBce(
 // =============================================================================
 
 void AddCylinderBce(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects* numObjects,
+	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body, 
 	chrono::ChVector<> relPos,
@@ -217,14 +207,13 @@ void AddCylinderBce(
 	thrust::host_vector<Real3> posRadBCE;
 	CreateBCE_On_Cylinder(posRadBCE, radius, height, paramsH);
 
-	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
+	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
+				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
-	CreateBceGlobalMarkersFromBceLocalPos(sphMarkersH, fsiGeneralData,
-			numObjects, paramsH, posRadBCE, body);
 
+	CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
 	posRadBCE.clear();
 }
 
@@ -236,9 +225,7 @@ void AddCylinderBce(
 // Arman later on, you can remove numObjects since the Finalize function will take care of setting up the numObjects
 
 void AddBoxBce(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects* numObjects,
+	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body, 
 	chrono::ChVector<> relPos,
@@ -249,24 +236,20 @@ void AddBoxBce(
 	thrust::host_vector<Real3> posRadBCE;
 
 	CreateBCE_On_Box(posRadBCE, ConvertChVectorToR3(size), 12, paramsH);
-
-	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
+	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
+				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
 
-	CreateBceGlobalMarkersFromBceLocalPosBoundary(sphMarkersH,
-			fsiGeneralData, numObjects, paramsH, posRadBCE, body,
+	CreateBceGlobalMarkersFromBceLocalPosBoundary(fsiData, paramsH, posRadBCE, body,
 			relPos, relRot);
 	posRadBCE.clear();
 }
 
 // =============================================================================
 void AddBCE_FromFile(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	NumberOfObjects* numObjects,
+	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChBody> body,
 	std::string dataPath) {
@@ -276,14 +259,14 @@ void AddBCE_FromFile(
 	thrust::host_vector<Real3> posRadBCE;
 
 	LoadBCE_fromFile(posRadBCE, dataPath);
-	if (sphMarkersH.posRadH.size() != numObjects->numAllMarkers) {
+
+	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				numObjects->numAllMarkers, sphMarkersH.posRadH.size());
+				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
 		std::cin.get();
 	}
 
-	CreateBceGlobalMarkersFromBceLocalPos(sphMarkersH, fsiGeneralData,
-			numObjects, paramsH, posRadBCE, body);
+	CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
 	posRadBCE.clear();
 }
 
@@ -303,11 +286,9 @@ void AddBCE_FromFile(
 
 // =============================================================================
 void CreateSphereFSI(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+	ChFsiDataManager* fsiData,
 	chrono::ChSystem& mphysicalSystem,
-	NumberOfObjects* numObjects,
+	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
@@ -339,18 +320,15 @@ void CreateSphereFSI(
 	mphysicalSystem.AddBody(body);
 	fsiBodeisPtr->push_back(body);
 
-	AddSphereBce(sphMarkersH, fsiGeneralData,
-			numObjects, paramsH, body, 
+	AddSphereBce(fsiData, paramsH, body, 
 			chrono::ChVector<>(0,0,0), chrono::ChQuaternion<>(1, 0, 0, 0), 
 			radius);
 }
 // =============================================================================
 void CreateCylinderFSI(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+	ChFsiDataManager* fsiData,
 	chrono::ChSystem& mphysicalSystem,
-	NumberOfObjects* numObjects,
+	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
@@ -380,17 +358,14 @@ void CreateCylinderFSI(
 	mphysicalSystem.AddBody(body);
 
 	fsiBodeisPtr->push_back(body);
-	AddCylinderBce(sphMarkersH, fsiGeneralData,
-			numObjects, paramsH, body, chrono::ChVector<>(0,0,0), chrono::ChQuaternion<>(1, 0, 0, 0), 
+	AddCylinderBce(fsiData, paramsH, body, chrono::ChVector<>(0,0,0), chrono::ChQuaternion<>(1, 0, 0, 0), 
 			radius, length);
 }
 // =============================================================================
 void CreateBoxFSI(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+	ChFsiDataManager* fsiData,
 	chrono::ChSystem& mphysicalSystem,
-	NumberOfObjects* numObjects,
+	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
 	SimParams* paramsH,
 	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
@@ -420,8 +395,7 @@ void CreateBoxFSI(
 
 
 	fsiBodeisPtr->push_back(body);
-	AddBoxBce(sphMarkersH, fsiGeneralData, 
-		numObjects, paramsH, body, chrono::ChVector<>(0,0,0), chrono::ChQuaternion<>(1, 0, 0, 0), 
+	AddBoxBce(fsiData, paramsH, body, chrono::ChVector<>(0,0,0), chrono::ChQuaternion<>(1, 0, 0, 0), 
 		hsize);
 }
 

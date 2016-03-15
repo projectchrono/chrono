@@ -82,18 +82,18 @@ struct SimParams {
 	 is a constant defined at the beginning of main.cpp. This is also the rightmost
 	 particle of the 3rd layer of the top boundary particles. Everything above this
 	 point is not considered part of the system. */
-	Real binSize0; /* Determines the length of the bin each particle occupies. Normally this would be 2*hsml since hsml is
+	Real binSize0; /* Suggests the length of the bin each particle occupies. Normally this would be 2*hsml since hsml is
 	 the radius of the particle, but when we have periodic boundary condition varies a little from
-	 2*hsml. */
+	 2*hsml. This may change slightly due to the location of the periodic BC. */
 	Real3 rigidRadius; /* Radius of rigid bodies. */
 	int densityReinit; /* */  // 0: no; 1: yes
 	int contactBoundary; /* 0: straight channel, 1: serpentine */
 	int enableTweak; /* */    // 0: no tweak, 1: have tweak
 	int enableAggressiveTweak;
 	/* */ // 0: no aggressive tweak; 1: with aggressive tweak (if 1, enableTweak should be 1 too)
-	Real tweakMultV; /* */
-	Real tweakMultRho; /* */
-	BceVersion bceType; /* */
+	Real tweakMultV; /* maximum allowed velocity: tweakMultV * HSML / dT;  NOTE: HSML and dT must be defined. So this line comes after them */
+	Real tweakMultRho; /* maximum allowed density change in one time step: tweakMultRho * rho0 */
+	BceVersion bceType; /* maximum allowed density change in one time step: tweakMultRho * rho0 */
 };
 
 

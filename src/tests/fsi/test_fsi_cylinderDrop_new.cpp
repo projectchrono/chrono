@@ -57,6 +57,8 @@
 //#include "chrono_fsi/FSI_Integrate.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
+#include "chrono_fsi/ChUtilsGeneratorFsi.h"
+
 
 // FSI Interface Includes
 #include "params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
@@ -101,6 +103,15 @@ bool povray_output = true;
 int out_fps = 30;
 
 Real contact_recovery_speed = 1;
+
+Real hdimX = 14;  // 5.5;
+Real hdimY = 1.75;
+
+Real hthick = 0.25;
+Real basinDepth = 2;
+
+Real fluidInitDimX = 2;
+Real fluidHeight = 1.4;  // 2.0;
 
 // =============================================================================
 void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads,
@@ -249,66 +260,71 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	ground->GetCollisionModel()->ClearModel();
 
 	// Bottom box
-	double hdimSide = chrono::fsi::hdimX / 4.0;
-	double midSecDim = chrono::fsi::hdimX - 2 * hdimSide;
+	double hdimSide = hdimX / 4.0;
+	double midSecDim = hdimX - 2 * hdimSide;
 
 	// basin info
 	double phi = CH_C_PI / 9;
-	double bottomWidth = midSecDim - chrono::fsi::basinDepth / tan(phi); // for a 45 degree slope
+	double bottomWidth = midSecDim - basinDepth / tan(phi); // for a 45 degree slope
 	double bottomBuffer = .4 * bottomWidth;
 
 	double inclinedWidth = 0.5 * basinDepth / sin(phi); // for a 45 degree slope
 
-	double smallBuffer = .7 * chrono::fsi::hthick;
+	double smallBuffer = .7 * hthick;
 	double x1I = -midSecDim + inclinedWidth * cos(phi) - hthick * sin(phi)
 			- smallBuffer;
 	double zI = -inclinedWidth * sin(phi) - hthick * cos(phi);
 	double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi)
 			+ smallBuffer;
 
-	chrono::fsi::SimParams* numObjects = myFsiSystem.GetDataManager()->numObjects;
-	thrust::host_vector<chrono::fsi::Real3> & posRadH =  myFsiSystem.GetDataManager->sphMarkersH.posRadH;
-	thrust::host_vector<chrono::fsi::Real3> & velMasH =  myFsiSystem.GetDataManager->sphMarkersH.velMasH;
-	thrust::host_vector<chrono::fsi::Real4> & rhoPresMuH =  myFsiSystem.GetDataManager->sphMarkersH.rhoPresMuH;
-	thrust::host_vector<chrono::fsi::int4> & referenceArray =  myFsiSystem.GetDataManager->fsiGeneralData.referenceArray;
+	chrono::fsi::NumberOfObjects& numObjects = myFsiSystem.GetDataManager()->numObjects;
+	thrust::host_vector<chrono::fsi::Real3> & posRadH = myFsiSystem.GetDataManager()->sphMarkersH.posRadH;
+	thrust::host_vector<chrono::fsi::Real3> & velMasH = myFsiSystem.GetDataManager()->sphMarkersH.velMasH;
+	thrust::host_vector<chrono::fsi::Real4> & rhoPresMuH = myFsiSystem.GetDataManager()->sphMarkersH.rhoPresMuH;
+	thrust::host_vector<int4> & referenceArray = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray;
 
 
 #if haveFluid
 
 		// beginning third
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, paramsH, ground,
-				ChVector<>(hdimSide, chrono::fsi::hdimY, hthick),
-				ChVector<>(-midSecDim - hdimSide, 0, -hthick),
-				ChQuaternion<>(1, 0, 0, 0));
+		chrono::fsi::utils::AddBoxBce(
+				myFsiSystem.GetDataManager(),
+				paramsH, ground,
+				ChVector<>(hdimSide, hdimY, hthick),
+				ChQuaternion<>(1, 0, 0, 0),
+				ChVector<>(-midSecDim - hdimSide, 0, -hthick));
 
 		// end third
 
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, paramsH, ground,
-				ChVector<>(hdimSide, chrono::fsi::hdimY, hthick),
-				ChVector<>(midSecDim + hdimSide, 0, -hthick),
-				ChQuaternion<>(1, 0, 0, 0));
+		chrono::fsi::utils::AddBoxBce(
+				myFsiSystem.GetDataManager(),
+				paramsH, ground,
+				ChVector<>(hdimSide, hdimY, hthick),
+				ChQuaternion<>(1, 0, 0, 0),
+				ChVector<>(midSecDim + hdimSide, 0, -hthick));
 
 		// basin
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, paramsH, ground,
-				ChVector<>(bottomWidth + bottomBuffer, chrono::fsi::hdimY, hthick),
-				ChVector<>(0, 0, -basinDepth - hthick),
-				ChQuaternion<>(1, 0, 0, 0));
+		chrono::fsi::utils::AddBoxBce(
+				myFsiSystem.GetDataManager(),
+				paramsH, ground,
+				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
+				ChQuaternion<>(1, 0, 0, 0),
+				ChVector<>(0, 0, -basinDepth - hthick));
 		// slope 1
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, paramsH, ground,
-				ChVector<>(inclinedWidth, chrono::fsi::hdimY, hthick),
-				ChVector<>(x1I, 0, zI),
-				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)));
+		chrono::fsi::utils::AddBoxBce(
+				myFsiSystem.GetDataManager(),
+				paramsH, ground,
+				ChVector<>(inclinedWidth, hdimY, hthick),
+				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)),
+				ChVector<>(x1I, 0, zI));
 
 		// slope 2
-		AddBoxBce(posRadH, velMasH, rhoPresMuH, referenceArray,
-				numObjects, paramsH, ground,
-				ChVector<>(inclinedWidth, chrono::fsi::hdimY, hthick),
-				ChVector<>(x2I, 0, zI),
-				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)));
+		chrono::fsi::utils::AddBoxBce(
+				myFsiSystem.GetDataManager(),
+				paramsH, ground,
+				ChVector<>(inclinedWidth, hdimY, hthick),
+				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)),
+				ChVector<>(x2I, 0, zI));
 
 #endif
 
@@ -375,9 +391,9 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
 	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
 
-	CreateCylinderFSI(posRadH, velMasH, rhoPresMuH, referenceArray,
-			mphysicalSystem, FSI_Bodies, numObjects, paramsH,
-			cyl_radius, cyl_length, mat_g, paramsH->rho0, cyl_pos, cyl_rot);
+	std::vector<ChSharedPtr<ChBody> > * FSI_Bodies = myFsiSystem.GetFsiBodiesPtr();
+	chrono::fsi::utils::CreateCylinderFSI(myFsiSystem.GetDataManager(),
+			mphysicalSystem, FSI_Bodies, paramsH, mat_g, paramsH->rho0, cyl_pos, cyl_rot, cyl_radius, cyl_length);
 
 	// extra objects
 	// -----------------------------------------
@@ -456,8 +472,7 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParam
 
 // =============================================================================
 void printSimulationParameters(chrono::fsi::SimParams* paramsH) {
-	simParams << " time_hold_vehicle: " << time_hold_vehicle << endl
-			<< " time_pause_fluid_external_force: "
+	simParams << " time_pause_fluid_external_force: "
 			<< paramsH->timePause << endl
 			<< " contact_recovery_speed: " << contact_recovery_speed << endl
 			<< " maxFlowVelocity " << paramsH->v_Max << endl
@@ -543,7 +558,7 @@ int main(int argc, char* argv[]) {
 
 #if haveFluid
 	chrono::fsi::SimParams* paramsH = myFsiSystem.GetSimParams();
-		SetupParamsH(paramsH);
+		SetupParamsH(paramsH, hdimX, hdimY, hthick, basinDepth, fluidInitDimX, fluidHeight);
 		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML
 				utils::GridSampler<> sampler(initSpace0);
 		chrono::fsi::Real3 boxCenter = 0.5 * (paramsH->cMax + paramsH->cMin);
@@ -615,7 +630,6 @@ int main(int argc, char* argv[]) {
 
 	}
 //	ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
-	FSI_Bodies.clear();
 
 	return 0;
 }
