@@ -16,25 +16,35 @@
 // (ChVector, ChQuaternion)
 // =============================================================================
 
-#ifndef CH_UTILS_TRANSFORM_FSI_H_
-#define CH_UTILS_TRANSFORM_FSI_H_
-
-#include "chrono/core/ChVector.h"
-#include "chrono/core/ChQuaternion.h"
-
+#include "chrono_fsi/ChFsiTypeConvert.h"
+#include "chrono_fsi/ChDeviceUtils.cuh"
 
 namespace chrono {
 namespace fsi {
-namespace utils {
 
-ChVector<> ConvertRealToChVector(Real3 p3);
-ChVector<> ConvertRealToChVector(Real4 p4);
-ChQuaternion<> ConvertToChQuaternion(Real4 q4);
-Real3 ConvertChVectorToR3(ChVector<> v3);
-Real4 ConvertChVectorToR4(ChVector<> v3, Real m);
-Real4 ConvertChQuaternionToR4(ChQuaternion<> q4);
+chrono::ChVector<> ChFsiTypeConvert::Real3ToChVector(Real3 p3) {
+	return chrono::ChVector<>(p3.x, p3.y, p3.z);
+}
 
-} // end utils 
+chrono::ChVector<> ChFsiTypeConvert::Real4ToChVector(Real4 p4) {
+	return Real3ToChVector(mR3(p4));
+}
+
+chrono::ChQuaternion<> ChFsiTypeConvert::Real4ToChQuaternion(Real4 q4) {
+	return chrono::ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
+}
+
+Real3 ChFsiTypeConvert::ChVectorToReal3(chrono::ChVector<> v3) {
+	return mR3(v3.x, v3.y, v3.z);
+}
+
+Real4 ChFsiTypeConvert::ChVectorRToReal4(chrono::ChVector<> v3, Real m) {
+	return mR4(v3.x, v3.y, v3.z, m);
+}
+
+Real4 ChFsiTypeConvert::ChQuaternionToReal4(chrono::ChQuaternion<> q4) {
+	return mR4(q4.e0, q4.e1, q4.e2, q4.e3);
+}
+
 } // end namespace fsi
 } // end namespace chrono
-#endif

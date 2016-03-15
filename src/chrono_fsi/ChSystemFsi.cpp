@@ -44,8 +44,17 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 		mphysicalSystem, &fsiBodeisPtr,
 		&(fsiData->fsiGeneralData.rigid_FSI_ForcesD),
 		&(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
+
+	InitializeChronoGraphics();
 }
 
+ChSystemFsi::~ChSystemFsi() {
+	delete fsiData;
+	delete paramsH;
+	delete bceWorker;
+	delete fluidDynamics;
+	delete fsiInterface;
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::CopyDeviceDataToHalfStep() {	
 	thrust::copy(fsiData->sphMarkersD1.posRadD.begin(), fsiData->sphMarkersD1.posRadD.end(), fsiData->sphMarkersD2.posRadD.begin());
@@ -157,6 +166,15 @@ void ChSystemFsi::FinalizeData() {
 	fsiData->FinalizeDataManager();	// (2)
 	bceWorker->Populate_RigidSPH_MeshPos_LRF(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); // (3)
 	bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); //(4)
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::InitializeChronoGraphics(chrono::ChVector<> CameraLocation, chrono::ChVector<> CameraLookAt) {
+#ifdef CHRONO_OPENGL
+	gl_window.Initialize(1280, 720, "FSI_Problem", mphysicalSystem);
+	gl_window.SetCamera(CameraLocation, CameraLookAt,
+			chrono::ChVector<>(0, 0, 1));
+	gl_window.SetRenderMode(chrono::opengl::WIREFRAME);
+#endif
 }
 
 } // end namespace fsi

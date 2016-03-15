@@ -170,6 +170,12 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+ChCollisionSystemFsi::~ChCollisionSystemFsi() {
+	// TODO
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChCollisionSystemFsi::calcHash() {

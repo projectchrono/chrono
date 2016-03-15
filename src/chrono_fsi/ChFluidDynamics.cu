@@ -327,6 +327,12 @@ ChFluidDynamics::ChFluidDynamics(
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+ChFluidDynamics::~ChFluidDynamics() {
+	delete forceSystem;
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFluidDynamics::IntegrateSPH(
 		SphMarkerDataD * sphMarkersD2,

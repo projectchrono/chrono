@@ -33,7 +33,7 @@ public:
 		SimParams* otherParamsH, 
 		NumberOfObjects* otherNumObjects);
 
-	~ChFluidDynamics(); //TODO
+	~ChFluidDynamics();
 	
 	void IntegrateSPH(
 	SphMarkerDataD * sphMarkersD2,

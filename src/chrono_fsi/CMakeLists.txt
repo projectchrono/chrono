@@ -70,6 +70,7 @@ ChSystemFsi.cpp
 ChUtilsGeneratorBce.cpp
 ChUtilsGeneratorFluid.cpp
 ChUtilsGeneratorFsi.cpp
+ChFsiTypeConvert.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
@@ -88,6 +89,7 @@ ChUtilsGeneratorFsi.h
 ChApiFsi.h
 ChUtilsGeneralSph.cuh
 include/utils.h
+ChFsiTypeConvert.h
 )
 
 SOURCE_GROUP("" FILES 

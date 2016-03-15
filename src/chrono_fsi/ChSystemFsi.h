@@ -44,6 +44,10 @@ public:
 	ChFsiDataManager* GetDataManager() {return fsiData;}
 	SimParams* GetSimParams() {return paramsH;}
 	std::vector<ChSharedPtr<ChBody> > * GetFsiBodiesPtr() {return & fsiBodeisPtr;}
+	void InitializeChronoGraphics(
+		chrono::ChVector<> CameraLocation = chrono::ChVector<>(1, 0, 0), 
+		chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0));
+
 
 private:
 	int DoStepChronoSystem(Real dT,

@@ -16,7 +16,7 @@
 // =============================================================================
 
 #include "chrono_fsi/ChFsiInterface.h"
-#include "chrono_fsi/ChUtilsTransformFsi.h"
+#include "chrono_fsi/ChFsiTypeConvert.h"
 
 namespace chrono {
 namespace fsi {
@@ -35,6 +35,10 @@ fsiBodeisPtr(other_fsiBodeisPtr),
 rigid_FSI_ForcesD(other_rigid_FSI_ForcesD),
 rigid_FSI_TorquesD(other_rigid_FSI_TorquesD)
 {}
+//------------------------------------------------------------------------------------
+ChFsiInterface::~ChFsiInterface(){
+	// TODO
+}
 //------------------------------------------------------------------------------------
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
@@ -55,11 +59,11 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 //		std::cout << "body name: " << bodyPtr->GetName() << "\n\n\n\n\n";
 //		bodyPtr->Empty_forces_accumulators();
 //
-//		bodyPtr->Accumulate_force(utils::ConvertRealToChVector(mforce),
+//		bodyPtr->Accumulate_force(ChFsiTypeConvert::Real3ToChVector(mforce),
 //				bodyPtr->GetPos(), false);
 //
 //		Real3 mtorque = (*rigid_FSI_TorquesD)[i];
-//		bodyPtr->Accumulate_torque(utils::ConvertRealToChVector(mtorque), false);
+//		bodyPtr->Accumulate_torque(ChFsiTypeConvert::Real3ToChVector(mtorque), false);
 
 
 		// --------------------------------
@@ -88,8 +92,8 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 			bodyPtr->AddForce(hydroTorque);
 		}
 
-		chrono::ChVector<> mforce = utils::ConvertRealToChVector((*rigid_FSI_ForcesD)[i]);
-		chrono::ChVector<> mtorque = utils::ConvertRealToChVector((*rigid_FSI_TorquesD)[i]);
+		chrono::ChVector<> mforce = ChFsiTypeConvert::Real3ToChVector((*rigid_FSI_ForcesD)[i]);
+		chrono::ChVector<> mtorque = ChFsiTypeConvert::Real3ToChVector((*rigid_FSI_TorquesD)[i]);
 
 		hydroForce->SetVpoint(bodyPtr->GetPos());
 		hydroForce->SetMforce(mforce.Length());
@@ -111,13 +115,13 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numBodies; i++) {
 		auto mBody = mphysicalSystem->Get_bodylist()->at(i);
-		mBody->SetPos(utils::ConvertRealToChVector(chronoRigidBackup->pos_ChSystemH[i]));
-		mBody->SetPos_dt(utils::ConvertRealToChVector(chronoRigidBackup->vel_ChSystemH[i]));
-		mBody->SetPos_dtdt(utils::ConvertRealToChVector(chronoRigidBackup->acc_ChSystemH[i]));
+		mBody->SetPos(ChFsiTypeConvert::Real3ToChVector(chronoRigidBackup->pos_ChSystemH[i]));
+		mBody->SetPos_dt(ChFsiTypeConvert::Real3ToChVector(chronoRigidBackup->vel_ChSystemH[i]));
+		mBody->SetPos_dtdt(ChFsiTypeConvert::Real3ToChVector(chronoRigidBackup->acc_ChSystemH[i]));
 
-		mBody->SetRot(utils::ConvertToChQuaternion(chronoRigidBackup->quat_ChSystemH[i]));
-		mBody->SetWvel_par(utils::ConvertRealToChVector(chronoRigidBackup->omegaVelGRF_ChSystemH[i]));
-		chrono::ChVector<> acc = utils::ConvertRealToChVector(chronoRigidBackup->omegaAccGRF_ChSystemH[i]);
+		mBody->SetRot(ChFsiTypeConvert::Real4ToChQuaternion(chronoRigidBackup->quat_ChSystemH[i]));
+		mBody->SetWvel_par(ChFsiTypeConvert::Real3ToChVector(chronoRigidBackup->omegaVelGRF_ChSystemH[i]));
+		chrono::ChVector<> acc = ChFsiTypeConvert::Real3ToChVector(chronoRigidBackup->omegaAccGRF_ChSystemH[i]);
 		mBody->SetWacc_par(acc);
 	}
 }
@@ -133,13 +137,13 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numBodies; i++) {
 		auto mBody = mphysicalSystem->Get_bodylist()->at(i);
-		chronoRigidBackup->pos_ChSystemH[i] = utils::ConvertChVectorToR3(mBody->GetPos());
-		chronoRigidBackup->vel_ChSystemH[i] = utils::ConvertChVectorToR3(mBody->GetPos_dt());
-		chronoRigidBackup->acc_ChSystemH[i] = utils::ConvertChVectorToR3(mBody->GetPos_dtdt());
+		chronoRigidBackup->pos_ChSystemH[i] = ChFsiTypeConvert::ChVectorToReal3(mBody->GetPos());
+		chronoRigidBackup->vel_ChSystemH[i] = ChFsiTypeConvert::ChVectorToReal3(mBody->GetPos_dt());
+		chronoRigidBackup->acc_ChSystemH[i] = ChFsiTypeConvert::ChVectorToReal3(mBody->GetPos_dtdt());
 
-		chronoRigidBackup->quat_ChSystemH[i] = utils::ConvertChQuaternionToR4(mBody->GetRot());
-		chronoRigidBackup->omegaVelGRF_ChSystemH[i] = utils::ConvertChVectorToR3(mBody->GetWvel_par());
-		chronoRigidBackup->omegaAccGRF_ChSystemH[i] = utils::ConvertChVectorToR3(mBody->GetWacc_par());
+		chronoRigidBackup->quat_ChSystemH[i] = ChFsiTypeConvert::ChQuaternionToReal4(mBody->GetRot());
+		chronoRigidBackup->omegaVelGRF_ChSystemH[i] = ChFsiTypeConvert::ChVectorToReal3(mBody->GetWvel_par());
+		chronoRigidBackup->omegaAccGRF_ChSystemH[i] = ChFsiTypeConvert::ChVectorToReal3(mBody->GetWacc_par());
 	}
 }
 //------------------------------------------------------------------------------------
@@ -153,13 +157,13 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsi
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < num_fsiBodies_Rigids; i++) {
 		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisPtr)[i];
-		fsiBodiesH->posRigid_fsiBodies_H[i] = utils::ConvertChVectorToR3(bodyPtr->GetPos());
-		fsiBodiesH->velMassRigid_fsiBodies_H[i] = utils::ConvertChVectorToR4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-		fsiBodiesH->accRigid_fsiBodies_H[i] = utils::ConvertChVectorToR3(bodyPtr->GetPos_dtdt());
+		fsiBodiesH->posRigid_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetPos());
+		fsiBodiesH->velMassRigid_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorRToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+		fsiBodiesH->accRigid_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetPos_dtdt());
 
-		fsiBodiesH->q_fsiBodies_H[i] = utils::ConvertChQuaternionToR4(bodyPtr->GetRot());
-		fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = utils::ConvertChVectorToR3(bodyPtr->GetWvel_loc());
-		fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = utils::ConvertChVectorToR3(bodyPtr->GetWacc_loc());
+		fsiBodiesH->q_fsiBodies_H[i] = ChFsiTypeConvert::ChQuaternionToReal4(bodyPtr->GetRot());
+		fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
+		fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
 	}
 
 	thrust::copy(fsiBodiesH->posRigid_fsiBodies_H.begin(), fsiBodiesH->posRigid_fsiBodies_H.end(),

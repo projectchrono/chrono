@@ -346,6 +346,12 @@ paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 
 	sphMarkersD = NULL;
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+ChFsiForceParallel::~ChFsiForceParallel() {
+	delete fsiCollisionSystem;
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 // use invasive to avoid one extra copy. However, keep in mind that sorted is changed.
 void ChFsiForceParallel::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,

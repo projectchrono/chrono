@@ -21,7 +21,7 @@
 
 #include "chrono_fsi/custom_cutil_math.h"
 #include "chrono_fsi/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/ChUtilsTransformFsi.h"
+#include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 // #include "chrono/core/ChFrame.h"
 // #include "chrono/core/ChVector.h"
@@ -62,7 +62,7 @@ chrono::ChVector<> TransformBCEToCOG(chrono::ChBody* body,
 }
 
 chrono::ChVector<> TransformBCEToCOG(chrono::ChBody* body, const Real3 & pos3) {
-	chrono::ChVector<> pos = ConvertRealToChVector(pos3);
+	chrono::ChVector<> pos = ChFsiTypeConvert::Real3ToChVector(pos3);
 	return TransformBCEToCOG(body, pos);
 }
 // =============================================================================
@@ -98,7 +98,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 	//#pragma omp parallel for  // it is very wrong to do it in parallel. race condition will occur
 	for (int i = 0; i < posRadBCE.size(); i++) {
 
-		chrono::ChVector<> posLoc_collisionShape = ConvertRealToChVector(
+		chrono::ChVector<> posLoc_collisionShape = ChFsiTypeConvert::Real3ToChVector(
 				posRadBCE[i]);
 		chrono::ChVector<> posLoc_body =
 				chrono::ChTransform<>::TransformLocalToParent(
@@ -109,10 +109,10 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 		chrono::ChVector<> posGlob =
 				chrono::ChTransform<>::TransformLocalToParent(posLoc_COG,
 						body->GetPos(), body->GetRot());
-		fsiData->sphMarkersH.posRadH.push_back(ConvertChVectorToR3(posGlob));
+		fsiData->sphMarkersH.posRadH.push_back(ChFsiTypeConvert::ChVectorToReal3(posGlob));
 
 		chrono::ChVector<> vAbs = body->PointSpeedLocalToParent(posLoc_COG);
-		Real3 v3 = ConvertChVectorToR3(vAbs);
+		Real3 v3 = ChFsiTypeConvert::ChVectorToReal3(vAbs);
 		fsiData->sphMarkersH.velMasH.push_back(v3);
 
 		fsiData->sphMarkersH.rhoPresMuH.push_back(
@@ -235,7 +235,7 @@ void AddBoxBce(
 	chrono::utils::AddBoxGeometry(body.get_ptr(), size, relPos, relRot, true);
 	thrust::host_vector<Real3> posRadBCE;
 
-	CreateBCE_On_Box(posRadBCE, ConvertChVectorToR3(size), 12, paramsH);
+	CreateBCE_On_Box(posRadBCE, ChFsiTypeConvert::ChVectorToReal3(size), 12, paramsH);
 	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
 		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
 				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());

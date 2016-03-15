@@ -58,7 +58,7 @@
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChUtilsGeneratorFsi.h"
-
+#include "chrono_fsi/ChFsiTypeConvert.h"
 
 // FSI Interface Includes
 #include "params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
@@ -482,28 +482,6 @@ void printSimulationParameters(chrono::fsi::SimParams* paramsH) {
 
 // =============================================================================
 
-void InitializeChronoGraphics(chrono::ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH) {
-	//	ChVector<> CameraLocation = ChVector<>(2 * paramsH->cMax.x, 2 * paramsH->cMax.y, 2 * paramsH->cMax.z);
-	//	ChVector<> CameraLookAt = ChVector<>(domainCenter.x, domainCenter.y, domainCenter.z);
-	chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
-	chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
-
-#ifdef CHRONO_OPENGL
-	gl_window.Initialize(1280, 720, "HMMWV", &mphysicalSystem);
-	gl_window.SetCamera(CameraLocation, CameraLookAt,
-			chrono::ChVector<>(0, 0, 1));
-	gl_window.SetRenderMode(chrono::opengl::WIREFRAME);
-
-// Uncomment the following two lines for the OpenGL manager to automatically un the simulation in an infinite loop.
-
-// gl_window.StartDrawLoop(paramsH->dT);
-// return 0;
-#endif
-}
-
-
-// =============================================================================
-
 int main(int argc, char* argv[]) {
 	//****************************************************************************************
 	time_t rawtime;
@@ -548,35 +526,34 @@ int main(int argc, char* argv[]) {
 	simParams.open(simulationParams);
 	simParams << " Job was submitted at date/time: " << asctime(timeinfo)
 			<< endl;
-	printSimulationParameters(paramsH);
 	simParams.close();
 	// ***************************** Create Fluid ********************************************
 	ChSystemParallelDVI mphysicalSystem;
 	fsi::ChSystemFsi myFsiSystem(&mphysicalSystem);
-
-
+	chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
+	chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
 
 #if haveFluid
 	chrono::fsi::SimParams* paramsH = myFsiSystem.GetSimParams();
+	printSimulationParameters(paramsH);
 		SetupParamsH(paramsH, hdimX, hdimY, hthick, basinDepth, fluidInitDimX, fluidHeight);
-		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML
-				utils::GridSampler<> sampler(initSpace0);
+		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+		utils::GridSampler<> sampler(initSpace0);
 		chrono::fsi::Real3 boxCenter = 0.5 * (paramsH->cMax + paramsH->cMin);
 		chrono::fsi::Real3 boxHalfDim = paramsH->cMax - boxCenter;
-		utils::Generator::PointVector points = sampler.SampleBox(fsi::utils::ConvertRealToChVector(boxCenter), fsi::utils::ConvertRealToChVector(boxHalfDim));
-
-										int numPart = points.size();
+		utils::Generator::PointVector points = sampler.SampleBox(fsi::ChFsiTypeConvert::Real3ToChVector(boxCenter), fsi::ChFsiTypeConvert::Real3ToChVector(boxHalfDim));
+		int numPart = points.size();
 		for (int i = 0; i < numPart; i++) {
 
-			myFsiSystem.GetDataManager->AddSphMarker(mR3(points[i].x, points[i].y, points[i].z),
-					mR3(0), mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
+			myFsiSystem.GetDataManager()->AddSphMarker(chrono::fsi::mR3(points[i].x, points[i].y, points[i].z),
+					chrono::fsi::mR3(0), chrono::fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
 		}
 
-		int numPhases = myFsiSystem.GetDataManager->fsiGeneralData.referenceArray.size(); //Arman TODO: either rely on pointers, or stack entirely, combination of '.' and '->' is not good
+		int numPhases = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.size(); //Arman TODO: either rely on pointers, or stack entirely, combination of '.' and '->' is not good
 		if (numPhases != 0 ) {
 			std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
 			std::cin.get();
-			return;
+			return -1;
 		} else {
 			myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.push_back(mI4(0, numPart, -1, -1)); // map fluid -1, Arman : this will later be removed, relying on finalize function and automatic sorting
 			myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.push_back(mI4(numPart, numPart, 0, 0)); // Arman : delete later
@@ -596,7 +573,7 @@ int main(int argc, char* argv[]) {
 	// ***************************** Create Interface ********************************************
 
 	//    assert(posRadH.size() == numObjects.numAllMarkers && "(2) numObjects is not set correctly");
-	if (myFsiSystem.GetDataManager->sphMarkersH.posRadH.size() != myFsiSystem.GetNObjects()->numAllMarkers) {
+	if (myFsiSystem.GetDataManager()->sphMarkersH.posRadH.size() != myFsiSystem.GetDataManager()->numObjects.numAllMarkers) {
 		printf("\n\n\n\n Error! (2) numObjects is not set correctly \n\n\n\n");
 		return -1;
 	}
@@ -607,8 +584,8 @@ int main(int argc, char* argv[]) {
 			<< endl;
 
 	// ***************************** System Initialize ********************************************
+	myFsiSystem.InitializeChronoGraphics(CameraLocation, CameraLookAt);
 
-	InitializeChronoGraphics(mphysicalSystem, paramsH);
 
 	double mTime = 0;
 

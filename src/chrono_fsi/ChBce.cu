@@ -272,6 +272,10 @@ ChBce::ChBce(FsiGeneralData* otherFsiGeneralData,
 	velMas_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
 	rhoPreMu_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+ChBce::~ChBce() {
+	// TODO
+}
 
 ////--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::MakeRigidIdentifier() {
