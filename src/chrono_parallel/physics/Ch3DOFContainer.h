@@ -162,7 +162,6 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     real artificial_pressure_n;
     real artificial_pressure_dq;
     bool enable_viscosity;
-    bool initialize_mass;
     custom_vector<real3> new_pos;
 
     real nu;

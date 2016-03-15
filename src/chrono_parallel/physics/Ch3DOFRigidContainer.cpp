@@ -31,6 +31,15 @@ Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelDVI* physics_system) 
     start_boundary = 0;
     start_contact = 0;
     mpm_iterations = 0;
+
+    nu = .2;
+    youngs_modulus = 1.4e5;
+    hardening_coefficient = 10;
+    lame_lambda = youngs_modulus * nu / ((1. + nu) * (1. - 2. * nu));
+    lame_mu = youngs_modulus / (2. * (1. + nu));
+    theta_s = 7.5e-3;
+    theta_c = 2.5e-2;
+    alpha_flip = .95;
 }
 Ch3DOFRigidContainer::~Ch3DOFRigidContainer() {}
 

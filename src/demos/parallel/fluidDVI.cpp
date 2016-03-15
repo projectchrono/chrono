@@ -82,7 +82,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
 
     fluid_container->contact_mu = 0;
     fluid_container->rho = 1000;
-    fluid_container->initialize_mass = false;
+
     // msystem.GetSettings()->fluid.max_interactions = 30;
     fluid_container->artificial_pressure = true;
     fluid_container->artificial_pressure_k = .01;

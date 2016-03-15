@@ -26,21 +26,28 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     data_manager->Add3DOFContainer(this);
     body_offset = 0;
     compliance = 0;
-    epsilon = 10e-3;
-    tau = 4 * .01;
+    epsilon = 1e-3;
+    tau = 4 * .001;
 
     rho = 1000;
-    mass = 0.037037;
+    mass = 1;
 
     viscosity = 0;
 
     artificial_pressure = false;
-    artificial_pressure_k = 0.1;
+    artificial_pressure_k = 0.01;
     artificial_pressure_dq = .2 * kernel_radius;
     artificial_pressure_n = 4;
     enable_viscosity = false;
-    initialize_mass = false;
     mpm_iterations = 0;
+    nu = .2;
+    youngs_modulus = 1.4e5;
+    hardening_coefficient = 10;
+    lame_lambda = youngs_modulus * nu / ((1. + nu) * (1. - 2. * nu));
+    lame_mu = youngs_modulus / (2. * (1. + nu));
+    theta_s = 7.5e-3;
+    theta_c = 2.5e-2;
+    alpha_flip = .95;
 }
 ChFluidContainer::~ChFluidContainer() {}
 
