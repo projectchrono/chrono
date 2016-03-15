@@ -239,6 +239,42 @@ CUDA_HOST_DEVICE static Mat33 Rotational_Derivative(const Mat33& F, const Mat33&
     return Solve_dR(R, S, W);
 }
 
+CUDA_HOST_DEVICE static Mat33 Rotational_Derivative_Simple(const Mat33& r, const Mat33& s, const Mat33& df) {
+    // Assumes SVD has already been done
+    Mat33 dR;
+    real t1 = s[10] + s[0] + s[5];
+    real t2 = Pow(s[4], 2);
+    real t3 = s[0] * s[5];
+    real t4 = df[0] * r[4] - df[4] * r[0] + df[1] * r[5] - df[5] * r[1] + df[2] * r[6] - df[6] * r[2];
+    real t5 = s[0] + s[5];
+    real t6 = Pow(s[8], 2);
+    real t7 = Pow(s[9], 2);
+    real t8 = Pow(s[0], 2);
+    real t9 = s[4] * s[8];
+    real t10 = 2;
+    t8 = t10 * (t3 * s[10] - t9 * s[9]) + t5 * Pow(s[10], 2) - t2 * t5 - t6 * s[0] - (t7 - t8 - t3) * s[5] -
+         (-Pow(s[5], 2) + t6 + t7 - t8) * s[10];
+    t9 = (s[5] + s[10]) * s[9] + t9;
+    t10 = df[0] * r[8] - df[8] * r[0] + df[1] * r[9] - df[9] * r[1] + df[2] * r[10] - df[10] * r[2];
+    real t11 = (s[0] + s[10]) * s[8] + s[4] * s[9];
+    real t12 = df[4] * r[8] - df[8] * r[4] + df[5] * r[9] - df[9] * r[5] + df[6] * r[10] - df[10] * r[6];
+    t8 = 0.1e1 / t8;
+    t2 = ((t1 * s[10] - t2 + t3) * t4 - t9 * t10 + t11 * t12) * t8;
+    t3 = t5 * s[4] + s[8] * s[9];
+    t5 = (-t10 * (t1 * s[5] + s[0] * s[10] - t6) + t12 * t3 + t4 * t9) * t8;
+    t1 = (-t10 * t3 + t11 * t4 + t12 * (t1 * s[0] + s[5] * s[10] - t7)) * t8;
+    dR[0] = t2 * r[4] - t5 * r[8];
+    dR[4] = t1 * r[8] - t2 * r[0];
+    dR[8] = -t1 * r[4] + t5 * r[0];
+    dR[1] = t2 * r[5] - t5 * r[9];
+    dR[5] = t1 * r[9] - t2 * r[1];
+    dR[9] = -t1 * r[5] + t5 * r[1];
+    dR[2] = t2 * r[6] - t5 * r[10];
+    dR[6] = t1 * r[10] - t2 * r[2];
+    dR[10] = -t1 * r[6] + t5 * r[2];
+    return dR;
+}
+
 CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33& FE,
                                                               const Mat33& FP,
                                                               real mu,
