@@ -102,7 +102,7 @@ inline real3 grad2_viscosity(const real3& xij, const real d, const real& h) {
 
 ////-----------------------------------------------------------------------------------------------------
 // kernel from constraint fluid approximation paper/code
-real kernel(const real& dist, const real& h) {
+inline real kernel(const real& dist, const real& h) {
     if (dist > h) {
         return 0;
     }
@@ -111,7 +111,7 @@ real kernel(const real& dist, const real& h) {
 }
 
 // laplacian operator for poly6
-real grad2_poly6(const real& dist, const real& h) {
+inline real grad2_poly6(const real& dist, const real& h) {
     if (dist > h) {
         return 0;
     }
@@ -121,7 +121,7 @@ real grad2_poly6(const real& dist, const real& h) {
 #define SS(alpha) mrho* vij.alpha
 #define TT(beta) grad.beta
 
-Mat33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
+inline Mat33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
     return Mat33(-.5 * 2 * SS(x) * TT(x), -.5 * (SS(y) * TT(x) + SS(x) * TT(y)), -.5 * (SS(z) * TT(x) + SS(x) * TT(z)),
                  -.5 * (SS(x) * TT(y) + SS(y) * TT(x)), -.5 * 2 * SS(y) * TT(y), -.5 * (SS(z) * TT(y) + SS(y) * TT(z)),
                  -.5 * (SS(x) * TT(z) + SS(z) * TT(x)), -.5 * (SS(y) * TT(z) + SS(z) * TT(y)), -.5 * 2 * SS(z) * TT(z));
