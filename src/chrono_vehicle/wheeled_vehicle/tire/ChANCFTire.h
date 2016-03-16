@@ -124,6 +124,8 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
 
   private:
     std::shared_ptr<fea::ChMesh> m_mesh;
+    std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;
+    std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;
 
     bool m_connection_enabled;
     bool m_pressure_enabled;

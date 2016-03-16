@@ -123,15 +123,18 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
         // Connect nodes to rim
         auto nodes = GetConnectedNodes(m_mesh);
 
-        for (size_t in = 0; in < nodes.size(); ++in) {
-            auto linkP = std::make_shared<ChLinkPointFrame>();
-            linkP->Initialize(nodes[in], wheel);
-            system->Add(linkP);
+        m_connections.resize(nodes.size());
+        m_connectionsD.resize(nodes.size());
 
-            auto linkD = std::make_shared<ChLinkDirFrame>();
-            linkD->Initialize(nodes[in], wheel);
-            linkD->SetDirectionInAbsoluteCoords(nodes[in]->GetD());
-            system->Add(linkD);
+        for (size_t in = 0; in < nodes.size(); ++in) {
+            m_connections[in] = std::make_shared<ChLinkPointFrame>();
+            m_connections[in]->Initialize(nodes[in], wheel);
+            system->Add(m_connections[in]);
+
+            m_connectionsD[in] = std::make_shared<ChLinkDirFrame>();
+            m_connectionsD[in]->Initialize(nodes[in], wheel);
+            m_connectionsD[in]->SetDirectionInAbsoluteCoords(nodes[in]->GetD());
+            system->Add(m_connectionsD[in]);
         }
     }
 
