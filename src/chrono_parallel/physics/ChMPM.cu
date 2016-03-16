@@ -242,14 +242,13 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
         PolarR[p] = RE;
         PolarR[p][3] = JP;
 
-        Mat33 PED = real(2.) * current_mu * (FE_hat - RE) +
-                    current_lambda * JE_hat * (JE_hat - real(1.)) * AdjointTranspose(FE_hat) * real(1.0 / JE_hat);
+        Mat33 PED = real(2.) * current_mu * (FE_hat - RE);
 
-        Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, FE);
+        Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, FE) * (1.0f / (JE * JP));
 
         LOOP_TWO_RING_GPU(                                                  //
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
-            real3 force = device_settings.dt * (vPEDFepT * d_weight) / (JE * JP);
+            real3 force = device_settings.dt * (vPEDFepT * d_weight);
 
             real mass = node_mass[current_node];  //
             if (mass > 0) {
@@ -622,16 +621,26 @@ CUDA_GLOBAL void kUpdateParticleVelocity(real* grid_vel,
         real3 V_flip = vel_marker[p];
         real3 V_pic = real3(0.0);
 
-        Mat33 velocity_gradient(0);
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = 1.f / bin_edge;
+        int cx, cy, cz;
 
-        LOOP_TWO_RING_GPU(                                              //
-            real weight = N(xi - current_node_location, inv_bin_edge);  //
-            real3 g_vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
-            V_pic += g_vel * weight;                                                                 //
-            V_flip.x += (g_vel.x - old_vel_node_mpm[current_node * 3 + 0]) * weight;                 //
-            V_flip.y += (g_vel.y - old_vel_node_mpm[current_node * 3 + 1]) * weight;                 //
-            V_flip.z += (g_vel.z - old_vel_node_mpm[current_node * 3 + 2]) * weight;                 //
-            velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));  //
+        LOOP_TWO_RING_GPUSP(
+
+            real weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
+                          N((xi.y - current_node_locationy) * inv_bin_edge) *
+                          N((xi.z - current_node_locationz) * inv_bin_edge);
+
+            real vnx = grid_vel[current_node * 3 + 0];  //
+            real vny = grid_vel[current_node * 3 + 1];  //
+            real vnz = grid_vel[current_node * 3 + 2];
+
+            V_pic.x += vnx * weight;                                              //
+            V_pic.y += vny * weight;                                              //
+            V_pic.z += vnz * weight;                                              //
+            V_flip.x += (vnx - old_vel_node_mpm[current_node * 3 + 0]) * weight;  //
+            V_flip.y += (vny - old_vel_node_mpm[current_node * 3 + 1]) * weight;  //
+            V_flip.z += (vnz - old_vel_node_mpm[current_node * 3 + 2]) * weight;  //
             )
         real3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
 
@@ -767,7 +776,7 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
         kUpdateParticleVelocity<<<CONFIG(host_settings.num_mpm_markers)>>>(
             grid_vel.data_d, old_vel_node_mpm.data_d, pos.data_d, vel.data_d, marker_Fe.data_d, marker_Fp.data_d);
     }
-    printf("kIncrementVelocity: %f\n", time_measured);
+    printf("kUpdateParticleVelocity: %f\n", time_measured);
     time_measured = 0;
 
     vel.copyDeviceToHost();
