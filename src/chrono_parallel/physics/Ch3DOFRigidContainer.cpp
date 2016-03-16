@@ -119,7 +119,7 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
             vel = vel * max_velocity / speed;
         }
         vel_fluid[original_index] = vel;
-        pos_fluid[original_index] += vel * data_manager->settings.step_size;
+        // pos_fluid[original_index] += vel * data_manager->settings.step_size;
         sorted_pos_fluid[i] = pos_fluid[original_index];
     }
 
@@ -155,19 +155,20 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
                     //}
                 }
                 if (weight > 0) {
-                    sorted_pos_fluid[p] = sorted_pos_fluid[p] + delta / weight;
+                    sorted_pos_fluid[p] += delta / weight;
                 }
             }
-            real inv_dt = 1.0 / data_manager->settings.step_size;
+        }
+        real inv_dt = 1.0 / data_manager->settings.step_size;
 #pragma omp parallel for
-            for (int p = 0; p < num_fluid_bodies; p++) {
-                int original_index = data_manager->host_data.particle_indices_3dof[p];
-                real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
-                if (contact_counts[p + 1] - contact_counts[p] > 0) {
-                    // vel_fluid[original_index] = vv;
-                    pos_fluid[original_index] = sorted_pos_fluid[p];
-                }
-            }
+        for (int p = 0; p < num_fluid_bodies; p++) {
+            int original_index = data_manager->host_data.particle_indices_3dof[p];
+            real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
+            // if (contact_counts[p + 1] - contact_counts[p] > 0) {
+            pos_fluid[original_index] =
+                sorted_pos_fluid[p] + vel_fluid[original_index] * data_manager->settings.step_size;
+            vel_fluid[original_index] += vv;
+            //}
         }
     }
 }
