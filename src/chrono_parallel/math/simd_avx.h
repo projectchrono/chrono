@@ -306,12 +306,12 @@ static __m256d change_sign(__m256d a) {
 //    return _mm256_and_pd(c, REAL3MASK);
 //}
 
-inline real3 Cross3(const real* a, const real* b) {
+inline real3 Cross3(const real3& a, const real3& b) {
     real3 result;
 #if defined(CHRONO_AVX_2_0)
     // https://www.nersc.gov/assets/Uploads/Language-Impact-on-Vectorization-Vector-Programming-in-C++.pdf
-    __m256d a012 = _mm256_loadu_pd(a);
-    __m256d b012 = _mm256_loadu_pd(b);
+    __m256d a012 = _mm256_loadu_pd(&a[0]);
+    __m256d b012 = _mm256_loadu_pd(&b[0]);
     __m256d a201 = _mm256_permute4x64_pd(a012, _MM_SHUFFLE(3, 1, 0, 2));
     __m256d b201 = _mm256_permute4x64_pd(b012, _MM_SHUFFLE(3, 1, 0, 2));
     __m256d tmp = _mm256_fmsub_pd(b012, a201, _mm256_mul_pd(a012, b201));
@@ -440,5 +440,23 @@ inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d t0 = a0000 * b;
     __m256d t03 = t0 - t3;
     return t03 + t12m;
+}
+
+inline __m128i Set(int x) {
+    return _mm_set1_epi32(x);
+}
+inline __m128i Sub(__m128i a, __m128i b) {
+    return _mm_sub_epi32(a, b);
+}
+
+inline __m128i Add(__m128i a, __m128i b) {
+    return _mm_add_epi32(a, b);
+}
+
+inline __m128i Max(__m128i a, __m128i b) {
+    return _mm_max_epi32(a, b);
+}
+inline __m128i Min(__m128i a, __m128i b) {
+    return _mm_min_epi32(a, b);
 }
 }

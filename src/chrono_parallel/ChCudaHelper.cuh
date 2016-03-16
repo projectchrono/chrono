@@ -62,6 +62,12 @@ struct real3Max {
 // code adopted from http://stackoverflow.com/questions/17371275/implementing-max-reduce-in-cuda
 // ========================================================================================
 
+#ifdef CHRONO_PARALLEL_USE_DOUBLE
+#define ATOMIC_ADD(x, y) atomicAdd_d(x, y)
+#else
+#define ATOMIC_ADD(x, y) atomicAdd(x, y)
+#endif
+
 static CUDA_DEVICE double atomicAdd_d(double* address, double value) {
     unsigned long long int* address_as_ull = (unsigned long long int*)address;
     unsigned long long int old = *address_as_ull, assumed;

@@ -109,10 +109,10 @@ CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
         const real3 vi = sorted_vel[p];
         LOOP_TWO_RING_GPU(                                                                     //
             real weight = N(xi - current_node_location, inv_bin_edge) * device_settings.mass;  //
-            atomicAdd(&grid_mass[current_node], weight);                                       //
-            atomicAdd(&grid_vel[current_node * 3 + 0], weight * vi.x);
-            atomicAdd(&grid_vel[current_node * 3 + 1], weight * vi.y);
-            atomicAdd(&grid_vel[current_node * 3 + 2], weight * vi.z);)
+            ATOMIC_ADD(&grid_mass[current_node], weight);                                      //
+            ATOMIC_ADD(&grid_vel[current_node * 3 + 0], weight * vi.x);
+            ATOMIC_ADD(&grid_vel[current_node * 3 + 1], weight * vi.y);
+            ATOMIC_ADD(&grid_vel[current_node * 3 + 2], weight * vi.z);)
     }
 }
 CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
@@ -122,7 +122,7 @@ CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
         const real3 xi = sorted_pos[p];
         LOOP_TWO_RING_GPU(                                                                     //
             real weight = N(xi - current_node_location, inv_bin_edge) * device_settings.mass;  //
-            atomicAdd(&grid_mass[current_node], weight);                                       //
+            ATOMIC_ADD(&grid_mass[current_node], weight);                                      //
             )
     }
 }
@@ -235,9 +235,9 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
 
             real mass = node_mass[current_node];  //
             if (mass > 0) {
-                atomicAdd(&grid_vel[current_node * 3 + 0], -device_settings.dt * force.x / mass);  //
-                atomicAdd(&grid_vel[current_node * 3 + 1], -device_settings.dt * force.y / mass);  //
-                atomicAdd(&grid_vel[current_node * 3 + 2], -device_settings.dt * force.z / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 0], -device_settings.dt * force.x / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 1], -device_settings.dt * force.y / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 2], -device_settings.dt * force.z / mass);  //
             })
     }
 }
@@ -290,9 +290,10 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
         {
             LOOP_TWO_RING_GPU(  //
                 real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);
-                atomicAdd(&result_array[current_node * 3 + 0], res.x);
-                atomicAdd(&result_array[current_node * 3 + 1], res.y);
-                atomicAdd(&result_array[current_node * 3 + 2], res.z););
+
+                ATOMIC_ADD(&result_array[current_node * 3 + 0], res.x);
+                ATOMIC_ADD(&result_array[current_node * 3 + 1], res.y);
+                ATOMIC_ADD(&result_array[current_node * 3 + 2], res.z););
         }
     }
 }
@@ -411,13 +412,13 @@ CUDA_GLOBAL void kUpdateAlpha(int num_items, real* ml_p, real* ml, real* mg_p, r
             data = ms * ms;
             block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
             if (threadIdx.x == 0) {
-                atomicAdd(&dot_ms_ms, block_sum);
+                ATOMIC_ADD(&dot_ms_ms, block_sum);
             }
         } else {
             data = my * my;
             block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
             if (threadIdx.x == 0) {
-                atomicAdd(&dot_my_my, block_sum);
+                ATOMIC_ADD(&dot_my_my, block_sum);
             }
         }
         __syncthreads();
@@ -425,7 +426,7 @@ CUDA_GLOBAL void kUpdateAlpha(int num_items, real* ml_p, real* ml, real* mg_p, r
         block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
 
         if (threadIdx.x == 0) {
-            atomicAdd(&dot_ms_my, block_sum);
+            ATOMIC_ADD(&dot_ms_my, block_sum);
         }
     }
 }
@@ -468,7 +469,7 @@ CUDA_GLOBAL void kResidual(int num_items, real* mg, real* dot_g_proj_norm) {
         block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
 
         if (threadIdx.x == 0) {
-            atomicAdd(&dot_g_proj_norm[0], block_sum);
+            ATOMIC_ADD(&dot_g_proj_norm[0], block_sum);
         }
         // printf("resid [%f %f]\n", mg[tid], dot_g_proj_norm[0]);
     }
