@@ -21,7 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-FlatTerrain::FlatTerrain(const int height) : m_height(height) {
+FlatTerrain::FlatTerrain(double height) : m_height(height) {
 }
 
 }  // end namespace vehicle
