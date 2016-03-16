@@ -146,4 +146,32 @@ static inline CUDA_DEVICE void AtomicMin(real3* pointer, real3 val) {
     AtomicMin(&pointer->y, val.y);
     AtomicMin(&pointer->z, val.z);
 }
+
+// Scoped CUDA timer
+struct CudaEventTimer {
+    CudaEventTimer(cudaEvent_t start, cudaEvent_t stop, bool active, float& time)
+        : mEnabled(active), mTime(time), mStart(start), mStop(stop) {
+        if (mEnabled) {
+            cudaCheck(cudaEventRecord(mStart, 0));
+        }
+    }
+
+    ~CudaEventTimer() {
+        if (mEnabled) {
+            cudaCheck(cudaEventRecord(mStop, 0));
+            cudaCheck(cudaEventSynchronize(mStop));
+
+            elapsedTime = 0;
+            cudaCheck(cudaEventElapsedTime(&elapsedTime, mStart, mStop));
+
+            mTime += elapsedTime;
+        }
+    }
+
+    bool mEnabled;
+    float& mTime;
+    float elapsedTime;
+    cudaEvent_t mStart;
+    cudaEvent_t mStop;
+};
 }

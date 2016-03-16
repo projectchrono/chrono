@@ -40,6 +40,9 @@ gpu_vector<real> dot_g_proj_norm;
 CUDA_CONSTANT MPM_Settings device_settings;
 CUDA_CONSTANT Bounds system_bounds;
 
+cudaEvent_t start;
+cudaEvent_t stop;
+float time_measured = 0;
 /////// BB Constants
 __device__ real alpha = 0.0001;
 __device__ real dot_ms_ms = 0;
@@ -51,28 +54,43 @@ __device__ real dot_my_my = 0;
 #define neg_BB1_fallback 0.11
 #define neg_BB2_fallback 0.12
 
-#define LOOP_TWO_RING_GPU(X)                                                             \
-    const real bin_edge = device_settings.bin_edge;                                      \
-    const real inv_bin_edge = 1.f / bin_edge;                                            \
-                                                                                         \
-    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);              \
-    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);              \
-    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);              \
-    vec3 bins_per_axis(device_settings.bins_per_axis_x, device_settings.bins_per_axis_y, \
-                       device_settings.bins_per_axis_z);                                 \
-    for (int i = cx - 2; i <= cx + 2; ++i) {                                             \
-        for (int j = cy - 2; j <= cy + 2; ++j) {                                         \
-            for (int k = cz - 2; k <= cz + 2; ++k) {                                     \
-                const int current_node = GridHash(i, j, k, bins_per_axis);               \
-                real3 current_node_location;                                             \
-                current_node_location.x = i * bin_edge + system_bounds.minimum[0];       \
-                current_node_location.y = j * bin_edge + system_bounds.minimum[1];       \
-                current_node_location.z = k * bin_edge + system_bounds.minimum[2];       \
-                X                                                                        \
-            }                                                                            \
-        }                                                                                \
+#define LOOP_TWO_RING_GPU(X)                                                                                         \
+    const real bin_edge = device_settings.bin_edge;                                                                  \
+    const real inv_bin_edge = 1.f / bin_edge;                                                                        \
+                                                                                                                     \
+    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                                          \
+    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                                          \
+    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);                                          \
+    for (int i = cx - 2; i <= cx + 2; ++i) {                                                                         \
+        for (int j = cy - 2; j <= cy + 2; ++j) {                                                                     \
+            for (int k = cz - 2; k <= cz + 2; ++k) {                                                                 \
+                const int current_node = GridHash(i, j, k, device_settings.bins_per_axis_x,                          \
+                                                  device_settings.bins_per_axis_y, device_settings.bins_per_axis_z); \
+                real3 current_node_location;                                                                         \
+                current_node_location.x = i * bin_edge + system_bounds.minimum[0];                                   \
+                current_node_location.y = j * bin_edge + system_bounds.minimum[1];                                   \
+                current_node_location.z = k * bin_edge + system_bounds.minimum[2];                                   \
+                X                                                                                                    \
+            }                                                                                                        \
+        }                                                                                                            \
     }
 
+#define LOOP_TWO_RING_GPUSP(X)                                                                                         \
+    cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                                                      \
+    cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                                                      \
+    cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);                                                      \
+    for (int i = cx - 2; i <= cx + 2; ++i) {                                                                           \
+        for (int j = cy - 2; j <= cy + 2; ++j) {                                                                       \
+            for (int k = cz - 2; k <= cz + 2; ++k) {                                                                   \
+                int current_node = GridHash(i, j, k, device_settings.bins_per_axis_x, device_settings.bins_per_axis_y, \
+                                            device_settings.bins_per_axis_z);                                          \
+                real current_node_locationx = i * bin_edge + system_bounds.minimum[0];                                 \
+                real current_node_locationy = j * bin_edge + system_bounds.minimum[1];                                 \
+                real current_node_locationz = k * bin_edge + system_bounds.minimum[2];                                 \
+                X                                                                                                      \
+            }                                                                                                          \
+        }                                                                                                              \
+    }
 //////========================================================================================================================================================================
 ////
 CUDA_GLOBAL void kComputeBounds(const real3* pos,  // input
@@ -270,31 +288,64 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
-        Mat33 delta_F(0);
-        {
-            LOOP_TWO_RING_GPU(  //
-                real3 vnew(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1], v_array[current_node * 3 + 2]);
-                real3 v1 = dN(xi - current_node_location, inv_bin_edge);  //
-                delta_F += OuterProduct(vnew, v1);                        //
-                )
-        }
+        real VAP[9];
+        real delta_F[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+        int cx, cy, cz;
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = 1.f / bin_edge;
+
+        LOOP_TWO_RING_GPUSP(  //
+
+            real vnx = v_array[current_node * 3 + 0];  //
+            real vny = v_array[current_node * 3 + 1];  //
+            real vnz = v_array[current_node * 3 + 2];
+
+            real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
+            real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
+            real Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+
+            real valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
+            real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
+            real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
+
+            delta_F[0] += vnx * valx; delta_F[1] += vny * valx; delta_F[2] += vnz * valx;  //
+            delta_F[3] += vnx * valy; delta_F[4] += vny * valy; delta_F[5] += vnz * valy;  //
+            delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;
+
+            //                real3 g_vel(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1],
+            //                            v_array[current_node * 3 + 2]);
+            //                delta_F += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));  //
+            )
+
         Mat33 m_FE = marker_Fe[p];
-        delta_F = delta_F * m_FE;
         Mat33 R = PolarR[p];
         Mat33 S = PolarS[p];
         real plastic_determinant = R[3];  // Determinant(marker_Fp[p]);
-        real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (1.0 - plastic_determinant));
-        Mat33 RD = Rotational_Derivative_Simple(R, S, delta_F);
 
-        Mat33 volume_Ap_Fe_transpose = marker_volume[p] * MultTranspose(2 * current_mu * (delta_F - RD), m_FE);
-        {
-            LOOP_TWO_RING_GPU(  //
-                real3 res = volume_Ap_Fe_transpose * dN(xi - current_node_location, inv_bin_edge);
+        // delta_F = delta_F * m_FE;
 
-                ATOMIC_ADD(&result_array[current_node * 3 + 0], res.x);
-                ATOMIC_ADD(&result_array[current_node * 3 + 1], res.y);
-                ATOMIC_ADD(&result_array[current_node * 3 + 2], res.z););
-        }
+        real current_mu = marker_volume[p] * 2 * device_settings.mu *
+                          Exp(device_settings.hardening_coefficient * (1.0f - plastic_determinant));
+
+        Vol_APFunc(S, R, delta_F, m_FE, current_mu, VAP);
+
+        LOOP_TWO_RING_GPUSP(                                           //
+            real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
+            real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
+            real Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+
+            real valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
+            real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
+            real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
+
+            real resx = VAP[0] * valx + VAP[3] * valy + VAP[6] * valz;
+            real resy = VAP[1] * valx + VAP[4] * valy + VAP[7] * valz;
+            real resz = VAP[2] * valx + VAP[5] * valy + VAP[8] * valz;
+
+            ATOMIC_ADD(&result_array[current_node * 3 + 0], resx);
+            ATOMIC_ADD(&result_array[current_node * 3 + 1], resy);
+            ATOMIC_ADD(&result_array[current_node * 3 + 2], resz););
     }
 }
 CUDA_GLOBAL void kMultiplyB(const real* v_array,
@@ -474,57 +525,81 @@ CUDA_GLOBAL void kResidual(int num_items, real* mg, real* dot_g_proj_norm) {
         // printf("resid [%f %f]\n", mg[tid], dot_g_proj_norm[0]);
     }
 }
+
+float time_no_shur = 0;
+float time_shur = 0;
 void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
+    time_shur = 0;
+    time_no_shur = 0;
     const uint size = r.size();
-    dot_g_proj_norm.resize(1);
-    ml.resize(size);
-    mg.resize(size);
-    mg_p.resize(size);
-    ml_p.resize(size);
-
-    ml = delta_v;
     real lastgoodres = 10e30;
-    mg = 0;
-    Multiply(ml, mg);
+    {
+        CudaEventTimer timer(start, stop, true, time_no_shur);
 
-    kSubtract<<<CONFIG(size)>>>(size, r.data_d, mg.data_d);
+        dot_g_proj_norm.resize(1);
+        ml.resize(size);
+        mg.resize(size);
+        mg_p.resize(size);
+        ml_p.resize(size);
 
-    mg_p = mg;
+        ml = delta_v;
 
+        mg = 0;
+    }
+    {
+        CudaEventTimer timer(start, stop, true, time_shur);
+        Multiply(ml, mg);
+    }
+    {
+        CudaEventTimer timer(start, stop, true, time_no_shur);
+        kSubtract<<<CONFIG(size)>>>(size, r.data_d, mg.data_d);
+        mg_p = mg;
+    }
     cudaCheck(cudaPeekAtLastError());
     cudaCheck(cudaDeviceSynchronize());
     kResetGlobals<false><<<1, 1>>>();
 
     for (int current_iteration = 0; current_iteration < host_settings.num_iterations; current_iteration++) {
-        kResetGlobals<true><<<1, 1>>>();
+        {
+            CudaEventTimer timer(start, stop, true, time_no_shur);
 
-        kCompute_ml_p<<<CONFIG(size)>>>(size, ml.data_d, mg.data_d, ml_p.data_d);
-        mg_p = 0;
-        Multiply(ml_p, mg_p);
-        kSubtract<<<CONFIG(size)>>>(size, r.data_d, mg_p.data_d);
+            kResetGlobals<true><<<1, 1>>>();
 
-        if (current_iteration % 2 == 0) {
-            kUpdateAlpha<true><<<CONFIG(size)>>>(size, ml_p.data_d, ml.data_d, mg_p.data_d, mg.data_d);
-            kAlpha<true><<<1, 1>>>();
-        } else {
-            kUpdateAlpha<false><<<CONFIG(size)>>>(size, ml_p.data_d, ml.data_d, mg_p.data_d, mg.data_d);
-            kAlpha<false><<<1, 1>>>();
+            kCompute_ml_p<<<CONFIG(size)>>>(size, ml.data_d, mg.data_d, ml_p.data_d);
+            mg_p = 0;
         }
-
-        ml = ml_p;
-        mg = mg_p;
-
-        dot_g_proj_norm = 0;
-        kResidual<<<CONFIG(size)>>>(size, mg.data_d, dot_g_proj_norm.data_d);
-        dot_g_proj_norm.copyDeviceToHost();
-        real g_proj_norm = Sqrt(dot_g_proj_norm.data_h[0]);
-
-        if (g_proj_norm < lastgoodres) {
-            lastgoodres = g_proj_norm;
-            delta_v = ml;
+        {
+            CudaEventTimer timer(start, stop, true, time_shur);
+            Multiply(ml_p, mg_p);
         }
-        printf("[%f]\n", lastgoodres);
+        {
+            CudaEventTimer timer(start, stop, true, time_no_shur);
+            kSubtract<<<CONFIG(size)>>>(size, r.data_d, mg_p.data_d);
+
+            if (current_iteration % 2 == 0) {
+                kUpdateAlpha<true><<<CONFIG(size)>>>(size, ml_p.data_d, ml.data_d, mg_p.data_d, mg.data_d);
+                kAlpha<true><<<1, 1>>>();
+            } else {
+                kUpdateAlpha<false><<<CONFIG(size)>>>(size, ml_p.data_d, ml.data_d, mg_p.data_d, mg.data_d);
+                kAlpha<false><<<1, 1>>>();
+            }
+
+            ml = ml_p;
+            mg = mg_p;
+
+            dot_g_proj_norm = 0;
+            kResidual<<<CONFIG(size)>>>(size, mg.data_d, dot_g_proj_norm.data_d);
+            dot_g_proj_norm.copyDeviceToHost();
+            real g_proj_norm = Sqrt(dot_g_proj_norm.data_h[0]);
+
+            if (g_proj_norm < lastgoodres) {
+                lastgoodres = g_proj_norm;
+                delta_v = ml;
+            }
+            printf("[%f]\n", lastgoodres);
+        }
     }
+    printf("MPM Solver: [%f, %f] \n", time_no_shur, time_shur);
 }
 CUDA_GLOBAL void kIncrementVelocity(real* delta_v, real* old_vel_node_mpm, real* grid_vel) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -592,7 +667,11 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
         marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
     }
 }
+
 void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities) {
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
     host_settings = settings;
     printf("Solving MPM: %d\n", host_settings.num_iterations);
     pos.data_h = positions;
@@ -610,19 +689,31 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
 
     grid_vel.resize(host_settings.num_mpm_nodes * 3);
     grid_vel = 0;
-
-    // ========================================================================================
-    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
-                                                          vel.data_d,        // input
-                                                          node_mass.data_d,  // output
-                                                          grid_vel.data_d    // output
-                                                          );
-
-    kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
-                                                               grid_vel.data_d);
-
-    kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d, marker_Fe.data_d,
-                                                                          marker_Fp.data_d);
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        // ========================================================================================
+        kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
+                                                              vel.data_d,        // input
+                                                              node_mass.data_d,  // output
+                                                              grid_vel.data_d    // output
+                                                              );
+    }
+    printf("kRasterize: %f\n", time_measured);
+    time_measured = 0;
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
+                                                                   grid_vel.data_d);
+    }
+    printf("kNormalizeWeights: %f\n", time_measured);
+    time_measured = 0;
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d,
+                                                                              marker_Fe.data_d, marker_Fp.data_d);
+    }
+    printf("kUpdateDeformationGradient: %f\n", time_measured);
+    time_measured = 0;
 
     old_vel_node_mpm.resize(host_settings.num_mpm_nodes * 3);
     rhs.resize(host_settings.num_mpm_nodes * 3);
@@ -630,36 +721,61 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
 
     //    cudaCheck(cudaPeekAtLastError());
     //    cudaCheck(cudaDeviceSynchronize());
-
-    kFeHat<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d, marker_Fe.data_d, grid_vel.data_d,
-                                                      marker_Fe_hat.data_d);
-
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kFeHat<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d, marker_Fe.data_d, grid_vel.data_d,
+                                                          marker_Fe_hat.data_d);
+    }
+    printf("kFeHat: %f\n", time_measured);
+    time_measured = 0;
     // kSVD<<<CONFIG(host_settings.num_mpm_markers)>>>(marker_Fe_hat.data_d, PolarR.data_d, PolarS.data_d);
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kApplyForces<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,            // input
+                                                                marker_Fe_hat.data_d,  // input
+                                                                marker_Fe.data_d,      // input
+                                                                marker_Fp.data_d,      // input
+                                                                marker_volume.data_d,  // input
+                                                                node_mass.data_d,      // input
+                                                                PolarR.data_d,         // output
+                                                                PolarS.data_d,         // output
+                                                                grid_vel.data_d);      // output
+    }
+    printf("kApplyForces: %f\n", time_measured);
+    time_measured = 0;
 
-    kApplyForces<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,            // input
-                                                            marker_Fe_hat.data_d,  // input
-                                                            marker_Fe.data_d,      // input
-                                                            marker_Fp.data_d,      // input
-                                                            marker_volume.data_d,  // input
-                                                            node_mass.data_d,      // input
-                                                            PolarR.data_d,         // output
-                                                            PolarS.data_d,         // output
-                                                            grid_vel.data_d);      // output
-
-    kRhs<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d, grid_vel.data_d, rhs.data_d);
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kRhs<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d, grid_vel.data_d, rhs.data_d);
+    }
+    printf("kRhs: %f\n", time_measured);
+    time_measured = 0;
 
     delta_v.resize(host_settings.num_mpm_nodes * 3);
     delta_v = old_vel_node_mpm;
 
     MPM_BBSolver(rhs, delta_v);
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kIncrementVelocity<<<CONFIG(host_settings.num_mpm_nodes)>>>(delta_v.data_d, old_vel_node_mpm.data_d,
+                                                                    grid_vel.data_d);
+    }
+    printf("kIncrementVelocity: %f\n", time_measured);
+    time_measured = 0;
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kUpdateParticleVelocity<<<CONFIG(host_settings.num_mpm_markers)>>>(
+            grid_vel.data_d, old_vel_node_mpm.data_d, pos.data_d, vel.data_d, marker_Fe.data_d, marker_Fp.data_d);
+    }
+    printf("kIncrementVelocity: %f\n", time_measured);
+    time_measured = 0;
 
-    kIncrementVelocity<<<CONFIG(host_settings.num_mpm_nodes)>>>(delta_v.data_d, old_vel_node_mpm.data_d,
-                                                                grid_vel.data_d);
-    kUpdateParticleVelocity<<<CONFIG(host_settings.num_mpm_markers)>>>(
-        grid_vel.data_d, old_vel_node_mpm.data_d, pos.data_d, vel.data_d, marker_Fe.data_d, marker_Fp.data_d);
     vel.copyDeviceToHost();
 
     velocities = vel.data_h;
+
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
 }
 
 CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp) {
@@ -691,7 +807,11 @@ void MPM_Update_Deformation_Gradient(MPM_Settings& settings, std::vector<real3>&
     vel.copyDeviceToHost();
     velocities = vel.data_h;
 }
+
 void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
     host_settings = settings;
 
     cudaCheck(cudaMalloc(&lower_bound, sizeof(real3)));
@@ -707,24 +827,46 @@ void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
     node_mass.resize(host_settings.num_mpm_nodes);
     node_mass = 0;
 
-    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,         // input
-                                                          node_mass.data_d);  // output
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,         // input
+                                                              node_mass.data_d);  // output
+    }
+    printf("kRasterize: %f\n", time_measured);
+    time_measured = 0;
 
-    kComputeParticleVolumes<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,             // input
-                                                                       node_mass.data_d,       // input
-                                                                       marker_volume.data_d);  // output
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kComputeParticleVolumes<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,             // input
+                                                                           node_mass.data_d,       // input
+                                                                           marker_volume.data_d);  // output
+    }
 
-    marker_Fe.resize(host_settings.num_mpm_markers);
-    marker_Fe_hat.resize(host_settings.num_mpm_markers);
-    marker_Fp.resize(host_settings.num_mpm_markers);
-    marker_delta_F.resize(host_settings.num_mpm_markers);
-    PolarR.resize(host_settings.num_mpm_markers);
-    PolarS.resize(host_settings.num_mpm_markers);
+    printf("kComputeParticleVolumes: %f\n", time_measured);
+    time_measured = 0;
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
 
-    kInitFeFp<<<CONFIG(host_settings.num_mpm_markers)>>>(marker_Fe.data_d,   // output
-                                                         marker_Fp.data_d);  // output
-
+        marker_Fe.resize(host_settings.num_mpm_markers);
+        marker_Fe_hat.resize(host_settings.num_mpm_markers);
+        marker_Fp.resize(host_settings.num_mpm_markers);
+        marker_delta_F.resize(host_settings.num_mpm_markers);
+        PolarR.resize(host_settings.num_mpm_markers);
+        PolarS.resize(host_settings.num_mpm_markers);
+    }
+    printf("Resize: %f\n", time_measured);
+    time_measured = 0;
+    {
+        CudaEventTimer timer(start, stop, true, time_measured);
+        kInitFeFp<<<CONFIG(host_settings.num_mpm_markers)>>>(marker_Fe.data_d,   // output
+                                                             marker_Fp.data_d);  // output
+    }
+    printf("kInitFeFp: %f\n", time_measured);
+    time_measured = 0;
     //    cudaCheck(cudaPeekAtLastError());
     //    cudaCheck(cudaDeviceSynchronize());
+
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
 }
 }
