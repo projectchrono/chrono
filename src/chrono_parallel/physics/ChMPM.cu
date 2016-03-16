@@ -185,12 +185,37 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
-        marker_Fe_hat[p] = Mat33(1.0);
-        Mat33 Fe_hat_t(1.0);
-        LOOP_TWO_RING_GPU(                                                             //
-            real3 vel(grid_vel[i * 3 + 0], grid_vel[i * 3 + 1], grid_vel[i * 3 + 2]);  //
-            real3 kern = dN(xi - current_node_location, inv_bin_edge);                 //
-            Fe_hat_t += OuterProduct(device_settings.dt * vel, kern);)
+        Mat33 Fe_hat_t(1.0f);
+
+        int cx, cy, cz;
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = 1.f / bin_edge;
+
+        LOOP_TWO_RING_GPUSP(
+
+            real vnx = device_settings.dt * grid_vel[current_node * 3 + 0];  //
+            real vny = device_settings.dt * grid_vel[current_node * 3 + 1];  //
+            real vnz = device_settings.dt * grid_vel[current_node * 3 + 2];
+
+            real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
+            real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
+            real Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+
+            real valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
+            real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
+            real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
+
+            Fe_hat_t[0] += vnx * valx; Fe_hat_t[1] += vny * valx; Fe_hat_t[2] += vnz * valx;  //
+            Fe_hat_t[4] += vnx * valy; Fe_hat_t[5] += vny * valy; Fe_hat_t[6] += vnz * valy;  //
+            Fe_hat_t[8] += vnx * valz; Fe_hat_t[9] += vny * valz; Fe_hat_t[10] += vnz * valz;
+
+            //            real3 vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1],
+            //                      grid_vel[current_node * 3 + 2]);                  //
+            //            real3 kern = dN(xi - current_node_location, inv_bin_edge);  //
+            //            Fe_hat_t += OuterProduct(device_settings.dt * vel, kern);
+
+            )
+
         marker_Fe_hat[p] = Fe_hat_t * marker_Fe[p];
     }
 }
