@@ -48,7 +48,7 @@ class ChApiFea ChMaterialShellEANS {
                         );
 
     /// Return the material density.
-    double Get_thickness() const { return m_rho; }
+    double Get_thickness() const { return m_thickness; }
 
     /// Return the material density.
     double Get_rho() const { return m_rho; }
@@ -176,6 +176,9 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     /// Get a handle to the specified layer.
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
+    /// Set the structural damping.
+    void SetAlphaDamp(double a) { m_Alpha = a; }
+
     /// Get the element length in the X direction.
     double GetLengthX() const { return m_lenX; }
     /// Get the element length in the Y direction.
@@ -212,11 +215,11 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     double m_thickness;                                    ///< total element thickness
     double m_lenX;                                         ///< element length in X direction
     double m_lenY;                                         ///< element length in Y direction
+    double m_Alpha;                                        ///< structural damping
     std::vector<double> m_GaussZ;                          ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;                                 ///< scaling factor due to change of integration intervals
     ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 4,   6> m_strainANS;                ///< ANS strains at shear stitching points
+    ChMatrixNM<double, 6,   4> m_strainANS;                ///< ANS strains at shear stitching points
 
     // Interface to ChElementBase base class
     // -------------------------------------
@@ -367,7 +370,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
 
     friend class MyMassEANS;
     friend class MyGravity;
-    friend class MyForce;
+    friend class MyForceEANS;
     friend class MyJacobian;
 };
 

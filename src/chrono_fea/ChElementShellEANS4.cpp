@@ -79,6 +79,7 @@ void ChMaterialShellEANS::ComputeStress(ChVector<>& n_u,
 
 ChElementShellEANS4::ChElementShellEANS4() :  m_numLayers(0), m_thickness(0) {
     m_nodes.resize(4);
+    m_Alpha = 0;
 }
 
 // ------------------------------------------------------------------------------
@@ -152,6 +153,7 @@ void ChElementShellEANS4::Update() {
 
 // Fill the D vector with the current field values at the element nodes.
 void ChElementShellEANS4::GetStateBlock(ChMatrixDynamic<>& mD) {
+    mD.Reset(4*7, 1);
     mD.PasteVector(m_nodes[0]->GetPos(), 0, 0);
     mD.PasteQuaternion(m_nodes[0]->GetRot(), 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos(), 7, 0);
@@ -236,7 +238,7 @@ void MyMassEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, co
 
 void ChElementShellEANS4::ComputeMassMatrix() {
     m_MassMatrix.Reset();
-    double jacobian = this->m_lenY * this->m_lenX;
+    double jacobian = this->m_lenY * this->m_lenX / 4.0;
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
@@ -261,15 +263,14 @@ void ChElementShellEANS4::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 
-class MyForce : public ChIntegrable2D<ChMatrixNM<double, 24, 1> > {
+class MyForceEANS : public ChIntegrable2D<ChMatrixNM<double, 24, 1> > {
   public:
-    MyForce(ChElementShellEANS4* element,             // Containing element
-            size_t kl                                 // Current layer index
-            //ChMatrixNM<double, 5, 1>* alpha_eas      // Vector of internal parameters for EAS formulation
+    MyForceEANS(ChElementShellEANS4* element,             // Containing element
+            size_t m_layer_i                              // Current layer index
             )
         : m_element(element),
-          m_kl(kl) {}
-    ~MyForce() {}
+          layer_i(m_layer_i) {}
+    ~MyForceEANS() {}
 
     ChVector<> pA;
     ChVector<> pB;
@@ -279,10 +280,10 @@ class MyForce : public ChIntegrable2D<ChMatrixNM<double, 24, 1> > {
     ChQuaternion<> rB;
     ChQuaternion<> rC;
     ChQuaternion<> rD;
+    size_t layer_i;
 
   private:
     ChElementShellEANS4* m_element;
-    size_t m_kl;
 
     /// Evaluate internal force
     virtual void Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y) override;
@@ -321,7 +322,7 @@ void ComputeGammaMatrixInverse(ChMatrix33<>& H, const ChVector<> phi) {
     }
 }
 
-void MyForce::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y) {
+void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y) {
     // Element shape function
     ChMatrixNM<double, 1, 4> N;
     m_element->ShapeFunctions(N, x, y, 0);
@@ -406,7 +407,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const 
     ChVector<> n_v;
     ChVector<> m_u;
     ChVector<> m_v;
-    m_element->GetLayer(m_kl).GetMaterial()->ComputeStress(n_u, n_v, m_u, m_v, eps_u, eps_v, kur_u, kur_v);
+    m_element->GetLayer(layer_i).GetMaterial()->ComputeStress(n_u, n_v, m_u, m_v, eps_u, eps_v, kur_u, kur_v);
 
     // some complication: compute the Phi matrices:
     ChMatrix33<> Hai;
@@ -478,23 +479,25 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
                                     const ChVector<>& pD, const ChQuaternion<>& rD,
                                     ChMatrixDynamic<>& Fi) {
 
-    double jacobian = this->m_lenY * this->m_lenX;
+    double jacobian = this->m_lenY * this->m_lenX  / 4.0;
 
     Fi.Reset();
 
     // Assumed Natural Strain (ANS):  precompute m_strainANS 
     CalcStrainANSbilinearShell(pA,rA, pB,rB, pC,rC, pD,rD);
 
+    MyForceEANS myformula(this,0);
+    myformula.pA = pA;
+    myformula.pB = pB;
+    myformula.pC = pC;
+    myformula.pD = pD;
+    myformula.rA = rA;
+    myformula.rB = rB;
+    myformula.rC = rC;
+    myformula.rD = rD;
+
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        MyForce myformula(this,kl);
-        myformula.pA = pA;
-        myformula.pB = pB;
-        myformula.pC = pC;
-        myformula.pD = pD;
-        myformula.rA = rA;
-        myformula.rB = rB;
-        myformula.rC = rC;
-        myformula.rD = rD;
+        myformula.layer_i = kl;
         ChMatrixNM<double, 24, 1> TempForce;
 
         ChQuadrature::Integrate2D<ChMatrixNM<double, 24, 1> >(TempForce,  // result of integration will go there
@@ -505,8 +508,6 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
                                                                );
         TempForce *= jacobian;
         Fi += TempForce;
-
-        //***TODO***
 
     }  // Layer Loop
 }
@@ -542,7 +543,7 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
     m_element->ShapeFunctions(N, x, y, 0);
 
     // Determinant of position vector gradient matrix: Initial configuration
-    double detJ0 = m_element->GetLengthX() *  m_element->GetLengthY();
+    double detJ0 = m_element->GetLengthX() *  m_element->GetLengthY() / 4.0;
     
     //***TODO***
 }
@@ -556,7 +557,7 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
     if (use_numerical_differentiation) {
 
         double diff = 1e-8;
-        ChMatrixDynamic<> Kcolumn(24, 1);
+        ChMatrixNM<double,24,1> Kcolumn;
         ChMatrixDynamic<> F0(24, 1);
         ChMatrixDynamic<> F1(24, 1);
 
@@ -575,23 +576,25 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                                 GetNodeC()->GetRot(), 
                                 GetNodeD()->GetRot()}; 
 
+        double scaler = (1.0 / diff) * (Kfactor + Rfactor * this->m_Alpha);
+
         for (int inode = 0; inode < 4; ++inode) {
             pos[inode].x += diff;
             this->ComputeInternalForces_Impl(pos[0], rot[0], pos[1], rot[1],  pos[2], rot[2], pos[3], rot[3], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
+            Kcolumn = (F0 - F1) * scaler;
+            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 0 + inode * 6);
             pos[inode].x -= diff;
 
             pos[inode].y += diff;
             this->ComputeInternalForces_Impl(pos[0], rot[0], pos[1], rot[1],  pos[2], rot[2], pos[3], rot[3], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
+            Kcolumn = (F0 - F1) * scaler;
+            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 1 + inode * 6);
             pos[inode].y -= diff;
             
             pos[inode].z += diff;
             this->ComputeInternalForces_Impl(pos[0], rot[0], pos[1], rot[1],  pos[2], rot[2], pos[3], rot[3], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
+            Kcolumn = (F0 - F1) * scaler;
+            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 2 + inode * 6);
             pos[inode].z -= diff;
 
             ChQuaternion<> qdrot;
@@ -601,41 +604,40 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             qdrot.Q_from_Rotv( {diff,0,0} ); // incremental rotation on x axis (in frame basis, as C::E rot.increments are frame-local)
             rot[inode] = rot[inode] * qdrot;
             this->ComputeInternalForces_Impl(pos[0], rot[0], pos[1], rot[1],  pos[2], rot[2], pos[3], rot[3], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
+            Kcolumn = (F0 - F1) * scaler;
+            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 3 + inode * 6);
             rot[inode] = qbackup;
 
             qdrot.Q_from_Rotv( {0,diff,0} ); // incremental rotation on y axis (in frame basis, as C::E rot.increments are frame-local)
             rot[inode] = rot[inode] * qdrot;
             this->ComputeInternalForces_Impl(pos[0], rot[0], pos[1], rot[1],  pos[2], rot[2], pos[3], rot[3], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
+            Kcolumn = (F0 - F1) * scaler;
+            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 4 + inode * 6);
 
             qdrot.Q_from_Rotv( {0,0,diff} ); // incremental rotation on z axis (in frame basis, as C::E rot.increments are frame-local)
             rot[inode] = rot[inode] * qdrot;
             this->ComputeInternalForces_Impl(pos[0], rot[0], pos[1], rot[1],  pos[2], rot[2], pos[3], rot[3], F1);
-            Kcolumn = (F0 - F1) * (1.0 / diff);
-            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
+            Kcolumn = (F0 - F1) * scaler;
+            this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 5 + inode * 6);
             rot[inode] = qbackup;
         }
     }
     else {
         // Loop over all layers.
         for (size_t kl = 0; kl < m_numLayers; kl++) {
-            ChMatrixNM<double, 696, 1> result;
+            /*
+            ChMatrixNM<double, ..., 1> result;
             MyJacobian formula(this, Kfactor, Rfactor, kl);
-            ChQuadrature::Integrate2D<ChMatrixNM<double, 696, 1> >(result,                          // result of integration
+            ChQuadrature::Integrate2D<ChMatrixNM<double, ..., 1> >(result,                          // result of integration
                                                                    formula,                         // integrand formula
                                                                    -1, 1,                           // x limits
                                                                    -1, 1,                           // y limits
                                                                    2                                // order of integration
                                                                    );
-            // Extract matrices from result of integration
-            ChMatrixNM<double, 24, 24> KTE;
             //***TODO***
             //***TODO***  analytical jacobian not yet implemented!!!
             //***TODO***
-            m_JacobianMatrix += KTE;// - EAS * Kfactor;
+            */
         }
     }
 }
@@ -787,8 +789,6 @@ void ChElementShellEANS4::EvaluateSectionPoint(const double u,
                                               const double v,
                                               const ChMatrix<>& displ,
                                               ChVector<>& point) {
-    ChVector<> u_displ;
-
     ChMatrixNM<double, 1, 4> N;
 
     double x = u;  // because ShapeFunctions() works in -1..1 range
@@ -900,8 +900,8 @@ void ChElementShellEANS4::ComputeNF(
     ChMatrixNM<double, 1, 4> N;
     ShapeFunctions(N, U, V, W);
 
-    detJ =  GetLengthX() *  GetLengthY() / 4.0;
-    detJ *= m_GaussScaling;
+    detJ =  GetLengthX() *  GetLengthY() / 4.0 ;
+    detJ *= GetThickness();
 
     ChVector<> tmp;
     ChVector<> Fv = F.ClipVector(0, 0);
