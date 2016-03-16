@@ -58,6 +58,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChLcpMklSolver.h"
@@ -73,14 +74,15 @@ using namespace chrono::irrlicht;
 // Contact method type
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
-// Type of tire model (RIGID, PACEJKA, LUGRE, FIALA, ANCF)
-TireModelType tire_model = ANCF;
+// Type of tire model (RIGID, PACEJKA, LUGRE, FIALA, ANCF, FEA)
+TireModelType tire_model = FEA;
 
 // JSON file names for tire models
 std::string rigidtire_file("generic/tire/RigidTire.json");
 std::string lugretire_file("generic/tire/LugreTire.json");
 std::string fialatire_file("generic/tire/FialaTire.json");
 std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
+std::string featire_file("hmmwv/tire/HMMWV_FEATire.json");
 
 // Quarter-vehicle chassis mass
 double chassis_mass = 500;
@@ -113,11 +115,11 @@ double step_size = 1e-3;  // integration step size
 
 int main(int argc, char* argv[]) {
 #ifndef CHRONO_FEA
-    if (tire_model == ANCF)
+    if (tire_model == ANCF || tire_model == FEA)
         tire_model = RIGID;
 #endif
 
-    if (tire_model == ANCF)
+    if (tire_model == ANCF || tire_model == FEA)
         contact_method = ChMaterialSurfaceBase::DEM;
 
     // Create the mechanical system
@@ -206,6 +208,22 @@ int main(int argc, char* argv[]) {
 #endif
             break;
         }
+        case FEA: {
+#ifdef CHRONO_FEA
+            auto tire_fea = std::make_shared<FEATire>(vehicle::GetDataFile(featire_file));
+
+            tire_fea->EnablePressure(true);
+            tire_fea->EnableContact(true);
+            tire_fea->EnableRimConnection(true);
+
+            tire_fea->Initialize(wheel, LEFT);
+            tire_radius = tire_fea->GetTireRadius();
+            wheel_radius = tire_fea->GetRimRadius();
+            tire_width = tire_fea->GetWidth();
+            tire = tire_fea;
+#endif
+            break;
+        }
     }
 
     // Add chassis visualization
@@ -277,6 +295,12 @@ int main(int argc, char* argv[]) {
         solver_type = MKL;
         integrator_type = HHT;
         step_size = ChMin(step_size, 5e-5);
+    }
+
+    if (tire_model == FEA) {
+        solver_type = MKL;
+        integrator_type = EULER;
+        step_size = ChMin(step_size, 1e-3);
     }
 
     if (solver_type == MKL) {
