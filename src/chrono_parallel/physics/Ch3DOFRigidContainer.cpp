@@ -646,7 +646,9 @@ real3 Ch3DOFRigidContainer::GetBodyContactTorque(uint body_id) {
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 void Ch3DOFRigidContainer::PreSolve() {
-    mpm_thread.join();
+    if (mpm_thread.joinable()) {
+        mpm_thread.join();
+    }
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         int index = data_manager->host_data.reverse_mapping_3dof[p];
