@@ -185,7 +185,7 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
-        Mat33 Fe_hat_t(1.0f);
+        Mat33 Fe_hat_t(0.0f);
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
@@ -193,9 +193,9 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
 
         LOOP_TWO_RING_GPUSP(
 
-            real vnx = device_settings.dt * grid_vel[current_node * 3 + 0];  //
-            real vny = device_settings.dt * grid_vel[current_node * 3 + 1];  //
-            real vnz = device_settings.dt * grid_vel[current_node * 3 + 2];
+            real vnx = grid_vel[current_node * 3 + 0];  //
+            real vny = grid_vel[current_node * 3 + 1];  //
+            real vnz = grid_vel[current_node * 3 + 2];
 
             real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
             real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
@@ -216,7 +216,7 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
 
             )
 
-        marker_Fe_hat[p] = Fe_hat_t * marker_Fe[p];
+        marker_Fe_hat[p] = (Mat33(1.0) + device_settings.dt * Fe_hat_t) * marker_Fe[p];
     }
 }
 
@@ -680,10 +680,31 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = pos_marker[p];
-        Mat33 velocity_gradient(0);
-        LOOP_TWO_RING_GPU(  //
-            real3 g_vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1], grid_vel[current_node * 3 + 2]);
-            velocity_gradient += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));  //
+        Mat33 velocity_gradient(0.0f);
+
+        int cx, cy, cz;
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = 1.f / bin_edge;
+
+        LOOP_TWO_RING_GPUSP(
+            real vnx = grid_vel[current_node * 3 + 0];  //
+            real vny = grid_vel[current_node * 3 + 1];  //
+            real vnz = grid_vel[current_node * 3 + 2];
+
+            real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
+            real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
+            real Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+
+            real valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
+            real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
+            real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
+
+            velocity_gradient[0] += vnx * valx; velocity_gradient[1] += vny * valx;
+            velocity_gradient[2] += vnz * valx;  //
+            velocity_gradient[4] += vnx * valy; velocity_gradient[5] += vny * valy;
+            velocity_gradient[6] += vnz * valy;  //
+            velocity_gradient[8] += vnx * valz; velocity_gradient[9] += vny * valz; velocity_gradient[10] += vnz * valz;
+
             )
         Mat33 Fe_tmp = (Mat33(1.0) + device_settings.dt * velocity_gradient) * marker_Fe[p];
         Mat33 F_tmp = Fe_tmp * marker_Fp[p];
