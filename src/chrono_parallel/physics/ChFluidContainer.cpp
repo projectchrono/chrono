@@ -172,7 +172,7 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
                 int original_index = data_manager->host_data.particle_indices_3dof[p];
                 real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
                 if (contact_counts[p + 1] - contact_counts[p] > 0) {
-                    vel_fluid[original_index] = vv;
+                    // vel_fluid[original_index] = vv;
                     pos_fluid[original_index] = sorted_pos_fluid[p];
                 }
             }
