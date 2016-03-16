@@ -405,7 +405,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
         return mstress;
     }
     /// This class computes and adds corresponding masses to ElementBase member m_TotalMass
-    void ChElementTetra_4::ComputeNodalMass() {
+    void ComputeNodalMass() {
         nodes[0]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
         nodes[1]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
         nodes[2]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
