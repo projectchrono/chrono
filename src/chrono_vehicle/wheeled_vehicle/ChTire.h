@@ -75,7 +75,8 @@ class CH_VEHICLE_API ChTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TireForce GetTireForce() const = 0;
+    virtual TireForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
+                                   ) const = 0;
 
   protected:
     /// Perform disc-terrain collision detection.

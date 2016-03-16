@@ -87,10 +87,13 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     double GetMass() const;
 
     /// Get the tire force and moment.
-    /// For a rigid tire, the tire forces are automatically applied to the
-    /// associated wheel (through Chrono's frictional contact system). The values
-    /// returned here are never used.
-    virtual TireForce GetTireForce() const override;
+    /// A ChANCFTire always returns zero forces and moments if the tire is simulated
+    /// together with the associated vehicle (the tire forces are implicitly applied
+    /// to the associated wheel through the tire-wheel connections). If the tire is
+    /// co-simulated, the tire force and moment encapsulate the tire-terrain forces
+    /// as well as the weight of the tire itself.
+    virtual TireForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
+                                   ) const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the

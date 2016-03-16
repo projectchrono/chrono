@@ -164,12 +164,39 @@ double ChANCFTire::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TireForce ChANCFTire::GetTireForce() const {
+TireForce ChANCFTire::GetTireForce(bool cosim) const {
     TireForce tire_force;
 
-    tire_force.force = ChVector<>(0, 0, 0);
-    tire_force.point = ChVector<>(0, 0, 0);
-    tire_force.moment = ChVector<>(0, 0, 0);
+    // If the tire is simulated together with the associated vehicle, return zero
+    // force and moment. In this case, the tire forces are implicitly applied to
+    // the wheel body through the tire-wheel connections.
+    if (!cosim) {
+        tire_force.force = ChVector<>(0, 0, 0);
+        tire_force.point = ChVector<>(0, 0, 0);
+        tire_force.moment = ChVector<>(0, 0, 0);
+
+        return tire_force;
+    }
+
+    // If the tire is co-simulated, calculate and return the resultant of all
+    // reaction forces in the tire-wheel connections.  This encapsulated the
+    // tire-terrain interaction forces and the weight of the tire itself.
+    assert(m_connections.size() > 0);
+    auto body_frame = m_connections[0]->GetConstrainedBodyFrame();
+
+    ChVector<> force;
+    for (size_t ic = 0; ic < m_connections.size(); ic++) {
+        force += m_connections[ic]->GetReactionOnBody();
+    }
+
+    for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
+        force += m_connectionsD[ic]->GetReactionOnBody();
+    }
+
+    // Calculate and return the resultant force and moment at the center of the
+    // wheel body.
+    tire_force.point = body_frame->GetPos();
+    body_frame->To_abs_forcetorque(force, ChVector<>(0, 0, 0), 1, tire_force.force, tire_force.moment);
 
     return tire_force;
 }

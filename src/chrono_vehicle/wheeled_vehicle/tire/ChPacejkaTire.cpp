@@ -179,7 +179,7 @@ void ChPacejkaTire::Initialize(VehicleSide side, bool driven) {
 // local or global frame). The main GetTireForce() function returns the combined
 // slip tire forces, expressed in the global frame.
 // -----------------------------------------------------------------------------
-TireForce ChPacejkaTire::GetTireForce() const {
+TireForce ChPacejkaTire::GetTireForce(bool cosim) const {
     return GetTireForce_combinedSlip(false);
 }
 
