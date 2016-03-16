@@ -23,3 +23,8 @@ Building Chorno
 -   Via CMake: @subpage tutorial_cmake
 
 -   Low level alternative: @subpage advanced_build
+
+Doxygen Guides
+-----------------
+
+@subpage tutorial_converting_wiki

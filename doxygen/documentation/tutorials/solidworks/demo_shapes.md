@@ -2,7 +2,7 @@ Demo Collision Shapes {#tutorial_chrono_solidworks_demo_shapes}
 ==========================
 
 
-This tutorial shows how to use the [[ChronoSolidWorks:Introduction|Chrono::SolidWorks]] add-in for assigning collision shapes to SolidWorks parts. 
+This tutorial shows how to use the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks)  add-in for assigning collision shapes to SolidWorks parts. 
 Those collision shapes will be converted to Chrono::Engine collision shapes when exporting the .py scene file.
 
 Note that, by default, all parts that you model in SolidWorks do not generate any collision shapes: if you want to simulate phenomena with collisions, you must use the procedure that is outlined in this tutorial in order to assign collision shapes to parts. This is motivated by various reasons:
@@ -10,54 +10,51 @@ Note that, by default, all parts that you model in SolidWorks do not generate an
 * currently there is no automatic way to convert generic detailed concave shapes into a set of Chrono::Engine collision shapes (actually, a tool for automatic convex decomposition is under development, but in many cases the best results come when the user add convex shapes by hand)
 
 Currently, the following convex shapes are supported: 
-*spheres 
-*cylinders 
-*boxes 
-*convex hulls.
+* spheres 
+* cylinders 
+* boxes 
+* convex hulls.
 Also groups of them are supported.
 
 
-===Prerequisites:===
+###Prerequisites:
 
-* you must have a [http://www.solidworks.com SolidWorks] CAD license.
-* the [[ChronoSolidWorks:Introduction|Chrono::SolidWorks]] add-in must be installed in SolidWorks.
+* you must have a [SolidWorks](http://www.solidworks.com) CAD license.
+* the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
 Optionally, for the last steps of the tutorial (rendering the animation) these tools must be installed: 
-* the [[ChronoPyEngine:Introduction|Chrono::PyEngine]] python module must be installed in your Python environment, 
-* the [http://www.povray.org POVray] rendering software must be installed
+* the [Chrono::PyEngine](@ref introduction_chrono_pyengine) python module must be installed in your Python environment, 
+* the [POVray](http://www.povray.org) rendering software must be installed
 * the [http://www.virtualdub.org VirtualDub] video editing tool must be installed
 
 
-{{Details|content=
-The files for this demo can be found in the directory ''C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions''. The directory contains all the parts needed for this assembly.
-}}
+<div class=well>
+The files for this demo can be found in the directory ```C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions```. The directory contains all the parts needed for this assembly.
+</div>
 
 We are going to model a small set of columns with capitals, that will be shaken by an earthquake.
 
 
-===Create a column===
+###Create a column
 
-*First, start SolidWorks.
-
-*Use menu File/New... and create a new Part.
-
-*In the Part editor, create a doric column (like those that you can find in Greek temples) by using the [[File:Tutorial_collshapes_01.jpg]] '''Revolved boss / base''' tool in the toolbar. (Just create a profile like a rectangle, where one of the vertical sides is rather an almost flat arc, and the opposite side is the axis of revolution).
-
-*You should obtain this:
+* First, start SolidWorks.
+* Use menu File/New... and create a new Part.
+* In the Part editor, create a doric column (like those that you can find in Greek temples) by using the [[File:Tutorial_collshapes_01.jpg]] '''Revolved boss / base''' tool in the toolbar. (Just create a profile like a rectangle, where one of the vertical sides is rather an almost flat arc, and the opposite side is the axis of revolution).
+* You should obtain this:
 
 [[File:Tutorial_collshapes_02.jpg|center]]
 
-This shape will be used for computing the mass, the tensor of inertia, the coordinates of the part, and also the visualization mesh if you are using POVray or other types of postprocessing, ''but it won't produce any collisions yet!''
+This shape will be used for computing the mass, the tensor of inertia, the coordinates of the part, and also the visualization mesh if you are using POVray or other types of postprocessing, **but it won't produce any collisions yet!**
 Therefore, now we assign a collision shape to this part.
 
 Collision shapes that can be converted to Chrono::Engine .py files are of simple types: spheres, cylinders, boxes, etc (or compounds of them). So now we will approximate the column with a single cylinder, assuming the at this level of approximation is enough for the simulation that we want to do.
 
 To add a collision shape, we exploit a possibility of SolidWorks: each part can contain more than a single 'shapes' - those shapes are called solid ''bodies'' in SolidWorks (not to be confused with the concept of rigid bodies in Chrono::Engine).
 
-*So, we will create an additional cylindrical body: use the tool [[File:Tutorial_collshapes_03.jpg]] '''Extruded boss / base''' and extrude a disc from the top of the column to the top of the column. 
+* So, we will create an additional cylindrical body: use the tool [[File:Tutorial_collshapes_03.jpg]] '''Extruded boss / base''' and extrude a disc from the top of the column to the top of the column. 
 
 [[File:Tutorial_collshapes_08.jpg|center]]
 
-*Important! before accepting the result of the extrusion, '''uncheck the Merge results
+* Important! before accepting the result of the extrusion, '''uncheck the Merge results
 option'''! 
 
 [[File:Tutorial_collshapes_04.jpg|center]]
@@ -74,22 +71,22 @@ This tool detects that your selected body is a cylinder, so it marks it as a col
 
 [[File:Tutorial_collshapes_07.jpg|center]]
 
-{{Details|content=
-Note that the tool also automatically adds a zero-density material to the collision shape (that is ''Air'').
+<div class = well>
+Note that the tool also automatically adds a zero-density material to the collision shape (that is **Air**).
 This is necessary otherwise, when SolidWorks computes the mass of the column, the weight will be doubled, whereas we want the collision shapes not to affect the mass computations. 
 Anyway, you can still assign SolidWorks materials with the desired density to the column, such as steel, concrete, etc. 
-}}
+</div>
 
-{{Details|content=
+<div class = well>
 The tool also changed the visualization of the collision shape, that turns into semi-transparent pink. This is more confortable, since collision shapes usually are overlapping with the complete shapes. 
 Once you are sure that the collision shape is in the proper place, you an also hide it.  
-}}
+</div>
 
-{{Warning|content=
-After you created the collsion shape with the tool, '''do not modify''' its solid body (ex. do not cut a hole into the cylinder) otherwise in future, when you export the .py scene, it won't be recognized as a primitive collision shape.
-}}
+<div class = well>
+After you created the collsion shape with the tool, **do not modify** its solid body (ex. do not cut a hole into the cylinder) otherwise in future, when you export the .py scene, it won't be recognized as a primitive collision shape.
+</div>
 
-*Save it as ''column.sldprt''.
+* Save it as ''column.sldprt''.
 
 
 ===Create a capital===

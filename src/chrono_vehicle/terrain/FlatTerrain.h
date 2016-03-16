@@ -35,7 +35,7 @@ namespace vehicle {
 /// and ChLugreTire).
 class CH_VEHICLE_API FlatTerrain : public ChTerrain {
   public:
-    FlatTerrain(const int height  ///< [in] terrain height
+    FlatTerrain(double height  ///< [in] terrain height
                 );
 
     ~FlatTerrain() {}
