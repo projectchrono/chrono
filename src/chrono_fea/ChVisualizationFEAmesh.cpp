@@ -18,6 +18,7 @@
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementShellEANS4.h"
 #include "chrono_fea/ChFaceTetra_4.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
