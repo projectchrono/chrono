@@ -170,7 +170,8 @@ TireForce ChANCFTire::GetTireForce(bool cosim) const {
     // If the tire is simulated together with the associated vehicle, return zero
     // force and moment. In this case, the tire forces are implicitly applied to
     // the wheel body through the tire-wheel connections.
-    if (!cosim) {
+    // Also return zero forces if the tire is not connected to the wheel.
+    if (!cosim || m_connections.size() == 0) {
         tire_force.force = ChVector<>(0, 0, 0);
         tire_force.point = ChVector<>(0, 0, 0);
         tire_force.moment = ChVector<>(0, 0, 0);
@@ -181,7 +182,6 @@ TireForce ChANCFTire::GetTireForce(bool cosim) const {
     // If the tire is co-simulated, calculate and return the resultant of all
     // reaction forces in the tire-wheel connections.  This encapsulated the
     // tire-terrain interaction forces and the weight of the tire itself.
-    assert(m_connections.size() > 0);
     auto body_frame = m_connections[0]->GetConstrainedBodyFrame();
 
     ChVector<> force;
