@@ -19,8 +19,10 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemDEM.h"
 
+#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
@@ -68,7 +70,7 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     system->Add(m_mesh);
 
     // Create the FEA nodes and elements
-    CreateMesh(m_mesh, *(wheel.get()), side);
+    CreateMesh(*(wheel.get()), side);
 
     // Create a load container
     auto load_container = std::make_shared<ChLoadContainer>();
@@ -121,19 +123,20 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     if (m_connection_enabled) {
         // Connect nodes to rim
-        auto nodes = GetConnectedNodes(m_mesh);
+        auto nodes = GetConnectedNodes();
 
         m_connections.resize(nodes.size());
         m_connectionsD.resize(nodes.size());
 
         for (size_t in = 0; in < nodes.size(); ++in) {
+            auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(nodes[in]);
             m_connections[in] = std::make_shared<ChLinkPointFrame>();
-            m_connections[in]->Initialize(nodes[in], wheel);
+            m_connections[in]->Initialize(node, wheel);
             system->Add(m_connections[in]);
 
             m_connectionsD[in] = std::make_shared<ChLinkDirFrame>();
-            m_connectionsD[in]->Initialize(nodes[in], wheel);
-            m_connectionsD[in]->SetDirectionInAbsoluteCoords(nodes[in]->GetD());
+            m_connectionsD[in]->Initialize(node, wheel);
+            m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetD());
             system->Add(m_connectionsD[in]);
         }
     }

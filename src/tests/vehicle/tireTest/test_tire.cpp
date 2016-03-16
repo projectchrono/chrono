@@ -75,7 +75,7 @@ using namespace chrono::irrlicht;
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
 // Type of tire model (RIGID, PACEJKA, LUGRE, FIALA, ANCF, FEA)
-TireModelType tire_model = FEA;
+TireModelType tire_model = ANCF;
 
 // JSON file names for tire models
 std::string rigidtire_file("generic/tire/RigidTire.json");

@@ -21,11 +21,10 @@
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChNodeFEAbase.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -35,9 +34,6 @@ namespace vehicle {
 
 /// @addtogroup vehicle_wheeled_tire
 /// @{
-
-/// List of nodes
-typedef std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> NodeList;
 
 /// ANCF tire model.
 /// This tire is modeled as a mesh composed of ANCF shell element.
@@ -116,20 +112,19 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     virtual double GetDefaultPressure() const = 0;
 
     /// Return list of nodes connected to the rim.
-    virtual NodeList GetConnectedNodes(const std::shared_ptr<fea::ChMesh>& mesh) const = 0;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const = 0;
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
-    virtual void CreateMesh(std::shared_ptr<fea::ChMesh> mesh,   ///< containing mesh
-                            const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
+    virtual void CreateMesh(const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
                             VehicleSide side                     ///< left/right vehicle side
                             ) = 0;
 
-  private:
-    std::shared_ptr<fea::ChMesh> m_mesh;
-    std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;
-    std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;
+    std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
+    std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
+    std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;   ///< tire-wheel direction connections
 
+  private:
     bool m_connection_enabled;
     bool m_pressure_enabled;
     bool m_contact_enabled;

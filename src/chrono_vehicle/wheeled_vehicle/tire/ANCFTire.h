@@ -19,6 +19,7 @@
 #ifndef ANCF_TIRE_H
 #define ANCF_TIRE_H
 
+#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
@@ -47,12 +48,11 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
 
     /// Return list of nodes connected to the rim.
-    virtual NodeList GetConnectedNodes(const std::shared_ptr<fea::ChMesh>& mesh) const override;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
-    virtual void CreateMesh(std::shared_ptr<fea::ChMesh> mesh,   ///< containing mesh
-                            const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
+    virtual void CreateMesh(const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
                             VehicleSide side                     ///< left/right vehicle side
                             ) override;
 
