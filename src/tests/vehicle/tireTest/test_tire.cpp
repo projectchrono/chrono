@@ -66,7 +66,6 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::irrlicht;
-using namespace irr;
 
 // =============================================================================
 // Global definitions
@@ -90,8 +89,11 @@ double chassis_mass = 500;
 double wheel_mass = 40;
 ChVector<> wheel_inertia(1, 1, 1);
 
+// Initial wheel location
+ChVector<> init_loc(0, 0, 0);
+
 // Initial offset of the tire above the terrain
-double tire_offset = 0.1;
+double tire_offset = 0.02;
 
 // Rigid terrain dimensions
 double terrain_length = 100.0;  // size in X direction
@@ -135,7 +137,7 @@ int main(int argc, char* argv[]) {
     chassis->SetCollide(false);
     chassis->SetMass(chassis_mass);
     chassis->SetInertiaXX(ChVector<>(1, 1, 1));
-    chassis->SetPos(ChVector<>(0, 0, 0));
+    chassis->SetPos(init_loc);
     chassis->SetRot(ChQuaternion<>(1, 0, 0, 0));
 
     // Create the wheel (rim)
@@ -148,7 +150,7 @@ int main(int argc, char* argv[]) {
     wheel->SetCollide(false);
     wheel->SetMass(wheel_mass);
     wheel->SetInertiaXX(wheel_inertia);
-    wheel->SetPos(ChVector<>(0, 0, 0));
+    wheel->SetPos(init_loc);
     wheel->SetRot(ChQuaternion<>(1, 0, 0, 0));
 
     // Create the tire
@@ -219,7 +221,7 @@ int main(int argc, char* argv[]) {
         auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().rad = 0.05;
         cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0.55 * tire_width, 0);
-        cyl->GetCylinderGeometry().p1 = ChVector<>(0, -0.55 * tire_width, 0);
+        cyl->GetCylinderGeometry().p2 = ChVector<>(0, -0.55 * tire_width, 0);
         chassis->AddAsset(cyl);
         auto color = std::make_shared<ChColorAsset>(0.4f, 0.5f, 0.6f);
         chassis->AddAsset(color);
@@ -244,7 +246,7 @@ int main(int argc, char* argv[]) {
     auto terrain = std::make_shared<RigidTerrain>(system);
     terrain->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
     terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain->Initialize(-tire_radius - tire_offset, terrain_length, terrain_width);
+    terrain->Initialize(init_loc.z - tire_radius - tire_offset, terrain_length, terrain_width);
 
     // Create joints
     // -------------
@@ -254,15 +256,14 @@ int main(int argc, char* argv[]) {
     auto plane_plane = std::make_shared<ChLinkLockPlanePlane>();
     system->AddLink(plane_plane);
     plane_plane->SetName("plane_plane");
-    plane_plane->Initialize(terrain->GetGroundBody(), chassis,
-        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
+    plane_plane->Initialize(terrain->GetGroundBody(), chassis, ChCoordsys<>(init_loc, Q_from_AngX(CH_C_PI_2)));
 
     // Connect wheel to chassis through a revolute joint.
     // The axis of rotation is along the y global axis.
     auto revolute = std::make_shared<ChLinkLockRevolute>();
     system->AddLink(revolute);
     revolute->SetName("revolute");
-    revolute->Initialize(chassis, wheel, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
+    revolute->Initialize(chassis, wheel, ChCoordsys<>(init_loc, Q_from_AngX(CH_C_PI_2)));
 
     // Complete system setup
     // ---------------------
@@ -275,7 +276,7 @@ int main(int argc, char* argv[]) {
     if (tire_model == ANCF) {
         solver_type = MKL;
         integrator_type = HHT;
-        step_size = ChMin(step_size, 1e-4);
+        step_size = ChMin(step_size, 5e-5);
     }
 
     if (solver_type == MKL) {
@@ -286,7 +287,7 @@ int main(int argc, char* argv[]) {
 
     switch (solver_type) {
         case SOR: {
-            GetLog() << "Using SOR solver\n";
+            std::cout << "Using SOR solver\n";
             system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
             system->SetIterLCPmaxItersSpeed(100);
             system->SetIterLCPmaxItersStab(100);
@@ -295,7 +296,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case MINRES: {
-            GetLog() << "Using MINRES solver\n";
+            std::cout << "Using MINRES solver\n";
             system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
             ChLcpIterativeMINRES* minres_solver = (ChLcpIterativeMINRES*)system->GetLcpSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
@@ -306,7 +307,7 @@ int main(int argc, char* argv[]) {
         }
         case MKL: {
 #ifdef CHRONO_MKL
-            GetLog() << "Using MKL solver\n";
+            std::cout << "Using MKL solver\n";
             ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
             ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
             system->ChangeLcpSolverStab(mkl_solver_stab);
@@ -321,11 +322,11 @@ int main(int argc, char* argv[]) {
     // Set up integrator
     switch (integrator_type) {
         case EULER:
-            GetLog() << "Using EULER_IMPLICIT_LINEARIZED integrator\n";
+            std::cout << "Using EULER_IMPLICIT_LINEARIZED integrator\n";
             system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
             break;
         case HHT: {
-            GetLog() << "Using HHT integrator\n";
+            std::cout << "Using HHT integrator\n";
             system->SetIntegrationType(ChSystem::INT_HHT);
             auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
             integrator->SetAlpha(-0.2);
@@ -338,15 +339,18 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    GetLog() << "Using step_size = " << step_size << "\n";
+    std::cout << "Using step_size = " << step_size << std::endl;
+    if (tire_model == ANCF) {
+        std::cout << "ANCF tire mass = " << std::static_pointer_cast<ChANCFTire>(tire)->GetMass() << std::endl;
+    }
 
     // Create the Irrlicht app
     // -----------------------
-    ChIrrApp app(system, L"Tire Test Rig", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp app(system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(800, 600), false, true);
     app.AddTypicalLogo();
     app.AddTypicalSky();
     app.AddTypicalLights(irr::core::vector3df(-130.f, -130.f, 50.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.AddTypicalCamera(core::vector3df(0, -1, 0.2f), core::vector3df(0, 0, 0));
+    app.AddTypicalCamera(irr::core::vector3df(0, -1, 0.2f), irr::core::vector3dfCH(init_loc));
 
     app.AssetBindAll();
     app.AssetUpdateAll();
@@ -355,6 +359,7 @@ int main(int argc, char* argv[]) {
     // ----------------------
     WheelState wheel_state;
     TireForce tire_force;
+    TireForce tire_force_cosim;
 
     app.SetTimestep(step_size);
 
@@ -374,6 +379,22 @@ int main(int argc, char* argv[]) {
         // Extract tire forces
         tire_force = tire->GetTireForce();
 
+        // Report tire forces and reaction in the wheel revolute joint.
+        ChCoordsys<> linkCoordsys = revolute->GetLinkRelativeCoords();
+        ChVector<> rF = revolute->Get_react_force();
+        ChVector<> rT = revolute->Get_react_torque();
+        rF = linkCoordsys.TransformDirectionLocalToParent(rF);
+        rT = linkCoordsys.TransformDirectionLocalToParent(rT);
+        std::cout << "Joint reaction (in absolute frame)" << std::endl;
+        std::cout << "   force:  " << rF.x << "  " << rF.y << "  " << rF.z << std::endl;
+        std::cout << "   torque: " << rT.x << "  " << rT.y << "  " << rT.z << std::endl;
+
+        tire_force_cosim = tire->GetTireForce(true);
+        std::cout << "Tire force (at wheel center)" << std::endl;
+        std::cout << "   point:  " << tire_force_cosim.point.x << "  " << tire_force_cosim.point.y << "  " << tire_force_cosim.point.z << std::endl;
+        std::cout << "   force:  " << tire_force_cosim.force.x << "  " << tire_force_cosim.force.y << "  " << tire_force_cosim.force.z << std::endl;
+        std::cout << "   moment: " << tire_force_cosim.moment.x << "  " << tire_force_cosim.moment.y << "  " << tire_force_cosim.moment.z << std::endl;
+
         // Update tire system
         tire->Synchronize(system->GetChTime(), wheel_state, *(terrain.get()));
 
@@ -384,6 +405,6 @@ int main(int argc, char* argv[]) {
 
         // Advance simulation
         tire->Advance(step_size);
-        system->DoStepDynamics(step_size);
+        app.DoStep();
     }
 }
