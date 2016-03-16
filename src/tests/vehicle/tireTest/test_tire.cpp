@@ -364,8 +364,13 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Using step_size = " << step_size << std::endl;
-    if (tire_model == ANCF) {
-        std::cout << "ANCF tire mass = " << std::static_pointer_cast<ChANCFTire>(tire)->GetMass() << std::endl;
+    switch (tire_model) {
+        case ANCF:
+            std::cout << "ANCF tire mass = " << std::static_pointer_cast<ChANCFTire>(tire)->GetMass() << std::endl;
+            break;
+        case FEA:
+            std::cout << "FEA tire mass = " << std::static_pointer_cast<ChFEATire>(tire)->GetMass() << std::endl;
+            break;
     }
 
     // Create the Irrlicht app
