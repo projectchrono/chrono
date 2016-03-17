@@ -28,7 +28,7 @@ brew install doxygen
 
 ##Building documentation
 
-The documentation is in the main chrono repository in the ```doxygen``` folder. To build the documentation run the ```doxygen``` command in this directory
+The documentation is in the main chrono repository in the ```doxygen``` folder. To build the documentation run the ```doxygen``` command in this directory. Documentation will be built at ```../../docs_build```.
 
 
 
@@ -67,6 +67,7 @@ Images can be added as follows
 
 ###Converting Details Blocks
 
+The text in the wiki:
 ~~~
 {{Details|content=
 We suggest to install also the following third party packages for expanding the capabilities of Python in mathematical ad plotting areas:
@@ -78,6 +79,7 @@ Otherwise there is a custom Python distribution called [http://enthought.com/pro
 }}
 ~~~
 
+Becomes:
 
 ~~~
 <div class=well>
@@ -90,16 +92,18 @@ Otherwise there is a custom Python distribution called [Enthough](http://enthoug
 </div>
 ~~~
 
-
+Here is another example:
 ~~~
 {{Details|content=
 The files for this demo can be found in the directory ''C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions''. The directory contains all the parts needed for this assembly.
 }}
 ~~~
 
+and the code that should be put into markdown
+
 ~~~
 <div class=well>
-The files for this demo can be found in the directory ```C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions```. The directory contains all the parts needed for this assembly.
+The files for this demo can be found in the directory ```C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions``` . The directory contains all the parts needed for this assembly.
 </div>
 ~~~
 
@@ -120,6 +124,7 @@ brick_material.SetComplianceT(0.000000001)
 Becomes
 
 ```
+
 ~~~{.py}
 brick_material = chrono.ChMaterialSurfaceShared()
 brick_material.SetFriction(0.6)
@@ -127,10 +132,12 @@ brick_material.SetDampingF(0.05)
 brick_material.SetCompliance (0.000000003)
 brick_material.SetComplianceT(0.000000001)
 ~~~
+
 ```
 
 ### Emphasis
 
+Change quotes to double asterisks
 ~~~
 ''but it won't produce any collisions yet!''
 ~~~
@@ -138,8 +145,6 @@ brick_material.SetComplianceT(0.000000001)
 ~~~
 **but it won't produce any collisions yet!**
 ~~~
-
-
 
 ### Lists
 
