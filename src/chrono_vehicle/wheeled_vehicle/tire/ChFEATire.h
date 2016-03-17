@@ -12,22 +12,20 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Template for a deformable ANCF tire
+// Template for a deformable co-rotational FEA tire
 //
 // =============================================================================
 
-#ifndef CH_ANCFTIRE_H
-#define CH_ANCFTIRE_H
+#ifndef CH_FEATIRE_H
+#define CH_FEATIRE_H
 
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_fea/ChNodeFEAbase.h"
-#include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
-#include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,26 +34,16 @@ namespace vehicle {
 /// @{
 
 /// ANCF tire model.
-/// This tire is modeled as a mesh composed of ANCF shell element.
-class CH_VEHICLE_API ChANCFTire : public ChTire {
+/// This tire is modeled as a mesh composed of co-rotational elements.
+class CH_VEHICLE_API ChFEATire : public ChTire {
   public:
-    enum ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
-
-    ChANCFTire(const std::string& name  ///< [in] name of this tire system
+    ChFEATire(const std::string& name  ///< [in] name of this tire system
                );
 
-    virtual ~ChANCFTire() {}
-
-    /// Set the type of contact surface.
-    void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
+    virtual ~ChFEATire() {}
 
     /// Set radius of contact nodes.
-    /// This value is relevant only for NODE_CLOUD contact surface type.
     void SetContactNodeRadius(double radius) { m_contact_node_radius = radius; }
-
-    /// Set thickness of contact faces (radius of swept sphere).
-    /// This value is relevant only for TRIANGLE_MESH contact surface type.
-    void SetContactFaceThickness(double thickness) { m_contact_face_thickness = thickness; }
 
     /// Set contact material properties
     void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
@@ -111,6 +99,10 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     /// Return the default tire pressure.
     virtual double GetDefaultPressure() const = 0;
 
+    /// Return list of internal nodes.
+    /// These nodes define the mesh surface over which pressure loads are applied.
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetInternalNodes() const = 0;
+
     /// Return list of nodes connected to the rim.
     virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const = 0;
 
@@ -122,7 +114,6 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
 
     std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
     std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
-    std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;   ///< tire-wheel direction connections
 
   private:
     bool m_connection_enabled;
@@ -131,9 +122,7 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
 
     double m_pressure;
 
-    ContactSurfaceType m_contact_type;
     double m_contact_node_radius;
-    double m_contact_face_thickness;
     float m_friction;
     float m_restitution;
     float m_young_modulus;

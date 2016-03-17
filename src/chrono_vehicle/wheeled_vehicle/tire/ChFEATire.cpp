@@ -12,19 +12,18 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Template for a deformable ANCF tire
+// Template for a deformable co-rotational FEA tire
 //
 // =============================================================================
 
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemDEM.h"
 
-#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,14 +32,12 @@ using namespace chrono::fea;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChANCFTire::ChANCFTire(const std::string& name)
+ChFEATire::ChFEATire(const std::string& name)
     : ChTire(name),
       m_pressure_enabled(true),
       m_contact_enabled(true),
       m_connection_enabled(true),
-      m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
-      m_contact_face_thickness(0.0),
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
       m_friction(0.6f),
@@ -49,7 +46,7 @@ ChANCFTire::ChANCFTire(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChANCFTire::SetContactMaterial(float friction_coefficient,
+void ChFEATire::SetContactMaterial(float friction_coefficient,
                                     float restitution_coefficient,
                                     float young_modulus,
                                     float poisson_ratio) {
@@ -61,7 +58,7 @@ void ChANCFTire::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+void ChFEATire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     ChSystemDEM* system = dynamic_cast<ChSystemDEM*>(wheel->GetSystem());
     assert(system);
 
@@ -77,19 +74,22 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     system->Add(load_container);
 
     if (m_pressure_enabled) {
-        // If pressure was not explicitly specified, fall back to the
-        // default value.
+        // If pressure was not explicitly specified, fall back to the default value.
         if (m_pressure < 0)
             m_pressure = GetDefaultPressure();
 
-        // Create a pressure load for each element in the mesh.  Note that we set a
-        // negative pressure (i.e. internal pressure, acting opposite to the surface normal)
-        for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ie++) {
-            auto load = std::make_shared<ChLoad<ChLoaderPressure>>(
-                std::static_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie)));
-            load->loader.SetPressure(-m_pressure);
-            load->loader.SetStiff(false);          //// TODO:  user control?
-            load->loader.SetIntegrationPoints(2);  //// TODO:  user control?
+        // Get the list of internal nodes and create the internal mesh surface.
+        auto nodes = GetInternalNodes();
+        auto surface = std::make_shared<ChMeshSurface>();
+        m_mesh->AddMeshSurface(surface);
+        surface->AddFacesFromNodeSet(nodes);
+
+        // Create a pressure load for each element in the mesh surface.  Note that we set a
+        // positive pressure (i.e. internal pressure, acting opposite to the surface normal)
+        for (unsigned int ie = 0; ie < surface->GetFacesList().size(); ie++) {
+            auto load = std::make_shared<ChLoad<ChLoaderPressure>>(surface->GetFacesList()[ie]);
+            load->loader.SetPressure(m_pressure);
+            load->loader.SetStiff(false);
             load_container->Add(load);
         }
     }
@@ -103,22 +103,10 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
         contact_mat->SetPoissonRatio(m_poisson_ratio);
 
         // Create the contact surface
-        switch (m_contact_type) {
-            case NODE_CLOUD: {
-                auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
-                m_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddAllNodes(m_contact_node_radius);
-                contact_surf->SetMaterialSurface(contact_mat);
-                break;
-            }
-            case TRIANGLE_MESH: {
-                auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
-                m_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddFacesFromBoundary(m_contact_face_thickness);
-                contact_surf->SetMaterialSurface(contact_mat);
-                break;
-            }
-        }
+        auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
+        m_mesh->AddContactSurface(contact_surf);
+        contact_surf->AddAllNodes(m_contact_node_radius);
+        contact_surf->SetMaterialSurface(contact_mat);
     }
 
     if (m_connection_enabled) {
@@ -126,18 +114,11 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
         auto nodes = GetConnectedNodes();
 
         m_connections.resize(nodes.size());
-        m_connectionsD.resize(nodes.size());
 
         for (size_t in = 0; in < nodes.size(); ++in) {
-            auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(nodes[in]);
             m_connections[in] = std::make_shared<ChLinkPointFrame>();
-            m_connections[in]->Initialize(node, wheel);
+            m_connections[in]->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyz>(nodes[in]), wheel);
             system->Add(m_connections[in]);
-
-            m_connectionsD[in] = std::make_shared<ChLinkDirFrame>();
-            m_connectionsD[in]->Initialize(node, wheel);
-            m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetD());
-            system->Add(m_connectionsD[in]);
         }
     }
 
@@ -149,14 +130,14 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     auto visualizationS = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
     visualizationS->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    visualizationS->SetColorscaleMinMax(0.0, 1);
+    visualizationS->SetColorscaleMinMax(0.0, 5);
     visualizationS->SetSmoothFaces(true);
     m_mesh->AddAsset(visualizationS);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChANCFTire::GetMass() const {
+double ChFEATire::GetMass() const {
     double mass;
     ChVector<> com;
     ChMatrix33<> inertia;
@@ -167,7 +148,7 @@ double ChANCFTire::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TireForce ChANCFTire::GetTireForce(bool cosim) const {
+TireForce ChFEATire::GetTireForce(bool cosim) const {
     TireForce tire_force;
 
     // If the tire is simulated together with the associated vehicle, return zero
@@ -190,10 +171,6 @@ TireForce ChANCFTire::GetTireForce(bool cosim) const {
     ChVector<> force;
     for (size_t ic = 0; ic < m_connections.size(); ic++) {
         force += m_connections[ic]->GetReactionOnBody();
-    }
-
-    for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
-        force += m_connectionsD[ic]->GetReactionOnBody();
     }
 
     // Calculate and return the resultant force and moment at the center of the

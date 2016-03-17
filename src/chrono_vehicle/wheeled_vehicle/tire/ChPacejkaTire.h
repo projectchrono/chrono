@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                     bool driven);
 
     /// return the reactions for the combined slip EQs, in global coords
-    virtual TireForce GetTireForce() const override;
+    virtual TireForce GetTireForce(bool cosim = false) const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
     TireForce GetTireForce_pureSlip(const bool local = true) const;

@@ -179,7 +179,7 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 // Create the FEA mesh
 // -----------------------------------------------------------------------------
-void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrameMoving<>& wheel_frame, VehicleSide side) {
+void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create piece-wise cubic spline approximation of the tire profile.
     //   x - radial direction
     //   y - transversal direction
@@ -218,7 +218,7 @@ void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrameMoving
             node->SetPos_dt(vel);
 
             node->SetMass(0);
-            mesh->AddNode(node);
+            m_mesh->AddNode(node);
         }
     }
 
@@ -237,10 +237,10 @@ void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrameMoving
                 inode2 = j + 1 + (i + 1) * (m_div_width + 1);
             }
 
-            auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode0));
-            auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode1));
-            auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode2));
-            auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode3));
+            auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode0));
+            auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode1));
+            auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode2));
+            auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
             auto element = std::make_shared<ChElementShellANCF>();
@@ -283,23 +283,23 @@ void ANCFTire::CreateMesh(std::shared_ptr<fea::ChMesh> mesh, const ChFrameMoving
             element->SetGravityOn(true);
 
             // Add element to mesh
-            mesh->AddElement(element);
+            m_mesh->AddElement(element);
         }
     }
 
     // Switch off automatic gravity
-    mesh->SetAutomaticGravity(false);
+    m_mesh->SetAutomaticGravity(false);
 }
 
-NodeList ANCFTire::GetConnectedNodes(const std::shared_ptr<fea::ChMesh>& mesh) const {
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> nodes;
+std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ANCFTire::GetConnectedNodes() const {
+    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> nodes;
 
     for (int i = 0; i < m_div_circumference; i++) {
         for (int j = 0; j <= m_div_width; j++) {
             int index = j + i * (m_div_width + 1);
             if (index % (m_div_width + 1) == 0) {
-                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(index)));
-                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(index + m_div_width)));
+                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(index)));
+                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(index + m_div_width)));
             }
         }
     }

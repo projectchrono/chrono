@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TireForce GetTireForce() const override { return m_tireforce; }
+    virtual TireForce GetTireForce(bool cosim = false) const override { return m_tireforce; }
 
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel.

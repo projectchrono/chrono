@@ -12,16 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ANCF tire constructed with data from file (JSON format).
+// FEA co-rotational tire constructed with data from file (JSON format).
+// The mesh data is assumed to be provided through an Abaqus INP file.
 //
 // =============================================================================
 
-#ifndef ANCF_TIRE_H
-#define ANCF_TIRE_H
+#ifndef FEA_TIRE_H
+#define FEA_TIRE_H
 
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 
 #include "thirdparty/rapidjson/document.h"
 
@@ -32,11 +31,11 @@ namespace vehicle {
 /// @{
 
 /// ANCF tire constructed with data from file (JSON format).
-class CH_VEHICLE_API ANCFTire : public ChANCFTire {
+class CH_VEHICLE_API FEATire : public ChFEATire {
   public:
-    ANCFTire(const std::string& filename);
-    ANCFTire(const rapidjson::Document& d);
-    ~ANCFTire() {}
+    FEATire(const std::string& filename);
+    FEATire(const rapidjson::Document& d);
+    ~FEATire() {}
 
     /// Return the tire radius.
     virtual double GetTireRadius() const override { return m_tire_radius; }
@@ -46,6 +45,10 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     virtual double GetWidth() const override { return m_rim_width; }
     /// Return the default tire pressure.
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
+
+    /// Return list of internal nodes.
+    /// These nodes define the mesh surface over which pressure loads are applied.
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetInternalNodes() const override;
 
     /// Return list of nodes connected to the rim.
     virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
@@ -63,36 +66,12 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     double m_rim_radius;
     double m_rim_width;
 
-    int m_div_circumference;
-    int m_div_width;
-
-    double m_alpha;
     double m_default_pressure;
 
-    std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> m_materials;
+    std::shared_ptr<fea::ChContinuumElastic> m_material;
+    std::string m_input_file;
 
-    unsigned int m_num_elements_bead;
-    unsigned int m_num_layers_bead;
-    std::vector<double> m_layer_thickness_bead;
-    std::vector<double> m_ply_angle_bead;
-    std::vector<int> m_material_id_bead;
-
-    unsigned int m_num_elements_sidewall;
-    unsigned int m_num_layers_sidewall;
-    std::vector<double> m_layer_thickness_sidewall;
-    std::vector<double> m_ply_angle_sidewall;
-    std::vector<int> m_material_id_sidewall;
-
-    unsigned int m_num_elements_tread;
-    unsigned int m_num_layers_tread;
-    std::vector<double> m_layer_thickness_tread;
-    std::vector<double> m_ply_angle_tread;
-    std::vector<int> m_material_id_tread;
-
-    unsigned int m_num_points;
-    std::vector<double> m_profile_t;
-    std::vector<double> m_profile_x;
-    std::vector<double> m_profile_y;
+    std::vector<std::vector<std::shared_ptr<fea::ChNodeFEAbase>>> m_node_sets;
 };
 
 /// @} vehicle_wheeled_tire
