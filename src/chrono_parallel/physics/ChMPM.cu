@@ -269,17 +269,17 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
 
         Mat33 PED = real(2.) * current_mu * (FE_hat - RE);
 
-        Mat33 vPEDFepT = marker_volume[p] * MultTranspose(PED, FE) * (1.0f / (JE * JP));
+        Mat33 vPEDFepT = device_settings.dt * marker_volume[p] * MultTranspose(PED, FE) * (1.0f / (JE * JP));
 
         LOOP_TWO_RING_GPU(                                                  //
             real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
-            real3 force = device_settings.dt * (vPEDFepT * d_weight);
+            real3 force = (vPEDFepT * d_weight);
 
             real mass = node_mass[current_node];  //
             if (mass > 0) {
-                ATOMIC_ADD(&grid_vel[current_node * 3 + 0], -device_settings.dt * force.x / mass);  //
-                ATOMIC_ADD(&grid_vel[current_node * 3 + 1], -device_settings.dt * force.y / mass);  //
-                ATOMIC_ADD(&grid_vel[current_node * 3 + 2], -device_settings.dt * force.z / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 0], -force.x / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 1], -force.y / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 2], -force.z / mass);  //
             })
     }
 }
@@ -686,26 +686,26 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
         const real bin_edge = device_settings.bin_edge;
         const real inv_bin_edge = 1.f / bin_edge;
 
-        LOOP_TWO_RING_GPUSP(
-            real vnx = grid_vel[current_node * 3 + 0];  //
-            real vny = grid_vel[current_node * 3 + 1];  //
-            real vnz = grid_vel[current_node * 3 + 2];
+        LOOP_TWO_RING_GPUSP(real vnx = grid_vel[current_node * 3 + 0];  //
+                            real vny = grid_vel[current_node * 3 + 1];  //
+                            real vnz = grid_vel[current_node * 3 + 2];
 
-            real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
-            real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
-            real Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+                            real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
+                            real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
+                            real Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
 
-            real valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
-            real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
-            real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
+                            real valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
+                            real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
+                            real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
-            velocity_gradient[0] += vnx * valx; velocity_gradient[1] += vny * valx;
-            velocity_gradient[2] += vnz * valx;  //
-            velocity_gradient[4] += vnx * valy; velocity_gradient[5] += vny * valy;
-            velocity_gradient[6] += vnz * valy;  //
-            velocity_gradient[8] += vnx * valz; velocity_gradient[9] += vny * valz; velocity_gradient[10] += vnz * valz;
+                            velocity_gradient[0] += vnx * valx; velocity_gradient[1] += vny * valx;
+                            velocity_gradient[2] += vnz * valx;  //
+                            velocity_gradient[4] += vnx * valy; velocity_gradient[5] += vny * valy;
+                            velocity_gradient[6] += vnz * valy;  //
+                            velocity_gradient[8] += vnx * valz; velocity_gradient[9] += vny * valz;
+                            velocity_gradient[10] += vnz * valz;
 
-            )
+                            )
         Mat33 Fe_tmp = (Mat33(1.0) + device_settings.dt * velocity_gradient) * marker_Fe[p];
         Mat33 F_tmp = Fe_tmp * marker_Fp[p];
         Mat33 U, V;
