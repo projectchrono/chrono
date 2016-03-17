@@ -174,7 +174,6 @@ protected:
 	ChBody* mbody;
 
 	unsigned int nObjects;
-	real3 inertia;
 	float total_volume;
 };
 
