@@ -110,22 +110,24 @@ The files for this demo can be found in the directory ```C:\Program Files\SolidW
 
 For notes that have a symbol next to them use the following code block
 
+<span class="label label-success"><span class="glyphicon glyphicon-check"></span></span>
+
 <span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span>
 
-<span class="label label-info"><span class="glyphicon glyphicon-warning-sign"></span></span>
+<span class="label label-warning"><span class="glyphicon glyphicon-warning-sign"></span></span>
 
-<span class="label label-info"><span class="glyphicon glyphicon-exclamation-sign"></span></span>
+<span class="label label-danger"><span class="glyphicon glyphicon-exclamation-sign"></span></span>
 
-<span class="label label-info"><span class="glyphicon glyphicon-check"></span></span>
+
 
 ~~~
+<span class="label label-success"><span class="glyphicon glyphicon-check"></span></span>
+
 <span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span>
 
-<span class="label label-info"><span class="glyphicon glyphicon-warning-sign"></span></span>
+<span class="label label-warning"><span class="glyphicon glyphicon-warning-sign"></span></span>
 
-<span class="label label-info"><span class="glyphicon glyphicon-exclamation-sign"></span></span>
-
-<span class="label label-info"><span class="glyphicon glyphicon-check"></span></span>
+<span class="label label-danger"><span class="glyphicon glyphicon-exclamation-sign"></span></span>
 ~~~
 
 
