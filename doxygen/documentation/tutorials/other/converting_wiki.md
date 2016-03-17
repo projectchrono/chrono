@@ -6,6 +6,31 @@ Converting from MediaWiki to Doxygen {#tutorial_converting_wiki}
 [Doxygen Manual](https://www.stack.nl/~dimitri/doxygen/manual/)
 
 
+##Installing doxygen
+
+### Windows:
+The recommended way to install doxygen is by using [chocolatey](https://chocolatey.org/). Start by following the installation instructions for choclatey and then run
+
+~~~
+choco install doxygen.install -y
+~~~
+
+###Linux
+Install ```doxygen``` through your favorite package manager
+
+###OSX
+Install doxygen using homebrew
+
+~~~
+brew install doxygen
+~~~
+
+
+##Building documentation
+
+The documentation is in the main chrono repository in the ```doxygen``` folder. To build the documentation run the ```doxygen``` command in this directory
+
+
 
 ###Links
 
@@ -137,3 +162,11 @@ Becomes (spacing important!)
 ~~~
 
 
+
+### Linking to contents of source file
+~~~
+Creating A Powertrain In Chrono (demo_powertrain.cpp) {#tutorial_demo_powertrain}
+==========================
+
+\verbinclude demo_powertrain.cpp
+~~~
