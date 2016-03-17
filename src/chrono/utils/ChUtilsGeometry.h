@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Hammad Mazhar
+// Authors: Radu Serban, Hammad Mazhar, Arman Pazouki
 // =============================================================================
 //
 // Utility functions for various geometrical calculations.
@@ -159,6 +159,7 @@ inline ChMatrix33<> CalcEllipsoidGyration(const ChVector<>& hdims,
   return J;
 }
 
+// Calculate the gyration tensor of a box. hdims is a vector of half dimensions of the box.
 inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
                                     const ChVector<>& pos = ChVector<>(0, 0, 0),
                                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
@@ -173,24 +174,32 @@ inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
   return J;
 }
 
+// Calculate the gyration tensor of a capsule. hlen is the half length of the cylindrical part and radius
+// is the radius of the spherical part
 inline ChMatrix33<> CalcCapsuleGyration(double radius,
                                         double hlen,
                                         const ChVector<>& pos = ChVector<>(0, 0, 0),
                                         const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  //// TODO: for now, use the gyration of the circumscibed cylinder
-  double hlen1 = hlen + radius;
+  double massRatio = 1.5 * hlen / radius;
+  double cmDist = hlen + 3.0 / 8 * radius;
+  double Ixx = massRatio / (1 + massRatio) * (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen) +
+		  1 / (1 + massRatio) * (0.259 * radius * radius + cmDist * cmDist);
+  double Iyy = massRatio / (1 + massRatio) * (1.0 / 2.0) * (radius * radius) +
+		  1 / (1 + massRatio) * (2.0 / 5.0) * (radius * radius);
 
-  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen1 * hlen1));
-  J.SetElement(1, 1, (1.0 / 2.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen1 * hlen1));
+  J.SetElement(0, 0, Ixx);
+  J.SetElement(1, 1, Iyy);
+  J.SetElement(2, 2, Ixx);
 
   TransformGyration(J, pos, rot);
 
   return J;
 }
 
+// Calculate the gyration tensor of a cylinder. hlen is the half length of the cylindrical part and radius
+// is the base radius
 inline ChMatrix33<> CalcCylinderGyration(double radius,
                                          double hlen,
                                          const ChVector<>& pos = ChVector<>(0, 0, 0),
@@ -206,15 +215,18 @@ inline ChMatrix33<> CalcCylinderGyration(double radius,
   return J;
 }
 
+// Calculate the gyration tensor of a cone. len is the length of the cone axis and radius
+// is the base radius
 inline ChMatrix33<> CalcConeGyration(double radius,
                                      double len,
                                      const ChVector<>& pos = ChVector<>(0, 0, 0),
                                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  J.SetElement(0, 0, (3.0 / 5.0) * (len * len) + (3.0 / 20.0) * (radius * radius));
+  double Ixx = (3.0 / 80.0) * (len * len) + (3.0 / 20.0) * (radius * radius);
+  J.SetElement(0, 0, Ixx);
   J.SetElement(1, 1, (3.0 / 10.0) * (radius * radius));
-  J.SetElement(2, 2, (3.0 / 5.0) * (len * len) + (3.0 / 20.0) * (radius * radius));
+  J.SetElement(2, 2, Ixx);
 
   TransformGyration(J, pos, rot);
 
@@ -228,10 +240,12 @@ inline ChMatrix33<> CalcRoundedCylinderGyration(double radius,
                                                 const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  //// TODO: for now, use the gyration of the skeleton cylinder
-  J.SetElement(0, 0, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
-  J.SetElement(1, 1, (1.0 / 2.0) * (radius * radius));
-  J.SetElement(2, 2, (1.0 / 12.0) * (3 * radius * radius + 4 * hlen * hlen));
+  double modifiedRadius = radius + srad;
+  double modifiedHlen = hlen + srad;
+  //// TODO: for now, use the gyration of the offset cylinder
+  J.SetElement(0, 0, (1.0 / 12.0) * (3 * modifiedRadius * modifiedRadius + 4 * modifiedHlen * modifiedHlen));
+  J.SetElement(1, 1, (1.0 / 2.0) * (modifiedRadius * modifiedRadius));
+  J.SetElement(2, 2, (1.0 / 12.0) * (3 * modifiedRadius * modifiedRadius + 4 * modifiedHlen * modifiedHlen));
 
   TransformGyration(J, pos, rot);
 
@@ -244,10 +258,11 @@ inline ChMatrix33<> CalcRoundedBoxGyration(const ChVector<>& hdims,
                                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
   ChMatrix33<> J;
 
-  //// TODO: for now, use the gyration of the skeleton box
-  J.SetElement(0, 0, (1.0 / 3.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-  J.SetElement(1, 1, (1.0 / 3.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-  J.SetElement(2, 2, (1.0 / 3.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+  ChVector<> modifiedHdims = hdims + ChVector<>(srad, srad, srad);
+  //// TODO: for now, use the gyration of the offset box
+  J.SetElement(0, 0, (1.0 / 3.0) * (modifiedHdims.y * modifiedHdims.y + modifiedHdims.z * modifiedHdims.z));
+  J.SetElement(1, 1, (1.0 / 3.0) * (modifiedHdims.z * modifiedHdims.z + modifiedHdims.x * modifiedHdims.x));
+  J.SetElement(2, 2, (1.0 / 3.0) * (modifiedHdims.x * modifiedHdims.x + modifiedHdims.y * modifiedHdims.y));
 
   TransformGyration(J, pos, rot);
 

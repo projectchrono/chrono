@@ -125,12 +125,23 @@ void AddConeGeometry(ChBody* body,
                      const ChVector<>& pos,
                      const ChQuaternion<>& rot,
                      bool visualization) {
-    body->GetCollisionModel()->AddCone(radius, radius, height, pos, rot);
+	ChFrame<> frame;
+	frame = ChFrame<>(pos, rot);
+	if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
+		frame = frame >> body_ar->GetFrame_REF_to_COG();
+	}
+	const ChVector<>& position = frame.GetPos();
+	const ChQuaternion<>& rotation = frame.GetRot();
+
+	ChVector<> posCollisionModel = position + ChVector<>(0, 0.25 * height, 0);
+
+
+    body->GetCollisionModel()->AddCone(radius, radius, height, posCollisionModel, rot);
 
     if (visualization) {
         auto cone = std::make_shared<ChConeShape>();
         cone->GetConeGeometry().rad = ChVector<>(radius, height, radius);
-        cone->Pos = pos;
+        cone->Pos = posCollisionModel;
         cone->Rot = rot;
         body->GetAssets().push_back(cone);
     }
