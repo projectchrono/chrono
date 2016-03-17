@@ -119,7 +119,7 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
             vel = vel * max_velocity / speed;
         }
         vel_fluid[original_index] = vel;
-        // pos_fluid[original_index] += vel * data_manager->settings.step_size;
+        pos_fluid[original_index] += vel * data_manager->settings.step_size;
         sorted_pos_fluid[i] = pos_fluid[original_index];
     }
 
@@ -164,11 +164,10 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
         for (int p = 0; p < num_fluid_bodies; p++) {
             int original_index = data_manager->host_data.particle_indices_3dof[p];
             real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
-            // if (contact_counts[p + 1] - contact_counts[p] > 0) {
-            pos_fluid[original_index] =
-                sorted_pos_fluid[p] + vel_fluid[original_index] * data_manager->settings.step_size;
-            vel_fluid[original_index] += vv;
-            //}
+            if (contact_counts[p + 1] - contact_counts[p] > 0) {
+                pos_fluid[original_index] = sorted_pos_fluid[p];
+                vel_fluid[original_index] += vv;
+            }
         }
     }
 }
