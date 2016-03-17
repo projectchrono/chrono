@@ -6,6 +6,31 @@ Converting from MediaWiki to Doxygen {#tutorial_converting_wiki}
 [Doxygen Manual](https://www.stack.nl/~dimitri/doxygen/manual/)
 
 
+##Installing doxygen
+
+### Windows:
+The recommended way to install doxygen is by using [chocolatey](https://chocolatey.org/). Start by following the installation instructions for choclatey and then run
+
+~~~
+choco install doxygen.install -y
+~~~
+
+###Linux
+Install ```doxygen``` through your favorite package manager
+
+###OSX
+Install doxygen using homebrew
+
+~~~
+brew install doxygen
+~~~
+
+
+##Building documentation
+
+The documentation is in the main chrono repository in the ```doxygen``` folder. To build the documentation run the ```doxygen``` command in this directory. Documentation will be built at ```../../docs_build```.
+
+
 
 ###Links
 
@@ -42,6 +67,7 @@ Images can be added as follows
 
 ###Converting Details Blocks
 
+The text in the wiki:
 ~~~
 {{Details|content=
 We suggest to install also the following third party packages for expanding the capabilities of Python in mathematical ad plotting areas:
@@ -53,6 +79,7 @@ Otherwise there is a custom Python distribution called [http://enthought.com/pro
 }}
 ~~~
 
+Becomes:
 
 ~~~
 <div class=well>
@@ -65,19 +92,43 @@ Otherwise there is a custom Python distribution called [Enthough](http://enthoug
 </div>
 ~~~
 
-
+Here is another example:
 ~~~
 {{Details|content=
 The files for this demo can be found in the directory ''C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions''. The directory contains all the parts needed for this assembly.
 }}
 ~~~
 
+and the code that should be put into markdown
+
 ~~~
 <div class=well>
-The files for this demo can be found in the directory ```C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions```. The directory contains all the parts needed for this assembly.
+The files for this demo can be found in the directory ```C:\Program Files\SolidWorks Corp\SolidWorks\chronoengine\examples\collisions``` . The directory contains all the parts needed for this assembly.
 </div>
 ~~~
 
+
+For notes that have a symbol next to them use the following code block
+
+<span class="label label-success"><span class="glyphicon glyphicon-check"></span></span>
+
+<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span>
+
+<span class="label label-warning"><span class="glyphicon glyphicon-warning-sign"></span></span>
+
+<span class="label label-danger"><span class="glyphicon glyphicon-exclamation-sign"></span></span>
+
+
+
+~~~
+<span class="label label-success"><span class="glyphicon glyphicon-check"></span></span>
+
+<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span>
+
+<span class="label label-warning"><span class="glyphicon glyphicon-warning-sign"></span></span>
+
+<span class="label label-danger"><span class="glyphicon glyphicon-exclamation-sign"></span></span>
+~~~
 
 
 ### Code blocks
@@ -95,6 +146,7 @@ brick_material.SetComplianceT(0.000000001)
 Becomes
 
 ```
+
 ~~~{.py}
 brick_material = chrono.ChMaterialSurfaceShared()
 brick_material.SetFriction(0.6)
@@ -102,10 +154,12 @@ brick_material.SetDampingF(0.05)
 brick_material.SetCompliance (0.000000003)
 brick_material.SetComplianceT(0.000000001)
 ~~~
+
 ```
 
 ### Emphasis
 
+Change quotes to double asterisks
 ~~~
 ''but it won't produce any collisions yet!''
 ~~~
@@ -113,8 +167,6 @@ brick_material.SetComplianceT(0.000000001)
 ~~~
 **but it won't produce any collisions yet!**
 ~~~
-
-
 
 ### Lists
 
@@ -137,3 +189,11 @@ Becomes (spacing important!)
 ~~~
 
 
+
+### Linking to contents of source file
+~~~
+Creating A Powertrain In Chrono (demo_powertrain.cpp) {#tutorial_demo_powertrain}
+==========================
+
+\verbinclude demo_powertrain.cpp
+~~~
