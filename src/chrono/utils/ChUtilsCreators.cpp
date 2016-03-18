@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Hammad Mazhar
+// Authors: Radu Serban, Hammad Mazhar, Arman Pazouki
 // =============================================================================
 //
 // =============================================================================
@@ -578,14 +578,13 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             const ChVector<>& hdim,
                                                             double hthick,
                                                             int numBoxes,
-                                                            double rho,
-                                                            double collisionEnvelope,
                                                             const ChVector<>& pos,
                                                             const ChQuaternion<>& rot,
                                                             bool collide,
                                                             bool overlap,
                                                             bool closed,
-                                                            bool isBoxBase) {
+                                                            bool isBoxBase,
+															bool partialVisualization) {
     // Verify consistency of input arguments.
     assert(mat->GetContactMethod() == system->GetContactMethod());
 
@@ -619,17 +618,13 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
         p_quat = Angle_to_Quat(ANGLESET_RXYZ, ChVector<>(0, 0, ang * i));
 
         // this is here to make half the cylinder invisible.
-        bool m_visualization = false;
-        if (ang * i < CH_C_PI || ang * i > 3.0 * CH_C_PI / 2.0) {
-            m_visualization = true;
+        bool m_visualization = true;
+        if ((ang * i > CH_C_PI && ang * i < 3.0 * CH_C_PI / 2.0) &&
+        		partialVisualization) {
+            m_visualization = false;
         }
         utils::AddBoxGeometry(body.get(), p_boxSize, p_pos, p_quat, m_visualization);
     }
-
-    double cyl_volume = CH_C_PI * (2 * p_boxSize.z - 2 * hthick) * (2 * p_boxSize.z - 2 * hthick) *
-                            ((2 * hdim.x + 2 * hthick) * (2 * hdim.x + 2 * hthick) - hdim.x * hdim.x) +
-                        (CH_C_PI) * (hdim.x + 2 * hthick) * (hdim.x + 2 * hthick) * 2 * hthick;
-
     // Add ground piece
     if (isBoxBase) {
         utils::AddBoxGeometry(body.get(), Vector(hdim.x + 2 * hthick, hdim.x + 2 * hthick, hthick),
@@ -650,9 +645,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     }
 
     // add up volume of bucket and multiply by rho to get mass;
-    body->SetMass(rho * cyl_volume);
-
-    body->GetCollisionModel()->SetDefaultSuggestedEnvelope(collisionEnvelope);
+    body->GetCollisionModel()->SetDefaultSuggestedEnvelope(0.2 * hthick);
     body->GetCollisionModel()->BuildModel();
 
     system->AddBody(body);
