@@ -125,9 +125,18 @@ CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
         const real3 vi = sorted_vel[p];
-        LOOP_TWO_RING_GPU(                                                                     //
-            real weight = N(xi - current_node_location, inv_bin_edge) * device_settings.mass;  //
-            ATOMIC_ADD(&grid_mass[current_node], weight);                                      //
+
+        int cx, cy, cz;
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = 1.f / bin_edge;
+
+        LOOP_TWO_RING_GPUSP(  //
+
+            real weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
+                          N((xi.y - current_node_locationy) * inv_bin_edge) *
+                          N((xi.z - current_node_locationz) * inv_bin_edge) * device_settings.mass;
+
+            ATOMIC_ADD(&grid_mass[current_node], weight);  //
             ATOMIC_ADD(&grid_vel[current_node * 3 + 0], weight * vi.x);
             ATOMIC_ADD(&grid_vel[current_node * 3 + 1], weight * vi.y);
             ATOMIC_ADD(&grid_vel[current_node * 3 + 2], weight * vi.z);)
@@ -267,19 +276,32 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
         PolarR[p] = RE;
         PolarR[p][3] = JP;
 
-        Mat33 PED = real(2.) * current_mu * (FE_hat - RE);
+        Mat33 vPEDFepT = device_settings.dt * marker_volume[p] * real(2.) * current_mu *
+                         MultTranspose((FE_hat - RE), FE) * (1.0f / (JE * JP));
 
-        Mat33 vPEDFepT = device_settings.dt * marker_volume[p] * MultTranspose(PED, FE) * (1.0f / (JE * JP));
+        int cx, cy, cz;
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = 1.f / bin_edge;
 
-        LOOP_TWO_RING_GPU(                                                  //
-            real3 d_weight = dN(xi - current_node_location, inv_bin_edge);  //
-            real3 force = (vPEDFepT * d_weight);
+        LOOP_TWO_RING_GPUSP(  //
+
+            real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
+            real Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
+            real Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+
+            real valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
+            real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
+            real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
+
+            real fx = vPEDFepT[0] * valx + vPEDFepT[4] * valy + vPEDFepT[8] * valz;
+            real fy = vPEDFepT[1] * valx + vPEDFepT[5] * valy + vPEDFepT[9] * valz;
+            real fz = vPEDFepT[2] * valx + vPEDFepT[6] * valy + vPEDFepT[10] * valz;
 
             real mass = node_mass[current_node];  //
             if (mass > 0) {
-                ATOMIC_ADD(&grid_vel[current_node * 3 + 0], -force.x / mass);  //
-                ATOMIC_ADD(&grid_vel[current_node * 3 + 1], -force.y / mass);  //
-                ATOMIC_ADD(&grid_vel[current_node * 3 + 2], -force.z / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 0], -fx / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 1], -fy / mass);  //
+                ATOMIC_ADD(&grid_vel[current_node * 3 + 2], -fz / mass);  //
             })
     }
 }
