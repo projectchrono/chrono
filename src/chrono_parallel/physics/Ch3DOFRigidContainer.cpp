@@ -393,12 +393,10 @@ void Ch3DOFRigidContainer::Build_b() {
         if (mu == 0) {
             Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;  //
                                       real bi = 0;                               //
-                                      if (cohesion) { depth = Min(depth, 0); } else {
-                                          if (alpha) {
-                                              bi = std::max(inv_hpa * depth, -contact_recovery_speed);
-                                          } else {
-                                              bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                          }
+                                      if (cohesion) {
+                                          depth = Min(depth, 0);
+                                      } if (alpha) { bi = std::max(inv_hpa * depth, -contact_recovery_speed); } else {
+                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
                                       }
 
                                       b[start_contact + index + 0] = bi;);
