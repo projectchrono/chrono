@@ -70,6 +70,11 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     data_manager->node_container->PreSolve();
     data_manager->fea_container->PreSolve();
+    // Rhs should be updated with latest velocity after presolve
+    data_manager->host_data.R_full =
+        -data_manager->host_data.b -
+        data_manager->host_data.D_T *
+            (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
 
     ShurProductFull.Setup(data_manager);
     ShurProductBilateral.Setup(data_manager);
@@ -290,8 +295,8 @@ void ChLcpSolverParallelDVI::ComputeR() {
     data_manager->bilateral->Build_b();
     data_manager->node_container->Build_b();
     data_manager->fea_container->Build_b();
-
-    R = -b - D_T * M_invk;
+    // update rhs after presolve!
+    // R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChLcpSolverParallel_R");
 }
