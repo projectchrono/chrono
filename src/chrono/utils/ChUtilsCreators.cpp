@@ -599,7 +599,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     body->SetPos(pos);
     body->SetRot(rot);
     body->SetCollide(collide);
-    body->SetBodyFixed(false);
+    body->SetBodyFixed(true);
 
     double box_side = hdim.x * 2.0 * tan(CH_C_PI / numBoxes);  // side length of cyl
     double o_lap = 0;
