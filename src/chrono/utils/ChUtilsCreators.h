@@ -221,7 +221,7 @@ ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
     bool overlap = true,
     bool closed = false,
     bool isBoxBase = true,
-	bool partialVisualization = true);
+    bool partialVisualization = true);
 
 ChApi void InitializeObject(std::shared_ptr<ChBody> body,
                             double mass,

@@ -125,16 +125,15 @@ void AddConeGeometry(ChBody* body,
                      const ChVector<>& pos,
                      const ChQuaternion<>& rot,
                      bool visualization) {
-	ChFrame<> frame;
-	frame = ChFrame<>(pos, rot);
-	if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
-		frame = frame >> body_ar->GetFrame_REF_to_COG();
-	}
-	const ChVector<>& position = frame.GetPos();
-	const ChQuaternion<>& rotation = frame.GetRot();
+    ChFrame<> frame;
+    frame = ChFrame<>(pos, rot);
+    if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
+        frame = frame >> body_ar->GetFrame_REF_to_COG();
+    }
+    const ChVector<>& position = frame.GetPos();
+    const ChQuaternion<>& rotation = frame.GetRot();
 
-	ChVector<> posCollisionModel = position + ChVector<>(0, 0.25 * height, 0);
-
+    ChVector<> posCollisionModel = position + ChVector<>(0, 0.25 * height, 0);
 
     body->GetCollisionModel()->AddCone(radius, radius, height, posCollisionModel, rot);
 
@@ -584,7 +583,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             bool overlap,
                                                             bool closed,
                                                             bool isBoxBase,
-															bool partialVisualization) {
+                                                            bool partialVisualization) {
     // Verify consistency of input arguments.
     assert(mat->GetContactMethod() == system->GetContactMethod());
 
@@ -619,8 +618,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
 
         // this is here to make half the cylinder invisible.
         bool m_visualization = true;
-        if ((ang * i > CH_C_PI && ang * i < 3.0 * CH_C_PI / 2.0) &&
-        		partialVisualization) {
+        if ((ang * i > CH_C_PI && ang * i < 3.0 * CH_C_PI / 2.0) && partialVisualization) {
             m_visualization = false;
         }
         utils::AddBoxGeometry(body.get(), p_boxSize, p_pos, p_quat, m_visualization);
