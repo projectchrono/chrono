@@ -685,6 +685,10 @@ ChStreamFile::~ChStreamFile() {
     file.close();
 }
 
+void ChStreamFile::Flush() {
+    file.flush();
+}
+
 void ChStreamFile::Write(const char* data, size_t n) {
     try {
         file.write(data, n);

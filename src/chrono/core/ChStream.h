@@ -582,6 +582,10 @@ class ChApi ChStreamFile {
     /// Destruction means that the file stream is also closed.
     virtual ~ChStreamFile();
 
+    /// Synchronizes the associated stream buffer with its controlled output
+    /// sequence
+    virtual void Flush();
+
     /// Writes to file, up to n chars.
     /// If does not succeed, throws exception.
     virtual void Write(const char* data, size_t n);
