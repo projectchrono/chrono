@@ -410,10 +410,8 @@ ChStreamOutBinary& ChStreamOutBinary::operator<<(bool Val) {
     return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(long	Val)
-{
-    if (big_endian_machine)
-    {
+ChStreamOutBinary& ChStreamOutBinary::operator<<(long Val) {
+    if (big_endian_machine) {
         long tmp = Val;
         StreamSwapBytes<long>(&tmp);
         this->Output((char*)&tmp, sizeof(long));
@@ -422,10 +420,8 @@ ChStreamOutBinary& ChStreamOutBinary::operator <<(long	Val)
     return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned long Val)
-{
-    if (big_endian_machine)
-    {
+ChStreamOutBinary& ChStreamOutBinary::operator<<(unsigned long Val) {
+    if (big_endian_machine) {
         unsigned long tmp = Val;
         StreamSwapBytes<unsigned long>(&tmp);
         this->Output((char*)&tmp, sizeof(unsigned long));
@@ -434,10 +430,8 @@ ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned long Val)
     return (*this);
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned long long Val)
-{
-    if (big_endian_machine)
-    {
+ChStreamOutBinary& ChStreamOutBinary::operator<<(unsigned long long Val) {
+    if (big_endian_machine) {
         unsigned long long tmp = Val;
         StreamSwapBytes<unsigned long long>(&tmp);
         this->Output((char*)&tmp, sizeof(unsigned long long));
@@ -445,7 +439,6 @@ ChStreamOutBinary& ChStreamOutBinary::operator <<(unsigned long long Val)
     this->Output((char*)&Val, sizeof(unsigned long long));
     return (*this);
 }
-
 
 ChStreamOutBinary& ChStreamOutBinary::operator<<(const int Val) {
     if (big_endian_machine) {
@@ -544,8 +537,7 @@ ChStreamInBinary& ChStreamInBinary::operator>>(bool& Val) {
     return (*this);
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(long		&Val)
-{
+ChStreamInBinary& ChStreamInBinary::operator>>(long& Val) {
     if (big_endian_machine) {
         long tmp;
         this->Input((char*)&tmp, sizeof(long));
@@ -557,8 +549,7 @@ ChStreamInBinary& ChStreamInBinary::operator >>(long		&Val)
     return (*this);
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(unsigned long &Val)
-{
+ChStreamInBinary& ChStreamInBinary::operator>>(unsigned long& Val) {
     if (big_endian_machine) {
         unsigned long tmp;
         this->Input((char*)&tmp, sizeof(unsigned long));
@@ -570,8 +561,7 @@ ChStreamInBinary& ChStreamInBinary::operator >>(unsigned long &Val)
     return (*this);
 }
 
-ChStreamInBinary& ChStreamInBinary::operator >>(unsigned long long &Val)
-{
+ChStreamInBinary& ChStreamInBinary::operator>>(unsigned long long& Val) {
     if (big_endian_machine) {
         unsigned long long tmp;
         this->Input((char*)&tmp, sizeof(unsigned long long));
@@ -676,13 +666,17 @@ ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode) {
     } catch (std::exception) {
         throw ChException("Cannot open stream");
     };
-    strncpy(name, filename, sizeof(name)-1);
+    strncpy(name, filename, sizeof(name) - 1);
 }
 
 /// Destruction means that the file stream is also closed.
 ChStreamFile::~ChStreamFile() {
     file.flush();
     file.close();
+}
+
+void ChStreamFile::Flush() {
+    file.flush();
 }
 
 void ChStreamFile::Write(const char* data, size_t n) {
@@ -707,7 +701,8 @@ ChStreamOstreamWrapper::ChStreamOstreamWrapper(std::ostream* mfile) {
     assert(mfile);
     afile = mfile;
 }
-ChStreamOstreamWrapper::~ChStreamOstreamWrapper(){}
+ChStreamOstreamWrapper::~ChStreamOstreamWrapper() {
+}
 
 void ChStreamOstreamWrapper::Write(const char* data, size_t n) {
     try {
@@ -723,7 +718,8 @@ ChStreamIstreamWrapper::ChStreamIstreamWrapper(std::istream* mfile) {
     assert(mfile);
     afile = mfile;
 }
-ChStreamIstreamWrapper::~ChStreamIstreamWrapper(){}
+ChStreamIstreamWrapper::~ChStreamIstreamWrapper() {
+}
 
 void ChStreamIstreamWrapper::Read(char* data, size_t n) {
     try {
@@ -740,7 +736,8 @@ ChStreamVectorWrapper::ChStreamVectorWrapper(std::vector<char>* mchars) {
     vbuffer = mchars;
     pos = 0;
 }
-ChStreamVectorWrapper::~ChStreamVectorWrapper(){}
+ChStreamVectorWrapper::~ChStreamVectorWrapper() {
+}
 
 void ChStreamVectorWrapper::Write(const char* data, size_t n) {
     std::copy(data, data + n, std::back_inserter(*vbuffer));
@@ -765,48 +762,67 @@ bool ChStreamVectorWrapper::End_of_stream() {
 // These constructors / destructors, though concise, cannost stay in .h because
 // the GNU GCC linker gives strange problems...
 
-ChStreamOut::ChStreamOut(){}
-ChStreamOut::~ChStreamOut(){}
+ChStreamOut::ChStreamOut() {
+}
+ChStreamOut::~ChStreamOut() {
+}
 
-ChStreamIn::ChStreamIn(){}
-ChStreamIn::~ChStreamIn(){}
+ChStreamIn::ChStreamIn() {
+}
+ChStreamIn::~ChStreamIn() {
+}
 
 ChStreamOutAscii::ChStreamOutAscii() {
     strcpy(number_format, "%g");
     strcpy(comment_trailer, "#");
 }
-ChStreamOutAscii::~ChStreamOutAscii(){}
+ChStreamOutAscii::~ChStreamOutAscii() {
+}
 
 ChStreamInAscii::ChStreamInAscii() {
     strcpy(number_format, "%g");
 }
-ChStreamInAscii::~ChStreamInAscii(){}
+ChStreamInAscii::~ChStreamInAscii() {
+}
 
-ChStreamOutBinary::ChStreamOutBinary(){}
-ChStreamOutBinary::~ChStreamOutBinary(){}
+ChStreamOutBinary::ChStreamOutBinary() {
+}
+ChStreamOutBinary::~ChStreamOutBinary() {
+}
 
 ChBinaryArchive::ChBinaryArchive() {
     Init();
 }
-ChBinaryArchive::~ChBinaryArchive(){}
+ChBinaryArchive::~ChBinaryArchive() {
+}
 
-ChStreamInBinary::ChStreamInBinary(){}
-ChStreamInBinary::~ChStreamInBinary(){}
+ChStreamInBinary::ChStreamInBinary() {
+}
+ChStreamInBinary::~ChStreamInBinary() {
+}
 
 ChStreamOutBinaryFile::ChStreamOutBinaryFile(const char* filename, std::ios::openmode mmode)
-    : ChStreamFile(filename, mmode | std::ios::out | std::ios::binary){}
-ChStreamOutBinaryFile::~ChStreamOutBinaryFile(){}
+    : ChStreamFile(filename, mmode | std::ios::out | std::ios::binary) {
+}
+ChStreamOutBinaryFile::~ChStreamOutBinaryFile() {
+}
 
 ChStreamOutAsciiFile::ChStreamOutAsciiFile(const char* filename, std::ios::openmode mmode)
-    : ChStreamFile(filename, mmode | std::ios::out){}
-ChStreamOutAsciiFile::~ChStreamOutAsciiFile(){}
+    : ChStreamFile(filename, mmode | std::ios::out) {
+}
+ChStreamOutAsciiFile::~ChStreamOutAsciiFile() {
+}
 
 ChStreamInBinaryFile::ChStreamInBinaryFile(const char* filename)
-    : ChStreamFile(filename, std::ios::in | std::ios::binary){}
-ChStreamInBinaryFile::~ChStreamInBinaryFile(){}
+    : ChStreamFile(filename, std::ios::in | std::ios::binary) {
+}
+ChStreamInBinaryFile::~ChStreamInBinaryFile() {
+}
 
-ChStreamInAsciiFile::ChStreamInAsciiFile(const char* filename) : ChStreamFile(filename, std::ios::in){}
-ChStreamInAsciiFile::~ChStreamInAsciiFile(){}
+ChStreamInAsciiFile::ChStreamInAsciiFile(const char* filename) : ChStreamFile(filename, std::ios::in) {
+}
+ChStreamInAsciiFile::~ChStreamInAsciiFile() {
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
