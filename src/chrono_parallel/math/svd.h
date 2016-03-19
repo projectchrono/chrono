@@ -23,23 +23,24 @@ namespace chrono {
 // DOI=http://dx.doi.org/10.1145/355578.366316
 CUDA_HOST_DEVICE static real3 Fast_Eigenvalues(const SymMat33& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts
 {
-    real m = 1.0f / 3.0f * (A.x11 + A.x22 + A.x33);
+    real m = real(1.0) / real(3.0) * (A.x11 + A.x22 + A.x33);
     real a11 = A.x11 - m;
     real a22 = A.x22 - m;
     real a33 = A.x33 - m;
     real a12_sqr = A.x21 * A.x21;
     real a13_sqr = A.x31 * A.x31;
     real a23_sqr = A.x32 * A.x32;
-    real p = 1.0f / 6.0f * (a11 * a11 + a22 * a22 + a33 * a33 + 2 * (a12_sqr + a13_sqr + a23_sqr));
-    real q = 0.5f * (a11 * (a22 * a33 - a23_sqr) - a22 * a13_sqr - a33 * a12_sqr) + A.x21 * A.x31 * A.x32;
+    real p = real(1.0) / real(6.0) * (a11 * a11 + a22 * a22 + a33 * a33 + 2 * (a12_sqr + a13_sqr + a23_sqr));
+    real q = real(0.5) * (a11 * (a22 * a33 - a23_sqr) - a22 * a13_sqr - a33 * a12_sqr) + A.x21 * A.x31 * A.x32;
     real sqrt_p = Sqrt(p);
     real disc = p * p * p - q * q;
-    real phi = 1.0f / 3.0f * ATan2(Sqrt(Max(0.0f, disc)), q);
+    real phi = real(1.0) / real(3.0) * ATan2(Sqrt(Max(real(0.0), disc)), q);
     real c = Cos(phi);
     real s = Sin(phi);
     real sqrt_p_cos = sqrt_p * c;
-    real root_three_sqrt_p_sin = Sqrt(3.0f) * sqrt_p * s;
-    real3 lambda(m + 2.0f * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin, m - sqrt_p_cos + root_three_sqrt_p_sin);
+    real root_three_sqrt_p_sin = Sqrt(real(3.0)) * sqrt_p * s;
+    real3 lambda(m + real(2.0) * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin,
+                 m - sqrt_p_cos + root_three_sqrt_p_sin);
     Sort(lambda.z, lambda.y, lambda.x);
     return lambda;
 }
