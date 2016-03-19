@@ -126,9 +126,13 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 void ChCollisionSystemParallel::Run() {
     LOG(INFO) << "ChCollisionSystemParallel::Run()";
     if (data_manager->settings.collision.use_aabb_active) {
-        custom_vector<char> body_active(data_manager->num_rigid_bodies, false);
+        body_active.resize(data_manager->num_rigid_bodies);
+        std::fill(body_active.begin(), body_active.end(), false);
+
         GetOverlappingAABB(body_active, data_manager->settings.collision.aabb_min,
                            data_manager->settings.collision.aabb_max);
+
+#pragma omp parallel for
         for (int i = 0; i < data_manager->host_data.active_rigid.size(); i++) {
             if (data_manager->host_data.active_rigid[i] == true && data_manager->host_data.collide_rigid[i] == true) {
                 data_manager->host_data.active_rigid[i] = body_active[i];

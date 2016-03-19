@@ -107,7 +107,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
   private:
     ChParallelDataManager* data_manager;
-
+    custom_vector<char> body_active;
     friend class chrono::ChSystemParallel;
 };
 
