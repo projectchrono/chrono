@@ -185,16 +185,16 @@ CUDA_HOST_DEVICE static inline real3 NodeLocation(int i, int j, int k, real bin_
         }                                                                                          \
     }
 
-#define Potential_Energy_Derivative_Helper()                                     \
-    real JP = Determinant(FP);                                                   \
-    real JE = Determinant(FE);                                                   \
-    /* Paper: Equation 2 */                                                      \
-    real current_mu = mu * Exp(hardening_coefficient * (real(1.) - JP));         \
-    real current_lambda = lambda * Exp(hardening_coefficient * (real(1.) - JP)); \
-    Mat33 UE, VE;                                                                \
-    real3 EE;                                                                    \
-    SVD(FE, UE, EE, VE);                                                         \
-    /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/         \
+#define Potential_Energy_Derivative_Helper()                                      \
+    real JP = Determinant(FP);                                                    \
+    real JE = Determinant(FE);                                                    \
+    /* Paper: Equation 2 */                                                       \
+    real current_mu = mu * Exp(hardening_coefficient * (real(1.0) - JP));         \
+    real current_lambda = lambda * Exp(hardening_coefficient * (real(1.0) - JP)); \
+    Mat33 UE, VE;                                                                 \
+    real3 EE;                                                                     \
+    SVD(FE, UE, EE, VE);                                                          \
+    /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/          \
     Mat33 RE = MultTranspose(UE, VE);
 
 CUDA_HOST_DEVICE static Mat33 Potential_Energy_Derivative(const Mat33& FE,
@@ -308,8 +308,8 @@ CUDA_HOST_DEVICE inline void Vol_APFunc(const Mat33& s,
     real t28 = t103 * s[4] + s[9] * s[8];
     real t27 = s[9] * s[4] + (s[10] + s[0]) * s[8];
     real t26 = t102 + (s[10] + s[5]) * s[9];
-    real t16 =
-        1.0f / (-2.0f * s[9] * t102 + (t100 + t101) * s[0] + (t99 + t101) * s[5] + (t100 + t99 + 2 * t58) * s[10]);
+    real t16 = real(1.0) /
+               (real(02.0) * s[9] * t102 + (t100 + t101) * s[0] + (t99 + t101) * s[5] + (t100 + t99 + 2 * t58) * s[10]);
     real t15 = t18 * r[2] - t19 * r[6] + t21 * r[1] - t22 * r[5] + t24 * r[0] - t25 * r[4];
     real t14 = t17 * r[6] - t18 * r[10] + t20 * r[5] - t21 * r[9] + t23 * r[4] - t24 * r[8];
     real t13 = -t17 * r[2] + t19 * r[10] - t20 * r[1] + t22 * r[9] - t23 * r[0] + t25 * r[8];

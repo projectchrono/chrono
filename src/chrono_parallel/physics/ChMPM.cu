@@ -56,7 +56,7 @@ __device__ real dot_my_my = 0;
 
 #define LOOP_TWO_RING_GPU(X)                                                                                         \
     const real bin_edge = device_settings.bin_edge;                                                                  \
-    const real inv_bin_edge = 1.f / bin_edge;                                                                        \
+    const real inv_bin_edge = real(1.0) / bin_edge;                                                                        \
                                                                                                                      \
     const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                                          \
     const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                                          \
@@ -128,7 +128,7 @@ CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = 1.f / bin_edge;
+        const real inv_bin_edge = real(1.0) / bin_edge;
 
         LOOP_TWO_RING_GPUSP(  //
 
@@ -194,11 +194,11 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
-        Mat33 Fe_hat_t(0.0f);
+        Mat33 Fe_hat_t(0.0);
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = 1.f / bin_edge;
+        const real inv_bin_edge = real(1.0) / bin_edge;
 
         LOOP_TWO_RING_GPUSP(
 
@@ -264,9 +264,7 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
         real JP = Determinant(FP);
         real JE_hat = Determinant(FE_hat);
 
-        /* Paper: Equation 2 */
         real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.) - JP));
-        real current_lambda = device_settings.lambda * Exp(device_settings.hardening_coefficient * (real(1.) - JP));
         Mat33 UE, VE;
         real3 EE;
         SVD(FE_hat, UE, EE, VE);
@@ -277,11 +275,11 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
         PolarR[p][3] = JP;
 
         Mat33 vPEDFepT = device_settings.dt * marker_volume[p] * real(2.) * current_mu *
-                         MultTranspose((FE_hat - RE), FE) * (1.0f / (JE * JP));
+                         MultTranspose((FE_hat - RE), FE) * (real(1.0) / (JE * JP));
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = 1.f / bin_edge;
+        const real inv_bin_edge = real(1.0) / bin_edge;
 
         LOOP_TWO_RING_GPUSP(  //
 
@@ -339,7 +337,7 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = 1.f / bin_edge;
+        const real inv_bin_edge = real(1.0) / bin_edge;
 
         LOOP_TWO_RING_GPUSP(  //
 
@@ -357,12 +355,7 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
 
             delta_F[0] += vnx * valx; delta_F[1] += vny * valx; delta_F[2] += vnz * valx;  //
             delta_F[3] += vnx * valy; delta_F[4] += vny * valy; delta_F[5] += vnz * valy;  //
-            delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;
-
-            //                real3 g_vel(v_array[current_node * 3 + 0], v_array[current_node * 3 + 1],
-            //                            v_array[current_node * 3 + 2]);
-            //                delta_F += OuterProduct(g_vel, dN(xi - current_node_location, inv_bin_edge));  //
-            )
+            delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;)
 
         Mat33 m_FE = marker_Fe[p];
         Mat33 R = PolarR[p];
@@ -372,7 +365,7 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
         // delta_F = delta_F * m_FE;
 
         real current_mu = marker_volume[p] * 2 * device_settings.mu *
-                          Exp(device_settings.hardening_coefficient * (1.0f - plastic_determinant));
+                          Exp(device_settings.hardening_coefficient * (real(1.0) - plastic_determinant));
 
         Vol_APFunc(S, R, delta_F, m_FE, current_mu, VAP);
 
@@ -587,9 +580,7 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
         mg.resize(size);
         mg_p.resize(size);
         ml_p.resize(size);
-
         ml = delta_v;
-
         mg = 0;
     }
     {
@@ -601,16 +592,13 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
         kSubtract<<<CONFIG(size)>>>(size, r.data_d, mg.data_d);
         mg_p = mg;
     }
-    cudaCheck(cudaPeekAtLastError());
-    cudaCheck(cudaDeviceSynchronize());
+
     kResetGlobals<false><<<1, 1>>>();
 
     for (int current_iteration = 0; current_iteration < host_settings.num_iterations; current_iteration++) {
         {
             CudaEventTimer timer(start, stop, true, time_no_shur);
-
             kResetGlobals<true><<<1, 1>>>();
-
             kCompute_ml_p<<<CONFIG(size)>>>(size, ml.data_d, mg.data_d, ml_p.data_d);
             mg_p = 0;
         }
@@ -642,10 +630,12 @@ void MPM_BBSolver(gpu_vector<real>& r, gpu_vector<real>& delta_v) {
                 lastgoodres = g_proj_norm;
                 delta_v = ml;
             }
-            printf("[%f]\n", lastgoodres);
+            //            printf("[%f]\n", lastgoodres);
         }
     }
-    printf("MPM Solver: [%f, %f] \n", time_no_shur, time_shur);
+    cudaCheck(cudaPeekAtLastError());
+    cudaCheck(cudaDeviceSynchronize());
+    printf("MPM Solver: [%f, %f %f] \n", time_no_shur, time_shur, lastgoodres);
 }
 CUDA_GLOBAL void kIncrementVelocity(real* delta_v, real* old_vel_node_mpm, real* grid_vel) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -669,7 +659,7 @@ CUDA_GLOBAL void kUpdateParticleVelocity(real* grid_vel,
         real3 V_pic = real3(0.0);
 
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = 1.f / bin_edge;
+        const real inv_bin_edge = real(1.0) / bin_edge;
         int cx, cy, cz;
 
         LOOP_TWO_RING_GPUSP(
@@ -702,11 +692,11 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = pos_marker[p];
-        Mat33 velocity_gradient(0.0f);
+        Mat33 velocity_gradient(0.0);
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = 1.f / bin_edge;
+        const real inv_bin_edge = real(1.0) / bin_edge;
 
         LOOP_TWO_RING_GPUSP(real vnx = grid_vel[current_node * 3 + 0];  //
                             real vny = grid_vel[current_node * 3 + 1];  //
