@@ -56,7 +56,7 @@ __device__ real dot_my_my = 0;
 
 #define LOOP_TWO_RING_GPU(X)                                                                                         \
     const real bin_edge = device_settings.bin_edge;                                                                  \
-    const real inv_bin_edge = real(1.0) / bin_edge;                                                                        \
+    const real inv_bin_edge = device_settings.inv_bin_edge;                                                          \
                                                                                                                      \
     const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                                          \
     const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                                          \
@@ -128,7 +128,7 @@ CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = real(1.0) / bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
 
         LOOP_TWO_RING_GPUSP(  //
 
@@ -198,7 +198,7 @@ CUDA_GLOBAL void kFeHat(const real3* sorted_pos,  // input
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = real(1.0) / bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
 
         LOOP_TWO_RING_GPUSP(
 
@@ -279,7 +279,7 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = real(1.0) / bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
 
         LOOP_TWO_RING_GPUSP(  //
 
@@ -337,7 +337,7 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = real(1.0) / bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
 
         LOOP_TWO_RING_GPUSP(  //
 
@@ -659,7 +659,7 @@ CUDA_GLOBAL void kUpdateParticleVelocity(real* grid_vel,
         real3 V_pic = real3(0.0);
 
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = real(1.0) / bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
         int cx, cy, cz;
 
         LOOP_TWO_RING_GPUSP(
@@ -696,7 +696,7 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
-        const real inv_bin_edge = real(1.0) / bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
 
         LOOP_TWO_RING_GPUSP(real vnx = grid_vel[current_node * 3 + 0];  //
                             real vny = grid_vel[current_node * 3 + 1];  //
