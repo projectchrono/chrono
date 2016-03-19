@@ -24,10 +24,9 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     data_manager = physics_system->data_manager;
     data_manager->Add3DOFContainer(this);
     body_offset = 0;
-    compliance = 0;
     epsilon = 1e-3;
     tau = 4 * .001;
-
+    alpha = 0;
     rho = 1000;
     mass = 1;
 
@@ -130,55 +129,55 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
         }
         vel_fluid[original_index] = vel;
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
-        //sorted_pos_fluid[i] = pos_fluid[original_index];
+        // sorted_pos_fluid[i] = pos_fluid[original_index];
     }
-//    if (num_fluid_bodies != 0) {
-//        data_manager->narrowphase->DispatchRigidFluid();
-//
-//        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-//        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-//        custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
-//        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-//        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-//        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the
-//        // timestep
-//        // isnt too large.
-//        if (data_manager->num_rigid_fluid_contacts > 0) {
-//#pragma omp parallel for
-//            for (int p = 0; p < num_fluid_bodies; p++) {
-//                int start = contact_counts[p];
-//                int end = contact_counts[p + 1];
-//                real3 delta = real3(0);
-//                real weight = 0;
-//                for (int index = start; index < end; index++) {
-//                    int i = index - start;
-//                    // int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-//                    // if (data_manager->host_data.active_rigid[rigid] == false) {
-//                    real3 U = norm[p * max_rigid_neighbors + i];
-//                    real depth = dpth[p * max_rigid_neighbors + i];
-//                    if (depth < 0) {
-//                        real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
-//                        delta -= w * depth * U;
-//                        weight++;
-//                    }
-//                    //}
-//                }
-//                if (weight > 0) {
-//                    sorted_pos_fluid[p] = sorted_pos_fluid[p] + delta / weight;
-//                }
-//            }
-//        }
-//        real inv_dt = 1.0 / data_manager->settings.step_size;
-//#pragma omp parallel for
-//        for (int p = 0; p < num_fluid_bodies; p++) {
-//            int original_index = data_manager->host_data.particle_indices_3dof[p];
-//            real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
-//            if (contact_counts[p + 1] - contact_counts[p] > 0) {
-//                pos_fluid[original_index] = sorted_pos_fluid[p];
-//                vel_fluid[original_index] += vv;
-//            }
-//        }
-//    }
+    //    if (num_fluid_bodies != 0) {
+    //        data_manager->narrowphase->DispatchRigidFluid();
+    //
+    //        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
+    //        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
+    //        custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
+    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
+    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    //        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the
+    //        // timestep
+    //        // isnt too large.
+    //        if (data_manager->num_rigid_fluid_contacts > 0) {
+    //#pragma omp parallel for
+    //            for (int p = 0; p < num_fluid_bodies; p++) {
+    //                int start = contact_counts[p];
+    //                int end = contact_counts[p + 1];
+    //                real3 delta = real3(0);
+    //                real weight = 0;
+    //                for (int index = start; index < end; index++) {
+    //                    int i = index - start;
+    //                    // int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
+    //                    // if (data_manager->host_data.active_rigid[rigid] == false) {
+    //                    real3 U = norm[p * max_rigid_neighbors + i];
+    //                    real depth = dpth[p * max_rigid_neighbors + i];
+    //                    if (depth < 0) {
+    //                        real w = 1.0;  // mass / (mass + data_manager->host_data.mass_rigid[rigid]);
+    //                        delta -= w * depth * U;
+    //                        weight++;
+    //                    }
+    //                    //}
+    //                }
+    //                if (weight > 0) {
+    //                    sorted_pos_fluid[p] = sorted_pos_fluid[p] + delta / weight;
+    //                }
+    //            }
+    //        }
+    //        real inv_dt = 1.0 / data_manager->settings.step_size;
+    //#pragma omp parallel for
+    //        for (int p = 0; p < num_fluid_bodies; p++) {
+    //            int original_index = data_manager->host_data.particle_indices_3dof[p];
+    //            real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
+    //            if (contact_counts[p + 1] - contact_counts[p] > 0) {
+    //                pos_fluid[original_index] = sorted_pos_fluid[p];
+    //                vel_fluid[original_index] += vv;
+    //            }
+    //        }
+    //    }
 }
 int ChFluidContainer::GetNumConstraints() {
     int num_fluid_fluid = data_manager->num_fluid_bodies;
@@ -458,6 +457,9 @@ void ChFluidContainer::Build_D() {
     }
 }
 void ChFluidContainer::Build_b() {
+    real inv_h = 1 / data_manager->settings.step_size;
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
+    real inv_hhpa = inv_h * inv_hpa;
     real dt = data_manager->settings.step_size;
     real h = kernel_radius;
     real zeta = 1.0 / (1.0 + 4.0 * tau / h);
@@ -469,21 +471,22 @@ void ChFluidContainer::Build_b() {
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];  //
-                                      real bi = 0;                                                 //
-                                      if (contact_cohesion) { depth = Min(depth, 0); } else {
-                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                      }                                    //
-                                      b[start_boundary + index + 0] = bi;  //
+            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];               //
+                                      real bi = 0;                                                              //
+                                      if (contact_cohesion) { depth = Min(depth, 0); }                          //
+                                      if (alpha) { bi = std::max(inv_hpa * depth, -contact_recovery_speed); }   //
+                                      else { bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); }  //
+                                      b[start_boundary + index + 0] = bi;                                       //
                                       // printf("Depth: %f %f %f\n", depth, kernel_radius, bi);
                                       );
         } else {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];  //
-                                      real bi = 0;                                                 //
-                                      if (contact_cohesion) { depth = Min(depth, 0); } else {
-                                          bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed);
-                                      }  //
+            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];              //
+                                      real bi = 0;                                                             //
+                                      if (contact_cohesion) { depth = Min(depth, 0); }                         //
+                                      if (alpha) { bi = std::max(inv_hpa * depth, -contact_recovery_speed); }  //
+                                      else { bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); }
+
                                       b[start_boundary + index + 0] = bi;
                                       b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
                                       b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
@@ -498,17 +501,23 @@ void ChFluidContainer::Build_b() {
 }
 void ChFluidContainer::Build_E() {
     DynamicVector<real>& E = data_manager->host_data.E;
-
+    real inv_h = 1.0 / data_manager->settings.step_size;
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
+    real inv_hhpa = inv_h * inv_hpa;
+    real com = 0;
+    if (alpha) {
+        com = inv_hhpa * contact_compliance;
+    }
     if (num_rigid_fluid_contacts > 0) {
         if (contact_mu == 0) {
 #pragma omp parallel for
             for (int index = 0; index < num_rigid_fluid_contacts; index++) {
-                E[start_boundary + index + 0] = 0;
+                E[start_boundary + index + 0] = com;
             }
         } else {
 #pragma omp parallel for
             for (int index = 0; index < num_rigid_fluid_contacts; index++) {
-                E[start_boundary + index + 0] = 0;
+                E[start_boundary + index + 0] = com;
                 E[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
                 E[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;
             }
@@ -517,12 +526,12 @@ void ChFluidContainer::Build_E() {
 
     real step_size = data_manager->settings.step_size;
     real zeta = 1.0 / (1.0 + 4.0 * tau / step_size);
-    real compliance = 4.0 / (step_size * step_size) * (epsilon * zeta);
+    real f_compliance = 4.0 / (step_size * step_size) * (epsilon * zeta);
 
     if (num_fluid_bodies > 0) {
 #pragma omp parallel for
         for (int index = 0; index < num_fluid_bodies; index++) {
-            E[start_density + index] = compliance;
+            E[start_density + index] = f_compliance;
             if (enable_viscosity) {
                 E[start_viscous + index * 3 + 0] = 0;
                 E[start_viscous + index * 3 + 1] = 0;

@@ -95,6 +95,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real collision_envelope;
     real contact_recovery_speed;  // The speed at which 'rigid' fluid  bodies resolve contact
     real contact_cohesion;
+    real contact_compliance;
     real contact_mu;    // friction
     real max_velocity;  // limit on the maximum speed the fluid can move at
     uint start_row;
@@ -153,7 +154,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     uint start_density;
     uint start_viscous;
 
-    real compliance;
+    real alpha;
     real epsilon;  // Regularization parameter
     real tau;      // Constraint relaxation time
     real rho;
@@ -178,6 +179,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     std::thread mpm_thread;
     bool mpm_init;
     MPM_Settings temp_settings;
+
   private:
     uint body_offset;
 };
@@ -284,6 +286,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     std::thread mpm_thread;
     bool mpm_init;
     MPM_Settings temp_settings;
+
   private:
     uint body_offset;
 };
