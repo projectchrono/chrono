@@ -301,7 +301,7 @@ int main() {
     switch (tire_model) {
     case FIALA: {
                     auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(Fiala_testfile));
-                    tire_fiala->Initialize();
+                    tire_fiala->Initialize(rim, LEFT);
                     tire_radius = tire_fiala->GetUnloadedRadius();
                     wheel_radius = tire_radius;
                     tire_width = tire_fiala->GetWidth();

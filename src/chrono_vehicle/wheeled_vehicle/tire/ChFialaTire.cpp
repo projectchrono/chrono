@@ -54,7 +54,9 @@ ChFialaTire::ChFialaTire(const std::string& name) : ChTire(name), m_stepsize(1e-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChFialaTire::Initialize() {
+void ChFialaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     SetFialaParams();
 
     // Initialize contact patach state variables to 0;

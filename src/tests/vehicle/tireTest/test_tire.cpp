@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     switch (tire_model) {
         case RIGID: {
             auto tire_rigid = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-            tire_rigid->Initialize(wheel);
+            tire_rigid->Initialize(wheel, LEFT);
             tire_radius = tire_rigid->getRadius();
             wheel_radius = tire_radius;
             tire_width = tire_rigid->getWidth();
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
         }
         case LUGRE: {
             auto tire_lugre = std::make_shared<LugreTire>(vehicle::GetDataFile(lugretire_file));
-            tire_lugre->Initialize(wheel);
+            tire_lugre->Initialize(wheel, LEFT);
             tire_radius = tire_lugre->getRadius();
             wheel_radius = tire_radius;
             int num_discs = tire_lugre->getNumDiscs();
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
         }
         case FIALA: {
             auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
-            tire_fiala->Initialize();
+            tire_fiala->Initialize(wheel, LEFT);
             tire_radius = tire_fiala->GetUnloadedRadius();
             wheel_radius = tire_radius;
             tire_width = tire_fiala->GetWidth();

@@ -35,7 +35,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-3) {
+ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-3), m_visualize_discs(false) {
     m_tireForce.force = ChVector<>(0, 0, 0);
     m_tireForce.point = ChVector<>(0, 0, 0);
     m_tireForce.moment = ChVector<>(0, 0, 0);
@@ -43,7 +43,9 @@ ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLugreTire::Initialize() {
+void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     m_data.resize(getNumDiscs());
     m_state.resize(getNumDiscs());
 
@@ -54,28 +56,25 @@ void ChLugreTire::Initialize() {
         m_state[id].z0 = 0;
         m_state[id].z1 = 0;
     }
-}
-
-void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel) {
-    // Perform the actual initialization
-    Initialize();
 
     // Add visualization assets.
-    double discWidth = 0.04;
-    double disc_radius = getRadius();
-    const double* disc_locs = getDiscLocations();
+    if (m_visualize_discs) {
+        double discWidth = 0.04;
+        double disc_radius = getRadius();
+        const double* disc_locs = getDiscLocations();
 
-    for (int id = 0; id < getNumDiscs(); id++) {
-        auto cyl = std::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().rad = disc_radius;
-        cyl->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
-        cyl->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
-        wheel->AddAsset(cyl);
+        for (int id = 0; id < getNumDiscs(); id++) {
+            auto cyl = std::make_shared<ChCylinderShape>();
+            cyl->GetCylinderGeometry().rad = disc_radius;
+            cyl->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
+            cyl->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
+            wheel->AddAsset(cyl);
+        }
+
+        auto tex = std::make_shared<ChTexture>();
+        tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+        wheel->AddAsset(tex);
     }
-
-    auto tex = std::make_shared<ChTexture>();
-    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-    wheel->AddAsset(tex);
 }
 
 // -----------------------------------------------------------------------------

@@ -63,9 +63,11 @@ int main(int argc, char* argv[]) {
     // Flat rigid terrain, height = 0 for all (x,y)
     FlatTerrain flat_terrain(0);
 
-    // Create a Pacejka tire
+    // Create a Pacejka tire and attach it to a dummy wheel body
+    auto wheel = std::make_shared<ChBody>();
     auto tire = std::make_shared<ChPacejkaTire>("TEST", pacParamFile);
-    tire->Initialize(VehicleSide::LEFT, false);
+    tire->SetDrivenWheel(false);
+    tire->Initialize(wheel, LEFT);
 
     // Create different wheel state and let the tire process them
     {

@@ -45,7 +45,9 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     virtual ~ChFialaTire() {}
 
     /// Initialize this tire system.
-    void Initialize();
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
+                            VehicleSide side                ///< [in] left/right vehicle side
+                            ) override;
 
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the

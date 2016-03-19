@@ -59,6 +59,13 @@ class CH_VEHICLE_API ChTire {
     /// Set the name for this tire.
     void SetName(const std::string& name) { m_name = name; }
 
+    /// Initialize this tire subsystem.
+    /// A derived class must call this base implementation (which simply caches the
+    /// associated wheel body and vehicle side flag).
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
+                            VehicleSide side                ///< [in] left/right vehicle side
+                            );
+
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel and
     /// a handle to the terrain system.
@@ -98,6 +105,9 @@ class CH_VEHICLE_API ChTire {
         );
 
     std::string m_name;  ///< name of this tire subsystem
+
+    VehicleSide m_side;               ///< tire mounted on left/right side
+    std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
 };
 
 /// @} vehicle_wheeled_tire

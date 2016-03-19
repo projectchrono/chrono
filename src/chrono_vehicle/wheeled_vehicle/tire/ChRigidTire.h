@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// A ChRigidTire always returns zero forces and moments if the tire is
     /// simulated together with the associated vehicle (the tire forces are
     /// automatically applied to the associated wheel through Chrono's frictional
-    /// contact system). If the tire is co-simulated, the tire force an moments
+    /// contact system). If the tire is co-simulated, the tire force and moments
     /// encapsulate the tire-terrain forces (i.e. the resultant of all contact
     /// forces acting on the tire).
     virtual TireForce GetTireForce(bool cosim = false) const override;
@@ -59,8 +59,9 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the
     /// associated wheel body.
-    void Initialize(std::shared_ptr<ChBody> wheel  ///< handle to the associated wheel body
-                    );
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
+                            VehicleSide side                ///< left/right vehicle side
+                            ) override;
 
   protected:
     /// Return the tire radius.

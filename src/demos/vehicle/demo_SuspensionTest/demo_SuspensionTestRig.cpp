@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
     // Use rigid wheels to actuate suspension.
     auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
     auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-    tire_L->Initialize(rig.GetWheelBody(LEFT));
-    tire_R->Initialize(rig.GetWheelBody(RIGHT));
+    tire_L->Initialize(rig.GetWheelBody(LEFT), LEFT);
+    tire_R->Initialize(rig.GetWheelBody(RIGHT), RIGHT);
 
     // Create the vehicle Irrlicht application.
     ChVehicleIrrApp app(&rig, NULL, L"Suspension Test Rig");

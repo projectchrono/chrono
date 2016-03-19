@@ -69,9 +69,14 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     ~ChPacejkaTire();
 
+    /// Specify whether or not the associated wheel is driven.
+    /// By default, the wheel is assumed not driven.
+    void SetDrivenWheel(bool val) { m_driven = val; }
+
     /// specify the file name to read the Pactire input from
-    void Initialize(VehicleSide side,  ///< [in]
-                    bool driven);
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
+                            VehicleSide side                ///< [in] left/right vehicle side
+                            ) override;
 
     /// return the reactions for the combined slip EQs, in global coords
     virtual TireForce GetTireForce(bool cosim = false) const override;
@@ -315,7 +320,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     // ----- Data members
     bool m_use_transient_slip;
-    VehicleSide m_side;
     bool m_driven;   // is this a driven tire?
     int m_sameSide;  // does parameter file side equal m_side? 1 = true, -1 opposite
 

@@ -30,6 +30,14 @@ ChTire::ChTire(const std::string& name) : m_name(name) {
 }
 
 // -----------------------------------------------------------------------------
+// Base class implementation of the initialization function.
+// -----------------------------------------------------------------------------
+void ChTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    m_wheel = wheel;
+    m_side = side;
+}
+
+// -----------------------------------------------------------------------------
 // Utility function for characterizing the geometric contact between a disc with
 // specified center location, normal direction, and radius and the terrain,
 // assumed to be specified as a height field (over the x-y domain).

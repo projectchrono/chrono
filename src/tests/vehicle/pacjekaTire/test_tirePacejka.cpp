@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     const double alpha_lim = CH_C_PI_4 / 3.0;  // slip angle in range [-lim,lim] or [0,lim]
     const double kappa_lim = 1;                // slip rate in range [-lim,lim] or [0,lim]
     const double F_z = 8000;                   // vertical force, [N]
-    const VehicleSide m_side = LEFT;
+    const VehicleSide side = LEFT;
     const double gamma = 10.0 * CH_C_PI / 180.0;  // gamma, in radians
 
     // for the transient model
@@ -73,11 +73,20 @@ int main(int argc, char* argv[]) {
     ChPacejkaTire tire_lat_gamma("LATERAL_GAMMA", pacParamFile, F_z, use_transient_slip);
     ChPacejkaTire tire_combined("COMBINED", pacParamFile, F_z, use_transient_slip);
 
-    // initialize the tire on the left or right side
-    tire_long.Initialize(m_side, true);
-    tire_lat.Initialize(m_side, true);
-    tire_lat_gamma.Initialize(m_side, true);
-    tire_combined.Initialize(m_side, true);
+    // Set all tires to be driven
+    tire_long.SetDrivenWheel(true);
+    tire_lat.SetDrivenWheel(true);
+    tire_lat_gamma.SetDrivenWheel(true);
+    tire_combined.SetDrivenWheel(true);
+
+    // Create a dummy wheel body
+    auto wheel = std::make_shared<ChBody>();
+
+    // Itialize the tires on the left or right side
+    tire_long.Initialize(wheel, side);
+    tire_lat.Initialize(wheel, side);
+    tire_lat_gamma.Initialize(wheel, side);
+    tire_combined.Initialize(wheel, side);
 
     // record pacTire output for each of the 3 slip cases
     TireForces long_forces(1);
