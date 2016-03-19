@@ -124,7 +124,7 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6> &COORDFlex, ChMatrixNM<double, 30
     printf("%s\n", str1);
     for (int i = 0; i<TotalNumElements; i++)
     {
-        fscanf(inputfile, "%d %d %d %d %d %d %d\n", &count, &dummy, &SectionID(i, 0), &NodesPerElement(i, 0), &NodesPerElement(i, 1), &NodesPerElement(i, 2), &NodesPerElement(i, 3));
+        fscanf(inputfile, "%d %d %d %d %d %d %d\n", &count, &dummy, &SectionID(i, 0), &NodesPerElement(i, 0), &NodesPerElement(i, 1), &NodesPerElement(i, 3), &NodesPerElement(i, 2));
         printf("SectionID[i] %d\n  ", SectionID(i, 0));
 
         fscanf(inputfile, " %lf %lf\n", &ElementLength(i, 0), &ElementLength(i, 1));
