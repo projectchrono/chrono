@@ -41,7 +41,9 @@ void ChRigidTire::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel) {
+void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     wheel->SetCollide(true);
 
     wheel->GetCollisionModel()->ClearModel();

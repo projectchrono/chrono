@@ -59,6 +59,8 @@ void ChFEATire::SetContactMaterial(float friction_coefficient,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChFEATire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     ChSystemDEM* system = dynamic_cast<ChSystemDEM*>(wheel->GetSystem());
     assert(system);
 

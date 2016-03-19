@@ -129,10 +129,10 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tire_rear_left("RL");
     Generic_RigidTire tire_rear_right("RR");
 
-    tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT));
-    tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT));
-    tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT));
-    tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT));
+    tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
+    tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
+    tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
+    tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
 
     // Create the trailer tires
     Generic_RigidTire tr_tire_front_left("FL");
@@ -140,10 +140,10 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tr_tire_rear_left("RL");
     Generic_RigidTire tr_tire_rear_right("RR");
 
-    tr_tire_front_left.Initialize(trailer.GetWheelBody(FRONT_LEFT));
-    tr_tire_front_right.Initialize(trailer.GetWheelBody(FRONT_RIGHT));
-    tr_tire_rear_left.Initialize(trailer.GetWheelBody(REAR_LEFT));
-    tr_tire_rear_right.Initialize(trailer.GetWheelBody(REAR_RIGHT));
+    tr_tire_front_left.Initialize(trailer.GetWheelBody(FRONT_LEFT), LEFT);
+    tr_tire_front_right.Initialize(trailer.GetWheelBody(FRONT_RIGHT), RIGHT);
+    tr_tire_rear_left.Initialize(trailer.GetWheelBody(REAR_LEFT), LEFT);
+    tr_tire_rear_right.Initialize(trailer.GetWheelBody(REAR_RIGHT), RIGHT);
 
 #ifdef USE_IRRLICHT
     ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Articulated Vehicle Demo");

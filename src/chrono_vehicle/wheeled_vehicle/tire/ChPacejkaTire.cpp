@@ -58,6 +58,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name, const std::string& pacTire
       m_params_defined(false),
       m_use_transient_slip(true),
       m_use_Fz_override(false),
+      m_driven(false),
       m_step_size(default_step_size) {
 }
 
@@ -71,6 +72,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name,
       m_use_transient_slip(use_transient_slip),
       m_use_Fz_override(Fz_override > 0),
       m_Fz_override(Fz_override),
+      m_driven(false),
       m_step_size(default_step_size) {
 }
 
@@ -96,8 +98,9 @@ ChPacejkaTire::~ChPacejkaTire() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // NOTE: no initial conditions passed in at this point, e.g. m_tireState is empty
-void ChPacejkaTire::Initialize(VehicleSide side, bool driven) {
-    m_driven = driven;
+void ChPacejkaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     // Create private structures
     m_slip = new slips;
     m_params = new Pac2002_data;
@@ -136,7 +139,6 @@ void ChPacejkaTire::Initialize(VehicleSide side, bool driven) {
     }
 
     // LEFT or RIGHT side of the vehicle?
-    m_side = side;
     if (m_side == LEFT) {
         m_sameSide = (!m_params->model.tyreside.compare("LEFT")) ? 1 : -1;
     } else {

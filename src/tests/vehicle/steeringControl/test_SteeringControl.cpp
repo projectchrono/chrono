@@ -124,35 +124,19 @@ int main(int argc, char* argv[]) {
     int num_wheels = 2 * num_axles;
 
     std::vector<std::shared_ptr<ChTire> > tires(num_wheels);
-
-    switch (tire_model) {
-        case RIGID: {
-            std::vector<std::shared_ptr<RigidTire> > tires_rigid(num_wheels);
-            for (int i = 0; i < num_wheels; i++) {
-                tires_rigid[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-                tires_rigid[i]->Initialize(vehicle.GetWheelBody(i));
-                tires[i] = tires_rigid[i];
-            }
-            break;
+    for (int i = 0; i < num_wheels; i++) {
+        switch (tire_model) {
+            case RIGID:
+                tires[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+                break;
+            case LUGRE:
+                tires[i] = std::make_shared<LugreTire>(vehicle::GetDataFile(lugretire_file));
+                break;
+            case FIALA:
+                tires[i] = std::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
+                break;
         }
-        case LUGRE: {
-            std::vector<std::shared_ptr<LugreTire> > tires_lugre(num_wheels);
-            for (int i = 0; i < num_wheels; i++) {
-                tires_lugre[i] = std::make_shared<LugreTire>(vehicle::GetDataFile(lugretire_file));
-                tires_lugre[i]->Initialize(vehicle.GetWheelBody(i));
-                tires[i] = tires_lugre[i];
-            }
-            break;
-        }
-        case FIALA: {
-            std::vector<std::shared_ptr<FialaTire> > tires_fiala(num_wheels);
-            for (int i = 0; i < num_wheels; i++) {
-                tires_fiala[i] = std::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
-                tires_fiala[i]->Initialize();
-                tires[i] = tires_fiala[i];
-            }
-            break;
-        }
+        tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
     }
 
     // Create the driver system
