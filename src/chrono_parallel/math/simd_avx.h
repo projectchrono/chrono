@@ -308,7 +308,7 @@ static __m256d change_sign(__m256d a) {
 
 inline real3 Cross3(const real3& a, const real3& b) {
     real3 result;
-#if defined(CHRONO_AVX_2_0)
+#if defined(CHRONO_AVX_2_0) && defined(CHRONO_HAS_FMA)
     // https://www.nersc.gov/assets/Uploads/Language-Impact-on-Vectorization-Vector-Programming-in-C++.pdf
     __m256d a012 = a;
     __m256d b012 = b;
