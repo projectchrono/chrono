@@ -44,7 +44,7 @@ class ChApiFea ChMaterialShellEANS {
                         double E,    ///< Young's modulus
                         double nu,   ///< Poisson ratio
                         double alpha = 1.0,///< shear factor
-                        double beta = 0.01 ///< torque factor
+                        double beta = 0.1 ///< torque factor
                         );
 
     /// Return the material density.
@@ -164,6 +164,23 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     /// Get a handle to the fourth node of this element.
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeD() const { return m_nodes[3]; }
 
+    /// Set the neutral rotation of nodeA respect to the element rotation.
+    void SetNodeAreferenceRot(ChQuaternion<> mrot) { q_refrotA = mrot; }
+    ChQuaternion<> GetNodeAreferenceRot() { return q_refrotA; }
+
+    /// Set the neutral rotation of nodeB respect to the element rotation.
+    void SetNodeBreferenceRot(ChQuaternion<> mrot) { q_refrotB = mrot; }
+    ChQuaternion<> GetNodeBreferenceRot() { return q_refrotB; }
+
+    /// Set the neutral rotation of nodeC respect to the element rotation.
+    void SetNodeCreferenceRot(ChQuaternion<> mrot) { q_refrotC = mrot; }
+    ChQuaternion<> GetNodeCreferenceRot() { return q_refrotC; }
+
+    /// Set the neutral rotation of nodeD respect to the element rotation.
+    void SetNodeDreferenceRot(ChQuaternion<> mrot) { q_refrotD = mrot; }
+    ChQuaternion<> GetNodeDreferenceRot() { return q_refrotD; }
+
+
     /// Add a layer.
     void AddLayer(double thickness,                              ///< layer thickness
                   double theta,                                  ///< fiber angle (radians)
@@ -210,6 +227,10 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
 
   private:
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > m_nodes;///< element nodes
+    ChQuaternion<> q_refrotA;                              ///< reference rotation for neutral case
+    ChQuaternion<> q_refrotB;                              ///< reference rotation for neutral case
+    ChQuaternion<> q_refrotC;                              ///< reference rotation for neutral case
+    ChQuaternion<> q_refrotD;                              ///< reference rotation for neutral case
     std::vector<Layer> m_layers;                           ///< element layers
     size_t m_numLayers;                                    ///< number of layers for this element
     double m_thickness;                                    ///< total element thickness
@@ -220,6 +241,8 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 6,   4> m_strainANS;                ///< ANS strains at shear stitching points
+    ChMatrixNM<double, 4,  24> m_B3_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
+    ChMatrixNM<double, 4,  24> m_B6_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
 
     // Interface to ChElementBase base class
     // -------------------------------------
@@ -371,7 +394,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     friend class MyMassEANS;
     friend class MyGravity;
     friend class MyForceEANS;
-    friend class MyJacobian;
+    friend class MyJacobianEANS;
 };
 
 /// @} fea_elements

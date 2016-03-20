@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         elementancf1->SetGravityOn(false);  // turn internal gravitational force calculation off
 
         // Apply a lumped force to a node:
-        hnodeancf3->SetForce(ChVector<>(0, 30, 0));
+        hnodeancf3->SetForce(ChVector<>(0, 50, 0));
 
         hnodeancf1->SetFixed(true);
         hnodeancf2->SetFixed(true);
@@ -124,16 +124,28 @@ int main(int argc, char* argv[]) {
         double shell_L = 0.4;
         double shell_W = 0.2;
 
+        // Create an orthotropic material 
+        double rho = 500;
+        double E = 2.1e7;
+        double nu = 0.3; 
+        auto mat = std::make_shared<ChMaterialShellEANS>(shell_thickness,
+                                                         rho, 
+                                                         E, 
+                                                         nu);
+
         // Create the nodes (each with position & normal to shell)
         auto hnodeeans1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
         auto hnodeeans2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, 0, 0)));
-        auto hnodeeans3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, shell_W)));
-        auto hnodeeans4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, 0, shell_W)));
+        auto hnodeeans3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W, 0 )));
+        auto hnodeeans4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W, 0)));
 
         my_mesh->AddNode(hnodeeans1);
         my_mesh->AddNode(hnodeeans2);
         my_mesh->AddNode(hnodeeans3);
         my_mesh->AddNode(hnodeeans4);
+
+        hnodeeans1->SetFixed(true);
+        hnodeeans2->SetFixed(true);
 
         // Create the element
 
@@ -142,18 +154,14 @@ int main(int argc, char* argv[]) {
 
         // Set its nodes
         elementeans->SetNodes(hnodeeans1, hnodeeans2, hnodeeans3, hnodeeans4);
-
+/*
+        elementeans->SetNodeAreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
+        elementeans->SetNodeBreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
+        elementeans->SetNodeCreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
+        elementeans->SetNodeDreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
+*/
         // Set element dimensions
         //elementeans->SetDimensions(shell_L, shell_W); // not needed, already set at initialization from initial pos of nodes
-
-        // Create an orthotropic material 
-        double rho = 500;
-        double E = 2.1e6;
-        double nu = 0.3; 
-        auto mat = std::make_shared<ChMaterialShellEANS>(shell_thickness,
-                                                         rho, 
-                                                         E, 
-                                                         nu);
 
         // Add a single layers with a fiber angle of 0 degrees.
         elementeans->AddLayer(shell_thickness, 0 * CH_C_DEG_TO_RAD, mat);
@@ -162,10 +170,47 @@ int main(int argc, char* argv[]) {
         elementeans->SetAlphaDamp(0.0);    // Structural damping for this element
 
         // Apply a lumped force to a node:
-        hnodeeans3->SetForce(ChVector<>(0, 300, 0));
+       // hnodeeans3->SetPos(hnodeeans3->GetPos()+ChVector<>(0, 0, 0.01));
+       // hnodeeans4->SetPos(hnodeeans4->GetPos()+ChVector<>(0, 0, 0.01));
+        hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
+        hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
+       // hnodeeans3->SetForce(ChVector<>(0, 0, 20));
+       // hnodeeans4->SetForce(ChVector<>(0, 0, 20));
+      // hnodeeans3->SetTorque(ChVector<>(0.2, 0, 0));
+      // hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
+       // hnodeeans4->SetMass(2000);
 
-        hnodeeans1->SetFixed(true);
-        hnodeeans2->SetFixed(true);
+
+        /*
+        auto hnodeeans5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W*2, 0 )));
+        auto hnodeeans6 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W*2, 0)));
+
+        my_mesh->AddNode(hnodeeans5);
+        my_mesh->AddNode(hnodeeans6);
+
+        // Create the element
+
+        auto elementeansb = std::make_shared<ChElementShellEANS4>();
+        my_mesh->AddElement(elementeansb);
+
+        // Set its nodes
+        elementeansb->SetNodes(hnodeeans3, hnodeeans4, hnodeeans5, hnodeeans6);
+
+        // Set element dimensions
+        //elementeans->SetDimensions(shell_L, shell_W); // not needed, already set at initialization from initial pos of nodes
+
+        // Add a single layers with a fiber angle of 0 degrees.
+        elementeansb->AddLayer(shell_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+
+        // Set other element properties
+        elementeansb->SetAlphaDamp(0.0);    // Structural damping for this element
+
+        hnodeeans5->SetForce(ChVector<>(0, 1000, 0));
+        hnodeeans6->SetForce(ChVector<>(0, 1000, 0));
+        //hnodeeans5->SetTorque(ChVector<>(5, 0, 0));
+        //hnodeeans6->SetTorque(ChVector<>(5, 0, 0));
+        //hnodeeans6->SetMass(2000);
+        */
     }
 
     
