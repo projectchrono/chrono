@@ -178,8 +178,7 @@ int main(int argc, char* argv[]) {
             tire_lugre->Initialize(wheel, LEFT);
             tire_radius = tire_lugre->GetRadius();
             wheel_radius = tire_radius;
-            int num_discs = tire_lugre->getNumDiscs();
-            tire_width = std::abs(tire_lugre->getDiscLocations()[0] - tire_lugre->getDiscLocations()[num_discs - 1]);
+            tire_width = tire_lugre->GetWidth();
             tire = tire_lugre;
             break;
         }

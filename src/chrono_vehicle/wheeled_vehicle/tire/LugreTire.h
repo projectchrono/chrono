@@ -39,11 +39,11 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
 
     virtual double GetRadius() const override { return m_radius; }
 
-    virtual int getNumDiscs() const override { return m_numDiscs; }
-    virtual const double* getDiscLocations() const override { return m_discLocs; }
+    virtual int GetNumDiscs() const override { return m_numDiscs; }
+    virtual const double* GetDiscLocations() const override { return m_discLocs; }
 
-    virtual double getNormalStiffness() const override { return m_normalStiffness; }
-    virtual double getNormalDamping() const override { return m_normalDamping; }
+    virtual double GetNormalStiffness() const override { return m_normalStiffness; }
+    virtual double GetNormalDamping() const override { return m_normalDamping; }
 
     virtual void SetLugreParams() override {}
 

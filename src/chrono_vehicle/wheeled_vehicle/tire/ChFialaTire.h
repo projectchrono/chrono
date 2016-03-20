@@ -85,9 +85,10 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
-    virtual double getNormalStiffnessForce(double depth) const = 0;
+    virtual double GetNormalStiffnessForce(double depth) const = 0;
+
     /// Return the vertical tire damping contribution to the normal force.
-    virtual double getNormalDampingForce(double depth, double velocity) const = 0;
+    virtual double GetNormalDampingForce(double depth, double velocity) const = 0;
 
     /// Set the parameters in the Fiala model.
     virtual void SetFialaParams() = 0;
