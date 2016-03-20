@@ -302,7 +302,7 @@ int main() {
     case FIALA: {
                     auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(Fiala_testfile));
                     tire_fiala->Initialize(rim, LEFT);
-                    tire_radius = tire_fiala->GetUnloadedRadius();
+                    tire_radius = tire_fiala->GetRadius();
                     wheel_radius = tire_radius;
                     tire_width = tire_fiala->GetWidth();
                     tire = tire_fiala;
@@ -317,7 +317,7 @@ int main() {
                    tire_ancf->EnableRimConnection(true);
 
                    tire_ancf->Initialize(rim, LEFT);
-                   tire_radius = tire_ancf->GetTireRadius();
+                   tire_radius = tire_ancf->GetRadius();
                    wheel_radius = tire_ancf->GetRimRadius();
                    tire_width = tire_ancf->GetWidth();
                    tire = tire_ancf;

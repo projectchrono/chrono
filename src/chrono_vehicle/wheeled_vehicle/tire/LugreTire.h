@@ -37,8 +37,9 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     LugreTire(const rapidjson::Document& d);
     ~LugreTire();
 
+    virtual double GetRadius() const override { return m_radius; }
+
     virtual int getNumDiscs() const override { return m_numDiscs; }
-    virtual double getRadius() const override { return m_radius; }
     virtual const double* getDiscLocations() const override { return m_discLocs; }
 
     virtual double getNormalStiffness() const override { return m_normalStiffness; }

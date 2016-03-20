@@ -78,6 +78,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                             VehicleSide side                ///< [in] left/right vehicle side
                             ) override;
 
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_R_eff; }
+
     /// return the reactions for the combined slip EQs, in global coords
     virtual TireForce GetTireForce(bool cosim = false) const override;
 

@@ -49,6 +49,10 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
                             VehicleSide side                ///< [in] left/right vehicle side
                             ) override;
 
+    /// Get the tire width.
+    /// For a Fiala tire, this is the unloaded tire radius.
+    virtual double GetRadius() const override { return m_unloaded_radius; }
+
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
@@ -71,9 +75,6 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     /// Get the current value of the integration step size.
     double GetStepsize() const { return m_stepsize; }
-
-    /// Get the unloaded radius of the tire
-    double GetUnloadedRadius() const { return m_unloaded_radius; }
 
     /// Get the width of the tire
     double GetWidth() const { return m_width; }

@@ -29,8 +29,8 @@ class Generic_RigidTire : public chrono::vehicle::ChRigidTire {
 
     ~Generic_RigidTire() {}
 
-    virtual double getRadius() const override { return 0.47; }
-    virtual double getWidth() const override { return 0.25; }
+    virtual double GetRadius() const override { return 0.47; }
+    virtual double GetWidth() const override { return 0.25; }
 };
 
 #endif

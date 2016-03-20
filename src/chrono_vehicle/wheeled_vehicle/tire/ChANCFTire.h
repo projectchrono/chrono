@@ -99,9 +99,6 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
                             ) override;
 
   protected:
-    /// Return the tire radius.
-    virtual double GetTireRadius() const = 0;
-
     /// Return the rim radius.
     virtual double GetRimRadius() const = 0;
 

@@ -167,16 +167,16 @@ int main(int argc, char* argv[]) {
         case RIGID: {
             auto tire_rigid = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
             tire_rigid->Initialize(wheel, LEFT);
-            tire_radius = tire_rigid->getRadius();
+            tire_radius = tire_rigid->GetRadius();
             wheel_radius = tire_radius;
-            tire_width = tire_rigid->getWidth();
+            tire_width = tire_rigid->GetWidth();
             tire = tire_rigid;
             break;
         }
         case LUGRE: {
             auto tire_lugre = std::make_shared<LugreTire>(vehicle::GetDataFile(lugretire_file));
             tire_lugre->Initialize(wheel, LEFT);
-            tire_radius = tire_lugre->getRadius();
+            tire_radius = tire_lugre->GetRadius();
             wheel_radius = tire_radius;
             int num_discs = tire_lugre->getNumDiscs();
             tire_width = std::abs(tire_lugre->getDiscLocations()[0] - tire_lugre->getDiscLocations()[num_discs - 1]);
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
         case FIALA: {
             auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
             tire_fiala->Initialize(wheel, LEFT);
-            tire_radius = tire_fiala->GetUnloadedRadius();
+            tire_radius = tire_fiala->GetRadius();
             wheel_radius = tire_radius;
             tire_width = tire_fiala->GetWidth();
             tire = tire_fiala;
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
             tire_ancf->EnableRimConnection(true);
 
             tire_ancf->Initialize(wheel, LEFT);
-            tire_radius = tire_ancf->GetTireRadius();
+            tire_radius = tire_ancf->GetRadius();
             wheel_radius = tire_ancf->GetRimRadius();
             tire_width = tire_ancf->GetWidth();
             tire = tire_ancf;
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
             tire_fea->EnableRimConnection(true);
 
             tire_fea->Initialize(wheel, LEFT);
-            tire_radius = tire_fea->GetTireRadius();
+            tire_radius = tire_fea->GetRadius();
             wheel_radius = tire_fea->GetRimRadius();
             tire_width = tire_fea->GetWidth();
             tire = tire_fea;

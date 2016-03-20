@@ -76,9 +76,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// Return the number of discs used to model this tire.
     virtual int getNumDiscs() const = 0;
 
-    /// Return the tire radius.
-    virtual double getRadius() const = 0;
-
     /// Return the laterla disc locations.
     /// These locations are relative to the tire center.
     virtual const double* getDiscLocations() const = 0;

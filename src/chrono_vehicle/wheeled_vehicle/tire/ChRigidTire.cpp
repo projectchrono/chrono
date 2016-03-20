@@ -47,7 +47,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     wheel->SetCollide(true);
 
     wheel->GetCollisionModel()->ClearModel();
-    wheel->GetCollisionModel()->AddCylinder(getRadius(), getRadius(), getWidth() / 2);
+    wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
     wheel->GetCollisionModel()->BuildModel();
 
     switch (wheel->GetContactMethod()) {

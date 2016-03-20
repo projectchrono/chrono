@@ -77,6 +77,9 @@ class CH_VEHICLE_API ChTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) {}
 
+    /// Get the tire radius.
+    virtual double GetRadius() const = 0;
+
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force

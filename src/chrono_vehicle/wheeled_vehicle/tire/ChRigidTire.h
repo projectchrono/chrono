@@ -47,6 +47,9 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
                             float poisson_ratio = 0.3f            ///< [in] Poisson ratio
                             );
 
+    /// Get the tire width.
+    virtual double GetWidth() const = 0;
+
     /// Get the tire force and moment.
     /// A ChRigidTire always returns zero forces and moments if the tire is
     /// simulated together with the associated vehicle (the tire forces are
@@ -64,12 +67,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
                             ) override;
 
   protected:
-    /// Return the tire radius.
-    virtual double getRadius() const = 0;
-
-    /// Return the tire width.
-    virtual double getWidth() const = 0;
-
   private:
     float m_friction;
     float m_restitution;

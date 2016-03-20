@@ -38,7 +38,7 @@ class CH_VEHICLE_API FEATire : public ChFEATire {
     ~FEATire() {}
 
     /// Return the tire radius.
-    virtual double GetTireRadius() const override { return m_tire_radius; }
+    virtual double GetRadius() const override { return m_tire_radius; }
     /// Return the rim radius.
     virtual double GetRimRadius() const override { return m_rim_radius; }
     /// Return the tire width.

@@ -60,7 +60,7 @@ void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     // Add visualization assets.
     if (m_visualize_discs) {
         double discWidth = 0.04;
-        double disc_radius = getRadius();
+        double disc_radius = GetRadius();
         const double* disc_locs = getDiscLocations();
 
         for (int id = 0; id < getNumDiscs(); id++) {
@@ -80,7 +80,7 @@ void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
-    double disc_radius = getRadius();
+    double disc_radius = GetRadius();
     const double* disc_locs = getDiscLocations();
 
     // Clear the force accumulators and set the application point to the wheel

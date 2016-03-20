@@ -28,8 +28,8 @@ class HMMWV_RigidTire : public chrono::vehicle::ChRigidTire {
     HMMWV_RigidTire(const std::string& name);
     ~HMMWV_RigidTire() {}
 
-    virtual double getRadius() const override { return m_radius; }
-    virtual double getWidth() const override { return m_width; }
+    virtual double GetRadius() const override { return m_radius; }
+    virtual double GetWidth() const override { return m_width; }
 
   private:
     static const double m_radius;
