@@ -199,8 +199,8 @@ int main() {
 #endif
 
     // Set the simulation and output time settings
-    double sim_step = 1.5e-4;
-    double out_step = 1e-2;
+    double sim_step = 1e-4;
+    double out_step = 5e-3;
     double sim_endtime = 10;
 
     double g = 9.80665;
@@ -405,9 +405,9 @@ int main() {
     wheel->AddAsset(tex_wheel);
 
     RigidTerrain terrain(my_system);
-    terrain.SetContactMaterial(0.7f, 0.01f, 1e7f, 0.3f);
+    terrain.SetContactMaterial(0.7f, 0.01f, 5e5f, 0.3f);
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain.Initialize(-tire_radius - 0.001, 120, 0.5);
+    terrain.Initialize(-tire_radius - 0.0015, 120, 0.5);
 
     // Create the joints for the mechanical system
     // -------------------------------------------
