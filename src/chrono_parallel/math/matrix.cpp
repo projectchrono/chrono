@@ -530,6 +530,11 @@ CUDA_HOST_DEVICE real Norm(const Mat33& A) {
     return Sqrt(Trace(A * Transpose(A)));
 }
 
+CUDA_HOST_DEVICE real DoubleDot(const Mat33& A, const Mat33& B) {
+    return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] +
+           A[7] * B[7] + A[8] * B[8];
+}
+
 CUDA_HOST_DEVICE real3 LargestColumnNormalized(const Mat33& A) {
     real3 scale = DotMM(A.array);
     real3 sqrt_scale = simd::SquareRoot(scale);
