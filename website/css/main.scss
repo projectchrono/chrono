@@ -83,27 +83,27 @@ border-radius: 3px;
 margin-top: -5px;
 }
 
-.ce-callout-info {
+.ce-info {
     @extend .ce-callout;
 	border-left-color: $brand-info;
 }
-.ce-callout-info:before {
+.ce-info:before {
 	content: "\e086"; 
 	color: $brand-info;
 }
-.ce-callout-warning {
+.ce-warning {
     @extend .ce-callout;
 	border-left-color: $brand-warning;
 }
-.ce-callout-warning:before {
+.ce-warning:before {
 	content: "\e107"; 
 	color: $brand-warning;
 }
-.ce-callout-danger {
+.ce-danger {
     @extend .ce-callout;
 	border-left-color: $brand-danger;
 }
-.ce-callout-danger:before {
+.ce-danger:before {
 	content: "\e209"; 
 	color: $brand-danger;
 }

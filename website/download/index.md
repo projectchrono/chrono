@@ -30,7 +30,7 @@ Required tools
 
 Chrono requires a C++11 compliant compiler. We tested it on Microsoft compilers (required version MSVC v.2013 or later), GNU compilers, Intel compilers.
 
-<div class="ce-callout-info">
+<div class="ce-info">
 
 In case you do not have a C++ compiler already installed on your computer, you can download one of these free tools:
 
@@ -88,13 +88,13 @@ on OpenGL and DirectX.
 </div>
 
 
-{:info: .ce-callout-info}
+{:info: .ce-info}
 The new release v.1.8.2 of Irrlicht is tested to be stable and working well with Chrono::Engine.  
 Release v.1.8.3 does not contain the precompiled 64bit dlls.  
 Release v.1.8.0 has some issues with soft shadows.
 {:info}
 
-{:warning: .ce-callout-warning}
+{:warning: .ce-warning}
 You cannot link 64bit Chrono::Engine libraries and 32bit Irrlicht libraries, or viceversa. If you decide to build Chrono::Engine in 64bit (suggested), you must link 64 bit Irrlicht .lib and .dll. 
 {:warning}
 
@@ -186,13 +186,13 @@ the 32 bit version of Python is currently supported with this installer.
 
 </div>
 
-{:info: ce-callout-info} 
+{:info: ce-info} 
 If you plan to use ''only'' Python, this is the only installer that you need to download.
 {:info}
 
 
 
-{:info: ce-callout-info}
+{:info: ce-info}
 If you need to plot graphs in Python, we suggest you to consider also the installation of both 
 [MatplotLib](http://matplotlib.org/downloads.html) and 
 [Numpy](http://www.numpy.org) 
