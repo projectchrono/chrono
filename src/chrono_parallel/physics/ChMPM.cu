@@ -54,27 +54,6 @@ __device__ real dot_my_my = 0;
 #define neg_BB1_fallback 0.11
 #define neg_BB2_fallback 0.12
 
-#define LOOP_TWO_RING_GPU(X)                                                                                         \
-    const real bin_edge = device_settings.bin_edge;                                                                  \
-    const real inv_bin_edge = device_settings.inv_bin_edge;                                                          \
-                                                                                                                     \
-    const int cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                                          \
-    const int cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                                          \
-    const int cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);                                          \
-    for (int i = cx - 2; i <= cx + 2; ++i) {                                                                         \
-        for (int j = cy - 2; j <= cy + 2; ++j) {                                                                     \
-            for (int k = cz - 2; k <= cz + 2; ++k) {                                                                 \
-                const int current_node = GridHash(i, j, k, device_settings.bins_per_axis_x,                          \
-                                                  device_settings.bins_per_axis_y, device_settings.bins_per_axis_z); \
-                real3 current_node_location;                                                                         \
-                current_node_location.x = i * bin_edge + system_bounds.minimum[0];                                   \
-                current_node_location.y = j * bin_edge + system_bounds.minimum[1];                                   \
-                current_node_location.z = k * bin_edge + system_bounds.minimum[2];                                   \
-                X                                                                                                    \
-            }                                                                                                        \
-        }                                                                                                            \
-    }
-
 #define LOOP_TWO_RING_GPUSP(X)                                                                                         \
     cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                                                      \
     cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                                                      \
@@ -147,9 +126,15 @@ CUDA_GLOBAL void kRasterize(const real3* sorted_pos,  // input
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
-        LOOP_TWO_RING_GPU(                                                                     //
-            real weight = N(xi - current_node_location, inv_bin_edge) * device_settings.mass;  //
-            ATOMIC_ADD(&grid_mass[current_node], weight);                                      //
+        int cx, cy, cz;
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
+
+        LOOP_TWO_RING_GPUSP(  //
+            real weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
+                          N((xi.y - current_node_locationy) * inv_bin_edge) *
+                          N((xi.z - current_node_locationz) * inv_bin_edge) * device_settings.mass;
+            ATOMIC_ADD(&grid_mass[current_node], weight);  //
             )
     }
 }
@@ -177,9 +162,15 @@ CUDA_GLOBAL void kComputeParticleVolumes(const real3* sorted_pos,  // input
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
         real particle_density = 0;
-        LOOP_TWO_RING_GPU(                                              //
-            real weight = N(xi - current_node_location, inv_bin_edge);  //
-            particle_density += grid_mass[current_node] * weight;       //
+        int cx, cy, cz;
+        const real bin_edge = device_settings.bin_edge;
+        const real inv_bin_edge = device_settings.inv_bin_edge;
+        LOOP_TWO_RING_GPUSP(  //
+            real weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
+                          N((xi.y - current_node_locationy) * inv_bin_edge) *
+                          N((xi.z - current_node_locationz) * inv_bin_edge);
+
+            particle_density += grid_mass[current_node] * weight;  //
             )
         // Inverse density to remove division
         particle_density = (bin_edge * bin_edge * bin_edge) / particle_density;
