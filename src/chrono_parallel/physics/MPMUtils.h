@@ -393,9 +393,18 @@ CUDA_HOST_DEVICE static Mat33 d2PsidFdF(const Mat33& Z,
     real a = -1.0 / 3.0;
     real Ja = Pow(Determinant(F), a);
     Mat33 H = InverseTranspose(F);
-    Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
     real JP = Determinant(FP);
     real current_mu = mu * Exp(hardening_coefficient * (real(1.0) - JP));
+    Mat33 A;
+    {  // Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
+        Mat33 FE = Ja * F;
+        Mat33 UE, VE;
+        real3 EE;
+        SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
+        Mat33 RE = MultTranspose(UE, VE);
+        A = real(2.) * current_mu * (FE - RE);
+    }
+
     Mat33 B_Z = B__Z(Z, F, Ja, a, H);
     Mat33 C_B_Z = 2 * current_mu * (B_Z - Rotational_Derivative(F, B_Z));
     Mat33 P1 = Ja * (C_B_Z + a * (DoubleDot(F, C_B_Z)) * H);
