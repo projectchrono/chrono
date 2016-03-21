@@ -52,7 +52,7 @@ void HMMWV_FialaTire::SetFialaParams() {
     m_relax_length_y = 0.0317;
 }
 
-double HMMWV_FialaTire::getNormalStiffnessForce(double depth) const {
+double HMMWV_FialaTire::GetNormalStiffnessForce(double depth) const {
     // corresponding depths = 0 : 0.00254 : 0.08128
     double normalforcetabel[33] = {0,
                                    296.562935405400,

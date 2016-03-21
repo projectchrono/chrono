@@ -21,6 +21,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <cmath>
 
 #include "chrono/physics/ChGlobal.h"
 
@@ -35,7 +36,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-3) {
+ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-3), m_visualize_discs(false) {
     m_tireForce.force = ChVector<>(0, 0, 0);
     m_tireForce.point = ChVector<>(0, 0, 0);
     m_tireForce.moment = ChVector<>(0, 0, 0);
@@ -43,46 +44,54 @@ ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLugreTire::Initialize() {
-    m_data.resize(getNumDiscs());
-    m_state.resize(getNumDiscs());
+void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
+    m_data.resize(GetNumDiscs());
+    m_state.resize(GetNumDiscs());
 
     SetLugreParams();
 
     // Initialize disc states
-    for (int id = 0; id < getNumDiscs(); id++) {
+    for (int id = 0; id < GetNumDiscs(); id++) {
         m_state[id].z0 = 0;
         m_state[id].z1 = 0;
     }
-}
-
-void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel) {
-    // Perform the actual initialization
-    Initialize();
 
     // Add visualization assets.
-    double discWidth = 0.04;
-    double disc_radius = getRadius();
-    const double* disc_locs = getDiscLocations();
+    if (m_visualize_discs) {
+        double discWidth = 0.04;
+        double disc_radius = GetRadius();
+        const double* disc_locs = GetDiscLocations();
 
-    for (int id = 0; id < getNumDiscs(); id++) {
-        auto cyl = std::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().rad = disc_radius;
-        cyl->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
-        cyl->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
-        wheel->AddAsset(cyl);
+        for (int id = 0; id < GetNumDiscs(); id++) {
+            auto cyl = std::make_shared<ChCylinderShape>();
+            cyl->GetCylinderGeometry().rad = disc_radius;
+            cyl->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
+            cyl->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
+            wheel->AddAsset(cyl);
+        }
+
+        auto tex = std::make_shared<ChTexture>();
+        tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+        wheel->AddAsset(tex);
     }
+}
 
-    auto tex = std::make_shared<ChTexture>();
-    tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-    wheel->AddAsset(tex);
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double ChLugreTire::GetWidth() const {
+    return std::abs(GetDiscLocations()[0] - GetDiscLocations()[GetNumDiscs() - 1]);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
-    double disc_radius = getRadius();
-    const double* disc_locs = getDiscLocations();
+    // Invoke the base class function.
+    ChTire::Synchronize(time, wheel_state, terrain);
+
+    double disc_radius = GetRadius();
+    const double* disc_locs = GetDiscLocations();
 
     // Clear the force accumulators and set the application point to the wheel
     // center.
@@ -98,7 +107,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
     // forces, and cache data that only depends on wheel state.
     double depth;
 
-    for (int id = 0; id < getNumDiscs(); id++) {
+    for (int id = 0; id < GetNumDiscs(); id++) {
         // Calculate center of disk (expressed in global frame)
         ChVector<> disc_center = wheel_state.pos + disc_locs[id] * disc_normal;
 
@@ -117,7 +126,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
         // are reduced to the wheel center). If the resulting force is negative, the
         // disc is moving away from the terrain so fast that no contact force is
         // generated.
-        double Fn_mag = getNormalStiffness() * depth - getNormalDamping() * m_data[id].vel.z;
+        double Fn_mag = GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z;
 
         if (Fn_mag < 0)
             Fn_mag = 0;
@@ -151,7 +160,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Advance(double step) {
-    for (int id = 0; id < getNumDiscs(); id++) {
+    for (int id = 0; id < GetNumDiscs(); id++) {
         // Nothing to do if this disc is not in contact
         if (!m_data[id].in_contact)
             continue;

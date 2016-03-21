@@ -8,7 +8,8 @@ SET(TESTS
     test_EASBrickIso
     test_EASBrickIso_Grav
 test_EASBrickMooneyR_Grav
-test_ANCFConstraints)
+test_ANCFConstraints
+test_ANCFContact)
 MESSAGE(STATUS "Unit test programs for FEA module...")
 # A hack to set the working directory in which to execute the CTest
 # runs.  This is needed for tests that need to access the Chrono data

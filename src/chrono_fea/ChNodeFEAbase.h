@@ -52,6 +52,8 @@ public:
     virtual bool GetFixed()  =0;  
 
 
+    double m_TotalMass; ///< Nodal mass obtained from element masss matrix
+
 protected:
 
     //

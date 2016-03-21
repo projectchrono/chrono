@@ -91,12 +91,16 @@ class ChApi ChLcpSolver {
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) = 0;
 
+	/// This method is implemented in direct solvers such as MKL
+	virtual double Factorize(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+		) {	return 0.0f; }; 
+
     //
     // Utility functions
     //
 
     void SetVerbose(bool mv) { this->verbose = mv; }
-    bool GetVerbose() { return this->verbose; }
+    bool GetVerbose() const { return this->verbose; }
 
     //
     // SERIALIZATION

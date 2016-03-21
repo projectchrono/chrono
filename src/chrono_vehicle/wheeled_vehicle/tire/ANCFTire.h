@@ -19,6 +19,7 @@
 #ifndef ANCF_TIRE_H
 #define ANCF_TIRE_H
 
+#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
@@ -37,22 +38,21 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     ANCFTire(const rapidjson::Document& d);
     ~ANCFTire() {}
 
-    /// Return the tire radius.
-    virtual double GetTireRadius() const override { return m_tire_radius; }
-    /// Return the rim radius.
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_tire_radius; }
+    /// Get the rim radius (inner tire radius).
     virtual double GetRimRadius() const override { return m_rim_radius; }
-    /// Return the tire width.
+    /// Get the tire width.
     virtual double GetWidth() const override { return m_rim_width; }
-    /// Return the default tire pressure.
+    /// Get the default tire pressure.
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
 
     /// Return list of nodes connected to the rim.
-    virtual NodeList GetConnectedNodes(const std::shared_ptr<fea::ChMesh>& mesh) const override;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
-    virtual void CreateMesh(std::shared_ptr<fea::ChMesh> mesh,   ///< containing mesh
-                            const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
+    virtual void CreateMesh(const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
                             VehicleSide side                     ///< left/right vehicle side
                             ) override;
 

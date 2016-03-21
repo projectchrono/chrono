@@ -43,13 +43,16 @@ namespace chrono {
 	protected:
 		int rows;
 		int columns;
+		double dummy;
 
 	public:
-		ChSparseMatrix(): rows(-1), columns(-1) {};
+		ChSparseMatrix(): rows(-1), columns(-1), dummy(0.0) {};
 		virtual ~ChSparseMatrix(){};
 
 		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true){assert(0);};
 		virtual double GetElement(int row, int col) { assert(0);	return 0; }; // can't be const because of implementation in ChLinkedListMatrix
+
+		virtual double& Element(int row, int col){ assert(0); return dummy; };
 
 		virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false)	{ assert(0);};
 		virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false){assert(0);};

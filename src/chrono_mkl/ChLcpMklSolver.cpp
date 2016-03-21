@@ -16,18 +16,54 @@ namespace chrono
 	*	but it also keeps column and row indexes through different calls.
 	*/
 
-	ChLcpMklSolver::ChLcpMklSolver() :
+	ChLcpMklSolver::ChLcpMklSolver():
 		solver_call(0),
 		matCSR3(1, 1, 1),
 		mkl_engine(1, 11),
 		n(0),
 		sparsity_pattern_lock(false),
 		use_perm(false),
-		use_rhs_sparsity(false)
+		use_rhs_sparsity(false), 
+		manual_factorization(false)
 	{
 	}
 
-	double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) ///< system description with constraints and variables
+	double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd)
+	{
+		int pardiso_message_phase12 = 0;
+		if (!manual_factorization)
+			pardiso_message_phase12 = static_cast<int>(Factorize(sysd));
+
+		sysd.ConvertToMatrixForm(nullptr, &rhs);
+
+		mkl_engine.SetProblem(matCSR3, rhs, sol);
+		int pardiso_message_phase33 = mkl_engine.PardisoCall(33, 0);
+
+		solver_call++;
+		if (pardiso_message_phase12 || pardiso_message_phase33) {
+			GetLog() << "Pardiso solve&refinement error code = " << pardiso_message_phase33 << "\n";
+			GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
+			GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
+		}
+
+		if (verbose)
+		{
+			// Get residual;
+			mkl_engine.GetResidual(res);
+			double res_norm = mkl_engine.GetResidualNorm(res);
+
+			GetLog() << "Pardiso call " << solver_call << "  |residual| = " << res_norm << "\n";
+		}
+
+
+		// Replicate the changes to vvariables and vconstraint into LcpSystemDescriptor
+		sysd.FromVectorToUnknowns(sol);
+
+		return 0.0f;
+    }
+
+
+	double ChLcpMklSolver::Factorize(ChLcpSystemDescriptor& sysd)
 	{
 		// Initial resizing;
 		if (solver_call == 0)
@@ -38,7 +74,7 @@ namespace chrono
 			sol.Resize(n, 1); // ConvertToMatrixForm() takes care of eventually resizing matCSR3 and rhs, but not sol; this can be done also AFTER CTMF()
 			res.Resize(n, 1);
 		}
-			
+
 
 		// Build matrix and rhs;
 		// in case the matrix changes size (rows) then RowIndexLockBroken is turned on
@@ -47,9 +83,9 @@ namespace chrono
 		//     - if sparsity_pattern_lock is ON the matrix will remain with unuseful filling zeros; they have to be eventually removed with a Purge();
 		//     - if sparsity_pattern_lock is ON the matrix will have some uninitialized element flagged with -1 in the colIndex;
 		//          those have to be removed by Compress().
-		sysd.ConvertToMatrixForm(&matCSR3, &rhs);
-
-
+		//manual_factorization ? sysd.ConvertToMatrixForm(&matCSR3, nullptr) : sysd.ConvertToMatrixForm(&matCSR3, &rhs);
+		sysd.ConvertToMatrixForm(&matCSR3, nullptr);
+		
 
 
 		// Set up the locks;
@@ -63,49 +99,39 @@ namespace chrono
 		// remember: the matrix is constructed with broken locks; so for solver_call==0 they are broken!
 		if (!sparsity_pattern_lock || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken())
 		{
-			// breaking the row_index_block means that the size has changed
+			// breaking the row_index_block means that the size has changed so every dimension has to be reset
 			if (matCSR3.IsRowIndexLockBroken())
 			{
 				n = matCSR3.GetRows();
 				sol.Resize(n, 1);
 				res.Resize(n, 1);
 			}
-			
+
 			// if sparsity is not locked OR the sparsity_lock is broken (like in the first cycle!); the matrix must be recompressed
 			matCSR3.Compress();
 
 			// the permutation vector is based on the sparsity of the matrix;
 			// if ColIndexLockBroken/RowIndexLockBroken are on then the permutation must be updated
-			if (use_perm) 
+			if (use_perm)
 				mkl_engine.UsePermutationVector(true);
 		}
 
-		
+
 		// the sparsity of rhs must be updated at every cycle (am I wrong?)
 		if (use_rhs_sparsity && !use_perm)
 			mkl_engine.UsePartialSolution(2);
 
-        // Solve with Pardiso Sparse Direct Solver
-        // the problem size must be updated also in the Engine: this is done by SetProblem() itself.
-        mkl_engine.SetProblem(matCSR3, rhs, sol);
-        int pardiso_message = mkl_engine.PardisoCall(13, 0);
-        solver_call++;
-        if (pardiso_message != 0) {
-            GetLog() << "Pardiso error code = " << pardiso_message << "\n";
-            GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
-        }
+		// Solve with Pardiso Sparse Direct Solver
+		// the problem size must be updated also in the Engine: this is done by SetProblem() itself.
+		mkl_engine.SetProblem(matCSR3, rhs, sol);
+		int pardiso_message_phase12 = mkl_engine.PardisoCall(12, 0);
 
-        // Get residual;
-        mkl_engine.GetResidual(res);
-        double res_norm = mkl_engine.GetResidualNorm(res);
-
-        if (verbose)
-            GetLog() << "Pardiso call " << (int)solver_call << "  |residual| = " << res_norm << "\n";
-
-        // Replicate the changes to vvariables and vconstraint into LcpSystemDescriptor
-        sysd.FromVectorToUnknowns(sol);
-
-        return 0.0;
-    }
-
+		if (pardiso_message_phase12) {
+			GetLog() << "Pardiso reordering&factorization error code = " << pardiso_message_phase12 << "\n";
+			GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
+			GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
+		}
+		
+		return pardiso_message_phase12;
+	}
 } // namespace chrono

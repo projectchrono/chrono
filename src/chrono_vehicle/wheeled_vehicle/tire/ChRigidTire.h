@@ -47,25 +47,26 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
                             float poisson_ratio = 0.3f            ///< [in] Poisson ratio
                             );
 
+    /// Get the tire width.
+    virtual double GetWidth() const = 0;
+
     /// Get the tire force and moment.
-    /// For a rigid tire, the tire forces are automatically applied to the
-    /// associated wheel (through Chrono's frictional contact system). The values
-    /// returned here are never used.
-    virtual TireForce GetTireForce() const override;
+    /// A ChRigidTire always returns zero forces and moments if the tire is
+    /// simulated together with the associated vehicle (the tire forces are
+    /// automatically applied to the associated wheel through Chrono's frictional
+    /// contact system). If the tire is co-simulated, the tire force and moments
+    /// encapsulate the tire-terrain forces (i.e. the resultant of all contact
+    /// forces acting on the tire).
+    virtual TireForce GetTireForce(bool cosim = false) const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the
     /// associated wheel body.
-    void Initialize(std::shared_ptr<ChBody> wheel  ///< handle to the associated wheel body
-                    );
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
+                            VehicleSide side                ///< left/right vehicle side
+                            ) override;
 
   protected:
-    /// Return the tire radius.
-    virtual double getRadius() const = 0;
-
-    /// Return the tire width.
-    virtual double getWidth() const = 0;
-
   private:
     float m_friction;
     float m_restitution;

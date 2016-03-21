@@ -172,9 +172,7 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
         if (strlen(mf) < 10)
             strcpy(number_format, mf);
     }
-    char* GetNumFormat() {
-        return number_format;
-    }
+    char* GetNumFormat() { return number_format; }
     /// Set the trailer symbol before each comment (example: "#" , or "//" etc.)
     void SetCommentTrailer(char* mt) {
         if (strlen(mt) < 10)
@@ -376,7 +374,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
             pObj->GetRTTI()->GetName();
             // New Object, we have to full serialize it
             std::string str = pObj->GetRTTI()->GetName();
-            *this << str;    // serialize class type
+            *this << str;   // serialize class type
             *this < *pObj;  // serialize data
         } else {
             // Object already in list. Only store position
@@ -582,6 +580,10 @@ class ChApi ChStreamFile {
     /// Destruction means that the file stream is also closed.
     virtual ~ChStreamFile();
 
+    /// Synchronizes the associated stream buffer with its controlled output
+    /// sequence
+    virtual void Flush();
+
     /// Writes to file, up to n chars.
     /// If does not succeed, throws exception.
     virtual void Write(const char* data, size_t n);
@@ -784,7 +786,6 @@ class ChApi ChStreamInAsciiVector : public ChStreamVectorWrapper, public ChStrea
   private:
     virtual void Input(char* data, size_t n) { ChStreamVectorWrapper::Read(data, n); }
 };
-
 
 ///
 /// This is a specialized class for BINARY output on system's file,

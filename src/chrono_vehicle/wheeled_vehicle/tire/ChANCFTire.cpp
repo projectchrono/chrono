@@ -19,8 +19,10 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemDEM.h"
 
+#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
@@ -60,6 +62,8 @@ void ChANCFTire::SetContactMaterial(float friction_coefficient,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     ChSystemDEM* system = dynamic_cast<ChSystemDEM*>(wheel->GetSystem());
     assert(system);
 
@@ -68,7 +72,7 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     system->Add(m_mesh);
 
     // Create the FEA nodes and elements
-    CreateMesh(m_mesh, *(wheel.get()), side);
+    CreateMesh(*(wheel.get()), side);
 
     // Create a load container
     auto load_container = std::make_shared<ChLoadContainer>();
@@ -121,17 +125,21 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     if (m_connection_enabled) {
         // Connect nodes to rim
-        auto nodes = GetConnectedNodes(m_mesh);
+        auto nodes = GetConnectedNodes();
+
+        m_connections.resize(nodes.size());
+        m_connectionsD.resize(nodes.size());
 
         for (size_t in = 0; in < nodes.size(); ++in) {
-            auto linkP = std::make_shared<ChLinkPointFrame>();
-            linkP->Initialize(nodes[in], wheel);
-            system->Add(linkP);
+            auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(nodes[in]);
+            m_connections[in] = std::make_shared<ChLinkPointFrame>();
+            m_connections[in]->Initialize(node, wheel);
+            system->Add(m_connections[in]);
 
-            auto linkD = std::make_shared<ChLinkDirFrame>();
-            linkD->Initialize(nodes[in], wheel);
-            linkD->SetDirectionInAbsoluteCoords(nodes[in]->GetD());
-            system->Add(linkD);
+            m_connectionsD[in] = std::make_shared<ChLinkDirFrame>();
+            m_connectionsD[in]->Initialize(node, wheel);
+            m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetD());
+            system->Add(m_connectionsD[in]);
         }
     }
 
@@ -151,22 +159,49 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChANCFTire::GetMass() const {
-    double mass = 0;
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        auto element = std::static_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie));
-        //// TODO
-    }
+    double mass;
+    ChVector<> com;
+    ChMatrix33<> inertia;
+
+    m_mesh->ComputeMassProperties(mass, com, inertia);
     return mass;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TireForce ChANCFTire::GetTireForce() const {
+TireForce ChANCFTire::GetTireForce(bool cosim) const {
     TireForce tire_force;
 
-    tire_force.force = ChVector<>(0, 0, 0);
-    tire_force.point = ChVector<>(0, 0, 0);
-    tire_force.moment = ChVector<>(0, 0, 0);
+    // If the tire is simulated together with the associated vehicle, return zero
+    // force and moment. In this case, the tire forces are implicitly applied to
+    // the wheel body through the tire-wheel connections.
+    // Also return zero forces if the tire is not connected to the wheel.
+    if (!cosim || m_connections.size() == 0) {
+        tire_force.force = ChVector<>(0, 0, 0);
+        tire_force.point = ChVector<>(0, 0, 0);
+        tire_force.moment = ChVector<>(0, 0, 0);
+
+        return tire_force;
+    }
+
+    // If the tire is co-simulated, calculate and return the resultant of all
+    // reaction forces in the tire-wheel connections.  This encapsulated the
+    // tire-terrain interaction forces and the weight of the tire itself.
+    auto body_frame = m_connections[0]->GetConstrainedBodyFrame();
+
+    ChVector<> force;
+    for (size_t ic = 0; ic < m_connections.size(); ic++) {
+        force += m_connections[ic]->GetReactionOnBody();
+    }
+
+    for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
+        force += m_connectionsD[ic]->GetReactionOnBody();
+    }
+
+    // Calculate and return the resultant force and moment at the center of the
+    // wheel body.
+    tire_force.point = body_frame->GetPos();
+    body_frame->To_abs_forcetorque(force, ChVector<>(0, 0, 0), 1, tire_force.force, tire_force.moment);
 
     return tire_force;
 }

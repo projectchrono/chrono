@@ -276,9 +276,13 @@ if(ENABLE_MODULE_FEA)
     set(CV_WV_FEATIRE_FILES
         wheeled_vehicle/tire/ChANCFTire.h
         wheeled_vehicle/tire/ChANCFTire.cpp
+        wheeled_vehicle/tire/ChFEATire.h
+        wheeled_vehicle/tire/ChFEATire.cpp
 
         wheeled_vehicle/tire/ANCFTire.h
         wheeled_vehicle/tire/ANCFTire.cpp
+        wheeled_vehicle/tire/FEATire.h
+        wheeled_vehicle/tire/FEATire.cpp
     )
 else()
     set(CV_WV_FEATIRE_FILES "")

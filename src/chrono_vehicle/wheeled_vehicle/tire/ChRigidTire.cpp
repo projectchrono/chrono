@@ -41,11 +41,13 @@ void ChRigidTire::SetContactMaterial(float friction_coefficient,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel) {
+void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     wheel->SetCollide(true);
 
     wheel->GetCollisionModel()->ClearModel();
-    wheel->GetCollisionModel()->AddCylinder(getRadius(), getRadius(), getWidth() / 2);
+    wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
     wheel->GetCollisionModel()->BuildModel();
 
     switch (wheel->GetContactMethod()) {
@@ -64,9 +66,24 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TireForce ChRigidTire::GetTireForce() const {
+TireForce ChRigidTire::GetTireForce(bool cosim) const {
     TireForce tire_force;
 
+    // If the tire is simulated together with the associated vehicle, return zero
+    // force and moment. In this case, the tire forces are automatically applied
+    // to the associated wheel through Chrono's frictional contact system.
+    if (!cosim) {
+      tire_force.force = ChVector<>(0, 0, 0);
+      tire_force.point = ChVector<>(0, 0, 0);
+      tire_force.moment = ChVector<>(0, 0, 0);
+
+      return tire_force;
+    }
+
+    // If the tire is co-simulated, calculate and return the resultant of the
+    // contact forces acting on the tire.
+
+    //// TODO
     tire_force.force = ChVector<>(0, 0, 0);
     tire_force.point = ChVector<>(0, 0, 0);
     tire_force.moment = ChVector<>(0, 0, 0);

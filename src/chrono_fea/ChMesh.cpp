@@ -309,7 +309,27 @@ void ChMesh::IntLoadResidual_F(
     }
 }
 
+void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
+                                   ChVector<>& com,        // ChMesh center of gravity
+                                   ChMatrix33<>& inertia)  // ChMesh inertia tensor
+{
+    mass = 0;
+    com = ChVector<>(0);
+    inertia = ChMatrix33<>(1);
 
+    // Initialize all nodal total masses to zero
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        vnodes[j]->m_TotalMass = 0.0;
+    }
+    // Loop over all elements and calculate contribution to nodal mass
+    for (unsigned int ie = 0; ie < this->velements.size(); ie++) {
+        this->velements[ie]->ComputeNodalMass();
+    }
+    // Loop over all the nodes of the mesh to obtain total object mass
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        mass += vnodes[j]->m_TotalMass;
+    }
+}
 void ChMesh::IntLoadResidual_Mv(
     const unsigned int off,		 ///< offset in R residual
     ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*M*v

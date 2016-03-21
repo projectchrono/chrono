@@ -26,8 +26,9 @@
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
 namespace vehicle {
@@ -69,12 +70,20 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     ~ChPacejkaTire();
 
+    /// Specify whether or not the associated wheel is driven.
+    /// By default, the wheel is assumed not driven.
+    void SetDrivenWheel(bool val) { m_driven = val; }
+
     /// specify the file name to read the Pactire input from
-    void Initialize(VehicleSide side,  ///< [in]
-                    bool driven);
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
+                            VehicleSide side                ///< [in] left/right vehicle side
+                            ) override;
+
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_R_eff; }
 
     /// return the reactions for the combined slip EQs, in global coords
-    virtual TireForce GetTireForce() const override;
+    virtual TireForce GetTireForce(bool cosim = false) const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
     TireForce GetTireForce_pureSlip(const bool local = true) const;
@@ -88,6 +97,15 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                              const ChTerrain& terrain        ///< [in] reference to the terrain system
                              ) override;
+
+    /// Get the tire slip angle.
+    virtual double GetSlipAngle() const override { return m_slip->alpha; }
+
+    /// Get the tire longitudinal slip.
+    virtual double GetLongitudinalSlip() const { return m_slip->kappa; }
+
+    /// Get the tire camber angle.
+    virtual double GetCamberAngle() const { return m_slip->gamma; }
 
     /// Advance the state of this tire by the specified time step.
     /// Use the new body state, calculate all the relevant quantities over the
@@ -315,7 +333,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     // ----- Data members
     bool m_use_transient_slip;
-    VehicleSide m_side;
     bool m_driven;   // is this a driven tire?
     int m_sameSide;  // does parameter file side equal m_side? 1 = true, -1 opposite
 
