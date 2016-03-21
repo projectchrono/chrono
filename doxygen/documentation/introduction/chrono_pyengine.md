@@ -104,16 +104,16 @@ print  (mr*my_vect1);
     of PyScripter: for example once you type *chrono.* you will see a
     pop-up window with a list of available classes, constants, etc.
 
-<div class="ce-callout-info">
+<div class="ce-info">
 Learn additional lessons by reading the PyChrono::Engine tutorials. 
 </div>
 
-<div class="ce-callout-info">
+<div class="ce-info">
 Most classes behave like their C++ counterparts, so you are 
 invited to look at the [C++ API documentation]() to understand their features. 
 </div>
 
-<div class="ce-callout-warning">
+<div class="ce-warning">
 There are also few but important differences between C++ and Python that are worth mentioning, so read also the following section! 
 </div>
 
@@ -225,7 +225,7 @@ my_link_BC = chrono.ChLinkLockRevolute()
 ~~~~~~~~~~~~~~~
 
 
-<div class="ce-callout-info">
+<div class="ce-info">
 When you create a shared pointer object in PyChrono::Engine, also 
 the referenced object is created. For instance, in the last example, 
 a revolute joint is created at the same line. 
@@ -288,7 +288,7 @@ my_system.GetLcpSystemDescriptor()
 <Swig Object of type 'chrono::ChLcpSystemDescriptor *' at 0x03EDD800>
 ~~~~~~~~~~~~~~~
 
-<div class="ce-callout-info">
+<div class="ce-info">
 As the development of PyChrono::Engine proceeds, the latter case will
 happen less an less frequently. Tell us if you encounter this type of
 problem in some function, so we can fix it.
