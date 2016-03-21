@@ -79,9 +79,11 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// Get the width of the tire
     double GetWidth() const { return m_width; }
 
-    // Temporary debug methods
-    double GetKappa() const { return m_states.cp_long_slip; }
-    double GetAlpha() const { return m_states.cp_side_slip; }
+    /// Get the tire slip angle.
+    virtual double GetSlipAngle() const override { return m_states.cp_side_slip; }
+
+    /// Get the tire longitudinal slip.
+    virtual double GetLongitudinalSlip() const override { return m_states.cp_long_slip; }
 
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.

@@ -67,6 +67,9 @@ void ChFialaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChFialaTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
+    // Invoke the base class function.
+    ChTire::Synchronize(time, wheel_state, terrain);
+
     ChCoordsys<> contact_frame;
     // Clear the force accumulators and set the application point to the wheel
     // center.

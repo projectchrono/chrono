@@ -87,6 +87,9 @@ double ChLugreTire::GetWidth() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
+    // Invoke the base class function.
+    ChTire::Synchronize(time, wheel_state, terrain);
+
     double disc_radius = GetRadius();
     const double* disc_locs = GetDiscLocations();
 
