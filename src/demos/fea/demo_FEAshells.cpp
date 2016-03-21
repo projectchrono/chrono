@@ -131,7 +131,9 @@ int main(int argc, char* argv[]) {
         auto mat = std::make_shared<ChMaterialShellEANS>(shell_thickness,
                                                          rho, 
                                                          E, 
-                                                         nu);
+                                                         nu,
+                                                         1,
+                                                         0.01);
 
         // Create the nodes (each with position & normal to shell)
         auto hnodeeans1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
@@ -174,8 +176,8 @@ int main(int argc, char* argv[]) {
        // hnodeeans4->SetPos(hnodeeans4->GetPos()+ChVector<>(0, 0, 0.01));
         hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
         hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
-       // hnodeeans3->SetForce(ChVector<>(0, 0, 20));
-       // hnodeeans4->SetForce(ChVector<>(0, 0, 20));
+       // hnodeeans3->SetForce(ChVector<>(0, 0, 50));
+      //  hnodeeans4->SetForce(ChVector<>(0, 0, 50));
       // hnodeeans3->SetTorque(ChVector<>(0.2, 0, 0));
       // hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
        // hnodeeans4->SetMass(2000);

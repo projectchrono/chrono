@@ -440,40 +440,41 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChMatrix33<> mk_u_X; mk_u_X.Set_X_matrix(kur_u);
     ChMatrix33<> mk_v_X; mk_v_X.Set_X_matrix(kur_v);
 
-    B.PasteMatrix(&(mT_i_t * Nu(0)), 0,0);
-    B.PasteMatrix(&(mT_i_t * Nv(0)), 3,0);
-    B.PasteMatrix(&(mT_i_t * Nu(1)), 0,6);
-    B.PasteMatrix(&(mT_i_t * Nv(1)), 3,6);
-    B.PasteMatrix(&(mT_i_t * Nu(2)), 0,12);
-    B.PasteMatrix(&(mT_i_t * Nv(2)), 3,12);
-    B.PasteMatrix(&(mT_i_t * Nu(3)), 0,18);
-    B.PasteMatrix(&(mT_i_t * Nv(3)), 3,18);
+    ChMatrix33<> block;
+    block = mT_i_t * Nu(0);     B.PasteMatrix(&block, 0,0);
+    block = mT_i_t * Nv(0);     B.PasteMatrix(&block, 3,0);
+    block = mT_i_t * Nu(1);     B.PasteMatrix(&block, 0,6);
+    block = mT_i_t * Nv(1);     B.PasteMatrix(&block, 3,6);
+    block = mT_i_t * Nu(2);     B.PasteMatrix(&block, 0,12);
+    block = mT_i_t * Nv(2);     B.PasteMatrix(&block, 3,12);
+    block = mT_i_t * Nu(3);     B.PasteMatrix(&block, 0,18);
+    block = mT_i_t * Nv(3);     B.PasteMatrix(&block, 3,18);
         
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiA * N(0)), 0,3);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiA * N(0)), 3,3);
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiB * N(1)), 0,9);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiB * N(1)), 3,9);
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiC * N(2)), 0,15);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiC * N(2)), 3,15);
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiD * N(3)), 0,21);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiD * N(3)), 3,21);
-
+    block = mT_i_t * myi_u_X * PhiA * N(0);     B.PasteMatrix(&block, 0,3);
+    block = mT_i_t * myi_v_X * PhiA * N(0);     B.PasteMatrix(&block, 3,3);
+    block = mT_i_t * myi_u_X * PhiB * N(1);     B.PasteMatrix(&block, 0,9);
+    block = mT_i_t * myi_v_X * PhiB * N(1);     B.PasteMatrix(&block, 3,9);
+    block = mT_i_t * myi_u_X * PhiC * N(2);     B.PasteMatrix(&block, 0,15);
+    block = mT_i_t * myi_v_X * PhiC * N(2);     B.PasteMatrix(&block, 3,15);
+    block = mT_i_t * myi_u_X * PhiD * N(3);     B.PasteMatrix(&block, 0,21);
+    block = mT_i_t * myi_v_X * PhiD * N(3);     B.PasteMatrix(&block, 3,21);
+    
     ChMatrix33<> mKu = PhiA*Nu(0); // .. + Elle() term, to be added?
     ChMatrix33<> mKv = PhiA*Nv(0); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiA * N(0) + mKu)), 6,3);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiA * N(0) + mKv)), 9,3);
+    block = mT_i_t * (mk_u_X * PhiA * N(0) + mKu);      B.PasteMatrix(&block, 6,3);
+    block = mT_i_t * (mk_v_X * PhiA * N(0) + mKv);      B.PasteMatrix(&block, 9,3);
     mKu = PhiB*Nu(1); // .. + Elle() term, to be added?
     mKv = PhiB*Nv(1); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiB * N(1) + mKu)), 6,9);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiB * N(1) + mKv)), 9,9);
+    block = mT_i_t * (mk_u_X * PhiB * N(1) + mKu);      B.PasteMatrix(&block, 6,9);
+    block = mT_i_t * (mk_v_X * PhiB * N(1) + mKv);      B.PasteMatrix(&block, 9,9);
     mKu = PhiC*Nu(2); // .. + Elle() term, to be added?
     mKv = PhiC*Nv(2); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiC * N(2) + mKu)), 6,15);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiC * N(2) + mKv)), 9,15);
+    block = mT_i_t * (mk_u_X * PhiC * N(2) + mKu);      B.PasteMatrix(&block, 6,15);
+    block = mT_i_t * (mk_v_X * PhiC * N(2) + mKv);      B.PasteMatrix(&block, 9,15);
     mKu = PhiD*Nu(3); // .. + Elle() term, to be added?
     mKv = PhiD*Nv(3); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiD * N(3) + mKu)), 6,21);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiD * N(3) + mKv)), 9,21);
+    block = mT_i_t * (mk_u_X * PhiD * N(3) + mKu);      B.PasteMatrix(&block, 6,21);
+    block = mT_i_t * (mk_v_X * PhiD * N(3) + mKv);      B.PasteMatrix(&block, 9,21);
 
     // ANS CORRECTION:
 
@@ -489,7 +490,7 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
         B(5,ic) = N_ANS(0)* this->m_element->m_B6_ANS(0,ic) + 
                   N_ANS(1)* this->m_element->m_B6_ANS(1,ic);
                   
-GetLog() << eps_u << eps_v << "\n .....";
+    //GetLog() << eps_u << eps_v << "\n .....";
 
     // STRESSES - forces n and torques m 
     ChVector<> n_u;
@@ -504,11 +505,11 @@ GetLog() << eps_u << eps_v << "\n .....";
     sigma.PasteVector(n_v, 3,0);
     sigma.PasteVector(m_u, 6,0);
     sigma.PasteVector(m_v, 9,0);
-   GetLog() << "sigma:" << sigma << "\n ..."; 
+     //GetLog() << "sigma:" << sigma << "\n ..."; 
     // F = int{B*sigma*dv} , so at each Gauss integration point:  
     //   F_i = B_i * sigma_i  
     result.MatrTMultiply(B,sigma);
-  GetLog() << "Fi:" << result << "\n ...";
+    //GetLog() << "Fi:" << result << "\n ...";
     result.MatrScale(-1);
 }
 
@@ -692,40 +693,41 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     ChMatrix33<> mk_u_X; mk_u_X.Set_X_matrix(kur_u);
     ChMatrix33<> mk_v_X; mk_v_X.Set_X_matrix(kur_v);
 
-    B.PasteMatrix(&(mT_i_t * Nu(0)), 0,0);
-    B.PasteMatrix(&(mT_i_t * Nv(0)), 3,0);
-    B.PasteMatrix(&(mT_i_t * Nu(1)), 0,6);
-    B.PasteMatrix(&(mT_i_t * Nv(1)), 3,6);
-    B.PasteMatrix(&(mT_i_t * Nu(2)), 0,12);
-    B.PasteMatrix(&(mT_i_t * Nv(2)), 3,12);
-    B.PasteMatrix(&(mT_i_t * Nu(3)), 0,18);
-    B.PasteMatrix(&(mT_i_t * Nv(3)), 3,18);
-      
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiA * N(0)), 0,3);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiA * N(0)), 3,3);
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiB * N(1)), 0,9);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiB * N(1)), 3,9);
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiC * N(2)), 0,15);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiC * N(2)), 3,15);
-    B.PasteMatrix(&(mT_i_t * myi_u_X * PhiD * N(3)), 0,21);
-    B.PasteMatrix(&(mT_i_t * myi_v_X * PhiD * N(3)), 3,21);
+    ChMatrix33<> block;
+    block = mT_i_t * Nu(0);     B.PasteMatrix(&block, 0,0);
+    block = mT_i_t * Nv(0);     B.PasteMatrix(&block, 3,0);
+    block = mT_i_t * Nu(1);     B.PasteMatrix(&block, 0,6);
+    block = mT_i_t * Nv(1);     B.PasteMatrix(&block, 3,6);
+    block = mT_i_t * Nu(2);     B.PasteMatrix(&block, 0,12);
+    block = mT_i_t * Nv(2);     B.PasteMatrix(&block, 3,12);
+    block = mT_i_t * Nu(3);     B.PasteMatrix(&block, 0,18);
+    block = mT_i_t * Nv(3);     B.PasteMatrix(&block, 3,18);
+        
+    block = mT_i_t * myi_u_X * PhiA * N(0);     B.PasteMatrix(&block, 0,3);
+    block = mT_i_t * myi_v_X * PhiA * N(0);     B.PasteMatrix(&block, 3,3);
+    block = mT_i_t * myi_u_X * PhiB * N(1);     B.PasteMatrix(&block, 0,9);
+    block = mT_i_t * myi_v_X * PhiB * N(1);     B.PasteMatrix(&block, 3,9);
+    block = mT_i_t * myi_u_X * PhiC * N(2);     B.PasteMatrix(&block, 0,15);
+    block = mT_i_t * myi_v_X * PhiC * N(2);     B.PasteMatrix(&block, 3,15);
+    block = mT_i_t * myi_u_X * PhiD * N(3);     B.PasteMatrix(&block, 0,21);
+    block = mT_i_t * myi_v_X * PhiD * N(3);     B.PasteMatrix(&block, 3,21);
 
     ChMatrix33<> mKu = PhiA*Nu(0); // .. + Elle() term, to be added?
     ChMatrix33<> mKv = PhiA*Nv(0); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiA * N(0) + mKu)), 6,3);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiA * N(0) + mKv)), 9,3);
+    block = mT_i_t * (mk_u_X * PhiA * N(0) + mKu);      B.PasteMatrix(&block, 6,3);
+    block = mT_i_t * (mk_v_X * PhiA * N(0) + mKv);      B.PasteMatrix(&block, 9,3);
     mKu = PhiB*Nu(1); // .. + Elle() term, to be added?
     mKv = PhiB*Nv(1); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiB * N(1) + mKu)), 6,9);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiB * N(1) + mKv)), 9,9);
+    block = mT_i_t * (mk_u_X * PhiB * N(1) + mKu);      B.PasteMatrix(&block, 6,9);
+    block = mT_i_t * (mk_v_X * PhiB * N(1) + mKv);      B.PasteMatrix(&block, 9,9);
     mKu = PhiC*Nu(2); // .. + Elle() term, to be added?
     mKv = PhiC*Nv(2); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiC * N(2) + mKu)), 6,15);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiC * N(2) + mKv)), 9,15);
+    block = mT_i_t * (mk_u_X * PhiC * N(2) + mKu);      B.PasteMatrix(&block, 6,15);
+    block = mT_i_t * (mk_v_X * PhiC * N(2) + mKv);      B.PasteMatrix(&block, 9,15);
     mKu = PhiD*Nu(3); // .. + Elle() term, to be added?
     mKv = PhiD*Nv(3); // .. + Elle() term, to be added?
-    B.PasteMatrix(&(mT_i_t * (mk_u_X * PhiD * N(3) + mKu)), 6,21);
-    B.PasteMatrix(&(mT_i_t * (mk_v_X * PhiD * N(3) + mKv)), 9,21);
+    block = mT_i_t * (mk_u_X * PhiD * N(3) + mKu);      B.PasteMatrix(&block, 6,21);
+    block = mT_i_t * (mk_v_X * PhiD * N(3) + mKv);      B.PasteMatrix(&block, 9,21);
 
     // ANS CORRECTION:
 
@@ -770,7 +772,7 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 
     m_JacobianMatrix.Reset();
 
-    bool use_numerical_differentiation = false;
+    bool use_numerical_differentiation = true;
     
     if (use_numerical_differentiation) {
 
@@ -1022,23 +1024,24 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
         ChMatrix33<> myi_v_X; myi_v_X.Set_X_matrix(yi_v);
 
         ChMatrixDynamic<> B_ans(6,24);
-        B_ans.PasteMatrix(&(mT_i_t * Nu(0)), 0,0);
-        B_ans.PasteMatrix(&(mT_i_t * Nv(0)), 3,0);
-        B_ans.PasteMatrix(&(mT_i_t * Nu(1)), 0,6);
-        B_ans.PasteMatrix(&(mT_i_t * Nv(1)), 3,6);
-        B_ans.PasteMatrix(&(mT_i_t * Nu(2)), 0,12);
-        B_ans.PasteMatrix(&(mT_i_t * Nv(2)), 3,12);
-        B_ans.PasteMatrix(&(mT_i_t * Nu(3)), 0,18);
-        B_ans.PasteMatrix(&(mT_i_t * Nv(3)), 3,18);
+        ChMatrix33<> block;
+        block = mT_i_t * Nu(0);     B_ans.PasteMatrix(&block, 0,0);
+        block = mT_i_t * Nv(0);     B_ans.PasteMatrix(&block, 3,0);
+        block = mT_i_t * Nu(1);     B_ans.PasteMatrix(&block, 0,6);
+        block = mT_i_t * Nv(1);     B_ans.PasteMatrix(&block, 3,6);
+        block = mT_i_t * Nu(2);     B_ans.PasteMatrix(&block, 0,12);
+        block = mT_i_t * Nv(2);     B_ans.PasteMatrix(&block, 3,12);
+        block = mT_i_t * Nu(3);     B_ans.PasteMatrix(&block, 0,18);
+        block = mT_i_t * Nv(3);     B_ans.PasteMatrix(&block, 3,18);
         
-        B_ans.PasteMatrix(&(mT_i_t * myi_u_X * PhiA * N(0)), 0,3);
-        B_ans.PasteMatrix(&(mT_i_t * myi_v_X * PhiA * N(0)), 3,3);
-        B_ans.PasteMatrix(&(mT_i_t * myi_u_X * PhiB * N(1)), 0,9);
-        B_ans.PasteMatrix(&(mT_i_t * myi_v_X * PhiB * N(1)), 3,9);
-        B_ans.PasteMatrix(&(mT_i_t * myi_u_X * PhiC * N(2)), 0,15);
-        B_ans.PasteMatrix(&(mT_i_t * myi_v_X * PhiC * N(2)), 3,15);
-        B_ans.PasteMatrix(&(mT_i_t * myi_u_X * PhiD * N(3)), 0,21);
-        B_ans.PasteMatrix(&(mT_i_t * myi_v_X * PhiD * N(3)), 3,21);
+        block = mT_i_t * myi_u_X * PhiA * N(0);     B_ans.PasteMatrix(&block, 0,3);
+        block = mT_i_t * myi_v_X * PhiA * N(0);     B_ans.PasteMatrix(&block, 3,3);
+        block = mT_i_t * myi_u_X * PhiB * N(1);     B_ans.PasteMatrix(&block, 0,9);
+        block = mT_i_t * myi_v_X * PhiB * N(1);     B_ans.PasteMatrix(&block, 3,9);
+        block = mT_i_t * myi_u_X * PhiC * N(2);     B_ans.PasteMatrix(&block, 0,15);
+        block = mT_i_t * myi_v_X * PhiC * N(2);     B_ans.PasteMatrix(&block, 3,15);
+        block = mT_i_t * myi_u_X * PhiD * N(3);     B_ans.PasteMatrix(&block, 0,21);
+        block = mT_i_t * myi_v_X * PhiD * N(3);     B_ans.PasteMatrix(&block, 3,21);
 
         this->m_B3_ANS.PasteClippedMatrix(&B_ans, 2,0, 1,24, kk,0);
         this->m_B6_ANS.PasteClippedMatrix(&B_ans, 5,0, 1,24, kk,0);
