@@ -259,23 +259,13 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
         Mat33 FE = marker_Fe[p];
         Mat33 FE_hat = marker_Fe_hat[p];
         Mat33 FP = marker_Fp[p];
+        real a = -1.0 / 3.0;
+        real Ja = Pow(Determinant(FE_hat), a);
+        Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, FP, device_settings.mu,
+                                                         device_settings.hardening_coefficient);
 
-        real JE = Determinant(marker_Fe[p]);  //
-        real JP = Determinant(FP);
-        real JE_hat = Determinant(FE_hat);
-
-        real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.) - JP));
-        Mat33 UE, VE;
-        real3 EE;
-        SVD(FE_hat, UE, EE, VE);
-        /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
-        Mat33 RE = MultTranspose(UE, VE);
-        PolarS[p] = VE * MultTranspose(Mat33(EE), VE);
-        PolarR[p] = RE;
-        PolarR[p][3] = JP;
-
-        Mat33 vPEDFepT = device_settings.dt * marker_volume[p] * real(2.) * current_mu *
-                         MultTranspose((FE_hat - RE), FE) * (real(1.0) / (JE * JP));
+        Mat33 vPEDFepT =
+            device_settings.dt * marker_volume[p] * Z__B(A, FE_hat, Ja, a, InverseTranspose(FE_hat)) * Transpose(FE);
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
@@ -324,17 +314,19 @@ CUDA_GLOBAL void kRhs(const real* node_mass,  // input
 CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
                             const real* v_array,
                             const real* old_vel_node_mpm,
-                            const Mat33* PolarR,        // input
-                            const Mat33* PolarS,        // input
-                            const Mat33* marker_Fe,     // input
-                            const real* marker_volume,  // input
+                            const Mat33* PolarR,         // input
+                            const Mat33* PolarS,         // input
+                            const Mat33* marker_Fe,      // input
+                            const Mat33* marker_Fp,      // input
+                            const Mat33* marker_Fe_hat,  // input
+                            const real* marker_volume,   // input
                             real* result_array) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = sorted_pos[p];
-        real VAP[9];
-        real delta_F[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-
+        // real VAP[9];
+        // real delta_F[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        Mat33 delta_F(0);
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
         const real inv_bin_edge = device_settings.inv_bin_edge;
@@ -354,20 +346,15 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
             real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
             delta_F[0] += vnx * valx; delta_F[1] += vny * valx; delta_F[2] += vnz * valx;  //
-            delta_F[3] += vnx * valy; delta_F[4] += vny * valy; delta_F[5] += vnz * valy;  //
-            delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;)
+            delta_F[4] += vnx * valy; delta_F[5] += vny * valy; delta_F[6] += vnz * valy;  //
+            delta_F[8] += vnx * valz; delta_F[9] += vny * valz; delta_F[10] += vnz * valz;)
 
         Mat33 m_FE = marker_Fe[p];
-        Mat33 R = PolarR[p];
-        Mat33 S = PolarS[p];
-        real plastic_determinant = R[3];  // Determinant(marker_Fp[p]);
+        Mat33 m_FP = marker_Fp[p];
+        Mat33 m_FE_hat = marker_Fe_hat[p];
 
-        // delta_F = delta_F * m_FE;
-
-        real current_mu = marker_volume[p] * 2 * device_settings.mu *
-                          Exp(device_settings.hardening_coefficient * (real(1.0) - plastic_determinant));
-
-        Vol_APFunc(S, R, delta_F, m_FE, current_mu, VAP);
+        Mat33 VAP = d2PsidFdF(delta_F, m_FE_hat, m_FP, device_settings.mu, device_settings.hardening_coefficient);
+        VAP = marker_volume[p] * VAP * Transpose(m_FE);
 
         LOOP_TWO_RING_GPUSP(                                           //
             real Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
@@ -378,9 +365,9 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
             real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
             real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
-            real resx = VAP[0] * valx + VAP[3] * valy + VAP[6] * valz;
-            real resy = VAP[1] * valx + VAP[4] * valy + VAP[7] * valz;
-            real resz = VAP[2] * valx + VAP[5] * valy + VAP[8] * valz;
+            real resx = VAP[0] * valx + VAP[4] * valy + VAP[8] * valz;
+            real resy = VAP[1] * valx + VAP[5] * valy + VAP[9] * valz;
+            real resz = VAP[2] * valx + VAP[6] * valy + VAP[10] * valz;
 
             ATOMIC_ADD(&result_array[current_node * 3 + 0], resx);
             ATOMIC_ADD(&result_array[current_node * 3 + 1], resy);
@@ -461,6 +448,8 @@ void Multiply(gpu_vector<real>& input, gpu_vector<real>& output) {
                                  PolarR.data_d,         // input
                                  PolarS.data_d,         // input
                                  marker_Fe.data_d,      // input
+                                 marker_Fp.data_d,      // input
+                                 marker_Fe_hat.data_d,  // input
                                  marker_volume.data_d,  // input
                                  output.data_d);
 
@@ -724,14 +713,28 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
         real3 E;
         SVD(Fe_tmp, U, E, V);
         real3 E_clamped;
-
+#if 0
+        // Simple box clamp
         E_clamped.x = Clamp(E.x, 1.0 - device_settings.theta_c, 1.0 + device_settings.theta_s);
         E_clamped.y = Clamp(E.y, 1.0 - device_settings.theta_c, 1.0 + device_settings.theta_s);
         E_clamped.z = Clamp(E.z, 1.0 - device_settings.theta_c, 1.0 + device_settings.theta_s);
-
-        marker_Fe[p] = U * MultTranspose(Mat33(E_clamped), V);
+#else
+        // Clamp to sphere (better)
+        real center = 1.0 + (device_settings.theta_s - device_settings.theta_c) * .5;
+        real radius = (device_settings.theta_s + device_settings.theta_c) * .5;
+        real3 offset = E - center;
+        real lent = Length(offset);
+        if (lent > radius) {
+            offset = offset * radius / lent;
+        }
+        E_clamped = offset + center;
+#endif
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
-        marker_Fp[p] = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
+        Mat33 m_FP = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
+        real JP = Determinant(m_FP);
+        // Ensure that F_p is purely deviatoric
+        marker_Fe[p] = Pow(JP, 1.0 / 3.0) * U * MultTranspose(Mat33(E_clamped), V);
+        marker_Fp[p] = Pow(JP, -1.0 / 3.0) * m_FP;
     }
 }
 

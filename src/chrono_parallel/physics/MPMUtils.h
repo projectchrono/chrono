@@ -354,10 +354,13 @@ CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33& FE,
 CUDA_HOST_DEVICE static Mat33 Potential_Energy_Derivative_Deviatoric(const Mat33& FE,
                                                                      const Mat33& FP,
                                                                      real mu,
-                                                                     real lambda,
                                                                      real hardening_coefficient) {
-    Potential_Energy_Derivative_Helper();
-
+    real JP = Determinant(FP);
+    real current_mu = mu * Exp(hardening_coefficient * (real(1.0) - JP));
+    Mat33 UE, VE;
+    real3 EE;
+    SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
+    Mat33 RE = MultTranspose(UE, VE);
     return real(2.) * current_mu * (FE - RE);
 }
 
@@ -372,5 +375,34 @@ CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33& FE,
 
     Deviatoric = current_mu * Trace(Transpose(FE - RE) * (FE - RE));
     Dilational = current_lambda / 2.0 * (JE - real(1.));
+}
+
+CUDA_HOST_DEVICE static Mat33 B__Z(const Mat33& Z, const Mat33& F, real Ja, real a, const Mat33& H) {
+    return Ja * (Z + a * (DoubleDot(H, Z)) * F);
+}
+
+CUDA_HOST_DEVICE static Mat33 Z__B(const Mat33& Z, const Mat33& F, real Ja, real a, const Mat33& H) {
+    return Ja * (Z + a * (DoubleDot(F, Z)) * H);
+}
+
+CUDA_HOST_DEVICE static Mat33 d2PsidFdF(const Mat33& Z,
+                                        const Mat33& F,
+                                        const Mat33& FP,
+                                        real mu,
+                                        real hardening_coefficient) {
+    real a = -1.0 / 3.0;
+    real Ja = Pow(Determinant(F), a);
+    Mat33 H = InverseTranspose(F);
+    Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
+    real JP = Determinant(FP);
+    real current_mu = mu * Exp(hardening_coefficient * (real(1.0) - JP));
+    Mat33 B_Z = B__Z(Z, F, Ja, a, H);
+    Mat33 C_B_Z = 2 * current_mu * (B_Z - Rotational_Derivative(F, B_Z));
+    Mat33 P1 = Ja * (C_B_Z + a * (DoubleDot(F, C_B_Z)) * H);
+    Mat33 P2 = a * DoubleDot(H, Z) * Z__B(A, F, Ja, a, H);
+    Mat33 P3 = a * Ja * DoubleDot(A, Z) * H;
+    Mat33 P4 = -a * Ja * DoubleDot(A, F) * H * Transpose(Z) * H;
+
+    return P1 + P2 + P3 + P4;
 }
 }
