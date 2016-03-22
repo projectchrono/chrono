@@ -13,9 +13,9 @@
 #ifndef CHELEMENTGENERIC_H
 #define CHELEMENTGENERIC_H
 
-#include "lcp/ChLcpKblockGeneric.h"
-#include "lcp/ChLcpVariablesNode.h"
-#include "ChElementBase.h"
+#include "chrono/lcp/ChLcpKblockGeneric.h"
+#include "chrono/lcp/ChLcpVariablesNode.h"
+#include "chrono_fea/ChElementBase.h"
 
 namespace chrono {
 namespace fea {
