@@ -1,4 +1,4 @@
-Install Chrono Solidworks {#tutorial_install_chrono_solidworks}
+Install Chrono Solidworks {#chrono_solidworks_installation}
 ==========================
 
 

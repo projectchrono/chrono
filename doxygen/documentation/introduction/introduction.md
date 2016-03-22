@@ -8,4 +8,4 @@ Introduction {#introduction_root}
 
 -   Overview of [Chrono::PyEngine](@ref introduction_chrono_pyengine)
 
--   Overview of [Chrono::PyEngine](@ref introduction_chrono_solidworks)
+-   Overview of [Chrono::SolidWorks](@ref introduction_chrono_solidworks)

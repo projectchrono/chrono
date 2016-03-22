@@ -1,4 +1,4 @@
-Use the CMake build tool {#tutorial_cmake}
+Use the CMake build tool {#tutorial_install_project}
 ==========================
 
 There are different methods to create a C++ program that uses

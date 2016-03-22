@@ -15,7 +15,11 @@ Tutorials {#tutorial_root}
 -   Learn how to set up a vehicle model in Chrono
 
 @subpage tutorial_table_of_content_chrono_solidworks
--   Learn how to use the solidworks module
+-   Learn how to use [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+
+@subpage tutorial_table_of_content_chrono_pyengine
+-   Learn how to use [Chrono::PyEngine](@ref introduction_chrono_pyengine)
+
 
 Building a Chrono project
 -------------------------
