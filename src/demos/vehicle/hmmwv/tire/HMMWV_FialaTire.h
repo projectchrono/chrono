@@ -28,8 +28,8 @@ class HMMWV_FialaTire : public chrono::vehicle::ChFialaTire {
     HMMWV_FialaTire(const std::string& name);
     ~HMMWV_FialaTire() {}
 
-    virtual double getNormalStiffnessForce(double depth) const override;
-    virtual double getNormalDampingForce(double depth, double velocity) const override {
+    virtual double GetNormalStiffnessForce(double depth) const override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override {
         return m_normalDamping * velocity;
     }
 

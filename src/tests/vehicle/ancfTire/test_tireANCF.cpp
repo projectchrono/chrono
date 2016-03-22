@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     tire->EnableRimConnection(true);
 
     tire->Initialize(wheel, LEFT);
-    double tire_radius = tire->GetTireRadius();
+    double tire_radius = tire->GetRadius();
     double rim_radius = tire->GetRimRadius();
     double tire_width = tire->GetWidth();
 

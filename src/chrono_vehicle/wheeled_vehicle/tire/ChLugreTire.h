@@ -49,6 +49,10 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
                             VehicleSide side                ///< left/right vehicle side
                             ) override;
 
+    /// Get the tire width.
+    /// This is just an approximation of a tire width.
+    double GetWidth() const;
+
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
@@ -74,19 +78,16 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
   protected:
     /// Return the number of discs used to model this tire.
-    virtual int getNumDiscs() const = 0;
-
-    /// Return the tire radius.
-    virtual double getRadius() const = 0;
+    virtual int GetNumDiscs() const = 0;
 
     /// Return the laterla disc locations.
     /// These locations are relative to the tire center.
-    virtual const double* getDiscLocations() const = 0;
+    virtual const double* GetDiscLocations() const = 0;
 
     /// Return the vertical tire stiffness (for normal force calculation).
-    virtual double getNormalStiffness() const = 0;
+    virtual double GetNormalStiffness() const = 0;
     /// Return the vertical tire damping coefficient (for normal force calculation).
-    virtual double getNormalDamping() const = 0;
+    virtual double GetNormalDamping() const = 0;
 
     /// Set the parameters in the LuGre friction model.
     virtual void SetLugreParams() = 0;

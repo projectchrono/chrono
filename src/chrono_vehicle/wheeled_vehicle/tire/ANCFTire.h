@@ -38,13 +38,13 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     ANCFTire(const rapidjson::Document& d);
     ~ANCFTire() {}
 
-    /// Return the tire radius.
-    virtual double GetTireRadius() const override { return m_tire_radius; }
-    /// Return the rim radius.
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_tire_radius; }
+    /// Get the rim radius (inner tire radius).
     virtual double GetRimRadius() const override { return m_rim_radius; }
-    /// Return the tire width.
+    /// Get the tire width.
     virtual double GetWidth() const override { return m_rim_width; }
-    /// Return the default tire pressure.
+    /// Get the default tire pressure.
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
 
     /// Return list of nodes connected to the rim.

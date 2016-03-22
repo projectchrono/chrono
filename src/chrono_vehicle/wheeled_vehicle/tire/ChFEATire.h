@@ -67,6 +67,12 @@ class CH_VEHICLE_API ChFEATire : public ChTire {
         m_pressure = pressure;
     }
 
+    /// Get the rim radius (inner tire radius).
+    virtual double GetRimRadius() const = 0;
+
+    /// Get the tire width.
+    virtual double GetWidth() const = 0;
+
     /// Get total tire mass.
     double GetMass() const;
 
@@ -87,15 +93,6 @@ class CH_VEHICLE_API ChFEATire : public ChTire {
                             ) override;
 
   protected:
-    /// Return the tire radius.
-    virtual double GetTireRadius() const = 0;
-
-    /// Return the rim radius.
-    virtual double GetRimRadius() const = 0;
-
-    /// Return the tire width.
-    virtual double GetWidth() const = 0;
-
     /// Return the default tire pressure.
     virtual double GetDefaultPressure() const = 0;
 

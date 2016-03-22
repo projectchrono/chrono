@@ -28,7 +28,7 @@ class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
     ANCFToroidalTire(const std::string& name);
     ~ANCFToroidalTire() {}
 
-    virtual double GetTireRadius() const override { return m_rim_radius + m_height; }
+    virtual double GetRadius() const override { return m_rim_radius + m_height; }
     virtual double GetRimRadius() const override { return m_rim_radius; }
     virtual double GetWidth() const override { return 2 * m_height; }
     virtual double GetDefaultPressure() const override { return m_default_pressure; }

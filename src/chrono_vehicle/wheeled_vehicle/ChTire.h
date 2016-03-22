@@ -72,10 +72,15 @@ class CH_VEHICLE_API ChTire {
     virtual void Synchronize(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                              const ChTerrain& terrain        ///< [in] reference to the terrain system
-                             ) {}
+                             ) {
+        CalculateKinematics(time, wheel_state, terrain);
+    }
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) {}
+
+    /// Get the tire radius.
+    virtual double GetRadius() const = 0;
 
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
@@ -84,6 +89,24 @@ class CH_VEHICLE_API ChTire {
     /// force one the wheel body.
     virtual TireForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
                                    ) const = 0;
+
+    /// Get the tire slip angle.
+    /// Return the slip angle calculated based on the current state of the associated
+    /// wheel body. A derived class may override this function with a more appropriate
+    /// calculation based on its specific tire model.
+    virtual double GetSlipAngle() const { return m_slip_angle; }
+
+    /// Get the tire longitudinal slip.
+    /// Return the longitudinal slip calculated based on the current state of the associated
+    /// wheel body. A derived class may override this function with a more appropriate
+    /// calculation based on its specific tire model.
+    virtual double GetLongitudinalSlip() const { return m_longitudinal_slip; }
+
+    /// Get the tire camber angle.
+    /// Return the camber angle calculated based on the current state of the associated
+    /// wheel body. A derived class may override this function with a more appropriate
+    /// calculation based on its specific tire model.
+    virtual double GetCamberAngle() const { return m_camber_angle; }
 
   protected:
     /// Perform disc-terrain collision detection.
@@ -104,10 +127,21 @@ class CH_VEHICLE_API ChTire {
         double& depth                   ///< [out] penetration depth (positive if contact occurred)
         );
 
-    std::string m_name;  ///< name of this tire subsystem
-
+    std::string m_name;               ///< name of this tire subsystem
     VehicleSide m_side;               ///< tire mounted on left/right side
     std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
+
+  private:
+    /// Calculate kinematics quantities based on the current state of the associated
+    /// wheel body.
+    void CalculateKinematics(double time,                    ///< [in] current time
+                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             );
+
+    double m_slip_angle;
+    double m_longitudinal_slip;
+    double m_camber_angle;
 };
 
 /// @} vehicle_wheeled_tire

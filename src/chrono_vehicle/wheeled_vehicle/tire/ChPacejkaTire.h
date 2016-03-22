@@ -26,8 +26,9 @@
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
 namespace vehicle {
@@ -78,6 +79,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                             VehicleSide side                ///< [in] left/right vehicle side
                             ) override;
 
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_R_eff; }
+
     /// return the reactions for the combined slip EQs, in global coords
     virtual TireForce GetTireForce(bool cosim = false) const override;
 
@@ -93,6 +97,15 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                              const ChTerrain& terrain        ///< [in] reference to the terrain system
                              ) override;
+
+    /// Get the tire slip angle.
+    virtual double GetSlipAngle() const override { return m_slip->alpha; }
+
+    /// Get the tire longitudinal slip.
+    virtual double GetLongitudinalSlip() const { return m_slip->kappa; }
+
+    /// Get the tire camber angle.
+    virtual double GetCamberAngle() const { return m_slip->gamma; }
 
     /// Advance the state of this tire by the specified time step.
     /// Use the new body state, calculate all the relevant quantities over the

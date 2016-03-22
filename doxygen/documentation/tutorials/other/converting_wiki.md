@@ -131,6 +131,38 @@ For notes that have a symbol next to them use the following code block
 ~~~
 
 
+For longer notes, that might also be multiple lines, that have a symbol next to them use the following code block:
+
+<div class="ce-info">
+This is an info
+</div>
+
+<div class="ce-warning">
+This is a warning
+</div>
+
+<div class="ce-danger">
+This is a danger
+</div>
+
+
+~~~
+
+<div class="ce-info">
+This is an info
+</div>
+
+<div class="ce-warning">
+This is a warning
+</div>
+
+<div class="ce-danger">
+This is a danger
+</div>
+
+~~~
+
+
 ### Code blocks
 
 ~~~

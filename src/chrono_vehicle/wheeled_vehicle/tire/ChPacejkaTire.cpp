@@ -22,7 +22,6 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
 namespace vehicle {
@@ -227,6 +226,9 @@ void ChPacejkaTire::Synchronize(double time, const WheelState& state, const ChTe
         GetLog() << " ERROR: cannot update tire w/o setting the model parameters first! \n\n\n";
         return;
     }
+
+    // Invoke the base class function.
+    ChTire::Synchronize(time, state, terrain);
 
     // Cache the wheel state and update the tire coordinate system.
     m_tireState = state;

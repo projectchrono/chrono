@@ -67,6 +67,9 @@ void ChFialaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChFialaTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
+    // Invoke the base class function.
+    ChTire::Synchronize(time, wheel_state, terrain);
+
     ChCoordsys<> contact_frame;
     // Clear the force accumulators and set the application point to the wheel
     // center.
@@ -91,7 +94,7 @@ void ChFialaTire::Synchronize(double time, const WheelState& wheel_state, const 
         // the terrain so fast that no contact force is generated.
         // The sign of the velocity term in the damping function is negative since
         // a positive velocity means a decreasing depth, not an increasing depth
-        double Fn_mag = getNormalStiffnessForce(m_data.depth) + getNormalDampingForce(m_data.depth, -m_data.vel.z);
+        double Fn_mag = GetNormalStiffnessForce(m_data.depth) + GetNormalDampingForce(m_data.depth, -m_data.vel.z);
 
         if (Fn_mag < 0) {
             Fn_mag = 0;
