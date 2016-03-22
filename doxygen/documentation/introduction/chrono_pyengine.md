@@ -5,9 +5,8 @@ Chrono::PyEngine is a Python wrapper for Chrono::Engine. It is a set of
 Python modules that correspond to the main units of Chrono::Engine, as
 shown in this scheme:
 
-<div class="text-center">
-<img src="/images/units_python.png" alt="Python Units">
-</div>
+![](/images/Units_python.png)
+
 
 
 First steps with Python
@@ -60,9 +59,9 @@ my_vect1.z=3
 -   Some classes have build parameters, for example anothe vector can be
     built by passing the 3 coordinates for quick initialization:
 
-~~~~~~~~~~~~~~~{.py}
+~~~~~~~~~~~~~{.py}
 my_vect2 = chrono.ChVectorD(3,4,5)
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 -   Most operator-overloading features that are available in C++ for the
     Chrono::Engine vectors and matrices are also available in Python,
@@ -83,7 +82,7 @@ print ('vector length =', my_len)
 -   You can use most of the classes that you would use in C++, for
     example let's play with quaternions and matrices:
 
-~~~~~~~~~~~~~~~{.py}
+~~~~~~~~~~~~~{.py}
 my_quat = chrono.ChQuaternionD(1,2,3,4)
 my_qconjugate = ~my_quat
 print ('quat. conjugate  =', my_qconjugate)
@@ -98,18 +97,26 @@ print (mc);
 mr = chrono.ChMatrix33D()
 mr.FillDiag(20)
 print  (mr*my_vect1);
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 -   If you want to know the list of methods and/or properties that are
     available in a class, you can simply use the code completion feature
     of PyScripter: for example once you type *chrono.* you will see a
     pop-up window with a list of available classes, constants, etc.
 
-<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> Learn additional lessons by reading the PyChrono::Engine tutorials. 
+<div class="ce-info">
+Learn additional lessons by reading the PyChrono::Engine tutorials. 
+</div>
 
-<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> Most classes behave like their C++ counterparts, so you are invited to look at the [C++ API documentation]() to understand their features. 
+<div class="ce-info">
+Most classes behave like their C++ counterparts, so you are 
+invited to look at the [C++ API documentation]() to understand their features. 
+</div>
 
-<span class="label label-warning"><span class="glyphicon glyphicon-warning-sign"></span></span> There are also few but important differences between C++ and Python that are worth mentioning, so read also the following section! 
+<div class="ce-warning">
+There are also few but important differences between C++ and Python that are worth mentioning, so read also the following section! 
+</div>
+
 
 Differences between Python and C++
 ----------------------------------
@@ -125,12 +132,12 @@ easily jumping into the PyChrono::Engine development.
 
 In C++ you can create objects in two ways: on the stack and on the heap
 (the latter is used for *dynamic allocation*). For example,
-respectively, this is **object creation in C++**
+respectively, this is **object creation in C++ language**
 
-{% highlight c++ %}
+~~~~{.cpp}
 chrono::ChSystem  my_system;  // on stack, or..
 chrono::ChSystem* my_system_pointer = new chrono::ChSystem();  // on heap 
-~~~~~~~~~~~~~~~
+~~~~
 
 In the second case, in C++ you must remember to deallocate the object
 with *delete (my\_system\_pointer)* soon or later. In Python, object
@@ -165,7 +172,7 @@ Chrono::Engine, expecially for vectors, matrices, etc., because in C++
 you might want to create vectors of floats, or doubles, or integers,
 etc. by using the <> syntax, as:
 
-{% highlight c++ %}
+~~~~{.cpp}
 ChVector<float> my_vect;    // vector of floats
 ChVector<double> my_vect;   // vector of double precision floats
 ChVector<int> my_vect;      // vector of integers
@@ -173,7 +180,7 @@ ChVector<> my_vect;         // default: as ChVector<double>
 ChQuaternion<float> my_vect;    // quaternion of floats
 ChQuaternion<double> my_vect;   // quaternion of double precision floats
 ...                             // etc.
-~~~~~~~~~~~~~~~
+~~~~
 
 In PyChrono::Engine, we simply decided to support only the ```<double>```
 templated versions, that are used most of the times. Templated classes
@@ -202,30 +209,30 @@ pointers are a C++ technology that allows the user to create objects and
 do not worry about deletion, because deletion is managed automatically.
 In the Chrono::Engine C++ API such shared pointers are based on
 templates; as we said previously templates are not supported in Python,
-so we developed an alternative method for managing shared pointers in
+but this is not an issue, because Chrono::PyEngine **automatically handle objects with shared pointers if necessary**
 PyChrono::Engine.
 
-This is an example of **shared pointers in C++**:
+This is an example of **shared pointers in C++** :
 
-{% highlight c++ %}
-ChSharedPtr<ChLinkLockRevolute>  my_link_BC(new ChLinkLockRevolute);
-~~~~~~~~~~~~~~~
+~~~~cpp
+std::shared_ptr<ChLinkLockRevolute>  my_link_BC(new ChLinkLockRevolute);
+~~~~
 
-This is the equivalent syntax **in Python**:
+This is the equivalent syntax **in Python** :
 
 ~~~~~~~~~~~~~~~{.py}
-my_link_BC = chrono.ChLinkLockRevoluteShared()
+my_link_BC = chrono.ChLinkLockRevolute()
 ~~~~~~~~~~~~~~~
 
-Note that the trick is: the shared pointer to *ChMyClass* in Python
-becomes *ChMyClass***Shared**.
 
-<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> When you create a shared pointer object in PyChrono::Engine, also the referenced object is created. For instance, in the last example, a revolute joint is created at the same line. If you need other shared pointers to the same object, simply type my_link_other = my_link_BC etc. 
+<div class="ce-info">
+When you create a shared pointer object in PyChrono::Engine, also 
+the referenced object is created. For instance, in the last example, 
+a revolute joint is created at the same line. 
+If you need other shared pointers to the same object, simply type 
+```my_link_other = my_link_BC``` etc. 
+</div>
 
-
-<span class="label label-warning"><span class="glyphicon glyphicon-warning-sign"></span></span> The rule is: if you find that along a class chrono.ChMyClass there is also an available chrono.ChMyClassShared, use it instead!
-
-(Although you could also create objects directly, for example my_link_BC = chrono.ChLinkLockRevolute, this should almost never happen if a shared pointer to that class exist.)
 
 
 Downcasting and upcasting
@@ -281,12 +288,14 @@ my_system.GetLcpSystemDescriptor()
 <Swig Object of type 'chrono::ChLcpSystemDescriptor *' at 0x03EDD800>
 ~~~~~~~~~~~~~~~
 
+<div class="ce-info">
 As the development of PyChrono::Engine proceeds, the latter case will
 happen less an less frequently. Tell us if you encounter this type of
 problem in some function, so we can fix it.
+</div>
 
 Demos and examples
 ------------------
 
-You can find examples of use in [these
-tutorials](Tutorials#Chrono::PyEngine "wikilink").
+You can find examples of use in 
+[these tutorials](Tutorials#Chrono::PyEngine "wikilink").
