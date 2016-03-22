@@ -217,7 +217,7 @@ void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volum
             gyration = CalcSphereGyration(size.x).Get_Diag();
             break;
         case ELLIPSOID:
-            volume = CalcEllipsoidVolume(size.x);
+            volume = CalcEllipsoidVolume(size);
             gyration = CalcEllipsoidGyration(size).Get_Diag();
             break;
         case BOX:
