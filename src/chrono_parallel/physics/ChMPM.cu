@@ -344,6 +344,8 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
         Mat33 m_FP = marker_Fp[p];
         Mat33 m_FE_hat = marker_Fe_hat[p];
 
+        delta_F = delta_F * m_FE;
+
         Mat33 VAP = d2PsidFdF(delta_F, m_FE_hat, m_FP, device_settings.mu, device_settings.hardening_coefficient);
         VAP = marker_volume[p] * VAP * Transpose(m_FE);
 
