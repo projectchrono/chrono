@@ -19,7 +19,7 @@
 
 //#define BEAM_VERBOSE
 #include "chrono/core/ChVector.h"
-#include "core/ChQuadrature.h"
+#include "chrono/core/ChQuadrature.h"
 #include "chrono_fea/ChElementBeam.h"
 #include "chrono_fea/ChBeamSection.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
@@ -61,9 +61,9 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
     virtual ~ChElementBeamANCF() {}
 
-    virtual int GetNnodes() { return 2; }
-    virtual int GetNcoords() { return 2 * 6; }
-    virtual int GetNdofs() { return 2 * 6; }
+    virtual int GetNnodes() override { return 2; }
+    virtual int GetNdofs() override { return 2 * 6; }
+    virtual int GetNodeNdofs(int n) override { return 6; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

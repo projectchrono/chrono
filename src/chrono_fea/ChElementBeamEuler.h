@@ -26,10 +26,9 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Simple beam element with two nodes and Euler-Bernoulli
-/// formulation.
-/// For this 'basic' implementation, constant section and
-/// constant material are assumed.
+/// Simple beam element with two nodes and Euler-Bernoulli formulation.
+/// For this 'basic' implementation, constant section and constant
+/// material are assumed.
 class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                     public ChLoadableU,
                                     public ChLoadableUVW,
@@ -68,9 +67,9 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     virtual ~ChElementBeamEuler() {}
 
-    virtual int GetNnodes() { return 2; }
-    virtual int GetNcoords() { return 2 * 6; }
-    virtual int GetNdofs() { return 2 * 6; }
+    virtual int GetNnodes() override { return 2; }
+    virtual int GetNdofs() override { return 2 * 6; }
+    virtual int GetNodeNdofs(int n) override { return 6; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

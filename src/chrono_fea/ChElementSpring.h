@@ -22,10 +22,9 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Simple finite element with two nodes and a spring/damper
-/// between the two nodes.
-/// This element is mass-less, so if used in dynamic analysis,
-/// the two nodes must be set with non-zero point mass.
+/// Simple finite element with two nodes and a spring/damper between the two nodes.
+/// This element is mass-less, so if used in dynamic analysis, the two nodes must
+/// be set with non-zero point mass.
 class ChApiFea ChElementSpring : public ChElementGeneric {
   protected:
       std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
@@ -36,9 +35,9 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     ChElementSpring();
     virtual ~ChElementSpring();
 
-    virtual int GetNnodes() { return 2; }
-    virtual int GetNcoords() { return 2 * 3; }
-    virtual int GetNdofs() { return 2 * 3; }
+    virtual int GetNnodes() override { return 2; }
+    virtual int GetNdofs() override { return 2 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

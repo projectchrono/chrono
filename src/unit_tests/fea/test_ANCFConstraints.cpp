@@ -182,7 +182,7 @@ void AddMesh(ChSystem& my_system) {
     }
 
     // Get handles to a few nodes.
-    
+
     NodeFirst = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(0));
     Node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(1));
     Node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(2));
@@ -197,8 +197,8 @@ void AddMesh(ChSystem& my_system) {
         // Adjacent nodes
         int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
         int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
-        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();

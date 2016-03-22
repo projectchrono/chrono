@@ -10,24 +10,12 @@
 //
 // File authors: Andrea Favali, Alessandro Tasora
 
-
-
-#include "ChNodeFEAxyz.h"
-#include "ChMesh.h"
-
+#include "chrono_fea/ChNodeFEAxyz.h"
 
 using namespace std;
 
+namespace chrono {
+namespace fea {
 
-namespace chrono 
-{
-namespace fea
-{
-
-
-
-
-
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
-
+}  // end namespace fea
+}  // end namespace chrono
