@@ -41,6 +41,7 @@ class ChApiFea ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUV
 
     virtual int GetNnodes() override { return 8; }
     virtual int GetNdofs() override { return 8 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

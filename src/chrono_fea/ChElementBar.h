@@ -43,8 +43,9 @@ class ChApiFea ChElementBar : public ChElementGeneric {
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB) {
         nodes[0] = nodeA;

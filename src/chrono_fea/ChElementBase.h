@@ -39,7 +39,12 @@ class ChApiFea ChElementBase {
     /// This is for example the size (n.of rows/columns) of the local stiffness matrix.
     virtual int GetNdofs() = 0;
 
-    /// Access the nth node
+    /// Get the number of coordinates from the n-th node that are used by this element.
+    /// Note that this may be different from the value returned by
+    ///    GetNodeN(n)->Get_ndof_w();
+    virtual int GetNodeNdofs(int n) = 0;
+
+    /// Access the nth node.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) = 0;
 
     //

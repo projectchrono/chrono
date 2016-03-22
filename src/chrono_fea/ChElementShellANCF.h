@@ -116,6 +116,9 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Get the number of coordinates in the field used by the referenced nodes.
     virtual int GetNdofs() override { return 4 * 6; }
 
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs(int n) override { return 6; }
+
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
                   std::shared_ptr<ChNodeFEAxyzD> nodeB,

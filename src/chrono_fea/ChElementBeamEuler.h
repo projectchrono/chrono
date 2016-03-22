@@ -69,6 +69,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 6; }
+    virtual int GetNodeNdofs(int n) override { return 6; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

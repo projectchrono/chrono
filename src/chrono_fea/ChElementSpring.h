@@ -37,6 +37,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

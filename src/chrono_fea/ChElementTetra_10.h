@@ -44,6 +44,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
 
     virtual int GetNnodes() override { return 10; }
     virtual int GetNdofs() override { return 10 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

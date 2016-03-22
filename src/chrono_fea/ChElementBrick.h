@@ -263,6 +263,9 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Get number of degrees of freedom of this element
     virtual int GetNdofs() override { return 8 * 3; }
 
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs(int n) override { return 3; }
+
     /// Access the n-th node of this element.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
 
