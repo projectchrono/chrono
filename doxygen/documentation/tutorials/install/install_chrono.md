@@ -25,18 +25,16 @@ The free CMake utility is used to setup the project building process.
 Please **download and install** [CMake](http://www.cmake.org/cmake/resources/software.html).
 
 
-###Install Git
+###Install a GIT client
 
-If you do not have a Git client in your computer, you must install one.
+If you do not have a GIT client in your computer, you must install one.
 For example in Windows **download and install** [SourceTree](http://www.sourcetreeapp.com/). 
-
-For more informations, see the [Git repository]() page.
 
 
 ###Download the project by cloning the Git repository
 
 Download the Chrono::Engine SDK by performing a **clone** of the Git repository in a directory of your workstation. 
-Assuming you are using [http://http://www.sourcetreeapp.com/ SourceTree]:
+Assuming you are using [SourceTree](http://www.sourcetreeapp.com/):
 
 1. press the **Clone / New** button in SourceTree 
    ![](Install_ST1.gif)
