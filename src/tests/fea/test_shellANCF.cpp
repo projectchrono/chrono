@@ -54,10 +54,10 @@ int main(int argc, char* argv[]) {
     } else {
         GetLog() << "Running in performance test mode.\n";
     }
-    
-    // --------------------------
-    // Set number of threads
-    // --------------------------
+
+// --------------------------
+// Set number of threads
+// --------------------------
 #ifdef CHRONO_OPENMP_ENABLED
     int max_threads = CHOMPfunctions::GetNumProcs();
 
@@ -131,11 +131,10 @@ int main(int argc, char* argv[]) {
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         // Definition of nodes forming an element
-        int node0 = (i / (numDiv_x)) * (N_x)+i % numDiv_x;
-        int node1 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + N_x;
-        int node3 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;
-
+        int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
+        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();
@@ -147,7 +146,7 @@ int main(int argc, char* argv[]) {
         // Element length is a fixed number in both direction. (uniform distribution of nodes in both directions)
         element->SetDimensions(dx, dy);
         // Single layer
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat); // Thickness: dy;  Ply angle: 0.
+        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);  // Thickness: dy;  Ply angle: 0.
         // Set other element properties
         element->SetAlphaDamp(0.0);   // Structural damping for this
         element->SetGravityOn(true);  // element calculates its own gravitational load
@@ -164,7 +163,7 @@ int main(int argc, char* argv[]) {
     // Mark completion of system construction
     my_system.SetupInitial();
 
-    // Set up solver
+// Set up solver
 #ifdef USE_MKL
     GetLog() << "Using MKL solver\n";
     ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
@@ -237,9 +236,12 @@ int main(int argc, char* argv[]) {
         // Report run time and total number of iterations.
         GetLog() << "Number of iterations: " << num_iterations << "\n";
         GetLog() << "Simulation time:  " << timer() << "\n";
-        GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces() << "):  " << my_mesh->GetTimingInternalForces() << "\n";
-        GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimingJacobianLoad() << "\n";
-        GetLog() << "Extra time:  " << timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad() << "\n";
+        GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces()
+                 << "):  " << my_mesh->GetTimingInternalForces() << "\n";
+        GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimingJacobianLoad()
+                 << "\n";
+        GetLog() << "Extra time:  " << timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad()
+                 << "\n";
     }
 
     return 0;

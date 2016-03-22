@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     // =======================TEST 1============================================
     printf("--------------------------------------------------\n");
     translate = ChVector<>(0, 1, 0);
-    sphere_swept_thickness = 0.51;
+    sphere_swept_thickness = 0.505;
     scaleFactor = 1;
     elementThickness = 0.01;
     bool test1Passed = false;
@@ -214,26 +214,30 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     std::vector<ChVector<>> N1(4);  // To add nodes of the first element
     std::vector<ChVector<>> N2(4);  // To add nodes of the second element
+
     N1[0] = ChVector<>(-L_x, 0, -L_z) * scaleFactor;
     N1[1] = ChVector<>(+L_x, 0, -L_z) * scaleFactor;
-    N1[2] = ChVector<>(-L_x, 0, +L_z) * scaleFactor;
-    N1[3] = ChVector<>(+L_x, 0, +L_z) * scaleFactor;
+    N1[2] = ChVector<>(+L_x, 0, +L_z) * scaleFactor;
+    N1[3] = ChVector<>(-L_x, 0, +L_z) * scaleFactor;
+
     N2[0] = ChVector<>(-L_x, 0, -L_z) * scaleFactor + trans_elem2;
-    N2[1] = ChVector<>(+L_x, 0, -L_z) * scaleFactor + trans_elem2;
-    N2[2] = ChVector<>(-L_x, 0, +L_z) * scaleFactor + trans_elem2;
-    N2[3] = ChVector<>(+L_x, 0, +L_z) * scaleFactor + trans_elem2;
-    ChVector<> directions(+0, 1, 0);
+    N2[1] = ChVector<>(-L_x, 0, +L_z) * scaleFactor + trans_elem2;
+    N2[2] = ChVector<>(+L_x, 0, +L_z ) * scaleFactor + trans_elem2;
+    N2[3] = ChVector<>(+L_x, 0, -L_z ) * scaleFactor + trans_elem2;
+
+    ChVector<> direction1 (0, 1, 0);
+    ChVector<> direction2(0, -1, 0);
     auto my_meshes_1 = std::make_shared<ChMesh>();
     auto my_meshes_2 = std::make_shared<ChMesh>();
 
     // Note that two elements are added in two different meshes
     for (int i = 0; i < 4; i++) {
-        auto node = std::make_shared<ChNodeFEAxyzD>(N1[i], directions);
+        auto node = std::make_shared<ChNodeFEAxyzD>(N1[i], direction1);
         node->SetMass(0);
         my_meshes_1->AddNode(node);
     }
     for (int i = 0; i < 4; i++) {
-        auto node = std::make_shared<ChNodeFEAxyzD>(N2[i], directions);
+        auto node = std::make_shared<ChNodeFEAxyzD>(N2[i], direction2);
         node->SetMass(0);
         my_meshes_2->AddNode(node);
     }
