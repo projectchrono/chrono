@@ -6,12 +6,12 @@ Manual {#manual_root}
 
 * [Create a project](@ref tutorial_cmake)
 
-* [Mathematical objects](@ref mathematical_objects)
+* @subpage mathematical_objects
 	* [Linear algebra](@ref linear_algebra)
 	* [ChFunction objects](@ref ChFunction_objects)
 	* [Quadrature](@ref quadrature)
 	
-* [Shared pointers](@ref shared_pointers)
+* @subpage shared_pointers
 	
 * @subpage Coordinate_transformations
 	* @subpage Vectors
@@ -43,5 +43,9 @@ Manual {#manual_root}
 	* @subpage ChSystem
 	* @subpage Simulation_parameters
 	
+* @subpage introduction_chrono_pyengine
+
+* @subpage introduction_chrono_solidworks
+
 * @subpage tutorial_root
 

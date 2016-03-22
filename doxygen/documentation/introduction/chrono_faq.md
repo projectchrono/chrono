@@ -60,4 +60,9 @@ There is no difference, we use these two terms interchangeably.
 The Chrono infrastructure is a modular set of libraries for multi-physics modeling and simulation. Some of these modules allow interfacing Chrono to external software, e.g., for pre-processing and post-processing data, displaying real-time simulations with OpenGL, or parsing Python commands. The power of Chrono stems from its open source attribute, which allows the user to mix-and-match modules to establish a work flow that matches his/her needs.
 <br><br>
 
-![One possible work flow in Chrono: a model is defined in SolidWorks&copy; and enhanced with textures from some graphics package. The analysis might require a co-simulation with MATLAB&copy;. The results can be post-processed with Pov-Ray&copy; to obtained high quality movies.](@ref /images/Workflow.png "workflow.png")
+One possible work flow in Chrono: a model is defined in SolidWorks&copy; 
+and enhanced with textures from some graphics package. 
+The analysis might require a co-simulation with MATLAB&copy;. 
+The results can be post-processed with Pov-Ray&copy; to obtained high quality movies.
+
+![](workflow.png)
