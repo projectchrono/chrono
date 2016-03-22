@@ -19,11 +19,11 @@
 
 #include <vector>
 
+#include "chrono/core/ChQuadrature.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
 #include "chrono_fea/ChUtilsFEA.h"
-#include "core/ChQuadrature.h"
 
 namespace chrono {
 namespace fea {
@@ -33,9 +33,8 @@ namespace fea {
 
 // ----------------------------------------------------------------------------
 /// Material definition.
-/// This class implements material properties for a layer
-/// from the Reissner theory, see in 
-/// Morandini, Masarati "Implementation and Validation of a 4-node shell element"
+/// This class implements material properties for a layer from the Reissner theory,
+/// see Morandini, Masarati "Implementation and Validation of a 4-node shell element"
 class ChApiFea ChMaterialShellEANS {
   public:
     /// Construct an isotropic material.
@@ -87,8 +86,7 @@ class ChApiFea ChMaterialShellEANS {
 /// Uses ANS to avoid shear locking.
 /// Based on the paper:
 /// "Implementation and validation of a 4-node shell finite element"
-///  Marco Morandini, Pierangelo Masarati.  IDETC/CIE 2014.
-///
+/// Marco Morandini, Pierangelo Masarati.  IDETC/CIE 2014.
 class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellEANS4();
@@ -134,10 +132,6 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
 
     /// Get the number of nodes used by this element.
     virtual int GetNnodes() override { return 4; }
-
-    /// Get the number of coordinates of the node positions in space.
-    /// Note this is not the coordinates of the field, use GetNdofs() instead.
-    virtual int GetNcoords() override { return 4 * 6; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
     virtual int GetNdofs() override { return 4 * 6; }
