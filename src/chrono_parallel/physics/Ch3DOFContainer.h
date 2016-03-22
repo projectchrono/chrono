@@ -103,7 +103,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     // Store boundary forces here for rigid bodies
     DynamicVector<real> contact_forces;
     DynamicVector<real> gamma_old;
-
+    std::vector<real> marker_cohesion;
     short2 family;
 
   protected:

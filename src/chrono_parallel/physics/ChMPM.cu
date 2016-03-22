@@ -36,7 +36,7 @@ gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F, PolarR, P
 gpu_vector<real> old_vel_node_mpm;
 gpu_vector<real> ml, mg, mg_p, ml_p;
 gpu_vector<real> dot_g_proj_norm;
-
+gpu_vector<real> marker_cohesion;
 CUDA_CONSTANT MPM_Settings device_settings;
 CUDA_CONSTANT Bounds system_bounds;
 
@@ -253,7 +253,7 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
         real a = -1.0 / 3.0;
         real Ja = Pow(Determinant(FE_hat), a);
         Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, FP, device_settings.mu,
-                                                         device_settings.hardening_coefficient);
+                                                         device_settings.hardening_coefficient, PolarR[p], PolarS[p]);
 
         Mat33 vPEDFepT =
             device_settings.dt * marker_volume[p] * Z__B(A, FE_hat, Ja, a, InverseTranspose(FE_hat)) * Transpose(FE);
@@ -346,7 +346,8 @@ CUDA_GLOBAL void kMultiplyA(const real3* sorted_pos,  // input
 
         delta_F = delta_F * m_FE;
 
-        Mat33 VAP = d2PsidFdF(delta_F, m_FE_hat, m_FP, device_settings.mu, device_settings.hardening_coefficient);
+        Mat33 VAP = d2PsidFdF(delta_F, m_FE_hat, m_FP, PolarR[p], PolarS[p], device_settings.mu,
+                              device_settings.hardening_coefficient);
         VAP = marker_volume[p] * VAP * Transpose(m_FE);
 
         LOOP_TWO_RING_GPUSP(                                           //
@@ -670,7 +671,11 @@ CUDA_GLOBAL void kUpdateParticleVelocity(real* grid_vel,
         vel_marker[p] = new_vel;
     }
 }
-CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, Mat33* marker_Fe, Mat33* marker_Fp) {
+CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
+                                            real3* pos_marker,
+                                            Mat33* marker_Fe,
+                                            Mat33* marker_Fp,
+                                            real* cohesion) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = pos_marker[p];
@@ -706,6 +711,8 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
         real3 E;
         SVD(Fe_tmp, U, E, V);
         real3 E_clamped;
+#if 1
+
 #if 0
         // Simple box clamp
         E_clamped.x = Clamp(E.x, 1.0 - device_settings.theta_c, 1.0 + device_settings.theta_s);
@@ -722,16 +729,43 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel, real3* pos_marker, M
         }
         E_clamped = offset + center;
 #endif
+
+#else
+        real yield_p = 1e9;
+        Mat33 P = 2 * device_settings.mu * Mat33((E - 1));
+        real norm_P = Norm(P);
+        // if (norm_P > yield_p) {
+        real gam = Min(Max(1.0 * (norm_P - yield_p) / norm_P, 0), 1.0);
+        E_clamped = real3(Pow(E.x, gam), Pow(E.y, gam), Pow(E.z, gam));
+
+// printf("Stress: %f  %f %f\n", norm_P, cohesion[p], Determinant(Mat33(E_clamped)));
+// How to compute new stiffness?
+//}
+#endif
+
+        //        real JP = Determinant(F_tmp);
+        //        // real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.0) -
+        //        JP));
+        //
+        //        real current_lambda = device_settings.lambda * Exp(device_settings.hardening_coefficient * (real(1.0)
+        //        - JP));
+        //        cohesion[p] = current_lambda * (1 + device_settings.poissons_ratio) * (1 - 2 *
+        //        device_settings.poissons_ratio) /
+        //                      device_settings.poissons_ratio;
+
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         Mat33 m_FP = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
-        real JP = Determinant(m_FP);
+        real JP_new = Determinant(m_FP);
         // Ensure that F_p is purely deviatoric
-        marker_Fe[p] = Pow(JP, 1.0 / 3.0) * U * MultTranspose(Mat33(E_clamped), V);
-        marker_Fp[p] = Pow(JP, -1.0 / 3.0) * m_FP;
+        marker_Fe[p] = Pow(JP_new, 1.0 / 3.0) * U * MultTranspose(Mat33(E_clamped), V);
+        marker_Fp[p] = Pow(JP_new, -1.0 / 3.0) * m_FP;
     }
 }
 
-void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities) {
+void MPM_Solve(MPM_Settings& settings,
+               std::vector<real3>& positions,
+               std::vector<real3>& velocities,
+               std::vector<real>& cohesion) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
@@ -739,6 +773,8 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
     printf("Solving MPM: %d\n", host_settings.num_iterations);
     pos.data_h = positions;
     pos.copyHostToDevice();
+
+    marker_cohesion.resize(positions.size());
 
     vel.data_h = velocities;
     vel.copyHostToDevice();
@@ -772,8 +808,11 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
     time_measured = 0;
     {
         CudaEventTimer timer(start, stop, true, time_measured);
-        kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d,
-                                                                              marker_Fe.data_d, marker_Fp.data_d);
+        kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(
+            grid_vel.data_d, pos.data_d, marker_Fe.data_d, marker_Fp.data_d, marker_cohesion.data_d);
+
+        marker_cohesion.copyDeviceToHost();
+        cohesion = marker_cohesion.data_h;
     }
     printf("kUpdateDeformationGradient: %f\n", time_measured);
     time_measured = 0;
@@ -849,26 +888,27 @@ CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp) {
     }
 }
 void MPM_Update_Deformation_Gradient(MPM_Settings& settings, std::vector<real3>& velocities) {
-    vel.data_h = velocities;
-    vel.copyHostToDevice();
-    host_settings = settings;
-
-    cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
-
-    // ========================================================================================
-    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
-                                                          vel.data_d,        // input
-                                                          node_mass.data_d,  // output
-                                                          grid_vel.data_d    // output
-                                                          );
-
-    kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
-                                                               grid_vel.data_d);
-
-    kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d, marker_Fe.data_d,
-                                                                          marker_Fp.data_d);
-    vel.copyDeviceToHost();
-    velocities = vel.data_h;
+    //    vel.data_h = velocities;
+    //    vel.copyHostToDevice();
+    //    host_settings = settings;
+    //
+    //    cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
+    //
+    //    // ========================================================================================
+    //    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
+    //                                                          vel.data_d,        // input
+    //                                                          node_mass.data_d,  // output
+    //                                                          grid_vel.data_d    // output
+    //                                                          );
+    //
+    //    kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
+    //                                                               grid_vel.data_d);
+    //
+    //    kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d,
+    //    marker_Fe.data_d,
+    //                                                                          marker_Fp.data_d);
+    //    vel.copyDeviceToHost();
+    //    velocities = vel.data_h;
 }
 
 void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {

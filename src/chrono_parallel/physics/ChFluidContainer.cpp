@@ -89,7 +89,7 @@ void ChFluidContainer::Update(double ChTime) {
         temp_settings.num_iterations = mpm_iterations;
         if (mpm_iterations > 0) {
             mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(data_manager->host_data.pos_3dof),
-                                     std::ref(data_manager->host_data.vel_3dof));
+                                     std::ref(data_manager->host_data.vel_3dof), std::ref(marker_cohesion));
         }
     }
 

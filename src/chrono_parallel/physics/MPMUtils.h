@@ -354,13 +354,18 @@ CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33& FE,
 CUDA_HOST_DEVICE static Mat33 Potential_Energy_Derivative_Deviatoric(const Mat33& FE,
                                                                      const Mat33& FP,
                                                                      real mu,
-                                                                     real hardening_coefficient) {
+                                                                     real hardening_coefficient,
+                                                                     Mat33& RE,
+                                                                     Mat33& SE) {
     real JP = Determinant(FP);
     real current_mu = mu * Exp(hardening_coefficient * (real(1.0) - JP));
     Mat33 UE, VE;
     real3 EE;
     SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
-    Mat33 RE = MultTranspose(UE, VE);
+    RE = MultTranspose(UE, VE);
+    SE = VE * MultTranspose(Mat33(EE), VE);
+    // RE[3] = JP;
+    RE[3] = current_mu;
     return real(2.) * current_mu * (FE - RE);
 }
 
@@ -377,41 +382,44 @@ CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33& FE,
     Dilational = current_lambda / 2.0 * (JE - real(1.));
 }
 
-CUDA_HOST_DEVICE static Mat33 B__Z(const Mat33& Z, const Mat33& F, real Ja, real a, const Mat33& H) {
+CUDA_HOST_DEVICE static inline Mat33 B__Z(const Mat33& Z, const Mat33& F, real Ja, real a, const Mat33& H) {
     return Ja * (Z + a * (DoubleDot(H, Z)) * F);
 }
 
-CUDA_HOST_DEVICE static Mat33 Z__B(const Mat33& Z, const Mat33& F, real Ja, real a, const Mat33& H) {
+CUDA_HOST_DEVICE static inline Mat33 Z__B(const Mat33& Z, const Mat33& F, real Ja, real a, const Mat33& H) {
     return Ja * (Z + a * (DoubleDot(F, Z)) * H);
 }
 
-CUDA_HOST_DEVICE static Mat33 d2PsidFdF(const Mat33& Z, // This is deltaF
-                                        const Mat33& F, // This is FE_hat
+CUDA_HOST_DEVICE static Mat33 d2PsidFdF(const Mat33& Z,  // This is deltaF
+                                        const Mat33& F,  // This is FE_hat
                                         const Mat33& FP,
+                                        const Mat33& RE,
+                                        const Mat33& SE,
                                         real mu,
                                         real hardening_coefficient) {
     real a = -1.0 / 3.0;
     real Ja = Pow(Determinant(F), a);
     Mat33 H = InverseTranspose(F);
-    real JP = Determinant(FP);
-    real current_mu = mu * Exp(hardening_coefficient * (real(1.0) - JP));
-    Mat33 A;
+    // real JP = RE[3];  // Determinant(FP);
+    real current_mu = RE[3];  // mu * Exp(hardening_coefficient * (real(1.0) - JP));
     Mat33 FE = Ja * F;
-    {  // Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
-        Mat33 UE, VE;
-        real3 EE;
-        SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
-        Mat33 RE = MultTranspose(UE, VE);
-        A = real(2.) * current_mu * (FE - RE);
-    }
+    // Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
+    //    Mat33 UE, VE;
+    //    real3 EE;
+    //    SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
+    //    Mat33 RE = MultTranspose(UE, VE);
+    //    Mat33 SE = VE * MultTranspose(Mat33(EE), VE);
+
+    Mat33 A = real(2.) * current_mu * (FE - RE);
 
     Mat33 B_Z = B__Z(Z, F, Ja, a, H);
-    //C is the original second derivative
-    Mat33 C_B_Z = 2 * current_mu * (B_Z - Rotational_Derivative(FE, B_Z));
-    Mat33 P1 = Ja * (C_B_Z + a * (DoubleDot(F, C_B_Z)) * H);
+    Mat33 WE = TransposeMult(RE, B_Z);
+    // C is the original second derivative
+    Mat33 C_B_Z = 2 * current_mu * (B_Z - Solve_dR(RE, SE, WE));
+    Mat33 P1 = Z__B(C_B_Z, F, Ja, a, H);
     Mat33 P2 = a * DoubleDot(H, Z) * Z__B(A, F, Ja, a, H);
     Mat33 P3 = a * Ja * DoubleDot(A, Z) * H;
-    Mat33 P4 = -a * Ja * DoubleDot(A, F) * H * Transpose(Z) * H;
+    Mat33 P4 = -a * Ja * DoubleDot(A, F) * H * TransposeMult(Z, H);
 
     return P1 + P2 + P3 + P4;
 }
