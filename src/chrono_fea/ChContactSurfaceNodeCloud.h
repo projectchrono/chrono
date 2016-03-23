@@ -191,6 +191,12 @@ class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
     /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
     void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set, const double point_radius = 0.001);
 
+    /// Get the number of nodes.
+    unsigned int GetNnodes() const { return (unsigned int)vnodes.size(); }
+
+    /// Access the N-th node
+    std::shared_ptr<ChContactNodeXYZsphere> GetNode(unsigned int n) { return vnodes[n]; };
+
     // Functions to interface this with ChPhysicsItem container
     virtual void SurfaceSyncCollisionModels();
     virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys);
