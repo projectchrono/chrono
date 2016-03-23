@@ -397,7 +397,8 @@ CUDA_HOST_DEVICE static Mat33 d2PsidFdF(const Mat33& Z,  // This is deltaF
                                         const Mat33& SE,
                                         real mu,
                                         real hardening_coefficient) {
-    real a = -1.0 / 3.0;
+#if 1
+	real a = -1.0 / 3.0;
     real Ja = Pow(Determinant(F), a);
     Mat33 H = InverseTranspose(F);
     // real JP = RE[3];  // Determinant(FP);
@@ -422,5 +423,10 @@ CUDA_HOST_DEVICE static Mat33 d2PsidFdF(const Mat33& Z,  // This is deltaF
     Mat33 P4 = -a * Ja * DoubleDot(A, F) * H * TransposeMult(Z, H);
 
     return P1 + P2 + P3 + P4;
+#else
+    real current_mu = RE[3];
+    Mat33 WE = TransposeMult(RE, Z);
+    return 2 * current_mu * (Z - Solve_dR(RE, SE, WE));
+#endif
 }
 }

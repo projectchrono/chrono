@@ -89,6 +89,7 @@ void ChFluidContainer::Update(double ChTime) {
         temp_settings.poissons_ratio = nu;
         temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
         temp_settings.mass = mass;
+        temp_settings.yield_stress = yield_stress;
         temp_settings.num_iterations = mpm_iterations;
         if (mpm_iterations > 0) {
             mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(data_manager->host_data.pos_3dof),
@@ -275,6 +276,7 @@ void ChFluidContainer::Initialize() {
     temp_settings.poissons_ratio = nu;
     temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
     temp_settings.mass = mass;
+    temp_settings.yield_stress = yield_stress;
     temp_settings.num_iterations = mpm_iterations;
     if (mpm_iterations > 0) {
         MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);

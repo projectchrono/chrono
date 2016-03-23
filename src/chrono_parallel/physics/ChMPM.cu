@@ -37,6 +37,7 @@ gpu_vector<real> old_vel_node_mpm;
 gpu_vector<real> ml, mg, mg_p, ml_p;
 gpu_vector<real> dot_g_proj_norm;
 gpu_vector<real> marker_cohesion;
+gpu_vector<real> marker_flow;
 CUDA_CONSTANT MPM_Settings device_settings;
 CUDA_CONSTANT Bounds system_bounds;
 
@@ -250,13 +251,23 @@ CUDA_GLOBAL void kApplyForces(const real3* sorted_pos,     // input
         Mat33 FE = marker_Fe[p];
         Mat33 FE_hat = marker_Fe_hat[p];
         Mat33 FP = marker_Fp[p];
+
+#if 1
         real a = -1.0 / 3.0;
         real Ja = Pow(Determinant(FE_hat), a);
+
         Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, FP, device_settings.mu,
                                                          device_settings.hardening_coefficient, PolarR[p], PolarS[p]);
 
         Mat33 vPEDFepT =
             device_settings.dt * marker_volume[p] * Z__B(A, FE_hat, Ja, a, InverseTranspose(FE_hat)) * Transpose(FE);
+#else
+        Mat33 vPEDFepT =
+            device_settings.dt * marker_volume[p] *
+            Potential_Energy_Derivative_Deviatoric(FE_hat, FP, device_settings.mu,
+                                                   device_settings.hardening_coefficient, PolarR[p], PolarS[p]) *
+            Transpose(FE);
+#endif
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
@@ -675,11 +686,13 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
                                             real3* pos_marker,
                                             Mat33* marker_Fe,
                                             Mat33* marker_Fp,
-                                            real* cohesion) {
+                                            Mat33* marker_RE,
+                                            real* cohesion,
+                                            real* total_flow) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const real3 xi = pos_marker[p];
-        Mat33 velocity_gradient(0.0);
+        Mat33 vel_grad(0.0);
 
         int cx, cy, cz;
         const real bin_edge = device_settings.bin_edge;
@@ -697,20 +710,18 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
                             real valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
                             real valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
-                            velocity_gradient[0] += vnx * valx; velocity_gradient[1] += vny * valx;
-                            velocity_gradient[2] += vnz * valx;  //
-                            velocity_gradient[4] += vnx * valy; velocity_gradient[5] += vny * valy;
-                            velocity_gradient[6] += vnz * valy;  //
-                            velocity_gradient[8] += vnx * valz; velocity_gradient[9] += vny * valz;
-                            velocity_gradient[10] += vnz * valz;
+                            vel_grad[0] += vnx * valx; vel_grad[1] += vny * valx; vel_grad[2] += vnz * valx;  //
+                            vel_grad[4] += vnx * valy; vel_grad[5] += vny * valy; vel_grad[6] += vnz * valy;  //
+                            vel_grad[8] += vnx * valz; vel_grad[9] += vny * valz; vel_grad[10] += vnz * valz;
 
                             )
-        Mat33 Fe_tmp = (Mat33(1.0) + device_settings.dt * velocity_gradient) * marker_Fe[p];
+        Mat33 delta_F = (Mat33(1.0) + device_settings.dt * vel_grad);
+        Mat33 Fe_tmp = delta_F * marker_Fe[p];
         Mat33 F_tmp = Fe_tmp * marker_Fp[p];
         Mat33 U, V;
         real3 E;
         SVD(Fe_tmp, U, E, V);
-        real3 E_clamped;
+        real3 E_clamped = E;
 #if 1
 
 #if 0
@@ -731,27 +742,79 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
 #endif
 
 #else
-        real yield_p = 1e9;
-        Mat33 P = 2 * device_settings.mu * Mat33((E - 1));
-        real norm_P = Norm(P);
-        // if (norm_P > yield_p) {
-        real gam = Min(Max(1.0 * (norm_P - yield_p) / norm_P, 0), 1.0);
-        E_clamped = real3(Pow(E.x, gam), Pow(E.y, gam), Pow(E.z, gam));
+        real flow = Abs(Determinant(delta_F));
 
-// printf("Stress: %f  %f %f\n", norm_P, cohesion[p], Determinant(Mat33(E_clamped)));
-// How to compute new stiffness?
-//}
+        Mat33 P = 2 * device_settings.mu * Mat33((E - 1));
+        //+ device_settings.lambda * Trace(Mat33((E - 1))) * Mat33(1.0);
+        real norm_P = Norm(P);
+        if (norm_P > device_settings.yield_stress) {
+            real gam = Min(Max(flow * (norm_P - device_settings.yield_stress
+                                       // -total_flow[p] * device_settings.hardening_coefficient
+                                       ) /
+                                   norm_P,
+                               0),
+                           1.0);
+            E_clamped = real3(Pow(E.x, gam), Pow(E.y, gam), Pow(E.z, gam));
+            real current_lambda =
+                device_settings.lambda * Exp(device_settings.hardening_coefficient * (real(1.0) - total_flow[p]));
+            // device_settings.lambda * (1 + device_settings.poissons_ratio) *
+            //(1 - 2 * device_settings.poissons_ratio) / device_settings.poissons_ratio;
+            printf("Stress: %f %f %f %f\n", norm_P, cohesion[p], total_flow[p], Determinant(Mat33(E_clamped)));
+
+            total_flow[p] += Norm(P);
+            // How to compute new stiffness?
+        } else {
+            E_clamped = E;
+            // printf("Stress: %f %f\n", norm_P, flow);
+        }
+
 #endif
 
-        //        real JP = Determinant(F_tmp);
-        //        // real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.0) -
-        //        JP));
+        cohesion[p] = device_settings.yield_stress / 2.0;
+
+        //        real a = -1.0 / 3.0;
+        //        real Ja = Pow(Determinant(Fe_tmp), a);
+        //        real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.0) - JP));
+        //        real JP = Determinant(marker_Fp[p]);
+        //        Mat33 A = real(2.) * current_mu * ((Ja * Fe_tmp) - marker_RE[p]);
         //
+        //
+        //        Mat33 s_star = Sqrt(3.0/2.0 * tau*tau);
+        // Constants
+        //        real a = -1.0 / 3.0;
+        //        //
+        //        // Compute RE from Trial FE (Fe_tmp)
+        //        Mat33 UE, VE;
+        //        real3 EE;
+        //        SVD(Fe_tmp, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
+        //        Mat33 RE = MultTranspose(UE, VE);
+        //        //
+        //        // Compute Trial Strain (Green strain tensor)
+        //        Mat33 E_trial = .5 * (TransposeMult(Fe_tmp, Fe_tmp) - Mat33(1.0));
+        //        //
+        //        // Old plastic and trial elastic
+        //        real JP = Determinant(marker_Fp[p]);
+        //        real JE = Determinant(Fe_tmp);
+        //
+        //        real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.0) - JP));
         //        real current_lambda = device_settings.lambda * Exp(device_settings.hardening_coefficient * (real(1.0)
         //        - JP));
-        //        cohesion[p] = current_lambda * (1 + device_settings.poissons_ratio) * (1 - 2 *
-        //        device_settings.poissons_ratio) /
-        //                      device_settings.poissons_ratio;
+        //
+        //        real Ja = Pow(JE, a);
+        //        Mat33 H = InverseTranspose(Fe_tmp);
+        //        // Compute the deviatoric stress
+        //        Mat33 s =
+        //            1.0 / JP * Z__B(real(2.) * current_mu * ((Ja * Fe_tmp) - RE), FE_hat, Ja, a, H) *
+        //            Transpose(marker_Fe[p]);
+        //        // Compute the full stress
+        //        Mat33 sigma = 1.0 / JP * real(2.) * current_mu * (Fe_tmp - RE) +
+        //                      current_lambda * JE * (JE - real(1.)) * InverseTranspose(Fe_tmp);
+        //        //compute hydrostatic pressure
+        //        real p = 1/3 * Trace(sigma);
+        //
+        //        real J2 = .5 * DoubleDot(s, s);
+        //
+        //
 
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         Mat33 m_FP = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
@@ -804,12 +867,14 @@ void MPM_Solve(MPM_Settings& settings,
         kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
                                                                    grid_vel.data_d);
     }
+
     printf("kNormalizeWeights: %f\n", time_measured);
     time_measured = 0;
     {
         CudaEventTimer timer(start, stop, true, time_measured);
         kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(
-            grid_vel.data_d, pos.data_d, marker_Fe.data_d, marker_Fp.data_d, marker_cohesion.data_d);
+            grid_vel.data_d, pos.data_d, marker_Fe.data_d, marker_Fp.data_d, PolarR.data_d, marker_cohesion.data_d,
+            marker_flow.data_d);
 
         marker_cohesion.copyDeviceToHost();
         cohesion = marker_cohesion.data_h;
@@ -880,11 +945,13 @@ void MPM_Solve(MPM_Settings& settings,
     cudaEventDestroy(stop);
 }
 
-CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp) {
+CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp, Mat33* marker_RE, Mat33* marker_SE) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < device_settings.num_mpm_markers) {
         marker_Fe[i] = Mat33(1);
         marker_Fp[i] = Mat33(1);
+        marker_RE[i] = Mat33(1);
+        marker_SE[i] = Mat33(1);
     }
 }
 void MPM_Update_Deformation_Gradient(MPM_Settings& settings, std::vector<real3>& velocities) {
@@ -956,13 +1023,17 @@ void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
         marker_delta_F.resize(host_settings.num_mpm_markers);
         PolarR.resize(host_settings.num_mpm_markers);
         PolarS.resize(host_settings.num_mpm_markers);
+        marker_flow.resize(host_settings.num_mpm_markers);
+        marker_flow = 0;
     }
     printf("Resize: %f\n", time_measured);
     time_measured = 0;
     {
         CudaEventTimer timer(start, stop, true, time_measured);
-        kInitFeFp<<<CONFIG(host_settings.num_mpm_markers)>>>(marker_Fe.data_d,   // output
-                                                             marker_Fp.data_d);  // output
+        kInitFeFp<<<CONFIG(host_settings.num_mpm_markers)>>>(marker_Fe.data_d,  // output
+                                                             marker_Fp.data_d,  // output
+                                                             PolarR.data_d,     // output
+                                                             PolarS.data_d);    // output
     }
     printf("kInitFeFp: %f\n", time_measured);
     time_measured = 0;

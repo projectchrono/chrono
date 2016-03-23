@@ -153,7 +153,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     uint start_boundary;
     uint start_density;
     uint start_viscous;
-
+    real yield_stress;
     real alpha;
     real epsilon;  // Regularization parameter
     real tau;      // Constraint relaxation time
@@ -270,7 +270,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real mass;
     real alpha;
     uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
-
+    real yield_stress;
     //
 
     real nu;

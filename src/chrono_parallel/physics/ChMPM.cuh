@@ -29,7 +29,7 @@ struct MPM_Settings {
     int num_mpm_markers;
     int num_mpm_nodes;
     real mass;
-    real p1, p2, p3;
+    real yield_stress, p2, p3;
     int num_iterations;
     int bins_per_axis_x;
     int bins_per_axis_y;
