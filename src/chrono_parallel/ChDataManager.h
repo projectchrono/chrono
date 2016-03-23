@@ -247,6 +247,12 @@ struct host_container {
     custom_vector<int> neighbor_rigid_tet;
     custom_vector<real4> face_rigid_tet;
     custom_vector<int> c_counts_rigid_tet;
+    // contact with nodes
+    custom_vector<real3> norm_rigid_tet_node;
+    custom_vector<real3> cpta_rigid_tet_node;
+    custom_vector<real> dpth_rigid_tet_node;
+    custom_vector<int> neighbor_rigid_tet_node;
+    custom_vector<int> c_counts_rigid_tet_node;
 
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
@@ -405,22 +411,22 @@ class CH_PARALLEL_API ChParallelDataManager {
     std::vector<std::shared_ptr<ChPhysicsItem> >* other_physics_list;  // List to other items
 
     // Indexing variables
-    uint num_rigid_bodies;          // The number of rigid bodies in a system
-    uint num_fluid_bodies;          // The number of fluid bodies in the system
-    uint num_shafts;                // The number of shafts in a system
-    uint num_dof;                   // The number of degrees of freedom in the system
-    uint num_rigid_shapes;          // The number of collision models in a system
-    uint num_rigid_contacts;        // The number of contacts between rigid bodies in a system
-    uint num_rigid_fluid_contacts;  // The number of contacts between rigid and fluid objects
-    uint num_fluid_contacts;        // The number of contacts between fluid objects
-    uint num_unilaterals;           // The number of contact constraints
-    uint num_bilaterals;            // The number of bilateral constraints
-    uint num_constraints;           // Total number of constraints
-    uint num_fea_nodes;             // Total number of FEM nodes
-    uint num_fea_tets;              // Total number of FEM nodes
-    // uint num_rigid_node_contacts;   // The number of contacts between rigids and  nodes
-    uint num_rigid_tet_contacts;  // The number of contacts between tetrahedron and rigid bodies
-    uint nnz_bilaterals;          // The number of non-zero entries in the bilateral Jacobian
+    uint num_rigid_bodies;             // The number of rigid bodies in a system
+    uint num_fluid_bodies;             // The number of fluid bodies in the system
+    uint num_shafts;                   // The number of shafts in a system
+    uint num_dof;                      // The number of degrees of freedom in the system
+    uint num_rigid_shapes;             // The number of collision models in a system
+    uint num_rigid_contacts;           // The number of contacts between rigid bodies in a system
+    uint num_rigid_fluid_contacts;     // The number of contacts between rigid and fluid objects
+    uint num_fluid_contacts;           // The number of contacts between fluid objects
+    uint num_unilaterals;              // The number of contact constraints
+    uint num_bilaterals;               // The number of bilateral constraints
+    uint num_constraints;              // Total number of constraints
+    uint num_fea_nodes;                // Total number of FEM nodes
+    uint num_fea_tets;                 // Total number of FEM nodes
+    uint num_rigid_tet_contacts;       // The number of contacts between tetrahedron and rigid bodies
+    uint num_rigid_tet_node_contacts;  // The number of contacts between tetrahedron nodes and rigid bodies
+    uint nnz_bilaterals;               // The number of non-zero entries in the bilateral Jacobian
 
     // Flag indicating whether or not the contact forces are current (DVI only).
     bool Fc_current;
