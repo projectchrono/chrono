@@ -52,10 +52,12 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     /// Set radius of contact nodes.
     /// This value is relevant only for NODE_CLOUD contact surface type.
     void SetContactNodeRadius(double radius) { m_contact_node_radius = radius; }
+    double GetContactNodeRadius() const { return m_contact_node_radius; }
 
     /// Set thickness of contact faces (radius of swept sphere).
     /// This value is relevant only for TRIANGLE_MESH contact surface type.
     void SetContactFaceThickness(double thickness) { m_contact_face_thickness = thickness; }
+    double GetContactFaceThickness() const { return m_contact_face_thickness; }
 
     /// Set contact material properties.
     /// Alternatively, the contact material coefficients can be set explicitly, using the
@@ -75,14 +77,20 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
                                         float gt   ///< [in] tangential contact damping
                                         );
 
-    /// Enable/didable tire pressure.
+    /// Get the tire contact material.
+    std::shared_ptr<ChMaterialSurfaceDEM> GetContactMaterial() const { return m_contact_mat; }
+
+    /// Enable/disable tire pressure.
     void EnablePressure(bool val) { m_pressure_enabled = val; }
+    bool IsPressureEnabled() const { return m_pressure_enabled; }
 
     /// Enable/disable tire contact.
     void EnableContact(bool val) { m_contact_enabled = val; }
+    bool IsContactEnabled() const { return m_contact_enabled; }
 
     /// Enable/disable tire-rim connection.
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
+    bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
     /// Set the tire pressure.
     void SetPressure(double pressure) {
@@ -114,6 +122,9 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
                             VehicleSide side                ///< left/right vehicle side
                             ) override;
+
+    /// Get the underlying FEA mesh.
+    std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
 
   protected:
     /// Return the default tire pressure.
@@ -152,6 +163,8 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     float m_gn;             ///< normal contact damping
     float m_kt;             ///< tangential contact stiffness
     float m_gt;             ///< tangential contact damping
+
+    std::shared_ptr<ChMaterialSurfaceDEM> m_contact_mat;  ///< tire contact material
 };
 
 /// @} vehicle_wheeled_tire
