@@ -47,6 +47,9 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     theta_c = 2.5e-2;
     alpha_flip = .95;
     mpm_init = false;
+
+    family.x = 1;
+    family.y = 0x7FFF;
 }
 ChFluidContainer::~ChFluidContainer() {}
 

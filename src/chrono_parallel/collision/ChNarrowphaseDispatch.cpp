@@ -320,6 +320,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
     RigidSphereContact(data_manager->node_container->kernel_radius,   //
                        data_manager->num_fluid_bodies,                //
                        data_manager->host_data.sorted_pos_3dof,       //
+                       data_manager->node_container->family,          //
                        data_manager->host_data.norm_rigid_fluid,      //
                        data_manager->host_data.cpta_rigid_fluid,      //
                        data_manager->host_data.dpth_rigid_fluid,      //
@@ -506,12 +507,26 @@ void ChCNarrowphaseDispatch::DispatchRigidTet() {
                     data_manager->host_data.c_counts_rigid_tet, data_manager->num_rigid_tet_contacts);
 
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidTet() E " << data_manager->num_rigid_tet_contacts;
+
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidTetNode() S";
+    RigidSphereContact(data_manager->fea_container->kernel_radius,       //
+                       data_manager->num_fea_nodes,                      //
+                       data_manager->host_data.pos_node_fea,             //
+                       data_manager->fea_container->family,              //
+                       data_manager->host_data.norm_rigid_tet_node,      //
+                       data_manager->host_data.cpta_rigid_tet_node,      //
+                       data_manager->host_data.dpth_rigid_tet_node,      //
+                       data_manager->host_data.neighbor_rigid_tet_node,  //
+                       data_manager->host_data.c_counts_rigid_tet_node,  //
+                       data_manager->num_rigid_tet_node_contacts);
+    LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidTetNode() E " << data_manager->num_rigid_tet_node_contacts;
 }
 //==================================================================================================================================
 
 void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                                                 const int num_spheres,
                                                 const custom_vector<real3>& pos_spheres,
+                                                const short2& family,
                                                 custom_vector<real3>& norm_rigid_sphere,
                                                 custom_vector<real3>& cpta_rigid_sphere,
                                                 custom_vector<real>& dpth_rigid_sphere,
@@ -522,6 +537,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     real3 global_origin = data_manager->measures.collision.global_origin;
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
+    const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
     const real radius = sphere_radius;
 
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
@@ -612,7 +628,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                         real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
                         // if the sphere and the rigid body appear in the same bin more than once, dont count
                         if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == true) {
-                            if (overlap(Amin, Amax, Bmin, Bmax)) {
+                            if (overlap(Amin, Amax, Bmin, Bmax) && collide(family, fam_data[shape_id_a])) {
                                 ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
                                 real3 ptA, ptB, norm;
                                 real depth, erad = 0;

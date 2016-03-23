@@ -94,6 +94,7 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     void RigidSphereContact(const real sphere_radius,
                             const int num_spheres,
                             const custom_vector<real3>& pos_sphere,
+                            const short2& family,
                             custom_vector<real3>& norm_rigid_sphere,
                             custom_vector<real3>& cpta_rigid_sphere,
                             custom_vector<real>& dpth_rigid_sphere,
