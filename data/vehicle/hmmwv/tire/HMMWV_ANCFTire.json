@@ -9,10 +9,23 @@
 
   "Contact Material":
   {
-      "Coefficient of Friction":    0.9,
-      "Coefficient of Restitution": 0.1,
-      "Young Modulus":              2e6,
-      "Poisson Ratio":              0.3
+      "Use Physical Properties":  true,
+
+      "Properties":
+      {
+          "Coefficient of Friction":    0.9,
+          "Coefficient of Restitution": 0.1,
+          "Young Modulus":              2e6,
+          "Poisson Ratio":              0.3
+      },
+
+      "Coefficients":
+      {
+          "Normal Stiffness":           1.3e6,
+          "Normal damping":             1.3e3,
+          "Tangential Stiffness":       0,
+          "Tangential Damoing":         0
+      }
   },
 
   "Materials":

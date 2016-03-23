@@ -7,12 +7,25 @@
   "Rim Radius":      0.4,
   "Rim Width":       0.3,
 
-  "Contact Material":
+    "Contact Material":
   {
-     "Coefficient of Friction":    0.3,
-     "Coefficient of Restitution": 0.2,
-     "Young Modulus":              1e5,
-     "Poisson Ratio":              0.3
+      "Use Physical Properties":  true,
+
+      "Properties":
+      {
+          "Coefficient of Friction":    0.3,
+          "Coefficient of Restitution": 0.2,
+          "Young Modulus":              1e5,
+          "Poisson Ratio":              0.3
+      },
+
+      "Coefficients":
+      {
+          "Normal Stiffness":           1.3e6,
+          "Normal damping":             1.3e3,
+          "Tangential Stiffness":       0,
+          "Tangential Damoing":         0
+      }
   },
 
   "Continuum Material":
