@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Michael Taylor, Antonio Recuero
+// Authors: Michael Taylor, Antonio Recuero, Radu Serban
 // =============================================================================
 //
 // Tire testing mechanism for debugging tire models or evaluating tire
@@ -37,6 +37,8 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -75,6 +77,12 @@ SolverType solver_type = MKL;
 // Type of tire model (FIALA, ANCF)
 TireModelType tire_model = FIALA;
 
+// Settings specific to FEA-based tires
+bool enable_tire_pressure = true;
+bool enable_rim_conection = true;
+bool enable_tire_contact = true;
+bool use_custom_collision = false;
+
 // JSON file names for tire models
 std::string fiala_testfile("generic/tire/FialaTire.json");
 std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
@@ -84,11 +92,12 @@ std::string out_dir1;
 std::string out_dir;
 
 // =============================================================================
-// TIRE CONTACT MANAGER
+// Custom contact reporter class
 // =============================================================================
-class ChTireTestContactManager : public chrono::ChReportContactCallback {
+
+class TireTestContactReporter : public chrono::ChReportContactCallback {
   public:
-    ChTireTestContactManager() {}
+    TireTestContactReporter() {}
 
     void Process(ChSystem* system) {
         m_csv << system->GetChTime() << std::endl;
@@ -124,6 +133,60 @@ class ChTireTestContactManager : public chrono::ChReportContactCallback {
     }
 
     utils::CSV_writer m_csv;
+};
+
+// =============================================================================
+// Custom collision detection class
+// =============================================================================
+
+class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallback {
+  public:
+    TireTestCollisionManager(std::shared_ptr<fea::ChContactSurfaceNodeCloud> surface,
+                             std::shared_ptr<RigidTerrain> terrain,
+                             double radius)
+        : m_surface(surface), m_terrain(terrain), m_radius(radius) {}
+
+  private:
+    virtual void PerformCustomCollision(ChSystem* system) override {
+        for (unsigned int in = 0; in < m_surface->GetNnodes(); in++) {
+            // Represent the contact node as a sphere (P, m_radius)
+            auto contact_node = std::static_pointer_cast<fea::ChContactNodeXYZsphere>(m_surface->GetNode(in));
+            const ChVector<>& P = contact_node->GetNode()->GetPos();
+
+            // Represent the terrain as a plane (Q, normal)
+            ChVector<> normal = m_terrain->GetNormal(P.x, P.y);
+            ChVector<> Q(P.x, P.y, m_terrain->GetHeight(P.x, P.y));
+
+            // Calculate signed height of sphere center above plane
+            double height = Vdot(normal, Q - P);
+
+            // No collision if the sphere center is above plane by more than radius
+            if (height >= m_radius)
+                continue;
+
+            // Create a collision info structure:
+            //    modelA: terrain collision model
+            //    modelB: node collision model
+            //    vN: normal (from A to B)
+            //    vpA: contact point on terrain
+            //    vpB: contact point on node
+            //    distance: penetration (negative)
+            collision::ChCollisionInfo contact;
+            contact.modelA = m_terrain->GetGroundBody()->GetCollisionModel();
+            contact.modelB = contact_node->GetCollisionModel();
+            contact.vN = normal;
+            contact.vpA = Q - height * normal;
+            contact.vpB = Q - m_radius * normal;
+            contact.distance = height - m_radius;
+
+            // Register contact
+            m_terrain->GetGroundBody()->GetSystem()->GetContactContainer()->AddContact(contact);
+        }
+    }
+
+    std::shared_ptr<fea::ChContactSurfaceNodeCloud> m_surface;
+    std::shared_ptr<RigidTerrain> m_terrain;
+    double m_radius;
 };
 
 // =============================================================================
@@ -277,9 +340,9 @@ int main() {
 #ifdef CHRONO_FEA
             auto tire_ancf = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
 
-            tire_ancf->EnablePressure(true);
-            tire_ancf->EnableContact(true);
-            tire_ancf->EnableRimConnection(true);
+            tire_ancf->EnablePressure(enable_tire_pressure);
+            tire_ancf->EnableContact(enable_tire_contact);
+            tire_ancf->EnableRimConnection(enable_rim_conection);
 
             tire_ancf->Initialize(rim, LEFT);
             tire_radius = tire_ancf->GetRadius();
@@ -404,11 +467,6 @@ int main() {
     tex_wheel->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     wheel->AddAsset(tex_wheel);
 
-    RigidTerrain terrain(my_system);
-    terrain.SetContactMaterial(0.7f, 0.01f, 5e5f, 0.3f);
-    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain.Initialize(-tire_radius - 0.0015, 120, 0.5);
-
     // Create the joints for the mechanical system
     // -------------------------------------------
 
@@ -499,7 +557,6 @@ int main() {
     // reference frame. The revolute joint's axis of rotation will be the Z axis
     // of the specified rotation matrix.
 
-
     auto revolute_set_camber_rim = std::make_shared<ChLinkLockRevolute>();
     revolute_set_camber_rim->Initialize(rim, set_camber,
         ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
@@ -512,6 +569,39 @@ int main() {
     auto lock_rim_wheel = std::make_shared<ChLinkLockLock>();
     lock_rim_wheel->Initialize(wheel, rim, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     my_system->AddLink(lock_rim_wheel);
+
+    // Create the terrain
+    // ------------------
+
+    auto terrain = std::make_shared<RigidTerrain>(my_system);
+    terrain->SetContactMaterial(0.7f, 0.01f, 5e5f, 0.3f);
+    terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
+    terrain->Initialize(-tire_radius - 0.0015, 120, 0.5);
+
+    // Optionally use the custom collision detection class
+    // ---------------------------------------------------
+
+    TireTestCollisionManager* my_collider = NULL;
+
+    if (tire_model == ANCF && enable_tire_contact && use_custom_collision) {
+        // Disable automatic contact on the ground body
+        terrain->GetGroundBody()->SetCollide(false);
+
+        // Extract the contact surface from the tire mesh
+        auto tire_ancf = std::static_pointer_cast<ChANCFTire>(tire);
+        auto tire_mesh = tire_ancf->GetMesh();
+        auto surface = std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(tire_mesh->GetContactSurface(0));
+
+        // Add custom collision callback
+        if (surface) {
+            my_collider = new TireTestCollisionManager(surface, terrain, tire_ancf->GetContactNodeRadius());
+            my_system->SetCustomComputeCollisionCallback(my_collider);
+        } else {
+            GetLog() << "********************************************\n";
+            GetLog() << "Custom collision requires NodeCloud contact!\n";
+            GetLog() << "********************************************\n";
+        }
+    }
 
     // Complete system construction
     // ----------------------------
@@ -627,7 +717,7 @@ int main() {
     TireForce tireforce;
     WheelState wheelstate;
 
-    ChTireTestContactManager myreporter;
+    TireTestContactReporter my_reporter;
     double rig_mass = wheel_carrier_mass + set_camber_mass + rim_mass + wheel_mass;
 
     while (application->GetDevice()->run()) {
@@ -650,7 +740,7 @@ int main() {
         tireforce = tire->GetTireForce();
 
         // Synchronize tire subsystem
-        tire->Synchronize(simTime, wheelstate, terrain);
+        tire->Synchronize(simTime, wheelstate, *terrain.get());
 
         // Apply the desired vertical force to the system
         // (accounting for the weight of all the test rig bodies acting vertically on the tire)
@@ -674,7 +764,7 @@ int main() {
             ChVector<> ReactionSpindle = revolute_set_camber_rim->Get_react_force();
             ReactionSpindle = linkCoordsys.TransformDirectionLocalToParent(ReactionSpindle);
 
-            myreporter.Process(my_system);
+            my_reporter.Process(my_system);
 
             ChCoordsys<> linkCoordsysLock = lock_rim_wheel->GetLinkRelativeCoords();
             ChVector<> ReactionLink = lock_rim_wheel->Get_react_force();
@@ -735,7 +825,7 @@ int main() {
             // Write output files
             out_force_moment.write_to_file(out_dir + "ForcesMoments.out", "Tire Forces and Moments\n\n");
             out_wheelstate.write_to_file(out_dir + "WheelStates.out", "Wheel States\n\n");
-            myreporter.WriteContacts(out_dir + "ContactPatch.out");
+            my_reporter.WriteContacts(out_dir + "ContactPatch.out");
         }
         // Increment simulation time
         simTime += sim_step;
@@ -745,6 +835,7 @@ int main() {
 
     delete application;
     delete my_system;
+    delete my_collider;
 
     return 0;
 }
