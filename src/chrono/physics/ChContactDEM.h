@@ -1,13 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban, Alessandro Tasora
+// =============================================================================
+//
+// Penalty-based contact between two generic contactable objects.
+//
+// =============================================================================
 
 #ifndef CHCONTACTDEM_H
 #define CHCONTACTDEM_H
@@ -28,7 +35,7 @@
 
 namespace chrono {
 
-/// Class for DEM-P contact between two generic contactable objects.
+/// Class for penalty-based contact between two generic contactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 template <class Ta, class Tb>
 class ChContactDEM : public ChContactTuple<Ta, Tb> {
@@ -118,8 +125,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // Extract parameters from containing system
         ChSystemDEM* sys = static_cast<ChSystemDEM*>(this->container->GetSystem());
         double dT = sys->GetStep();
-        bool use_mat_props = sys->UseMaterialProperties();
-        bool use_history = sys->UseContactHistory();
+        bool use_mat_props = sys->UsingMaterialProperties();
+        bool use_history = sys->UsingContactHistory();
         ChSystemDEM::ContactForceModel contact_model = sys->GetContactForceModel();
         ChSystemDEM::AdhesionForceModel adhesion_model = sys->GetAdhesionForceModel();
 
