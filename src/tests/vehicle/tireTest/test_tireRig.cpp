@@ -180,7 +180,7 @@ class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallba
             contact.distance = height - m_radius;
 
             // Register contact
-            m_terrain->GetGroundBody()->GetSystem()->GetContactContainer()->AddContact(contact);
+            system->GetContactContainer()->AddContact(contact);
         }
     }
 
