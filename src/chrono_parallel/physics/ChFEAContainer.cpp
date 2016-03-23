@@ -84,6 +84,7 @@ void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     // In case the number of velocities provided were not enough, resize to the number of fea nodes
     vel_node.resize(pos_node.size());
     data_manager->num_fea_nodes = pos_node.size();
+    num_fea_nodes = pos_node.size();
 }
 void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
@@ -112,6 +113,7 @@ int ChFEAContainer::GetNumConstraints() {
     // 6 rows in the tetrahedral jacobian 1 row for volume constraint
     int num_constraints = data_manager->num_fea_tets * (6 + 1);
     num_constraints += data_manager->num_rigid_tet_contacts * 3;
+    num_constraints += data_manager->num_rigid_tet_node_contacts * 3;
     num_constraints += num_rigid_constraints * 3;
     return num_constraints;
 }
@@ -121,6 +123,7 @@ int ChFEAContainer::GetNumNonZeros() {
         data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 3 + data_manager->num_fea_tets * 12 * 1;
     // 6 entries for rigid body side, 3 for node
     nnz += (6 + 9) * 3 * data_manager->num_rigid_tet_contacts;  // contacts
+    nnz += 9 * 3 * data_manager->num_rigid_tet_node_contacts;   // contacts with nodes
     nnz += 9 * 3 * num_rigid_constraints;                       // fixed joints
     return nnz;
 }
@@ -130,7 +133,8 @@ void ChFEAContainer::Setup(int start_constraint) {
     num_tet_constraints = data_manager->num_fea_tets * (6 + 1);
 
     start_boundary = start_constraint + num_tet_constraints;
-    start_rigid = start_boundary + data_manager->num_rigid_tet_contacts * 3;
+    start_boundary_node = start_boundary + data_manager->num_rigid_tet_contacts * 3;
+    start_rigid = start_boundary_node + data_manager->num_rigid_tet_node_contacts * 3;
 }
 
 void ChFEAContainer::ComputeInvMass(int offset) {
@@ -301,48 +305,90 @@ bool Cone_generalized_rnode(real& gamma_n, real& gamma_u, real& gamma_v, const r
 void ChFEAContainer::Project(real* gamma) {
     real mu = data_manager->fea_container->contact_mu;
     real coh = data_manager->fea_container->contact_cohesion;
-    if (data_manager->num_rigid_tet_contacts == 0) {
-        return;
-    }
-    uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
-    custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
-    int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
+    if (data_manager->num_rigid_tet_contacts > 0) {
+        uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
+        custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
+        int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
 #pragma omp parallel for
-    for (int p = 0; p < num_boundary_tets; p++) {
-        int start = contact_counts[p];
-        int end = contact_counts[p + 1];
-        for (int index = start; index < end; index++) {
-            int i = index - start;                                        // index that goes from 0
-            int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-            real rigid_fric = data_manager->host_data.fric_data[rigid].x;
-            real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
-            real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+        for (int p = 0; p < num_boundary_tets; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            for (int index = start; index < end; index++) {
+                int i = index - start;                                        // index that goes from 0
+                int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
+                real rigid_fric = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
+                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
 
-            real3 gam;
-            gam.x = gamma[start_boundary + index];
-            gam.y = gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 0];
-            gam.z = gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 1];
+                real3 gam;
+                gam.x = gamma[start_boundary + index];
+                gam.y = gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 0];
+                gam.z = gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 1];
 
-            gam.x += cohesion;
+                gam.x += cohesion;
 
-            real mu = friction;
-            if (mu == 0) {
-                gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
-                gam.y = gam.z = 0;
+                real mu = friction;
+                if (mu == 0) {
+                    gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
+                    gam.y = gam.z = 0;
 
-                gamma[start_boundary + index] = gam.x;
+                    gamma[start_boundary + index] = gam.x;
+                    gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 0] = gam.y;
+                    gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 1] = gam.z;
+                    continue;
+                }
+
+                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+                }
+
+                gamma[start_boundary + index] = gam.x - cohesion;
                 gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 0] = gam.y;
                 gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 1] = gam.z;
-                continue;
             }
+        }
+    }
 
-            if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+    if (data_manager->num_rigid_tet_node_contacts > 0) {
+        uint num_rigid_tet_node_contacts = data_manager->num_rigid_tet_node_contacts;
+        custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet_node;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet_node;
+#pragma omp parallel for
+        for (int p = 0; p < num_fea_nodes; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            for (int index = start; index < end; index++) {
+                int i = index - start;                                        // index that goes from 0
+                int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
+                real rigid_fric = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
+                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+
+                real3 gam;
+                gam.x = gamma[start_boundary_node + index];
+                gam.y = gamma[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0];
+                gam.z = gamma[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1];
+
+                gam.x += cohesion;
+
+                real mu = friction;
+                if (mu == 0) {
+                    gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
+                    gam.y = gam.z = 0;
+
+                    gamma[start_boundary_node + index] = gam.x;
+                    gamma[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0] = gam.y;
+                    gamma[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1] = gam.z;
+                    continue;
+                }
+
+                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+                }
+
+                gamma[start_boundary_node + index] = gam.x - cohesion;
+                gamma[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0] = gam.y;
+                gamma[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1] = gam.z;
             }
-
-            gamma[start_boundary + index] = gam.x - cohesion;
-            gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 0] = gam.y;
-            gamma[start_boundary + num_rigid_tet_contacts + index * 2 + 1] = gam.z;
         }
     }
 }
@@ -421,7 +467,7 @@ void ChFEAContainer::Build_D() {
         real3 r3 = 1. / 6. * Cross(c1, c2);
         real3 r0 = -r1 - r2 - r3;
 
-        real vf = 0;//(0.5 / (volSqrt));
+        real vf = 0;  //(0.5 / (volSqrt));
         // This helps to scale jacboian so boundaries aren't ignored
         real cf = 2 * volSqrt;  // 2 * volSqrt;
         // diagonal elements of strain matrix
@@ -499,16 +545,18 @@ void ChFEAContainer::Build_D() {
     custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 
     real h = data_manager->fea_container->kernel_radius;
-    custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_tet;
-    custom_vector<real3>& cptb = data_manager->host_data.cptb_rigid_tet;
-    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_tet;
+
     custom_vector<real4>& face_rigid_tet = data_manager->host_data.face_rigid_tet;
-    custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
     custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
     uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
     int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
     if (num_rigid_tet_contacts > 0) {
+        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_tet;
+        custom_vector<real3>& cptb = data_manager->host_data.cptb_rigid_tet;
+        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_tet;
+        custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
+
 #pragma omp parallel for
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
@@ -556,30 +604,42 @@ void ChFEAContainer::Build_D() {
             }
         }
     }
+    uint num_rigid_tet_node_contacts = data_manager->num_rigid_tet_node_contacts;
 
+    if (num_rigid_tet_node_contacts > 0) {
+        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_tet_node;
+        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_tet_node;
+        custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet_node;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet_node;
+#pragma omp parallel for
+        for (int p = 0; p < num_fea_nodes; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+
+            for (int index = start; index < end; index++) {
+                int i = index - start;  // index that goes from 0
+                int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
+                int node = p;  // node body is in second index
+                real3 U = norm[p * max_rigid_neighbors + i], V, W;
+                Orthogonalize(U, V, W);
+                real3 T1, T2, T3;
+                Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
+                                 T2, T3);
+
+                SetRow6Check(D_T, start_boundary_node + index + 0, rigid * 6, -U, T1);
+                SetRow6Check(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0, rigid * 6, -V, T2);
+                SetRow6Check(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1, rigid * 6, -W, T3);
+
+                SetRow3Check(D_T, start_boundary_node + index + 0, b_off + p * 3, U);
+                SetRow3Check(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0, b_off + p * 3, V);
+                SetRow3Check(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1, b_off + p * 3, W);
+            }
+        }
+    }
     if (num_rigid_constraints > 0) {
         for (int index = 0; index < num_rigid_constraints; index++) {
             int body_a = bodylist[index]->GetId();
             int node_b = constraint_bodies[index];
-            // printf("[%d %d]\n", body_a, node_b);
-
-            //======= Experimental jacobian weighting
-            //            real dJxn = Abs(Determinant(Jxn));
-            //            real dJxb = Abs(Determinant(Jxb));
-            //            real dJrb = Abs(Determinant(Jrb));
-
-            //            if (dJxn > 1) {
-            //                Jxn = Jxn * (1.0 / dJxn);
-            //            }
-            //            if (dJxb > 1) {
-            //                Jxb = Jxb * (1.0 / dJxb);
-            //            }
-            //            if (dJrb > 1) {
-            //                Jrb = Jrb * (1.0 / dJrb);
-            //            }
-            //
-
-            //            //=======
             Mat33 Jxn = Transpose(Mat33(rot_rigid[body_a]));
             Mat33 Jrb = SkewSymmetric(Jxn * (pos_node[node_b] - pos_rigid[body_a]));
             // Jxn = Jxn * .8;
@@ -658,13 +718,14 @@ void ChFEAContainer::Build_b() {
     uint num_bilaterals = data_manager->num_bilaterals;
 
     //    if (num_rigid_tet_contacts > 0) {
-    custom_vector<real4>& face_rigid_tet = data_manager->host_data.face_rigid_tet;
-    custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_tet;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
-    int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
-    custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
 
     if (num_rigid_tet_contacts > 0) {
+        custom_vector<real4>& face_rigid_tet = data_manager->host_data.face_rigid_tet;
+        custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_tet;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
+        int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
+        custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
+
         //#pragma omp parallel for
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
@@ -686,7 +747,26 @@ void ChFEAContainer::Build_b() {
             }
         }
     }
+    uint num_rigid_tet_node_contacts = data_manager->num_rigid_tet_node_contacts;
+    if (num_rigid_tet_node_contacts > 0) {
+        custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_tet_node;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet_node;
+        //#pragma omp parallel for
+        for (int p = 0; p < num_fea_nodes; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            for (int index = start; index < end; index++) {
+                int i = index - start;  // index that goes from 0
+                real depth = data_manager->host_data.dpth_rigid_tet_node[p * max_rigid_neighbors + i];
 
+                real bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
+                //
+                data_manager->host_data.b[start_boundary_node + index + 0] = bi;
+                data_manager->host_data.b[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0] = 0;
+                data_manager->host_data.b[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1] = 0;
+            }
+        }
+    }
     if (num_rigid_constraints > 0) {
         for (int index = 0; index < num_rigid_constraints; index++) {
             int body_a = bodylist[index]->GetId();
@@ -856,6 +936,41 @@ void ChFEAContainer::GenerateSparsity() {
         }
     }
 
+    if (data_manager->num_rigid_tet_node_contacts) {
+        uint num_rigid_tet_node_contacts = data_manager->num_rigid_tet_node_contacts;
+        custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet_node;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet_node;
+        for (int p = 0; p < num_fea_nodes; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            for (int index = start; index < end; index++) {
+                int i = index - start;  // index that goes from 0
+                int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
+                AppendRow6(D_T, start_boundary_node + index + 0, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary_node + index + 0, body_offset + p * 3, 0);
+                D_T.finalize(start_boundary_node + index + 0);
+            }
+        }
+        for (int p = 0; p < num_fea_nodes; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            for (int index = start; index < end; index++) {
+                int i = index - start;  // index that goes from 0
+                int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
+
+                AppendRow6(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0, body_offset + p * 3,
+                           0);
+                D_T.finalize(start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0);
+
+                AppendRow6(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1, body_offset + p * 3,
+                           0);
+                D_T.finalize(start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 1);
+            }
+        }
+    }
+
     if (num_rigid_constraints) {
         for (int index = 0; index < num_rigid_constraints; index++) {
             int body_a = bodylist[index]->GetId();
@@ -996,7 +1111,9 @@ void ChFEAContainer::FindSurface() {
         int f = faces[face].f;
         uint e = faces[face].element;
         boundary_element_mask_fea[e] = 1;
-
+#if 0
+        boundary_triangles_fea.push_back(_make_uint4(tri.x, tri.y, tri.z, f));
+#else
         if (f == 0) {
             boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w, 0));
         } else if (f == 1) {
@@ -1006,7 +1123,7 @@ void ChFEAContainer::FindSurface() {
         } else if (f == 3) {
             boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z, 3));
         }
-
+#endif
         face++;
     }
     num_boundary_triangles = boundary_triangles_fea.size();

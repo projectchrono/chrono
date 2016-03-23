@@ -223,6 +223,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint num_tet_constraints;  // Strain constraints + volume constraint
     uint start_tet;
     uint start_boundary;
+    uint start_boundary_node;
     uint start_rigid;
 
     // Id of the rigid body and node number
