@@ -14,9 +14,27 @@ Installation Guides {#tutorial_table_of_content_install}
 	
 ## How to build optional modules
 
--   @subpage module_python_installation
-	
 -   @subpage module_postprocess_installation
+
+-   @subpage module_vehicle_installation	
+
+-   @subpage module_fea_installation
+
+-   @subpage module_python_installation
+
+-   @subpage module_irrlicht_installation
+
+-   @subpage module_matlab_installation	
+
+-   @subpage module_cosimulation_installation
+
+-   @subpage module_cascade_installation
+
+-   @subpage module_opengl_installation
+
+-   @subpage module_ogre_installation
+
+-   @subpage module_parallel_installation
 
 
 	

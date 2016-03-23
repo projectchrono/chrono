@@ -59,7 +59,7 @@ if you want to use it. On Linux systems, the .dll suffix is .so.
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
    
-2. Set the <tt>ENABLE_MODULE_POSTPROCESS</tt> as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set the `ENABLE_MODULE_POSTPROCESS` as 'on', then press 'Configure' (to refresh the variable list) 
  
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

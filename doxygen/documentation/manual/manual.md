@@ -2,9 +2,9 @@ Manual {#manual_root}
 ==========================
 
 
-* [Install Chrono](@ref tutorial_install_chrono)
+* [Install and build Chrono](@ref tutorial_install_chrono)
 
-* [Create a project](@ref tutorial_install_project)
+* [Build a project](@ref tutorial_install_project)
 
 * [Modularity](@ref modules)
 

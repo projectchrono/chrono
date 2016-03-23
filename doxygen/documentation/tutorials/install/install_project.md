@@ -1,128 +1,189 @@
-Use the CMake build tool {#tutorial_install_project}
+Build a project             {#tutorial_install_project}
 ==========================
 
-There are different methods to create a C++ program that uses
-Chrono::Engine (see [this page](/documentation/tutorials/develop/) to see the
-others).
 
-The method described here is the one that we suggest in most cases,
+When you develop a C++ project and you want to use the Chrono::Engine API,
+you need to:
+- **include** the necessary .h headers at compile time,
+- **link** the necessary .lib libraries at link time
+- **dynamically link** the necessary .dll libraries at run time
+
+as shown in the next figure: <br>
+
+![](Pic_build.png)
+
+<br>
+This process can be made almost automatic if you use the CMake tool 
+for building your program, as explained in the following.
+
+<div class="ce-info">
+This is not the only option: for example you could add Chrono::Engine libraries
+to your C++ project by manually inserting libraries in the IDE settings, but
+the method described here is the one that we suggest in most cases,
 because it is platform-independent and it is based on the powerful CMake
 build tool.
+</div>
 
-Prerequisites:
+
+
+1) Check prerequisites:
+-------------------------------------------------------------------
 
 -   [CMake](http://www.cmake.org) must be already installed on
     your computer.
--   Chrono::Engine must be already [installed and
-    compiled](ChronoEngine:Installation "wikilink") on your computer.
+	
+-   Chrono::Engine must be **already installed** and **built** 
+    on your computer, as [explained here](@ref tutorial_install_chrono).
 
-![](Checkmark.png "fig:Checkmark.png") Create the project directory
+	
+2) Create the project directory
 -------------------------------------------------------------------
 
--   Copy the ChronoEngine/template_project directory to some place,
--   Rename the directory, for example: **C:/foo_project**
--   Rename the **my_example.cpp** as you want, for example:
-    **foo_example.cpp**.
+-   Copy the `template_project` directory to some place and rename it as you like.
+    For example copy from `C:\chrono_source\template_project` to `C:\my_project_source`
 
 This will be the directory where you put your source code.
 
-![](Checkmark.png "fig:Checkmark.png") Edit the CMake script
+
+3) Edit the CMake script
 ------------------------------------------------------------
 
-To make things easier for you, in the template directory there is
-already a CMake script: just edit the **CMakeLists.txt** following the
-instructions contained inside that file.
+- To make things easier for you, in the template directory there is
+  already the CMakeLists.txt script. It will be used by CMake.
+  **Optionally** you might edit it, following the contained instructions.
 
-![](Checkmark.png "fig:Checkmark.png") Start CMake
+<div class="ce-info">
+For example, suppose you want to use also the [postprocessing module](@ref module_postprocess_install).
+You can edit CMakeLists.txt where it reads:
+~~~{.c}
+find_package(Chrono
+             COMPONENTS Irrlicht
+             CONFIG)
+~~~
+and add the required module:
+~~~{.c}
+find_package(Chrono
+             COMPONENTS Irrlicht Postprocessing
+             CONFIG)
+~~~
+Same for other modules: `Fea`, `Matlab`, `Vehicle`, `Cosimulation`, etc.
+</div>
+
+<div class="ce-info">
+If you prefer to change the name of the default my_example.cpp to 
+something more meaningful, say my_simulator.cpp, just rename that file and then change the line
+ `add_executable(myexe my_example.cpp)` 
+ into 
+ `add_executable(myexe my_simulator.cpp)`
+</div>
+
+<div class="ce-info">
+If your program is split in multiple .cpp sources, just list them in this line:
+ `add_executable(myexe my_simulator.cpp  my_foo_soource.cpp  my_blabla_source.cpp)` 
+</div>
+
+
+4) Start CMake 
 --------------------------------------------------
 
 -   Start CMake GUI,
--   Use **Browse source...** by setting the source directory that you
-    created, ex: **C:/foo_project**
--   Use **Browse build...** by setting a different directory for the
-    output project, ex: **D:/build/foo_project**
 
-![](Checkmark.png "fig:Checkmark.png") Configure
+-   Use **Browse source...** by setting the source directory that you
+    created, ex: `C:\my_project_source`
+	
+-   Use **Browse build...** by setting a new empty directory for the
+    output project, ex: `C:\my_project_build`
+
+	
+5) Configure
 ------------------------------------------------
 
-Press the **Configure** button in CMake, and set the proper values in
-the CMake user interface.
+- Press the **Configure** button in CMake.
 
-If prompted to pick a generator, select the same compiler that you used
-to compile Chrono::Engine.
+- When prompted to pick a generator, select the same 
+  compiler that you used to compile Chrono::Engine.
 
-The most important variables to set are:
+- Important: set the `Chrono_DIR` variable: this is the **cmake** directory that 
+  you find in the directory where you built Chrono::Engine. 
+  (In our example it is `C:/chrono_build/cmake`). 
 
--   CH_CHRONO_SDKDIR , here set where you have the src/ directory of
-    your Chrono::Engine API.
--   CH_LIBDIR_DEBUG and CH_LIBDIR_RELEASE, here set the directories
-    where you compiled, respectively, the debug and release versions
-    of ChronoEngine.lib.
+- Press the **Configure** button again.
 
-For other variables, just hoover on the CMake variable name and you'll
-see a tool tip help.
+![](Install_my_project_1.gif)
 
-You may need to press **Configure** two or more times, the first time
-might show some red warnings.
 
-![](/images/tutorials/cmake_fooproject2.gif "cmake_fooproject2.gif")
-
-![](Checkmark.png "fig:Checkmark.png") Generate the project
+6) Generate the project
 -----------------------------------------------------------
 
-Press the **Generate** button in CMake, and a project will be created in
-the build directory, ex: **D:/build/foo_project**
+- Press the **Generate** button in CMake: a project will be created in
+  the build directory; in our example you will find it in `C:\my_project_build`
 
-![](Checkmark.png "fig:Checkmark.png") Compile the project
+
+7) Compile the project
 ----------------------------------------------------------
 
-If you used a VisualStudio generator in CMake, now you
+If you used a VisualStudio generator in CMake, now do this
 
--   **open the solution** in VisualStudio editor (in this case double
-    click on D:/build/foo_project/foo_project.sln)
+-   **open the solution** in VisualStudio editor (in our example double
+    click on `C:\my_project_build\my_project.sln`)
+
+-   change from Debug to **Release** mode, using the dropbox in the 
+    toolbar of VisualStudio
+	
 -   use the menu **BUILD / Build solution...** to compile and link.
 
 If you used a Unix makefile generator in CMake (ex. in Linux), you can
-open a shell, cd into the build directory, ex: **cd
-/home/john/foo_project** and type **make**, and the project will be
-built.
+open a shell, cd into the build directory and call **make**, ex: 
+~~~{.c}
+cd /home/john/my_project_build
+make
+~~~ 
 
-![](Checkmark.png "fig:Checkmark.png") Run your program
+
+8) Run your program
 -------------------------------------------------------
 
 By default all binaries (ex. myexe.exe) of your project will go into
-your build directory, in this example D:/build/foo_project/Release or
-D:/build/foo_project/Debug.
+your build directory, in our example `C:\my_project_build\Release\my_project.sln` 
+(or `C:\my_project_build\Debug\my_project.sln` if you decided to compile in Debug mode).
 
-Go there, double click on the .exe file and you should see the demo
-running:
+- double click on the .exe file and you should see the demo running in an interactive 3D view.
 
-![](/images/tutorials/fooproject.jpg "fooproject.jpg")
+![](Install_my_project_2.jpg)
 
 Additional information
 ----------------------
 
-<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> Copying the DLL of Chrono::Engine.
+Important notes on copying the DLL of Chrono::Engine (for Windows users). 
 
-For Windows users. Your executable need to know where to find the .dll (dynamic-link libraries), otherwise it will give an error as soon as you try to run it.
+Your executable need to know where to find the .dll (dynamic-link libraries), 
+otherwise it will give an error as soon as you try to run it.
 
-These DLLs are in the bin/Debug/ and bin/Release/ build directory where you build Chrono::Engine.
+To make things simple, at the end of the default CMakeFile.txt used in this example 
+there is this instruction: `add_DLL_copy_command macro`. 
 
-You have three options:
-
-* you copy ChronoEngine.dll, ChronoEngine_IRRLICHT.dll, and other .dll files into the same directory where you have your .exe
-* you add the build directories of Chrono::Engine in a globally-visible PATH
-* you just use the **CHRONOENGINE_ENABLE_CHRONODLLCOPY()** macro in your CMakeFile.txt as in this example. This enables an automatic copy of the needed dll just after each build. This is the suggested option. It also copies the Irrlicht.dll into your executable directory, if unit_IRRLICHT is used. 
-
-Note that Linux users do not have this issue because the .so libraries always go into into a directory that is globally visible.
-
-<span class="label label-info"><span class="glyphicon glyphicon-info-sign"></span></span> Copying the data (textures, etc).
-
-Your executable might need to load some textures, fonts, etc. For this example, the textures in the data/ directory are used. The executable will try to load them from the relative path ../data/. However, for various reason (ex. have them versioned in a GIT) it may be nice to have the data folder in the same directory of the .cpp files, and copy them to the build directory later.
-
-You have two options:
-
-* you copy the C:/foo_project/data directory into your D:/build/foo_project/data by hand,
-* you just use the **CHRONOENGINE_COPY_PROJECT_DATA_DIR()** macro in your CMakeFile.txt as in this example. This enables an automatic copy of the needed data directory just after each CMake run. 
+This takes care of **automatically copying** all the needed dlls just after each build. 
+It also copies the Irrlicht.dll into your executable directory, if unit_IRRLICHT is used. 
+  
+<div class="ce-danger">
+NOTE! Currently, the `add_DLL_copy_command macro` feature **is not working properly when in Debug mode**. 
+In fact it always copies the Release ddls of Chrono even in the Debug/ build directory of your project, 
+and this **cause the program to crash**. 
+<br><br>
+As a temporary workaround, if you want to compile your program in Debug/, please copy all the .dll files of
+the Chrono build directory (ex. from  `C:\chrono_build\bin\Debug` to `C:\my_project_build\Debug`
+<br><br>
+This is not necessary for builds in Release mode.
+</div>
 
 
+<div class="ce-info">
+Linux users do not have to care about copying dlls because the .so libraries always go into into a directory that is globally visible.
+</div>
+
+<div class="ce-info">
+Your executable might need to load some textures, fonts, etc. 
+Even for this basic example, some textures in the data/ directory are used. 
+The executable will try to load them from the relative path ../data/. 
+Thanks to CMake, such directory is automatically copied when you built the project.
+</div>

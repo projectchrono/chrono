@@ -3,7 +3,7 @@ Tutorials {#tutorial_root}
 
 
 @subpage tutorial_table_of_content_install
--   Learn how to set up Chrono on your machine
+-   Learn how to set up Chrono and Chrono-based projects on your machine
 
 @subpage tutorial_table_of_content_chrono
 -   Learn about the core of the Chrono library
@@ -21,12 +21,6 @@ Tutorials {#tutorial_root}
 -   Learn how to use [Chrono::PyEngine](@ref introduction_chrono_pyengine)
 
 
-Building a Chrono project
--------------------------
-
--   Via CMake: @subpage tutorial_cmake
-
--   Low level alternative: @subpage advanced_build
 
 Documentation guides
 -----------------
