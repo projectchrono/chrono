@@ -22,9 +22,9 @@
       "Coefficients":
       {
           "Normal Stiffness":           1.3e6,
-          "Normal damping":             1.3e3,
+          "Normal Damping":             1.3e3,
           "Tangential Stiffness":       0,
-          "Tangential Damoing":         0
+          "Tangential Damping":         0
       }
   },
 
