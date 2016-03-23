@@ -41,6 +41,7 @@ ChANCFTire::ChANCFTire(const std::string& name)
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),
+      m_contact_mat(std::make_shared<ChMaterialSurfaceDEM>()),
       m_use_mat_props(true),
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
