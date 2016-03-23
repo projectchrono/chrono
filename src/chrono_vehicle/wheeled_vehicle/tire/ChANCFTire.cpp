@@ -41,22 +41,38 @@ ChANCFTire::ChANCFTire(const std::string& name)
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),
+      m_use_mat_props(true),
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
       m_friction(0.6f),
       m_restitution(0.1f),
+      m_kn(2e5),
+      m_kt(2e5),
+      m_gn(40),
+      m_gt(20),
       m_pressure(-1) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChANCFTire::SetContactMaterial(float friction_coefficient,
-                                    float restitution_coefficient,
-                                    float young_modulus,
-                                    float poisson_ratio) {
+void ChANCFTire::SetContactMaterialProperties(float friction_coefficient,
+                                              float restitution_coefficient,
+                                              float young_modulus,
+                                              float poisson_ratio) {
+    m_use_mat_props = true;
+
     m_friction = friction_coefficient;
     m_restitution = restitution_coefficient;
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
+}
+
+void ChANCFTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
+    m_use_mat_props = false;
+
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
 }
 
 // -----------------------------------------------------------------------------
@@ -99,10 +115,21 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     if (m_contact_enabled) {
         // Create the contact material
         auto contact_mat = std::make_shared<ChMaterialSurfaceDEM>();
-        contact_mat->SetYoungModulus(m_young_modulus);
-        contact_mat->SetFriction(m_friction);
-        contact_mat->SetRestitution(m_restitution);
-        contact_mat->SetPoissonRatio(m_poisson_ratio);
+        if (m_use_mat_props) {
+            contact_mat->SetYoungModulus(m_young_modulus);
+            contact_mat->SetFriction(m_friction);
+            contact_mat->SetRestitution(m_restitution);
+            contact_mat->SetPoissonRatio(m_poisson_ratio);
+
+            system->UseMaterialProperties(true);
+        } else {
+            contact_mat->SetKn(m_kn);
+            contact_mat->SetGn(m_gn);
+            contact_mat->SetKt(m_kt);
+            contact_mat->SetGt(m_gt);
+
+            system->UseMaterialProperties(false);
+        }
 
         // Create the contact surface
         switch (m_contact_type) {

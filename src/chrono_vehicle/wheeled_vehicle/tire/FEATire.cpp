@@ -86,12 +86,28 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     m_rim_width = d["Rim Width"].GetDouble();
 
     // Read contact material data
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetDouble();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetDouble();
-    float ym = d["Contact Material"]["Young Modulus"].GetDouble();
-    float pr = d["Contact Material"]["Poisson Ratio"].GetDouble();
+    assert(d.HasMember("Contact Material"));
+    assert(d["Contact Material"].HasMember("Use Physical Properties"));
 
-    SetContactMaterial(mu, cr, ym, pr);
+    if (d["Contact Material"]["Use Physical Properties"].GetBool()) {
+        assert(d["Contact Material"].HasMember("Properties"));
+
+        float mu = d["Contact Material"]["Properties"]["Coefficient of Friction"].GetDouble();
+        float cr = d["Contact Material"]["Properties"]["Coefficient of Restitution"].GetDouble();
+        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetDouble();
+        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetDouble();
+
+        SetContactMaterialProperties(mu, cr, ym, pr);
+    } else {
+        assert(d["Contact Material"].HasMember("Coefficients"));
+
+        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetDouble();
+        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetDouble();
+        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetDouble();
+        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetDouble();
+
+        SetContactMaterialCoefficients(kn, gn, kt, gt);
+    }
 
     // Read continuum material data
     double E = d["Continuum Material"]["Elasticity Modulus"].GetDouble();

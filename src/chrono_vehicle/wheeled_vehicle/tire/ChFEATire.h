@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Template for a deformable co-rotational FEA tire
+// Template for a deformable co-rotational FEA tire.
 //
 // =============================================================================
 
@@ -45,12 +45,23 @@ class CH_VEHICLE_API ChFEATire : public ChTire {
     /// Set radius of contact nodes.
     void SetContactNodeRadius(double radius) { m_contact_node_radius = radius; }
 
-    /// Set contact material properties
-    void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
-                            float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
-                            float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
-                            float poisson_ratio = 0.3f            ///< [in] Poisson ratio
-                            );
+    /// Set contact material properties.
+    /// Alternatively, the contact material coefficients can be set explicitly, using the
+    /// function SetContactMaterialCoefficients.
+    void SetContactMaterialProperties(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
+        float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
+        float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
+        float poisson_ratio = 0.3f            ///< [in] Poisson ratio
+        );
+
+    /// Set contact material coefficients.
+    /// Alternatively, physical material properties can be set, using the function
+    /// SetContactMaterialProperties.
+    void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
+        float gn,  ///< [in] normal contact damping
+        float kt,  ///< [in] tangential contact stiffness
+        float gt   ///< [in] tangential contact damping
+        );
 
     /// Enable/didable tire pressure.
     void EnablePressure(bool val) { m_pressure_enabled = val; }
@@ -113,17 +124,23 @@ class CH_VEHICLE_API ChFEATire : public ChTire {
     std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
 
   private:
-    bool m_connection_enabled;
-    bool m_pressure_enabled;
-    bool m_contact_enabled;
+    bool m_connection_enabled;  ///< enable tire connections to rim
+    bool m_pressure_enabled;    ///< enable internal tire pressure
+    bool m_contact_enabled;     ///< enable tire-terrain contact
 
-    double m_pressure;
+    double m_pressure;  ///< internal tire pressure
 
-    double m_contact_node_radius;
-    float m_friction;
-    float m_restitution;
-    float m_young_modulus;
-    float m_poisson_ratio;
+    double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
+
+    bool m_use_mat_props;   ///< specify contact material using physical properties
+    float m_friction;       ///< contact coefficient of friction
+    float m_restitution;    ///< contact coefficient of restitution
+    float m_young_modulus;  ///< contact material Young modulus
+    float m_poisson_ratio;  ///< contact material Poisson ratio
+    float m_kn;             ///< normal contact stiffness
+    float m_gn;             ///< normal contact damping
+    float m_kt;             ///< tangential contact stiffness
+    float m_gt;             ///< tangential contact damping
 };
 
 /// @} vehicle_wheeled_tire

@@ -37,7 +37,7 @@ const double ANCFToroidalTire::m_default_pressure = 320.0e3;
 const double ANCFToroidalTire::m_alpha = 0.15;
 
 ANCFToroidalTire::ANCFToroidalTire(const std::string& name) : ChANCFTire(name) {
-    SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f);
+    SetContactMaterialProperties(0.9f, 0.1f, 2e7f, 0.3f);
     SetContactSurfaceType(ChANCFTire::NODE_CLOUD);
 }
 
