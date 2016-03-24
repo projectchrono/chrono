@@ -114,6 +114,7 @@ void ChFEATire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     }
 
     // Create the contact material
+    m_contact_mat = std::make_shared<ChMaterialSurfaceDEM>();
     if (m_use_mat_props) {
         m_contact_mat->SetYoungModulus(m_young_modulus);
         m_contact_mat->SetFriction(m_friction);
