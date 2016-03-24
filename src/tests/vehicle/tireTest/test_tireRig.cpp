@@ -158,10 +158,10 @@ class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallba
             ChVector<> Q(P.x, P.y, m_terrain->GetHeight(P.x, P.y));
 
             // Calculate signed height of sphere center above plane
-            double height = Vdot(normal, Q - P);
+            double height = Vdot(normal, P - Q);
 
             // No collision if the sphere center is above plane by more than radius
-            if (height >= m_radius)
+            if (height >= m_radius) 
                 continue;
 
             // Create a collision info structure:
@@ -175,8 +175,8 @@ class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallba
             contact.modelA = m_terrain->GetGroundBody()->GetCollisionModel();
             contact.modelB = contact_node->GetCollisionModel();
             contact.vN = normal;
-            contact.vpA = Q - height * normal;
-            contact.vpB = Q - m_radius * normal;
+            contact.vpA = P - height * normal;
+            contact.vpB = P - m_radius * normal;
             contact.distance = height - m_radius;
 
             // Register contact
