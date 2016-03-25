@@ -51,9 +51,9 @@ void ChCosimVehicleNode::Initialize(const ChCoordsys<>& chassisPos) {
         props[1] = inertia.x;
         props[2] = inertia.y;
         props[3] = inertia.z;
-        MPI_Send(props, 4, MPI_DOUBLE, TIRE_NODE(iw), iw, MPI_COMM_WORLD);
+        MPI_Send(props, 4, MPI_DOUBLE, TIRE_NODE_RANK(iw), iw, MPI_COMM_WORLD);
 #ifdef VERBOSE_DEBUG
-        printf("Vehicle node %d.  Send to %d  props = %g %g %g %g\n", m_rank, TIRE_NODE(iw), props[0], props[1],
+        printf("Vehicle node %d.  Send to %d  props = %g %g %g %g\n", m_rank, TIRE_NODE_RANK(iw), props[0], props[1],
                props[2], props[3]);
 #endif
     }

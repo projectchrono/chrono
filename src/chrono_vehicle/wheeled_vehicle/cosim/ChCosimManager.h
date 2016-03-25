@@ -39,42 +39,44 @@ namespace vehicle {
 
 #define VERBOSE_DEBUG
 
-#define VEHICLE_NODE 0
-#define TERRAIN_NODE 1
-#define TIRE_NODE(i) (i+2)
+#define VEHICLE_NODE_RANK 0
+#define TERRAIN_NODE_RANK 1
+#define TIRE_NODE_RANK(i) (i+2)
 
 /// @addtogroup vehicle_wheeled_cosim
 /// @{
 
 class CH_VEHICLE_API ChCosimManager {
   public:
+    enum NodeType { VEHICLE_NODE, TERRAIN_NODE, TIRE_NODE };
+
     ChCosimManager(int num_tires);
     virtual ~ChCosimManager();
+
+    virtual void SetNodeType(NodeType type) {}
 
     virtual ChWheeledVehicle* GetVehicle() = 0;
     virtual ChPowertrain* GetPowertrain() = 0;
     virtual ChDriver* GetDriver() = 0;
     virtual double GetVehicleStepsize() = 0;
+    virtual const ChCoordsys<>& GetVehicleInitialPosition() = 0;
+    virtual void OnAdvanceVehicle() {}
 
     virtual ChSystem* GetChronoSystemTerrain() = 0;
     virtual ChTerrain* GetTerrain() = 0;
     virtual double GetTerrainStepsize() = 0;
+    virtual void OnAdvanceTerrain() {}
 
-    virtual ChSystem* GetChronoSystemTire() = 0;
+    virtual ChSystem* GetChronoSystemTire(WheelID which) = 0;
     virtual ChTire* GetTire(WheelID which) = 0;
-    virtual double GetTireStepsize() = 0;
+    virtual double GetTireStepsize(WheelID which) = 0;
+    virtual void OnAdvanceTire(WheelID id) {}
 
-    virtual const ChCoordsys<>& GetVehicleInitialPosition() = 0;
-
-    bool Initialize(int argc, char** argv);
+    bool Initialize();
     void Abort();
 
     void Synchronize(double time);
     void Advance(double step);
-
-    virtual void OnAdvanceVehicle() {}
-    virtual void OnAdvanceTerrain() {}
-    virtual void OnAdvanceTire(WheelID id) {}
 
   private:
     int m_rank;

@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <iostream>
+#include <cstdio>
 
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimManager.h"
 
@@ -34,53 +35,66 @@ ChCosimManager::~ChCosimManager() {
     MPI_Finalize();
 }
 
-bool ChCosimManager::Initialize(int argc, char** argv) {
+bool ChCosimManager::Initialize() {
     // Initialize MPI
     int num_procs;
-    MPI_Init(&argc, &argv);
+    MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &m_rank);
 
     if (num_procs != m_num_tires + 2) {
-        if (m_rank == VEHICLE_NODE) {
+        if (m_rank == VEHICLE_NODE_RANK) {
             std::cout << "ERROR:  Incorrect number of processors!" << std::endl;
-            std::cout << "  Provided:  " << num_procs << std::endl;
-            std::cout << "  Required : " << m_num_tires + 2 << std::endl;
+            std::cout << "  Provided: " << num_procs << std::endl;
+            std::cout << "  Required: " << m_num_tires + 2 << std::endl;
         }
         return false;
     }
 
     // Create and initialize the different cosimulation nodes
-    if (m_rank == VEHICLE_NODE) {
+    if (m_rank == VEHICLE_NODE_RANK) {
+        SetNodeType(VEHICLE_NODE);
         m_vehicle_node = new ChCosimVehicleNode(GetVehicle(), GetPowertrain(), GetDriver());
         if (m_num_tires != 2 * m_vehicle_node->GetNumberAxles()) {
             std::cout << "ERROR:  Incorrect number of tires!" << std::endl;
-            std::cout << "  Provided:  " << m_num_tires << std::endl;
-            std::cout << "  Required : " << 2 * m_vehicle_node->GetNumberAxles() << std::endl;
+            std::cout << "  Provided: " << m_num_tires << std::endl;
+            std::cout << "  Required: " << 2 * m_vehicle_node->GetNumberAxles() << std::endl;
             return false;
         }
         m_vehicle_node->Initialize(GetVehicleInitialPosition());
         m_vehicle_node->SetStepsize(GetVehicleStepsize());
         m_vehicle_node->SetRank(m_rank);
-    } else if (m_rank == TERRAIN_NODE) {
+#ifdef VERBOSE_DEBUG
+        printf("VEHICLE NODE created.  rank = %n", m_rank);
+#endif
+    } else if (m_rank == TERRAIN_NODE_RANK) {
+        SetNodeType(TERRAIN_NODE);
         m_terrain_node = new ChCosimTerrainNode(GetChronoSystemTerrain(), GetTerrain());
         m_terrain_node->Initialize();
         m_terrain_node->SetStepsize(GetTerrainStepsize());
         m_terrain_node->SetRank(m_rank);
+#ifdef VERBOSE_DEBUG
+        printf("TERRAIN NODE created.  rank = %n", m_rank);
+#endif
     } else {
-        m_tire_node = new ChCosimTireNode(GetChronoSystemTire(), GetTire(WheelID(m_rank - 2)), WheelID(m_rank - 2));
+        SetNodeType(TIRE_NODE);
+        WheelID id(m_rank - 2);
+        m_tire_node = new ChCosimTireNode(GetChronoSystemTire(id), GetTire(id), id);
         m_tire_node->Initialize();
-        m_tire_node->SetStepsize(GetTireStepsize());
+        m_tire_node->SetStepsize(GetTireStepsize(id));
         m_tire_node->SetRank(m_rank);
+#ifdef VERBOSE_DEBUG
+        printf("TIRE NODE created.  rank = %n", m_rank);
+#endif
     }
 
     return true;
 }
 
 void ChCosimManager::Synchronize(double time) {
-    if (m_rank == VEHICLE_NODE) {
+    if (m_rank == VEHICLE_NODE_RANK) {
         m_vehicle_node->Synchronize(time);
-    } else if (m_rank == TERRAIN_NODE) {
+    } else if (m_rank == TERRAIN_NODE_RANK) {
         m_terrain_node->Synchronize(time);
     } else {
         m_tire_node->Synchronize(time);
@@ -88,7 +102,17 @@ void ChCosimManager::Synchronize(double time) {
 }
 
 void ChCosimManager::Advance(double step) {
-
+    if (m_rank == VEHICLE_NODE_RANK) {
+        m_vehicle_node->Advance(step);
+        OnAdvanceVehicle();
+    } else if (m_rank == TERRAIN_NODE_RANK) {
+        m_terrain_node->Advance(step);
+        OnAdvanceTerrain();
+    } else {
+        WheelID id(m_rank - 2);
+        m_tire_node->Advance(step);
+        OnAdvanceTire(id);
+    }
 }
 
 void ChCosimManager::Abort() {
