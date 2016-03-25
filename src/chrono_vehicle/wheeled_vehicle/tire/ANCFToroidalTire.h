@@ -9,11 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Antonio Recuero
 // =============================================================================
 //
 // Sample ANCF toroidal tire.
-// This is a concrete ANCF tire class which uses a semi-toroidal tire mesh
+// This is a customizable ANCF tire class which uses a toroidal tire mesh
 // composed of single-layer ANCF shell elements.
 //
 // =============================================================================
