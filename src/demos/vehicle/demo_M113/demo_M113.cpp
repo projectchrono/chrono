@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------
 
     M113_SimplePowertrain powertrain;
-    powertrain.Initialize();
+    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application

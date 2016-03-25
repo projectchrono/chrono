@@ -31,7 +31,7 @@ ChSimplePowertrain::ChSimplePowertrain() : ChPowertrain(), m_motorSpeed(0), m_mo
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimplePowertrain::Initialize() {
+void ChSimplePowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared_ptr<ChShaft> driveshaft) {
     m_current_gear_ratio = GetForwardGearRatio();
 }
 
