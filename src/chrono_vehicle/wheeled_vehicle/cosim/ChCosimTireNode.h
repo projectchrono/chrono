@@ -33,10 +33,9 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimTireNode {
   public:
-    ChCosimTireNode(ChSystem* system, ChTire* tire, WheelID id);
+    ChCosimTireNode(int rank, ChSystem* system, ChTire* tire, WheelID id);
     ~ChCosimTireNode() {}
 
-    void SetRank(int rank) { m_rank = rank; }
     void SetStepsize(double stepsize) { m_stepsize = stepsize; }
     void Initialize();
     void Synchronize(double time);

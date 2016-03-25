@@ -34,10 +34,9 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimVehicleNode {
   public:
-    ChCosimVehicleNode(ChWheeledVehicle* vehicle, ChPowertrain* powertrain, ChDriver* driver);
+    ChCosimVehicleNode(int rank, ChWheeledVehicle* vehicle, ChPowertrain* powertrain, ChDriver* driver);
     int GetNumberAxles() const { return m_vehicle->GetNumberAxles(); }
 
-    void SetRank(int rank) { m_rank = rank; }
     void SetStepsize(double stepsize);
     void Initialize(const ChCoordsys<>& chassisPos);
     void Synchronize(double time);

@@ -54,7 +54,7 @@ bool ChCosimManager::Initialize() {
     // Create and initialize the different cosimulation nodes
     if (m_rank == VEHICLE_NODE_RANK) {
         SetNodeType(VEHICLE_NODE);
-        m_vehicle_node = new ChCosimVehicleNode(GetVehicle(), GetPowertrain(), GetDriver());
+        m_vehicle_node = new ChCosimVehicleNode(m_rank, GetVehicle(), GetPowertrain(), GetDriver());
         if (m_num_tires != 2 * m_vehicle_node->GetNumberAxles()) {
             std::cout << "ERROR:  Incorrect number of tires!" << std::endl;
             std::cout << "  Provided: " << m_num_tires << std::endl;
@@ -63,28 +63,27 @@ bool ChCosimManager::Initialize() {
         }
         m_vehicle_node->Initialize(GetVehicleInitialPosition());
         m_vehicle_node->SetStepsize(GetVehicleStepsize());
-        m_vehicle_node->SetRank(m_rank);
 #ifdef VERBOSE_DEBUG
-        printf("VEHICLE NODE created.  rank = %n", m_rank);
+        std::cout << "VEHICLE NODE created.  rank = " << m_rank << std::endl;
 #endif
-    } else if (m_rank == TERRAIN_NODE_RANK) {
+    }
+    else if (m_rank == TERRAIN_NODE_RANK) {
         SetNodeType(TERRAIN_NODE);
-        m_terrain_node = new ChCosimTerrainNode(GetChronoSystemTerrain(), GetTerrain());
+        m_terrain_node = new ChCosimTerrainNode(m_rank, GetChronoSystemTerrain(), GetTerrain());
         m_terrain_node->Initialize();
         m_terrain_node->SetStepsize(GetTerrainStepsize());
-        m_terrain_node->SetRank(m_rank);
 #ifdef VERBOSE_DEBUG
-        printf("TERRAIN NODE created.  rank = %n", m_rank);
+        std::cout << "TERRAIN NODE created.  rank = " << m_rank << std::endl;
 #endif
-    } else {
+    }
+    else {
         SetNodeType(TIRE_NODE);
         WheelID id(m_rank - 2);
-        m_tire_node = new ChCosimTireNode(GetChronoSystemTire(id), GetTire(id), id);
+        m_tire_node = new ChCosimTireNode(m_rank, GetChronoSystemTire(id), GetTire(id), id);
         m_tire_node->Initialize();
         m_tire_node->SetStepsize(GetTireStepsize(id));
-        m_tire_node->SetRank(m_rank);
 #ifdef VERBOSE_DEBUG
-        printf("TIRE NODE created.  rank = %n", m_rank);
+        std::cout << "TIRE NODE created.  rank = " << m_rank << std::endl;
 #endif
     }
 

@@ -24,10 +24,11 @@
 namespace chrono {
 namespace vehicle {
 
-ChCosimTerrainNode::ChCosimTerrainNode(ChSystem* system, ChTerrain* terrain) : m_system(system), m_terrain(terrain) {}
+ChCosimTerrainNode::ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain)
+    : m_rank(rank), m_system(system), m_terrain(terrain) {}
 
 void ChCosimTerrainNode::Initialize() {
-    ////m_terrain->Initialize(m_system);
+
 }
 
 void ChCosimTerrainNode::Synchronize(double time) {

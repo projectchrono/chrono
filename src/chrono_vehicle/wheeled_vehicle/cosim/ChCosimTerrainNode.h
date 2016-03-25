@@ -33,9 +33,8 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimTerrainNode {
 public:
-    ChCosimTerrainNode(ChSystem* system, ChTerrain* terrain);
+    ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain);
 
-    void SetRank(int rank) { m_rank = rank; }
     void SetStepsize(double stepsize) { m_stepsize = stepsize; }
     void Initialize();
     void Synchronize(double time);

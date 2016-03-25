@@ -25,8 +25,8 @@
 namespace chrono {
 namespace vehicle {
 
-ChCosimVehicleNode::ChCosimVehicleNode(ChWheeledVehicle* vehicle, ChPowertrain* powertrain, ChDriver* driver)
-    : m_vehicle(vehicle), m_powertrain(powertrain), m_driver(driver) {
+ChCosimVehicleNode::ChCosimVehicleNode(int rank, ChWheeledVehicle* vehicle, ChPowertrain* powertrain, ChDriver* driver)
+    : m_rank(rank), m_vehicle(vehicle), m_powertrain(powertrain), m_driver(driver) {
     m_num_wheels = 2 * m_vehicle->GetNumberAxles();
     m_wheel_states.resize(m_num_wheels);
     m_tire_forces.resize(m_num_wheels);
@@ -39,8 +39,8 @@ void ChCosimVehicleNode::SetStepsize(double stepsize) {
 
 void ChCosimVehicleNode::Initialize(const ChCoordsys<>& chassisPos) {
     m_vehicle->Initialize(chassisPos);
-    ////m_powertrain->Initialize();
-    ////m_driver->Initialize();
+    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
+    m_driver->Initialize();
 
     // Send wheel masses and inertias to the tire nodes
     double props[4];
