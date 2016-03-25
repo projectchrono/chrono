@@ -26,23 +26,20 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::fea;
 
-const double ANCFToroidalTire::m_rim_radius = 0.35;
-const double ANCFToroidalTire::m_height = 0.195;
-const double ANCFToroidalTire::m_thickness = 0.014;
-
-const int ANCFToroidalTire::m_div_circumference = 60;
-const int ANCFToroidalTire::m_div_width = 12;
-
-const double ANCFToroidalTire::m_default_pressure = 320.0e3;
-const double ANCFToroidalTire::m_alpha = 0.15;
-
-ANCFToroidalTire::ANCFToroidalTire(const std::string& name) : ChANCFTire(name) {
+ANCFToroidalTire::ANCFToroidalTire(const std::string& name)
+    : ChANCFTire(name),
+      m_rim_radius(0.35),
+      m_height(0.195),
+      m_thickness(0.014),
+      m_div_circumference(60),
+      m_div_width(12),
+      m_default_pressure(320.0e3),
+      m_alpha(0.15) {
     SetContactMaterialProperties(0.9f, 0.1f, 2e7f, 0.3f);
     SetContactSurfaceType(ChANCFTire::NODE_CLOUD);
 }
 
-void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame,
-                                  VehicleSide side) {
+void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
     auto mat = std::make_shared<ChMaterialShellANCF>(500, 9.0e7, 0.3);
 

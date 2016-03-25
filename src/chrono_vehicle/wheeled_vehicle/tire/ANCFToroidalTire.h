@@ -42,18 +42,28 @@ class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
     virtual double GetWidth() const override { return 2 * m_height; }
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
     virtual std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> GetConnectedNodes() const override;
+
+    void SetRimRadius(double rimRadius_) { m_rim_radius = rimRadius_; }
+    void SetHeight(double height_) { m_height = height_; }
+    void SetThickness(double thickness_) { m_thickness = thickness_; }
+
+    void SetDivCircumference(int divcirc_) { m_div_circumference = divcirc_; }
+    void SetDivWidth(int divwidth_) { m_div_width = divwidth_; }
+
+    void SetPressure(double pressure_) { m_default_pressure = pressure_; }
+    void SetAlpha(double alpha_) { m_alpha = alpha_; }
     virtual void CreateMesh(const chrono::ChFrameMoving<>& wheel_frame, chrono::vehicle::VehicleSide side) override;
 
   private:
-    static const double m_rim_radius;
-    static const double m_height;
-    static const double m_thickness;
+    double m_rim_radius;
+    double m_height;
+    double m_thickness;
 
-    static const int m_div_circumference;
-    static const int m_div_width;
+    int m_div_circumference;
+    int m_div_width;
 
-    static const double m_default_pressure;
-    static const double m_alpha;
+    double m_default_pressure;
+    double m_alpha;
 };
 /// @} vehicle_wheeled_tire
 }  // end namespace vehicle
