@@ -60,7 +60,7 @@ ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
 
 float mu_g = 0.8f;
 
-int num_particles = 100;
+unsigned int num_particles = 100;
 
 // -----------------------------------------------------------------------------
 // Specification of the vehicle model
@@ -164,7 +164,7 @@ double CreateParticles(ChSystem* system) {
 
     // Create a particle generator and a mixture entirely made out of spheres
     utils::Generator gen(system);
-    std::shared_ptr<utils::MixtureIngredient>& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
     m1->setDefaultMaterialDVI(mat_g);
     m1->setDefaultDensity(rho_g);
     m1->setDefaultSize(r_g);

@@ -286,7 +286,7 @@ class PDSampler : public Sampler<T> {
     // As long as there are active points...
     while (m_active.size() != 0) {
       // ... select one of them at random
-      std::uniform_int_distribution<int> intDist(0, m_active.size() - 1);
+      std::uniform_int_distribution<int> intDist(0, (int)m_active.size() - 1);
 
       typename PointList::iterator point = m_active.begin();
       std::advance(point, intDist(rengine()));

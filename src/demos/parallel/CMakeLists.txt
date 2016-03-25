@@ -12,12 +12,10 @@ SET(LIBRARIES
 IF(ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-ENDIF()
 
-# ------------------------------------------------------------------------------
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+    IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+       SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+    ENDIF()
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -26,16 +24,11 @@ ENDIF()
 
 # Programs that can work with or without OpenGL
 SET(DEMOS
-    ballsDEM
-    ballsDVI
-    mixerDEM
-    mixerDVI
+    demo_PAR_ballsDEM
+    demo_PAR_ballsDVI
+    demo_PAR_mixerDEM
+    demo_PAR_mixerDVI
 )
-
-# Programs that require OpenGL support
-IF(ENABLE_MODULE_OPENGL)
-    SET(DEMOS ${DEMOS} benchmarkOpenGL shapesOpenGL)
-ENDIF()
 
 # ------------------------------------------------------------------------------
 # Add all executables

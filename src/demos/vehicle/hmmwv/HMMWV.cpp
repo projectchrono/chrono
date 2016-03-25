@@ -85,17 +85,17 @@ void HMMWV::Initialize() {
     switch (m_powertrainType) {
         case SHAFTS: {
             HMMWV_Powertrain* ptrain = new HMMWV_Powertrain;
-            ptrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
             m_powertrain = ptrain;
             break;
         }
         case SIMPLE: {
             HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain;
-            ptrain->Initialize();
             m_powertrain = ptrain;
             break;
         }
     }
+
+    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
