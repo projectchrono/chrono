@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
     double displacement_time = 2.0;  // time to go from 0 to max applied post motion
     driver.SetSteeringDelta(render_step_size / steering_time);
     driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
+    driver.Initialize();
 
     // ---------------
     // Simulation loop

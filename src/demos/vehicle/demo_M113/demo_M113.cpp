@@ -162,6 +162,8 @@ int main(int argc, char* argv[]) {
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
 
+    driver.Initialize();
+
     // -----------------
     // Initialize output
     // -----------------

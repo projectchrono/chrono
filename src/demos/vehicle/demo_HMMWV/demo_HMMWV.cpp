@@ -182,6 +182,8 @@ int main(int argc, char* argv[]) {
         driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
     }
 
+    driver.Initialize();
+
     // ---------------
     // Simulation loop
     // ---------------

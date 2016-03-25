@@ -390,7 +390,7 @@ int main(int argc, char* argv[]) {
 
     // Create the driver system
     ChDataDriver driver(vehicle, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-
+    driver.Initialize();
 
     // ---------------
     // Simulation loop

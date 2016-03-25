@@ -172,6 +172,8 @@ int main(int argc, char* argv[]) {
     driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
     driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
 
+    driver.Initialize();
+
     // -----------------
     // Initialize output
     // -----------------

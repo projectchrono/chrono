@@ -177,6 +177,8 @@ int main(int argc, char* argv[]) {
 
 #endif
 
+    driver.Initialize();
+
 // ---------------
 // Simulation loop
 // ---------------

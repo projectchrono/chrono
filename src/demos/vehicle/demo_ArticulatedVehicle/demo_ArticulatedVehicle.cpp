@@ -172,6 +172,8 @@ int main(int argc, char* argv[]) {
     Generic_FuncDriver driver(vehicle);
 #endif
 
+    driver.Initialize();
+
 // ---------------
 // Simulation loop
 // ---------------
