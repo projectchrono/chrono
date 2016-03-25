@@ -11,8 +11,6 @@ endif()
 
 set(TEST_FILES
     test_tireANCF.cpp
-    ANCFToroidalTire.h
-    ANCFToroidalTire.cpp
     )
 
 source_group("" FILES ${TEST_FILES})

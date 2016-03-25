@@ -22,8 +22,17 @@
 #define ANCF_TOROIDAL_TIRE_H
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
+#include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_fea/ChElementShellANCF.h"
 
-class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
+namespace chrono {
+namespace vehicle {
+
+/// @addtogroup vehicle_wheeled_tire
+/// @{
+
+/// ANCF Toroidal Tire.
+class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
   public:
     ANCFToroidalTire(const std::string& name);
     ~ANCFToroidalTire() {}
@@ -33,8 +42,7 @@ class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
     virtual double GetWidth() const override { return 2 * m_height; }
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
     virtual std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> GetConnectedNodes() const override;
-    virtual void CreateMesh(const chrono::ChFrameMoving<>& wheel_frame,
-                            chrono::vehicle::VehicleSide side) override;
+    virtual void CreateMesh(const chrono::ChFrameMoving<>& wheel_frame, chrono::vehicle::VehicleSide side) override;
 
   private:
     static const double m_rim_radius;
@@ -47,5 +55,7 @@ class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
     static const double m_default_pressure;
     static const double m_alpha;
 };
-
+/// @} vehicle_wheeled_tire
+}  // end namespace vehicle
+}  // end namespace chrono
 #endif
