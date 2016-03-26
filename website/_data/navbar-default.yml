@@ -25,6 +25,9 @@ main:
     - title: Movies
       url: '/gallery/'
       sub:
+	   -
+         title: Gallery
+         url: '/gallery/'
        -
          title: SBEL
          url: 'http://sbel.wisc.edu/Animations/'
