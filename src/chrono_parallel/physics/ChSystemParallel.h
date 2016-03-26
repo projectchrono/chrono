@@ -40,7 +40,11 @@
 #include "chrono_parallel/collision/ChCNarrowphaseR.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/physics/ChNodeFluid.h"
+
 namespace chrono {
+
+/// @addtogroup parallel_module
+/// @{
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   CH_RTTI(ChSystemParallel, ChSystem);
@@ -176,4 +180,5 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
   }
 };
 
+/// @} parallel_module
 }  // end namespace chrono

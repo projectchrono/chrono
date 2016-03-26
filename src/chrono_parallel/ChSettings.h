@@ -24,6 +24,11 @@
 #include "chrono_parallel/ChParallelDefines.h"
 
 namespace chrono {
+
+/// @addtogroup parallel_module
+/// @{
+
+
 // collision_settings, like the name implies is the structure that contains all
 // settings associated with the collision detection step of chrono parallel
 struct collision_settings {
@@ -245,5 +250,8 @@ struct settings_container {
   // problem or a DEM penalty based
   SYSTEMTYPE system_type;
 };
+
+/// @} parallel_module
+
 }
 

@@ -10,6 +10,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_module
+/// @{
+
 /// Class representing a container of many contacts, implemented as a linked list of contact tuples.
 /// Notes:
 /// * This container is used only for reporting geometric information about the contact pairs
@@ -42,4 +45,6 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase
   std::list<ChContact_6_6*> contactlist_6_6;
   std::list<ChContact_6_6*>::iterator lastcontact_6_6;
 };
+
+/// @} parallel_module
 }

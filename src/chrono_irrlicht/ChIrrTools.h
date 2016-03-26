@@ -50,7 +50,7 @@ class ChApiIrr vector3dfCH : public vector3df {
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 // -----------------------------------------------------------------------------
@@ -227,7 +227,7 @@ class ChApiIrr ChIrrTools {
                            bool use_Zbuffer = false);
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

@@ -133,3 +133,18 @@ In some distributions of Python, the debug library '''python33_d.lib''' (the deb
 	</tt>
 3. press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link '''python33.lib''' instead than '''python33_d.lib'''.
 </div>
+
+
+## How to use it
+
+- C++ functions (as Python parser)
+
+	- Look at the [API section](group__python__module.html) of this module for documentation about C++ functions.
+
+	- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the C++ functions of this module.
+
+- Python functions (as [Chrono::PyEngine](@ref introduction_chrono_pyengine) )
+
+	- Look at the [reference](@ref chrono_pyengine_reference) of Chrono::PyEngine to learn how to use Python to control Chrono.
+
+	- Look at the Python source of [demos](@ref tutorial_table_of_content_chrono_pyengine) to learn how to use Chrono::PyEngine.

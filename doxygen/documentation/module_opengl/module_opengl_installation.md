@@ -51,4 +51,3 @@ Most demos and tutorials do **not** use this module for visualization, as they u
 the[IRRLICHT module](@ref module_irrlicht_installer), which is easier to use, and at a more advanced stage of development.
 </div>
 
-Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.

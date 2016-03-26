@@ -33,7 +33,11 @@
 namespace chrono 
 {
 
+/// @addtogroup python_module
+/// @{
 
+/// Class for a Python parser. This is an interpreter that can parse Python
+/// programs, from a single formula up to large programs.
 class ChApiPYPARSER ChPythonEngine
 {
 public:
@@ -102,6 +106,7 @@ public:
 
 
 
+/// @} python_module
 
 } // END_OF_NAMESPACE____
 

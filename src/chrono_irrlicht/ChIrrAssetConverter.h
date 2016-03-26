@@ -36,7 +36,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class with static functions which allow creation of Irrlicht frequent
@@ -113,7 +113,7 @@ class ChApiIrr ChIrrAssetConverter {
                                   irr::scene::ISceneNode* mnode);
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

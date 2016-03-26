@@ -19,7 +19,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class to add some GUI to Irrlicht+Chrono::Engine applications.  Such basic
@@ -90,7 +90,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
     ChIrrAssetConverter* mconverter;
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

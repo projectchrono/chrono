@@ -22,7 +22,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class for adding Irrlicht visualization to a ChPhysicsItem.
@@ -71,7 +71,7 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
     }
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

@@ -181,9 +181,3 @@ This is not necessary for builds in Release mode.
 Linux users do not have to care about copying dlls because the .so libraries always go into into a directory that is globally visible.
 </div>
 
-<div class="ce-info">
-Your executable might need to load some textures, fonts, etc. 
-Even for this basic example, some textures in the data/ directory are used. 
-The executable will try to load them from the relative path ../data/. 
-Thanks to CMake, such directory is automatically copied when you built the project.
-</div>

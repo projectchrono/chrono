@@ -68,4 +68,8 @@ Here are the main features:
 </div>
 
 
-Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.
+## How to use it
+
+- Look at the [API section](group__cosimulation__module.html) of this module for documentation about classes and functions.
+
+- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.

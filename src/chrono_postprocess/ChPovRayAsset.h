@@ -18,6 +18,9 @@
 namespace chrono {
 namespace postprocess {
 
+/// @addtogroup postprocess_module
+/// @{
+
 /// Class for telling to the POV ray exporter that the ChPhysicsItem that
 /// contain this asset should be exported to POV scripts.
 /// Consider it a very simple 'flagging' system.
@@ -40,6 +43,7 @@ class ChPovRayAsset : public ChAsset {
     virtual ~ChPovRayAsset(){};
 };
 
+/// @} postprocess_module
 }  // end namespace
 }  // end namespace
 

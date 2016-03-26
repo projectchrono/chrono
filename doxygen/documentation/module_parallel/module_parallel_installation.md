@@ -56,4 +56,9 @@ This unit is under development.
 Not all the features of the standard _serial_ version of Chrono::Engine are supported.
 </div>
 
-Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.
+
+## How to use it
+
+- Look at the [API section](group__parallel__module.html) of this module for documentation about classes and functions.
+
+- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.

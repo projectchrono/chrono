@@ -76,4 +76,8 @@ you do not need to do anything. Otherwise do what follows.
 7. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 
-Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.
+## How to use it
+
+- Look at the [API section](group__irrlicht__module.html) of this module for documentation about classes and functions.
+
+- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.

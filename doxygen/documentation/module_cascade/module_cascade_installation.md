@@ -45,7 +45,12 @@ Here are the main features:
 <div class="ce-warning">
 Warning! if you execute the demo .exe programs of this module, 
 most likely you will get an error message because Windows cannot 
-find some OpenCascade DLLs. Solution: execute the `env.bat` script in the OpenCascade directory before 
+find some OpenCascade DLLs. 
+</div>
+
+In order to have the DLLs reachable, on windows, do the following:
+
+Execute the `env.bat` script in the OpenCascade directory before 
 launching the demo (but only from the same DOS shell, via command line) or **better**, to have path 
 and environment variables already set all times you start windows, go to 
 control panel / system / environment variables window, 
@@ -64,8 +69,11 @@ and just add this minimal set of data:
 	- `CSF_STEPDefaults=D:\OpenCASCADE6.9.0\opencascade-6.9.0\src\XSTEPResource`
 In this way, you will be able to start the OpenCASCADE demos by simply clicking on the .exe, 
 without the need of calling the env.bat script before.
-</div>
 
 
 
-Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.
+## How to use it
+
+- Look at the [API section](group__cascade__module.html) of this module for documentation about classes and functions.
+
+- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.

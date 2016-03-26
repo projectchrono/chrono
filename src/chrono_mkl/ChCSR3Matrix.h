@@ -11,6 +11,8 @@
 
 namespace chrono{
 	
+/// @addtogroup mkl_module
+/// @{
 
 	/* ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
 	* - The more useful constructor specifies rows, columns and nonzeros
@@ -144,6 +146,7 @@ namespace chrono{
 
 	};
 
+/// @} mkl_module
 }; // END namespace chrono
 
 #endif

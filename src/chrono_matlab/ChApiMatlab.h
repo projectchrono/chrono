@@ -32,4 +32,16 @@
 #define ChApiMatlab ChApiIMPORT
 #endif
 
+/**
+    @defgroup matlab_module MATLAB module
+    @brief Interoperation with Matlab(TM) 
+
+    Using this module, you can provide interoperation between 
+    Chrono::Engine and the Matlab(TM) software.
+
+    For additional information, see:
+    - the [installation guide](@ref module_matlab_installation)
+    - the [tutorials](@ref tutorial_root)
+*/
+
 #endif  // END of header

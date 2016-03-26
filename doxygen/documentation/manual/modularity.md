@@ -1,6 +1,8 @@
 
-Introduction to modules        {#modules}
+Introduction to modules        {#modularity}
 ==============================
+
+Chrono::Engine is organized as a set of [modules](@ref modules).
 
 **Modules** are additional libraries that can be _optionally_ used 
 to expand the features of Chrono::Engine. 
@@ -30,5 +32,5 @@ whereas the core system of Chrono::Engine just depends on the plain operating sy
 ![](Units.png)
 
 A list of the available modules, along with informations on how to compile them, 
-can be found in the [manual](@ref manual_root).
+can be found in the [modules page](@ref modules) of the [manual](@ref manual_root).
 

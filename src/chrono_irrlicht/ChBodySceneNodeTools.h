@@ -31,7 +31,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Easy-to-use function which creates a ChBodySceneNode with given position of
@@ -204,7 +204,7 @@ ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_easyConcaveMesh(
     irr::scene::ISceneNode* aparent = 0,
     irr::s32 mid = -1);
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

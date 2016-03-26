@@ -12,20 +12,6 @@
 #ifndef CHCASCADEMESHTOOLS_H
 #define CHCASCADEMESHTOOLS_H
 
-//////////////////////////////////////////////////
-//
-//   ChCascadeMeshTools.h
-//
-//   Tools to convert an OpenCASCADE shape into
-//   triangle meshes.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "chrono_cascade/ChApiCASCADE.h"
 
@@ -42,6 +28,9 @@ class TDF_Label;
 
 namespace chrono {
 namespace cascade {
+
+/// @addtogroup cascade_module
+/// @{
 
 /// Tools to convert an OpenCASCADE shapes into
 /// triangle meshes.
@@ -82,6 +71,8 @@ class ChApiCASCADE ChCascadeMeshTools {
 
 
 };
+
+/// @} cascade_module
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

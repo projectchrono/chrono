@@ -27,6 +27,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_module
+/// @{
+
 class CH_PARALLEL_API ChSolverParallel {
  public:
   ChSolverParallel();
@@ -117,4 +120,6 @@ class CH_PARALLEL_API ChSolverParallel {
   // Pointer to the system's data manager
   ChParallelDataManager* data_manager;
 };
+
+/// @} parallel_module
 }
