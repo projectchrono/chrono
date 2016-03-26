@@ -265,6 +265,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     void CalculateContactForces();
     real3 GetBodyContactForce(uint body_id);
     real3 GetBodyContactTorque(uint body_id);
+    void GetFluidForce(custom_vector<real3>& forc);
     uint start_boundary;
     uint start_contact;
     real compliance;

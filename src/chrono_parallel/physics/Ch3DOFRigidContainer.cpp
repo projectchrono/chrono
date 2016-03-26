@@ -682,6 +682,23 @@ void Ch3DOFRigidContainer::PreSolve() {
     }
 }
 void Ch3DOFRigidContainer::PostSolve() {}
+
+void Ch3DOFRigidContainer::GetFluidForce(custom_vector<real3>& forc) {
+    forc.resize(num_fluid_bodies);
+
+    DynamicVector<real>& gamma = data_manager->host_data.gamma;
+
+    SubVectorType gamma_n = subvector(gamma, start_contact, num_rigid_contacts);
+
+    DynamicVector<real> pressure_forces =
+        submatrix(data_manager->host_data.D, body_offset, start_contact, num_fluid_bodies * 3, num_rigid_contacts) *
+        gamma_n / data_manager->settings.step_size;
+
+    for (int i = 0; i < num_fluid_bodies; i++) {
+        forc[i] = real3(pressure_forces[i * 3 + 0], pressure_forces[i * 3 + 1], pressure_forces[i * 3 + 2]);
+    }
+}
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////
