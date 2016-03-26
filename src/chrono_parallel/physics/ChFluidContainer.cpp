@@ -767,6 +767,32 @@ real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 
+void ChFluidContainer::GetFluidDensity(custom_vector<real>& dens) {
+    dens = density;
+}
+void ChFluidContainer::GetFluidPressure(custom_vector<real>& pres) {
+    pres.resize(num_fluid_bodies);
+
+    for (int i = 0; i < num_fluid_bodies; i++) {
+        pres[i] = data_manager->host_data.gamma[start_density + i];
+    }
+}
+
+void ChFluidContainer::GetFluidForce(custom_vector<real3>& forc) {
+    forc.resize(num_fluid_bodies);
+
+    DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    SubVectorType gamma_n = subvector(gamma, start_density, num_fluid_bodies);
+
+    DynamicVector<real> pressure_forces =
+        submatrix(data_manager->host_data.D, body_offset, start_density, num_fluid_bodies * 3, num_fluid_bodies) *
+        gamma_n / data_manager->settings.step_size;
+
+    for (int i = 0; i < num_fluid_bodies; i++) {
+        forc[i] = real3(pressure_forces[i * 3 + 0], pressure_forces[i * 3 + 1], pressure_forces[i * 3 + 2]);
+    }
+}
+
 }  // END_OF_NAMESPACE____
 
 /////////////////////

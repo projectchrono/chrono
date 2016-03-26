@@ -146,6 +146,9 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void CalculateContactForces();
     real3 GetBodyContactForce(uint body_id);
     real3 GetBodyContactTorque(uint body_id);
+    void GetFluidDensity(custom_vector<real>& dens);
+    void GetFluidPressure(custom_vector<real>& pres);
+    void GetFluidForce(custom_vector<real3>& forc);
     custom_vector<Mat33> shear_tensor;
     custom_vector<real> shear_trace;
     custom_vector<real> density;
