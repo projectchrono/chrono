@@ -28,7 +28,6 @@ namespace vehicle {
 ChCosimVehicleNode::ChCosimVehicleNode(int rank, ChWheeledVehicle* vehicle, ChPowertrain* powertrain, ChDriver* driver)
     : m_rank(rank), m_vehicle(vehicle), m_powertrain(powertrain), m_driver(driver) {
     m_num_wheels = 2 * m_vehicle->GetNumberAxles();
-    m_wheel_states.resize(m_num_wheels);
     m_tire_forces.resize(m_num_wheels);
 }
 
@@ -65,20 +64,40 @@ void ChCosimVehicleNode::Synchronize(double time) {
     double throttle = m_driver->GetThrottle();
     double braking = m_driver->GetBraking();
 
-    // Get current wheel states
-    for (int iw = 0; iw < m_num_wheels; iw++) {
-        m_wheel_states[iw] = m_vehicle->GetWheelState(WheelID(iw));
-    }
-
     // Get current driveshaft speed and powertrain output torque
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
     double powertrain_torque = m_powertrain->GetOutputTorque();
 
     // Receive tire forces from each of the tire nodes
-    //// TODO
+    double bufTF[9];
+    MPI_Status statusTF;
+    for (int iw = 0; iw < m_num_wheels; iw++) {
+        MPI_Recv(bufTF, 9, MPI_DOUBLE, TIRE_NODE_RANK(iw), iw, MPI_COMM_WORLD, &statusTF);
+        m_tire_forces[iw].force = ChVector<>(bufTF[0], bufTF[1], bufTF[2]);
+        m_tire_forces[iw].moment = ChVector<>(bufTF[3], bufTF[4], bufTF[5]);
+        m_tire_forces[iw].point = ChVector<>(bufTF[6], bufTF[7], bufTF[8]);
+    }
 
     // Send wheel states to each of the tire nodes
-    //// TODO
+    double bufWS[14];
+    for (int iw = 0; iw < m_num_wheels; iw++) {
+        WheelState wheel_state = m_vehicle->GetWheelState(WheelID(iw));
+        bufWS[0] = wheel_state.pos.x;
+        bufWS[1] = wheel_state.pos.y;
+        bufWS[2] = wheel_state.pos.z;
+        bufWS[3] = wheel_state.rot.e0;
+        bufWS[4] = wheel_state.rot.e1;
+        bufWS[5] = wheel_state.rot.e2;
+        bufWS[6] = wheel_state.rot.e3;
+        bufWS[7] = wheel_state.lin_vel.x;
+        bufWS[8] = wheel_state.lin_vel.y;
+        bufWS[9] = wheel_state.lin_vel.z;
+        bufWS[10] = wheel_state.ang_vel.x;
+        bufWS[11] = wheel_state.ang_vel.y;
+        bufWS[12] = wheel_state.ang_vel.z;
+        bufWS[13] = wheel_state.omega;
+        MPI_Send(bufWS, 14, MPI_DOUBLE, TIRE_NODE_RANK(iw), iw, MPI_COMM_WORLD);
+    }
 
     // Synchronize vehicle, powertrain, and driver
     m_vehicle->Synchronize(time, steering, braking, powertrain_torque, m_tire_forces);

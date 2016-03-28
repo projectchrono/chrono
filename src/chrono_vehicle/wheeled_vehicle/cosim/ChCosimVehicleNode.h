@@ -50,7 +50,6 @@ class CH_VEHICLE_API ChCosimVehicleNode {
     ChDriver* m_driver;
 
     int m_num_wheels;
-    WheelStates m_wheel_states;
     TireForces m_tire_forces;
 
     double m_stepsize;
