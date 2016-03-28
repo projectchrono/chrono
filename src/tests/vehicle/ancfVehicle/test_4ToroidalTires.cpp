@@ -22,7 +22,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
+#include "tests/vehicle/ancfToroidalTire/ANCFToroidalTire.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono/assets/ChTexture.h"

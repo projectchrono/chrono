@@ -281,8 +281,6 @@ if(ENABLE_MODULE_FEA)
 
         wheeled_vehicle/tire/ANCFTire.h
         wheeled_vehicle/tire/ANCFTire.cpp
-        wheeled_vehicle/tire/ANCFToroidalTire.h
-        wheeled_vehicle/tire/ANCFToroidalTire.cpp
         wheeled_vehicle/tire/FEATire.h
         wheeled_vehicle/tire/FEATire.cpp
     )

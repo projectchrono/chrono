@@ -25,14 +25,8 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_fea/ChElementShellANCF.h"
 
-namespace chrono {
-namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_tire
-/// @{
-
-/// ANCF Toroidal Tire.
-class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
+class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
   public:
     ANCFToroidalTire(const std::string& name);
     ~ANCFToroidalTire() {}
@@ -65,7 +59,5 @@ class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
     double m_default_pressure;
     double m_alpha;
 };
-/// @} vehicle_wheeled_tire
-}  // end namespace vehicle
-}  // end namespace chrono
+
 #endif
