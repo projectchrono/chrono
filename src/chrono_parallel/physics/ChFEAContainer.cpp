@@ -467,7 +467,7 @@ void ChFEAContainer::Build_D() {
         real3 r3 = 1. / 6. * Cross(c1, c2);
         real3 r0 = -r1 - r2 - r3;
 
-        //volSqrt = Sqrt(Abs((Determinant(F) - 1.0)));
+        // volSqrt = Sqrt(Abs((Determinant(F) - 1.0)));
 
         real vf = (0.5 * (6 * volSqrt));
         // This helps to scale jacboian so boundaries aren't ignored
@@ -694,8 +694,8 @@ void ChFEAContainer::Build_b() {
         //        y[3] = X.row(2);
         //        y[0] = -y[1] - y[2] - y[3];
 
-        Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
-                                                    // Mat33 strain = S - Mat33(1);
+        Mat33 strain = 0.5 * (Ftr * F - Mat33(1));    // Green strain
+                                                      // Mat33 strain = S - Mat33(1);
         real cf = Sqrt(Abs((Determinant(F) - 1.0)));  // volSqrt;
 
         b_sub[i * 7 + 0] = cf * strain[0];
@@ -996,24 +996,24 @@ void ChFEAContainer::GenerateSparsity() {
 }
 
 void ChFEAContainer::PreSolve() {
-//    if (gamma_old.size() > 0 && gamma_old.size() == data_manager->num_fea_tets * (6 + 1)) {
-//        blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) =
-//            gamma_old * 0.9;
-//    }
-//
-//    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
-//        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid * 0.9;
-//    }
+    if (gamma_old.size() > 0 && gamma_old.size() == data_manager->num_fea_tets * (6 + 1)) {
+        blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) =
+            gamma_old * 0.5;
+    }
+
+    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
+        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid * 0.5;
+    }
 }
 void ChFEAContainer::PostSolve() {
-//    if (data_manager->num_fea_tets * (6 + 1) > 0) {
-//        gamma_old.resize(data_manager->num_fea_tets * (6 + 1));
-//        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1));
-//    }
-//    if (num_rigid_constraints > 0) {
-//        gamma_old_rigid.resize(num_rigid_constraints * 3);
-//        gamma_old_rigid = blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3);
-//    }
+    if (data_manager->num_fea_tets * (6 + 1) > 0) {
+        gamma_old.resize(data_manager->num_fea_tets * (6 + 1));
+        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1));
+    }
+    if (num_rigid_constraints > 0) {
+        gamma_old_rigid.resize(num_rigid_constraints * 3);
+        gamma_old_rigid = blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3);
+    }
 }
 
 struct FaceData {
