@@ -41,7 +41,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     auto mat = std::make_shared<ChMaterialSurface>();
     mat->SetFriction(0.4f);
 
-    ChVector<> hdim(2.5, 2.5, 2.5);
+    ChVector<> hdim(2, 2, 2);
 
     utils::CreateBoxContainer(sys, 0, mat, hdim, 0.2, Vector(0, 0, -.7), QUNIT, true, false, true, true);
 }
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     // Global parameter for tire:
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
-    ChVector<> tire_center(.23, 0, 0);
+    ChVector<> tire_center(0, 0, 0);
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180� on y
 
     double tire_w0 = tire_vel_z0 / tire_rad;
@@ -58,20 +58,20 @@ int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystemParallelDVI my_system;
     fea_container = new ChFEAContainer(&my_system);
-    fea_container->kernel_radius = .05;
-    fea_container->material_density = 1200;
-    fea_container->contact_mu = .1;
+    fea_container->kernel_radius = .01;
+    fea_container->material_density = 1000;
+    fea_container->contact_mu = 0;
     fea_container->contact_cohesion = 0;
-    fea_container->youngs_modulus = 1e5;  // 2e8;
-    fea_container->poisson_ratio = .2;
-    fea_container->contact_recovery_speed = 10000000;
+    fea_container->youngs_modulus = 6100000;  // 2e8;
+    fea_container->poisson_ratio = .49;
+    fea_container->contact_recovery_speed = 1e8;
     fea_container->rigid_constraint_recovery_speed = .1;
     my_system.GetSettings()->solver.solver_mode = SLIDING;
     my_system.GetSettings()->solver.max_iteration_normal = 0;
-    my_system.GetSettings()->solver.max_iteration_sliding = 40;
+    my_system.GetSettings()->solver.max_iteration_sliding = 500;
     my_system.GetSettings()->solver.max_iteration_spinning = 0;
     my_system.GetSettings()->solver.max_iteration_bilateral = 0;
-    my_system.GetSettings()->solver.tolerance = 0;
+    my_system.GetSettings()->solver.tolerance = 1e-8;
     my_system.GetSettings()->solver.alpha = 0;
     my_system.GetSettings()->solver.use_full_inertia_tensor = false;
     my_system.GetSettings()->solver.contact_recovery_speed = 1;
@@ -80,12 +80,18 @@ int main(int argc, char* argv[]) {
     my_system.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     my_system.GetSettings()->collision.collision_envelope = (fea_container->kernel_radius * .05);
     my_system.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
-    my_system.SetLoggingLevel(LOG_TRACE, true);
-    my_system.SetLoggingLevel(LOG_INFO, true);
+    // my_system.SetLoggingLevel(LOG_TRACE, true);
+    // my_system.SetLoggingLevel(LOG_INFO, true);
     double gravity = 9.81;
     my_system.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     AddContainer(&my_system);
+
+    auto material_plate = std::make_shared<ChMaterialSurface>();
+    std::shared_ptr<ChBody> PLATE = std::make_shared<ChBody>(new chrono::collision::ChCollisionModelParallel);
+    utils::InitializeObject(PLATE, 100000, material_plate, ChVector<>(0, 0, 0), QUNIT, false, true, 2, 6);
+    utils::AddBoxGeometry(PLATE.get(), ChVector<>(.1, .1, .1));
+    utils::FinalizeObject(PLATE, (ChSystemParallel*)&my_system);
 
     auto my_mesh = std::make_shared<ChMesh>();
 
@@ -102,22 +108,31 @@ int main(int argc, char* argv[]) {
     // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
+    uint current_nodes = my_system.data_manager->num_fea_nodes;
 
     std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
-    ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tire_3.INP").c_str(), mmaterial, node_sets,
+    ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/beam.INP").c_str(), mmaterial, node_sets,
                                      tire_center, tire_alignment);
 
     //
     uint num_nodes = my_mesh->GetNnodes();
     uint num_elements = my_mesh->GetNelements();
 
-    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
-        auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
-        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
-        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
-    }
+    //    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
+    //        auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
+    //        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
+    //        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
+    //    }
 
     my_system.Add(my_mesh);
+
+    for (int i = 0; i < node_sets.size(); i++) {
+        printf("Node sets: %d\n", node_sets[i].size());
+        for (int j = 0; j < node_sets[i].size(); j++) {
+            fea_container->AddConstraint(node_sets[i][j]->GetIndex() + current_nodes, PLATE);
+        }
+    }
+
     my_system.Initialize();
 
 //
@@ -135,7 +150,10 @@ int main(int argc, char* argv[]) {
     // return 0;
     while (true) {
         if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
+            if (gl_window.DoStepDynamics(time_step)) {
+                real3 pos = my_system.data_manager->host_data.pos_node_fea[45];
+                printf("pos: %f %f %f \n", pos.x, pos.y, pos.z);
+            }
             gl_window.Render();
         } else {
             break;

@@ -467,14 +467,21 @@ void ChFEAContainer::Build_D() {
         real3 r3 = 1. / 6. * Cross(c1, c2);
         real3 r0 = -r1 - r2 - r3;
 
-        real vf = 0;  //(0.5 / (volSqrt));
+        //volSqrt = Sqrt(Abs((Determinant(F) - 1.0)));
+
+        real vf = (0.5 * (6 * volSqrt));
         // This helps to scale jacboian so boundaries aren't ignored
-        real cf = 2 * volSqrt;  // 2 * volSqrt;
-        // diagonal elements of strain matrix
-        Mat33 A1 = cf * Mat33(y[0]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
-        Mat33 A2 = cf * Mat33(y[1]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
-        Mat33 A3 = cf * Mat33(y[2]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
-        Mat33 A4 = cf * Mat33(y[3]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
+        real cf = volSqrt;  // 2 * volSqrt;
+                            // diagonal elements of strain matrix
+
+        // 0 4 8
+        // 1 5 9
+        // 2 6 10
+
+        Mat33 A1 = cf * Mat33(y[0]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
+        Mat33 A2 = cf * Mat33(y[1]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
+        Mat33 A3 = cf * Mat33(y[2]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
+        Mat33 A4 = cf * Mat33(y[3]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
         //        A1 = A1 * (1.0 / Determinant(A1));
         //        A2 = A2 * (1.0 / Determinant(A2));
         //        A3 = A3 * (1.0 / Determinant(A3));
@@ -499,14 +506,10 @@ void ChFEAContainer::Build_D() {
 
         /////==================================================================================================================================
         // Off diagonal strain elements
-        Mat33 B1 =
-            0.5 * cf * SkewSymmetricAlt(y[0]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
-        Mat33 B2 =
-            0.5 * cf * SkewSymmetricAlt(y[1]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
-        Mat33 B3 =
-            0.5 * cf * SkewSymmetricAlt(y[2]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
-        Mat33 B4 =
-            0.5 * cf * SkewSymmetricAlt(y[3]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+        Mat33 B1 = 0.5 * cf * SkewSymmetricAlt(y[0]) + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+        Mat33 B2 = 0.5 * cf * SkewSymmetricAlt(y[1]) + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+        Mat33 B3 = 0.5 * cf * SkewSymmetricAlt(y[2]) + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+        Mat33 B4 = 0.5 * cf * SkewSymmetricAlt(y[3]) + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
 
         //        B1 = B1 * (1.0 / Determinant(B1));
         //        B2 = B2 * (1.0 / Determinant(B2));
@@ -667,18 +670,19 @@ void ChFEAContainer::Build_b() {
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
 
-        real3 x0 = pos_node[tet_ind.x];
-        real3 x1 = pos_node[tet_ind.y];
-        real3 x2 = pos_node[tet_ind.z];
-        real3 x3 = pos_node[tet_ind.w];
+        real3 p0 = pos_node[tet_ind.x];
+        real3 p1 = pos_node[tet_ind.y];
+        real3 p2 = pos_node[tet_ind.z];
+        real3 p3 = pos_node[tet_ind.w];
 
-        real3 c1 = x1 - x0;
-        real3 c2 = x2 - x0;
-        real3 c3 = x3 - x0;
+        real3 c1 = p1 - p0;
+        real3 c2 = p2 - p0;
+        real3 c3 = p3 - p0;
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
         real vol = Abs((det) / 6.0);
+        real volSqrt = Sqrt(vol);
 
         Mat33 X = X0[i];
         Mat33 F = Ds * X;
@@ -692,8 +696,7 @@ void ChFEAContainer::Build_b() {
 
         Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
                                                     // Mat33 strain = S - Mat33(1);
-        real volSqrt = Sqrt(vol);
-        real cf = 1;  // volSqrt;
+        real cf = Sqrt(Abs((Determinant(F) - 1.0)));  // volSqrt;
 
         b_sub[i * 7 + 0] = cf * strain[0];
         b_sub[i * 7 + 1] = cf * strain[5];
@@ -993,24 +996,24 @@ void ChFEAContainer::GenerateSparsity() {
 }
 
 void ChFEAContainer::PreSolve() {
-    if (gamma_old.size() > 0 && gamma_old.size() == data_manager->num_fea_tets * (6 + 1)) {
-        blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) =
-            gamma_old * 0.95;
-    }
-
-    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
-        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid * 0.9;
-    }
+//    if (gamma_old.size() > 0 && gamma_old.size() == data_manager->num_fea_tets * (6 + 1)) {
+//        blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) =
+//            gamma_old * 0.9;
+//    }
+//
+//    if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
+//        blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3) = gamma_old_rigid * 0.9;
+//    }
 }
 void ChFEAContainer::PostSolve() {
-    if (data_manager->num_fea_tets * (6 + 1) > 0) {
-        gamma_old.resize(data_manager->num_fea_tets * (6 + 1));
-        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1));
-    }
-    if (num_rigid_constraints > 0) {
-        gamma_old_rigid.resize(num_rigid_constraints * 3);
-        gamma_old_rigid = blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3);
-    }
+//    if (data_manager->num_fea_tets * (6 + 1) > 0) {
+//        gamma_old.resize(data_manager->num_fea_tets * (6 + 1));
+//        gamma_old = blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1));
+//    }
+//    if (num_rigid_constraints > 0) {
+//        gamma_old_rigid.resize(num_rigid_constraints * 3);
+//        gamma_old_rigid = blaze::subvector(data_manager->host_data.gamma, start_rigid, num_rigid_constraints * 3);
+//    }
 }
 
 struct FaceData {
