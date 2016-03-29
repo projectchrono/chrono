@@ -6,7 +6,6 @@
 #include <chrono_parallel/physics/Ch3DOFContainer.h>
 #include <thrust/fill.h>
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
-#include "chrono_parallel/math/svd.h"
 
 #include "chrono_parallel/math/other_types.h"  // for uint, int2, vec3
 #include "chrono_parallel/math/real.h"         // for real
