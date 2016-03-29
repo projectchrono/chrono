@@ -130,12 +130,12 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container = new ChFluidContainer(sys);
 
 #endif
-    real youngs_modulus = 1.4e5;
+    real youngs_modulus = 1.4e6;
     real poissons_ratio = 0.2;
     real rho = 400;
 #if USE_RIGID
     mpm_container->mu = 0;
-    mpm_container->alpha = .1;
+    mpm_container->alpha = 0;
     mpm_container->cohesion = 0;
 
 #else
@@ -146,8 +146,8 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->artificial_pressure = false;
 #endif
 
-    mpm_container->theta_c = 2.5e-2;
-    mpm_container->theta_s = 7.5e-3;
+    mpm_container->theta_c = 1;
+    mpm_container->theta_s = 1;
     mpm_container->lame_lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
     mpm_container->lame_mu = youngs_modulus / (2. * (1. + poissons_ratio));
     mpm_container->youngs_modulus = youngs_modulus;
@@ -156,14 +156,14 @@ void AddFluid(ChSystemParallelDVI* sys) {
     mpm_container->hardening_coefficient = 10.0;
     // mpm_container->rho = 400;
     mpm_container->mass = .01;
-    mpm_container->mpm_iterations = 20;
+    mpm_container->mpm_iterations = 30;
     mpm_container->kernel_radius = .016 * 2;
     mpm_container->collision_envelope = mpm_container->kernel_radius * 0.05;
     mpm_container->contact_recovery_speed = 10;
     mpm_container->contact_cohesion = 0;
     mpm_container->contact_mu = 0;
     mpm_container->max_velocity = 10;
-    mpm_container->compliance = 1e-6;
+    mpm_container->compliance = 0;
 
     // mpm_container->tau = time_step * 4;
     // mpm_container->epsilon = 1e-3;
