@@ -80,9 +80,29 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
         temp_settings.mass = mass;
         temp_settings.yield_stress = yield_stress;
         temp_settings.num_iterations = mpm_iterations;
+
         if (mpm_iterations > 0) {
-            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(data_manager->host_data.pos_3dof),
-                                     std::ref(data_manager->host_data.vel_3dof));
+            mpm_pos.resize(data_manager->num_fluid_bodies * 3);
+            mpm_vel.resize(data_manager->num_fluid_bodies * 3);
+
+            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
+                mpm_pos[i * 3 + 0] = data_manager->host_data.pos_3dof[i].x;
+                mpm_pos[i * 3 + 1] = data_manager->host_data.pos_3dof[i].y;
+                mpm_pos[i * 3 + 2] = data_manager->host_data.pos_3dof[i].z;
+            }
+            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
+                mpm_vel[i * 3 + 0] = data_manager->host_data.vel_3dof[i].x;
+                mpm_vel[i * 3 + 1] = data_manager->host_data.vel_3dof[i].y;
+                mpm_vel[i * 3 + 2] = data_manager->host_data.vel_3dof[i].z;
+            }
+
+            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel));
+
+//            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
+//                data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];
+//                data_manager->host_data.vel_3dof[i].y = mpm_vel[i * 3 + 1];
+//                data_manager->host_data.vel_3dof[i].z = mpm_vel[i * 3 + 2];
+//            }
         }
     }
 
@@ -272,7 +292,15 @@ void Ch3DOFRigidContainer::Initialize() {
     temp_settings.yield_stress = yield_stress;
     temp_settings.num_iterations = mpm_iterations;
     if (mpm_iterations > 0) {
-        MPM_Initialize(temp_settings, data_manager->host_data.pos_3dof);
+        mpm_pos.resize(data_manager->num_fluid_bodies * 3);
+
+        for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
+            mpm_pos[i * 3 + 0] = data_manager->host_data.pos_3dof[i].x;
+            mpm_pos[i * 3 + 1] = data_manager->host_data.pos_3dof[i].y;
+            mpm_pos[i * 3 + 2] = data_manager->host_data.pos_3dof[i].z;
+        }
+
+        MPM_Initialize(temp_settings, mpm_pos);
     }
     mpm_init = true;
 }
@@ -659,9 +687,9 @@ void Ch3DOFRigidContainer::PreSolve() {
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
         int index = data_manager->host_data.reverse_mapping_3dof[p];
-        data_manager->host_data.v[body_offset + index * 3 + 0] = data_manager->host_data.vel_3dof[p].x;
-        data_manager->host_data.v[body_offset + index * 3 + 1] = data_manager->host_data.vel_3dof[p].y;
-        data_manager->host_data.v[body_offset + index * 3 + 2] = data_manager->host_data.vel_3dof[p].z;
+        data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
+        data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
+        data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
     }
 }
 void Ch3DOFRigidContainer::PostSolve() {}

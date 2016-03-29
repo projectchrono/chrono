@@ -16,8 +16,6 @@
 // as input, outputs updated positions and velocities
 // =============================================================================
 
-#include "chrono_parallel/math/matrix.h"
-#include "chrono_parallel/math/other_types.h"
 #include <vector>
 namespace chrono {
 
@@ -36,6 +34,6 @@ struct MPM_Settings {
     int bins_per_axis_z;
 };
 
-void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions);
-void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities);
+void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions);
+void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vector<float>& velocities);
 }

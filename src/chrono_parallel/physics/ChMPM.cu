@@ -3,6 +3,8 @@
 #include "chrono_parallel/ChCudaHelper.cuh"
 #include "chrono_parallel/ChGPUVector.cuh"
 #include "thirdparty/cub/cub.cuh"
+#include "chrono_parallel/math/matrix.h"
+
 namespace chrono {
 
 struct Bounds {
@@ -778,16 +780,28 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
     }
 }
 
-void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities) {
+void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vector<float>& velocities) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
     host_settings = settings;
     printf("Solving MPM: %d\n", host_settings.num_iterations);
-    pos.data_h = positions;
+
+    pos.data_h.resize(settings.num_mpm_markers);
+    for (int i = 0; i < settings.num_mpm_markers; i++) {
+        pos.data_h[i].x = positions[i * 3 + 0];
+        pos.data_h[i].y = positions[i * 3 + 1];
+        pos.data_h[i].z = positions[i * 3 + 2];
+    }
+
     pos.copyHostToDevice();
 
-    vel.data_h = velocities;
+    vel.data_h.resize(settings.num_mpm_markers);
+    for (int i = 0; i < settings.num_mpm_markers; i++) {
+        vel.data_h[i].x = velocities[i * 3 + 0];
+        vel.data_h[i].y = velocities[i * 3 + 1];
+        vel.data_h[i].z = velocities[i * 3 + 2];
+    }
     vel.copyHostToDevice();
 
     cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
@@ -883,7 +897,11 @@ void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vecto
 
     vel.copyDeviceToHost();
 
-    velocities = vel.data_h;
+    for (int i = 0; i < settings.num_mpm_markers; i++) {
+        velocities[i * 3 + 0] = vel.data_h[i].x;
+        velocities[i * 3 + 1] = vel.data_h[i].y;
+        velocities[i * 3 + 2] = vel.data_h[i].z;
+    }
 
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
@@ -899,7 +917,7 @@ CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp, Mat33* marker_RE,
     }
 }
 
-void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
+void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
@@ -908,7 +926,12 @@ void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
     cudaCheck(cudaMalloc(&lower_bound, sizeof(real3)));
     cudaCheck(cudaMalloc(&upper_bound, sizeof(real3)));
 
-    pos.data_h = positions;
+    pos.data_h.resize(settings.num_mpm_markers);
+    for (int i = 0; i < settings.num_mpm_markers; i++) {
+        pos.data_h[i].x = positions[i * 3 + 0];
+        pos.data_h[i].y = positions[i * 3 + 1];
+        pos.data_h[i].z = positions[i * 3 + 2];
+    }
     pos.copyHostToDevice();
 
     cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
