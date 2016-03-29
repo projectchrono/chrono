@@ -233,61 +233,54 @@ CUDA_HOST_DEVICE static Mat33f Solve_dR(Mat33f R, Mat33f S, Mat33f W) {
     Mat33f dR = R * rx;
     return dR;
 }
-CUDA_HOST_DEVICE static Mat33f Rotational_Derivative(const Mat33f& F, const Mat33f& dF) {
-    Mat33f U, V, R, S, W;
-    float3 E;
-    SVD(F, U, E, V);
-    // Perform polar decomposition F = R*S
-    R = MultTranspose(U, V);
-    S = V * MultTranspose(Mat33f(E), V);
-    // See tech report end of page 2
-    W = TransposeMult(R, dF);
-
-    return Solve_dR(R, S, W);
-}
-
-CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33f& FE,
-                                                              const Mat33f& FP,
-                                                              float mu,
-                                                              float lambda,
-                                                              float hardening_coefficient,
-                                                              Mat33f& Deviatoric,
-                                                              Mat33f& Dilational) {
-    Potential_Energy_Derivative_Helper();
-
-    Deviatoric = float(2.) * current_mu * (FE - RE);
-    Dilational = current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
-}
+// CUDA_HOST_DEVICE static Mat33f Rotational_Derivative(const Mat33f& F, const Mat33f& dF) {
+//    Mat33f U, V, R, S, W;
+//    float3 E;
+//    SVD(F, U, E, V);
+//    // Perform polar decomposition F = R*S
+//    R = MultTranspose(U, V);
+//    S = V * MultTranspose(Mat33f(E), V);
+//    // See tech report end of page 2
+//    W = TransposeMult(R, dF);
+//
+//    return Solve_dR(R, S, W);
+//}
+//
+// CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33f& FE,
+//                                                              const Mat33f& FP,
+//                                                              float mu,
+//                                                              float lambda,
+//                                                              float hardening_coefficient,
+//                                                              Mat33f& Deviatoric,
+//                                                              Mat33f& Dilational) {
+//    Potential_Energy_Derivative_Helper();
+//
+//    Deviatoric = float(2.) * current_mu * (FE - RE);
+//    Dilational = current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
+//}
 CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative_Deviatoric(const Mat33f& FE,
-                                                                      const Mat33f& FP,
-                                                                      float mu,
-                                                                      float hardening_coefficient,
+                                                                      float current_mu,
                                                                       Mat33f& RE,
                                                                       Mat33f& SE) {
-    float JP = Determinant(FP);
-    float current_mu = mu * expf(hardening_coefficient * (float(1.0) - JP));
     Mat33f UE, VE;
     float3 EE;
     SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
     RE = MultTranspose(UE, VE);
     SE = VE * MultTranspose(Mat33f(EE), VE);
-    // RE[3] = JP;
-
     return float(2.) * current_mu * (FE - RE);
 }
-
-CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33f& FE,
-                                                   const Mat33f& FP,
-                                                   float mu,
-                                                   float lambda,
-                                                   float hardening_coefficient,
-                                                   float& Deviatoric,
-                                                   float& Dilational) {
-    Potential_Energy_Derivative_Helper();
-
-    Deviatoric = current_mu * Trace(Transpose(FE - RE) * (FE - RE));
-    Dilational = current_lambda / 2.0 * (JE - float(1.));
-}
+// CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33f& FE,
+//                                                   const Mat33f& FP,
+//                                                   float mu,
+//                                                   float lambda,
+//                                                   float hardening_coefficient,
+//                                                   float& Deviatoric,
+//                                                   float& Dilational) {
+//    Potential_Energy_Derivative_Helper();
+//
+//    Deviatoric = current_mu * Trace(Transpose(FE - RE) * (FE - RE));
+//    Dilational = current_lambda / 2.0 * (JE - float(1.));
+//}
 
 CUDA_HOST_DEVICE static inline Mat33f B__Z(const Mat33f& Z, const Mat33f& F, float Ja, float a, const Mat33f& H) {
     return Ja * (Z + a * (DoubleDot(H, Z)) * F);
@@ -299,19 +292,15 @@ CUDA_HOST_DEVICE static inline Mat33f Z__B(const Mat33f& Z, const Mat33f& F, flo
 
 CUDA_HOST_DEVICE static Mat33f d2PsidFdF(const Mat33f& Z,  // This is deltaF
                                          const Mat33f& F,  // This is FE_hat
-                                         const Mat33f& FP,
                                          const Mat33f& RE,
                                          const Mat33f& SE,
-                                         float mu,
-                                         float hardening_coefficient) {
+                                         const float current_mu) {
 #if 1
     float a = -1.0 / 3.0;
     float Ja = powf(Determinant(F), a);
     Mat33f H = InverseTranspose(F);
-    float JP = Determinant(FP);
-    float current_mu = mu * expf(hardening_coefficient * (float(1.0) - JP));
     Mat33f FE = Ja * F;
-    // Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
+    // Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * F, current_mu);
     //    Mat33f UE, VE;
     //    float3 EE;
     //    SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
