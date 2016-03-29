@@ -22,14 +22,14 @@
 namespace chrono {
 
 struct MPM_Settings {
-    real dt, kernel_radius, inv_radius, bin_edge;
-    real inv_bin_edge, max_velocity, mu, lambda;
-    real hardening_coefficient, theta_c, theta_s, alpha_flip;
-    real youngs_modulus, poissons_ratio;
+    float dt, kernel_radius, inv_radius, bin_edge;
+    float inv_bin_edge, max_velocity, mu, lambda;
+    float hardening_coefficient, theta_c, theta_s, alpha_flip;
+    float youngs_modulus, poissons_ratio;
     int num_mpm_markers;
     int num_mpm_nodes;
-    real mass;
-    real yield_stress, p2, p3;
+    float mass;
+    float yield_stress, p2, p3;
     int num_iterations;
     int bins_per_axis_x;
     int bins_per_axis_y;
