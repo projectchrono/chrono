@@ -7,8 +7,6 @@ IF(NOT MPI_CXX_FOUND OR NOT ENABLE_MODULE_PARALLEL)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add HMMWV_COSIMULATION demo")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
@@ -47,12 +45,12 @@ SET(MODEL_FILES
     ../hmmwv/tire/HMMWV_FialaTire.cpp
 )
 
-SET(DEMO_FILES
-    demo_HMMWV_Cosimulation.cpp
+SET(DEMO
+    demo_VEH_HMMWV_Cosimulation
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -73,10 +71,11 @@ SET(LIBRARIES
 #--------------------------------------------------------------
 # Create the executable
 
+MESSAGE(STATUS "...add ${DEMO}")
 
-ADD_EXECUTABLE(demo_HMMWV_Cosimulation ${DEMO_FILES} ${MODEL_FILES})
-SET_TARGET_PROPERTIES(demo_HMMWV_Cosimulation PROPERTIES 
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE} ${MPI_CXX_LINK_FLAGS}")
-TARGET_LINK_LIBRARIES(demo_HMMWV_Cosimulation ${LIBRARIES})
-INSTALL(TARGETS demo_HMMWV_Cosimulation DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES})
+INSTALL(TARGETS ${DEMO} DESTINATION bin)
