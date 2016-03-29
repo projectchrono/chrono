@@ -1,5 +1,5 @@
 SET(TEST_PROGRAMS
-  test_SteeringControl
+  test_VEH_SteeringControl
   )
 
 SET(LIBRARIES

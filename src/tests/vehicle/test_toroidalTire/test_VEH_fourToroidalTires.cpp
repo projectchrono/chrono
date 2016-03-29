@@ -9,50 +9,42 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Antonio Recuero, Radu Serban
 // =============================================================================
 //
-// This test creates four ANCF toroidal tires using the function makeANCFwheel,
-// which calls the class ANCFToroidal. The 4 wheels are constrained to the rim, 
-// which in turn is linked to the chassis through a ChLinkRevoluteTranslational joint.
+// This test creates four ANCF toroidal tires using the function MakeANCFwheel,
+// which calls the class ANCFToroidal. The 4 wheels are constrained to the rims, 
+// which in turn are linked to the chassis through a rev-trans joints.
 // Values for the spring and damping coefficients of the secondary suspension 
 // may be selected in the parameter definition section.
+//
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "tests/vehicle/ancfToroidalTire/ANCFToroidalTire.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/utils/ChUtilsValidation.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
-#include "physics/ChLoadContainer.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono/core/ChRealtimeStep.h"
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
+
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
+
+#include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include <irrlicht.h>
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChLcpMklSolver.h"
+#endif
+
+#include "../ancfToroidalTire/ANCFToroidalTire.h"
 
 using namespace chrono;
-using namespace fea;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace irr;
-using namespace scene;
 
+// =============================================================================
+// Global definitions
 
 std::shared_ptr<ChBody> BGround;
 std::shared_ptr<ChBody> SimpChassis;  // Chassis body
-
 
 const double spring_coef = 3e4;  // Springs and dampers for strut
 const double damping_coef = 1e3;
@@ -72,9 +64,13 @@ const double TorusRadius = 0.35;
 const double TorusHeight = 0.15;
 const double thickness = 0.007;
 const double Clearance = 0.0003;  // Initial space between tire and ground
-const double GroundLoc =
--(TorusRadius + TorusHeight + Clearance);          // Vertical position of the ground (for contact)
+const double GroundLoc = -(TorusRadius + TorusHeight + Clearance);  // Vertical position of the ground (for contact)
 
+// Solver settings
+enum SolverType { MINRES, MKL };
+SolverType solver_type = MKL;
+
+// =============================================================================
 
 void MakeANCFWheel(ChSystem& my_system,
                    const ChVector<> rim_center,
@@ -111,8 +107,9 @@ void MakeANCFWheel(ChSystem& my_system,
     tire->SetRimRadius(TorusRadius);
     tire->SetThickness(thickness);
     tire->Initialize(Hub_1, LEFT);
-    // ----------------------------------------------------------------------------------------
 }
+
+// =============================================================================
 
 int main(int argc, char* argv[]) {
     // Definition of the model
@@ -215,61 +212,91 @@ int main(int argc, char* argv[]) {
     terrain->Initialize(-TorusRadius -TorusHeight -Clearance, 60, 5);
 
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;  // MKL Solver option
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
-    mkl_solver_speed->SetSparsityPatternLock(false);
-    mkl_solver_stab->SetSparsityPatternLock(false);
+
+    // Complete system setup
+    // ---------------------
+
+    my_system.SetupInitial();
+    my_system.Setup();
+    my_system.Update();
+
+    // Solver and integrator settings
+    // ------------------------------
+
+    if (solver_type == MKL) {
+#ifndef CHRONO_MKL
+        solver_type = MINRES;
+#endif
+    }
+
+    switch (solver_type) {
+        case MINRES: {
+            GetLog() << "Using MINRES solver\n";
+            my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+            ChLcpIterativeMINRES* minres_solver = (ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+            ////minres_solver->SetDiagonalPreconditioning(true);
+            my_system.SetIterLCPwarmStarting(true);
+            my_system.SetIterLCPmaxItersSpeed(500);
+            my_system.SetTolForce(1e-5);
+            break;
+        }
+        case MKL: {
+#ifdef CHRONO_MKL
+            GetLog() << "Using MKL solver\n";
+            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
+            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+            my_system.ChangeLcpSolverStab(mkl_solver_stab);
+            my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+            mkl_solver_speed->SetSparsityPatternLock(true);
+            mkl_solver_stab->SetSparsityPatternLock(true);
+#endif
+            break;
+        }
+    }
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);
-    // my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.3);  // Important for convergence
     mystepper->SetMaxiters(11);
     mystepper->SetAbsTolerances(5e-06, 5e-03);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(false);  //
+    mystepper->SetScaling(false);
     mystepper->SetVerbose(true);
     mystepper->SetRequiredSuccessfulSteps(2);
     mystepper->SetMaxItersSuccess(7);
-    ChMatrixNM<double, 3, 1> Cp;
-    ChMatrixNM<double, 2, 1> Cd;  // Matrices for storing constraint violations
 
 
-    double start = std::clock();
+    // Create the Irrlicht app
+    // -----------------------
 
     ChIrrApp application(&my_system, L"ANCF Rolling Tire", core::dimension2d<u32>(1080, 800), false);
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(0.5f, 0.5f, 1.15f),   // camera location
-        core::vector3df(0.65f, 0.0f, 0.0f));  // "look at" location
-    application.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 160,
-        70);
-    utils::CSV_writer out("\t");
-    out.stream().setf(std::ios::scientific | std::ios::showpos);
-    out.stream().precision(7);
+                                 core::vector3df(0.65f, 0.0f, 0.0f));  // "look at" location
+    application.AddTypicalLights(core::vector3df(30.f, -30.f, 100.f), core::vector3df(30.f, 50.f, 100.f), 160, 70);
 
     application.AssetBindAll();
     application.AssetUpdateAll();
 
+    // Perform the simulation
+    // ----------------------
 
-    chrono::GetLog()
-        << "\n\nREADME\n\n"
-        << " - Press SPACE to start dynamic simulation \n";
+    chrono::GetLog() << "\n\nREADME\n\n"
+                     << " - Press SPACE to start dynamic simulation \n";
 
-    // at beginning, no analysis is running..
-    application.SetPaused(false);
-    int AccuNoIterations = 0;
+    application.SetPaused(false); // at beginning, no analysis is running..
     application.SetStepManage(true);
     application.SetTimestep(time_step);
     application.SetTryRealtime(false);
 
-    my_system.Setup();
-    my_system.Update();
-    my_system.SetupInitial();
+    utils::CSV_writer out("\t");
+    out.stream().setf(std::ios::scientific | std::ios::showpos);
+    out.stream().precision(7);
+
+    int AccuNoIterations = 0;
+    double start = std::clock();
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
@@ -287,12 +314,12 @@ int main(int argc, char* argv[]) {
             out << my_system.GetChTime() << Hub_1->GetPos().x << Hub_1->GetPos().y << Hub_1->GetPos().z
                 << Hub_2->GetPos().x << Hub_2->GetPos().y << Hub_2->GetPos().z << Hub_3->GetPos().x << Hub_3->GetPos().y
                 << Hub_3->GetPos().z << std::endl;
-            out.write_to_file("../VertPosRim.txt");
         }
     }
+
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     chrono::GetLog() << "Computation Time: " << duration;
-    system("pause");
+    out.write_to_file("../VertPosRim.txt");
 
     return 0;
 }

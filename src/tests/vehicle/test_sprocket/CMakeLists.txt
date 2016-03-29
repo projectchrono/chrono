@@ -7,13 +7,11 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add sprocket tests")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
 SET(TESTS
-    test_profile
+    test_VEH_sprocketProfile
 )
 
 #--------------------------------------------------------------
@@ -25,6 +23,7 @@ INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 # Add executables
 
 FOREACH(PROGRAM ${TESTS})
+  MESSAGE(STATUS "...add ${PROGRAM}")
 
   ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
   SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
