@@ -127,15 +127,15 @@ CUDA_HOST_DEVICE static inline float2 Normalize(const float2& v) {
 class Mat33f {
   public:
     // Zero constructor
-    CUDA_HOST_DEVICE Mat33f() : array{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} {}
+    CUDA_HOST_DEVICE Mat33f() : array{0, 0, 0, 0, 0, 0, 0, 0, 0} {}
     // Diagonal matrix constructor
-    CUDA_HOST_DEVICE Mat33f(float v) : array{v, 0, 0, 0, 0, v, 0, 0, 0, 0, v, 0} {}
+    CUDA_HOST_DEVICE explicit Mat33f(float v) : array{v, 0, 0, 0, v, 0, 0, 0, v} {}
     // Diagonal matrix constructor
-    CUDA_HOST_DEVICE Mat33f(float3 v) : array{v.x, 0, 0, 0, 0, v.y, 0, 0, 0, 0, v.z, 0} {}
+    CUDA_HOST_DEVICE explicit Mat33f(float3 v) : array{v.x, 0, 0, 0, v.y, 0, 0, 0, v.z} {}
 
     // Constructor that takes three columns of the matrix
     CUDA_HOST_DEVICE Mat33f(const float3& col1, const float3& col2, const float3& col3)
-        : array{col1.x, col1.y, col1.z, 0, col2.x, col2.y, col2.z, 0, col3.x, col3.y, col3.z, 0} {}
+        : array{col1.x, col1.y, col1.z, col2.x, col2.y, col2.z, col3.x, col3.y, col3.z} {}
 
     // Constructor that takes individial elements
     CUDA_HOST_DEVICE Mat33f(const float& v11,
@@ -147,34 +147,29 @@ class Mat33f {
                             const float& v13,
                             const float& v23,
                             const float& v33)
-        : array{v11, v21, v31, 0, v12, v22, v32, 0, v13, v23, v33, 0} {}
+        : array{v11, v21, v31, v12, v22, v32, v13, v23, v33} {}
     // Copy constructor
-    CUDA_HOST_DEVICE Mat33f(const Mat33f& M) { memcpy(array, M.array, 12 * sizeof(float)); }
-
-    // Constructor that takes a quaternion and generates a rotation matrix
-    //    CUDA_HOST_DEVICE Mat33f(const quaternion& q) {
-    //        array[0] = float(1.0) - float(2.0) * q.y * q.y - float(2.0) * q.z * q.z;
-    //        array[1] = float(2.0) * q.x * q.y + float(2.0) * q.z * q.w;
-    //        array[2] = float(2.0) * q.x * q.z - float(2.0) * q.y * q.w;
-    //
-    //        array[4] = float(2.0) * q.x * q.y - float(2.0) * q.z * q.w;
-    //        array[5] = float(1.0) - float(2.0) * q.x * q.x - float(2.0) * q.z * q.z;
-    //        array[6] = float(2.0) * q.y * q.z + float(2.0) * q.x * q.w;
-    //
-    //        array[8] = float(2.0) * q.x * q.z + float(2.0) * q.y * q.w;
-    //        array[9] = float(2.0) * q.y * q.z - float(2.0) * q.x * q.w;
-    //        array[10] = float(1.0) - float(2.0) * q.x * q.x - float(2.0) * q.y * q.y;
-    //    }
+    CUDA_HOST_DEVICE Mat33f(const Mat33f& M) {
+        array[0] = M.array[0];
+        array[1] = M.array[1];
+        array[2] = M.array[2];
+        array[3] = M.array[3];
+        array[4] = M.array[4];
+        array[5] = M.array[5];
+        array[6] = M.array[6];
+        array[7] = M.array[7];
+        array[8] = M.array[8];
+    }
 
     CUDA_HOST_DEVICE inline float operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline float& operator[](unsigned int i) { return array[i]; }
-    CUDA_HOST_DEVICE inline float operator()(int i, int j) const { return array[j * 4 + i]; }
-    CUDA_HOST_DEVICE inline float& operator()(int i, int j) { return array[j * 4 + i]; }
+    CUDA_HOST_DEVICE inline float operator()(int i, int j) const { return array[j * 3 + i]; }
+    CUDA_HOST_DEVICE inline float& operator()(int i, int j) { return array[j * 3 + i]; }
     CUDA_HOST_DEVICE inline float3 col(unsigned int i) const {
-        return make_float3(array[i * 4], array[i * 4 + 1], array[i * 4 + 2]);
+        return make_float3(array[i * 3], array[i * 3 + 1], array[i * 3 + 2]);
     }
     CUDA_HOST_DEVICE inline float3 row(unsigned int i) const {
-        return make_float3(array[0 * 4 + i], array[1 * 4 + i], array[2 * 4 + i]);
+        return make_float3(array[0 * 3 + i], array[1 * 3 + i], array[2 * 3 + i]);
     }
 
     CUDA_HOST_DEVICE inline Mat33f& operator=(const Mat33f& M) {
@@ -187,13 +182,11 @@ class Mat33f {
         array[6] = M.array[6];
         array[7] = M.array[7];
         array[8] = M.array[8];
-        array[9] = M.array[9];
-        array[10] = M.array[10];
-        array[11] = M.array[11];
+
         return *this;
     }
 
-    float array[12];
+    float array[9];
 
     // c1 c2 c3
     // 0  4  8
@@ -293,14 +286,13 @@ CUDA_HOST_DEVICE SymMat33f operator-(const SymMat33f& M, const float& v);
 struct Mat32f {
     CUDA_HOST_DEVICE Mat32f() {}
     CUDA_HOST_DEVICE Mat32f(const float3 col1, const float3 col2)
-        : array{col1.x, col1.y, col1.z, 0, col2.x, col2.y, col2.z, 0} {}
+        : array{col1.x, col1.y, col1.z, col2.x, col2.y, col2.z} {}
     CUDA_HOST_DEVICE inline float operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline float& operator[](unsigned int i) { return array[i]; }
-    float array[8];
-    // 0 4
-    // 1 5
-    // 2 6
-    // 3 7 //Not used
+    float array[6];
+    // 0 3
+    // 1 4
+    // 2 5
 };
 CUDA_HOST_DEVICE float3 operator*(const Mat32f& M, const float2& v);
 
@@ -309,10 +301,10 @@ CUDA_HOST_DEVICE float3 operator*(const Mat32f& M, const float2& v);
 struct Mat23f {
     CUDA_HOST_DEVICE Mat23f() {}
     CUDA_HOST_DEVICE Mat23f(const float3 row1, const float3 row2)
-        : array{row1.x, row1.y, row1.z, 0, row2.x, row2.y, row2.z, 0} {}
-    float array[8];
-    // 0 1 2 3
-    // 4 5 6 7
+        : array{row1.x, row1.y, row1.z, row2.x, row2.y, row2.z} {}
+    float array[6];
+    // 0 1 2
+    // 3 4 5
 };
 // ========================================================================================
 
@@ -350,7 +342,6 @@ CUDA_HOST_DEVICE void PrintLine(const Mat33f& A, const char* name);
 CUDA_HOST_DEVICE void PrintLine(const Mat32f& A, const char* name);
 CUDA_HOST_DEVICE void PrintLine(const SymMat33f& A, const char* name);
 CUDA_HOST_DEVICE void PrintLine(const SymMat22f& A, const char* name);
-
 
 //[U.x,V.x,W.x]
 //[U.y,V.y,W.y]

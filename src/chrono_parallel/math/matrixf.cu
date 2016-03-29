@@ -9,30 +9,30 @@ namespace chrono {
 CUDA_HOST_DEVICE inline float3 DotMM(const float* M) {
     float3 result;
     result.x = M[0] * M[0] + M[1] * M[1] + M[2] * M[2];
-    result.y = M[4] * M[4] + M[5] * M[5] + M[6] * M[6];
-    result.z = M[8] * M[8] + M[9] * M[9] + M[10] * M[10];
+    result.y = M[3] * M[3] + M[4] * M[4] + M[5] * M[5];
+    result.z = M[6] * M[6] + M[7] * M[7] + M[8] * M[8];
     return result;
 }  // dot product of each column of a matrix with another matrix
 CUDA_HOST_DEVICE inline float3 DotMM(const float* M, const float* N) {
     float3 result;
     result.x = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
-    result.y = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
-    result.z = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    result.y = M[3] * N[3] + M[4] * N[4] + M[5] * N[5];
+    result.z = M[6] * N[6] + M[7] * N[7] + M[8] * N[8];
     return result;
 }
 CUDA_HOST_DEVICE inline Mat33f MulMM(const float* M, const float* N) {
     Mat33f r;
-    r[0] = M[0] * N[0] + M[4] * N[1] + M[8] * N[2];
-    r[1] = M[1] * N[0] + M[5] * N[1] + M[9] * N[2];
-    r[2] = M[2] * N[0] + M[6] * N[1] + M[10] * N[2];
+    r[0] = M[0] * N[0] + M[3] * N[1] + M[6] * N[2];
+    r[1] = M[1] * N[0] + M[4] * N[1] + M[7] * N[2];
+    r[2] = M[2] * N[0] + M[5] * N[1] + M[8] * N[2];
 
-    r[4] = M[0] * N[4] + M[4] * N[5] + M[8] * N[6];
-    r[5] = M[1] * N[4] + M[5] * N[5] + M[9] * N[6];
-    r[6] = M[2] * N[4] + M[6] * N[5] + M[10] * N[6];
+    r[3] = M[0] * N[3] + M[3] * N[4] + M[6] * N[5];
+    r[4] = M[1] * N[3] + M[4] * N[4] + M[7] * N[5];
+    r[5] = M[2] * N[3] + M[5] * N[4] + M[8] * N[5];
 
-    r[8] = M[0] * N[8] + M[4] * N[9] + M[8] * N[10];
-    r[9] = M[1] * N[8] + M[5] * N[9] + M[9] * N[10];
-    r[10] = M[2] * N[8] + M[6] * N[9] + M[10] * N[10];
+    r[6] = M[0] * N[6] + M[3] * N[7] + M[6] * N[8];
+    r[7] = M[1] * N[6] + M[4] * N[7] + M[7] * N[8];
+    r[8] = M[2] * N[6] + M[5] * N[7] + M[8] * N[8];
     return r;
 }
 
@@ -44,24 +44,24 @@ CUDA_HOST_DEVICE inline Mat33f MulM_TM(const float* M, const float* N) {
 
     Mat33f r;
     r[0] = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
-    r[1] = M[4] * N[0] + M[5] * N[1] + M[6] * N[2];
-    r[2] = M[8] * N[0] + M[9] * N[1] + M[10] * N[2];
+    r[1] = M[3] * N[0] + M[4] * N[1] + M[5] * N[2];
+    r[2] = M[6] * N[0] + M[7] * N[1] + M[8] * N[2];
 
-    r[4] = M[0] * N[4] + M[1] * N[5] + M[2] * N[6];
-    r[5] = M[4] * N[4] + M[5] * N[5] + M[6] * N[6];
-    r[6] = M[8] * N[4] + M[9] * N[5] + M[10] * N[6];
+    r[3] = M[0] * N[3] + M[1] * N[4] + M[2] * N[5];
+    r[4] = M[3] * N[3] + M[4] * N[4] + M[5] * N[5];
+    r[5] = M[6] * N[3] + M[7] * N[4] + M[8] * N[5];
 
-    r[8] = M[0] * N[8] + M[1] * N[9] + M[2] * N[10];
-    r[9] = M[4] * N[8] + M[5] * N[9] + M[6] * N[10];
-    r[10] = M[8] * N[8] + M[9] * N[9] + M[10] * N[10];
+    r[6] = M[0] * N[6] + M[1] * N[7] + M[2] * N[8];
+    r[7] = M[3] * N[6] + M[4] * N[7] + M[5] * N[8];
+    r[8] = M[6] * N[6] + M[7] * N[7] + M[8] * N[8];
     return r;
 }
 
 CUDA_HOST_DEVICE inline float3 MulMV(const float* M, const float* N) {
     float3 r;
-    r.x = M[0] * N[0] + M[4] * N[1] + M[8] * N[2];
-    r.y = M[1] * N[0] + M[5] * N[1] + M[9] * N[2];
-    r.z = M[2] * N[0] + M[6] * N[1] + M[10] * N[2];
+    r.x = M[0] * N[0] + M[3] * N[1] + M[6] * N[2];
+    r.y = M[1] * N[0] + M[4] * N[1] + M[7] * N[2];
+    r.z = M[2] * N[0] + M[5] * N[1] + M[8] * N[2];
 
     return r;
 }
@@ -76,31 +76,18 @@ CUDA_HOST_DEVICE inline Mat33f ScaleMat(const float* M, const float b) {
     r[0] = M[0] * b;
     r[1] = M[1] * b;
     r[2] = M[2] * b;
+    r[3] = M[3] * b;
     r[4] = M[4] * b;
     r[5] = M[5] * b;
     r[6] = M[6] * b;
+    r[7] = M[7] * b;
     r[8] = M[8] * b;
-    r[9] = M[9] * b;
-    r[10] = M[10] * b;
     return r;
 }
 
-CUDA_HOST_DEVICE inline SymMat33f NormalEquations(const float* A) {
-    SymMat33f T;
-
-    T.x11 = A[0] * A[0] + A[1] * A[1] + A[2] * A[2];
-    T.x21 = A[0] * A[4] + A[1] * A[5] + A[2] * A[6];
-    T.x31 = A[0] * A[8] + A[1] * A[9] + A[2] * A[10];
-    T.x22 = A[4] * A[4] + A[5] * A[5] + A[6] * A[6];
-    T.x32 = A[4] * A[8] + A[5] * A[9] + A[6] * A[10];
-    T.x33 = A[8] * A[8] + A[9] * A[9] + A[10] * A[10];
-
-    return T;
-}
-
 CUDA_HOST_DEVICE inline Mat33f MAbs(const float* M) {
-    return Mat33f(fabsf(M[0]), fabsf(M[1]), fabsf(M[2]), fabsf(M[4]), fabsf(M[5]), fabsf(M[6]), fabsf(M[8]),
-                  fabsf(M[9]), fabsf(M[10]));
+    return Mat33f(fabsf(M[0]), fabsf(M[1]), fabsf(M[2]), fabsf(M[3]), fabsf(M[4]), fabsf(M[5]), fabsf(M[6]),
+                  fabsf(M[7]), fabsf(M[8]));
 }
 
 //[0,4,8 ]
@@ -109,9 +96,9 @@ CUDA_HOST_DEVICE inline Mat33f MAbs(const float* M) {
 //[3,7,11]
 CUDA_HOST_DEVICE float3 operator*(const Mat33f& M, const float3& N) {
     float3 r;
-    r.x = M[0] * N.x + M[4] * N.y + M[8] * N.z;
-    r.y = M[1] * N.x + M[5] * N.y + M[9] * N.z;
-    r.z = M[2] * N.x + M[6] * N.y + M[10] * N.z;
+    r.x = M[0] * N.x + M[3] * N.y + M[6] * N.z;
+    r.y = M[1] * N.x + M[4] * N.y + M[7] * N.z;
+    r.z = M[2] * N.x + M[5] * N.y + M[8] * N.z;
     return r;
 }
 
@@ -123,16 +110,16 @@ CUDA_HOST_DEVICE Mat33f operator*(const Mat33f& M, const Mat33f& N) {
     return MulMM(M.array, N.array);
 }
 CUDA_HOST_DEVICE Mat33f operator+(const Mat33f& M, const Mat33f& N) {
-    return Mat33f(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[4] + N[4], M[5] + N[5], M[6] + N[6], M[8] + N[8],
-                  M[9] + N[9], M[10] + N[10]);
+    return Mat33f(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[3] + N[3], M[4] + N[4], M[5] + N[5], M[6] + N[6],
+                  M[7] + N[7], M[8] + N[8]);
 }
 
 CUDA_HOST_DEVICE Mat33f operator-(const Mat33f& M, const Mat33f& N) {
-    return Mat33f(M[0] - N[0], M[1] - N[1], M[2] - N[2], M[4] - N[4], M[5] - N[5], M[6] - N[6], M[8] - N[8],
-                  M[9] - N[9], M[10] - N[10]);
+    return Mat33f(M[0] - N[0], M[1] - N[1], M[2] - N[2], M[3] - N[3], M[4] - N[4], M[5] - N[5], M[6] - N[6],
+                  M[7] - N[7], M[8] - N[8]);
 }
 CUDA_HOST_DEVICE Mat33f operator-(const Mat33f& M) {
-    return Mat33f(-M[0], -M[1], -M[2], -M[4], -M[5], -M[6], -M[8], -M[9], -M[10]);
+    return Mat33f(-M[0], -M[1], -M[2], -M[3], -M[4], -M[5], -M[6], -M[7], -M[8]);
 }
 CUDA_HOST_DEVICE Mat33f Abs(const Mat33f& m) {
     return MAbs(m.array);
@@ -153,11 +140,11 @@ CUDA_HOST_DEVICE Mat33f TransposeMult(const Mat33f& M, const Mat33f& N) {
 }
 
 CUDA_HOST_DEVICE Mat33f Transpose(const Mat33f& a) {
-    return Mat33f(a[0], a[4], a[8], a[1], a[5], a[9], a[2], a[6], a[10]);
+    return Mat33f(a[0], a[3], a[6], a[1], a[4], a[7], a[2], a[5], a[8]);
 }
 
 CUDA_HOST_DEVICE float Trace(const Mat33f& m) {
-    return m[0] + m[5] + m[10];
+    return m[0] + m[4] + m[8];
 }
 // Multiply a 3x1 by a 1x3 to get a 3x3
 CUDA_HOST_DEVICE Mat33f OuterProduct(const float3& A, const float3& B) {
@@ -170,40 +157,39 @@ CUDA_HOST_DEVICE float InnerProduct(const Mat33f& A, const Mat33f& B) {
 
 CUDA_HOST_DEVICE Mat33f Adjoint(const Mat33f& A) {
     Mat33f T;
-    T[0] = A[5] * A[10] - A[9] * A[6];
-    T[1] = -A[1] * A[10] + A[9] * A[2];
-    T[2] = A[1] * A[6] - A[5] * A[2];
+    T[0] = A[4] * A[8] - A[7] * A[5];
+    T[1] = -A[1] * A[8] + A[7] * A[2];
+    T[2] = A[1] * A[5] - A[4] * A[2];
 
-    T[4] = -A[4] * A[10] + A[8] * A[6];
-    T[5] = A[0] * A[10] - A[8] * A[2];
-    T[6] = -A[0] * A[6] + A[4] * A[2];
+    T[3] = -A[3] * A[8] + A[6] * A[5];
+    T[4] = A[0] * A[8] - A[6] * A[2];
+    T[5] = -A[0] * A[5] + A[3] * A[2];
 
-    T[8] = A[4] * A[9] - A[8] * A[5];
-    T[9] = -A[0] * A[9] + A[8] * A[1];
-    T[10] = A[0] * A[5] - A[4] * A[1];
+    T[6] = A[3] * A[7] - A[6] * A[4];
+    T[7] = -A[0] * A[7] + A[6] * A[1];
+    T[8] = A[0] * A[4] - A[3] * A[1];
     return T;
 }
 
 CUDA_HOST_DEVICE Mat33f AdjointTranspose(const Mat33f& A) {
     Mat33f T;
-    T[0] = A[5] * A[10] - A[9] * A[6];
-    T[1] = -A[4] * A[10] + A[8] * A[6];
-    T[2] = A[4] * A[9] - A[8] * A[5];
+    T[0] = A[4] * A[8] - A[7] * A[5];
+    T[1] = -A[3] * A[8] + A[6] * A[5];
+    T[2] = A[3] * A[7] - A[6] * A[4];
 
-    T[4] = -A[1] * A[10] + A[9] * A[2];
-    T[5] = A[0] * A[10] - A[8] * A[2];
-    T[6] = -A[0] * A[9] + A[8] * A[1];
+    T[3] = -A[1] * A[8] + A[7] * A[2];
+    T[4] = A[0] * A[8] - A[6] * A[2];
+    T[5] = -A[0] * A[7] + A[6] * A[1];
 
-    T[8] = A[1] * A[6] - A[5] * A[2];
-    T[9] = -A[0] * A[6] + A[4] * A[2];
-    T[10] = A[0] * A[5] - A[4] * A[1];
+    T[6] = A[1] * A[5] - A[4] * A[2];
+    T[7] = -A[0] * A[5] + A[3] * A[2];
+    T[8] = A[0] * A[4] - A[3] * A[1];
 
     return T;
 }
 
 CUDA_HOST_DEVICE float Determinant(const Mat33f& m) {
-    return m[0] * (m[5] * m[10] - m[9] * m[6]) - m[4] * (m[1] * m[10] - m[9] * m[2]) +
-           m[8] * (m[1] * m[6] - m[5] * m[2]);
+    return m[0] * (m[4] * m[8] - m[7] * m[5]) - m[3] * (m[1] * m[8] - m[7] * m[2]) + m[6] * (m[1] * m[5] - m[4] * m[2]);
 }
 
 CUDA_HOST_DEVICE Mat33f Inverse(const Mat33f& A) {
@@ -230,8 +216,8 @@ CUDA_HOST_DEVICE float Norm(const Mat33f& A) {
 }
 
 CUDA_HOST_DEVICE float DoubleDot(const Mat33f& A, const Mat33f& B) {
-    return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] + A[8] * B[8] +
-           A[9] * B[9] + A[10] * B[10];
+    return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] +
+           A[7] * B[7] + A[8] * B[8];
 }
 
 CUDA_HOST_DEVICE float3 LargestColumnNormalized(const Mat33f& A) {
@@ -249,8 +235,8 @@ CUDA_HOST_DEVICE float3 LargestColumnNormalized(const Mat33f& A) {
 //// ========================================================================================
 
 CUDA_HOST_DEVICE Mat33f operator*(const DiagMat33f& M, const Mat33f& N) {
-    return Mat33f(M.x11 * N[0], M.x22 * N[1], M.x33 * N[2], M.x11 * N[4], M.x22 * N[5], M.x33 * N[6], M.x11 * N[8],
-                  M.x22 * N[9], M.x33 * N[10]);
+    return Mat33f(M.x11 * N[0], M.x22 * N[1], M.x33 * N[2], M.x11 * N[3], M.x22 * N[4], M.x33 * N[5], M.x11 * N[6],
+                  M.x22 * N[7], M.x33 * N[8]);
 }
 CUDA_HOST_DEVICE float3 operator*(const DiagMat33f& M, const float3& v) {
     float3 result;
@@ -291,15 +277,24 @@ CUDA_HOST_DEVICE float3 LargestColumnNormalized(const SymMat33f& A) {
     }
 }
 CUDA_HOST_DEVICE SymMat33f NormalEquationsMatrix(const Mat33f& A) {
-    return NormalEquations(A.array);
+    SymMat33f T;
+
+    T.x11 = A[0] * A[0] + A[1] * A[1] + A[2] * A[2];
+    T.x21 = A[0] * A[3] + A[1] * A[4] + A[2] * A[5];
+    T.x31 = A[0] * A[6] + A[1] * A[7] + A[2] * A[8];
+    T.x22 = A[3] * A[3] + A[4] * A[4] + A[5] * A[5];
+    T.x32 = A[3] * A[6] + A[4] * A[7] + A[5] * A[8];
+    T.x33 = A[6] * A[6] + A[7] * A[7] + A[8] * A[8];
+
+    return T;
 }
 //// ========================================================================================
 
 CUDA_HOST_DEVICE float3 operator*(const Mat32f& M, const float2& v) {
     float3 result;
-    result.x = M[0] * v.x + M[4] * v.y;
-    result.y = M[1] * v.x + M[5] * v.y;
-    result.z = M[2] * v.x + M[6] * v.y;
+    result.x = M[0] * v.x + M[3] * v.y;
+    result.y = M[1] * v.x + M[4] * v.y;
+    result.z = M[2] * v.x + M[5] * v.y;
 
     return result;
 }
@@ -312,9 +307,9 @@ CUDA_HOST_DEVICE Mat32f operator*(const SymMat33f& M, const Mat32f& N) {
     result[1] = M.x21 * N[0] + M.x22 * N[1] + M.x32 * N[2];
     result[2] = M.x31 * N[0] + M.x32 * N[1] + M.x33 * N[2];
 
-    result[4] = M.x11 * N[4] + M.x21 * N[5] + M.x31 * N[6];
-    result[5] = M.x21 * N[4] + M.x22 * N[5] + M.x32 * N[6];
-    result[6] = M.x31 * N[4] + M.x32 * N[5] + M.x33 * N[6];
+    result[3] = M.x11 * N[3] + M.x21 * N[4] + M.x31 * N[5];
+    result[4] = M.x21 * N[3] + M.x22 * N[4] + M.x32 * N[5];
+    result[5] = M.x31 * N[3] + M.x32 * N[4] + M.x33 * N[5];
 
     return result;
 }
@@ -345,8 +340,8 @@ CUDA_HOST_DEVICE float2 LargestColumnNormalized(const SymMat22f& A) {
 CUDA_HOST_DEVICE SymMat22f TransposeTimesWithSymmetricResult(const Mat32f& A, const Mat32f& B) {
     SymMat22f T;
     T.x11 = A[0] * B[0] + A[1] * B[1] + A[2] * B[2];
-    T.x21 = A[4] * B[0] + A[5] * B[1] + A[6] * B[2];
-    T.x22 = A[4] * B[4] + A[5] * B[5] + A[6] * B[6];
+    T.x21 = A[3] * B[0] + A[4] * B[1] + A[5] * B[2];
+    T.x22 = A[3] * B[3] + A[4] * B[4] + A[5] * B[5];
 
     return T;
 }
@@ -357,15 +352,15 @@ CUDA_HOST_DEVICE SymMat22f ConjugateWithTranspose(const Mat32f& A, const SymMat3
 
 CUDA_HOST_DEVICE void Print(const Mat33f& A, const char* name) {
     printf("%s\n", name);
-    printf("%f %f %f\n", A[0], A[4], A[8]);
-    printf("%f %f %f\n", A[1], A[5], A[9]);
-    printf("%f %f %f\n", A[2], A[6], A[10]);
+    printf("%f %f %f\n", A[0], A[3], A[6]);
+    printf("%f %f %f\n", A[1], A[4], A[7]);
+    printf("%f %f %f\n", A[2], A[5], A[8]);
 }
 CUDA_HOST_DEVICE void Print(const Mat32f& A, const char* name) {
     printf("%s\n", name);
-    printf("%f %f\n", A[0], A[4]);
-    printf("%f %f\n", A[1], A[5]);
-    printf("%f %f\n", A[2], A[6]);
+    printf("%f %f\n", A[0], A[3]);
+    printf("%f %f\n", A[1], A[4]);
+    printf("%f %f\n", A[2], A[5]);
 }
 CUDA_HOST_DEVICE void Print(const SymMat33f& A, const char* name) {
     printf("%s\n", name);
@@ -382,10 +377,10 @@ CUDA_HOST_DEVICE void Print(const SymMat22f& A, const char* name) {
 }
 
 CUDA_HOST_DEVICE void PrintLine(const Mat33f& A, const char* name) {
-    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6], A[8], A[9], A[10]);
+    printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[8]);
 }
 CUDA_HOST_DEVICE void PrintLine(const Mat32f& A, const char* name) {
-    printf("%s: [%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[4], A[5], A[6]);
+    printf("%s: [%f,%f,%f,%f,%f,%f]\n", name, A[0], A[1], A[2], A[3], A[4], A[5]);
 }
 CUDA_HOST_DEVICE void PrintLine(const SymMat33f& A, const char* name) {
     printf("%s: [%f,%f,%f,%f,%f,%f,%f,%f,%f]\n", name, A.x11, A.x21, A.x31, A.x21, A.x22, A.x32, A.x31, A.x32, A.x33);

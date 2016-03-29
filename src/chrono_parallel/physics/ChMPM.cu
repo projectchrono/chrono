@@ -73,6 +73,212 @@ __device__ float dot_my_my = 0;
     }
 //////========================================================================================================================================================================
 ////
+//void WeakEqual(const float& x, const float& y, real COMPARE_EPS = FLT_EPSILON) {
+//    if (fabsf(x - y) > COMPARE_EPS) {
+//        printf("%f does not equal %f %.20e\n", x, y, Abs(x - y));
+//        exit(1);
+//    }
+//}
+//
+//void WeakEqual(const float3& a, const float3& b, float COMPARE_EPS = FLT_EPSILON) {
+//    WeakEqual(a.x, b.x, COMPARE_EPS);
+//    WeakEqual(a.y, b.y, COMPARE_EPS);
+//    WeakEqual(a.z, b.z, COMPARE_EPS);
+//}
+//
+//void WeakEqual(const Mat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSILON) {
+//    WeakEqual(a[0], b[0], COMPARE_EPS);
+//    WeakEqual(a[1], b[1], COMPARE_EPS);
+//    WeakEqual(a[2], b[2], COMPARE_EPS);
+//    WeakEqual(a[3], b[3], COMPARE_EPS);
+//    WeakEqual(a[4], b[4], COMPARE_EPS);
+//    WeakEqual(a[5], b[5], COMPARE_EPS);
+//    WeakEqual(a[6], b[6], COMPARE_EPS);
+//    WeakEqual(a[7], b[7], COMPARE_EPS);
+//    WeakEqual(a[8], b[8], COMPARE_EPS);
+//}
+//
+//void WeakEqual(const SymMat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSILON) {
+//    WeakEqual(a[0], b[0], COMPARE_EPS);  // x11
+//    WeakEqual(a[1], b[1], COMPARE_EPS);  // x21
+//    WeakEqual(a[2], b[2], COMPARE_EPS);  // x31
+//    WeakEqual(a[3], b[4], COMPARE_EPS);  // x22
+//    WeakEqual(a[4], b[5], COMPARE_EPS);  // x32
+//    WeakEqual(a[5], b[8], COMPARE_EPS);  // x33
+//}
+//void WeakEqual(const SymMat22f& a, const SymMat22f& b, float COMPARE_EPS = FLT_EPSILON) {
+//    WeakEqual(a.x11, b.x11, COMPARE_EPS);
+//    WeakEqual(a.x21, b.x21, COMPARE_EPS);
+//    WeakEqual(a.x22, b.x22, COMPARE_EPS);
+//}
+//
+//void TestMath() {
+//    float3 n = make_float3(0.000010, 0.171503, 0.985184);
+//    float3 a1 = make_float3(1, 2, 3);
+//    float3 a2 = make_float3(6, 7, 8);
+//
+//    const Mat33f AOne(1, 1, 1, 1, 1, 1, 1, 1, 1);
+//    const Mat33f A1(1, 2, 4, 5, 6, 7, 8, 9, 10);
+//    const Mat33f A2(10, 2, 4, 7, 2, 5, 8, 3, 1);
+//    const Mat33f A3(1, 0, 5, 2, 1, 6, 3, 4, 0);
+//    const Mat33f A4(-24, 20, -5, 18, -15, 4, 5, -4, 1);
+//    const Mat33f A4_T(-24, 18, 5, 20, -15, -4, -5, 4, 1);
+//    const Mat33f A5(0.0, 6.4, 3.2, 4.0, -0.8, 3.2, 6.4, 3.2, 5.6);
+//
+//    printf("3x3 Matrix Tests ============\n");
+//
+//    printf("0 Matrix\n");
+//    Mat33f zero(0);
+//    WeakEqual(zero[0], 0);
+//    WeakEqual(zero[1], 0);
+//    WeakEqual(zero[2], 0);
+//    WeakEqual(zero[3], 0);
+//    WeakEqual(zero[4], 0);
+//    WeakEqual(zero[5], 0);
+//    WeakEqual(zero[6], 0);
+//    WeakEqual(zero[7], 0);
+//    WeakEqual(zero[8], 0);
+//
+//    printf("Diag Matrix\n");
+//    WeakEqual(Mat33f(1), Mat33f(1, 0, 0, 0, 1, 0, 0, 0, 1));
+//
+//    printf("Diag 3 Matrix\n");
+//    WeakEqual(Mat33f(make_float3(1, 2, 3)), Mat33f(1, 0, 0, 0, 2, 0, 0, 0, 3));
+//
+//    printf("Column Constructor\n");
+//    WeakEqual(Mat33f(make_float3(1, 2, 4), make_float3(5, 6, 7), make_float3(8, 9, 10)), A1);
+//
+//    printf("Element Constructor\n");
+//    WeakEqual(A4[0], -24);
+//    WeakEqual(A4[1], 20);
+//    WeakEqual(A4[2], -5);
+//    WeakEqual(A4[3], 18);
+//    WeakEqual(A4[4], -15);
+//    WeakEqual(A4[5], 4);
+//    WeakEqual(A4[6], 5);
+//    WeakEqual(A4[7], -4);
+//    WeakEqual(A4[8], 1);
+//
+//    printf("Copy Constructor\n");
+//    WeakEqual(Mat33f(A1), A1);
+//
+//    printf("() Operator \n");
+//    WeakEqual(A4(0, 0), -24);
+//    WeakEqual(A4(1, 2), -4);
+//
+//    printf("col Operator \n");
+//    WeakEqual(A4.col(0), make_float3(-24, 20, -5));
+//    WeakEqual(A4.col(1), make_float3(18, -15, 4));
+//    WeakEqual(A4.col(2), make_float3(5, -4, 1));
+//
+//    printf("row Operator \n");
+//    WeakEqual(A4.row(0), make_float3(-24, 18, 5));
+//    WeakEqual(A4.row(1), make_float3(20, -15, -4));
+//    WeakEqual(A4.row(2), make_float3(-5, 4, 1));
+//
+//    {
+//        printf("= Operator\n");
+//        Mat33f T = A1;
+//        WeakEqual(T, A1);
+//    }
+//
+//    printf("Multiply Matrix\n");
+//    WeakEqual(AOne * AOne,
+//              Mat33f(3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000));
+//
+//    printf("Multiply Matrix\n");
+//    WeakEqual(A1 * A2, Mat33f(52.000000, 68.000000, 94.000000, 57.000000, 71.000000, 92.000000, 31.000000, 43.000000,
+//                              63.000000));
+//    //
+//    //    printf("Multiply Matrix Vector\n");
+//    //    WeakEqual(A1 * a1, Tofloat3(B1 * b1));
+//    //
+//    printf("Add Matrix\n");
+//    WeakEqual(A1 + A2,
+//              Mat33f(11.000000, 4.000000, 8.000000, 12.000000, 8.000000, 12.000000, 16.000000, 12.000000, 11.000000));
+//
+//    printf("Subtract Matrix\n");
+//    WeakEqual(A1 - A2,
+//              Mat33f(-9.000000, 0.000000, 0.000000, -2.000000, 4.000000, 2.000000, 0.000000, 6.000000, 9.000000));
+//    //
+//    printf("Abs Matrix\n");
+//    WeakEqual(Abs(A4), Mat33f(24, 20, 5, 18, 15, 4, 5, 4, 1));
+//    //
+//    //    printf("Post Scale Matrix\n");
+//    //    WeakEqual(A1 * 3.1, ToMat33f(B1 * 3.1));
+//    //
+//    //    printf("Pre Scale Matrix\n");
+//    //    WeakEqual(3.1 * A1, ToMat33f(B1 * 3.1));
+//    {
+//        printf("Cross Matrix\n");
+//        Mat33f cross_m1 = SkewSymmetric(n);
+//        WeakEqual(cross_m1,
+//                  Mat33f(0.000000, 0.985184, -0.171503, -0.985184, 0.000000, 0.000010, 0.171503, -0.000010, 0.000000));
+//    }
+//    {
+//        printf("Multiply T Matrix \n");
+//        WeakEqual(TransposeMult(A1, A2), Transpose(A1) * A2, FLT_EPSILON * 2);
+//    }
+//
+//    {
+//        printf("Multiply Matrix T\n");
+//        WeakEqual(MultTranspose(A1, A2), A1 * Transpose(A2), FLT_EPSILON * 2);
+//    }
+//
+//    {
+//        printf("Outer Product\n");
+//        Mat33f Res1 = OuterProduct(a1, a2);
+//        Mat33f Res2(6, 12, 18, 7, 14, 21, 8, 16, 24);
+//        WeakEqual(Res1, Res2, FLT_EPSILON);
+//    }
+//    printf("Transpose\n");
+//    WeakEqual(Transpose(A4), A4_T, FLT_EPSILON);
+//    //
+//    printf("Determinant\n");
+//    WeakEqual(Determinant(A5), 45.056, FLT_EPSILON * 400);
+//    //
+//    printf("Trace\n");
+//    WeakEqual(Trace(A5), 4.8, FLT_EPSILON * 10);
+//    //
+//    printf("Adjoint\n");
+//    WeakEqual(Adjoint(A3), A4, FLT_EPSILON);
+//    //
+//    printf("Adjoint Transpose\n");
+//    WeakEqual(AdjointTranspose(A4), Transpose(A3), FLT_EPSILON);
+//    //
+//    printf("Inverse\n");
+//    WeakEqual(Inverse(A3), A4, FLT_EPSILON);
+//    //
+//    printf("Inverse Transpose\n");
+//    WeakEqual(InverseTranspose(A3), Transpose(Inverse(A3)), FLT_EPSILON);
+//    //
+//    printf("Frobenius Norm\n");
+//    WeakEqual(Norm(A5), 12.674383614203887588, FLT_EPSILON);
+//    //
+//    printf("Largest Column Normalized\n");
+//    WeakEqual(LargestColumnNormalized(A4),
+//              make_float3(-.75856744948921676267, 0.63213954124101396889, -.15803488531025349222), FLT_EPSILON);
+//    //
+//
+//    printf("Normal Equations Matrix 2\n");
+//    WeakEqual(NormalEquationsMatrix(A3), Mat33f(26, 32, 3, 32, 41, 10, 3, 10, 25), FLT_EPSILON);
+//
+//    printf("Normal Equations Matrix 1\n");
+//    WeakEqual(NormalEquationsMatrix(A3), Transpose(A3) * A3, FLT_EPSILON);
+//    //
+//    printf("Symm2x2 Matrix Tests ============\n");
+//    {
+//        printf("A^T*B With Symmetric Result\n");
+//
+//        Mat32f C1(make_float3(1, 2, 3), make_float3(3, 2, 6));
+//        Mat32f C2(make_float3(2, 3, 1), make_float3(2, 2, 4));
+//
+//        SymMat22f RES = TransposeTimesWithSymmetricResult(C1, C2);
+//        PrintLine(RES,"RES");
+//        WeakEqual(RES, SymMat22f(11, 18, 34));
+//    }
+//}
+
 CUDA_GLOBAL void kComputeBounds(const float3* pos,  // input
                                 float3* lower,      // output
                                 float3* upper       // output
@@ -99,8 +305,8 @@ CUDA_GLOBAL void kComputeBounds(const float3* pos,  // input
 ////========================================================================================================================================================================
 CUDA_GLOBAL void kRasterize(const float3* sorted_pos,  // input
                             const float3* sorted_vel,  // input
-                            float* grid_mass,         // output
-                            float* grid_vel) {        // output
+                            float* grid_mass,          // output
+                            float* grid_vel) {         // output
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const float3 xi = sorted_pos[p];
@@ -123,7 +329,7 @@ CUDA_GLOBAL void kRasterize(const float3* sorted_pos,  // input
     }
 }
 CUDA_GLOBAL void kRasterize(const float3* sorted_pos,  // input
-                            float* grid_mass) {       // output
+                            float* grid_mass) {        // output
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const float3 xi = sorted_pos[p];
@@ -157,7 +363,7 @@ CUDA_GLOBAL void kNormalizeWeights(float* grid_mass,   // input
 //////========================================================================================================================================================================
 ////
 CUDA_GLOBAL void kComputeParticleVolumes(const float3* sorted_pos,  // input
-                                         float* grid_mass,         // output
+                                         float* grid_mass,          // output
                                          float* volume) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
@@ -180,7 +386,7 @@ CUDA_GLOBAL void kComputeParticleVolumes(const float3* sorted_pos,  // input
 }
 CUDA_GLOBAL void kFeHat(const float3* sorted_pos,  // input
                         const Mat33f* marker_Fe,   // input
-                        const float* grid_vel,    // input
+                        const float* grid_vel,     // input
                         Mat33f* marker_Fe_hat) {   // output
 
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
@@ -207,8 +413,8 @@ CUDA_GLOBAL void kFeHat(const float3* sorted_pos,  // input
             float valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
             Fe_hat_t[0] += vnx * valx; Fe_hat_t[1] += vny * valx; Fe_hat_t[2] += vnz * valx;  //
-            Fe_hat_t[4] += vnx * valy; Fe_hat_t[5] += vny * valy; Fe_hat_t[6] += vnz * valy;  //
-            Fe_hat_t[8] += vnx * valz; Fe_hat_t[9] += vny * valz; Fe_hat_t[10] += vnz * valz;
+            Fe_hat_t[3] += vnx * valy; Fe_hat_t[4] += vny * valy; Fe_hat_t[5] += vnz * valy;  //
+            Fe_hat_t[6] += vnx * valz; Fe_hat_t[7] += vny * valz; Fe_hat_t[8] += vnz * valz;
 
             //            float3 vel(grid_vel[current_node * 3 + 0], grid_vel[current_node * 3 + 1],
             //                      grid_vel[current_node * 3 + 2]);                  //
@@ -240,8 +446,8 @@ CUDA_GLOBAL void kApplyForces(const float3* sorted_pos,     // input
                               const Mat33f* marker_Fe_hat,  // input
                               const Mat33f* marker_Fe,      // input
                               const Mat33f* marker_Fp,      // input
-                              const float* marker_volume,  // input
-                              const float* node_mass,      // input
+                              const float* marker_volume,   // input
+                              const float* node_mass,       // input
                               Mat33f* PolarR,               // input
                               Mat33f* PolarS,               // input
                               float* grid_vel) {
@@ -257,7 +463,7 @@ CUDA_GLOBAL void kApplyForces(const float3* sorted_pos,     // input
         float Ja = powf(Determinant(FE_hat), a);
 
         Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, FP, device_settings.mu,
-                                                         device_settings.hardening_coefficient, PolarR[p], PolarS[p]);
+                                                          device_settings.hardening_coefficient, PolarR[p], PolarS[p]);
 
         Mat33f vPEDFepT =
             device_settings.dt * marker_volume[p] * Z__B(A, FE_hat, Ja, a, InverseTranspose(FE_hat)) * Transpose(FE);
@@ -283,13 +489,13 @@ CUDA_GLOBAL void kApplyForces(const float3* sorted_pos,     // input
             float valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
             float valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
-            float fx = vPEDFepT[0] * valx + vPEDFepT[4] * valy + vPEDFepT[8] * valz;
-            float fy = vPEDFepT[1] * valx + vPEDFepT[5] * valy + vPEDFepT[9] * valz;
-            float fz = vPEDFepT[2] * valx + vPEDFepT[6] * valy + vPEDFepT[10] * valz;
+            float fx = vPEDFepT[0] * valx + vPEDFepT[3] * valy + vPEDFepT[6] * valz;
+            float fy = vPEDFepT[1] * valx + vPEDFepT[4] * valy + vPEDFepT[7] * valz;
+            float fz = vPEDFepT[2] * valx + vPEDFepT[5] * valy + vPEDFepT[8] * valz;
 
             float mass = node_mass[current_node];  //
             if (mass > 0) {
-            	atomicAdd(&grid_vel[current_node * 3 + 0], -fx / mass);  //
+                atomicAdd(&grid_vel[current_node * 3 + 0], -fx / mass);  //
                 atomicAdd(&grid_vel[current_node * 3 + 1], -fy / mass);  //
                 atomicAdd(&grid_vel[current_node * 3 + 2], -fz / mass);  //
             })
@@ -321,13 +527,13 @@ CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
                             const Mat33f* marker_Fe,      // input
                             const Mat33f* marker_Fp,      // input
                             const Mat33f* marker_Fe_hat,  // input
-                            const float* marker_volume,  // input
+                            const float* marker_volume,   // input
                             float* result_array) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const float3 xi = sorted_pos[p];
-        // float VAP[9];
-        // float delta_F[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        // float VAP[7];
+        // float delta_F[7] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
         Mat33f delta_F(0);
         int cx, cy, cz;
         const float bin_edge = device_settings.bin_edge;
@@ -348,8 +554,8 @@ CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
             float valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
             delta_F[0] += vnx * valx; delta_F[1] += vny * valx; delta_F[2] += vnz * valx;  //
-            delta_F[4] += vnx * valy; delta_F[5] += vny * valy; delta_F[6] += vnz * valy;  //
-            delta_F[8] += vnx * valz; delta_F[9] += vny * valz; delta_F[10] += vnz * valz;)
+            delta_F[3] += vnx * valy; delta_F[4] += vny * valy; delta_F[5] += vnz * valy;  //
+            delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;)
 
         Mat33f m_FE = marker_Fe[p];
         Mat33f m_FP = marker_Fp[p];
@@ -358,7 +564,7 @@ CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
         delta_F = delta_F * m_FE;
 
         Mat33f VAP = d2PsidFdF(delta_F, m_FE_hat, m_FP, PolarR[p], PolarS[p], device_settings.mu,
-                              device_settings.hardening_coefficient);
+                               device_settings.hardening_coefficient);
         VAP = marker_volume[p] * VAP * Transpose(m_FE);
 
         LOOP_TWO_RING_GPUSP(                                            //
@@ -370,12 +576,11 @@ CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
             float valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
             float valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
-            float resx = VAP[0] * valx + VAP[4] * valy + VAP[8] * valz;
-            float resy = VAP[1] * valx + VAP[5] * valy + VAP[9] * valz;
-            float resz = VAP[2] * valx + VAP[6] * valy + VAP[10] * valz;
+            float resx = VAP[0] * valx + VAP[3] * valy + VAP[6] * valz;
+            float resy = VAP[1] * valx + VAP[4] * valy + VAP[7] * valz;
+            float resz = VAP[2] * valx + VAP[5] * valy + VAP[8] * valz;
 
-            atomicAdd(&result_array[current_node * 3 + 0], resx);
-            atomicAdd(&result_array[current_node * 3 + 1], resy);
+            atomicAdd(&result_array[current_node * 3 + 0], resx); atomicAdd(&result_array[current_node * 3 + 1], resy);
             atomicAdd(&result_array[current_node * 3 + 2], resz););
     }
 }
@@ -494,13 +699,13 @@ CUDA_GLOBAL void kUpdateAlpha(int num_items, float* ml_p, float* ml, float* mg_p
             data = ms * ms;
             block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
             if (threadIdx.x == 0) {
-            	atomicAdd(&dot_ms_ms, block_sum);
+                atomicAdd(&dot_ms_ms, block_sum);
             }
         } else {
             data = my * my;
             block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
             if (threadIdx.x == 0) {
-            	atomicAdd(&dot_my_my, block_sum);
+                atomicAdd(&dot_my_my, block_sum);
             }
         }
         __syncthreads();
@@ -508,7 +713,7 @@ CUDA_GLOBAL void kUpdateAlpha(int num_items, float* ml_p, float* ml, float* mg_p
         block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
 
         if (threadIdx.x == 0) {
-        	atomicAdd(&dot_ms_my, block_sum);
+            atomicAdd(&dot_ms_my, block_sum);
         }
     }
 }
@@ -551,7 +756,7 @@ CUDA_GLOBAL void kResidual(int num_items, float* mg, float* dot_g_proj_norm) {
         block_sum = BlockReduce(temp_storage).Reduce(data, cub::Sum(), num_valid);
 
         if (threadIdx.x == 0) {
-        	atomicAdd(&dot_g_proj_norm[0], block_sum);
+            atomicAdd(&dot_g_proj_norm[0], block_sum);
         }
         // printf("resid [%f %f]\n", mg[tid], dot_g_proj_norm[0]);
     }
@@ -708,8 +913,8 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
                             float valz = N(Tx) * N(Ty) * dN(Tz) * inv_bin_edge;  //
 
                             vel_grad[0] += vnx * valx; vel_grad[1] += vny * valx; vel_grad[2] += vnz * valx;  //
-                            vel_grad[4] += vnx * valy; vel_grad[5] += vny * valy; vel_grad[6] += vnz * valy;  //
-                            vel_grad[8] += vnx * valz; vel_grad[9] += vny * valz; vel_grad[10] += vnz * valz;
+                            vel_grad[3] += vnx * valy; vel_grad[4] += vny * valy; vel_grad[5] += vnz * valy;  //
+                            vel_grad[6] += vnx * valz; vel_grad[7] += vny * valz; vel_grad[8] += vnz * valz;
 
                             )
         Mat33f delta_F = (Mat33f(1.0) + device_settings.dt * vel_grad);
@@ -738,7 +943,7 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
         E_clamped = offset + center;
 
 #endif
-        printf("E %d %f %f\n", p, Determinant(E_clamped), Determinant(E));
+        printf("E %d %f %f\n", p, E_clamped.x * E_clamped.y * E_clamped.z, E.x * E.y * E.z);
 #else
         float flow = Abs(Determinant(delta_F));
 
@@ -917,6 +1122,7 @@ CUDA_GLOBAL void kInitFeFp(Mat33f* marker_Fe, Mat33f* marker_Fp, Mat33f* marker_
 void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
+    //TestMath();
 
     host_settings = settings;
 
