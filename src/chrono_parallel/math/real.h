@@ -72,16 +72,6 @@ CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
     return Abs(x) < C_EPSILON;
 }
 
-template <typename T>
-CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
-    if (a > b)
-        Swap(a, b);
-    if (b > c)
-        Swap(b, c);
-    if (a > b)
-        Swap(a, b);
-}
-
 // template <typename T>
 // inline T Min(T a, T b) {
 //    return a < b ? a : b;
@@ -126,6 +116,16 @@ CUDA_HOST_DEVICE inline void Swap(T& a, T& b) {
     T temp = a;
     a = b;
     b = temp;
+}
+
+template <typename T>
+CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
+    if (a > b)
+        Swap(a, b);
+    if (b > c)
+        Swap(b, c);
+    if (a > b)
+        Swap(a, b);
 }
 
 template <typename T>
