@@ -1,8 +1,12 @@
+
+# Unit tests for the Chrono::MKL module
+# ==================================================================
+
 SET(LIBRARIES ChronoEngine ChronoEngine_mkl)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_MKL_INCLUDES})
 
 SET(TESTS
-    test_ChCSR3Matrix
+    utest_MKL_ChCSR3Matrix
 )
 
 MESSAGE(STATUS "Unit test programs for MKL module...")
