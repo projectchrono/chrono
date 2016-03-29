@@ -16,8 +16,7 @@
 // =============================================================================
 
 #pragma once
-#include "chrono_parallel/math/real3.h"
-#include "chrono_parallel/math/other_types.h"
+
 #include "chrono_parallel/math/svd.h"
 #define one_third 1. / 3
 #define two_thirds 2. / 3
@@ -48,7 +47,7 @@ CUDA_HOST_DEVICE static float N_Tri(const float x) {
     }
     return float(0.0);
 }
-CUDA_HOST_DEVICE static float N_Tri(const real3& X, float inv_grid_dx) {
+CUDA_HOST_DEVICE static float N_Tri(const float3& X, float inv_grid_dx) {
     return N_Tri(X.x * inv_grid_dx) * N_Tri(X.y * inv_grid_dx) * N_Tri(X.z * inv_grid_dx);
 }
 
@@ -61,7 +60,7 @@ CUDA_HOST_DEVICE static float N(const float x) {
     return float(0.0);
 }
 
-CUDA_HOST_DEVICE static float N(const real3& X, float inv_grid_dx) {
+CUDA_HOST_DEVICE static float N(const float3& X, float inv_grid_dx) {
     return N(X.x * inv_grid_dx) * N(X.y * inv_grid_dx) * N(X.z * inv_grid_dx);
 }
 
@@ -74,7 +73,7 @@ CUDA_HOST_DEVICE static float N_tight(const float x) {
     return float(0.0);
 }
 
-CUDA_HOST_DEVICE static float N_tight(const real3& X, float inv_grid_dx) {
+CUDA_HOST_DEVICE static float N_tight(const float3& X, float inv_grid_dx) {
     return N_tight(X.x * inv_grid_dx) * N_tight(X.y * inv_grid_dx) * N_tight(X.z * inv_grid_dx);
 }
 
@@ -87,9 +86,9 @@ CUDA_HOST_DEVICE static float dN(const float x) {
     return float(0.0);
 }
 
-CUDA_HOST_DEVICE static real3 dN(const real3& X, float inv_grid_dx) {
-    real3 val = real3(0);
-    real3 T = X * inv_grid_dx;
+CUDA_HOST_DEVICE static float3 dN(const float3& X, float inv_grid_dx) {
+    float3 val = make_float3(0, 0, 0);
+    float3 T = X * inv_grid_dx;
     val.x = dN(T.x) * inv_grid_dx * N(T.y) * N(T.z);
     val.y = N(T.x) * dN(T.y) * inv_grid_dx * N(T.z);
     val.z = N(T.x) * N(T.y) * dN(T.z) * inv_grid_dx;
@@ -109,11 +108,11 @@ CUDA_HOST_DEVICE static real3 dN(const real3& X, float inv_grid_dx) {
 
 CUDA_HOST_DEVICE static inline int GridCoord(float x, float inv_bin_edge, float minimum) {
     float l = x - minimum;
-    int c = Round(l * inv_bin_edge);
+    int c = roundf(l * inv_bin_edge);
     return c;
 }
 
-CUDA_HOST_DEVICE static inline int GridHash(int x, int y, int z, const vec3& bins_per_axis) {
+CUDA_HOST_DEVICE static inline int GridHash(int x, int y, int z, const int3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
 CUDA_HOST_DEVICE static inline int GridHash(const int x,
@@ -124,91 +123,91 @@ CUDA_HOST_DEVICE static inline int GridHash(const int x,
                                             const int bins_per_axisz) {
     return ((z * bins_per_axisy) * bins_per_axisx) + (y * bins_per_axisx) + x;
 }
-CUDA_HOST_DEVICE static inline vec3 GridDecode(int hash, const vec3& bins_per_axis) {
-    vec3 decoded_hash;
+CUDA_HOST_DEVICE static inline int3 GridDecode(int hash, const int3& bins_per_axis) {
+    int3 decoded_hash;
     decoded_hash.x = hash % (bins_per_axis.x * bins_per_axis.y) % bins_per_axis.x;
     decoded_hash.y = (hash % (bins_per_axis.x * bins_per_axis.y)) / bins_per_axis.x;
     decoded_hash.z = hash / (bins_per_axis.x * bins_per_axis.y);
     return decoded_hash;
 }
 
-CUDA_HOST_DEVICE static inline real3 NodeLocation(int i, int j, int k, float bin_edge, real3 min_bounding_point) {
-    real3 node_location;
+CUDA_HOST_DEVICE static inline float3 NodeLocation(int i, int j, int k, float bin_edge, float3 min_bounding_point) {
+    float3 node_location;
     node_location.x = i * bin_edge + min_bounding_point.x;
     node_location.y = j * bin_edge + min_bounding_point.y;
     node_location.z = k * bin_edge + min_bounding_point.z;
     return node_location;
 }
 
-#define LOOPOVERNODESY(X, Y)                                                                       \
-    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                            \
-    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
-    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                            \
-                                                                                                   \
-    for (int i = cx - Y; i <= cx + Y; ++i) {                                                       \
-        for (int j = cy - Y; j <= cy + Y; ++j) {                                                   \
-            for (int k = cz - Y; k <= cz + Y; ++k) {                                               \
-                const int current_node = GridHash(i, j, k, bins_per_axis);                         \
-                real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
-                X                                                                                  \
-            }                                                                                      \
-        }                                                                                          \
+#define LOOPOVERNODESY(X, Y)                                                                        \
+    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                             \
+    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                             \
+    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                             \
+                                                                                                    \
+    for (int i = cx - Y; i <= cx + Y; ++i) {                                                        \
+        for (int j = cy - Y; j <= cy + Y; ++j) {                                                    \
+            for (int k = cz - Y; k <= cz + Y; ++k) {                                                \
+                const int current_node = GridHash(i, j, k, bins_per_axis);                          \
+                float3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
+                X                                                                                   \
+            }                                                                                       \
+        }                                                                                           \
     }
 
-#define LOOPOVERNODES(X)                                                                           \
-    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                            \
-    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
-    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                            \
-                                                                                                   \
-    for (int i = cx - 2; i <= cx + 2; ++i) {                                                       \
-        for (int j = cy - 2; j <= cy + 2; ++j) {                                                   \
-            for (int k = cz - 2; k <= cz + 2; ++k) {                                               \
-                const int current_node = GridHash(i, j, k, bins_per_axis);                         \
-                real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
-                X                                                                                  \
-            }                                                                                      \
-        }                                                                                          \
+#define LOOPOVERNODES(X)                                                                            \
+    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                             \
+    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                             \
+    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                             \
+                                                                                                    \
+    for (int i = cx - 2; i <= cx + 2; ++i) {                                                        \
+        for (int j = cy - 2; j <= cy + 2; ++j) {                                                    \
+            for (int k = cz - 2; k <= cz + 2; ++k) {                                                \
+                const int current_node = GridHash(i, j, k, bins_per_axis);                          \
+                float3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
+                X                                                                                   \
+            }                                                                                       \
+        }                                                                                           \
     }
 
-#define LOOPONERING(X)                                                                             \
-    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                            \
-    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                            \
-    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                            \
-                                                                                                   \
-    for (int i = cx - 1; i <= cx + 1; ++i) {                                                       \
-        for (int j = cy - 1; j <= cy + 1; ++j) {                                                   \
-            for (int k = cz - 1; k <= cz + 1; ++k) {                                               \
-                const int current_node = GridHash(i, j, k, bins_per_axis);                         \
-                real3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
-                X                                                                                  \
-            }                                                                                      \
-        }                                                                                          \
+#define LOOPONERING(X)                                                                              \
+    const int cx = GridCoord(xi.x, inv_bin_edge, min_bounding_point.x);                             \
+    const int cy = GridCoord(xi.y, inv_bin_edge, min_bounding_point.y);                             \
+    const int cz = GridCoord(xi.z, inv_bin_edge, min_bounding_point.z);                             \
+                                                                                                    \
+    for (int i = cx - 1; i <= cx + 1; ++i) {                                                        \
+        for (int j = cy - 1; j <= cy + 1; ++j) {                                                    \
+            for (int k = cz - 1; k <= cz + 1; ++k) {                                                \
+                const int current_node = GridHash(i, j, k, bins_per_axis);                          \
+                float3 current_node_location = NodeLocation(i, j, k, bin_edge, min_bounding_point); \
+                X                                                                                   \
+            }                                                                                       \
+        }                                                                                           \
     }
 
-#define Potential_Energy_Derivative_Helper()                                      \
-    float JP = Determinant(FP);                                                    \
-    float JE = Determinant(FE);                                                    \
-    /* Paper: Equation 2 */                                                       \
+#define Potential_Energy_Derivative_Helper()                                         \
+    float JP = Determinant(FP);                                                      \
+    float JE = Determinant(FE);                                                      \
+    /* Paper: Equation 2 */                                                          \
     float current_mu = mu * expf(hardening_coefficient * (float(1.0) - JP));         \
     float current_lambda = lambda * expf(hardening_coefficient * (float(1.0) - JP)); \
-    Mat33 UE, VE;                                                                 \
-    real3 EE;                                                                     \
-    SVD(FE, UE, EE, VE);                                                          \
-    /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/          \
-    Mat33 RE = MultTranspose(UE, VE);
+    Mat33f UE, VE;                                                                   \
+    float3 EE;                                                                       \
+    SVD(FE, UE, EE, VE);                                                             \
+    /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/             \
+    Mat33f RE = MultTranspose(UE, VE);
 
-CUDA_HOST_DEVICE static Mat33 Potential_Energy_Derivative(const Mat33& FE,
-                                                          const Mat33& FP,
-                                                          float mu,
-                                                          float lambda,
-                                                          float hardening_coefficient) {
+CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative(const Mat33f& FE,
+                                                           const Mat33f& FP,
+                                                           float mu,
+                                                           float lambda,
+                                                           float hardening_coefficient) {
     Potential_Energy_Derivative_Helper();
 
     return float(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
 }
-CUDA_HOST_DEVICE static Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
-    Mat33 A;
-    real3 b;
+CUDA_HOST_DEVICE static Mat33f Solve_dR(Mat33f R, Mat33f S, Mat33f W) {
+    Mat33f A;
+    float3 b;
     // setup 3x3 system
     // Multiply out (R^TdR)*S + S*(R^TdR) and because it is skew symmetric we will only have three unknowns
     A[0] = S[8];
@@ -223,33 +222,33 @@ CUDA_HOST_DEVICE static Mat33 Solve_dR(Mat33 R, Mat33 S, Mat33 W) {
     A[9] = S[9];
     A[10] = S[8];
     // dF^TR is just the transpose of W which is R^TdF, this is the right hand side
-    b[0] = W[4] - W[1];
-    b[1] = W[2] - W[8];
-    b[2] = W[9] - W[6];
+    b.x = W[4] - W[1];
+    b.y = W[2] - W[8];
+    b.z = W[9] - W[6];
 
     // solve for R^TdR
-    real3 r = Inverse(A) * b;
-    Mat33 rx = SkewSymmetric(r);
+    float3 r = Inverse(A) * b;
+    Mat33f rx = SkewSymmetric(r);
 
-    Mat33 dR = R * rx;
+    Mat33f dR = R * rx;
     return dR;
 }
-CUDA_HOST_DEVICE static Mat33 Rotational_Derivative(const Mat33& F, const Mat33& dF) {
-    Mat33 U, V, R, S, W;
-    real3 E;
+CUDA_HOST_DEVICE static Mat33f Rotational_Derivative(const Mat33f& F, const Mat33f& dF) {
+    Mat33f U, V, R, S, W;
+    float3 E;
     SVD(F, U, E, V);
     // Perform polar decomposition F = R*S
     R = MultTranspose(U, V);
-    S = V * MultTranspose(Mat33(E), V);
+    S = V * MultTranspose(Mat33f(E), V);
     // See tech report end of page 2
     W = TransposeMult(R, dF);
 
     return Solve_dR(R, S, W);
 }
 
-CUDA_HOST_DEVICE static Mat33 Rotational_Derivative_Simple(const Mat33& r, const Mat33& s, const Mat33& df) {
+CUDA_HOST_DEVICE static Mat33f Rotational_Derivative_Simple(const Mat33f& r, const Mat33f& s, const Mat33f& df) {
     // Assumes SVD has already been done
-    Mat33 dR;
+    Mat33f dR;
     float t1 = s[10] + s[0] + s[5];
     float t2 = powf(s[4], 2);
     float t3 = s[0] * s[5];
@@ -283,10 +282,10 @@ CUDA_HOST_DEVICE static Mat33 Rotational_Derivative_Simple(const Mat33& r, const
     return dR;
 }
 
-CUDA_HOST_DEVICE inline void Vol_APFunc(const Mat33& s,
-                                        const Mat33& r,
+CUDA_HOST_DEVICE inline void Vol_APFunc(const Mat33f& s,
+                                        const Mat33f& r,
                                         const float* df,
-                                        const Mat33& fe,
+                                        const Mat33f& fe,
                                         const float current_mu,
                                         float* output) {
     float t103 = s[5] + s[0];
@@ -308,8 +307,8 @@ CUDA_HOST_DEVICE inline void Vol_APFunc(const Mat33& s,
     float t28 = t103 * s[4] + s[9] * s[8];
     float t27 = s[9] * s[4] + (s[10] + s[0]) * s[8];
     float t26 = t102 + (s[10] + s[5]) * s[9];
-    float t16 = float(1.0) /
-               (float(02.0) * s[9] * t102 + (t100 + t101) * s[0] + (t99 + t101) * s[5] + (t100 + t99 + 2 * t58) * s[10]);
+    float t16 = float(1.0) / (float(02.0) * s[9] * t102 + (t100 + t101) * s[0] + (t99 + t101) * s[5] +
+                              (t100 + t99 + 2 * t58) * s[10]);
     float t15 = t18 * r[2] - t19 * r[6] + t21 * r[1] - t22 * r[5] + t24 * r[0] - t25 * r[4];
     float t14 = t17 * r[6] - t18 * r[10] + t20 * r[5] - t21 * r[9] + t23 * r[4] - t24 * r[8];
     float t13 = -t17 * r[2] + t19 * r[10] - t20 * r[1] + t22 * r[9] - t23 * r[0] + t25 * r[8];
@@ -339,38 +338,38 @@ CUDA_HOST_DEVICE inline void Vol_APFunc(const Mat33& s,
     output[8] = (t1 * fe[10] + t2 * fe[6] + t3 * fe[2]) * current_mu;
 }
 
-CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33& FE,
-                                                              const Mat33& FP,
+CUDA_HOST_DEVICE static void SplitPotential_Energy_Derivative(const Mat33f& FE,
+                                                              const Mat33f& FP,
                                                               float mu,
                                                               float lambda,
                                                               float hardening_coefficient,
-                                                              Mat33& Deviatoric,
-                                                              Mat33& Dilational) {
+                                                              Mat33f& Deviatoric,
+                                                              Mat33f& Dilational) {
     Potential_Energy_Derivative_Helper();
 
     Deviatoric = float(2.) * current_mu * (FE - RE);
     Dilational = current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
 }
-CUDA_HOST_DEVICE static Mat33 Potential_Energy_Derivative_Deviatoric(const Mat33& FE,
-                                                                     const Mat33& FP,
-                                                                     float mu,
-                                                                     float hardening_coefficient,
-                                                                     Mat33& RE,
-                                                                     Mat33& SE) {
+CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative_Deviatoric(const Mat33f& FE,
+                                                                      const Mat33f& FP,
+                                                                      float mu,
+                                                                      float hardening_coefficient,
+                                                                      Mat33f& RE,
+                                                                      Mat33f& SE) {
     float JP = Determinant(FP);
     float current_mu = mu * expf(hardening_coefficient * (float(1.0) - JP));
-    Mat33 UE, VE;
-    real3 EE;
+    Mat33f UE, VE;
+    float3 EE;
     SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
     RE = MultTranspose(UE, VE);
-    SE = VE * MultTranspose(Mat33(EE), VE);
+    SE = VE * MultTranspose(Mat33f(EE), VE);
     // RE[3] = JP;
     RE[3] = current_mu;
     return float(2.) * current_mu * (FE - RE);
 }
 
-CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33& FE,
-                                                   const Mat33& FP,
+CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33f& FE,
+                                                   const Mat33f& FP,
                                                    float mu,
                                                    float lambda,
                                                    float hardening_coefficient,
@@ -382,50 +381,50 @@ CUDA_HOST_DEVICE static void SplitPotential_Energy(const Mat33& FE,
     Dilational = current_lambda / 2.0 * (JE - float(1.));
 }
 
-CUDA_HOST_DEVICE static inline Mat33 B__Z(const Mat33& Z, const Mat33& F, float Ja, float a, const Mat33& H) {
+CUDA_HOST_DEVICE static inline Mat33f B__Z(const Mat33f& Z, const Mat33f& F, float Ja, float a, const Mat33f& H) {
     return Ja * (Z + a * (DoubleDot(H, Z)) * F);
 }
 
-CUDA_HOST_DEVICE static inline Mat33 Z__B(const Mat33& Z, const Mat33& F, float Ja, float a, const Mat33& H) {
+CUDA_HOST_DEVICE static inline Mat33f Z__B(const Mat33f& Z, const Mat33f& F, float Ja, float a, const Mat33f& H) {
     return Ja * (Z + a * (DoubleDot(F, Z)) * H);
 }
 
-CUDA_HOST_DEVICE static Mat33 d2PsidFdF(const Mat33& Z,  // This is deltaF
-                                        const Mat33& F,  // This is FE_hat
-                                        const Mat33& FP,
-                                        const Mat33& RE,
-                                        const Mat33& SE,
-                                        float mu,
-                                        float hardening_coefficient) {
+CUDA_HOST_DEVICE static Mat33f d2PsidFdF(const Mat33f& Z,  // This is deltaF
+                                         const Mat33f& F,  // This is FE_hat
+                                         const Mat33f& FP,
+                                         const Mat33f& RE,
+                                         const Mat33f& SE,
+                                         float mu,
+                                         float hardening_coefficient) {
 #if 1
-	float a = -1.0 / 3.0;
+    float a = -1.0 / 3.0;
     float Ja = powf(Determinant(F), a);
-    Mat33 H = InverseTranspose(F);
+    Mat33f H = InverseTranspose(F);
     // float JP = RE[3];  // Determinant(FP);
     float current_mu = RE[3];  // mu * expf(hardening_coefficient * (float(1.0) - JP));
-    Mat33 FE = Ja * F;
-    // Mat33 A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
-    //    Mat33 UE, VE;
-    //    real3 EE;
+    Mat33f FE = Ja * F;
+    // Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * F, FP, mu, hardening_coefficient);
+    //    Mat33f UE, VE;
+    //    float3 EE;
     //    SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
-    //    Mat33 RE = MultTranspose(UE, VE);
-    //    Mat33 SE = VE * MultTranspose(Mat33(EE), VE);
+    //    Mat33f RE = MultTranspose(UE, VE);
+    //    Mat33f SE = VE * MultTranspose(Mat33f(EE), VE);
 
-    Mat33 A = float(2.) * current_mu * (FE - RE);
+    Mat33f A = float(2.) * current_mu * (FE - RE);
 
-    Mat33 B_Z = B__Z(Z, F, Ja, a, H);
-    Mat33 WE = TransposeMult(RE, B_Z);
+    Mat33f B_Z = B__Z(Z, F, Ja, a, H);
+    Mat33f WE = TransposeMult(RE, B_Z);
     // C is the original second derivative
-    Mat33 C_B_Z = 2 * current_mu * (B_Z - Solve_dR(RE, SE, WE));
-    Mat33 P1 = Z__B(C_B_Z, F, Ja, a, H);
-    Mat33 P2 = a * DoubleDot(H, Z) * Z__B(A, F, Ja, a, H);
-    Mat33 P3 = a * Ja * DoubleDot(A, Z) * H;
-    Mat33 P4 = -a * Ja * DoubleDot(A, F) * H * TransposeMult(Z, H);
+    Mat33f C_B_Z = 2 * current_mu * (B_Z - Solve_dR(RE, SE, WE));
+    Mat33f P1 = Z__B(C_B_Z, F, Ja, a, H);
+    Mat33f P2 = a * DoubleDot(H, Z) * Z__B(A, F, Ja, a, H);
+    Mat33f P3 = a * Ja * DoubleDot(A, Z) * H;
+    Mat33f P4 = -a * Ja * DoubleDot(A, F) * H * TransposeMult(Z, H);
 
     return P1 + P2 + P3 + P4;
 #else
     float current_mu = RE[3];
-    Mat33 WE = TransposeMult(RE, Z);
+    Mat33f WE = TransposeMult(RE, Z);
     return 2 * current_mu * (Z - Solve_dR(RE, SE, WE));
 #endif
 }

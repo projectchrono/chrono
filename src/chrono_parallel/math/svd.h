@@ -16,12 +16,12 @@
 // =============================================================================
 
 #pragma once
-
-#include "chrono_parallel/math/matrix.h"
+#include "chrono_parallel/math/real.h"
+#include "chrono_parallel/math/matrixf.cuh"
 namespace chrono {
 // Oliver K. Smith. 1961. Eigenvalues of a symmetric 3 × 3 matrix. Commun. ACM 4, 4 (April 1961), 168-.
 // DOI=http://dx.doi.org/10.1145/355578.366316
-CUDA_HOST_DEVICE static real3 Fast_Eigenvalues(const SymMat33& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts
+CUDA_HOST_DEVICE static float3 Fast_Eigenvalues(const SymMat33f& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts
 {
     float m = float(1.0) / float(3.0) * (A.x11 + A.x22 + A.x33);
     float a11 = A.x11 - m;
@@ -39,47 +39,48 @@ CUDA_HOST_DEVICE static real3 Fast_Eigenvalues(const SymMat33& A)  // 24 mults, 
     float s = sinf(phi);
     float sqrt_p_cos = sqrt_p * c;
     float root_three_sqrt_p_sin = sqrtf(float(3.0)) * sqrt_p * s;
-    real3 lambda = real3(m + float(2.0) * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin,
-                         m - sqrt_p_cos + root_three_sqrt_p_sin);
+    float3 lambda = make_float3(m + float(2.0) * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin,
+                                m - sqrt_p_cos + root_three_sqrt_p_sin);
     Sort(lambda.z, lambda.y, lambda.x);
     return lambda;
 }
 
-CUDA_HOST_DEVICE static Mat33 Fast_Eigenvectors(const SymMat33& A, real3& lambda) {
+CUDA_HOST_DEVICE static Mat33f Fast_Eigenvectors(const SymMat33f& A, float3& lambda) {
     // flip if necessary so that first eigenvalue is the most different
     bool flipped = false;
-    real3 lambda_flip(lambda);
+    float3 lambda_flip(lambda);
     if (lambda.x - lambda.y < lambda.y - lambda.z) {  // 2a
         Swap(lambda_flip.x, lambda_flip.z);
         flipped = true;
     }
 
     // get first eigenvector
-    real3 v1 = LargestColumnNormalized(CofactorMatrix(A - lambda_flip.x));  // 3a + 12m+6a + 9m+6a+1d+1s = 21m+15a+1d+1s
+    float3 v1 =
+        LargestColumnNormalized(CofactorMatrix(A - lambda_flip.x));  // 3a + 12m+6a + 9m+6a+1d+1s = 21m+15a+1d+1s
     // form basis for orthogonal complement to v1, and reduce A to this space
-    real3 v1_orthogonal = UnitOrthogonalVector(v1);           // 6m+2a+1d+1s (tweak: 5m+1a+1d+1s)
-    Mat32 other_v(v1_orthogonal, Cross(v1, v1_orthogonal));   // 6m+3a (tweak: 4m+1a)
-    SymMat22 A_reduced = ConjugateWithTranspose(other_v, A);  // 21m+12a (tweak: 18m+9a)
+    float3 v1_orthogonal = UnitOrthogonalVector(v1);           // 6m+2a+1d+1s (tweak: 5m+1a+1d+1s)
+    Mat32f other_v(v1_orthogonal, Cross(v1, v1_orthogonal));   // 6m+3a (tweak: 4m+1a)
+    SymMat22f A_reduced = ConjugateWithTranspose(other_v, A);  // 21m+12a (tweak: 18m+9a)
     // find third eigenvector from A_reduced, and fill in second via cross product
 
     // 6m+3a + 2a + 5m+2a+1d+1s = 11m+7a+1d+1s (tweak: 10m+6a+1d+1s)
 
-    real3 v3 = other_v * LargestColumnNormalized(CofactorMatrix(A_reduced - lambda_flip.z));
+    float3 v3 = other_v * LargestColumnNormalized(CofactorMatrix(A_reduced - lambda_flip.z));
 
-    real3 v2 = Cross(v3, v1);  // 6m+3a
+    float3 v2 = Cross(v3, v1);  // 6m+3a
     // finish
-    return flipped ? Mat33(v3.x, v3.y, v3.z, v2.x, v2.y, v2.z, -v1.x, -v1.y, -v1.z)
-                   : Mat33(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
+    return flipped ? Mat33f(v3.x, v3.y, v3.z, v2.x, v2.y, v2.z, -v1.x, -v1.y, -v1.z)
+                   : Mat33f(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
 }
 
-CUDA_HOST_DEVICE static void Fast_Solve_EigenProblem(const SymMat33& A, real3& eigen_values, Mat33& eigen_vectors) {
+CUDA_HOST_DEVICE static void Fast_Solve_EigenProblem(const SymMat33f& A, float3& eigen_values, Mat33f& eigen_vectors) {
     eigen_values = Fast_Eigenvalues(A);
     eigen_vectors = Fast_Eigenvectors(A, eigen_values);
 }
 
-CUDA_HOST_DEVICE static void SVD(const Mat33& A, Mat33& U, real3& singular_values, Mat33& V) {
-    SymMat33 ATA = NormalEquationsMatrix(A);
-    real3 lambda;
+CUDA_HOST_DEVICE static void SVD(const Mat33f& A, Mat33f& U, float3& singular_values, Mat33f& V) {
+    SymMat33f ATA = NormalEquationsMatrix(A);
+    float3 lambda;
     Fast_Solve_EigenProblem(ATA, lambda, V);
 
     if (lambda.z < 0) {
@@ -91,17 +92,17 @@ CUDA_HOST_DEVICE static void SVD(const Mat33& A, Mat33& U, real3& singular_value
     }
 
     // compute singular vectors
-    real3 c0 = Normalize(A * V.col(0));   // 15m+8a+1d+1s
-    real3 v1 = UnitOrthogonalVector(c0);  // 6m+2a+1d+1s
-    real3 v2 = Cross(c0, v1);             // 6m+3a
+    float3 c0 = Normalize(A * V.col(0));   // 15m+8a+1d+1s
+    float3 v1 = UnitOrthogonalVector(c0);  // 6m+2a+1d+1s
+    float3 v2 = Cross(c0, v1);             // 6m+3a
 
     // 6m+3a + 6m+4a + 9m+6a + 6m+2a+1d+1s = 27m+15a+1d+1s
-    real3 v3 = A * V.col(1);
-    real2 other_v = Normalize(real2(Dot(v1, v3), Dot(v2, v3)));
-    real3 c1 = real3(v1.x * other_v.x + v2.x * other_v.y, v1.y * other_v.x + v2.y * other_v.y,
-                     v1.z * other_v.x + v2.z * other_v.y);
-    real3 c2 = Cross(c0, c1);  // 6m+3a
+    float3 v3 = A * V.col(1);
+    float2 other_v = Normalize(make_float2(Dot(v1, v3), Dot(v2, v3)));
+    float3 c1 = make_float3(v1.x * other_v.x + v2.x * other_v.y, v1.y * other_v.x + v2.y * other_v.y,
+                            v1.z * other_v.x + v2.z * other_v.y);
+    float3 c2 = Cross(c0, c1);  // 6m+3a
 
-    U = Mat33(c0.x, c0.y, c0.z, c1.x, c1.y, c1.z, c2.x, c2.y, c2.z);
+    U = Mat33f(c0.x, c0.y, c0.z, c1.x, c1.y, c1.z, c2.x, c2.y, c2.z);
 }
 }

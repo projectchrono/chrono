@@ -24,8 +24,6 @@
 
 #include <cassert>
 #include <vector>
-#include "chrono_parallel/math/real.h"
-#include "chrono_parallel/math/real3.h"
 //
 namespace chrono {
 
@@ -47,15 +45,15 @@ namespace chrono {
 #define CONFIG(x) BLOCKS(x), num_threads_per_block
 
 // Used by cub
-struct real3Min {
-    inline CUDA_HOST_DEVICE real3 operator()(const real3& a, const real3& b) {
-        return real3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
+struct float3Min {
+    inline CUDA_HOST_DEVICE float3 operator()(const float3& a, const float3& b) {
+        return make_float3(fminf(a.x, b.x), fminf(a.y, b.y), fminf(a.z, b.z));
     }
 };
 
-struct real3Max {
-    inline CUDA_HOST_DEVICE real3 operator()(const real3& a, const real3& b) {
-        return real3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
+struct float3Max {
+    inline CUDA_HOST_DEVICE float3 operator()(const float3& a, const float3& b) {
+        return make_float3(fmaxf(a.x, b.x), fmaxf(a.y, b.y), fmaxf(a.z, b.z));
     }
 };
 
@@ -123,25 +121,19 @@ static inline CUDA_DEVICE float AtomicMin(float* address, float value) {
     return __int_as_float(old);
 }
 
-static inline CUDA_DEVICE void AtomicAdd(real3* pointer, real3 val) {
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
-    atomicAdd_d(&pointer->x, val.x);
-    atomicAdd_d(&pointer->y, val.y);
-    atomicAdd_d(&pointer->z, val.z);
-#else
+static inline CUDA_DEVICE void AtomicAdd(float3* pointer, float3 val) {
     atomicAdd(&pointer->x, val.x);
     atomicAdd(&pointer->y, val.y);
     atomicAdd(&pointer->z, val.z);
-#endif
 }
 
-static inline CUDA_DEVICE void AtomicMax(real3* pointer, real3 val) {
+static inline CUDA_DEVICE void AtomicMax(float3* pointer, float3 val) {
     AtomicMax(&pointer->x, val.x);
     AtomicMax(&pointer->y, val.y);
     AtomicMax(&pointer->z, val.z);
 }
 
-static inline CUDA_DEVICE void AtomicMin(real3* pointer, real3 val) {
+static inline CUDA_DEVICE void AtomicMin(float3* pointer, float3 val) {
     AtomicMin(&pointer->x, val.x);
     AtomicMin(&pointer->y, val.y);
     AtomicMin(&pointer->z, val.z);
