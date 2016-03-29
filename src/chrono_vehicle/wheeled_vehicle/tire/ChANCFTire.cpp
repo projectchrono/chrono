@@ -22,7 +22,6 @@
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
@@ -170,17 +169,12 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
         }
     }
 
-    // Attach mesh visualization
-    ////auto visualizationW = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
-    ////visualizationW->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    ////visualizationW->SetWireframe(true);
-    ////m_mesh->AddAsset(visualizationW);
-
-    auto visualizationS = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
-    visualizationS->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    visualizationS->SetColorscaleMinMax(0.0, 1);
-    visualizationS->SetSmoothFaces(true);
-    m_mesh->AddAsset(visualizationS);
+    // Attach mesh visualization (with default settings)
+    m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
+    m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    m_visualization->SetColorscaleMinMax(0.0, 1);
+    m_visualization->SetSmoothFaces(true);
+    m_mesh->AddAsset(m_visualization);
 }
 
 // -----------------------------------------------------------------------------

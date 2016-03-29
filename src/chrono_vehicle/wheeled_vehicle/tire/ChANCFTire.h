@@ -25,6 +25,7 @@
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -91,6 +92,10 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     /// Enable/disable tire-rim connection.
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
+
+    /// Get a handle to the mesh visualization.
+    /// Note that this function can only be invoked after initialization.
+    std::shared_ptr<fea::ChVisualizationFEAmesh> GetMeshVisualization() { return m_visualization; }
 
     /// Set the tire pressure.
     void SetPressure(double pressure) {
@@ -164,7 +169,8 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
     float m_kt;             ///< tangential contact stiffness
     float m_gt;             ///< tangential contact damping
 
-    std::shared_ptr<ChMaterialSurfaceDEM> m_contact_mat;  ///< tire contact material
+    std::shared_ptr<ChMaterialSurfaceDEM> m_contact_mat;           ///< tire contact material
+    std::shared_ptr<fea::ChVisualizationFEAmesh> m_visualization;  ///< tire mesh visualization
 };
 
 /// @} vehicle_wheeled_tire
