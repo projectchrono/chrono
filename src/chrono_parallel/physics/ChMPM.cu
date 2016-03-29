@@ -28,7 +28,7 @@ std::vector<Mat33f> volume_Ap_Fe_transpose;
 float3* lower_bound;
 float3* upper_bound;
 
-gpu_vector<float3> pos, vel;
+gpu_vector<float> pos, vel;
 gpu_vector<float> node_mass;
 gpu_vector<float> marker_volume;
 gpu_vector<float> grid_vel, delta_v;
@@ -56,9 +56,9 @@ __device__ float dot_my_my = 0;
 #define neg_BB2_fallback 0.12
 
 #define LOOP_TWO_RING_GPUSP(X)                                                                                         \
-    cx = GridCoord(xi.x, inv_bin_edge, system_bounds.minimum[0]);                                                      \
-    cy = GridCoord(xi.y, inv_bin_edge, system_bounds.minimum[1]);                                                      \
-    cz = GridCoord(xi.z, inv_bin_edge, system_bounds.minimum[2]);                                                      \
+    cx = GridCoord(xix, inv_bin_edge, system_bounds.minimum[0]);                                                       \
+    cy = GridCoord(xiy, inv_bin_edge, system_bounds.minimum[1]);                                                       \
+    cz = GridCoord(xiz, inv_bin_edge, system_bounds.minimum[2]);                                                       \
     for (int i = cx - 2; i <= cx + 2; ++i) {                                                                           \
         for (int j = cy - 2; j <= cy + 2; ++j) {                                                                       \
             for (int k = cz - 2; k <= cz + 2; ++k) {                                                                   \
@@ -74,9 +74,28 @@ __device__ float dot_my_my = 0;
 //////========================================================================================================================================================================
 ////
 
-CUDA_GLOBAL void kComputeBounds(const float3* pos,  // input
-                                float3* lower,      // output
-                                float3* upper       // output
+void CUDA_HOST_DEVICE WeakEqual(const float& x, const float& y, float COMPARE_EPS = FLT_EPSILON) {
+    if (fabsf(x - y) > COMPARE_EPS) {
+        printf("%f does not equal %f %.20e\n", x, y, fabsf(x - y));
+        // exit(1);
+    }
+}
+
+void CUDA_HOST_DEVICE WeakEqual(const Mat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSILON) {
+    WeakEqual(a[0], b[0], COMPARE_EPS);
+    WeakEqual(a[1], b[1], COMPARE_EPS);
+    WeakEqual(a[2], b[2], COMPARE_EPS);
+    WeakEqual(a[3], b[3], COMPARE_EPS);
+    WeakEqual(a[4], b[4], COMPARE_EPS);
+    WeakEqual(a[5], b[5], COMPARE_EPS);
+    WeakEqual(a[6], b[6], COMPARE_EPS);
+    WeakEqual(a[7], b[7], COMPARE_EPS);
+    WeakEqual(a[8], b[8], COMPARE_EPS);
+}
+
+CUDA_GLOBAL void kComputeBounds(const float* pos,  // input
+                                float3* lower,     // output
+                                float3* upper      // output
                                 ) {
     typedef cub::BlockReduce<float3, num_threads_per_block> BlockReduce;
 
@@ -87,7 +106,7 @@ CUDA_GLOBAL void kComputeBounds(const float3* pos,  // input
 
     const int index = block_start + threadIdx.x;
     if (index < device_settings.num_mpm_markers) {
-        float3 data = pos[index];
+        float3 data = make_float3(pos[index * 3 + 0], pos[index * 3 + 1], pos[index * 3 + 2]);
         float3 blockUpper = BlockReduce(temp_storage).Reduce(data, float3Max(), num_valid);
         __syncthreads();
         float3 blockLower = BlockReduce(temp_storage).Reduce(data, float3Min(), num_valid);
@@ -98,14 +117,19 @@ CUDA_GLOBAL void kComputeBounds(const float3* pos,  // input
     }
 }
 ////========================================================================================================================================================================
-CUDA_GLOBAL void kRasterize(const float3* sorted_pos,  // input
-                            const float3* sorted_vel,  // input
-                            float* grid_mass,          // output
-                            float* grid_vel) {         // output
+CUDA_GLOBAL void kRasterize(const float* sorted_pos,  // input
+                            const float* sorted_vel,  // input
+                            float* grid_mass,         // output
+                            float* grid_vel) {        // output
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = sorted_pos[p];
-        const float3 vi = sorted_vel[p];
+        const float xix = sorted_pos[p * 3 + 0];
+        const float xiy = sorted_pos[p * 3 + 1];
+        const float xiz = sorted_pos[p * 3 + 2];
+
+        const float vix = sorted_vel[p * 3 + 0];
+        const float viy = sorted_vel[p * 3 + 1];
+        const float viz = sorted_vel[p * 3 + 2];
 
         int cx, cy, cz;
         const float bin_edge = device_settings.bin_edge;
@@ -113,29 +137,31 @@ CUDA_GLOBAL void kRasterize(const float3* sorted_pos,  // input
 
         LOOP_TWO_RING_GPUSP(  //
 
-            float weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
-                           N((xi.y - current_node_locationy) * inv_bin_edge) *
-                           N((xi.z - current_node_locationz) * inv_bin_edge) * device_settings.mass;
+            float weight = N((xix - current_node_locationx) * inv_bin_edge) *
+                           N((xiy - current_node_locationy) * inv_bin_edge) *
+                           N((xiz - current_node_locationz) * inv_bin_edge) * device_settings.mass;
 
             atomicAdd(&grid_mass[current_node], weight);  //
-            atomicAdd(&grid_vel[current_node * 3 + 0], weight * vi.x);
-            atomicAdd(&grid_vel[current_node * 3 + 1], weight * vi.y);
-            atomicAdd(&grid_vel[current_node * 3 + 2], weight * vi.z);)
+            atomicAdd(&grid_vel[current_node * 3 + 0], weight * vix);
+            atomicAdd(&grid_vel[current_node * 3 + 1], weight * viy);
+            atomicAdd(&grid_vel[current_node * 3 + 2], weight * viz);)
     }
 }
-CUDA_GLOBAL void kRasterize(const float3* sorted_pos,  // input
-                            float* grid_mass) {        // output
+CUDA_GLOBAL void kRasterize(const float* sorted_pos,  // input
+                            float* grid_mass) {       // output
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = sorted_pos[p];
+        const float xix = sorted_pos[p * 3 + 0];
+        const float xiy = sorted_pos[p * 3 + 1];
+        const float xiz = sorted_pos[p * 3 + 2];
         int cx, cy, cz;
         const float bin_edge = device_settings.bin_edge;
         const float inv_bin_edge = device_settings.inv_bin_edge;
 
         LOOP_TWO_RING_GPUSP(  //
-            float weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
-                           N((xi.y - current_node_locationy) * inv_bin_edge) *
-                           N((xi.z - current_node_locationz) * inv_bin_edge) * device_settings.mass;
+            float weight = N((xix - current_node_locationx) * inv_bin_edge) *
+                           N((xiy - current_node_locationy) * inv_bin_edge) *
+                           N((xiz - current_node_locationz) * inv_bin_edge) * device_settings.mass;
             atomicAdd(&grid_mass[current_node], weight);  //
             )
     }
@@ -157,20 +183,22 @@ CUDA_GLOBAL void kNormalizeWeights(float* grid_mass,   // input
 }
 //////========================================================================================================================================================================
 ////
-CUDA_GLOBAL void kComputeParticleVolumes(const float3* sorted_pos,  // input
-                                         float* grid_mass,          // output
+CUDA_GLOBAL void kComputeParticleVolumes(const float* sorted_pos,  // input
+                                         float* grid_mass,         // output
                                          float* volume) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = sorted_pos[p];
+        const float xix = sorted_pos[p * 3 + 0];
+        const float xiy = sorted_pos[p * 3 + 1];
+        const float xiz = sorted_pos[p * 3 + 2];
         float particle_density = 0;
         int cx, cy, cz;
         const float bin_edge = device_settings.bin_edge;
         const float inv_bin_edge = device_settings.inv_bin_edge;
         LOOP_TWO_RING_GPUSP(  //
-            float weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
-                           N((xi.y - current_node_locationy) * inv_bin_edge) *
-                           N((xi.z - current_node_locationz) * inv_bin_edge);
+            float weight = N((xix - current_node_locationx) * inv_bin_edge) *
+                           N((xiy - current_node_locationy) * inv_bin_edge) *
+                           N((xiz - current_node_locationz) * inv_bin_edge);
 
             particle_density += grid_mass[current_node] * weight;  //
             )
@@ -179,14 +207,16 @@ CUDA_GLOBAL void kComputeParticleVolumes(const float3* sorted_pos,  // input
         volume[p] = device_settings.mass * particle_density;
     }
 }
-CUDA_GLOBAL void kFeHat(const float3* sorted_pos,  // input
-                        const Mat33f* marker_Fe,   // input
-                        const float* grid_vel,     // input
-                        Mat33f* marker_Fe_hat) {   // output
+CUDA_GLOBAL void kFeHat(const float* sorted_pos,  // input
+                        const Mat33f* marker_Fe,  // input
+                        const float* grid_vel,    // input
+                        Mat33f* marker_Fe_hat) {  // output
 
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = sorted_pos[p];
+        const float xix = sorted_pos[p * 3 + 0];
+        const float xiy = sorted_pos[p * 3 + 1];
+        const float xiz = sorted_pos[p * 3 + 2];
         Mat33f Fe_hat_t(0.0);
 
         int cx, cy, cz;
@@ -199,9 +229,9 @@ CUDA_GLOBAL void kFeHat(const float3* sorted_pos,  // input
             float vny = grid_vel[current_node * 3 + 1];  //
             float vnz = grid_vel[current_node * 3 + 2];
 
-            float Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
-            float Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
-            float Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+            float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
+            float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
+            float Tz = (xiz - current_node_locationz) * inv_bin_edge;  //
 
             float valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
             float valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
@@ -237,7 +267,7 @@ CUDA_GLOBAL void kFeHat(const float3* sorted_pos,  // input
 //    }
 //}
 
-CUDA_GLOBAL void kApplyForces(const float3* sorted_pos,     // input
+CUDA_GLOBAL void kApplyForces(const float* sorted_pos,      // input
                               const Mat33f* marker_Fe_hat,  // input
                               const Mat33f* marker_Fe,      // input
                               const Mat33f* marker_Fp,      // input
@@ -249,7 +279,9 @@ CUDA_GLOBAL void kApplyForces(const float3* sorted_pos,     // input
                               float* grid_vel) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = sorted_pos[p];
+        const float xix = sorted_pos[p * 3 + 0];
+        const float xiy = sorted_pos[p * 3 + 1];
+        const float xiz = sorted_pos[p * 3 + 2];
         Mat33f FE = marker_Fe[p];
         Mat33f FE_hat = marker_Fe_hat[p];
         Mat33f FP = marker_Fp[p];
@@ -278,9 +310,9 @@ CUDA_GLOBAL void kApplyForces(const float3* sorted_pos,     // input
 
         LOOP_TWO_RING_GPUSP(  //
 
-            float Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
-            float Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
-            float Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+            float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
+            float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
+            float Tz = (xiz - current_node_locationz) * inv_bin_edge;  //
 
             float valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
             float valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
@@ -316,7 +348,7 @@ CUDA_GLOBAL void kRhs(const float* node_mass,  // input
     }
 }
 
-CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
+CUDA_GLOBAL void kMultiplyA(const float* sorted_pos,  // input
                             const float* v_array,
                             const float* old_vel_node_mpm,
                             const Mat33f* PolarR,         // input
@@ -329,7 +361,9 @@ CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
                             float* result_array) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = sorted_pos[p];
+        const float xix = sorted_pos[p * 3 + 0];
+        const float xiy = sorted_pos[p * 3 + 1];
+        const float xiz = sorted_pos[p * 3 + 2];
         // float VAP[7];
         // float delta_F[7] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
         Mat33f delta_F(0);
@@ -343,9 +377,9 @@ CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
             float vny = v_array[current_node * 3 + 1];  //
             float vnz = v_array[current_node * 3 + 2];
 
-            float Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
-            float Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
-            float Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+            float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
+            float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
+            float Tz = (xiz - current_node_locationz) * inv_bin_edge;  //
 
             float valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
             float valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
@@ -356,20 +390,22 @@ CUDA_GLOBAL void kMultiplyA(const float3* sorted_pos,  // input
             delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;)
 
         Mat33f m_FE = marker_Fe[p];
-        Mat33f m_FP = marker_Fp[p];
         Mat33f m_FE_hat = marker_Fe_hat[p];
 
         delta_F = delta_F * m_FE;
 
         float current_mu = device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
 
-        Mat33f VAP = d2PsidFdF(delta_F, m_FE_hat, PolarR[p], PolarS[p], current_mu);
-        VAP = marker_volume[p] * VAP * Transpose(m_FE);
+        Mat33f VAP =
+            marker_volume[p] * MultTranspose(d2PsidFdF(delta_F, m_FE_hat, PolarR[p], PolarS[p], current_mu), m_FE);
+        // Mat33f VAP = d2PsidFdFO(delta_F, m_FE_hat, PolarR[p], PolarS[p], current_mu);
 
-        LOOP_TWO_RING_GPUSP(                                            //
-            float Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
-            float Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
-            float Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+        // WeakEqual(VAP, VAP2);
+
+        LOOP_TWO_RING_GPUSP(                                           //
+            float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
+            float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
+            float Tz = (xiz - current_node_locationz) * inv_bin_edge;  //
 
             float valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
             float valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
@@ -645,14 +681,19 @@ CUDA_GLOBAL void kIncrementVelocity(float* delta_v, float* old_vel_node_mpm, flo
 
 CUDA_GLOBAL void kUpdateParticleVelocity(float* grid_vel,
                                          float* old_vel_node_mpm,
-                                         float3* pos_marker,
-                                         float3* vel_marker,
+                                         float* pos_marker,
+                                         float* vel_marker,
                                          Mat33f* marker_Fe,
                                          Mat33f* marker_Fp) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = pos_marker[p];
-        float3 V_flip = vel_marker[p];
+        const float xix = pos_marker[p * 3 + 0];
+        const float xiy = pos_marker[p * 3 + 1];
+        const float xiz = pos_marker[p * 3 + 2];
+        float3 V_flip;
+        V_flip.x = vel_marker[p * 3 + 0];
+        V_flip.y = vel_marker[p * 3 + 1];
+        V_flip.z = vel_marker[p * 3 + 2];
         float3 V_pic = make_float3(0.0, 0.0, 0.0);
 
         const float bin_edge = device_settings.bin_edge;
@@ -661,9 +702,9 @@ CUDA_GLOBAL void kUpdateParticleVelocity(float* grid_vel,
 
         LOOP_TWO_RING_GPUSP(
 
-            float weight = N((xi.x - current_node_locationx) * inv_bin_edge) *
-                           N((xi.y - current_node_locationy) * inv_bin_edge) *
-                           N((xi.z - current_node_locationz) * inv_bin_edge);
+            float weight = N((xix - current_node_locationx) * inv_bin_edge) *
+                           N((xiy - current_node_locationy) * inv_bin_edge) *
+                           N((xiz - current_node_locationz) * inv_bin_edge);
 
             float vnx = grid_vel[current_node * 3 + 0];  //
             float vny = grid_vel[current_node * 3 + 1];  //
@@ -682,18 +723,22 @@ CUDA_GLOBAL void kUpdateParticleVelocity(float* grid_vel,
         if (speed > device_settings.max_velocity) {
             new_vel = new_vel * device_settings.max_velocity / speed;
         }
-        vel_marker[p] = new_vel;
+        vel_marker[p * 3 + 0] = new_vel.x;
+        vel_marker[p * 3 + 1] = new_vel.y;
+        vel_marker[p * 3 + 2] = new_vel.z;
     }
 }
 CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
-                                            float3* pos_marker,
+                                            float* pos_marker,
                                             Mat33f* marker_Fe,
                                             Mat33f* marker_Fp,
                                             Mat33f* marker_RE,
                                             float* plasticity) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float3 xi = pos_marker[p];
+        const float xix = pos_marker[p * 3 + 0];
+        const float xiy = pos_marker[p * 3 + 1];
+        const float xiz = pos_marker[p * 3 + 2];
         Mat33f vel_grad(0.0);
 
         int cx, cy, cz;
@@ -704,9 +749,9 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
                             float vny = grid_vel[current_node * 3 + 1];  //
                             float vnz = grid_vel[current_node * 3 + 2];
 
-                            float Tx = (xi.x - current_node_locationx) * inv_bin_edge;  //
-                            float Ty = (xi.y - current_node_locationy) * inv_bin_edge;  //
-                            float Tz = (xi.z - current_node_locationz) * inv_bin_edge;  //
+                            float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
+                            float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
+                            float Tz = (xiz - current_node_locationz) * inv_bin_edge;  //
 
                             float valx = dN(Tx) * inv_bin_edge * N(Ty) * N(Tz);  //
                             float valy = N(Tx) * dN(Ty) * inv_bin_edge * N(Tz);  //
@@ -791,21 +836,12 @@ void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vecto
     host_settings = settings;
     printf("Solving MPM: %d\n", host_settings.num_iterations);
 
-    pos.data_h.resize(settings.num_mpm_markers);
-    for (int i = 0; i < settings.num_mpm_markers; i++) {
-        pos.data_h[i].x = positions[i * 3 + 0];
-        pos.data_h[i].y = positions[i * 3 + 1];
-        pos.data_h[i].z = positions[i * 3 + 2];
-    }
+    pos.data_h = positions;
 
     pos.copyHostToDevice();
 
-    vel.data_h.resize(settings.num_mpm_markers);
-    for (int i = 0; i < settings.num_mpm_markers; i++) {
-        vel.data_h[i].x = velocities[i * 3 + 0];
-        vel.data_h[i].y = velocities[i * 3 + 1];
-        vel.data_h[i].z = velocities[i * 3 + 2];
-    }
+    vel.data_h = velocities;
+
     vel.copyHostToDevice();
 
     cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
@@ -901,12 +937,7 @@ void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vecto
     time_measured = 0;
 
     vel.copyDeviceToHost();
-
-    for (int i = 0; i < settings.num_mpm_markers; i++) {
-        velocities[i * 3 + 0] = vel.data_h[i].x;
-        velocities[i * 3 + 1] = vel.data_h[i].y;
-        velocities[i * 3 + 2] = vel.data_h[i].z;
-    }
+    velocities = vel.data_h;
 
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
@@ -931,12 +962,8 @@ void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions) {
     cudaCheck(cudaMalloc(&lower_bound, sizeof(float3)));
     cudaCheck(cudaMalloc(&upper_bound, sizeof(float3)));
 
-    pos.data_h.resize(settings.num_mpm_markers);
-    for (int i = 0; i < settings.num_mpm_markers; i++) {
-        pos.data_h[i].x = positions[i * 3 + 0];
-        pos.data_h[i].y = positions[i * 3 + 1];
-        pos.data_h[i].z = positions[i * 3 + 2];
-    }
+    pos.data_h = positions;
+
     pos.copyHostToDevice();
 
     cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));

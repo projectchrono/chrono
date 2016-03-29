@@ -166,7 +166,7 @@ CUDA_HOST_DEVICE static inline float2 Normalize(const float2& v) {
 class Mat33f {
   public:
     // Zero constructor
-    CUDA_HOST_DEVICE Mat33f() : array{0, 0, 0, 0, 0, 0, 0, 0, 0} {}
+    CUDA_HOST_DEVICE Mat33f() {}
     // Diagonal matrix constructor
     CUDA_HOST_DEVICE explicit Mat33f(float v) : array{v, 0, 0, 0, v, 0, 0, 0, v} {}
     // Diagonal matrix constructor
@@ -188,7 +188,7 @@ class Mat33f {
                             const float& v33)
         : array{v11, v21, v31, v12, v22, v32, v13, v23, v33} {}
     // Copy constructor
-    CUDA_HOST_DEVICE Mat33f(const Mat33f& M) {
+    CUDA_HOST_DEVICE inline Mat33f(const Mat33f& M) {
         array[0] = M.array[0];
         array[1] = M.array[1];
         array[2] = M.array[2];

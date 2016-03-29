@@ -296,17 +296,10 @@ CUDA_HOST_DEVICE static Mat33f d2PsidFdF(const Mat33f& Z,  // This is deltaF
                                          const Mat33f& SE,
                                          const float current_mu) {
 #if 1
-    float a = -1.0 / 3.0;
+    float a = -one_third;
     float Ja = powf(Determinant(F), a);
     Mat33f H = InverseTranspose(F);
     Mat33f FE = Ja * F;
-    // Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * F, current_mu);
-    //    Mat33f UE, VE;
-    //    float3 EE;
-    //    SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
-    //    Mat33f RE = MultTranspose(UE, VE);
-    //    Mat33f SE = VE * MultTranspose(Mat33f(EE), VE);
-
     Mat33f A = float(2.) * current_mu * (FE - RE);
 
     Mat33f B_Z = B__Z(Z, F, Ja, a, H);
@@ -325,5 +318,158 @@ CUDA_HOST_DEVICE static Mat33f d2PsidFdF(const Mat33f& Z,  // This is deltaF
     Mat33f WE = TransposeMult(RE, Z);
     return 2 * current_mu * (Z - Solve_dR(RE, SE, WE));
 #endif
+}
+
+CUDA_HOST_DEVICE static Mat33f d2PsidFdFO(const Mat33f& z,   // This is deltaF
+                                          const Mat33f& fe,  // This is FE_hat
+                                          const Mat33f& re,
+                                          const Mat33f& se,
+                                          const float current_mu) {
+    float t1 = fe[0] * fe[4];
+    float t3 = fe[0] * fe[7];
+    float t5 = fe[3] * fe[1];
+    float t7 = fe[3] * fe[7];
+    float t9 = fe[6] * fe[1];
+    float t11 = fe[6] * fe[4];
+    float t13 = t1 * fe[8] - t11 * fe[2] - t3 * fe[5] - t5 * fe[8] + t7 * fe[2] + t9 * fe[5];
+    float t14 = powf(t13, 1. / 3.);
+    float t15 = 1. / t14;
+    float t18 = fe[4] * fe[8] - fe[7] * fe[5];
+    float t19 = 1. / t13;
+    float t24 = fe[1] * fe[8] - fe[7] * fe[2];
+    float t29 = fe[1] * fe[5] - fe[4] * fe[2];
+    float t34 = fe[3] * fe[8] - fe[6] * fe[5];
+    float t39 = fe[0] * fe[8] - fe[6] * fe[2];
+    float t44 = fe[0] * fe[5] - fe[3] * fe[2];
+    float t47 = t7 - t11;
+    float t50 = t3 - t9;
+    float t53 = t1 - t5;
+    float t56 = -t18 * t19 * z[0] + t24 * t19 * z[3] - t29 * t19 * z[6] + t34 * t19 * z[1] - t39 * t19 * z[4] +
+                t44 * t19 * z[7] - t47 * t19 * z[2] + t50 * t19 * z[5] - t53 * t19 * z[8];
+    float t58 = z[0] + t56 * fe[0] / 3.;
+    float t60 = se[0] * se[4];
+    float t61 = se[0] * se[8];
+    float t62 = powf(se[3], 2.);
+    float t63 = se[4] * se[8];
+    float t64 = powf(se[8], 2.);
+    float t66 = powf(se[0], 2.);
+    float t70 = powf(se[6], 2.);
+    float t72 = powf(se[4], 2.);
+    float t78 = se[3] * se[6];
+    float t83 = powf(se[7], 2.);
+    float t87 = 2. * t60 * se[8] - se[0] * t62 - t62 * se[4] + se[0] * t64 + se[4] * t64 + t66 * se[4] + t66 * se[8] -
+                se[0] * t70 - t70 * se[8] + se[0] * t72 + t72 * se[8] - 2. * t78 * se[7] - se[4] * t83 - t83 * se[8];
+    float t88 = 1. / t87;
+    float t90 = re[0] * t15;
+    float t92 = z[3] + t56 * fe[3] / 3.;
+    float t94 = re[1] * t15;
+    float t96 = z[4] + t56 * fe[4] / 3.;
+    float t98 = re[2] * t15;
+    float t100 = z[5] + t56 * fe[5] / 3.;
+    float t102 = re[3] * t15;
+    float t104 = re[4] * t15;
+    float t106 = z[1] + t56 * fe[1] / 3.;
+    float t108 = re[5] * t15;
+    float t110 = z[2] + t56 * fe[2] / 3.;
+    float t112 = t98 * t100 - t102 * t58 - t104 * t106 - t108 * t110 + t90 * t92 + t94 * t96;
+    float t117 = (se[4] * se[7] + se[7] * se[8] + t78) * t88;
+    float t118 = re[6] * t15;
+    float t120 = re[7] * t15;
+    float t122 = re[8] * t15;
+    float t125 = z[6] + t56 * fe[6] / 3.;
+    float t128 = z[7] + t56 * fe[7] / 3.;
+    float t131 = z[8] + t56 * fe[8] / 3.;
+    float t133 = t120 * t106 + t122 * t110 + t118 * t58 - t90 * t125 - t94 * t128 - t98 * t131;
+    float t139 = (se[0] * se[6] + se[3] * se[7] + se[6] * se[8]) * t88;
+    float t146 = -t122 * t100 + t102 * t125 + t104 * t128 + t108 * t131 - t118 * t92 - t120 * t96;
+    float t148 = -(t60 + t61 - t62 + t63 + t64) * t88 * t112 - t117 * t133 - t139 * t146;
+    float t158 = (se[0] * se[3] + se[3] * se[4] + se[6] * se[7]) * t88;
+    float t160 = t117 * t112 + (t60 + t61 - t70 + t72 + t63) * t88 * t133 + t158 * t146;
+    float t162 = -re[3] * t148 + t15 * t58 - re[6] * t160;
+    float t165 = fe[0] * current_mu;
+    float t167 = fe[3] * current_mu;
+    float t175 = -t139 * t112 - t158 * t133 - (t66 + t60 + t61 + t63 - t83) * t88 * t146;
+    float t177 = re[0] * t148 + t15 * t92 - re[6] * t175;
+    float t179 = fe[6] * current_mu;
+    float t183 = t15 * t125 + re[0] * t160 + re[3] * t175;
+    float t185 = fe[1] * current_mu;
+    float t189 = t15 * t106 - re[4] * t148 - re[7] * t160;
+    float t191 = fe[4] * current_mu;
+    float t195 = re[1] * t148 + t15 * t96 - re[7] * t175;
+    float t197 = fe[7] * current_mu;
+    float t201 = t15 * t128 + re[1] * t160 + re[4] * t175;
+    float t203 = fe[2] * current_mu;
+    float t207 = t15 * t110 - re[5] * t148 - re[8] * t160;
+    float t209 = fe[5] * current_mu;
+    float t213 = t15 * t100 + re[2] * t148 - re[8] * t175;
+    float t215 = fe[8] * current_mu;
+    float t219 = t15 * t131 + re[2] * t160 + re[5] * t175;
+    float t221 = -t165 * t162 - t167 * t177 - t179 * t183 - t185 * t189 - t191 * t195 - t197 * t201 - t203 * t207 -
+                 t209 * t213 - t215 * t219;
+    float t227 = t15 * fe[0] - re[0];
+    float t228 = current_mu * t227;
+    float t231 = t15 * fe[3] - re[3];
+    float t232 = current_mu * t231;
+    float t235 = t15 * fe[6] - re[6];
+    float t236 = current_mu * t235;
+    float t239 = t15 * fe[1] - re[1];
+    float t240 = current_mu * t239;
+    float t243 = t15 * fe[4] - re[4];
+    float t244 = current_mu * t243;
+    float t247 = t15 * fe[7] - re[7];
+    float t248 = current_mu * t247;
+    float t251 = t15 * fe[2] - re[2];
+    float t252 = current_mu * t251;
+    float t255 = t15 * fe[5] - re[5];
+    float t256 = current_mu * t255;
+    float t259 = t15 * fe[8] - re[8];
+    float t260 = current_mu * t259;
+    float t262 = -t228 * z[0] - t232 * z[3] - t236 * z[6] - t240 * z[1] - t244 * z[4] - t248 * z[7] - t252 * z[2] -
+                 t256 * z[5] - t260 * z[8];
+    float t263 = 2. / 3. * t262 * t15;
+    float t274 = -t165 * t227 - t167 * t231 - t179 * t235 - t185 * t239 - t191 * t243 - t197 * t247 - t203 * t251 -
+                 t209 * t255 - t215 * t259;
+    float t280 = 1. / t14 / t13;
+    float t281 = -2. * t280 * t262;
+    float t284 = -2. * t280 * t274;
+    float t291 = -t284 * t18 * z[0] + t284 * t24 * z[3] - t284 * t29 * z[6];
+    float t300 = -t284 * t18 * z[1] + t284 * t24 * z[4] - t284 * t29 * z[7];
+    float t309 = -t284 * t18 * z[2] + t284 * t24 * z[5] - t284 * t29 * z[8];
+    float t372 = t284 * t34 * z[0] - t284 * t39 * z[3] + t284 * t44 * z[6];
+    float t381 = t284 * t34 * z[1] - t284 * t39 * z[4] + t284 * t44 * z[7];
+    float t390 = t284 * t34 * z[2] - t284 * t39 * z[5] + t284 * t44 * z[8];
+    float t453 = -t284 * t47 * z[0] + t284 * t50 * z[3] - t284 * t53 * z[6];
+    float t462 = -t284 * t47 * z[1] + t284 * t50 * z[4] - t284 * t53 * z[7];
+    float t471 = -t284 * t47 * z[2] + t284 * t50 * z[5] - t284 * t53 * z[8];
+    Mat33f unknown;
+
+    unknown[0] = t15 * (2. * current_mu * t162 + 2. / 3. * t221 * t18 * t19) +
+                 t263 * (2. * t228 + 2. / 3. * t274 * t18 * t19) - t281 * t18 / 3. - t291 * t18 * t19 / 3. +
+                 t300 * t34 * t19 / 3. - t309 * t47 * t19 / 3.;
+    unknown[3] = t15 * (2. * current_mu * t177 - 2. / 3. * t221 * t24 * t19) +
+                 t263 * (2. * t232 - 2. / 3. * t274 * t24 * t19) + t281 * t24 / 3. + t291 * t24 * t19 / 3. -
+                 t300 * t39 * t19 / 3. + t309 * t50 * t19 / 3.;
+    unknown[6] = t15 * (2. * current_mu * t183 + 2. / 3. * t221 * t29 * t19) +
+                 t263 * (2. * t236 + 2. / 3. * t274 * t29 * t19) - t281 * t29 / 3. - t291 * t29 * t19 / 3. +
+                 t300 * t44 * t19 / 3. - t309 * t53 * t19 / 3.;
+    unknown[1] = t15 * (2. * current_mu * t189 - 2. / 3. * t221 * t34 * t19) +
+                 t263 * (2. * t240 - 2. / 3. * t274 * t34 * t19) + t281 * t34 / 3. - t372 * t18 * t19 / 3. +
+                 t381 * t34 * t19 / 3. - t390 * t47 * t19 / 3.;
+    unknown[4] = t15 * (2. * current_mu * t195 + 2. / 3. * t221 * t39 * t19) +
+                 t263 * (2. * t244 + 2. / 3. * t274 * t39 * t19) - t281 * t39 / 3. + t372 * t24 * t19 / 3. -
+                 t381 * t39 * t19 / 3. + t390 * t50 * t19 / 3.;
+    unknown[7] = t15 * (2. * current_mu * t201 - 2. / 3. * t221 * t44 * t19) +
+                 t263 * (2. * t248 - 2. / 3. * t274 * t44 * t19) + t281 * t44 / 3. - t372 * t29 * t19 / 3. +
+                 t381 * t44 * t19 / 3. - t390 * t53 * t19 / 3.;
+    unknown[2] = t15 * (2. * current_mu * t207 + 2. / 3. * t221 * t47 * t19) +
+                 t263 * (2. * t252 + 2. / 3. * t274 * t47 * t19) - t281 * t47 / 3. - t453 * t18 * t19 / 3. +
+                 t462 * t34 * t19 / 3. - t471 * t47 * t19 / 3.;
+    unknown[5] = t15 * (2. * current_mu * t213 - 2. / 3. * t221 * t50 * t19) +
+                 t263 * (2. * t256 - 2. / 3. * t274 * t50 * t19) + t281 * t50 / 3. + t453 * t24 * t19 / 3. -
+                 t462 * t39 * t19 / 3. + t471 * t50 * t19 / 3.;
+    unknown[8] = t15 * (2. * current_mu * t219 + 2. / 3. * t221 * t53 * t19) +
+                 t263 * (2. * t260 + 2. / 3. * t274 * t53 * t19) - t281 * t53 / 3. - t453 * t29 * t19 / 3. +
+                 t462 * t44 * t19 / 3. - t471 * t53 * t19 / 3.;
+    return unknown;
 }
 }

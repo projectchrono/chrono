@@ -26,25 +26,6 @@ CUDA_HOST_DEVICE inline float3 DotMM(const float* M, const float* N) {
 //                  A[1] * B[2], A[2] * B[2]);
 //}
 
-CUDA_HOST_DEVICE inline Mat33f ScaleMat(const float* M, const float b) {
-    Mat33f r;
-    r[0] = M[0] * b;
-    r[1] = M[1] * b;
-    r[2] = M[2] * b;
-    r[3] = M[3] * b;
-    r[4] = M[4] * b;
-    r[5] = M[5] * b;
-    r[6] = M[6] * b;
-    r[7] = M[7] * b;
-    r[8] = M[8] * b;
-    return r;
-}
-
-CUDA_HOST_DEVICE inline Mat33f MAbs(const float* M) {
-    return Mat33f(fabsf(M[0]), fabsf(M[1]), fabsf(M[2]), fabsf(M[3]), fabsf(M[4]), fabsf(M[5]), fabsf(M[6]),
-                  fabsf(M[7]), fabsf(M[8]));
-}
-
 //[0,4,8 ]
 //[1,5,9 ]
 //[2,6,10]
@@ -57,8 +38,18 @@ CUDA_HOST_DEVICE float3 operator*(const Mat33f& M, const float3& N) {
     return r;
 }
 
-CUDA_HOST_DEVICE Mat33f operator*(const Mat33f& N, const float scale) {
-    return ScaleMat(N.array, scale);
+CUDA_HOST_DEVICE Mat33f operator*(const Mat33f& M, const float b) {
+    Mat33f r;
+    r[0] = M[0] * b;
+    r[1] = M[1] * b;
+    r[2] = M[2] * b;
+    r[3] = M[3] * b;
+    r[4] = M[4] * b;
+    r[5] = M[5] * b;
+    r[6] = M[6] * b;
+    r[7] = M[7] * b;
+    r[8] = M[8] * b;
+    return r;
 }
 
 CUDA_HOST_DEVICE Mat33f operator*(const Mat33f& M, const Mat33f& N) {
@@ -88,8 +79,9 @@ CUDA_HOST_DEVICE Mat33f operator-(const Mat33f& M, const Mat33f& N) {
 CUDA_HOST_DEVICE Mat33f operator-(const Mat33f& M) {
     return Mat33f(-M[0], -M[1], -M[2], -M[3], -M[4], -M[5], -M[6], -M[7], -M[8]);
 }
-CUDA_HOST_DEVICE Mat33f Abs(const Mat33f& m) {
-    return MAbs(m.array);
+CUDA_HOST_DEVICE Mat33f Abs(const Mat33f& M) {
+    return Mat33f(fabsf(M[0]), fabsf(M[1]), fabsf(M[2]), fabsf(M[3]), fabsf(M[4]), fabsf(M[5]), fabsf(M[6]),
+                  fabsf(M[7]), fabsf(M[8]));
 }
 CUDA_HOST_DEVICE Mat33f SkewSymmetric(const float3& r) {
     return Mat33f(0, r.z, -r.y, -r.z, 0, r.x, r.y, -r.x, 0);
