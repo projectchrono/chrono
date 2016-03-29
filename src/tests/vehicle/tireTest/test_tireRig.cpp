@@ -37,7 +37,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-
+#include "chrono_fea/ChNodeFEAbase.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -48,6 +48,8 @@
 
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono_fea/ChElementShellANCF.h"
+
 
 #ifdef CHRONO_OPENMP_ENABLED
 #include <omp.h>
@@ -62,6 +64,14 @@ using namespace chrono::vehicle;
 using namespace chrono::irrlicht;
 
 using namespace irr;
+using namespace fea;
+
+// Forward declarations
+
+void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>> & NodeNeighborElement);
+void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
+	std::vector<std::vector<int>> & NodeNeighborElement);
+
 
 // =============================================================================
 // USER SETTINGS
@@ -75,13 +85,13 @@ enum SolverType { LCP_ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF)
-TireModelType tire_model = FIALA;
+TireModelType tire_model = ANCF;
 
 // Settings specific to FEA-based tires
 bool enable_tire_pressure = true;
 bool enable_rim_conection = true;
 bool enable_tire_contact = true;
-bool use_custom_collision = false;
+bool use_custom_collision = true;
 
 // JSON file names for tire models
 std::string fiala_testfile("generic/tire/FialaTire.json");
@@ -97,42 +107,59 @@ std::string out_dir;
 
 class TireTestContactReporter : public chrono::ChReportContactCallback {
   public:
-    TireTestContactReporter() {}
-
+	  TireTestContactReporter() :counter(-1) {}
+	int counter;
     void Process(ChSystem* system) {
-        m_csv << system->GetChTime() << std::endl;
+		if (counter > -1) {
+			output.clear();
+			output.close();
+		}
+		counter++;
+		if (ChFileutils::MakeDirectory("VTKANCF") < 0) {
+			GetLog() << "Error creating directory VTK_Animations\n";
+			getchar();
+			exit;
+		}
+
+		  // The filename buffer.
+		snprintf(m_buffer, sizeof(char) * 32, "VTKANCF/Contact.0.%f.csv", system->GetChTime());
+		output.open(m_buffer, std::ios::app);
+		output << "pAx, pAy, pAz, pBx, pBy, pBz, Interpen, Fx, Fy, Fz," << std::endl;
         system->GetContactContainer()->ReportAllContacts(this);
     }
 
-    void WriteContacts(const std::string& filename) { m_csv.write_to_file(filename); }
+	// void WriteContacts(const std::string& filename) { output[counter].write_to_file(filename); }
 
   private:
     /// Callback, used to report contact points already added to the container.
     /// If it returns false, the contact scanning will be stopped.
-    virtual bool ReportContactCallback(const ChVector<>& pA,
-                                       const ChVector<>& pB,
-                                       const ChMatrix33<>& plane_coord,
-                                       const double& distance,
-                                       const ChVector<>& react_forces,
-                                       const ChVector<>& react_torques,
-                                       ChContactable* modA,
-                                       ChContactable* modB) override {
-        // Ignore contacts with zero force.
-        if (react_forces.IsNull())
-            return true;
+	  virtual bool ReportContactCallback(const ChVector<>& pA,
+		  const ChVector<>& pB,
+		  const ChMatrix33<>& plane_coord,
+		  const double& distance,
+		  const ChVector<>& react_forces,
+		  const ChVector<>& react_torques,
+		  ChContactable* modA,
+		  ChContactable* modB) override {
+		  // Ignore contacts with zero force.
+		  if (react_forces.IsNull())
+			  return true;
 
-        // GetLog() << "These are contacts ... " << pA << "  " << pB << " \n";
-        // GetLog() << "These are interpenetrations ... " << distance << " \n";
-        // GetLog() << "These are forces ... " << plane_coord.Matr_x_Vect(react_forces) << " \n";
-        GetLog() << "Distance: " << distance << "\n";
-        ChVector<> force = plane_coord.Matr_x_Vect(react_forces);
-        m_csv << pA.x << pA.y << pA.z << pB.x << pB.y << pB.z << distance << force.x << force.y << force.z << std::endl;
+		  // GetLog() << "These are contacts ... " << pA << "  " << pB << " \n";
+		  // GetLog() << "These are interpenetrations ... " << distance << " \n";
+		  // GetLog() << "These are forces ... " << plane_coord.Matr_x_Vect(react_forces) << " \n";
+		  GetLog() << "Distance: " << distance << "\n";
+		  ChVector<> force = plane_coord.Matr_x_Vect(react_forces);
+		  output.open(m_buffer, std::ios::app);
+		  output << pA.x << ", " << pA.y << ", " << pA.z << ", " << pB.x << ", " << pB.y << ", " << pB.z << ", "
+			  << distance << ", " << force.x << ", " << force.y << ", " << force.z << ", "  << std::endl;
+		  output.close();
 
-        // Continue scanning contacts
-        return true;
-    }
 
-    utils::CSV_writer m_csv;
+
+	  }
+	  std::ofstream output;
+	  char m_buffer[32];
 };
 
 // =============================================================================
@@ -198,7 +225,7 @@ class ChFunction_SlipAngle : public ChFunction {
 
     double Get_y(double t) {
         // Ramp for 1 second and stay at that value (scale)
-        double delay = 0.1;
+        double delay = 0.05;
         double scale = -10.0 / 180 * CH_C_PI;
         if (t <= delay)
             return 0;
@@ -258,7 +285,7 @@ int main() {
 
 
 #ifdef CHRONO_OPENMP_ENABLED
-    omp_set_num_threads(4);
+    omp_set_num_threads(8);
 #endif
 
     // Set the simulation and output time settings
@@ -268,7 +295,7 @@ int main() {
 
     double g = 9.80665;
     double desired_speed = 20;
-    double normal_force = 4500;
+    double normal_force = 6500;
 
     double zeros_inertia = 1e-2;
     double small_mass = 0.1;
@@ -574,9 +601,9 @@ int main() {
     // ------------------
 
     auto terrain = std::make_shared<RigidTerrain>(my_system);
-    terrain->SetContactMaterial(0.7f, 0.01f, 5e5f, 0.3f);
+    terrain->SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
     terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain->Initialize(-tire_radius - 0.0015, 120, 0.5);
+    terrain->Initialize(-tire_radius + 0.0005, 120, 0.5);
 
     // Optionally use the custom collision detection class
     // ---------------------------------------------------
@@ -676,7 +703,7 @@ int main() {
     // Create the CSV_Writer output objects (TAB delimited)
     utils::CSV_writer out_force_moment = OutStream();
     utils::CSV_writer out_wheelstate = OutStream();
-
+	utils::CSV_writer out_tireforce = OutStream();
     // Write headers
     out_force_moment << "Time"
                      << "X_Frc"
@@ -715,10 +742,15 @@ int main() {
     double simTime = 0;
     double outTime = 0;
     TireForce tireforce;
+	TireForce tireforceprint;
     WheelState wheelstate;
 
     TireTestContactReporter my_reporter;
     double rig_mass = wheel_carrier_mass + set_camber_mass + rim_mass + wheel_mass;
+	// Create connectivity section of VTK file
+	std::vector<std::vector<int> > NodeNeighborElement;
+	NodeNeighborElement.resize(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh()->GetNnodes());
+	CreateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), NodeNeighborElement);
 
     while (application->GetDevice()->run()) {
         // GetLog() << "Time: " << my_system->GetChTime() << " s. \n";
@@ -738,7 +770,7 @@ int main() {
 
         // Get tire forces
         tireforce = tire->GetTireForce();
-
+		tireforceprint = tire->GetTireForce(true);
         // Synchronize tire subsystem
         tire->Synchronize(simTime, wheelstate, *terrain.get());
 
@@ -758,6 +790,9 @@ int main() {
 
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - sim_step / 2) {
+			UpdateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), simTime,
+				NodeNeighborElement);
+
             ChMatrix33<> A(wheelstate.rot);
             ChVector<> disc_normal = A.Get_A_Yaxis();
             ChCoordsys<> linkCoordsys = revolute_set_camber_rim->GetLinkRelativeCoords();
@@ -820,12 +855,16 @@ int main() {
             out_force_moment << simTime << tireforce.force << tireforce.moment << std::endl;
             out_wheelstate << simTime << wheelstate.pos << wheelstate.rot << wheelstate.lin_vel << wheelstate.ang_vel
                            << wheelstate.omega << std::endl;
+			out_tireforce << tireforceprint.point.x << tireforceprint.point.y << tireforceprint.point.z <<
+				tireforceprint.force.x << tireforceprint.force.y << tireforceprint.force.z <<
+				tireforceprint.moment.x << tireforceprint.moment.y << tireforceprint.moment.z << std::endl;
             // Increment output time
             outTime += out_step;
             // Write output files
             out_force_moment.write_to_file(out_dir + "ForcesMoments.out", "Tire Forces and Moments\n\n");
             out_wheelstate.write_to_file(out_dir + "WheelStates.out", "Wheel States\n\n");
-            my_reporter.WriteContacts(out_dir + "ContactPatch.out");
+			out_tireforce.write_to_file(out_dir + "CoSimForce.out", "CoSimForce\n\n");
+            // my_reporter.WriteContacts(out_dir + "ContactPatch.out");
         }
         // Increment simulation time
         simTime += sim_step;
@@ -840,3 +879,112 @@ int main() {
     return 0;
 }
 
+// ----------------------------------------------
+// ----------  Write Mesh Info  -----------------
+// ----------------------------------------------
+
+void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>> & NodeNeighborElement) {
+	// Create connectivity for plotting the tire
+	utils::CSV_writer MESH(" ");
+	MESH.stream().setf(std::ios::scientific | std::ios::showpos);
+	MESH.stream().precision(6);
+	std::vector<std::shared_ptr<ChNodeFEAbase> > myvector;
+	myvector.resize(m_mesh->GetNnodes());
+	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
+		myvector[i] = std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(i));
+	}
+	MESH << "\nCELLS " << m_mesh->GetNelements() << 5 * m_mesh->GetNelements() << "\n";
+
+	for (int iele = 0; iele < m_mesh->GetNelements(); iele++) {
+		auto element = (m_mesh->GetElement(iele));
+		MESH << "4 ";
+		int nodeOrder[] = { 0, 1, 2, 3 };
+		for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
+			auto nodeA = (element->GetNodeN(nodeOrder[myNodeN]));
+			std::vector<std::shared_ptr<ChNodeFEAbase>>::iterator it;
+			it = find(myvector.begin(), myvector.end(), nodeA);
+			if (it == myvector.end()) {
+				// name not in vector
+			}
+			else {
+				auto index = std::distance(myvector.begin(), it);
+				MESH << (unsigned int)index << " ";
+				NodeNeighborElement[index].push_back(iele);
+			}
+		}
+		MESH << "\n";
+	}
+	MESH << "\nCELL_TYPES " << m_mesh->GetNelements() << "\n";
+
+	for (int iele = 0; iele < m_mesh->GetNelements(); iele++) {
+		MESH << "9\n";
+	}
+	if (ChFileutils::MakeDirectory("VTK_ANCFTireAn") < 0) {
+		GetLog() << "Error creating directory VTK_Animations\n";
+		getchar();
+		exit;
+	}
+	MESH.write_to_file("VTK_ANCFTireAn/Mesh.vtk");
+}
+void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
+	std::vector<std::vector<int>> & NodeNeighborElement) {
+
+	char buffer[32];  // The filename buffer.
+	std::ofstream output;
+	snprintf(buffer, sizeof(char) * 32, "VTK_ANCFTireAn/out.%f.vtk", simtime);
+	output.open(buffer, std::ios::app);
+	output << "# vtk DataFile Version 2.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
+	output << "DATASET UNSTRUCTURED_GRID\nPOINTS " << m_mesh->GetNnodes() << " float\n";
+	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
+		auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(i));
+		output << node->GetPos().x << " " << node->GetPos().y << " " << node->GetPos().z << "\n ";
+	}
+	std::ifstream CopyFrom("VTK_ANCFTireAn/Mesh.vtk");
+	output << CopyFrom.rdbuf();
+	output << "\nPOINT_DATA " << m_mesh->GetNnodes() << "\n ";
+	output << "SCALARS VonMissesStrain float\n";
+	output << "LOOKUP_TABLE default\n";
+	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
+		double areaAve = 0;
+		double scalar = 0;
+		double myarea = 0;
+		double dx, dy;
+		for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
+			int myelemInx = NodeNeighborElement[i][j];
+			/*std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+			->EvaluateVonMisesStrain(scalar);*/
+			scalar = 0.0;
+			dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+				->GetLengthX();
+			dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+				->GetLengthY();
+			myarea += dx * dy / 4;
+			areaAve += scalar * dx * dy / 4;
+		}
+
+		output << areaAve / myarea << "\n";
+	}
+	output << "\nVECTORS StrainXX_Def float\n";
+	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
+		double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
+		double SX, SY, SZ = 0;
+		double myarea = 0;
+		double dx, dy;
+		for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
+			int myelemInx = NodeNeighborElement[i][j];
+			ChVector<> StrainVector(0);
+			std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+				->EvaluateSectionStrains(StrainVector);
+			dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+				->GetLengthX();
+			dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+				->GetLengthY();
+			myarea += dx * dy / 4;
+			areaAve1 += StrainVector.x * dx * dy / 4;
+			areaAve2 += StrainVector.y * dx * dy / 4;
+			areaAve3 += StrainVector.z * dx * dy / 4;
+		}
+		output << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
+	}
+	output.close();
+}
