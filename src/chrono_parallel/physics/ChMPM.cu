@@ -73,211 +73,256 @@ __device__ float dot_my_my = 0;
     }
 //////========================================================================================================================================================================
 ////
-//void WeakEqual(const float& x, const float& y, real COMPARE_EPS = FLT_EPSILON) {
-//    if (fabsf(x - y) > COMPARE_EPS) {
-//        printf("%f does not equal %f %.20e\n", x, y, Abs(x - y));
-//        exit(1);
-//    }
-//}
-//
-//void WeakEqual(const float3& a, const float3& b, float COMPARE_EPS = FLT_EPSILON) {
-//    WeakEqual(a.x, b.x, COMPARE_EPS);
-//    WeakEqual(a.y, b.y, COMPARE_EPS);
-//    WeakEqual(a.z, b.z, COMPARE_EPS);
-//}
-//
-//void WeakEqual(const Mat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSILON) {
-//    WeakEqual(a[0], b[0], COMPARE_EPS);
-//    WeakEqual(a[1], b[1], COMPARE_EPS);
-//    WeakEqual(a[2], b[2], COMPARE_EPS);
-//    WeakEqual(a[3], b[3], COMPARE_EPS);
-//    WeakEqual(a[4], b[4], COMPARE_EPS);
-//    WeakEqual(a[5], b[5], COMPARE_EPS);
-//    WeakEqual(a[6], b[6], COMPARE_EPS);
-//    WeakEqual(a[7], b[7], COMPARE_EPS);
-//    WeakEqual(a[8], b[8], COMPARE_EPS);
-//}
-//
-//void WeakEqual(const SymMat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSILON) {
-//    WeakEqual(a[0], b[0], COMPARE_EPS);  // x11
-//    WeakEqual(a[1], b[1], COMPARE_EPS);  // x21
-//    WeakEqual(a[2], b[2], COMPARE_EPS);  // x31
-//    WeakEqual(a[3], b[4], COMPARE_EPS);  // x22
-//    WeakEqual(a[4], b[5], COMPARE_EPS);  // x32
-//    WeakEqual(a[5], b[8], COMPARE_EPS);  // x33
-//}
-//void WeakEqual(const SymMat22f& a, const SymMat22f& b, float COMPARE_EPS = FLT_EPSILON) {
-//    WeakEqual(a.x11, b.x11, COMPARE_EPS);
-//    WeakEqual(a.x21, b.x21, COMPARE_EPS);
-//    WeakEqual(a.x22, b.x22, COMPARE_EPS);
-//}
-//
-//void TestMath() {
-//    float3 n = make_float3(0.000010, 0.171503, 0.985184);
-//    float3 a1 = make_float3(1, 2, 3);
-//    float3 a2 = make_float3(6, 7, 8);
-//
-//    const Mat33f AOne(1, 1, 1, 1, 1, 1, 1, 1, 1);
-//    const Mat33f A1(1, 2, 4, 5, 6, 7, 8, 9, 10);
-//    const Mat33f A2(10, 2, 4, 7, 2, 5, 8, 3, 1);
-//    const Mat33f A3(1, 0, 5, 2, 1, 6, 3, 4, 0);
-//    const Mat33f A4(-24, 20, -5, 18, -15, 4, 5, -4, 1);
-//    const Mat33f A4_T(-24, 18, 5, 20, -15, -4, -5, 4, 1);
-//    const Mat33f A5(0.0, 6.4, 3.2, 4.0, -0.8, 3.2, 6.4, 3.2, 5.6);
-//
-//    printf("3x3 Matrix Tests ============\n");
-//
-//    printf("0 Matrix\n");
-//    Mat33f zero(0);
-//    WeakEqual(zero[0], 0);
-//    WeakEqual(zero[1], 0);
-//    WeakEqual(zero[2], 0);
-//    WeakEqual(zero[3], 0);
-//    WeakEqual(zero[4], 0);
-//    WeakEqual(zero[5], 0);
-//    WeakEqual(zero[6], 0);
-//    WeakEqual(zero[7], 0);
-//    WeakEqual(zero[8], 0);
-//
-//    printf("Diag Matrix\n");
-//    WeakEqual(Mat33f(1), Mat33f(1, 0, 0, 0, 1, 0, 0, 0, 1));
-//
-//    printf("Diag 3 Matrix\n");
-//    WeakEqual(Mat33f(make_float3(1, 2, 3)), Mat33f(1, 0, 0, 0, 2, 0, 0, 0, 3));
-//
-//    printf("Column Constructor\n");
-//    WeakEqual(Mat33f(make_float3(1, 2, 4), make_float3(5, 6, 7), make_float3(8, 9, 10)), A1);
-//
-//    printf("Element Constructor\n");
-//    WeakEqual(A4[0], -24);
-//    WeakEqual(A4[1], 20);
-//    WeakEqual(A4[2], -5);
-//    WeakEqual(A4[3], 18);
-//    WeakEqual(A4[4], -15);
-//    WeakEqual(A4[5], 4);
-//    WeakEqual(A4[6], 5);
-//    WeakEqual(A4[7], -4);
-//    WeakEqual(A4[8], 1);
-//
-//    printf("Copy Constructor\n");
-//    WeakEqual(Mat33f(A1), A1);
-//
-//    printf("() Operator \n");
-//    WeakEqual(A4(0, 0), -24);
-//    WeakEqual(A4(1, 2), -4);
-//
-//    printf("col Operator \n");
-//    WeakEqual(A4.col(0), make_float3(-24, 20, -5));
-//    WeakEqual(A4.col(1), make_float3(18, -15, 4));
-//    WeakEqual(A4.col(2), make_float3(5, -4, 1));
-//
-//    printf("row Operator \n");
-//    WeakEqual(A4.row(0), make_float3(-24, 18, 5));
-//    WeakEqual(A4.row(1), make_float3(20, -15, -4));
-//    WeakEqual(A4.row(2), make_float3(-5, 4, 1));
-//
-//    {
-//        printf("= Operator\n");
-//        Mat33f T = A1;
-//        WeakEqual(T, A1);
-//    }
-//
-//    printf("Multiply Matrix\n");
-//    WeakEqual(AOne * AOne,
-//              Mat33f(3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000));
-//
-//    printf("Multiply Matrix\n");
-//    WeakEqual(A1 * A2, Mat33f(52.000000, 68.000000, 94.000000, 57.000000, 71.000000, 92.000000, 31.000000, 43.000000,
-//                              63.000000));
-//    //
-//    //    printf("Multiply Matrix Vector\n");
-//    //    WeakEqual(A1 * a1, Tofloat3(B1 * b1));
-//    //
-//    printf("Add Matrix\n");
-//    WeakEqual(A1 + A2,
-//              Mat33f(11.000000, 4.000000, 8.000000, 12.000000, 8.000000, 12.000000, 16.000000, 12.000000, 11.000000));
-//
-//    printf("Subtract Matrix\n");
-//    WeakEqual(A1 - A2,
-//              Mat33f(-9.000000, 0.000000, 0.000000, -2.000000, 4.000000, 2.000000, 0.000000, 6.000000, 9.000000));
-//    //
-//    printf("Abs Matrix\n");
-//    WeakEqual(Abs(A4), Mat33f(24, 20, 5, 18, 15, 4, 5, 4, 1));
-//    //
-//    //    printf("Post Scale Matrix\n");
-//    //    WeakEqual(A1 * 3.1, ToMat33f(B1 * 3.1));
-//    //
-//    //    printf("Pre Scale Matrix\n");
-//    //    WeakEqual(3.1 * A1, ToMat33f(B1 * 3.1));
-//    {
-//        printf("Cross Matrix\n");
-//        Mat33f cross_m1 = SkewSymmetric(n);
-//        WeakEqual(cross_m1,
-//                  Mat33f(0.000000, 0.985184, -0.171503, -0.985184, 0.000000, 0.000010, 0.171503, -0.000010, 0.000000));
-//    }
-//    {
-//        printf("Multiply T Matrix \n");
-//        WeakEqual(TransposeMult(A1, A2), Transpose(A1) * A2, FLT_EPSILON * 2);
-//    }
-//
-//    {
-//        printf("Multiply Matrix T\n");
-//        WeakEqual(MultTranspose(A1, A2), A1 * Transpose(A2), FLT_EPSILON * 2);
-//    }
-//
-//    {
-//        printf("Outer Product\n");
-//        Mat33f Res1 = OuterProduct(a1, a2);
-//        Mat33f Res2(6, 12, 18, 7, 14, 21, 8, 16, 24);
-//        WeakEqual(Res1, Res2, FLT_EPSILON);
-//    }
-//    printf("Transpose\n");
-//    WeakEqual(Transpose(A4), A4_T, FLT_EPSILON);
-//    //
-//    printf("Determinant\n");
-//    WeakEqual(Determinant(A5), 45.056, FLT_EPSILON * 400);
-//    //
-//    printf("Trace\n");
-//    WeakEqual(Trace(A5), 4.8, FLT_EPSILON * 10);
-//    //
-//    printf("Adjoint\n");
-//    WeakEqual(Adjoint(A3), A4, FLT_EPSILON);
-//    //
-//    printf("Adjoint Transpose\n");
-//    WeakEqual(AdjointTranspose(A4), Transpose(A3), FLT_EPSILON);
-//    //
-//    printf("Inverse\n");
-//    WeakEqual(Inverse(A3), A4, FLT_EPSILON);
-//    //
-//    printf("Inverse Transpose\n");
-//    WeakEqual(InverseTranspose(A3), Transpose(Inverse(A3)), FLT_EPSILON);
-//    //
-//    printf("Frobenius Norm\n");
-//    WeakEqual(Norm(A5), 12.674383614203887588, FLT_EPSILON);
-//    //
-//    printf("Largest Column Normalized\n");
-//    WeakEqual(LargestColumnNormalized(A4),
-//              make_float3(-.75856744948921676267, 0.63213954124101396889, -.15803488531025349222), FLT_EPSILON);
-//    //
-//
-//    printf("Normal Equations Matrix 2\n");
-//    WeakEqual(NormalEquationsMatrix(A3), Mat33f(26, 32, 3, 32, 41, 10, 3, 10, 25), FLT_EPSILON);
-//
-//    printf("Normal Equations Matrix 1\n");
-//    WeakEqual(NormalEquationsMatrix(A3), Transpose(A3) * A3, FLT_EPSILON);
-//    //
-//    printf("Symm2x2 Matrix Tests ============\n");
-//    {
-//        printf("A^T*B With Symmetric Result\n");
-//
-//        Mat32f C1(make_float3(1, 2, 3), make_float3(3, 2, 6));
-//        Mat32f C2(make_float3(2, 3, 1), make_float3(2, 2, 4));
-//
-//        SymMat22f RES = TransposeTimesWithSymmetricResult(C1, C2);
-//        PrintLine(RES,"RES");
-//        WeakEqual(RES, SymMat22f(11, 18, 34));
-//    }
-//}
+void WeakEqual(const float& x, const float& y, real COMPARE_EPS = FLT_EPSILON) {
+    if (fabsf(x - y) > COMPARE_EPS) {
+        printf("%f does not equal %f %.20e\n", x, y, Abs(x - y));
+        exit(1);
+    }
+}
+
+void WeakEqual(const float3& a, const float3& b, float COMPARE_EPS = FLT_EPSILON) {
+    WeakEqual(a.x, b.x, COMPARE_EPS);
+    WeakEqual(a.y, b.y, COMPARE_EPS);
+    WeakEqual(a.z, b.z, COMPARE_EPS);
+}
+
+void WeakEqual(const Mat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSILON) {
+    WeakEqual(a[0], b[0], COMPARE_EPS);
+    WeakEqual(a[1], b[1], COMPARE_EPS);
+    WeakEqual(a[2], b[2], COMPARE_EPS);
+    WeakEqual(a[3], b[3], COMPARE_EPS);
+    WeakEqual(a[4], b[4], COMPARE_EPS);
+    WeakEqual(a[5], b[5], COMPARE_EPS);
+    WeakEqual(a[6], b[6], COMPARE_EPS);
+    WeakEqual(a[7], b[7], COMPARE_EPS);
+    WeakEqual(a[8], b[8], COMPARE_EPS);
+}
+
+void WeakEqual(const SymMat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSILON) {
+    WeakEqual(a[0], b[0], COMPARE_EPS);  // x11
+    WeakEqual(a[1], b[1], COMPARE_EPS);  // x21
+    WeakEqual(a[2], b[2], COMPARE_EPS);  // x31
+    WeakEqual(a[3], b[4], COMPARE_EPS);  // x22
+    WeakEqual(a[4], b[5], COMPARE_EPS);  // x32
+    WeakEqual(a[5], b[8], COMPARE_EPS);  // x33
+}
+void WeakEqual(const SymMat22f& a, const SymMat22f& b, float COMPARE_EPS = FLT_EPSILON) {
+    WeakEqual(a.x11, b.x11, COMPARE_EPS);
+    WeakEqual(a.x21, b.x21, COMPARE_EPS);
+    WeakEqual(a.x22, b.x22, COMPARE_EPS);
+}
+
+void TestMath() {
+    float3 n = make_float3(0.000010, 0.171503, 0.985184);
+    float3 a1 = make_float3(1, 2, 3);
+    float3 a2 = make_float3(6, 7, 8);
+
+    const Mat33f AOne(1, 1, 1, 1, 1, 1, 1, 1, 1);
+    const Mat33f A1(1, 2, 4, 5, 6, 7, 8, 9, 10);
+    const Mat33f A2(10, 2, 4, 7, 2, 5, 8, 3, 1);
+    const Mat33f A3(1, 0, 5, 2, 1, 6, 3, 4, 0);
+    const Mat33f A4(-24, 20, -5, 18, -15, 4, 5, -4, 1);
+    const Mat33f A4_T(-24, 18, 5, 20, -15, -4, -5, 4, 1);
+    const Mat33f A5(0.0, 6.4, 3.2, 4.0, -0.8, 3.2, 6.4, 3.2, 5.6);
+
+    printf("3x3 Matrix Tests ============\n");
+
+    printf("0 Matrix\n");
+    Mat33f zero(0);
+    WeakEqual(zero[0], 0);
+    WeakEqual(zero[1], 0);
+    WeakEqual(zero[2], 0);
+    WeakEqual(zero[3], 0);
+    WeakEqual(zero[4], 0);
+    WeakEqual(zero[5], 0);
+    WeakEqual(zero[6], 0);
+    WeakEqual(zero[7], 0);
+    WeakEqual(zero[8], 0);
+
+    printf("Diag Matrix\n");
+    WeakEqual(Mat33f(1), Mat33f(1, 0, 0, 0, 1, 0, 0, 0, 1));
+
+    printf("Diag 3 Matrix\n");
+    WeakEqual(Mat33f(make_float3(1, 2, 3)), Mat33f(1, 0, 0, 0, 2, 0, 0, 0, 3));
+
+    printf("Column Constructor\n");
+    WeakEqual(Mat33f(make_float3(1, 2, 4), make_float3(5, 6, 7), make_float3(8, 9, 10)), A1);
+
+    printf("Element Constructor\n");
+    WeakEqual(A4[0], -24);
+    WeakEqual(A4[1], 20);
+    WeakEqual(A4[2], -5);
+    WeakEqual(A4[3], 18);
+    WeakEqual(A4[4], -15);
+    WeakEqual(A4[5], 4);
+    WeakEqual(A4[6], 5);
+    WeakEqual(A4[7], -4);
+    WeakEqual(A4[8], 1);
+
+    printf("Copy Constructor\n");
+    WeakEqual(Mat33f(A1), A1);
+
+    printf("() Operator \n");
+    WeakEqual(A4(0, 0), -24);
+    WeakEqual(A4(1, 2), -4);
+
+    printf("col Operator \n");
+    WeakEqual(A4.col(0), make_float3(-24, 20, -5));
+    WeakEqual(A4.col(1), make_float3(18, -15, 4));
+    WeakEqual(A4.col(2), make_float3(5, -4, 1));
+
+    printf("row Operator \n");
+    WeakEqual(A4.row(0), make_float3(-24, 18, 5));
+    WeakEqual(A4.row(1), make_float3(20, -15, -4));
+    WeakEqual(A4.row(2), make_float3(-5, 4, 1));
+
+    {
+        printf("= Operator\n");
+        Mat33f T = A1;
+        WeakEqual(T, A1);
+    }
+
+    printf("Multiply Matrix\n");
+    WeakEqual(AOne * AOne,
+              Mat33f(3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000, 3.000000));
+
+    printf("Multiply Matrix\n");
+    WeakEqual(A1 * A2, Mat33f(52.000000, 68.000000, 94.000000, 57.000000, 71.000000, 92.000000, 31.000000, 43.000000,
+                              63.000000));
+    //
+    //    printf("Multiply Matrix Vector\n");
+    //    WeakEqual(A1 * a1, Tofloat3(B1 * b1));
+    //
+    printf("Add Matrix\n");
+    WeakEqual(A1 + A2,
+              Mat33f(11.000000, 4.000000, 8.000000, 12.000000, 8.000000, 12.000000, 16.000000, 12.000000, 11.000000));
+
+    printf("Subtract Matrix\n");
+    WeakEqual(A1 - A2,
+              Mat33f(-9.000000, 0.000000, 0.000000, -2.000000, 4.000000, 2.000000, 0.000000, 6.000000, 9.000000));
+    //
+    printf("Abs Matrix\n");
+    WeakEqual(Abs(A4), Mat33f(24, 20, 5, 18, 15, 4, 5, 4, 1));
+    //
+    //    printf("Post Scale Matrix\n");
+    //    WeakEqual(A1 * 3.1, ToMat33f(B1 * 3.1));
+    //
+    //    printf("Pre Scale Matrix\n");
+    //    WeakEqual(3.1 * A1, ToMat33f(B1 * 3.1));
+    {
+        printf("Cross Matrix\n");
+        Mat33f cross_m1 = SkewSymmetric(n);
+        WeakEqual(cross_m1,
+                  Mat33f(0.000000, 0.985184, -0.171503, -0.985184, 0.000000, 0.000010, 0.171503, -0.000010, 0.000000));
+    }
+    {
+        printf("Multiply T Matrix \n");
+        WeakEqual(TransposeMult(A1, A2), Transpose(A1) * A2, FLT_EPSILON * 2);
+    }
+
+    {
+        printf("Multiply Matrix T\n");
+        WeakEqual(MultTranspose(A1, A2), A1 * Transpose(A2), FLT_EPSILON * 2);
+    }
+
+    {
+        printf("Outer Product\n");
+        Mat33f Res1 = OuterProduct(a1, a2);
+        Mat33f Res2(6, 12, 18, 7, 14, 21, 8, 16, 24);
+        WeakEqual(Res1, Res2, FLT_EPSILON);
+    }
+    printf("Transpose\n");
+    WeakEqual(Transpose(A4), A4_T, FLT_EPSILON);
+    //
+    printf("Determinant\n");
+    WeakEqual(Determinant(A5), 45.056, FLT_EPSILON * 400);
+    //
+    printf("Trace\n");
+    WeakEqual(Trace(A5), 4.8, FLT_EPSILON * 10);
+    //
+    printf("Adjoint\n");
+    WeakEqual(Adjoint(A3), A4, FLT_EPSILON);
+    //
+    printf("Adjoint Transpose\n");
+    WeakEqual(AdjointTranspose(A4), Transpose(A3), FLT_EPSILON);
+    //
+    printf("Inverse\n");
+    WeakEqual(Inverse(A3), A4, FLT_EPSILON);
+    //
+    printf("Inverse Transpose\n");
+    WeakEqual(InverseTranspose(A3), Transpose(Inverse(A3)), FLT_EPSILON);
+    //
+    printf("Frobenius Norm\n");
+    WeakEqual(Norm(A5), 12.674383614203887588, FLT_EPSILON);
+    //
+    printf("Largest Column Normalized\n");
+    WeakEqual(LargestColumnNormalized(A4),
+              make_float3(-.75856744948921676267, 0.63213954124101396889, -.15803488531025349222), FLT_EPSILON);
+    //
+
+    printf("Normal Equations Matrix 2\n");
+    WeakEqual(NormalEquationsMatrix(A3), Mat33f(26, 32, 3, 32, 41, 10, 3, 10, 25), FLT_EPSILON);
+
+    printf("Normal Equations Matrix 1\n");
+    WeakEqual(NormalEquationsMatrix(A3), Transpose(A3) * A3, FLT_EPSILON);
+    //
+    printf("Symm2x2 Matrix Tests ============\n");
+    {
+        printf("A^T*B With Symmetric Result\n");
+
+        Mat32f C1(make_float3(1, 2, 3), make_float3(3, 2, 6));
+        Mat32f C2(make_float3(2, 3, 1), make_float3(2, 2, 4));
+
+        SymMat22f RES = TransposeTimesWithSymmetricResult(C1, C2);
+        PrintLine(RES, "RES");
+        WeakEqual(RES, SymMat22f(11, 18, 34));
+    }
+
+    const Mat33f B(0.8147, 0.9058, 0.1270, 0.9134, 0.6324, .0975, 0.2785, 0.5469, 0.9575);
+    printf("NormalEquationsMatrix\n");
+    SymMat33f ATA = NormalEquationsMatrix(B);
+    WeakEqual(ATA, TransposeMult(B, B), FLT_EPSILON);
+    printf("Fast_Eigenvalues\n");
+    float3 eigen_values = Fast_Eigenvalues(ATA);
+    WeakEqual(eigen_values,
+              make_float3(3.3008110353074768816838969, 0.7037860796418966558007924, 0.0329452950506265440644427), 2e-7);
+    Mat33f eigen_vectors = Fast_Eigenvectors(ATA, eigen_values);
+    // Print(eigen_vectors, "eigen_vectors");
+    WeakEqual(eigen_vectors,
+              Mat33f(0.6556436385585946435838878, 0.5847646613644273960730402, 0.4776836924545294627009184,
+                     -0.3055753507677172464696014, -0.3730222352637652116769118, 0.8760582840211093014204380,
+                     0.6904745644995428088819267, -0.7203504028028100414360324, -0.0658799890785948943916495),
+              2e-7);
+    Mat33f U, V;
+    float3 SV;
+    printf("SVD\n");
+    chrono::SVD(B, U, SV, V);
+
+    // Print(U, "U");
+    printf("U\n");
+    WeakEqual(U, Mat33f(0.6612191451724509505538663, 0.6742202427583622315054868, 0.3289624694585512321154397,
+                        -0.4120639447417925316230480, -0.0400194954888142551130414, 0.9102756425526574712847605,
+                        0.6268911767613626340178712, -0.7374452550770638215027475, 0.2513601962584331994676745),
+              1e-7);
+    printf("V\n");
+    WeakEqual(V, Mat33f(0.6556436385585946435838878, 0.5847646613644273960730402, 0.4776836924545294627009184,
+                        -0.3055753507677172464696014, -0.3730222352637652116769118, 0.8760582840211093014204380,
+                        0.6904745644995428088819267, -0.7203504028028100414360324, -0.0658799890785948943916495),
+              2e-7);
+    printf("SV\n");
+    WeakEqual(SV, make_float3(1.8168134288659023578560436, 0.8389195906890580811676728, -0.1815083883753765836566174),
+              5e-7);
+
+    const Mat33f A(1, 0, 5, 2, 1, 6, 3, 4, 0);
+
+    printf("Polar Decomposition\n");
+    chrono::SVD(A, U, SV, V);
+    Mat33f R = MultTranspose(U, V);
+    Mat33f S = V * Mat33f(SV) * Transpose(V);
+    S = (S + Transpose(S)) * .5;
+    printf("Check if  A=R*S \n");
+    WeakEqual(R * S, A, 6e-5);
+}
 
 CUDA_GLOBAL void kComputeBounds(const float3* pos,  // input
                                 float3* lower,      // output
