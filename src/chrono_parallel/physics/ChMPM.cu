@@ -36,7 +36,6 @@ gpu_vector<Mat33> marker_Fe, marker_Fe_hat, marker_Fp, marker_delta_F, PolarR, P
 gpu_vector<real> old_vel_node_mpm;
 gpu_vector<real> ml, mg, mg_p, ml_p;
 gpu_vector<real> dot_g_proj_norm;
-gpu_vector<real> marker_cohesion;
 gpu_vector<real> marker_flow;
 CUDA_CONSTANT MPM_Settings device_settings;
 CUDA_CONSTANT Bounds system_bounds;
@@ -687,7 +686,6 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
                                             Mat33* marker_Fe,
                                             Mat33* marker_Fp,
                                             Mat33* marker_RE,
-                                            real* cohesion,
                                             real* total_flow) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
@@ -739,8 +737,9 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
             offset = offset * radius / lent;
         }
         E_clamped = offset + center;
-#endif
 
+#endif
+        printf("E %d %f %f\n", p, Determinant(E_clamped), Determinant(E));
 #else
         real flow = Abs(Determinant(delta_F));
 
@@ -770,52 +769,6 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
 
 #endif
 
-        cohesion[p] = device_settings.yield_stress / 2.0;
-
-        //        real a = -1.0 / 3.0;
-        //        real Ja = Pow(Determinant(Fe_tmp), a);
-        //        real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.0) - JP));
-        //        real JP = Determinant(marker_Fp[p]);
-        //        Mat33 A = real(2.) * current_mu * ((Ja * Fe_tmp) - marker_RE[p]);
-        //
-        //
-        //        Mat33 s_star = Sqrt(3.0/2.0 * tau*tau);
-        // Constants
-        //        real a = -1.0 / 3.0;
-        //        //
-        //        // Compute RE from Trial FE (Fe_tmp)
-        //        Mat33 UE, VE;
-        //        real3 EE;
-        //        SVD(Fe_tmp, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
-        //        Mat33 RE = MultTranspose(UE, VE);
-        //        //
-        //        // Compute Trial Strain (Green strain tensor)
-        //        Mat33 E_trial = .5 * (TransposeMult(Fe_tmp, Fe_tmp) - Mat33(1.0));
-        //        //
-        //        // Old plastic and trial elastic
-        //        real JP = Determinant(marker_Fp[p]);
-        //        real JE = Determinant(Fe_tmp);
-        //
-        //        real current_mu = device_settings.mu * Exp(device_settings.hardening_coefficient * (real(1.0) - JP));
-        //        real current_lambda = device_settings.lambda * Exp(device_settings.hardening_coefficient * (real(1.0)
-        //        - JP));
-        //
-        //        real Ja = Pow(JE, a);
-        //        Mat33 H = InverseTranspose(Fe_tmp);
-        //        // Compute the deviatoric stress
-        //        Mat33 s =
-        //            1.0 / JP * Z__B(real(2.) * current_mu * ((Ja * Fe_tmp) - RE), FE_hat, Ja, a, H) *
-        //            Transpose(marker_Fe[p]);
-        //        // Compute the full stress
-        //        Mat33 sigma = 1.0 / JP * real(2.) * current_mu * (Fe_tmp - RE) +
-        //                      current_lambda * JE * (JE - real(1.)) * InverseTranspose(Fe_tmp);
-        //        //compute hydrostatic pressure
-        //        real p = 1/3 * Trace(sigma);
-        //
-        //        real J2 = .5 * DoubleDot(s, s);
-        //
-        //
-
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         Mat33 m_FP = V * MultTranspose(Mat33(1.0 / E_clamped), U) * F_tmp;
         real JP_new = Determinant(m_FP);
@@ -825,10 +778,7 @@ CUDA_GLOBAL void kUpdateDeformationGradient(real* grid_vel,
     }
 }
 
-void MPM_Solve(MPM_Settings& settings,
-               std::vector<real3>& positions,
-               std::vector<real3>& velocities,
-               std::vector<real>& cohesion) {
+void MPM_Solve(MPM_Settings& settings, std::vector<real3>& positions, std::vector<real3>& velocities) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
@@ -836,8 +786,6 @@ void MPM_Solve(MPM_Settings& settings,
     printf("Solving MPM: %d\n", host_settings.num_iterations);
     pos.data_h = positions;
     pos.copyHostToDevice();
-
-    marker_cohesion.resize(positions.size());
 
     vel.data_h = velocities;
     vel.copyHostToDevice();
@@ -873,11 +821,7 @@ void MPM_Solve(MPM_Settings& settings,
     {
         CudaEventTimer timer(start, stop, true, time_measured);
         kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(
-            grid_vel.data_d, pos.data_d, marker_Fe.data_d, marker_Fp.data_d, PolarR.data_d, marker_cohesion.data_d,
-            marker_flow.data_d);
-
-        marker_cohesion.copyDeviceToHost();
-        cohesion = marker_cohesion.data_h;
+            grid_vel.data_d, pos.data_d, marker_Fe.data_d, marker_Fp.data_d, PolarR.data_d, marker_flow.data_d);
     }
     printf("kUpdateDeformationGradient: %f\n", time_measured);
     time_measured = 0;

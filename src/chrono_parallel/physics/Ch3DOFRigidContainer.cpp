@@ -82,7 +82,7 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
         temp_settings.num_iterations = mpm_iterations;
         if (mpm_iterations > 0) {
             mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(data_manager->host_data.pos_3dof),
-                                     std::ref(data_manager->host_data.vel_3dof), std::ref(marker_cohesion));
+                                     std::ref(data_manager->host_data.vel_3dof));
         }
     }
 
@@ -509,26 +509,13 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
             gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = gam.z;);
     }
     if (mu == 0) {
-        int index = 0;
-        if (cohesion && marker_cohesion.size() == num_fluid_bodies) {
-            custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
-            Loop_Over_Fluid_Neighbors(                                                 //
-                real coh = (marker_cohesion[body_a] + marker_cohesion[body_b]) * 0.5;  //
-                real3 gam;                                                             //
-                gam.x = gamma[start_contact + index];                                  //
-                gam.x += coh;                                                          //
-                gam.x = gam.x < 0 ? 0 : gam.x - coh;                                   //
-                gamma[start_contact + index] = gam.x;                                  //
-                );
-        } else {
 #pragma omp parallel for
-            for (int index = 0; index < num_rigid_contacts; index++) {
-                real3 gam;
-                gam.x = gamma[start_contact + index];
-                gam.x += cohesion;
-                gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
-                gamma[start_contact + index] = gam.x;
-            }
+        for (int index = 0; index < num_rigid_contacts; index++) {
+            real3 gam;
+            gam.x = gamma[start_contact + index];
+            gam.x += cohesion;
+            gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
+            gamma[start_contact + index] = gam.x;
         }
     } else {
 #pragma omp parallel for
@@ -668,10 +655,6 @@ void Ch3DOFRigidContainer::PreSolve() {
     if (mpm_thread.joinable()) {
         mpm_thread.join();
     }
-
-//    for (int i = 0; i < num_fluid_bodies; i++) {
-//                    printf("Cohesion : %f \n", marker_cohesion[i]);
-//                }
 
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
