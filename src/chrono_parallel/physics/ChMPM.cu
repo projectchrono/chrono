@@ -73,9 +73,9 @@ __device__ float dot_my_my = 0;
     }
 //////========================================================================================================================================================================
 ////
-void WeakEqual(const float& x, const float& y, real COMPARE_EPS = FLT_EPSILON) {
+void WeakEqual(const float& x, const float& y, float COMPARE_EPS = FLT_EPSILON) {
     if (fabsf(x - y) > COMPARE_EPS) {
-        printf("%f does not equal %f %.20e\n", x, y, Abs(x - y));
+        printf("%f does not equal %f %.20e\n", x, y, fabsf(x - y));
         exit(1);
     }
 }
@@ -398,7 +398,7 @@ CUDA_GLOBAL void kNormalizeWeights(float* grid_mass,   // input
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < device_settings.num_mpm_nodes) {
         float n_mass = grid_mass[i];
-        if (n_mass > C_EPSILON) {
+        if (n_mass > FLT_EPSILON) {
             grid_vel[i * 3 + 0] /= n_mass;
             grid_vel[i * 3 + 1] /= n_mass;
             grid_vel[i * 3 + 2] /= n_mass;
@@ -658,13 +658,13 @@ void MPM_ComputeBounds() {
     cudaMemcpy(&min_bounding_point, lower_bound, sizeof(float3), cudaMemcpyDeviceToHost);
     cudaMemcpy(&max_bounding_point, upper_bound, sizeof(float3), cudaMemcpyDeviceToHost);
 
-    min_bounding_point.x = host_settings.kernel_radius * Round(min_bounding_point.x / host_settings.kernel_radius);
-    min_bounding_point.y = host_settings.kernel_radius * Round(min_bounding_point.y / host_settings.kernel_radius);
-    min_bounding_point.z = host_settings.kernel_radius * Round(min_bounding_point.z / host_settings.kernel_radius);
+    min_bounding_point.x = host_settings.kernel_radius * roundf(min_bounding_point.x / host_settings.kernel_radius);
+    min_bounding_point.y = host_settings.kernel_radius * roundf(min_bounding_point.y / host_settings.kernel_radius);
+    min_bounding_point.z = host_settings.kernel_radius * roundf(min_bounding_point.z / host_settings.kernel_radius);
 
-    max_bounding_point.x = host_settings.kernel_radius * Round(max_bounding_point.x / host_settings.kernel_radius);
-    max_bounding_point.y = host_settings.kernel_radius * Round(max_bounding_point.y / host_settings.kernel_radius);
-    max_bounding_point.z = host_settings.kernel_radius * Round(max_bounding_point.z / host_settings.kernel_radius);
+    max_bounding_point.x = host_settings.kernel_radius * roundf(max_bounding_point.x / host_settings.kernel_radius);
+    max_bounding_point.y = host_settings.kernel_radius * roundf(max_bounding_point.y / host_settings.kernel_radius);
+    max_bounding_point.z = host_settings.kernel_radius * roundf(max_bounding_point.z / host_settings.kernel_radius);
 
     max_bounding_point = max_bounding_point + host_settings.kernel_radius * 8;
     min_bounding_point = min_bounding_point - host_settings.kernel_radius * 6;
@@ -769,13 +769,13 @@ CUDA_GLOBAL void kAlpha() {
         if (dot_ms_my <= 0) {
             alpha = neg_BB1_fallback;
         } else {
-            alpha = Min(a_max, Max(a_min, dot_ms_ms / dot_ms_my));
+            alpha = fminf(a_max, fmaxf(a_min, dot_ms_ms / dot_ms_my));
         }
     } else {
         if (dot_ms_my <= 0) {
             alpha = neg_BB2_fallback;
         } else {
-            alpha = Min(a_max, Max(a_min, dot_ms_my / dot_my_my));
+            alpha = fminf(a_max, fmaxf(a_min, dot_ms_my / dot_my_my));
         }
     }
     // printf("alpha: %f %f %f %f \n", alpha, dot_ms_ms, dot_ms_my, dot_my_my);
@@ -1167,7 +1167,7 @@ CUDA_GLOBAL void kInitFeFp(Mat33f* marker_Fe, Mat33f* marker_Fp, Mat33f* marker_
 void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    //TestMath();
+    // TestMath();
 
     host_settings = settings;
 

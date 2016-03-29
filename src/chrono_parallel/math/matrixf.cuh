@@ -21,11 +21,50 @@
 //#include "chrono_parallel/math/float.h"
 namespace chrono {
 
+#define FLT_EPSILON 1.19209290E-07F
+#define FLT_MAX 3.40282347E+38F
+
 #define OPERATOR_EQUALSALT(op, tin, tout)                            \
     static inline tout& operator op##=(tout & a, const tin& scale) { \
         a = a op scale;                                              \
         return a;                                                    \
     }
+
+template <typename T>
+CUDA_HOST_DEVICE static inline T Sign(const T& x) {
+    if (x < 0) {
+        return T(-1);
+    } else if (x > 0) {
+        return T(1);
+    } else {
+        return T(0);
+    }
+}
+template <typename T>
+CUDA_HOST_DEVICE static inline T Sqr(const T x) {
+    return x * x;
+}
+template <typename T>
+CUDA_HOST_DEVICE static inline T Cube(const T x) {
+    return x * x * x;
+}
+
+template <typename T>
+CUDA_HOST_DEVICE inline void Swap(T& a, T& b) {
+    T temp = a;
+    a = b;
+    b = temp;
+}
+
+template <typename T>
+CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
+    if (a > b)
+        Swap(a, b);
+    if (b > c)
+        Swap(b, c);
+    if (a > b)
+        Swap(a, b);
+}
 
 CUDA_HOST_DEVICE static inline float3 operator+(const float3& a, float b) {
     return make_float3(a.x + b, a.y + b, a.z + b);
@@ -43,7 +82,7 @@ CUDA_HOST_DEVICE static inline float3 operator/(const float3& a, float b) {
     return make_float3(a.x / b, a.y / b, a.z / b);
 }
 CUDA_HOST_DEVICE static inline float3 operator/(float b, const float3& a) {
-    return make_float3(a.x / b, a.y / b, a.z / b);
+    return make_float3(b / a.x, b / a.y, b / a.z);
 }
 CUDA_HOST_DEVICE static inline float3 operator+(const float3& a, const float3& b) {
     return make_float3(a.x + b.x, a.y + b.y, a.z + b.z);
