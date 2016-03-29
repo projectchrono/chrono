@@ -49,7 +49,7 @@ ChWheeledVehicleAssembly::ChWheeledVehicleAssembly(ChSystem* system,
 void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQuaternion<>& init_rot) {
     // Initialize the vehicle and powertrain systems.
     m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
-    m_powertrain->Initialize();
+    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
 
     // If provided, invoke the user-specified callback to attach chassis contact
     // geometry.

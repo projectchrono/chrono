@@ -21,6 +21,7 @@
 
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -79,6 +80,11 @@ class CH_VEHICLE_API ChPowertrain {
 
     /// Set the mode of the transmission.
     virtual void SetDriveMode(DriveMode mmode) = 0;
+
+    /// Initialize this powertrain system.
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
+                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
+                            ) = 0;
 
     /// Synchronize the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a

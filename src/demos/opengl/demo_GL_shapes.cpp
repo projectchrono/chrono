@@ -12,57 +12,48 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel test program for OpenGL code.
+// Chrono::OpenGL test program.
 //
 // A Random Set of Geometries in Space
 // The global reference frame has Z up.
 // =============================================================================
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
-
+#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_opengl/ChOpenGLWindow.h"
 
 using namespace chrono;
 using namespace geometry;
 
-// Particle generator
-utils::Generator* gen;
-
 // -----------------------------------------------------------------------------
-// Create a mixture of geometries
+// Create a collection of geometric shapes
 // -----------------------------------------------------------------------------
-void AddShapes(ChSystemParallelDVI* sys) {
-   auto bin = std::make_shared<ChBody>();
-  utils::AddSphereGeometry(bin.get(), 1, ChVector<>(0, 0, 0));
-  utils::AddEllipsoidGeometry(bin.get(), ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
-  utils::AddBoxGeometry(bin.get(), ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
-  utils::AddCylinderGeometry(bin.get(), 1, 1, ChVector<>(9, 0, 0));
-  utils::AddConeGeometry(bin.get(), 1, 1, ChVector<>(12, 0, 0));
-  sys->AddBody(bin);
+void AddShapes(ChSystem* sys) {
+    auto bin = std::make_shared<ChBody>();
+    utils::AddSphereGeometry(bin.get(), 1, ChVector<>(0, 0, 0));
+    utils::AddEllipsoidGeometry(bin.get(), ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
+    utils::AddCylinderGeometry(bin.get(), 1, 1, ChVector<>(9, 0, 0));
+    utils::AddConeGeometry(bin.get(), 1, 3, ChVector<>(12, 0, 0));
+    sys->AddBody(bin);
 }
 
 // -----------------------------------------------------------------------------
 // Create the system
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-  // Create system
-  // -------------
-  ChSystemParallelDVI msystem;
-  // Create the fixed bodies
-  // ----------------------------------
-  AddShapes(&msystem);
-  msystem.DoFullAssembly();
-  // Render everything
-  // ----------------------------------
-  opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-  gl_window.Initialize(1280, 720, "OpenGL Shapes", &msystem);
-  gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-  while (gl_window.Active()) {
-    gl_window.Render();
-  }
+    ChSystem msystem;
 
-  return 0;
+    AddShapes(&msystem);
+
+    // Render everything
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.Initialize(1280, 720, "OpenGL Shapes", &msystem);
+    gl_window.SetCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0), ChVector<>(0, 0, 1));
+    while (gl_window.Active()) {
+        gl_window.Render();
+    }
+
+    return 0;
 }

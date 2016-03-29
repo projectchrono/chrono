@@ -51,10 +51,6 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
 
     virtual ~ChShaftsPowertrain() {}
 
-    /// To be called after creation, to create all the wrapped ChShaft objects
-    /// and their constraints, torques etc.
-    void Initialize(std::shared_ptr<ChBody> chassis, std::shared_ptr<ChShaft> driveshaft);
-
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_crankshaft->GetPos_dt(); }
 
@@ -93,6 +89,13 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
 
     /// Use this to get the gear shift latency, in seconds.
     double GetGearShiftLatency(double ml) { return m_gear_shift_latency; }
+
+    /// Initialize this powertrain system.
+    /// This creates all the wrapped ChShaft objects and their constraints, torques etc.
+    /// and connects the powertrain to the vehicle.
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
+                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
+                            ) override;
 
     /// Update the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a

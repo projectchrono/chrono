@@ -32,7 +32,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/terrain/DeformableTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
@@ -225,6 +225,7 @@ int main(int argc, char* argv[]) {
     // Create driver system
     // --------------------
     MyDriver driver(my_hmmwv.GetVehicle(), 0.5);
+    driver.Initialize();
 
     // ------------------
     // Create the terrain

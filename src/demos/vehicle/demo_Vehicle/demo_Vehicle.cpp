@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
-    powertrain.Initialize();
+    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
     int num_axles = vehicle.GetNumberAxles();
@@ -196,6 +196,8 @@ int main(int argc, char* argv[]) {
     ChDataDriver driver(vehicle, vehicle::GetDataFile(driver_file));
 
 #endif
+
+    driver.Initialize();
 
     // ---------------
     // Simulation loop

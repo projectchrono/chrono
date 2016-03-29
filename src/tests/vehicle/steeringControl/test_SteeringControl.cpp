@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
-    powertrain.Initialize();
+    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
     int num_axles = vehicle.GetNumberAxles();

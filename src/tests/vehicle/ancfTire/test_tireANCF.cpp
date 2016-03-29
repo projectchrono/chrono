@@ -49,7 +49,7 @@
 #include "chrono_mkl/ChLcpMklSolver.h"
 #endif
 
-#include "ANCFToroidalTire.h"
+#include "tests/vehicle/ancfToroidalTire/ANCFToroidalTire.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

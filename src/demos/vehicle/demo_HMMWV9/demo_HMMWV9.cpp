@@ -111,6 +111,7 @@ int main(int argc, char* argv[]) {
 
     // Create the interactive driver system
     ChIrrGuiDriver driver(app);
+    driver.Initialize();
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)

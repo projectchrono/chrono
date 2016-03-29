@@ -60,6 +60,9 @@ class CH_VEHICLE_API ChDriver {
     /// Get the driver braking input (in the range [0,1])
     double GetBraking() const { return m_braking; }
 
+    /// Initialize this driver system.
+    virtual void Initialize() {}
+
     /// Update the state of this driver system at the current time.
     virtual void Synchronize(double time) {}
 

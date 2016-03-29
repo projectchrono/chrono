@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------
 
     M113_SimplePowertrain powertrain;
-    powertrain.Initialize();
+    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -171,6 +171,8 @@ int main(int argc, char* argv[]) {
     // Set file with driver input time series
     driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
     driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
+
+    driver.Initialize();
 
     // -----------------
     // Initialize output

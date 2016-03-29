@@ -102,8 +102,8 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
     /// the required tolerance isn't yet reached.
     /// Default limit: 50 iterations.
     virtual void SetMaxIterations(int mval) { max_iterations = mval; }
-    virtual double GetMaxIterations() { return max_iterations; }
-    virtual double GetTotalIterations() { return tot_iterations; }
+    virtual int GetMaxIterations() { return max_iterations; }
+    virtual int GetTotalIterations() { return tot_iterations; }
 
     /// Set the overrelaxation factor, if used; it can be
     /// used by SOR-like methods.
