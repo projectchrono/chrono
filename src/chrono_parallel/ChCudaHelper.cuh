@@ -21,7 +21,7 @@
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>
-
+#include <stdio.h>
 #include <cassert>
 #include <vector>
 //
