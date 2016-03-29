@@ -1,9 +1,9 @@
 #--------------------------------------------------------------
 set(FEA_TESTS
-    test_shellANCF
-    test_4HumveeTires
-    test_CorotationalTire
-    test_ANCFHumveeTire
+    test_FEA_shellANCF
+    test_FEA_4HumveeTires
+    test_FEA_CorotationalTire
+    test_FEA_ANCFHumveeTire
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
