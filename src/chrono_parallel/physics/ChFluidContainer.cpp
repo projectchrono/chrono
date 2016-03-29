@@ -690,13 +690,13 @@ void ChFluidContainer::GenerateSparsity() {
 void ChFluidContainer::PreSolve() {
     if (mpm_thread.joinable()) {
         mpm_thread.join();
-    }
 #pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        int index = data_manager->host_data.reverse_mapping_3dof[p];
-        data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
-        data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
-        data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
+        for (int p = 0; p < num_fluid_bodies; p++) {
+            int index = data_manager->host_data.reverse_mapping_3dof[p];
+            data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
+            data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
+            data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
+        }
     }
 
     if (gamma_old.size() > 0) {

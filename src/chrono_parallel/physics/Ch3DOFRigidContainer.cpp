@@ -98,11 +98,11 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
 
             mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel));
 
-//            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
-//                data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];
-//                data_manager->host_data.vel_3dof[i].y = mpm_vel[i * 3 + 1];
-//                data_manager->host_data.vel_3dof[i].z = mpm_vel[i * 3 + 2];
-//            }
+            //            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
+            //                data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];
+            //                data_manager->host_data.vel_3dof[i].y = mpm_vel[i * 3 + 1];
+            //                data_manager->host_data.vel_3dof[i].z = mpm_vel[i * 3 + 2];
+            //            }
         }
     }
 
@@ -682,14 +682,13 @@ real3 Ch3DOFRigidContainer::GetBodyContactTorque(uint body_id) {
 void Ch3DOFRigidContainer::PreSolve() {
     if (mpm_thread.joinable()) {
         mpm_thread.join();
-    }
-
 #pragma omp parallel for
-    for (int p = 0; p < num_fluid_bodies; p++) {
-        int index = data_manager->host_data.reverse_mapping_3dof[p];
-        data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
-        data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
-        data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
+        for (int p = 0; p < num_fluid_bodies; p++) {
+            int index = data_manager->host_data.reverse_mapping_3dof[p];
+            data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
+            data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
+            data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
+        }
     }
 }
 void Ch3DOFRigidContainer::PostSolve() {}
