@@ -20,51 +20,6 @@ CUDA_HOST_DEVICE inline float3 DotMM(const float* M, const float* N) {
     result.z = M[6] * N[6] + M[7] * N[7] + M[8] * N[8];
     return result;
 }
-CUDA_HOST_DEVICE inline Mat33f MulMM(const float* M, const float* N) {
-    Mat33f r;
-    r[0] = M[0] * N[0] + M[3] * N[1] + M[6] * N[2];
-    r[1] = M[1] * N[0] + M[4] * N[1] + M[7] * N[2];
-    r[2] = M[2] * N[0] + M[5] * N[1] + M[8] * N[2];
-
-    r[3] = M[0] * N[3] + M[3] * N[4] + M[6] * N[5];
-    r[4] = M[1] * N[3] + M[4] * N[4] + M[7] * N[5];
-    r[5] = M[2] * N[3] + M[5] * N[4] + M[8] * N[5];
-
-    r[6] = M[0] * N[6] + M[3] * N[7] + M[6] * N[8];
-    r[7] = M[1] * N[6] + M[4] * N[7] + M[7] * N[8];
-    r[8] = M[2] * N[6] + M[5] * N[7] + M[8] * N[8];
-    return r;
-}
-
-CUDA_HOST_DEVICE inline Mat33f MulM_TM(const float* M, const float* N) {
-    // c1 c2 c3    // c1 c2 c3
-    // 0  1  2     // 0  4  8
-    // 4  5  6     // 1  5  9
-    // 8  9  10    // 2  6  10
-
-    Mat33f r;
-    r[0] = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
-    r[1] = M[3] * N[0] + M[4] * N[1] + M[5] * N[2];
-    r[2] = M[6] * N[0] + M[7] * N[1] + M[8] * N[2];
-
-    r[3] = M[0] * N[3] + M[1] * N[4] + M[2] * N[5];
-    r[4] = M[3] * N[3] + M[4] * N[4] + M[5] * N[5];
-    r[5] = M[6] * N[3] + M[7] * N[4] + M[8] * N[5];
-
-    r[6] = M[0] * N[6] + M[1] * N[7] + M[2] * N[8];
-    r[7] = M[3] * N[6] + M[4] * N[7] + M[5] * N[8];
-    r[8] = M[6] * N[6] + M[7] * N[7] + M[8] * N[8];
-    return r;
-}
-
-CUDA_HOST_DEVICE inline float3 MulMV(const float* M, const float* N) {
-    float3 r;
-    r.x = M[0] * N[0] + M[3] * N[1] + M[6] * N[2];
-    r.y = M[1] * N[0] + M[4] * N[1] + M[7] * N[2];
-    r.z = M[2] * N[0] + M[5] * N[1] + M[8] * N[2];
-
-    return r;
-}
 
 // CUDA_HOST_DEVICE inline Mat33f OuterProductVV(const float* A, const float* B) {
 //    return Mat33f(A[0] * B[0], A[1] * B[0], A[2] * B[0], A[0] * B[1], A[1] * B[1], A[2] * B[1], A[0] * B[2],
@@ -107,7 +62,19 @@ CUDA_HOST_DEVICE Mat33f operator*(const Mat33f& N, const float scale) {
 }
 
 CUDA_HOST_DEVICE Mat33f operator*(const Mat33f& M, const Mat33f& N) {
-    return MulMM(M.array, N.array);
+    Mat33f r;
+    r[0] = M[0] * N[0] + M[3] * N[1] + M[6] * N[2];
+    r[1] = M[1] * N[0] + M[4] * N[1] + M[7] * N[2];
+    r[2] = M[2] * N[0] + M[5] * N[1] + M[8] * N[2];
+
+    r[3] = M[0] * N[3] + M[3] * N[4] + M[6] * N[5];
+    r[4] = M[1] * N[3] + M[4] * N[4] + M[7] * N[5];
+    r[5] = M[2] * N[3] + M[5] * N[4] + M[8] * N[5];
+
+    r[6] = M[0] * N[6] + M[3] * N[7] + M[6] * N[8];
+    r[7] = M[1] * N[6] + M[4] * N[7] + M[7] * N[8];
+    r[8] = M[2] * N[6] + M[5] * N[7] + M[8] * N[8];
+    return r;
 }
 CUDA_HOST_DEVICE Mat33f operator+(const Mat33f& M, const Mat33f& N) {
     return Mat33f(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[3] + N[3], M[4] + N[4], M[5] + N[5], M[6] + N[6],
@@ -136,7 +103,24 @@ CUDA_HOST_DEVICE Mat33f MultTranspose(const Mat33f& M, const Mat33f& N) {
 }
 
 CUDA_HOST_DEVICE Mat33f TransposeMult(const Mat33f& M, const Mat33f& N) {
-    return MulM_TM(M.array, N.array);
+    // c1 c2 c3    // c1 c2 c3
+    // 0  1  2     // 0  4  8
+    // 4  5  6     // 1  5  9
+    // 8  9  10    // 2  6  10
+
+    Mat33f r;
+    r[0] = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
+    r[1] = M[3] * N[0] + M[4] * N[1] + M[5] * N[2];
+    r[2] = M[6] * N[0] + M[7] * N[1] + M[8] * N[2];
+
+    r[3] = M[0] * N[3] + M[1] * N[4] + M[2] * N[5];
+    r[4] = M[3] * N[3] + M[4] * N[4] + M[5] * N[5];
+    r[5] = M[6] * N[3] + M[7] * N[4] + M[8] * N[5];
+
+    r[6] = M[0] * N[6] + M[1] * N[7] + M[2] * N[8];
+    r[7] = M[3] * N[6] + M[4] * N[7] + M[5] * N[8];
+    r[8] = M[6] * N[6] + M[7] * N[7] + M[8] * N[8];
+    return r;
 }
 
 CUDA_HOST_DEVICE Mat33f Transpose(const Mat33f& a) {
