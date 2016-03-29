@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "chrono_parallel/math/matrixf.cuh"
+#include "chrono_parallel/math/matrix.h"
 namespace chrono {
 // Oliver K. Smith. 1961. Eigenvalues of a symmetric 3 × 3 matrix. Commun. ACM 4, 4 (April 1961), 168-.
 // DOI=http://dx.doi.org/10.1145/355578.366316
@@ -41,7 +41,7 @@ CUDA_HOST_DEVICE static real3 Fast_Eigenvalues(const SymMat33& A)  // 24 mults, 
     float root_three_sqrt_p_sin = sqrtf(float(3.0)) * sqrt_p * s;
     real3 lambda = real3(m + float(2.0) * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin,
                          m - sqrt_p_cos + root_three_sqrt_p_sin);
-    Sortf(lambda.z, lambda.y, lambda.x);
+    Sort(lambda.z, lambda.y, lambda.x);
     return lambda;
 }
 

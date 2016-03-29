@@ -219,15 +219,6 @@ CUDA_HOST_DEVICE real3 UnitOrthogonalVector(const real3& v) {
     return Normalize(OrthogonalVector(v));
 }
 
-CUDA_HOST_DEVICE void Sort(real& a, real& b, real& c) {
-    if (a > b)
-        Swap(a, b);
-    if (b > c)
-        Swap(b, c);
-    if (a > b)
-        Swap(a, b);
-}
-
 CUDA_HOST_DEVICE void Print(real3 v, const char* name) {
     printf("%s\n", name);
     printf("%f %f %f\n", v[0], v[1], v[2]);
