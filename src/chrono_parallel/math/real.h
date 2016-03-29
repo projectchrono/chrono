@@ -47,14 +47,23 @@ namespace chrono {
 // Returns a -1 if the value is negative
 // Returns a +1 if the value is positive
 // Otherwise returns zero, this should only happen if the given value is zero
-CUDA_HOST_DEVICE static inline real Sign(const real& x) {
+template <typename T>
+CUDA_HOST_DEVICE static inline T Sign(const T& x) {
     if (x < 0) {
-        return -1;
+        return T(-1);
     } else if (x > 0) {
-        return 1;
+        return T(1);
     } else {
-        return 0;
+        return T(0);
     }
+}
+template <typename T>
+CUDA_HOST_DEVICE static inline T Sqr(const T x) {
+    return x * x;
+}
+template <typename T>
+CUDA_HOST_DEVICE static inline T Cube(const T x) {
+    return x * x * x;
 }
 
 // Checks if the value is zero to within a certain epsilon

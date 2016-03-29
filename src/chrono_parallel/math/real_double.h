@@ -55,12 +55,6 @@ CUDA_HOST_DEVICE static inline real ATan2(const real x, const real y) {
 }
 // Geometric Functions
 // ========================================================================================
-CUDA_HOST_DEVICE static inline real Sqr(const real x) {
-    return x * x;
-}
-CUDA_HOST_DEVICE static inline real Cube(const real x) {
-    return x * x * x;
-}
 CUDA_HOST_DEVICE static inline real Sqrt(const real x) {
     return sqrt(x);
 }
