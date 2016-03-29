@@ -898,29 +898,6 @@ CUDA_GLOBAL void kInitFeFp(Mat33* marker_Fe, Mat33* marker_Fp, Mat33* marker_RE,
         marker_SE[i] = Mat33(1);
     }
 }
-void MPM_Update_Deformation_Gradient(MPM_Settings& settings, std::vector<real3>& velocities) {
-    //    vel.data_h = velocities;
-    //    vel.copyHostToDevice();
-    //    host_settings = settings;
-    //
-    //    cudaCheck(cudaMemcpyToSymbolAsync(device_settings, &host_settings, sizeof(MPM_Settings)));
-    //
-    //    // ========================================================================================
-    //    kRasterize<<<CONFIG(host_settings.num_mpm_markers)>>>(pos.data_d,        // input
-    //                                                          vel.data_d,        // input
-    //                                                          node_mass.data_d,  // output
-    //                                                          grid_vel.data_d    // output
-    //                                                          );
-    //
-    //    kNormalizeWeights<<<CONFIG(host_settings.num_mpm_nodes)>>>(node_mass.data_d,  // output
-    //                                                               grid_vel.data_d);
-    //
-    //    kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(grid_vel.data_d, pos.data_d,
-    //    marker_Fe.data_d,
-    //                                                                          marker_Fp.data_d);
-    //    vel.copyDeviceToHost();
-    //    velocities = vel.data_h;
-}
 
 void MPM_Initialize(MPM_Settings& settings, std::vector<real3>& positions) {
     cudaEventCreate(&start);
