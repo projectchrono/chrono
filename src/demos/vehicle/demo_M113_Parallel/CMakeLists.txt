@@ -11,8 +11,6 @@ IF(NOT ENABLE_MODULE_OPENGL OR NOT ENABLE_MODULE_PARALLEL)
   RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add M113_PARALLEL demo")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
@@ -42,12 +40,12 @@ SET(MODEL_FILES
     ../m113/M113_Vehicle.cpp
 )
 
-SET(DEMO_FILES
-    demo_M113_Parallel.cpp
+SET(DEMO
+    demo_VEH_M113_Parallel
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -58,13 +56,15 @@ INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES} ${CH_OPENGL_INCLUDES})
 #--------------------------------------------------------------
 # Add executable
 
-ADD_EXECUTABLE(demo_M113_Parallel ${DEMO_FILES} ${MODEL_FILES})
-SET_TARGET_PROPERTIES(demo_M113_Parallel PROPERTIES 
+MESSAGE(STATUS "...add ${DEMO}")
+
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_M113_Parallel
+TARGET_LINK_LIBRARIES(${DEMO}
                       ChronoEngine
                       ChronoEngine_vehicle
                       ChronoEngine_parallel
                       ChronoEngine_opengl)
-INSTALL(TARGETS demo_M113_Parallel DESTINATION bin)
+INSTALL(TARGETS ${DEMO} DESTINATION bin)

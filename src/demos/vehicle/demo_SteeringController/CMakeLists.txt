@@ -7,8 +7,6 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add STEERING_CONTROLLER demo")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
@@ -47,12 +45,12 @@ SET(MODEL_FILES
     ../hmmwv/tire/HMMWV_FialaTire.cpp
 )
 
-SET(DEMO_FILES
-    demo_SteeringController.cpp
+SET(DEMO
+    demo_VEH_SteeringController
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -72,9 +70,11 @@ SET(LIBRARIES
 #--------------------------------------------------------------
 # Create the executable
 
-ADD_EXECUTABLE(demo_SteeringController ${DEMO_FILES} ${MODEL_FILES})
-SET_TARGET_PROPERTIES(demo_SteeringController PROPERTIES 
+MESSAGE(STATUS "...add ${DEMO}")
+
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_SteeringController ${LIBRARIES})
-INSTALL(TARGETS demo_SteeringController DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES})
+INSTALL(TARGETS ${DEMO} DESTINATION bin)
