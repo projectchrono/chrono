@@ -23,6 +23,9 @@ namespace chrono {
 
 namespace cascade {
 
+/// @addtogroup cascade_module
+/// @{
+
 /// Class for an asset that contains an OpenCASCADE shape.
 /// In this way one can attach a 3D cad shape to a physics item.
 
@@ -83,6 +86,7 @@ class ChApiCASCADE ChCascadeShapeAsset : public chrono::ChAsset {
 };
 
 
+/// @} cascade_module
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

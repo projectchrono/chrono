@@ -23,7 +23,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class with static functions which allow creation of Irrlicht frequent
@@ -73,7 +73,7 @@ class ChApiIrr ChIrrWizard {
                                    irr::core::vector3df mtarg = irr::core::vector3df(0, 0, 0));
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

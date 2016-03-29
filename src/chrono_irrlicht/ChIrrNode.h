@@ -25,7 +25,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class for Irrlicht visualization. It will be managed by a ChIrrNodeAsset
@@ -109,7 +109,7 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     bool ChronoControlled;
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

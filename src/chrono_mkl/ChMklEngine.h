@@ -40,6 +40,10 @@
 
 namespace chrono
 {
+
+/// @addtogroup mkl_module
+/// @{
+
 	// REMEMBER: indeces start from zero; iparm[0] is "iparm(1)" in documentation
 	// use IPARM instead to avoid misalignment due to different indexing; IPARM(1) == "iparm(1)" from documentation
 #define IPARM(i) iparm[i-1]
@@ -132,7 +136,7 @@ namespace chrono
 	}; // ChMklEngine
 
 
-
+/// @} mkl_module
 } // end of namespace chrono
 
 

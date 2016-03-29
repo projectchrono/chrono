@@ -7,16 +7,14 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add DEFORMABLE_SOIL demo")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO_FILES
-    demo_DeformableSoil.cpp
+SET(DEMO
+    demo_VEH_DeformableSoil
 )
 
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -37,10 +35,12 @@ SET(LIBRARIES
 #--------------------------------------------------------------
 # Add executable
 
-ADD_EXECUTABLE(demo_DeformableSoil ${DEMO_FILES})
-SET_TARGET_PROPERTIES(demo_DeformableSoil PROPERTIES 
+MESSAGE(STATUS "...add ${DEMO}")
+
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_DeformableSoil ${LIBRARIES})
-INSTALL(TARGETS demo_DeformableSoil DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES})
+INSTALL(TARGETS ${DEMO} DESTINATION bin)
 

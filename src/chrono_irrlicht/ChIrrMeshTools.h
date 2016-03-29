@@ -21,7 +21,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Some functions to allow easy creation of meshes for Irrlicht visualization
@@ -53,7 +53,7 @@ ChApiIrr void fillIrlichtMeshFromChTrimesh(irr::scene::IMesh* pMesh,
                                            geometry::ChTriangleMesh* chTrimesh,
                                            irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255));
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

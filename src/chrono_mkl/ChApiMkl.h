@@ -32,4 +32,17 @@
 #define ChApiMkl ChApiIMPORT
 #endif
 
+/**
+    @defgroup mkl_module MKL module
+    @brief Module for the Intel MKL library direct solver
+
+    This module provides access to the MKL Intel library.
+    The MKL library is a reliable and fast library for linear algebra.
+    In this case, we use it for exploiting the fast parallel direct solver 
+    (Pardiso) that is featured in MKL.
+
+    For additional information, see:
+    - the [installation guide](@ref module_mkl_installation)
+*/
+
 #endif  // END of header

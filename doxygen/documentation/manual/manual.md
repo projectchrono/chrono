@@ -6,7 +6,7 @@ Manual {#manual_root}
 
 * [Build a project](@ref tutorial_install_project)
 
-* [Modularity](@ref modules)
+* @subpage modularity
 
 * @subpage mathematical_objects
 	* [Linear algebra](@ref linear_algebra)

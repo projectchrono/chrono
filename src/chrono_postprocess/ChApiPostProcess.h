@@ -32,4 +32,21 @@
 #define ChApiPostProcess ChApiIMPORT
 #endif
 
+/**
+    @defgroup postprocess_module POSTPROCESS module
+    @brief Postprocessing toos (for POVray animations, GNUplot, etc.)
+
+    This module provides some postprocessing tools that can be used
+    to output high quality renderings and other kind of post processed data.
+
+    Currently we support
+    - POVray
+    - GNUplot
+
+    For additional information, see:
+    - the [installation guide](@ref module_postprocessing_installation)
+    - the [tutorials](@ref tutorial_root)
+*/
+
+
 #endif  // END of header

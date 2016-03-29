@@ -7,8 +7,6 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add HMMWV demo")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
@@ -47,12 +45,12 @@ SET(MODEL_FILES
     ../hmmwv/tire/HMMWV_FialaTire.cpp
 )
 
-SET(DEMO_FILES
-    demo_HMMWV.cpp
+SET(DEMO
+    demo_VEH_HMMWV
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -81,15 +79,17 @@ ENDIF()
 #--------------------------------------------------------------
 # Create the executable
 
+MESSAGE(STATUS "...add ${DEMO}")
+
 if(ENABLE_MODULE_IRRLICHT)
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 else()
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
 endif()
 
-ADD_EXECUTABLE(demo_HMMWV ${DEMO_FILES} ${MODEL_FILES})
-SET_TARGET_PROPERTIES(demo_HMMWV PROPERTIES 
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${MY_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_HMMWV ${LIBRARIES} ${LIBRARIES_IRR})
-INSTALL(TARGETS demo_HMMWV DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES} ${LIBRARIES_IRR})
+INSTALL(TARGETS ${DEMO} DESTINATION bin)

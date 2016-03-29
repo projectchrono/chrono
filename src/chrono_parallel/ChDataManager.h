@@ -51,6 +51,9 @@ using thrust::host_vector;
 
 namespace chrono {
 
+/// @addtogroup parallel_module
+/// @{
+
 typedef blaze::SparseSubmatrix<CompressedMatrix<real> > SubMatrixType;
 typedef blaze::DenseSubvector<DynamicVector<real> > SubVectorType;
 
@@ -244,5 +247,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     // This is useful when debugging
     int ExportCurrentSystem(std::string output_dir);
 };
+
+/// @} parallel_module
 }
 

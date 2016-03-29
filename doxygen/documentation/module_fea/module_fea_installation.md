@@ -61,4 +61,9 @@ if you want to use it. On Linux systems, the .dll suffix is .so.
 When you will rebuild the project, you could find some demo_FEAxxxx examples in the 
 binary directory, among other default demos. 
 
-Look at the C++ source of these demos to learn how to use the functions of this unit.
+
+## How to use it
+
+- Look at the [API section](group__fea__module.html) of this module for documentation about classes and functions.
+
+- Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_fea) to learn how to use the functions of this module.

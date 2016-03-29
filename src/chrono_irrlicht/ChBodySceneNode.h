@@ -28,7 +28,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Irrlicht scene node for a body.
@@ -111,7 +111,7 @@ class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
     static int body_identifier;
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

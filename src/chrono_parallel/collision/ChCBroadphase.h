@@ -25,6 +25,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup parallel_module
+/// @{
+
 class CH_PARALLEL_API ChCBroadphase {
  public:
   // functions
@@ -44,6 +47,8 @@ class CH_PARALLEL_API ChCBroadphase {
   custom_vector<uint> num_contact;
 
 };
+
+/// @} parallel_module
 }
 }
 

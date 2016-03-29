@@ -42,6 +42,8 @@
 
 namespace chrono {
 
+/// @addtogroup mkl_module
+/// @{
 
     /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
     /// It can solve linear systems. It cannot solve VI and complementarity problems.
@@ -129,6 +131,7 @@ namespace chrono {
 
     };
 
+/// @} mkl_module
 }  // END_OF_NAMESPACE____
 
 #endif
