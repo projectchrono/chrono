@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimManager.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 
 #include "hmmwv/powertrain/HMMWV_Powertrain.h"
 #include "hmmwv/tire/HMMWV_RigidTire.h"
@@ -115,8 +116,7 @@ class MyCosimManager : public ChCosimManager {
     MyCosimManager();
     ~MyCosimManager();
 
-    virtual void SetNodeType(ChCosimManager::NodeType type) override;
-
+    virtual void SetAsVehicleNode();
     virtual ChWheeledVehicle* GetVehicle() override { return m_vehicle; }
     virtual ChPowertrain* GetPowertrain() override { return m_powertrain; }
     virtual ChDriver* GetDriver() override { return m_driver; }
@@ -124,14 +124,17 @@ class MyCosimManager : public ChCosimManager {
     virtual const ChCoordsys<>& GetVehicleInitialPosition() override { return m_init_pos; }
     virtual void OnAdvanceVehicle() override;
 
+    virtual void SetAsTerrainNode();
     virtual ChSystem* GetChronoSystemTerrain() override { return m_system; }
     virtual ChTerrain* GetTerrain() override { return m_terrain; }
     virtual double GetTerrainStepsize() override { return terrain_step_size; }
     virtual void OnAdvanceTerrain() override;
 
+    virtual void SetAsTireNode(WheelID which);
     virtual ChSystem* GetChronoSystemTire(WheelID which) override { return m_system; }
     virtual ChTire* GetTire(WheelID which) override { return m_tire; }
     virtual double GetTireStepsize(WheelID which) override { return tire_step_size; }
+    virtual unsigned int GetTireMeshNumVertices(WheelID which);
     virtual void OnAdvanceTire(WheelID which) override;
 
   private:
@@ -139,7 +142,7 @@ class MyCosimManager : public ChCosimManager {
     HMMWV_Powertrain* m_powertrain;
     MyDriver* m_driver;
     RigidTerrain* m_terrain;
-    HMMWV_RigidTire* m_tire;
+    ANCFTire* m_tire;
     ChSystem* m_system;
     ChCoordsys<> m_init_pos;
 };
@@ -156,24 +159,30 @@ MyCosimManager::~MyCosimManager() {
     delete m_system;
 }
 
-void MyCosimManager::SetNodeType(ChCosimManager::NodeType type) {
-    switch (type) {
-        case VEHICLE_NODE:
-            m_vehicle = new HMMWV_Vehicle(true, AWD, MESH, NONE);
-            m_powertrain = new HMMWV_Powertrain();
-            m_driver = new MyDriver(*m_vehicle, 0);
-            m_init_pos = ChCoordsys<>(initLoc, initRot);
-            break;
-        case TERRAIN_NODE:
-            m_system = new ChSystemDEM;
-            m_terrain = new RigidTerrain(m_system);
-            m_terrain->Initialize(terrainHeight, terrainLength, terrainWidth);
-            break;
-        case TIRE_NODE:
-            m_system = new ChSystem;
-            m_tire = new HMMWV_RigidTire("");
-            break;
-    }
+void MyCosimManager::SetAsVehicleNode() {
+    m_vehicle = new HMMWV_Vehicle(true, AWD, MESH, NONE);
+    m_powertrain = new HMMWV_Powertrain();
+    m_driver = new MyDriver(*m_vehicle, 0);
+    m_init_pos = ChCoordsys<>(initLoc, initRot);
+}
+
+void MyCosimManager::SetAsTerrainNode() {
+    m_system = new ChSystemDEM;
+    m_terrain = new RigidTerrain(m_system);
+    m_terrain->Initialize(terrainHeight, terrainLength, terrainWidth);
+}
+
+void MyCosimManager::SetAsTireNode(WheelID which) {
+    std::string tire_filename("hmmwv/tire/HMMWV_ANCFTire.json");
+    m_system = new ChSystemDEM;
+    m_tire = new ANCFTire(vehicle::GetDataFile(tire_filename));
+    m_tire->EnablePressure(true);
+    m_tire->EnableRimConnection(true);
+    m_tire->EnableContact(false);
+}
+
+unsigned int MyCosimManager::GetTireMeshNumVertices(WheelID which) {
+    return m_tire->GetMesh()->GetNnodes();
 }
 
 void MyCosimManager::OnAdvanceVehicle() {

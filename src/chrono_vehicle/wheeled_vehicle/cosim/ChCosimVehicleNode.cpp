@@ -26,13 +26,13 @@ namespace chrono {
 namespace vehicle {
 
 ChCosimVehicleNode::ChCosimVehicleNode(int rank, ChWheeledVehicle* vehicle, ChPowertrain* powertrain, ChDriver* driver)
-    : m_rank(rank), m_vehicle(vehicle), m_powertrain(powertrain), m_driver(driver) {
+    : ChCosimNode(rank, m_vehicle->GetSystem()), m_vehicle(vehicle), m_powertrain(powertrain), m_driver(driver) {
     m_num_wheels = 2 * m_vehicle->GetNumberAxles();
     m_tire_forces.resize(m_num_wheels);
 }
 
 void ChCosimVehicleNode::SetStepsize(double stepsize) {
-    m_stepsize = stepsize;
+    ChCosimNode::SetStepsize(stepsize);
     m_vehicle->SetStepsize(stepsize);
 }
 
@@ -109,7 +109,7 @@ void ChCosimVehicleNode::Advance(double step) {
     double t = 0;
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
-        m_vehicle->GetSystem()->DoStepDynamics(h);
+        m_system->DoStepDynamics(h);
         t += h;
     }
     m_powertrain->Advance(step);

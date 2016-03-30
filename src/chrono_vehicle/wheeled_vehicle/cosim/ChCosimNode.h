@@ -12,19 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Cosimulation node responsible for simulating a terrain system.
+// Base class for a cosimulation node.
 //
 // =============================================================================
 
-#ifndef CH_COSIM_TERRAIN_NODE_H
-#define CH_COSIM_TERRAIN_NODE_H
+#ifndef CH_COSIM_NODE_H
+#define CH_COSIM_NODE_H
 
 #include "mpi.h"
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimNode.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace vehicle {
@@ -32,16 +30,17 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_cosim
 /// @{
 
-class CH_VEHICLE_API ChCosimTerrainNode : public ChCosimNode {
+class CH_VEHICLE_API ChCosimNode {
   public:
-    ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain);
+    ChCosimNode(int rank, ChSystem* system) : m_rank(rank), m_system(system) {}
 
-    void Initialize();
-    void Synchronize(double time);
-    void Advance(double step);
+    virtual void SetStepsize(double stepsize) { m_stepsize = stepsize; }
+    double GetStepsize() const { return m_stepsize; }
 
-  private:
-    ChTerrain* m_terrain;
+  protected:
+    int m_rank;
+    ChSystem* m_system;
+    double m_stepsize;
 };
 
 /// @} vehicle_wheeled_cosim

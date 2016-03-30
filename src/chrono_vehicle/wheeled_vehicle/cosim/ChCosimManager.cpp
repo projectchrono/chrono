@@ -53,7 +53,7 @@ bool ChCosimManager::Initialize() {
 
     // Create and initialize the different cosimulation nodes
     if (m_rank == VEHICLE_NODE_RANK) {
-        SetNodeType(VEHICLE_NODE);
+        SetAsVehicleNode();
         m_vehicle_node = new ChCosimVehicleNode(m_rank, GetVehicle(), GetPowertrain(), GetDriver());
         if (m_num_tires != 2 * m_vehicle_node->GetNumberAxles()) {
             std::cout << "ERROR:  Incorrect number of tires!" << std::endl;
@@ -68,7 +68,7 @@ bool ChCosimManager::Initialize() {
 #endif
     }
     else if (m_rank == TERRAIN_NODE_RANK) {
-        SetNodeType(TERRAIN_NODE);
+        SetAsTerrainNode();
         m_terrain_node = new ChCosimTerrainNode(m_rank, GetChronoSystemTerrain(), GetTerrain());
         m_terrain_node->Initialize();
         m_terrain_node->SetStepsize(GetTerrainStepsize());
@@ -77,8 +77,8 @@ bool ChCosimManager::Initialize() {
 #endif
     }
     else {
-        SetNodeType(TIRE_NODE);
         WheelID id(m_rank - 2);
+        SetAsTireNode(id);
         m_tire_node = new ChCosimTireNode(m_rank, GetChronoSystemTire(id), GetTire(id), id);
         m_tire_node->Initialize();
         m_tire_node->SetStepsize(GetTireStepsize(id));

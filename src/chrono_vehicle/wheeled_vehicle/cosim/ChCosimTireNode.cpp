@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 
 ChCosimTireNode::ChCosimTireNode(int rank, ChSystem* system, ChTire* tire, WheelID id)
-    : m_rank(rank), m_system(system), m_tire(tire), m_id(id) {}
+    : ChCosimNode(rank, system), m_tire(tire), m_id(id) {}
 
 void ChCosimTireNode::Initialize() {
     // Ghost wheel body (driven kinematically through messages from vehicle node)

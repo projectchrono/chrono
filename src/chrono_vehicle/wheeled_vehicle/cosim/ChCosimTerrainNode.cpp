@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 
 ChCosimTerrainNode::ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain)
-    : m_rank(rank), m_system(system), m_terrain(terrain) {}
+    : ChCosimNode(rank, system), m_terrain(terrain) {}
 
 void ChCosimTerrainNode::Initialize() {
 

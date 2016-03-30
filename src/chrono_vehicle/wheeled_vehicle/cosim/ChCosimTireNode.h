@@ -24,6 +24,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimNode.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,28 +32,21 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_cosim
 /// @{
 
-class CH_VEHICLE_API ChCosimTireNode {
+class CH_VEHICLE_API ChCosimTireNode : public ChCosimNode {
   public:
     ChCosimTireNode(int rank, ChSystem* system, ChTire* tire, WheelID id);
-    ~ChCosimTireNode() {}
 
-    void SetStepsize(double stepsize) { m_stepsize = stepsize; }
     void Initialize();
     void Synchronize(double time);
     void Advance(double step);
 
   private:
-    int m_rank;
-
-    ChSystem* m_system;
     ChTire* m_tire;
     WheelID m_id;
     std::shared_ptr<ChBody> m_wheel;
     std::shared_ptr<ChTerrain> m_terrain;
 
     WheelState m_wheel_state;
-
-    double m_stepsize;
 };
 
 /// @} vehicle_wheeled_cosim

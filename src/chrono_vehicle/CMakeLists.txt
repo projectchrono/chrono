@@ -323,6 +323,7 @@ if(MPI_CXX_FOUND)
     set(CV_WV_COSIM_FILES
         wheeled_vehicle/cosim/ChCosimManager.h
         wheeled_vehicle/cosim/ChCosimManager.cpp
+        wheeled_vehicle/cosim/ChCosimNode.h
         wheeled_vehicle/cosim/ChCosimVehicleNode.h
         wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
         wheeled_vehicle/cosim/ChCosimTireNode.h

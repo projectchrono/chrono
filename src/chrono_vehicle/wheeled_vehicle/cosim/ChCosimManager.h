@@ -48,13 +48,14 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimManager {
   public:
-    enum NodeType { VEHICLE_NODE, TERRAIN_NODE, TIRE_NODE };
+    enum TireType { CYLINDRICAL_TIRE, RIGID_MESH_TIRE, FLEXIBLE_MESH_TIRE };
 
     ChCosimManager(int num_tires);
     virtual ~ChCosimManager();
 
-    virtual void SetNodeType(NodeType type) {}
+    // Functions invoked only on a VEHICLE node
 
+    virtual void SetAsVehicleNode() {}
     virtual ChWheeledVehicle* GetVehicle() = 0;
     virtual ChPowertrain* GetPowertrain() = 0;
     virtual ChDriver* GetDriver() = 0;
@@ -62,14 +63,21 @@ class CH_VEHICLE_API ChCosimManager {
     virtual const ChCoordsys<>& GetVehicleInitialPosition() = 0;
     virtual void OnAdvanceVehicle() {}
 
+    // Functions invoked only on a TERRAIN node
+
+    virtual void SetAsTerrainNode() {}
     virtual ChSystem* GetChronoSystemTerrain() = 0;
     virtual ChTerrain* GetTerrain() = 0;
     virtual double GetTerrainStepsize() = 0;
     virtual void OnAdvanceTerrain() {}
 
+    // Functions invoked only on a TIRE node
+
+    virtual void SetAsTireNode(WheelID which) {}
     virtual ChSystem* GetChronoSystemTire(WheelID which) = 0;
     virtual ChTire* GetTire(WheelID which) = 0;
     virtual double GetTireStepsize(WheelID which) = 0;
+    virtual unsigned int GetTireMeshNumVertices(WheelID which) = 0;
     virtual void OnAdvanceTire(WheelID id) {}
 
     bool Initialize();
