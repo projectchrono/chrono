@@ -75,7 +75,7 @@ class CH_VEHICLE_API ChCosimManager {
 
     virtual void SetAsTireNode(WheelID which) {}
     virtual ChSystem* GetChronoSystemTire(WheelID which) = 0;
-    virtual ChTire* GetTire(WheelID which) = 0;
+    virtual ChDeformableTire* GetTire(WheelID which) = 0;
     virtual double GetTireStepsize(WheelID which) = 0;
     virtual unsigned int GetTireMeshNumVertices(WheelID which) = 0;
     virtual void OnAdvanceTire(WheelID id) {}

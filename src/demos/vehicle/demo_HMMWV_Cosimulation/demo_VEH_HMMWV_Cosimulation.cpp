@@ -132,7 +132,7 @@ class MyCosimManager : public ChCosimManager {
 
     virtual void SetAsTireNode(WheelID which);
     virtual ChSystem* GetChronoSystemTire(WheelID which) override { return m_system; }
-    virtual ChTire* GetTire(WheelID which) override { return m_tire; }
+    virtual ChDeformableTire* GetTire(WheelID which) override { return m_tire; }
     virtual double GetTireStepsize(WheelID which) override { return tire_step_size; }
     virtual unsigned int GetTireMeshNumVertices(WheelID which);
     virtual void OnAdvanceTire(WheelID which) override;

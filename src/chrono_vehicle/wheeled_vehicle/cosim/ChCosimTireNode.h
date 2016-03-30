@@ -23,7 +23,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimNode.h"
 
 namespace chrono {
@@ -34,14 +34,14 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimTireNode : public ChCosimNode {
   public:
-    ChCosimTireNode(int rank, ChSystem* system, ChTire* tire, WheelID id);
+    ChCosimTireNode(int rank, ChSystem* system, ChDeformableTire* tire, WheelID id);
 
     void Initialize();
     void Synchronize(double time);
     void Advance(double step);
 
   private:
-    ChTire* m_tire;
+    ChDeformableTire* m_tire;
     WheelID m_id;
     std::shared_ptr<ChBody> m_wheel;
     std::shared_ptr<ChTerrain> m_terrain;

@@ -26,7 +26,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChCosimTireNode::ChCosimTireNode(int rank, ChSystem* system, ChTire* tire, WheelID id)
+ChCosimTireNode::ChCosimTireNode(int rank, ChSystem* system, ChDeformableTire* tire, WheelID id)
     : ChCosimNode(rank, system), m_tire(tire), m_id(id) {}
 
 void ChCosimTireNode::Initialize() {
