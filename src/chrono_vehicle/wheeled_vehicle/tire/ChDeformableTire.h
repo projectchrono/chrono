@@ -107,6 +107,9 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// If contact is not enabled, an empty shared pointer is returned.
     std::shared_ptr<fea::ChContactSurface> GetContactSurface() const;
 
+    /// Get the load container associated with this tire.
+    std::shared_ptr<ChLoadContainer> GetLoadContainer() const { return m_load_container; }
+
     /// Set the tire pressure.
     void SetPressure(double pressure) {
         assert(m_pressure > 0);
