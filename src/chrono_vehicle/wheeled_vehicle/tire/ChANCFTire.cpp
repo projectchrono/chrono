@@ -17,8 +17,6 @@
 // =============================================================================
 
 #include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
@@ -29,7 +27,7 @@ using namespace chrono::fea;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChANCFTire::ChANCFTire(const std::string& name) : ChDeformableTire(name), m_contact_type(NODE_CLOUD) {}
+ChANCFTire::ChANCFTire(const std::string& name) : ChDeformableTire(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

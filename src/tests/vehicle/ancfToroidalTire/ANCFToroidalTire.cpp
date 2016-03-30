@@ -36,7 +36,7 @@ ANCFToroidalTire::ANCFToroidalTire(const std::string& name)
       m_default_pressure(320.0e3),
       m_alpha(0.15) {
     SetContactMaterialProperties(0.9f, 0.1f, 2e7f, 0.3f);
-    SetContactSurfaceType(ChANCFTire::NODE_CLOUD);
+    SetContactSurfaceType(ChDeformableTire::NODE_CLOUD);
 }
 
 void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {

@@ -30,6 +30,7 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
       m_pressure_enabled(true),
       m_contact_enabled(true),
       m_connection_enabled(true),
+      m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),
       m_use_mat_props(true),
@@ -131,6 +132,17 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     m_visualization->SetColorscaleMinMax(0.0, 1);
     m_visualization->SetSmoothFaces(true);
     m_mesh->AddAsset(m_visualization);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+std::shared_ptr<ChContactSurface> ChDeformableTire::GetContactSurface() const {
+    if (m_contact_enabled) {
+        return m_mesh->GetContactSurface(0);
+    }
+
+    std::shared_ptr<ChContactSurface> empty;
+    return empty;
 }
 
 // -----------------------------------------------------------------------------
