@@ -107,59 +107,59 @@ std::string out_dir;
 
 class TireTestContactReporter : public chrono::ChReportContactCallback {
   public:
-	  TireTestContactReporter() :counter(-1) {}
-	int counter;
+    TireTestContactReporter() : counter(-1) {}
+    int counter;
     void Process(ChSystem* system) {
-		if (counter > -1) {
-			output.clear();
-			output.close();
-		}
-		counter++;
-		if (ChFileutils::MakeDirectory("VTKANCF") < 0) {
-			GetLog() << "Error creating directory VTK_Animations\n";
-			getchar();
-			exit;
-		}
+        if (counter > -1) {
+            output.clear();
+            output.close();
+        }
+        counter++;
+        if (ChFileutils::MakeDirectory("VTKANCF") < 0) {
+            GetLog() << "Error creating directory VTK_Animations\n";
+            getchar();
+            exit(1);
+        }
 
-		  // The filename buffer.
-		snprintf(m_buffer, sizeof(char) * 32, "VTKANCF/Contact.0.%f.csv", system->GetChTime());
-		output.open(m_buffer, std::ios::app);
-		output << "pAx, pAy, pAz, pBx, pBy, pBz, Interpen, Fx, Fy, Fz," << std::endl;
+        // The filename buffer.
+        snprintf(m_buffer, sizeof(char) * 32, "VTKANCF/Contact.0.%f.csv", system->GetChTime());
+        output.open(m_buffer, std::ios::app);
+        output << "pAx, pAy, pAz, pBx, pBy, pBz, Interpen, Fx, Fy, Fz," << std::endl;
         system->GetContactContainer()->ReportAllContacts(this);
     }
 
-	// void WriteContacts(const std::string& filename) { output[counter].write_to_file(filename); }
+    // void WriteContacts(const std::string& filename) { output[counter].write_to_file(filename); }
 
   private:
     /// Callback, used to report contact points already added to the container.
     /// If it returns false, the contact scanning will be stopped.
-	  virtual bool ReportContactCallback(const ChVector<>& pA,
-		  const ChVector<>& pB,
-		  const ChMatrix33<>& plane_coord,
-		  const double& distance,
-		  const ChVector<>& react_forces,
-		  const ChVector<>& react_torques,
-		  ChContactable* modA,
-		  ChContactable* modB) override {
-		  // Ignore contacts with zero force.
-		  if (react_forces.IsNull())
-			  return true;
+    virtual bool ReportContactCallback(const ChVector<>& pA,
+                                       const ChVector<>& pB,
+                                       const ChMatrix33<>& plane_coord,
+                                       const double& distance,
+                                       const ChVector<>& react_forces,
+                                       const ChVector<>& react_torques,
+                                       ChContactable* modA,
+                                       ChContactable* modB) override {
+        // Ignore contacts with zero force.
+        if (react_forces.IsNull())
+            return true;
 
-		  // GetLog() << "These are contacts ... " << pA << "  " << pB << " \n";
-		  // GetLog() << "These are interpenetrations ... " << distance << " \n";
-		  // GetLog() << "These are forces ... " << plane_coord.Matr_x_Vect(react_forces) << " \n";
-		  GetLog() << "Distance: " << distance << "\n";
-		  ChVector<> force = plane_coord.Matr_x_Vect(react_forces);
-		  output.open(m_buffer, std::ios::app);
-		  output << pA.x << ", " << pA.y << ", " << pA.z << ", " << pB.x << ", " << pB.y << ", " << pB.z << ", "
-			  << distance << ", " << force.x << ", " << force.y << ", " << force.z << ", "  << std::endl;
-		  output.close();
+        // GetLog() << "These are contacts ... " << pA << "  " << pB << " \n";
+        // GetLog() << "These are interpenetrations ... " << distance << " \n";
+        // GetLog() << "These are forces ... " << plane_coord.Matr_x_Vect(react_forces) << " \n";
+        GetLog() << "Distance: " << distance << "\n";
+        ChVector<> force = plane_coord.Matr_x_Vect(react_forces);
+        output.open(m_buffer, std::ios::app);
+        output << pA.x << ", " << pA.y << ", " << pA.z << ", " << pB.x << ", " << pB.y << ", " << pB.z << ", "
+               << distance << ", " << force.x << ", " << force.y << ", " << force.z << ", " << std::endl;
+        output.close();
 
+        return true;
+    }
 
-
-	  }
-	  std::ofstream output;
-	  char m_buffer[32];
+    std::ofstream output;
+    char m_buffer[32];
 };
 
 // =============================================================================
@@ -890,12 +890,12 @@ void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<
 	MESH.stream().precision(6);
 	std::vector<std::shared_ptr<ChNodeFEAbase> > myvector;
 	myvector.resize(m_mesh->GetNnodes());
-	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
+	for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
 		myvector[i] = std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(i));
 	}
 	MESH << "\nCELLS " << m_mesh->GetNelements() << 5 * m_mesh->GetNelements() << "\n";
 
-	for (int iele = 0; iele < m_mesh->GetNelements(); iele++) {
+	for (unsigned int iele = 0; iele < m_mesh->GetNelements(); iele++) {
 		auto element = (m_mesh->GetElement(iele));
 		MESH << "4 ";
 		int nodeOrder[] = { 0, 1, 2, 3 };
@@ -916,13 +916,13 @@ void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<
 	}
 	MESH << "\nCELL_TYPES " << m_mesh->GetNelements() << "\n";
 
-	for (int iele = 0; iele < m_mesh->GetNelements(); iele++) {
+	for (unsigned int iele = 0; iele < m_mesh->GetNelements(); iele++) {
 		MESH << "9\n";
 	}
 	if (ChFileutils::MakeDirectory("VTK_ANCFTireAn") < 0) {
 		GetLog() << "Error creating directory VTK_Animations\n";
 		getchar();
-		exit;
+		exit(1);
 	}
 	MESH.write_to_file("VTK_ANCFTireAn/Mesh.vtk");
 }
@@ -935,7 +935,7 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 	output.open(buffer, std::ios::app);
 	output << "# vtk DataFile Version 2.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
 	output << "DATASET UNSTRUCTURED_GRID\nPOINTS " << m_mesh->GetNnodes() << " float\n";
-	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
+	for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
 		auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(i));
 		output << node->GetPos().x << " " << node->GetPos().y << " " << node->GetPos().z << "\n ";
 	}
@@ -944,7 +944,7 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 	output << "\nPOINT_DATA " << m_mesh->GetNnodes() << "\n ";
 	output << "SCALARS VonMissesStrain float\n";
 	output << "LOOKUP_TABLE default\n";
-	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
+	for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
 		double areaAve = 0;
 		double scalar = 0;
 		double myarea = 0;
@@ -965,23 +965,20 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 		output << areaAve / myarea << "\n";
 	}
 	output << "\nVECTORS StrainXX_Def float\n";
-	for (int i = 0; i < m_mesh->GetNnodes(); i++) {
-		double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
-		double SX, SY, SZ = 0;
-		double myarea = 0;
-		double dx, dy;
-		for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
-			int myelemInx = NodeNeighborElement[i][j];
-			ChVector<> StrainVector(0);
-			std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-				->EvaluateSectionStrains(StrainVector);
-			dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-				->GetLengthX();
-			dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-				->GetLengthY();
-			myarea += dx * dy / 4;
-			areaAve1 += StrainVector.x * dx * dy / 4;
-			areaAve2 += StrainVector.y * dx * dy / 4;
+    for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
+        double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
+        double myarea = 0;
+        double dx, dy;
+        for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
+            int myelemInx = NodeNeighborElement[i][j];
+            ChVector<> StrainVector(0);
+            std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+                ->EvaluateSectionStrains(StrainVector);
+            dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthX();
+            dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthY();
+            myarea += dx * dy / 4;
+            areaAve1 += StrainVector.x * dx * dy / 4;
+            areaAve2 += StrainVector.y * dx * dy / 4;
 			areaAve3 += StrainVector.z * dx * dy / 4;
 		}
 		output << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";

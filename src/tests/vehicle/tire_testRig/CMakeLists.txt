@@ -1,13 +1,17 @@
-# Require Irrlicht support
+# Various test rigs for testing tire models
+# Required: Chrono::Irrlicht module
+# Optional: Chrono::FEA and Chrono::MKL modules
+# ------------------------------------------------------
+
 if(NOT ENABLE_MODULE_IRRLICHT)
     return()
 endif()
 
 # ------------------------------------------------------
 
-set(TEST_PROGRAMS
-    test_tire
-    test_tireRig
+set(TESTS
+    test_VEH_quarterVehicle
+    test_VEH_tireRig
 )
 
 # ------------------------------------------------------
@@ -34,8 +38,9 @@ if (ENABLE_MODULE_MKL)
 endif()
 
 # ------------------------------------------------------
+# Add all tests in this suite
 
-foreach(PROGRAM ${TEST_PROGRAMS})
+foreach(PROGRAM ${TESTS})
   message(STATUS "...add ${PROGRAM}")
   source_group("" FILES "${PROGRAM}.cpp")
   add_executable(${PROGRAM} ${PROGRAM}.cpp)
