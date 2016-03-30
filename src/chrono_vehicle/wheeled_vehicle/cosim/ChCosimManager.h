@@ -37,8 +37,6 @@
 namespace chrono {
 namespace vehicle {
 
-#define VERBOSE_DEBUG
-
 #define VEHICLE_NODE_RANK 0
 #define TERRAIN_NODE_RANK 1
 #define TIRE_NODE_RANK(i) (i+2)
@@ -80,6 +78,8 @@ class CH_VEHICLE_API ChCosimManager {
     virtual unsigned int GetTireMeshNumVertices(WheelID which) = 0;
     virtual void OnAdvanceTire(WheelID id) {}
 
+    void SetVerbose(bool val) { m_verbose = val; }
+
     bool Initialize();
     void Abort();
 
@@ -89,6 +89,7 @@ class CH_VEHICLE_API ChCosimManager {
   private:
     int m_rank;
     int m_num_tires;
+    bool m_verbose;
 
     ChCosimVehicleNode* m_vehicle_node;
     ChCosimTerrainNode* m_terrain_node;

@@ -32,15 +32,18 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimNode {
   public:
-    ChCosimNode(int rank, ChSystem* system) : m_rank(rank), m_system(system) {}
+    ChCosimNode(int rank, ChSystem* system) : m_rank(rank), m_system(system), m_verbose(false) {}
 
     virtual void SetStepsize(double stepsize) { m_stepsize = stepsize; }
     double GetStepsize() const { return m_stepsize; }
+
+    void SetVerbose(bool val) { m_verbose = val; }
 
   protected:
     int m_rank;
     ChSystem* m_system;
     double m_stepsize;
+    bool m_verbose;
 };
 
 /// @} vehicle_wheeled_cosim

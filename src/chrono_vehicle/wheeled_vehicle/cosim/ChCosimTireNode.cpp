@@ -37,9 +37,9 @@ void ChCosimTireNode::Initialize() {
     double props[4];
     MPI_Status status;
     MPI_Recv(props, 4, MPI_DOUBLE, VEHICLE_NODE_RANK, m_id.id(), MPI_COMM_WORLD, &status);
-#ifdef VERBOSE_DEBUG
-    printf("Tire node %d. Recv props = %g %g %g %g\n", m_rank, props[0], props[1], props[2], props[3]);
-#endif
+    if (m_verbose) {
+        printf("Tire node %d. Recv props = %g %g %g %g\n", m_rank, props[0], props[1], props[2], props[3]);
+    }
     m_wheel->SetMass(props[0]);
     m_wheel->SetInertiaXX(ChVector<>(props[1], props[2], props[3]));
 

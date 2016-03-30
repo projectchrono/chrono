@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 
 ChCosimManager::ChCosimManager(int num_tires)
-    : m_num_tires(num_tires), m_vehicle_node(NULL), m_terrain_node(NULL), m_tire_node(NULL) {}
+    : m_num_tires(num_tires), m_vehicle_node(NULL), m_terrain_node(NULL), m_tire_node(NULL), m_verbose(false) {}
 
 ChCosimManager::~ChCosimManager() {
     delete m_vehicle_node;
@@ -63,28 +63,26 @@ bool ChCosimManager::Initialize() {
         }
         m_vehicle_node->Initialize(GetVehicleInitialPosition());
         m_vehicle_node->SetStepsize(GetVehicleStepsize());
-#ifdef VERBOSE_DEBUG
-        std::cout << "VEHICLE NODE created.  rank = " << m_rank << std::endl;
-#endif
-    }
-    else if (m_rank == TERRAIN_NODE_RANK) {
+        if (m_verbose) {
+            std::cout << "VEHICLE NODE created.  rank = " << m_rank << std::endl;
+        }
+    } else if (m_rank == TERRAIN_NODE_RANK) {
         SetAsTerrainNode();
         m_terrain_node = new ChCosimTerrainNode(m_rank, GetChronoSystemTerrain(), GetTerrain());
         m_terrain_node->Initialize();
         m_terrain_node->SetStepsize(GetTerrainStepsize());
-#ifdef VERBOSE_DEBUG
-        std::cout << "TERRAIN NODE created.  rank = " << m_rank << std::endl;
-#endif
-    }
-    else {
+        if (m_verbose) {
+            std::cout << "TERRAIN NODE created.  rank = " << m_rank << std::endl;
+        }
+    } else {
         WheelID id(m_rank - 2);
         SetAsTireNode(id);
         m_tire_node = new ChCosimTireNode(m_rank, GetChronoSystemTire(id), GetTire(id), id);
         m_tire_node->Initialize();
         m_tire_node->SetStepsize(GetTireStepsize(id));
-#ifdef VERBOSE_DEBUG
-        std::cout << "TIRE NODE created.  rank = " << m_rank << std::endl;
-#endif
+        if (m_verbose) {
+            std::cout << "TIRE NODE created.  rank = " << m_rank << std::endl;
+        }
     }
 
     return true;
