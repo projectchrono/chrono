@@ -161,7 +161,7 @@ SET(ChronoEngine_Parallel_MATH
     math/matrix.h
     #math/matrix.cu
     math/matrix.cpp
-    math/matrixf.cu
+    #math/matrixf.cu
     math/sse.h
     math/real.h
     math/real2.h

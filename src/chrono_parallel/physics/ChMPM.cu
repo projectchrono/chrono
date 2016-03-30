@@ -284,7 +284,6 @@ CUDA_GLOBAL void kApplyForces(const float* sorted_pos,      // input
         const float xiz = sorted_pos[p * 3 + 2];
         Mat33f FE = marker_Fe[p];
         Mat33f FE_hat = marker_Fe_hat[p];
-        Mat33f FP = marker_Fp[p];
 
 #if 1
         float a = -1.0 / 3.0;
@@ -390,14 +389,29 @@ CUDA_GLOBAL void kMultiplyA(const float* sorted_pos,  // input
             delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;)
 
         Mat33f m_FE = marker_Fe[p];
-        Mat33f m_FE_hat = marker_Fe_hat[p];
-
         delta_F = delta_F * m_FE;
 
         float current_mu = device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
+        Mat33f RE = PolarR[p];
+        Mat33f SE = PolarS[p];
+        Mat33f F = marker_Fe_hat[p];
+        float a = -one_third;
+        float Ja = powf(Determinant(F), a);
+        Mat33f H = InverseTranspose(F);
+        Mat33f FE = Ja * F;
 
-        Mat33f VAP =
-            marker_volume[p] * MultTranspose(d2PsidFdF(delta_F, m_FE_hat, PolarR[p], PolarS[p], current_mu), m_FE);
+        Mat33f B_Z = B__Z(delta_F, F, Ja, a, H);
+        Mat33f WE = TransposeMult(RE, B_Z);
+        // C is the original second derivative
+        Mat33f C_B_Z = 2 * current_mu * (B_Z - Solve_dR(RE, SE, WE));
+
+        Mat33f A = float(2.) * current_mu * (FE - RE);
+        Mat33f VAP = marker_volume[p] *
+                     MultTranspose(Z__B(C_B_Z, F, Ja, a, H) + a * DoubleDot(H, delta_F) * Z__B(A, F, Ja, a, H) +
+                                       a * Ja * DoubleDot(A, delta_F) * H +
+                                       -a * Ja * DoubleDot(A, F) * H * TransposeMult(delta_F, H),
+                                   m_FE);
+
         // Mat33f VAP = d2PsidFdFO(delta_F, m_FE_hat, PolarR[p], PolarS[p], current_mu);
 
         // WeakEqual(VAP, VAP2);

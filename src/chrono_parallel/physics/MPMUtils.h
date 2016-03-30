@@ -205,7 +205,7 @@ CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative(const Mat33f& FE,
 
     return float(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
 }
-CUDA_HOST_DEVICE static Mat33f Solve_dR(Mat33f R, Mat33f S, Mat33f W) {
+CUDA_HOST_DEVICE static inline Mat33f Solve_dR(Mat33f R, Mat33f S, Mat33f W) {
     Mat33f A;
     float3 b;
     // setup 3x3 system
@@ -258,10 +258,10 @@ CUDA_HOST_DEVICE static Mat33f Solve_dR(Mat33f R, Mat33f S, Mat33f W) {
 //    Deviatoric = float(2.) * current_mu * (FE - RE);
 //    Dilational = current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
 //}
-CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative_Deviatoric(const Mat33f& FE,
-                                                                      float current_mu,
-                                                                      Mat33f& RE,
-                                                                      Mat33f& SE) {
+CUDA_HOST_DEVICE static inline Mat33f Potential_Energy_Derivative_Deviatoric(const Mat33f& FE,
+                                                                             float current_mu,
+                                                                             Mat33f& RE,
+                                                                             Mat33f& SE) {
     Mat33f UE, VE;
     float3 EE;
     SVD(FE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
@@ -290,11 +290,11 @@ CUDA_HOST_DEVICE static inline Mat33f Z__B(const Mat33f& Z, const Mat33f& F, flo
     return Ja * (Z + a * (DoubleDot(F, Z)) * H);
 }
 
-CUDA_HOST_DEVICE static Mat33f d2PsidFdF(const Mat33f& Z,  // This is deltaF
-                                         const Mat33f& F,  // This is FE_hat
-                                         const Mat33f& RE,
-                                         const Mat33f& SE,
-                                         const float current_mu) {
+CUDA_HOST_DEVICE static inline Mat33f d2PsidFdF(const Mat33f& Z,  // This is deltaF
+                                                const Mat33f& F,  // This is FE_hat
+                                                const Mat33f& RE,
+                                                const Mat33f& SE,
+                                                const float current_mu) {
 #if 1
     float a = -one_third;
     float Ja = powf(Determinant(F), a);
