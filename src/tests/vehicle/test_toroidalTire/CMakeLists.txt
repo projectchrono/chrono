@@ -10,8 +10,9 @@ endif()
 # ------------------------------------------------------
 # List all tests in this suite
 SET(TESTS
-	test_VEH_fourToroidalTires
+	  test_VEH_fourToroidalTires
     test_VEH_singleToroidalTire
+    test_VEH_collisionToroidalTire
 )
 
 # Common model files

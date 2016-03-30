@@ -402,22 +402,6 @@ int main(int argc, char* argv[]) {
         // Extract tire forces
         tire_force = tire->GetTireForce();
 
-        // Report tire forces and reaction in the wheel revolute joint.
-        ChCoordsys<> linkCoordsys = revolute->GetLinkRelativeCoords();
-        ChVector<> rF = revolute->Get_react_force();
-        ChVector<> rT = revolute->Get_react_torque();
-        rF = linkCoordsys.TransformDirectionLocalToParent(rF);
-        rT = linkCoordsys.TransformDirectionLocalToParent(rT);
-        std::cout << "Joint reaction (in absolute frame)" << std::endl;
-        std::cout << "   force:  " << rF.x << "  " << rF.y << "  " << rF.z << std::endl;
-        std::cout << "   torque: " << rT.x << "  " << rT.y << "  " << rT.z << std::endl;
-
-        tire_force_cosim = tire->GetTireForce(true);
-        std::cout << "Tire force (at wheel center)" << std::endl;
-        std::cout << "   point:  " << tire_force_cosim.point.x << "  " << tire_force_cosim.point.y << "  " << tire_force_cosim.point.z << std::endl;
-        std::cout << "   force:  " << tire_force_cosim.force.x << "  " << tire_force_cosim.force.y << "  " << tire_force_cosim.force.z << std::endl;
-        std::cout << "   moment: " << tire_force_cosim.moment.x << "  " << tire_force_cosim.moment.y << "  " << tire_force_cosim.moment.z << std::endl;
-
         // Update tire system
         tire->Synchronize(system->GetChTime(), wheel_state, *(terrain.get()));
 
@@ -429,5 +413,28 @@ int main(int argc, char* argv[]) {
         // Advance simulation
         tire->Advance(step_size);
         app.DoStep();
+
+        // Report current time and number of contacts.
+        std::cout << "Time: " << system->GetChTime() << std::endl;
+        std::cout << "Number of contact: " << system->GetContactContainer()->GetNcontacts() << std::endl;
+ 
+        // Report reaction in the wheel revolute joint.
+        ChCoordsys<> linkCoordsys = revolute->GetLinkRelativeCoords();
+        ChVector<> rF = revolute->Get_react_force();
+        ChVector<> rT = revolute->Get_react_torque();
+        rF = linkCoordsys.TransformDirectionLocalToParent(rF);
+        rT = linkCoordsys.TransformDirectionLocalToParent(rT);
+        std::cout << "Joint reaction (in absolute frame)" << std::endl;
+        std::cout << "   force:  " << rF.x << "  " << rF.y << "  " << rF.z << std::endl;
+        std::cout << "   torque: " << rT.x << "  " << rT.y << "  " << rT.z << std::endl;
+
+        // Report tire forces (as acting on the wheel body).
+        tire_force_cosim = tire->GetTireForce(true);
+        std::cout << "Tire force (at wheel center)" << std::endl;
+        std::cout << "   point:  " << tire_force_cosim.point.x << "  " << tire_force_cosim.point.y << "  " << tire_force_cosim.point.z << std::endl;
+        std::cout << "   force:  " << tire_force_cosim.force.x << "  " << tire_force_cosim.force.y << "  " << tire_force_cosim.force.z << std::endl;
+        std::cout << "   moment: " << tire_force_cosim.moment.x << "  " << tire_force_cosim.moment.y << "  " << tire_force_cosim.moment.z << std::endl;
+
+        std::cout << std::endl;
     }
 }

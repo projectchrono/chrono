@@ -274,6 +274,8 @@ set(CV_WV_TIRE_FILES
 )
 if(ENABLE_MODULE_FEA)
     set(CV_WV_FEATIRE_FILES
+        wheeled_vehicle/tire/ChDeformableTire.h
+        wheeled_vehicle/tire/ChDeformableTire.cpp
         wheeled_vehicle/tire/ChANCFTire.h
         wheeled_vehicle/tire/ChANCFTire.cpp
         wheeled_vehicle/tire/ChFEATire.h
