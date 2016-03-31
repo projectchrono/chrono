@@ -160,8 +160,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         double kt;
         double gn;
         double gt;
-		double forceN;
-		double forceT;
 
         double delta_t = use_history ? relvel_t_mag * dT : 0;
 
@@ -217,21 +215,15 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                     double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
                     kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
                     gn = std::sqrt(4 * m_eff * kn / tmp_g);
-                    forceN = kn * delta - gn * relvel_n_mag;
-                    forceT = mat.mu_eff * std::atan(2.0 * relvel_t_mag) * 2.0 / CH_C_PI * forceN;
-                    force = forceN * normal_dir;
-                    force -= (forceT)*relvel_t;
-                    ;
-                    return;
-
-                } else {  // Coefficients for plain Coulomb
-
+                } else {
                     double tmp = std::sqrt(delta);
                     kn = tmp * mat.kn;
                     gn = tmp * mat.gn;
+                }
 
-                    forceN = kn * delta - gn * relvel_n_mag;
-                    forceT = mat.mu_eff * std::atan(2.0 * relvel_t_mag) * 2.0 / CH_C_PI * forceN;
+                {
+                    double forceN = kn * delta - gn * relvel_n_mag;
+                    double forceT = mat.mu_eff * std::atan(2.0 * relvel_t_mag) * 2.0 / CH_C_PI * forceN;
                     force = forceN * normal_dir;
                     force -= (forceT)*relvel_t;
                     return;
@@ -239,8 +231,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         }
 
         // Calculate the magnitudes of the normal and tangential contact forces
-        forceN = kn * delta - gn * relvel_n_mag;
-        forceT = kt * delta_t + gt * relvel_t_mag;
+        double forceN = kn * delta - gn * relvel_n_mag;
+        double forceT = kt * delta_t + gt * relvel_t_mag;
 
         // If the resulting force is negative, the two shapes are moving away from
         // each other so fast that no contact force is generated.

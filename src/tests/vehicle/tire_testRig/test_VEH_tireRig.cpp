@@ -323,9 +323,8 @@ int main() {
 
     ChSystem* my_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
 
-    if (dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
-        dynamic_cast<chrono::ChSystemDEM*>(my_system)->SetContactForceModel(
-            ChSystemDEM::ContactForceModel::PlainCoulomb);
+    if (auto sysDEM = dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
+        sysDEM->SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
     }
 
     my_system->Set_G_acc(ChVector<>(0.0, 0.0, -g));
