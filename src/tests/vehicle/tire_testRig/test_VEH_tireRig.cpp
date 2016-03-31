@@ -85,13 +85,13 @@ enum SolverType { LCP_ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF)
-TireModelType tire_model = ANCF;
+TireModelType tire_model = Fiala;
 
 // Settings specific to FEA-based tires
 bool enable_tire_pressure = true;
 bool enable_rim_conection = true;
 bool enable_tire_contact = true;
-bool use_custom_collision = true;
+bool use_custom_collision = false;
 
 // JSON file names for tire models
 std::string fiala_testfile("generic/tire/FialaTire.json");
@@ -318,10 +318,15 @@ int main() {
     // Set contact model to DEM if ANCF tire is used
     if (tire_model == ANCF) {
         contact_method = ChMaterialSurfaceBase::DEM;
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5); // Maximum interpenetration allowed
+        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
     }
-    
+
     ChSystem* my_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
+
+    if (dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
+        dynamic_cast<chrono::ChSystemDEM*>(my_system)->SetContactForceModel(
+            ChSystemDEM::ContactForceModel::PlainCoulomb);
+    }
 
     my_system->Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
