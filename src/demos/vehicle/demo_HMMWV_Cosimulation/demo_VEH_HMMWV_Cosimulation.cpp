@@ -19,13 +19,15 @@
 //
 // =============================================================================
 
+#include <array>
+
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-////#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -143,6 +145,11 @@ class MyCosimManager : public ChCosimManager {
     virtual void OnAdvanceTire(WheelID which) override;
 
   private:
+    struct ProxyBody {
+        ProxyBody(std::shared_ptr<ChBody> body, int index) : m_body(body), m_index(index) {}
+        std::shared_ptr<ChBody> m_body;
+        int m_index;
+    };
     HMMWV_Vehicle* m_vehicle;
     HMMWV_Powertrain* m_powertrain;
     MyDriver* m_driver;
@@ -150,6 +157,8 @@ class MyCosimManager : public ChCosimManager {
     ANCFTire* m_tire;
     ChSystem* m_system;
     ChCoordsys<> m_init_pos;
+
+    std::array<std::vector<ProxyBody>, 4> m_proxies;
 };
 
 MyCosimManager::MyCosimManager()
@@ -172,7 +181,7 @@ void MyCosimManager::SetAsVehicleNode() {
 }
 
 void MyCosimManager::SetAsTerrainNode() {
-    m_system = new ChSystemDEM;
+    m_system = new ChSystemParallelDVI;
     m_terrain = new RigidTerrain(m_system);
     m_terrain->Initialize(terrainHeight, terrainLength, terrainWidth);
 }
@@ -180,6 +189,7 @@ void MyCosimManager::SetAsTerrainNode() {
 void MyCosimManager::SetAsTireNode(WheelID which) {
     std::string tire_filename("hmmwv/tire/HMMWV_ANCFTire.json");
     m_system = new ChSystemDEM;
+    //// TODO: system settings
     m_tire = new ANCFTire(vehicle::GetDataFile(tire_filename));
     m_tire->EnablePressure(true);
     m_tire->EnableRimConnection(true);
@@ -187,18 +197,55 @@ void MyCosimManager::SetAsTireNode(WheelID which) {
 }
 
 void MyCosimManager::OnReceiveTireInfo(int which, unsigned int num_vert, unsigned int num_tri) {
-    //// TODO
+    // Create bodies with spherical contact geometry as proxies for the tire mesh vertices
+    // and add them to the Chrono system (on the terrain node).
+    // Maintain lists of all bodies associated with a given tire.
+    double mass = 1;
+    double radius = 0.002;
+    ChVector<> inertia = 0.4 * mass * radius * radius * ChVector<>(1, 1, 1);
+    for (unsigned int iv = 0; iv < num_vert; iv++) {
+        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+        m_system->AddBody(body);
+        body->SetMass(mass);
+        body->SetInertiaXX(inertia);
+        body->SetBodyFixed(true);
+        body->SetCollide(true);
+
+        body->GetCollisionModel()->ClearModel();
+        utils::AddSphereGeometry(body.get(), radius, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), false);
+        body->GetCollisionModel()->BuildModel();
+
+        m_proxies[which].push_back(ProxyBody(body, iv));
+    }
 }
 
 void MyCosimManager::OnReceiveTireData(int which,
                                        const std::vector<ChVector<>>& vert_pos,
                                        const std::vector<ChVector<>>& vert_vel,
                                        const std::vector<ChVector<int>>& triangles) {
-    //// TODO
+    // Update position and velocity of the proxy bodies
+    for (size_t iv = 0; iv < vert_pos.size(); iv++) {
+        m_proxies[which][iv].m_body->SetPos(vert_pos[iv]);
+        m_proxies[which][iv].m_body->SetPos_dt(vert_vel[iv]);
+    }
 }
 
 void MyCosimManager::OnSendTireForces(int which, std::vector<ChVector<>>& vert_forces, std::vector<int> vert_indeces) {
-    //// TODO
+    // If needed, force a calculation of contact forces
+    ChSystemParallel* system = static_cast<ChSystemParallel*>(m_system);
+    if (auto systemDVI = dynamic_cast<ChSystemParallelDVI*>(m_system))
+        systemDVI->CalculateContactForces();
+
+    // Extract contact forces from the proxy bodies and load output vectors only for
+    // those that experienced contact
+    size_t num_proxies = m_proxies[which].size();
+    for (size_t i = 0; i < num_proxies; i++) {
+        real3 force = system->GetBodyContactForce(m_proxies[which][i].m_body);
+        if (!IsZero(force)) {
+            vert_forces.push_back(ChVector<>(force.x, force.y, force.z));
+            vert_indeces.push_back(m_proxies[which][i].m_index);
+        }
+    }
 }
 
 void MyCosimManager::OnAdvanceVehicle() {
@@ -216,8 +263,6 @@ void MyCosimManager::OnAdvanceTire(WheelID which) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-
-
     MyCosimManager my_manager;
 
     if (!my_manager.Initialize()) {

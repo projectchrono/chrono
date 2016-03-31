@@ -56,6 +56,7 @@ SOURCE_GROUP("" FILES ${DEMO}.cpp)
 # Additional include directories
 
 include_directories("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
+include_directories(${CH_PARALLEL_INCLUDES})
 include_directories(${MPI_CXX_INCLUDE_PATH})
 
 #--------------------------------------------------------------
@@ -75,7 +76,7 @@ MESSAGE(STATUS "...add ${DEMO}")
 
 ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
 SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}"
+                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE} ${MPI_CXX_LINK_FLAGS}")
 TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES})
 INSTALL(TARGETS ${DEMO} DESTINATION bin)
