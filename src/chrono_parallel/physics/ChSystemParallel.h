@@ -98,8 +98,14 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   /// Gets the total time for the collision detection step
   double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }
 
+  /// Get the contact force on the body with specified id.
   virtual real3 GetBodyContactForce(uint body_id) const = 0;
+  /// Get the contact torque on the body with specified id.
   virtual real3 GetBodyContactTorque(uint body_id) const = 0;
+  /// Get the contact force on the specified body.
+  real3 GetBodyContactForce(std::shared_ptr<ChBody> body) { return GetBodyContactForce(body->GetId()); }
+  /// Get the contact torque on the specified body.
+  real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) { return GetBodyContactTorque(body->GetId()); }
 
   settings_container* GetSettings() { return &(data_manager->settings); }
 
