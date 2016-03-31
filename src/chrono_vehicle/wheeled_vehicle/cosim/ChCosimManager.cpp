@@ -55,22 +55,22 @@ bool ChCosimManager::Initialize() {
     if (m_rank == VEHICLE_NODE_RANK) {
         SetAsVehicleNode();
         m_vehicle_node = new ChCosimVehicleNode(m_rank, GetVehicle(), GetPowertrain(), GetDriver());
+        m_vehicle_node->SetStepsize(GetVehicleStepsize());
+        m_vehicle_node->Initialize(GetVehicleInitialPosition());
         if (m_num_tires != 2 * m_vehicle_node->GetNumberAxles()) {
             std::cout << "ERROR:  Incorrect number of tires!" << std::endl;
             std::cout << "  Provided: " << m_num_tires << std::endl;
             std::cout << "  Required: " << 2 * m_vehicle_node->GetNumberAxles() << std::endl;
             return false;
         }
-        m_vehicle_node->Initialize(GetVehicleInitialPosition());
-        m_vehicle_node->SetStepsize(GetVehicleStepsize());
         if (m_verbose) {
             std::cout << "VEHICLE NODE created.  rank = " << m_rank << std::endl;
         }
     } else if (m_rank == TERRAIN_NODE_RANK) {
         SetAsTerrainNode();
-        m_terrain_node = new ChCosimTerrainNode(m_rank, GetChronoSystemTerrain(), GetTerrain());
-        m_terrain_node->Initialize();
+        m_terrain_node = new ChCosimTerrainNode(m_rank, GetChronoSystemTerrain(), GetTerrain(), m_num_tires);
         m_terrain_node->SetStepsize(GetTerrainStepsize());
+        m_terrain_node->Initialize();
         if (m_verbose) {
             std::cout << "TERRAIN NODE created.  rank = " << m_rank << std::endl;
         }
@@ -78,8 +78,8 @@ bool ChCosimManager::Initialize() {
         WheelID id(m_rank - 2);
         SetAsTireNode(id);
         m_tire_node = new ChCosimTireNode(m_rank, GetChronoSystemTire(id), GetTire(id), id);
-        m_tire_node->Initialize();
         m_tire_node->SetStepsize(GetTireStepsize(id));
+        m_tire_node->Initialize();
         if (m_verbose) {
             std::cout << "TIRE NODE created.  rank = " << m_rank << std::endl;
         }

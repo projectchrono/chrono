@@ -134,7 +134,6 @@ class MyCosimManager : public ChCosimManager {
     virtual ChSystem* GetChronoSystemTire(WheelID which) override { return m_system; }
     virtual ChDeformableTire* GetTire(WheelID which) override { return m_tire; }
     virtual double GetTireStepsize(WheelID which) override { return tire_step_size; }
-    virtual unsigned int GetTireMeshNumVertices(WheelID which);
     virtual void OnAdvanceTire(WheelID which) override;
 
   private:
@@ -179,10 +178,6 @@ void MyCosimManager::SetAsTireNode(WheelID which) {
     m_tire->EnablePressure(true);
     m_tire->EnableRimConnection(true);
     m_tire->EnableContact(false);
-}
-
-unsigned int MyCosimManager::GetTireMeshNumVertices(WheelID which) {
-    return m_tire->GetMesh()->GetNnodes();
 }
 
 void MyCosimManager::OnAdvanceVehicle() {

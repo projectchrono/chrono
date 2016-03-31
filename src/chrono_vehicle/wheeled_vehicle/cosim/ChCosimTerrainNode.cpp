@@ -24,11 +24,21 @@
 namespace chrono {
 namespace vehicle {
 
-ChCosimTerrainNode::ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain)
-    : ChCosimNode(rank, system), m_terrain(terrain) {}
+ChCosimTerrainNode::ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain, int num_tires)
+    : ChCosimNode(rank, system), m_terrain(terrain), m_num_tires(num_tires) {}
 
 void ChCosimTerrainNode::Initialize() {
-
+    // Receive contact specification from tire nodes
+    for (int it = 0; it < m_num_tires; it++) {
+        unsigned int props[2];
+        MPI_Status status;
+        MPI_Recv(props, 2, MPI_UNSIGNED, TIRE_NODE_RANK(it), it, MPI_COMM_WORLD, &status);
+        m_num_vertices.push_back(props[0]);
+        m_num_triangles.push_back(props[1]);
+        if (m_verbose) {
+            printf("Terrain node %d.  Recv from %d props = %d %d\n", m_rank, TIRE_NODE_RANK(it), props[0], props[1]);
+        }
+    }
 }
 
 void ChCosimTerrainNode::Synchronize(double time) {

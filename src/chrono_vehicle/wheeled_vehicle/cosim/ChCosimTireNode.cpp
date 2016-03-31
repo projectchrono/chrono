@@ -34,20 +34,47 @@ void ChCosimTireNode::Initialize() {
     m_wheel = std::shared_ptr<ChBody>(m_system->NewBody());
 
     // Receive mass and inertia for the wheel body from the vehicle node
-    double props[4];
-    MPI_Status status;
-    MPI_Recv(props, 4, MPI_DOUBLE, VEHICLE_NODE_RANK, m_id.id(), MPI_COMM_WORLD, &status);
-    if (m_verbose) {
-        printf("Tire node %d. Recv props = %g %g %g %g\n", m_rank, props[0], props[1], props[2], props[3]);
+    {
+        double props[4];
+        MPI_Status status;
+        MPI_Recv(props, 4, MPI_DOUBLE, VEHICLE_NODE_RANK, m_id.id(), MPI_COMM_WORLD, &status);
+        if (m_verbose) {
+            printf("Tire node %d. Recv from %d props = %g %g %g %g\n", m_rank, VEHICLE_NODE_RANK, props[0], props[1],
+                   props[2], props[3]);
+        }
+        m_wheel->SetMass(props[0]);
+        m_wheel->SetInertiaXX(ChVector<>(props[1], props[2], props[3]));
     }
-    m_wheel->SetMass(props[0]);
-    m_wheel->SetInertiaXX(ChVector<>(props[1], props[2], props[3]));
 
     // Dummy terrain (needed for tire synchronization)
     m_terrain = std::make_shared<FlatTerrain>(0);
 
+    // Ensure that tire contact is enabled and enforce TRIANGLE_MESH contact surface type
+    //// TODO:
+    ////   Since we are not interested in having any contact shapes on a tire node,
+    ////   consider explicitly creating a contact surface here but never actually adding 
+    ////   it to the tire underlying mesh.
+    m_tire->EnableContact(true);
+    m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
+
     // Initialize the underlying tire
     m_tire->Initialize(m_wheel, m_id.side());
+
+    // Create a mesh load for contact forces and add it to the tire's load container.
+    auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
+    m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
+    m_tire->GetLoadContainer()->Add(m_contact_load);
+
+    // Send contact specification to terrain node
+    {
+        unsigned int props[2];
+        props[0] = contact_surface->GetNumVertices();
+        props[1] = contact_surface->GetNumTriangles();
+        MPI_Send(props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, m_id.id(), MPI_COMM_WORLD);
+        if (m_verbose) {
+            printf("Tire node %d. Send to %d props = %d %d\n", m_rank, TERRAIN_NODE_RANK, props[0], props[1]);
+        }
+    }
 }
 
 void ChCosimTireNode::Synchronize(double time) {

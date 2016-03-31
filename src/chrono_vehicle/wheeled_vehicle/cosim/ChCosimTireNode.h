@@ -22,9 +22,10 @@
 #include "mpi.h"
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono_fea/ChLoadContactSurfaceMesh.h"
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimNode.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -47,6 +48,8 @@ class CH_VEHICLE_API ChCosimTireNode : public ChCosimNode {
     std::shared_ptr<ChTerrain> m_terrain;
 
     WheelState m_wheel_state;
+
+    std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;
 };
 
 /// @} vehicle_wheeled_cosim

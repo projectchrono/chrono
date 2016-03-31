@@ -19,6 +19,7 @@
 #ifndef CH_COSIM_TERRAIN_NODE_H
 #define CH_COSIM_TERRAIN_NODE_H
 
+#include <vector>
 #include "mpi.h"
 
 #include "chrono/physics/ChSystem.h"
@@ -34,14 +35,17 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimTerrainNode : public ChCosimNode {
   public:
-    ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain);
+    ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain, int num_tires);
 
     void Initialize();
     void Synchronize(double time);
     void Advance(double step);
 
   private:
-    ChTerrain* m_terrain;
+    ChTerrain* m_terrain;                       ///< underlying terrain object
+    int m_num_tires;                            ///< number of tires
+    std::vector<unsigned int> m_num_vertices;   ///< number of contact vertices received from each tire
+    std::vector<unsigned int> m_num_triangles;  ///< number of contact triangles received from each tire
 };
 
 /// @} vehicle_wheeled_cosim

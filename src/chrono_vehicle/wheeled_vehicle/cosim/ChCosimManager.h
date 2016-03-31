@@ -46,8 +46,6 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChCosimManager {
   public:
-    enum TireType { CYLINDRICAL_TIRE, RIGID_MESH_TIRE, FLEXIBLE_MESH_TIRE };
-
     ChCosimManager(int num_tires);
     virtual ~ChCosimManager();
 
@@ -75,7 +73,6 @@ class CH_VEHICLE_API ChCosimManager {
     virtual ChSystem* GetChronoSystemTire(WheelID which) = 0;
     virtual ChDeformableTire* GetTire(WheelID which) = 0;
     virtual double GetTireStepsize(WheelID which) = 0;
-    virtual unsigned int GetTireMeshNumVertices(WheelID which) = 0;
     virtual void OnAdvanceTire(WheelID id) {}
 
     void SetVerbose(bool val) { m_verbose = val; }
