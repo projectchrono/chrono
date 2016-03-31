@@ -348,6 +348,27 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
 
 }
 
+unsigned int ChContactSurfaceMesh::GetNumVertices() const {
+    std::map<ChNodeFEAxyz*, size_t> ptr_ind_map;
+    size_t count = 0;
+    for (size_t i = 0; i < vfaces.size(); ++i) {
+        if (!ptr_ind_map.count(vfaces[i]->GetNode1().get())) {
+            ptr_ind_map.insert({vfaces[i]->GetNode1().get(), count});
+            count++;
+        }
+        if (!ptr_ind_map.count(vfaces[i]->GetNode2().get())) {
+            ptr_ind_map.insert({vfaces[i]->GetNode2().get(), count});
+            count++;
+        }
+        if (!ptr_ind_map.count(vfaces[i]->GetNode3().get())) {
+            ptr_ind_map.insert({vfaces[i]->GetNode3().get(), count});
+            count++;
+        }
+    }
+
+    return (unsigned int)count;
+}
+
 void ChContactSurfaceMesh::SurfaceSyncCollisionModels() {
     for (unsigned int j = 0; j < vfaces.size(); j++) {
         this->vfaces[j]->GetCollisionModel()->SyncPosition();
