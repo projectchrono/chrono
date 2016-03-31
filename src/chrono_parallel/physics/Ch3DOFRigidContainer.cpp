@@ -96,8 +96,10 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
                 mpm_vel[i * 3 + 2] = data_manager->host_data.vel_3dof[i].z;
             }
 
-            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel),
-                                     std::ref(mpm_jejp));
+            MPM_UpdateDeformationGradient(std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel),
+                                          std::ref(mpm_jejp));
+
+            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel));
 
             //            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
             //                data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];

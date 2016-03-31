@@ -133,6 +133,8 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     void Initialize();
     void PreSolve();
     void Density_Fluid();
+    void Density_FluidMPM();
+    void DensityConstraint_FluidMPM();
     void Normalize_Density_Fluid();
     void Build_D();
     void Build_b();
@@ -182,6 +184,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     bool mpm_init;
     MPM_Settings temp_settings;
     custom_vector<float> mpm_pos, mpm_vel, mpm_jejp;
+
   private:
     uint body_offset;
 };

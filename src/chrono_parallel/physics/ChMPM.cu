@@ -849,14 +849,13 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
         marker_Fe[p] = T1;
         marker_Fp[p] = T2;
 
-        //printf("JP: %f JE: %f\n", Determinant(marker_Fe[p]), Determinant(marker_Fp[p]));
+        // printf("JP: %f JE: %f\n", Determinant(marker_Fe[p]), Determinant(marker_Fp[p]));
     }
 }
-
-void MPM_Solve(MPM_Settings& settings,
-               std::vector<float>& positions,
-               std::vector<float>& velocities,
-               std::vector<float>& jejp) {
+void MPM_UpdateDeformationGradient(MPM_Settings& settings,
+                                   std::vector<float>& positions,
+                                   std::vector<float>& velocities,
+                                   std::vector<float>& jejp) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
@@ -906,9 +905,13 @@ void MPM_Solve(MPM_Settings& settings,
             JE_JP.data_d);
         JE_JP.copyDeviceToHost();
     }
+    jejp = JE_JP.data_h;
     printf("kUpdateDeformationGradient: %f\n", time_measured);
     time_measured = 0;
-
+}
+void MPM_Solve(MPM_Settings& settings,
+               std::vector<float>& positions,
+               std::vector<float>& velocities) {
     old_vel_node_mpm.resize(host_settings.num_mpm_nodes * 3);
     rhs.resize(host_settings.num_mpm_nodes * 3);
     old_vel_node_mpm = grid_vel;
@@ -967,8 +970,6 @@ void MPM_Solve(MPM_Settings& settings,
 
     vel.copyDeviceToHost();
     velocities = vel.data_h;
-
-    jejp = JE_JP.data_h;
 
     cudaEventDestroy(start);
     cudaEventDestroy(stop);

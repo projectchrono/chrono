@@ -63,12 +63,12 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
 
     ComputeD();
     ComputeE();
+    ComputeR();
     ComputeN();
     data_manager->system_timer.start("ChLcpSolverParallel_Solve");
 
     data_manager->node_container->PreSolve();
     data_manager->fea_container->PreSolve();
-    ComputeR();
 
     if (data_manager->num_constraints > 0) {
         // Rhs should be updated with latest velocity after presolve

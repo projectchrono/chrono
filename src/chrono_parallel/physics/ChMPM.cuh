@@ -35,8 +35,10 @@ struct MPM_Settings {
 };
 
 void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions);
-void MPM_Solve(MPM_Settings& settings,
-               std::vector<float>& positions,
-               std::vector<float>& velocities,
-               std::vector<float>& jejp);
+void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vector<float>& velocities);
+
+void MPM_UpdateDeformationGradient(MPM_Settings& settings,
+                                   std::vector<float>& positions,
+                                   std::vector<float>& velocities,
+                                   std::vector<float>& jejp);
 }
