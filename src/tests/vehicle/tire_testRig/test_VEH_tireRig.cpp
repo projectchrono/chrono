@@ -85,13 +85,13 @@ enum SolverType { LCP_ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF)
-TireModelType tire_model = Fiala;
+TireModelType tire_model = ANCF;
 
 // Settings specific to FEA-based tires
 bool enable_tire_pressure = true;
 bool enable_rim_conection = true;
 bool enable_tire_contact = true;
-bool use_custom_collision = false;
+bool use_custom_collision = true;
 
 // JSON file names for tire models
 std::string fiala_testfile("generic/tire/FialaTire.json");
@@ -977,8 +977,8 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
         for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
             int myelemInx = NodeNeighborElement[i][j];
             ChVector<> StrainVector(0);
-            std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-                ->EvaluateSectionStrains(StrainVector);
+			StrainVector = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+                ->EvaluateSectionStrains();
             dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthX();
             dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthY();
             myarea += dx * dy / 4;
