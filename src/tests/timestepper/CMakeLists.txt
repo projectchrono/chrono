@@ -2,7 +2,7 @@
 # Add executables
 
 SET(TESTS
-  test_HHT
+  test_CH_integratorHHT
 )
 
 # Compiler flags, libraries, etc.

@@ -186,17 +186,33 @@ void RigidTerrain::SetTexture(const std::string tex_file, float tex_scale_x, flo
 // -----------------------------------------------------------------------------
 // Initialize the terrain as a rigid box
 // -----------------------------------------------------------------------------
-void RigidTerrain::Initialize(double height, double sizeX, double sizeY) {
+void RigidTerrain::Initialize(double height, double sizeX, double sizeY, bool tiled, double max_tile_size) {
     double depth = 10;
+
     m_ground->GetCollisionModel()->ClearModel();
-    m_ground->GetCollisionModel()->AddBox(0.5 * sizeX, 0.5 * sizeY, 0.5 * depth,
-                                          ChVector<>(0, 0, height - 0.5 * depth));
+    if (tiled) {
+        int nX = (int)std::ceil(sizeX / max_tile_size);
+        int nY = (int)std::ceil(sizeY / max_tile_size);
+        double sizeX1 = sizeX / nX;
+        double sizeY1 = sizeY / nY;
+        for (int ix = 0; ix < nX; ix++) {
+            for (int iy = 0; iy < nY; iy++) {
+                m_ground->GetCollisionModel()->AddBox(
+                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * depth,
+                    ChVector<>((sizeX1 - sizeX) / 2 + ix * sizeX1, (sizeY1 - sizeY) / 2 + iy * sizeY1,
+                               height - 0.5 * depth));
+            }
+        }
+    } else {
+        m_ground->GetCollisionModel()->AddBox(0.5 * sizeX, 0.5 * sizeY, 0.5 * depth,
+                                              ChVector<>(0, 0, height - 0.5 * depth));
+    }
+    m_ground->GetCollisionModel()->BuildModel();
 
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(0.5 * sizeX, 0.5 * sizeY, 0.5 * depth);
     box->GetBoxGeometry().Pos = ChVector<>(0, 0, height - 0.5 * depth);
     m_ground->AddAsset(box);
-    m_ground->GetCollisionModel()->BuildModel();
 
     m_type = FLAT;
     m_height = height;

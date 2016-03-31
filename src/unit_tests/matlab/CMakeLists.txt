@@ -1,8 +1,11 @@
+# Unit tests for the Chrono::Matlab module
+# ==================================================================
+
 SET(LIBRARIES ChronoEngine ChronoEngine_matlab)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_MATLABINC})
 
 SET(TESTS
-    test_matlab
+    utest_matlab
 )
 
 MESSAGE(STATUS "Unit test programs for MATLAB module...")

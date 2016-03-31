@@ -4,16 +4,14 @@
 # This example program works with and without Irrlicht run-time visualization
 #=============================================================================
 
-MESSAGE(STATUS "...add JSON_VEHICLE demo")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO_FILES
-    demo_Vehicle.cpp
+SET(DEMO
+    demo_VEH_VehicleJSON
 )
 
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -40,16 +38,18 @@ ENDIF()
 #--------------------------------------------------------------
 # Create the executable
 
+MESSAGE(STATUS "...add ${DEMO}")
+
 if(ENABLE_MODULE_IRRLICHT)
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 else()
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
 endif()
 
-ADD_EXECUTABLE(demo_Vehicle ${DEMO_FILES})
-SET_TARGET_PROPERTIES(demo_Vehicle PROPERTIES 
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${MY_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_Vehicle ${LIBRARIES} ${LIBRARIES_IRR})
-INSTALL(TARGETS demo_Vehicle DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES} ${LIBRARIES_IRR})
+INSTALL(TARGETS ${DEMO} DESTINATION bin)
 

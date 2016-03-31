@@ -268,7 +268,14 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
     /// As AddFacesFromBoundary, but only for faces containing selected nodes in node_set.
     //void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set); ***TODO***
 
+    /// Get the list of triangles.
     std::vector<std::shared_ptr<ChContactTriangleXYZ> >& GetTriangleList() { return vfaces; }
+
+    /// Get the number of triangles.
+    unsigned int GetNumTriangles() const { return (unsigned int)vfaces.size(); }
+
+    /// Get the number of vertices.
+    unsigned int GetNumVertices() const;
 
     // Functions to interface this with ChPhysicsItem container
     virtual void SurfaceSyncCollisionModels();

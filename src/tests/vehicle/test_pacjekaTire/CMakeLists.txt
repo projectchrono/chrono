@@ -1,6 +1,6 @@
 SET(TEST_PROGRAMS
-  test_tirePacejka
-  test_updatePacejka
+  test_VEH_tirePacejka
+  test_VEH_updatePacejka
   )
 
 SET(LIBRARIES

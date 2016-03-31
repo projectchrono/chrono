@@ -1,3 +1,6 @@
+# Unit tests for the Chrono::Parallel module
+# ==================================================================
+
 #--------------------------------------------------------------
 # Additional include paths (for ChronoEngine_Utils)
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
@@ -12,13 +15,13 @@ SET(LIBRARIES
 # List of all executables
 
 SET(TESTS
-    test_real3
-    test_real4
-    test_mat33
-    test_gravity
-    test_rhs
-    test_r
-    test_shafts
+    utest_PAR_real3
+    utest_PAR_real4
+    utest_PAR_mat33
+    utest_PAR_gravity
+    utest_PAR_rhs
+    utest_PAR_r
+    utest_PAR_shafts
 )
 
 MESSAGE(STATUS "Unit test programs for PARALLEL module...")
@@ -47,7 +50,7 @@ ENDFOREACH(PROGRAM)
 # Executables that use Bullet
 
 SET(TESTS_B
-    test_mpr
+    utest_PAR_mpr
 )
 
 # Because Bullet classes are not DLL exported, the sources must be explicitly
@@ -108,11 +111,11 @@ IF (ENABLE_MODULE_OPENGL)
 ENDIF()
 
 SET(TESTS_G
-    test_linactuator
-    test_bodyauxref
-    test_joints_dvi
-    test_narrowphase
-    test_jacobians
+    utest_PAR_linactuator
+    utest_PAR_bodyauxref
+    utest_PAR_joints_dvi
+    utest_PAR_narrowphase
+    utest_PAR_jacobians
 )
 
 FOREACH(PROGRAM ${TESTS_G})

@@ -79,10 +79,12 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Initialize the terrain system (flat).
     /// This version uses a rigid box of specified dimensions and with specified
-    /// material properties.
-    void Initialize(double height,  ///< [in] terrain height
-                    double sizeX,   ///< [in] terrain dimension in the X direction
-                    double sizeY    ///< [in] terrain dimension in the Y direction
+    /// material properties. If tiled = true, multiple side-by-side boxes are used.
+    void Initialize(double height,            ///< [in] terrain height
+                    double sizeX,             ///< [in] terrain dimension in the X direction
+                    double sizeY,             ///< [in] terrain dimension in the Y direction
+                    bool tiled = false,       ///< [in] terrain created from multiple tiled boxes
+                    double max_tile_size = 1  ///< [in] maximum tile size
                     );
 
     /// Initialize the terrain system (mesh).
