@@ -9,49 +9,57 @@ them into binaries that later you can use to develop your project.
 
 Note that some steps are mandatory, other are only suggested.
 
-###Check/Install a C++ compiler
+## 1) Check/Install a C++ compiler
 
 Supported and tested compilers are:
-* Microsoft Visual C++ (professional and Express releases, both 64 and 32 bit)
-* MingW GNU C++ compiler for Windows
-* GNU C++ compiler for Linux-based platforms.
+- Microsoft C++: Visual Studio from 2013 (free Community edition or others, both 32 or 64 bit)
+- MingW GNU C++ compiler for Windows
+- GNU C++ compiler for Linux-based platforms.
 
-In case you do not have a C++ compiler, you can install it. There are some links to free C++ compilers in the [Download]() page. 
+In case you do not have a C++ compiler, you can install it. There are some links to free C++ compilers in the [Download](http://www.projectchrono.org/download) page. 
 
 <small>Note that other non listed compilers might work as well, but they might require some changes to the CMake scripts.</small>
 
-###Install CMake
+<div class="ce-danger">
+Warning! The initial release of Visual Studio 2015 gives an 
+error compiling Chrono::Engine! If you use it, you must upgrade it to 
+the **update 2** that fixed the problem. Download it from 
+[this page](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). 
+</div>
+
+
+## 2) Install CMake
 
 The free CMake utility is used to setup the project building process.
 Please **download and install** [CMake](http://www.cmake.org/cmake/resources/software.html).
 
 
-###Install a GIT client
+## 3) Install a GIT client
 
 If you do not have a GIT client in your computer, you must install one.
 For example in Windows **download and install** [SourceTree](http://www.sourcetreeapp.com/). 
 
 
-###Download the project by cloning the Git repository
+## 4) Download the project by cloning the Git repository
 
 Download the Chrono::Engine SDK by performing a **clone** of the Git repository in a directory of your workstation. 
 Assuming you are using [SourceTree](http://www.sourcetreeapp.com/):
 
-1. press the **Clone / New** button in SourceTree 
+-  press the **Clone / New** button in SourceTree 
    ![](Install_ST1.gif)
    
-2. enter <tt>https://github.com/projectchrono/chrono.git</tt> in the field "Source Path / URL"
+-  enter <tt>https://github.com/projectchrono/chrono.git</tt> in the field "Source Path / URL"
 
-3. enter a path to an empty directory, say <tt>C:/chrono_source</tt>, in the field "Destination path" 
+-  enter a path to an empty directory, say <tt>C:/chrono_source</tt>, in the field "Destination path" 
    ![](Install_ST2.gif)
    
-4. press **Clone** and wait few minutes: the source code will be downloaded to your directory.
+-  press **Clone** and wait few minutes: the source code will be downloaded to your directory.
 
-###Download the Irrlicht library
+## 5) Download the Irrlicht library
 
-Please **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html) 
-and **unzip** it in whatever directory.  
-For example, here we suppose that you unzipped it in <tt>C:/engine_demos/irrlicht-1.8.2</tt>.
+- **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html) 
+- **unzip** it in whatever directory.  
+  For example, here we suppose that you unzipped it in <tt>C:/engine_demos/irrlicht-1.8.2</tt>.
 
 <div class="ce-warning"> 
 Click here for the direct download of the 
@@ -63,55 +71,55 @@ Release v.1.8.0 has some issues with soft shadows.
 
 
 
-###Run CMake
+## 6) Run CMake
 
 Start the CMake tool and configure the build. In detail:
 
-1. In the field "Where is the source code" set the path to your Chrono directory 
+-  In the field "Where is the source code" set the path to your Chrono directory 
    This is the directory where you created your Git repository, in our example is <tt>C:/chrono_source</tt>. 
-2. In the field "Where to build the binaries" set the path to another directory in your system, 
+-  In the field "Where to build the binaries" set the path to another directory in your system, 
    that must be empty. Here the Visual C++ project will be created (or the makefiles if in Linux). 
    For our example, let's use <tt>C:/chrono_build</tt>, 
    ![](Install_5.gif)
-3. Press the **Configure** button.
-4. Set the compiler among the generators in the window that opens, and press **Ok**. 
+-  Press the **Configure** button.
+-  Set the compiler among the generators in the window that opens, and press **Ok**. 
    If possible, choose a **64bit** compiler.
-5. Change the settings in the user interface of CMake.
+-  Change the settings in the user interface of CMake.
    Some of these settings are automatically detected, but some other must be changed. 
    ![](Install_7.gif)
-   * Activate the needed units with checkmarks: at least click on ENABLE_MODULE_IRRLICHT, ENABLE_MODULE_POSTPROCESS. 
+   - Activate the needed units with checkmarks: at least click on ENABLE_MODULE_IRRLICHT, ENABLE_MODULE_POSTPROCESS. 
      Other modules might require additional settings and dependencies. More info on advanced modules in a separate section. [Units]().
-   * Press **Configure**.
-   * Set the directory in CH_IRRLICHTDIR: it must contain the path to your unzipped Irrlicht directory.  
+   - Press **Configure**.
+   - Set the directory in CH_IRRLICHTDIR: it must contain the path to your unzipped Irrlicht directory.  
      In our example, browse to <tt>C:/engine_demos/irrlicht-1.8.2</tt>
-   * Set the library in CH_IRRLICHTLIB: it must contain the file of the Irrlicht.lib.  
+   - Set the library in CH_IRRLICHTLIB: it must contain the file of the Irrlicht.lib.  
      In our example, browse to <tt>C:/engine_demos/irrlicht-1.8.2/lib/Win64-visualStudio/Irrlicht.lib</tt>.
-   * Press **Configure**.
-6. Remember that you might need to press **Configure** after you change some setting, even multiple times,
+   - Press **Configure**.
+-  Remember that you might need to press **Configure** after you change some setting, even multiple times,
    until all the labels do not have a red background anymore. 
-7. Finally, press **Generate**.
+-  Finally, press **Generate**.
 Now you just created a project to build Chrono::Engine. You can also close CMake.
 
-###Compile the project
+## 7) Compile the project
 
-1. Go to the directory that you set in "Where to build the binaries". You will find a file **ChronoEngine.sln**
+-  Go to the directory that you set in "Where to build the binaries". You will find a file **ChronoEngine.sln**
 
-2. **Double-click** on that file: your Visual Studio project will open.
+-  **Double-click** on that file: your Visual Studio project will open.
 
-3. **Choose 'Debug' mode** using the dropbox in the toolbar.
+-  **Choose 'Debug' mode** using the dropbox in the toolbar.
  
-4. Use the menu **BUILD / Build solution...** in the Visual Studio editor: the entire Chrono::Engine project
+-  Use the menu **BUILD / Build solution...** in the Visual Studio editor: the entire Chrono::Engine project
    and its demos will be compiled, creating many .exe and .dll files in the bin/Debug directory.  
    This will take few minutes.
 
-5. **Choose 'Release' mode** using the dropbox in the toolbar.
+-  **Choose 'Release' mode** using the dropbox in the toolbar.
  
 6. Use again the menu **BUILD / Build solution...** in the Visual Studio editor: the entire Chrono::Engine project
    and its demos will be compiled, creating many .exe and .dll files, this time in the bin/Release directory.   
    This will take few minutes.
    
    
-###Play with the demos
+## 8) Play with the demos
 
 Where are the binaries that you compiled? Go to the directory that you set in "Where to build the binaries", 
 that is  <tt>C:/chrono_build</tt> in our case, than 
@@ -130,4 +138,4 @@ Remember: never mix 64bit and 32bit binares and libraries!
 For example, if you built Chrono in 64 bit, using a 64bit compiler, you must link the 64bit Irrlicht library.  
 </div>
 
-Now you are ready: you can proceed and [develop your programs]() based on Chrono::Engine.
+Now you are ready: you can proceed and [develop your programs](@ref tutorial_install_project) based on Chrono::Engine.

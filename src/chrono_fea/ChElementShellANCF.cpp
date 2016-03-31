@@ -1328,8 +1328,7 @@ void ChElementShellANCF::CalcStrainANSbilinearShell() {
 // -----------------------------------------------------------------------------
 // Interface to ChElementShell base class
 // -----------------------------------------------------------------------------
-void ChElementShellANCF::EvaluateSectionStrains(
-	ChVector<>& StrainVector) {
+ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
 
 	// Element shape function
 	ChMatrixNM<double, 1, 8> N;
@@ -1478,10 +1477,7 @@ void ChElementShellANCF::EvaluateSectionStrains(
 		strain_til(3, 0) * 2.0 * beta(7) * beta(8) +
 		strain_til(4, 0) * (beta(2) * beta(7) + beta(1) * beta(8)) +
 		strain_til(5, 0) * (beta(5) * beta(7) + beta(4) * beta(8));
-
-	StrainVector(0) = strain(0, 0); // XX
-	StrainVector(1) = strain(1, 0); // YY
-	StrainVector(2) = strain(2, 0); // XY
+	return ChVector<>(strain(0, 0), strain(1, 0), strain(2, 0));
 }
 void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
                                                      const double v,

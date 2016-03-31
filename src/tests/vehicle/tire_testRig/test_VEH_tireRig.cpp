@@ -318,10 +318,14 @@ int main() {
     // Set contact model to DEM if ANCF tire is used
     if (tire_model == ANCF) {
         contact_method = ChMaterialSurfaceBase::DEM;
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5); // Maximum interpenetration allowed
+        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
     }
-    
+
     ChSystem* my_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
+
+    if (auto sysDEM = dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
+        sysDEM->SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+    }
 
     my_system->Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
@@ -972,8 +976,8 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
         for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
             int myelemInx = NodeNeighborElement[i][j];
             ChVector<> StrainVector(0);
-            std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-                ->EvaluateSectionStrains(StrainVector);
+			StrainVector = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+                ->EvaluateSectionStrains();
             dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthX();
             dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthY();
             myarea += dx * dy / 4;

@@ -28,7 +28,8 @@ Required tools
 
 ### C++ compiler 
 
-Chrono requires a C++11 compliant compiler. We tested it on Microsoft compilers (required version MSVC v.2013 or later), GNU compilers, Intel compilers.
+Chrono requires a C++11 compliant compiler. 
+We tested it on Microsoft compilers (required version Visual Studio v.2013 or later), GNU compilers, Intel compilers.
 
 <div class="ce-info">
 
@@ -36,7 +37,7 @@ In case you do not have a C++ compiler already installed on your computer, you c
 
 * Windows 
 
-  * [Microsoft Visual C++](http://www.microsoft.com/express/Windows),  (suggested)
+  * [Microsoft C++, in Visual Studio](https://www.visualstudio.com)  (suggested; the Community edition is also free)
   
   * [MingW GNU C++](http://www.mingw.org/wiki/InstallationHOWTOforMinGW)
   
@@ -49,6 +50,13 @@ In case you do not have a C++ compiler already installed on your computer, you c
     (assuming you have Ubuntu) 
    
   * or download from [http://gcc.gnu.org](http://gcc.gnu.org)
+</div>
+
+<div class="ce-danger">
+Warning! The initial release of Visual Studio 2015 gives an 
+error compiling Chrono::Engine! If you use it, you must upgrade it to 
+the **update 2** that fixed the problem. Download it from 
+[this page](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). 
 </div>
 
 
