@@ -27,7 +27,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Co-rotational FEA tire model.
+/// Co-rotational FEA tire template.
 /// This tire is modeled as a mesh composed of co-rotational elements.
 class CH_VEHICLE_API ChFEATire : public ChDeformableTire {
   public:

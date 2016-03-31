@@ -23,6 +23,8 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemDEM.h"
 
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
@@ -40,8 +42,16 @@ namespace vehicle {
 /// Base class for a deformable tire model.
 class CH_VEHICLE_API ChDeformableTire : public ChTire {
   public:
+    /// Type of the mesh contact surface.
+    enum ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
+
+    /// Construct a deformable tire with the specified name.
     ChDeformableTire(const std::string& name  ///< [in] name of this tire system
                      );
+
+    /// Set the type of contact surface.
+    void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
+    ContactSurfaceType GetContactSurfaceType() const { return m_contact_type; }
 
     /// Set radius of contact nodes.
     /// This value is relevant only for NODE_CLOUD contact surface type.
@@ -92,6 +102,13 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
+
+    /// Get the mesh contact surface.
+    /// If contact is not enabled, an empty shared pointer is returned.
+    std::shared_ptr<fea::ChContactSurface> GetContactSurface() const;
+
+    /// Get the load container associated with this tire.
+    std::shared_ptr<ChLoadContainer> GetLoadContainer() const { return m_load_container; }
 
     /// Set the tire pressure.
     void SetPressure(double pressure) {
@@ -162,6 +179,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     double m_pressure; ///< internal tire pressure
 
+    ContactSurfaceType m_contact_type;  ///< type of contact surface model (node cloud or mesh)
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
     double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 

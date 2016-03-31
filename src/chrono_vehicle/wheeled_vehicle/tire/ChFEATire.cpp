@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 
 namespace chrono {
@@ -51,10 +49,22 @@ void ChFEATire::CreatePressureLoad() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChFEATire::CreateContactSurface() {
-    auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
-    m_mesh->AddContactSurface(contact_surf);
-    contact_surf->AddAllNodes(m_contact_node_radius);
-    contact_surf->SetMaterialSurface(m_contact_mat);
+    switch (m_contact_type) {
+        case NODE_CLOUD: {
+            auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
+            m_mesh->AddContactSurface(contact_surf);
+            contact_surf->AddAllNodes(m_contact_node_radius);
+            contact_surf->SetMaterialSurface(m_contact_mat);
+            break;
+        }
+        case TRIANGLE_MESH: {
+            auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
+            m_mesh->AddContactSurface(contact_surf);
+            contact_surf->AddFacesFromBoundary();
+            contact_surf->SetMaterialSurface(m_contact_mat);
+            break;
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

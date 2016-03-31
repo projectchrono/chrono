@@ -27,16 +27,11 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// ANCF tire model.
+/// ANCF tire template.
 /// This tire is modeled as a mesh composed of ANCF shell elements.
 class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
   public:
-    enum ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
-
     ChANCFTire(const std::string& name);
-
-    /// Set the type of contact surface.
-    void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
 
   protected:
     /// Create the ChLoad for applying pressure to the tire.
@@ -47,8 +42,6 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
 
     /// Create the tire-rim connections.
     virtual void CreateRimConnections(std::shared_ptr<ChBody> wheel) override final;
-
-    ContactSurfaceType m_contact_type;  ///< type of contact surface model (node cloud or mesh)
 };
 
 /// @} vehicle_wheeled_tire
