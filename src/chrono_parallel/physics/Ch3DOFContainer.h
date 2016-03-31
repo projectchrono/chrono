@@ -181,7 +181,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     std::thread mpm_thread;
     bool mpm_init;
     MPM_Settings temp_settings;
-    custom_vector<float> mpm_pos, mpm_vel;
+    custom_vector<float> mpm_pos, mpm_vel, mpm_jejp;
   private:
     uint body_offset;
 };
@@ -286,7 +286,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real alpha_flip;
 
     int mpm_iterations;
-    custom_vector<float> mpm_pos, mpm_vel;
+    custom_vector<float> mpm_pos, mpm_vel, mpm_jejp;
 
     std::thread mpm_thread;
     bool mpm_init;

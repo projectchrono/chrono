@@ -28,7 +28,7 @@ std::vector<Mat33f> volume_Ap_Fe_transpose;
 float3* lower_bound;
 float3* upper_bound;
 
-gpu_vector<float> pos, vel;
+gpu_vector<float> pos, vel, JE_JP;
 gpu_vector<float> node_mass;
 gpu_vector<float> marker_volume;
 gpu_vector<float> grid_vel, delta_v;
@@ -747,7 +747,8 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
                                             Mat33f* marker_Fe,
                                             Mat33f* marker_Fp,
                                             Mat33f* marker_RE,
-                                            float* plasticity) {
+                                            float* plasticity,
+                                            float* JE_JP) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
         const float xix = pos_marker[p * 3 + 0];
@@ -838,12 +839,24 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
         Mat33f m_FP = V * MultTranspose(Mat33f(1.0 / E_clamped), U) * F_tmp;
         float JP_new = Determinant(m_FP);
         // Ensure that F_p is purely deviatoric
-        marker_Fe[p] = powf(JP_new, 1.0 / 3.0) * U * MultTranspose(Mat33f(E_clamped), V);
-        marker_Fp[p] = powf(JP_new, -1.0 / 3.0) * m_FP;
+
+        Mat33f T1 = powf(JP_new, 1.0 / 3.0) * U * MultTranspose(Mat33f(E_clamped), V);
+        Mat33f T2 = powf(JP_new, -1.0 / 3.0) * m_FP;
+
+        JE_JP[p * 2 + 0] = Determinant(T1);
+        JE_JP[p * 2 + 1] = Determinant(T2);
+
+        marker_Fe[p] = T1;
+        marker_Fp[p] = T2;
+
+        //printf("JP: %f JE: %f\n", Determinant(marker_Fe[p]), Determinant(marker_Fp[p]));
     }
 }
 
-void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vector<float>& velocities) {
+void MPM_Solve(MPM_Settings& settings,
+               std::vector<float>& positions,
+               std::vector<float>& velocities,
+               std::vector<float>& jejp) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
@@ -889,7 +902,9 @@ void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vecto
     {
         CudaEventTimer timer(start, stop, true, time_measured);
         kUpdateDeformationGradient<<<CONFIG(host_settings.num_mpm_markers)>>>(
-            grid_vel.data_d, pos.data_d, marker_Fe.data_d, marker_Fp.data_d, PolarR.data_d, marker_plasticity.data_d);
+            grid_vel.data_d, pos.data_d, marker_Fe.data_d, marker_Fp.data_d, PolarR.data_d, marker_plasticity.data_d,
+            JE_JP.data_d);
+        JE_JP.copyDeviceToHost();
     }
     printf("kUpdateDeformationGradient: %f\n", time_measured);
     time_measured = 0;
@@ -953,6 +968,8 @@ void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vecto
     vel.copyDeviceToHost();
     velocities = vel.data_h;
 
+    jejp = JE_JP.data_h;
+
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
 }
@@ -1013,6 +1030,7 @@ void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions) {
         marker_delta_F.resize(host_settings.num_mpm_markers);
         PolarR.resize(host_settings.num_mpm_markers);
         PolarS.resize(host_settings.num_mpm_markers);
+        JE_JP.resize(host_settings.num_mpm_markers * 2);
         marker_plasticity.resize(host_settings.num_mpm_markers);
         marker_plasticity = 0;
     }

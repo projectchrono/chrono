@@ -94,6 +94,7 @@ void ChFluidContainer::Update(double ChTime) {
         if (mpm_iterations > 0) {
             mpm_pos.resize(data_manager->num_fluid_bodies * 3);
             mpm_vel.resize(data_manager->num_fluid_bodies * 3);
+            mpm_jejp.resize(data_manager->num_fluid_bodies * 2);
 
             for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
                 mpm_pos[i * 3 + 0] = data_manager->host_data.pos_3dof[i].x;
@@ -106,7 +107,8 @@ void ChFluidContainer::Update(double ChTime) {
                 mpm_vel[i * 3 + 2] = data_manager->host_data.vel_3dof[i].z;
             }
 
-            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel));
+            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel),
+                                     std::ref(mpm_jejp));
 
             for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
                 data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];
@@ -525,9 +527,17 @@ void ChFluidContainer::Build_b() {
         }
     }
     if (num_fluid_bodies > 0) {
+        if (mpm_iterations > 0) {
 #pragma omp parallel for
-        for (int index = 0; index < num_fluid_bodies; index++) {
-            b[start_density + index] = -(density[index] / rho - 1.0);
+            for (int index = 0; index < num_fluid_bodies; index++) {
+                b[start_density + index] = (1.0 / mpm_jejp[index * 2 + 1]) * (mpm_jejp[index * 2 + 0] - 1.0);
+                // printf("J:%f J:%f  [%f,%f]\n", mpm_jejp[index * 2 + 0], mpm_jejp[index * 2 + 1], b[start_density +
+            }
+        } else {
+#pragma omp parallel for
+            for (int index = 0; index < num_fluid_bodies; index++) {
+                b[start_density + index] = -(density[index] / rho - 1.0);
+            }
         }
     }
 }

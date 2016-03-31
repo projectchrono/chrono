@@ -84,7 +84,7 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
         if (mpm_iterations > 0) {
             mpm_pos.resize(data_manager->num_fluid_bodies * 3);
             mpm_vel.resize(data_manager->num_fluid_bodies * 3);
-
+            mpm_jejp.resize(data_manager->num_fluid_bodies * 2);
             for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
                 mpm_pos[i * 3 + 0] = data_manager->host_data.pos_3dof[i].x;
                 mpm_pos[i * 3 + 1] = data_manager->host_data.pos_3dof[i].y;
@@ -96,7 +96,8 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
                 mpm_vel[i * 3 + 2] = data_manager->host_data.vel_3dof[i].z;
             }
 
-            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel));
+            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel),
+                                     std::ref(mpm_jejp));
 
             //            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
             //                data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];
