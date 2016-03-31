@@ -32,7 +32,8 @@ class ChApi ChSystemDEM : public ChSystem {
     /// Enum for DEM contact type.
     enum ContactForceModel {
         Hooke,  ///< linear Hookean model
-        Hertz   ///< nonlinear Hertzian model
+        Hertz,   ///< nonlinear Hertzian model
+		PlainCoulomb   ///< basic tangential force definition for non-granular bodies
     };
 
     /// Enum for adhesion force model.
