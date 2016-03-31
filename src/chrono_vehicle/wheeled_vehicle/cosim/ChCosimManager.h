@@ -19,6 +19,7 @@
 #ifndef CH_COSIM_MANAGER_H
 #define CH_COSIM_MANAGER_H
 
+#include <vector>
 #include "mpi.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -65,6 +66,12 @@ class CH_VEHICLE_API ChCosimManager {
     virtual ChSystem* GetChronoSystemTerrain() = 0;
     virtual ChTerrain* GetTerrain() = 0;
     virtual double GetTerrainStepsize() = 0;
+    virtual void OnReceiveTireInfo(int which, unsigned int num_vert, unsigned int num_tri) = 0;
+    virtual void OnReceiveTireData(int which,
+                                   const std::vector<ChVector<>>& vert_pos,
+                                   const std::vector<ChVector<>>& vert_vel,
+                                   const std::vector<ChVector<int>>& triangles) = 0;
+    virtual void OnSendTireForces(int which, std::vector<ChVector<>>& vert_forces, std::vector<int> vert_indeces) = 0;
     virtual void OnAdvanceTerrain() {}
 
     // Functions invoked only on a TIRE node

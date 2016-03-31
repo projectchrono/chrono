@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <vector>
 
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimManager.h"
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimTireNode.h"
@@ -96,24 +97,76 @@ void ChCosimTireNode::Synchronize(double time) {
     double bufWS[14];
     MPI_Status statusWS;
     MPI_Recv(bufWS, 14, MPI_DOUBLE, VEHICLE_NODE_RANK, m_id.id(), MPI_COMM_WORLD, &statusWS);
-    m_wheel_state.pos = ChVector<>(bufWS[0], bufWS[1], bufWS[2]);
-    m_wheel_state.rot = ChQuaternion<>(bufWS[3], bufWS[4], bufWS[5], bufWS[6]);
-    m_wheel_state.lin_vel = ChVector<>(bufWS[7], bufWS[8], bufWS[9]);
-    m_wheel_state.ang_vel = ChVector<>(bufWS[10], bufWS[11], bufWS[12]);
-    m_wheel_state.omega = bufWS[13];
+    WheelState wheel_state;
+    wheel_state.pos = ChVector<>(bufWS[0], bufWS[1], bufWS[2]);
+    wheel_state.rot = ChQuaternion<>(bufWS[3], bufWS[4], bufWS[5], bufWS[6]);
+    wheel_state.lin_vel = ChVector<>(bufWS[7], bufWS[8], bufWS[9]);
+    wheel_state.ang_vel = ChVector<>(bufWS[10], bufWS[11], bufWS[12]);
+    wheel_state.omega = bufWS[13];
 
-    // Send tire location(s) to the terrain node
-    //// TODO
+    // Extract tire mesh vertex locations and velocities
+    std::vector<ChVector<>> vert_pos;
+    std::vector<ChVector<>> vert_vel;
+    std::vector<ChVector<int>> triangles;
+    m_contact_load->OutputSimpleMesh(vert_pos, vert_vel, triangles);
+    unsigned int num_vert = (unsigned int)vert_pos.size();
+    unsigned int num_tri = (unsigned int)triangles.size();
+
+    // Send tire mesh vertex locations and velocities to the terrain node
+    //// TODO: use custom derived MPI types?
+    double* vert_data = new double[2 * 3 * num_vert];
+    int* tri_data = new int[3 * num_tri];
+    for (unsigned int iv = 0; iv < num_vert; iv++) {
+        vert_data[3 * iv + 0] = vert_pos[iv].x;
+        vert_data[3 * iv + 1] = vert_pos[iv].y;
+        vert_data[3 * iv + 2] = vert_pos[iv].z;
+    }
+    for (unsigned int iv = 0; iv < num_vert; iv++) {
+        vert_data[3 * num_vert + 3 * iv + 0] = vert_vel[iv].x;
+        vert_data[3 * num_vert + 3 * iv + 1] = vert_vel[iv].y;
+        vert_data[3 * num_vert + 3 * iv + 2] = vert_vel[iv].z;
+    }
+    for (unsigned int it = 0; it < num_tri; it++) {
+        tri_data[3 * it + 0] = triangles[it].x;
+        tri_data[3 * it + 1] = triangles[it].y;
+        tri_data[3 * it + 2] = triangles[it].z;
+    }
+    MPI_Send(vert_data, 2 * 3 * num_vert, MPI_DOUBLE, TERRAIN_NODE_RANK, m_id.id(), MPI_COMM_WORLD);
+    MPI_Send(tri_data, 3 * num_tri, MPI_INT, TERRAIN_NODE_RANK, m_id.id(), MPI_COMM_WORLD);
+
+    delete[] vert_data;
+    delete[] tri_data;
 
     // Receive terrain force(s) from the terrain node
-    //// TODO
+    // Note that we use MPI_Probe to figure out the number of indeces and forces received.
+    MPI_Status status;
+    int count;
+    MPI_Probe(TERRAIN_NODE_RANK, m_id.id(), MPI_COMM_WORLD, &status);
+    MPI_Get_count(&status, MPI_INT, &count);
+    int* index_data = new int[count];
+    double* force_data = new double[3 * count];
+    MPI_Recv(index_data, count, MPI_INT, TERRAIN_NODE_RANK, m_id.id(), MPI_COMM_WORLD, &status);
+    MPI_Recv(force_data, 3 * count, MPI_DOUBLE, TERRAIN_NODE_RANK, m_id.id(), MPI_COMM_WORLD, &status);
+
+    // Repack data and apply forces to the mesh vertices
+    std::vector<ChVector<>> vert_forces;
+    std::vector<int> vert_indeces;
+    for (int iv = 0; iv < count; iv++) {
+        vert_forces.push_back(ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]));
+        vert_indeces.push_back(index_data[iv]);
+    }
+    m_contact_load->InputSimpleForces(vert_forces, vert_indeces);
+
+    delete[] index_data;
+    delete[] force_data;
 
     // Synchronize the ghost wheel and the tire
-    m_wheel->SetPos(m_wheel_state.pos);
-    m_wheel->SetRot(m_wheel_state.rot);
-    m_wheel->SetPos_dt(m_wheel_state.lin_vel);
-    m_wheel->SetWvel_par(m_wheel_state.ang_vel);
-    m_tire->Synchronize(time, m_wheel_state, *m_terrain);
+    m_wheel->SetPos(wheel_state.pos);
+    m_wheel->SetRot(wheel_state.rot);
+    m_wheel->SetPos_dt(wheel_state.lin_vel);
+    m_wheel->SetWvel_par(wheel_state.ang_vel);
+
+    m_tire->Synchronize(time, wheel_state, *m_terrain);
 }
 
 void ChCosimTireNode::Advance(double step) {

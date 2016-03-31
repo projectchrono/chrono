@@ -128,6 +128,12 @@ class MyCosimManager : public ChCosimManager {
     virtual ChSystem* GetChronoSystemTerrain() override { return m_system; }
     virtual ChTerrain* GetTerrain() override { return m_terrain; }
     virtual double GetTerrainStepsize() override { return terrain_step_size; }
+    virtual void OnReceiveTireInfo(int which, unsigned int num_vert, unsigned int num_tri) override;
+    virtual void OnReceiveTireData(int which,
+                                   const std::vector<ChVector<>>& vert_pos,
+                                   const std::vector<ChVector<>>& vert_vel,
+                                   const std::vector<ChVector<int>>& triangles) override;
+    virtual void OnSendTireForces(int which, std::vector<ChVector<>>& vert_forces, std::vector<int> vert_indeces) override;
     virtual void OnAdvanceTerrain() override;
 
     virtual void SetAsTireNode(WheelID which);
@@ -178,6 +184,21 @@ void MyCosimManager::SetAsTireNode(WheelID which) {
     m_tire->EnablePressure(true);
     m_tire->EnableRimConnection(true);
     m_tire->EnableContact(false);
+}
+
+void MyCosimManager::OnReceiveTireInfo(int which, unsigned int num_vert, unsigned int num_tri) {
+    //// TODO
+}
+
+void MyCosimManager::OnReceiveTireData(int which,
+                                       const std::vector<ChVector<>>& vert_pos,
+                                       const std::vector<ChVector<>>& vert_vel,
+                                       const std::vector<ChVector<int>>& triangles) {
+    //// TODO
+}
+
+void MyCosimManager::OnSendTireForces(int which, std::vector<ChVector<>>& vert_forces, std::vector<int> vert_indeces) {
+    //// TODO
 }
 
 void MyCosimManager::OnAdvanceVehicle() {

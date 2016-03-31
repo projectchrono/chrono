@@ -69,6 +69,7 @@ bool ChCosimManager::Initialize() {
     } else if (m_rank == TERRAIN_NODE_RANK) {
         SetAsTerrainNode();
         m_terrain_node = new ChCosimTerrainNode(m_rank, GetChronoSystemTerrain(), GetTerrain(), m_num_tires);
+        m_terrain_node->m_manager = this;
         m_terrain_node->SetStepsize(GetTerrainStepsize());
         m_terrain_node->Initialize();
         if (m_verbose) {

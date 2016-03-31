@@ -47,8 +47,6 @@ class CH_VEHICLE_API ChCosimTireNode : public ChCosimNode {
     std::shared_ptr<ChBody> m_wheel;
     std::shared_ptr<ChTerrain> m_terrain;
 
-    WheelState m_wheel_state;
-
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;
 };
 
