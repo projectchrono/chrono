@@ -49,6 +49,7 @@ namespace chrono {
 /// either in the 'shortcut' flavour, that is "Coordsys", which assumes
 /// the type of the four scalars is double precision, so it is faster to type.
 ///
+/// Further info at the @ref coordinate_transformations manual page.
 
 template <class Real = double>
 class ChCoordsys {

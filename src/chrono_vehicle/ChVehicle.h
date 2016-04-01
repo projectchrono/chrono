@@ -31,7 +31,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 /**
-    @defgroup vehicle Chrono::Vehicle
+    @defgroup vehicle VEHICLE module
     @brief Ground vehicle modeling
 
     This module introduces template-based modeling tools

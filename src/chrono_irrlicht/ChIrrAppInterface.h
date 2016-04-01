@@ -26,7 +26,7 @@
 #include "chrono_irrlicht/ChIrrWizard.h"
 
 /**
-    @defgroup irrlicht IRRLICHT module
+    @defgroup irrlicht_module IRRLICHT module
     @brief Runtime visualization with Irrlicht
 
     This module can be used to provide 3D realtime rendering 

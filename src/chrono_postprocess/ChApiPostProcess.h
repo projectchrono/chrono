@@ -44,7 +44,7 @@
     - GNUplot
 
     For additional information, see:
-    - the [installation guide](@ref module_postprocessing_installation)
+    - the [installation guide](@ref module_postprocess_installation)
     - the [tutorials](@ref tutorial_root)
 */
 

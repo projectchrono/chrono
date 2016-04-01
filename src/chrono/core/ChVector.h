@@ -49,6 +49,8 @@ namespace chrono {
 /// Definition of general purpose 3d vector variables, such as points in 3D.
 /// This class implements the vectorial algebra in 3D (Gibbs products).
 /// ChVector is templated by precision, with default 'double'.
+///
+/// Further info at the @ref mathematical_objects manual page.
 template <class Real = double>
 class ChVector {
   public:

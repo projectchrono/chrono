@@ -58,6 +58,7 @@ class ChSystem;
 /// These objects have mass and inertia properties. A shape can also
 /// be associated to the body, for collision detection.
 ///
+/// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBody :            public ChPhysicsItem, 
                                 public ChBodyFrame, 

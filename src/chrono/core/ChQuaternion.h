@@ -53,6 +53,7 @@ namespace chrono {
 ///  For example, for a declaration, you can write "ChQuaternion<double> foo;",
 /// as well as "Quaternion foo;" (less typing effort for the second..)
 ///
+/// Further info at the @ref manual_ChQuaternion  manual page.
 
 template <class Real = double>
 class ChQuaternion {
