@@ -12,6 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 // Generic finite element node with 9 degrees of freedom representing curvature
+// (2nd derivatives of the poosition vector)
 // =============================================================================
 
 #include "chrono_fea/ChNodeFEAcurv.h"

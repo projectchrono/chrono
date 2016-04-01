@@ -12,14 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 // Generic finite element node with 9 degrees of freedom representing curvature
+// (2nd derivatives of the poosition vector)
 // =============================================================================
 
 #ifndef CHNODEFEACURV_H
 #define CHNODEFEACURV_H
 
-#include "chrono/core/ChFrameMoving.h"
-#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
-#include "chrono/physics/ChBodyFrame.h"
+#include "chrono/lcp/ChLcpVariablesGenericDiagonalMass.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
 namespace chrono {
@@ -28,16 +27,35 @@ namespace fea {
 /// Generic finite element node with 9 degrees of freedom representing curvature.
 class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
   public:
-    ChNodeFEAcurv(ChVector<> initial_pos = VNULL) {
-        pos = initial_pos;
-        //// TODO
+    ChNodeFEAcurv(const ChVector<>& rxx = VNULL,  ///< initial value of xx 2nd derivative of position vector
+                  const ChVector<>& ryy = VNULL,  ///< initial value of yy 2nd derivative of position vector
+                  const ChVector<>& rzz = VNULL   ///< initial value of zz 2nd derivative of position vector
+                  )
+        : m_rxx(rxx), m_ryy(ryy), m_rzz(rzz) {
+        m_rxx_dt = VNULL;
+        m_ryy_dt = VNULL;
+        m_rzz_dt = VNULL;
+        m_rxx_dtdt = VNULL;
+        m_ryy_dtdt = VNULL;
+        m_rzz_dtdt = VNULL;
+        m_variables = new ChLcpVariablesGenericDiagonalMass(9);
+        m_variables->GetMassDiagonal().FillElem(0);
     }
 
-    ~ChNodeFEAcurv() {}
+    ~ChNodeFEAcurv() { delete m_variables; }
 
     ChNodeFEAcurv(const ChNodeFEAcurv& other) : ChNodeFEAbase(other) {
-        this->pos = other.pos;
-        //// TODO
+        m_variables = new ChLcpVariablesGenericDiagonalMass(9);
+        *m_variables = *other.m_variables;
+        m_rxx = other.m_rxx;
+        m_ryy = other.m_ryy;
+        m_rzz = other.m_rzz;
+        m_rxx_dt = other.m_rxx_dt;
+        m_ryy_dt = other.m_ryy_dt;
+        m_rzz_dt = other.m_rzz_dt;
+        m_rxx_dtdt = other.m_rxx_dtdt;
+        m_ryy_dtdt = other.m_ryy_dtdt;
+        m_rzz_dtdt = other.m_rzz_dtdt;
     }
 
     ChNodeFEAcurv& operator=(const ChNodeFEAcurv& other) {
@@ -46,46 +64,92 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
 
         ChNodeFEAbase::operator=(other);
 
-        this->pos = other.pos;
-        //// TODO
+        *m_variables = *other.m_variables;
+        m_rxx = other.m_rxx;
+        m_ryy = other.m_ryy;
+        m_rzz = other.m_rzz;
+        m_rxx_dt = other.m_rxx_dt;
+        m_ryy_dt = other.m_ryy_dt;
+        m_rzz_dt = other.m_rzz_dt;
+        m_rxx_dtdt = other.m_rxx_dtdt;
+        m_ryy_dtdt = other.m_ryy_dtdt;
+        m_rzz_dtdt = other.m_rzz_dtdt;
 
         return *this;
     }
 
-    //// TODO
-    ////virtual ChLcpVariables& Variables() override { return this->variables; }
+    /// Set the xx 2nd derivative of position vector.
+    void SetCurvatureXX(const ChVector<>& rxx) { m_rxx = rxx; }
+    /// Get the xx 2nd derivative of position vector.
+    const ChVector<>& GetCurvatureXX() const { return m_rxx; }
 
-    /// Set the rest position as the actual position.
+    /// Set the yy 2nd derivative of position vector.
+    void SetCurvatureYY(const ChVector<>& ryy) { m_ryy = ryy; }
+    /// Get the yy 2nd derivative of position vector.
+    const ChVector<>& GetCurvatureYY() const { return m_ryy; }
+
+    /// Set the zz 2nd derivative of position vector.
+    void SetCurvatureZZ(const ChVector<>& rzz) { m_rzz = rzz; }
+    /// Get the zz 2nd derivative of position vector.
+    const ChVector<>& GetCurvatureZZ() const { return m_rzz; }
+
+    /// Set the time derivative of the xx 2nd derivative of position vector.
+    void SetCurvatureXX_dt(const ChVector<>& rxx_dt) { m_rxx_dt = rxx_dt; }
+    /// Get the time derivative of the xx 2nd derivative of position vector.
+    const ChVector<>& GetCurvatureXX_dt() const { return m_rxx_dt; }
+
+    /// Set the time derivative of the yy 2nd derivative of position vector.
+    void SetCurvatureYY_dt(const ChVector<>& ryy_dt) { m_ryy_dt = ryy_dt; }
+    /// Get the time derivative of the yy 2nd derivative of position vector.
+    const ChVector<>& GetCurvatureYY_dt() const { return m_ryy_dt; }
+
+    /// Set the time derivative of the zz 2nd derivative of position vector.
+    void SetCurvatureZZ_dt(const ChVector<>& rzz_dt) { m_rzz_dt = rzz_dt; }
+    /// Get the time derivative of the zz 2nd derivative of position vector.
+    const ChVector<>& GetCurvatureZZ_dt() const { return m_rzz_dt; }
+
+    /// Get mass of the node.
+    //// TODO  is this even meaningful/needed for this type of node?
+    ChVectorDynamic<>& GetMassDiagonal() { return m_variables->GetMassDiagonal(); }
+
+    /// Set mass of the node.
+    //// TODO  is this even meaningful/needed for this type of node?
+    void SetMass(double mass) { m_variables->GetMassDiagonal().FillElem(mass); }
+
+    ChLcpVariables& Variables() { return *m_variables; }
+
+    /// Reset the 2nd derivatives of position vector and their time derivatives.
     virtual void Relax() override {
-        //// TODO
+        m_rxx = VNULL;
+        m_ryy = VNULL;
+        m_rzz = VNULL;
+        m_rxx_dt = VNULL;
+        m_ryy_dt = VNULL;
+        m_rzz_dt = VNULL;
+        m_rxx_dtdt = VNULL;
+        m_ryy_dtdt = VNULL;
+        m_rzz_dtdt = VNULL;
     }
 
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override {
-        //// TODO 
+        m_rxx_dt = VNULL;
+        m_ryy_dt = VNULL;
+        m_rzz_dt = VNULL;
+        m_rxx_dtdt = VNULL;
+        m_ryy_dtdt = VNULL;
+        m_rzz_dtdt = VNULL;
     }
 
     /// Set the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual void SetFixed(bool mev) override {
-        //// TODO
+    /// If true, its current curvature values are not changed by solver.
+    virtual void SetFixed(bool val) override {
+        m_variables->SetDisabled(val);
     }
+
     /// Get the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
     virtual bool GetFixed() override {
-        return false;
-        //// TODO
-    }
-
-    /// Get mass of the node.
-    virtual double GetMass() {
-        return 0;
-        //// TODO
-    }
-
-    /// Set mass of the node.
-    virtual void SetMass(double mm) {
-        //// TODO
+        return m_variables->IsDisabled();
     }
 
     /// Get the number of degrees of freedom.
@@ -103,7 +167,12 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
                                     const unsigned int off_v,
                                     ChStateDelta& v,
                                     double& T) override {
-        //// TODO
+        x.PasteVector(m_rxx, off_x + 0, 0);
+        x.PasteVector(m_ryy, off_x + 3, 0);
+        x.PasteVector(m_rzz, off_x + 6, 0);
+        v.PasteVector(m_rxx_dt, off_v + 0, 0);
+        v.PasteVector(m_ryy_dt, off_v + 3, 0);
+        v.PasteVector(m_rzz_dt, off_v + 6, 0);
     }
 
     virtual void NodeIntStateScatter(const unsigned int off_x,
@@ -111,15 +180,24 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
                                      const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const double T) override {
-        //// TODO
+        m_rxx = x.ClipVector(off_x + 0, 0);
+        m_ryy = x.ClipVector(off_x + 3, 0);
+        m_rzz = x.ClipVector(off_x + 6, 0);
+        m_rxx_dt = v.ClipVector(off_v + 0, 0);
+        m_ryy_dt = v.ClipVector(off_v + 3, 0);
+        m_rzz_dt = v.ClipVector(off_v + 6, 0);
     }
 
     virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override {
-        //// TODO
+        a.PasteVector(m_rxx_dtdt, off_a + 0, 0);
+        a.PasteVector(m_ryy_dtdt, off_a + 3, 0);
+        a.PasteVector(m_rzz_dtdt, off_a + 6, 0);
     }
 
     virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override {
-        //// TODO
+        m_rxx_dtdt = a.ClipVector(off_a + 0, 0);
+        m_ryy_dtdt = a.ClipVector(off_a + 3, 0);
+        m_rzz_dtdt = a.ClipVector(off_a + 6, 0);
     }
 
     virtual void NodeIntStateIncrement(const unsigned int off_x,
@@ -127,23 +205,31 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
                                        const ChState& x,
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) override {
-        //// TODO
-        //// Default base class ChNodeBase enough?
+        for (int i = 0; i < 9; i++) {
+            x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
+        }
+    }
+
+    virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override {
+        //// TODO do we even need anything here? What would the forces be?
     }
 
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,
                                         const double c) override {
-        //// TODO
+        for (int i = 0; i < 9; i++) {
+            R(off + i) = c * GetMassDiagonal()(i) * w(off + i);
+        }
     }
 
     virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
-        //// TODO
+        m_variables->Get_qb().PasteClippedMatrix(&v, off_v, 0, 9, 1, 0, 0);
+        m_variables->Get_fb().PasteClippedMatrix(&R, off_v, 0, 9, 1, 0, 0);
     }
 
     virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) override {
-        //// TODO
+        v.PasteMatrix(&m_variables->Get_qb(), off_v, 0);
     }
 
     //
@@ -151,31 +237,50 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
     //
 
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override {
-        //// TODO
+        mdescriptor.InsertVariables(m_variables);
     }
 
     virtual void VariablesFbReset() override {
-        //// TODO
+        m_variables->Get_fb().FillElem(0);
     }
 
     virtual void VariablesFbLoadForces(double factor = 1) override {
-        //// TODO
+        //// TODO do we even need anything here? What would the forces be?
     }
 
     virtual void VariablesQbLoadSpeed() override {
-        //// TODO
+        m_variables->Get_qb().PasteVector(m_rxx_dt, 0, 0);
+        m_variables->Get_qb().PasteVector(m_ryy_dt, 3, 0);
+        m_variables->Get_qb().PasteVector(m_rzz_dt, 6, 0);
     }
 
     virtual void VariablesQbSetSpeed(double step = 0) override {
-        //// TODO
+        ChVector<> old_rxx_dt = m_rxx_dt;
+        ChVector<> old_ryy_dt = m_ryy_dt;
+        ChVector<> old_rzz_dt = m_rzz_dt;
+
+        m_rxx_dt = m_variables->Get_qb().ClipVector(0, 0);
+        m_ryy_dt = m_variables->Get_qb().ClipVector(3, 0);
+        m_ryy_dt = m_variables->Get_qb().ClipVector(6, 0);
+
+        if (step) {
+            m_rxx_dtdt = (m_rxx_dt - old_rxx_dt) / step;
+            m_ryy_dtdt = (m_ryy_dt - old_ryy_dt) / step;
+            m_rzz_dtdt = (m_rzz_dt - old_rzz_dt) / step;
+        }
     }
 
     virtual void VariablesFbIncrementMq() override {
-        //// TODO
+        m_variables->Compute_inc_Mb_v(m_variables->Get_fb(), m_variables->Get_qb());
     }
 
     virtual void VariablesQbIncrementPosition(double step) override {
-        //// TODO
+        ChVector<> new_rxx_dt = m_variables->Get_qb().ClipVector(0, 0);
+        ChVector<> new_ryy_dt = m_variables->Get_qb().ClipVector(3, 0);
+        ChVector<> new_rzz_dt = m_variables->Get_qb().ClipVector(6, 0);
+        m_rxx = m_rxx + new_rxx_dt * step;
+        m_ryy = m_ryy + new_ryy_dt * step;
+        m_rzz = m_rzz + new_rzz_dt * step;
     }
 
     //
@@ -189,8 +294,15 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
         ChNodeFEAbase::ArchiveOUT(marchive);
 
         // serialize all member data:
-        marchive << CHNVP(pos);
-        //// TODO
+        marchive << CHNVP(m_rxx);
+        marchive << CHNVP(m_ryy);
+        marchive << CHNVP(m_rzz);
+        marchive << CHNVP(m_rxx_dt);
+        marchive << CHNVP(m_ryy_dt);
+        marchive << CHNVP(m_rzz_dt);
+        marchive << CHNVP(m_rxx_dtdt);
+        marchive << CHNVP(m_ryy_dtdt);
+        marchive << CHNVP(m_rzz_dtdt);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -201,14 +313,32 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
         ChNodeFEAbase::ArchiveIN(marchive);
 
         // stream in all member data:
-        marchive >> CHNVP(pos);
-        //// TODO
+        marchive >> CHNVP(m_rxx);
+        marchive >> CHNVP(m_ryy);
+        marchive >> CHNVP(m_rzz);
+        marchive >> CHNVP(m_rxx_dt);
+        marchive >> CHNVP(m_ryy_dt);
+        marchive >> CHNVP(m_rzz_dt);
+        marchive >> CHNVP(m_rxx_dtdt);
+        marchive >> CHNVP(m_ryy_dtdt);
+        marchive >> CHNVP(m_rzz_dtdt);
     }
 
   private:
-    ////ChLcpVariables variables;
+    ChLcpVariablesGenericDiagonalMass* m_variables;
 
-    ChVector<> pos;
+    ChVector<> m_rxx;
+    ChVector<> m_ryy;
+    ChVector<> m_rzz;
+
+    ChVector<> m_rxx_dt;
+    ChVector<> m_ryy_dt;
+    ChVector<> m_rzz_dt;
+
+    //// TODO do we really need these?
+    ChVector<> m_rxx_dtdt;
+    ChVector<> m_ryy_dtdt;
+    ChVector<> m_rzz_dtdt;
 };
 
 }  // end namespace fea
