@@ -205,6 +205,29 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                 }
 
                 break;
+
+            case ChSystemDEM::PlainCoulomb:
+                if (use_mat_props) {
+                    double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
+                    double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
+                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
+                    loge = (mat.cr_eff > 1 - CH_MICROTOL) ? std::log(1 - CH_MICROTOL) : loge;
+                    double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
+                    kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
+                    gn = std::sqrt(4 * m_eff * kn / tmp_g);
+                } else {
+                    double tmp = std::sqrt(delta);
+                    kn = tmp * mat.kn;
+                    gn = tmp * mat.gn;
+                }
+
+                {
+                    double forceN = kn * delta - gn * relvel_n_mag;
+                    double forceT = mat.mu_eff * std::atan(2.0 * relvel_t_mag) * 2.0 / CH_C_PI * forceN;
+                    force = forceN * normal_dir;
+                    force -= (forceT)*relvel_t;
+                    return;
+                }
         }
 
         // Calculate the magnitudes of the normal and tangential contact forces
