@@ -145,6 +145,7 @@ SET(CE_OpenGL_BASE_FILES
   ChOpenGLCamera.h
   ChOpenGLWindow.h
   ChOpenGLMaterials.h
+  ChApiOpenGL.h
   )
 
 SET(CE_OpenGL_CORE_FILES
