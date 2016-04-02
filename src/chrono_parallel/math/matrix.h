@@ -126,6 +126,7 @@ CUDA_HOST_DEVICE Mat33 AdjointTranspose(const Mat33& A);
 CUDA_HOST_DEVICE Mat33 Inverse(const Mat33& A);
 CUDA_HOST_DEVICE Mat33 InverseTranspose(const Mat33& A);
 CUDA_HOST_DEVICE real Norm(const Mat33& A);  // normalized double dot product of a matrix
+CUDA_HOST_DEVICE real NormSq(const Mat33& A);  // normalized double dot product of a matrix
 CUDA_HOST_DEVICE real DoubleDot(const Mat33& A, const Mat33& B);
 CUDA_HOST_DEVICE real3 LargestColumnNormalized(const Mat33& A);
 

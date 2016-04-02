@@ -529,7 +529,9 @@ CUDA_HOST_DEVICE Mat33 InverseTranspose(const Mat33& A) {
 CUDA_HOST_DEVICE real Norm(const Mat33& A) {
     return Sqrt(Trace(A * Transpose(A)));
 }
-
+CUDA_HOST_DEVICE real NormSq(const Mat33& A) {
+    return Trace(A * Transpose(A));
+}
 CUDA_HOST_DEVICE real DoubleDot(const Mat33& A, const Mat33& B) {
     return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] + A[8] * B[8] +
            A[9] * B[9] + A[10] * B[10];
