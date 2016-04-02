@@ -35,10 +35,10 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     ChElementBrick_9();
     ~ChElementBrick_9() {}
 
-    /// Get number of nodes of this element
+    /// Get number of nodes of this element.
     virtual int GetNnodes() override { return 9; }
 
-    /// Get number of degrees of freedom of this element
+    /// Get number of degrees of freedom of this element.
     virtual int GetNdofs() override { return 8 * 3 + 9; }
 
     /// Get the number of coordinates from the n-th node used by this element.
@@ -68,6 +68,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
                   std::shared_ptr<ChNodeFEAxyz> node8,
                   std::shared_ptr<ChNodeFEAcurv> nodeC);
 
+    /// Get access to individual nodes of this element.
     std::shared_ptr<ChNodeFEAxyz> GetNode1() const { return m_nodes[0]; }
     std::shared_ptr<ChNodeFEAxyz> GetNode2() const { return m_nodes[1]; }
     std::shared_ptr<ChNodeFEAxyz> GetNode3() const { return m_nodes[2]; }
@@ -78,56 +79,36 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     std::shared_ptr<ChNodeFEAxyz> GetNode8() const { return m_nodes[7]; }
     std::shared_ptr<ChNodeFEAcurv> GetCentralNode() const { return m_central_node; }
 
-    double GetLengthX() const {
-        //// TODO
-        return 0;
-    }
-    double GetLengthY() const {
-        //// TODO
-        return 0;
-    }
+    /// Set element dimensions (x, y, z directions).
+    void SetDimensions(const ChVector<>& dims) { m_dimensions = dims; }
+    /// Get the element dimensions (x, y, z directions).
+    const ChVector<>& GetDimensions() const { return m_dimensions; }
 
-    double GetLengthZ() const {
-        //// TODO
-        return 0;
-    }
-
+    /// Set the continuum material for this element.
     void SetMaterial(std::shared_ptr<ChContinuumElastic> material) { m_material = material; }
+    /// Get a handle to the continuum material used by this element.
     std::shared_ptr<ChContinuumElastic> GetMaterial() const { return m_material; }
 
-    /// Fills the N shape function matrix.
-    ///   N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)...];
+    /// Enable/disable internal gravity calculation.
+    void SetGravityOn(bool val) { m_gravity_on = val; }
+    /// Check if internal gravity calculation is enabled/disabled.
+    bool IsGravityOn() const { return m_gravity_on; }
+
+    /// Calculate shape functions and their derivatives.
+    ///   N = [N1, N2, N3, N4, ...]                               (1x11 row vector)
+    ///   S = [N1*eye(3), N2*eye(3), N3*eye(3) ,N4*eye(3), ...]   (3x11 matrix)
     void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
     void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
     void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
 
-    /// Get the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 8 * 3 + 9; }
+    /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
+    virtual int Get_field_ncoords() override { return 3; }
 
-    /// Get the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 8 * 3 + 9; }
+    /// Tell the number of DOFs blocks: here 9, 1 for each node.
+    virtual int GetSubBlocks() override { return 9; }
 
-    /// Get all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
-        //// TODO
-    }
-
-    /// Get all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
-        //// TODO
-    }
-
-    /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() override {
-        //// TODO -- problem here???
-        return 3;
-    }
-
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 9; }
-
-    /// Get the offset of the i-th sub-block of DOFs in global vector
+    /// Get the offset of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override {
         if (nblock < 8)
             return m_nodes[nblock]->NodeGetOffset_w();
@@ -135,7 +116,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
         return m_central_node->NodeGetOffset_w();
     }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
+    /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override {
         if (nblock < 8)
             return 3;
@@ -143,11 +124,23 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
         return 9;
     }
 
+    /// Get the number of DOFs affected by this element (position part).
+    virtual int LoadableGet_ndof_x() override { return 8 * 3 + 9; }
+
+    /// Get the number of DOFs affected by this element (speed part).
+    virtual int LoadableGet_ndof_w() override { return 8 * 3 + 9; }
+
+    /// Get all the DOFs packed in a single vector (position part).
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override;
+
+    /// Get all the DOFs packed in a single vector (speed part).
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override;
+
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override;
 
-    /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+    /// Evaluate N'*F, where N is some type of shape function evaluated at (U,V,W).
+    /// Here, U,V,W are coordinates of the volume, each ranging in -1..+1
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
@@ -160,43 +153,57 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override;
 
-    /// This is needed so that it can be accessed by ChLoaderVolumeGravity
+    /// Return the material density.
+    /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
     virtual double GetDensity() override { return this->m_material->Get_density(); }
 
   private:
+    // -----------------------------------
+    // Data
+    // -----------------------------------
+
     std::vector<std::shared_ptr<ChNodeFEAxyz>> m_nodes;  ///< corner element nodes
     std::shared_ptr<ChNodeFEAcurv> m_central_node;       ///< central node
 
     std::shared_ptr<ChContinuumElastic> m_material;  ///< elastic naterial
 
+    ChVector<> m_dimensions;                      ///< element dimensions (x, y, z components)
+    bool m_gravity_on;                            ///< enable/disable internal gravity calculation
     ChMatrixNM<double, 33, 1> m_GravForce;        ///< gravitational force
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
 
+    ChMatrixNM<double, 11, 3> m_d0;  ///< initial nodal coordinates (in matrix form)
+
+    // -----------------------------------
+    // Interface to base classes
+    // -----------------------------------
+
     /// Update this element.
     virtual void Update() override;
 
-    /// Fills the D vector (column matrix) with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    ///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
+    /// Fill the D vector (column matrix) with the current states of the element nodes.
     virtual void GetStateBlock(ChMatrixDynamic<>& mD);
-
-    /// Computes the MASS MATRIX of the element.
-    void ComputeMassMatrix();
-    /// Compute the gravitational forces.
-    void ComputeGravityForce(const ChVector<>& g_acc);
 
     /// Initial element setup.
     virtual void SetupInitial(ChSystem* system) override;
-    /// Sets M as the global mass matrix.
+    /// Set M as the global mass matrix.
     virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override;
-    /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
+    /// Set H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override;
 
     /// Compute internal forces and load them in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
+
+    // -----------------------------------
+    // Functions for internal computations
+    // -----------------------------------
+
+    /// Compute the mass matrix of the element.
+    void ComputeMassMatrix();
+    /// Compute the gravitational forces.
+    void ComputeGravityForce(const ChVector<>& g_acc);
 
     /// Compute Jacobians of the internal forces.
     /// This function calculates a linear combination of the stiffness (K) and damping (R) matrices,
@@ -205,6 +212,24 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     /// This Jacobian will be further combined with the global mass matrix M and included in the global
     /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
     void ComputeInternalJacobians(double Kfactor, double Rfactor);
+
+    /// Calculate the determinant of the initial configuration.
+    double Calc_detJ0(double x, double y, double z);
+
+    /// Calculate the determinant of the initial configuration.
+    /// Same as above, but also return the dense shape function vector derivatives.
+    double Calc_detJ0(double x,
+                      double y,
+                      double z,
+                      ChMatrixNM<double, 1, 11>& Nx,
+                      ChMatrixNM<double, 1, 11>& Ny,
+                      ChMatrixNM<double, 1, 11>& Nz,
+                      ChMatrixNM<double, 1, 3>& Nx_d0,
+                      ChMatrixNM<double, 1, 3>& Ny_d0,
+                      ChMatrixNM<double, 1, 3>& Nz_d0);
+
+    // Calculate the current 11x3 matrix of nodal coordinates.
+    void CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d);
 
     friend class MyMassBrick9;
     friend class MyGravityBrick9;
