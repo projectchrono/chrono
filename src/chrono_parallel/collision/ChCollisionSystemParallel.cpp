@@ -141,27 +141,26 @@ void ChCollisionSystemParallel::Run() {
     }
     data_manager->system_timer.start("collision_broad");
     data_manager->aabb_generator->GenerateAABB();
+
+    // Compute the bounding box of things
+    data_manager->broadphase->DetermineBoundingBox();
+    data_manager->broadphase->OffsetAABB();
+    data_manager->broadphase->ComputeTopLevelResolution();
+    // Everything is offset and ready to go!
+    data_manager->broadphase->DispatchRigid();
+
     data_manager->system_timer.stop("collision_broad");
 
+    data_manager->system_timer.start("collision_narrow");
     if (data_manager->num_fluid_bodies != 0) {
-        data_manager->system_timer.start("collision_narrow");
-        // do this first so that we can augment the min/max for rigids to get a larger grid
         data_manager->narrowphase->DispatchFluid();
-        data_manager->system_timer.stop("collision_narrow");
     }
     if (data_manager->num_fea_tets != 0) {
-        data_manager->system_timer.start("collision_narrow");
-        data_manager->broadphase->DispatchTets();
         // narrowphase->DispatchTets();
-        data_manager->system_timer.stop("collision_narrow");
     }
     if (data_manager->num_rigid_shapes != 0) {
-        data_manager->system_timer.start("collision_broad");
-        data_manager->broadphase->DetectPossibleCollisions();
-        data_manager->system_timer.stop("collision_broad");
-        data_manager->system_timer.start("collision_narrow");
         data_manager->narrowphase->ProcessRigids();
-        data_manager->system_timer.stop("collision_narrow");
+
     } else {
         data_manager->host_data.c_counts_rigid_tet.clear();
         data_manager->host_data.c_counts_rigid_fluid.clear();

@@ -39,12 +39,14 @@ class CH_PARALLEL_API ChCAABBGenerator {
 class CH_PARALLEL_API ChCBroadphase {
   public:
     ChCBroadphase();
-    void DetectPossibleCollisions();
+    void DispatchRigid();
     void OneLevelBroadphase();
     void DetermineBoundingBox();
     void OffsetAABB();
     void ComputeTopLevelResolution();
-    void DispatchTets();
+    void RigidBoundingBox();
+    void FluidBoundingBox();
+    void TetBoundingBox();
     ChParallelDataManager* data_manager;
 
   private:

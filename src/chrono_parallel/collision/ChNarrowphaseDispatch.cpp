@@ -467,24 +467,8 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     const real radius = data_manager->node_container->kernel_radius + data_manager->node_container->collision_envelope;
 
-    bbox res(pos_fluid[0], pos_fluid[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
-
-    res.first.x = radius * Floor(res.first.x / radius);
-    res.first.y = radius * Floor(res.first.y / radius);
-    res.first.z = radius * Floor(res.first.z / radius);
-
-    res.second.x = radius * Ceil(res.second.x / radius);
-    res.second.y = radius * Ceil(res.second.y / radius);
-    res.second.z = radius * Ceil(res.second.z / radius);
-
     real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
     real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
-
-    max_bounding_point = res.second + radius * 6;
-    min_bounding_point = res.first - radius * 6;
 
     SphereSphereContact(data_manager->num_fluid_bodies, data_manager->num_rigid_bodies * 6 + data_manager->num_shafts,
                         radius, data_manager->node_container->collision_envelope, min_bounding_point,
@@ -676,7 +660,6 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                                              custom_vector<int>& contact_counts,
                                              uint& num_contacts) {
     int num_rigid_shapes = data_manager->num_rigid_shapes;
-    real3 global_origin = data_manager->measures.collision.global_origin;
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
 
@@ -696,8 +679,8 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     f_bin_intersections[num_tets] = 0;
 #pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
-        vec3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
-        vec3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(aabb_min_tet[p] , inv_bin_size);
+        vec3 gmax = HashMax(aabb_max_tet[p] , inv_bin_size);
         f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
     Thrust_Exclusive_Scan(f_bin_intersections);
@@ -711,8 +694,8 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
 #pragma omp parallel for
     for (int p = 0; p < num_tets; p++) {
         uint count = 0, i, j, k;
-        vec3 gmin = HashMin(aabb_min_tet[p] - global_origin, inv_bin_size);
-        vec3 gmax = HashMax(aabb_max_tet[p] - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(aabb_min_tet[p], inv_bin_size);
+        vec3 gmax = HashMax(aabb_max_tet[p], inv_bin_size);
         uint mInd = f_bin_intersections[p];
         for (i = gmin.x; i <= gmax.x; i++) {
             for (j = gmin.y; j <= gmax.y; j++) {
@@ -754,8 +737,8 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
 #pragma omp parallel for
             for (uint i = start; i < end; i++) {
                 uint p = f_bin_fluid_number[i];
-                real3 Bmin = aabb_min_tet[p] - global_origin;
-                real3 Bmax = aabb_max_tet[p] - global_origin;
+                real3 Bmin = aabb_min_tet[p] ;
+                real3 Bmax = aabb_max_tet[p] ;
 
                 uint4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
                 real3* node_pos = data_manager->host_data.pos_node_fea.data();

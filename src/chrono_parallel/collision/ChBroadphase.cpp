@@ -2,6 +2,7 @@
 
 #include <chrono_parallel/collision/ChCollision.h>
 #include "chrono_parallel/collision/ChBroadphaseUtils.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 
 //#include <thrust/host_vector.h>
 #include <thrust/transform.h>
@@ -18,7 +19,7 @@ namespace collision {
 
 // Determine the bounding box for the objects===============================================================
 
-void ChCBroadphase::DetermineBoundingBox() {
+void ChCBroadphase::RigidBoundingBox() {
     custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
     // determine the bounds on the total space and subdivide based on the bins per axis
@@ -28,20 +29,71 @@ void ChCBroadphase::DetermineBoundingBox() {
     res = thrust::transform_reduce(aabb_min.begin(), aabb_min.end(), unary_op, res, binary_op);
     res = thrust::transform_reduce(aabb_max.begin(), aabb_max.end(), unary_op, res, binary_op);
 
+    real3& min_bounding_point = data_manager->measures.collision.rigid_min_bounding_point;
+    real3& max_bounding_point = data_manager->measures.collision.rigid_max_bounding_point;
+
+    min_bounding_point = res.first;
+    max_bounding_point = res.second;
+}
+void ChCBroadphase::FluidBoundingBox() {
+    const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
+    const real radius = data_manager->node_container->kernel_radius + data_manager->node_container->collision_envelope;
+
+    bbox res(pos_fluid[0], pos_fluid[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(pos_fluid.begin(), pos_fluid.end(), unary_op, res, binary_op);
+
+    res.first.x = radius * Floor(res.first.x / radius);
+    res.first.y = radius * Floor(res.first.y / radius);
+    res.first.z = radius * Floor(res.first.z / radius);
+
+    res.second.x = radius * Ceil(res.second.x / radius);
+    res.second.y = radius * Ceil(res.second.y / radius);
+    res.second.z = radius * Ceil(res.second.z / radius);
+
+    real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+
+    max_bounding_point = res.second + radius * 6;
+    min_bounding_point = res.first - radius * 6;
+}
+void ChCBroadphase::TetBoundingBox() {
+    custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
+    custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
+    // determine the bounds on the total space and subdivide based on the bins per axis
+    bbox res(aabb_min_tet[0], aabb_min_tet[0]);
+    bbox_transformation unary_op;
+    bbox_reduction binary_op;
+    res = thrust::transform_reduce(aabb_min_tet.begin(), aabb_min_tet.end(), unary_op, res, binary_op);
+    res = thrust::transform_reduce(aabb_max_tet.begin(), aabb_max_tet.end(), unary_op, res, binary_op);
+
+    data_manager->measures.collision.tet_min_bounding_point = res.first;
+    data_manager->measures.collision.tet_max_bounding_point = res.second;
+}
+
+void ChCBroadphase::DetermineBoundingBox() {
+    RigidBoundingBox();
+
+    real3 min_point = data_manager->measures.collision.rigid_min_bounding_point;
+    real3 max_point = data_manager->measures.collision.rigid_max_bounding_point;
+
     if (data_manager->num_fluid_bodies != 0) {
-        res.first = Min(res.first, data_manager->measures.collision.ff_min_bounding_point);
-        res.second = Max(res.second, data_manager->measures.collision.ff_max_bounding_point);
+        FluidBoundingBox();
+        min_point = Min(min_point, data_manager->measures.collision.ff_min_bounding_point);
+        max_point = Max(max_point, data_manager->measures.collision.ff_max_bounding_point);
     }
     if (data_manager->num_fea_tets != 0) {
-        res.first = Min(res.first, data_manager->measures.collision.tet_min_bounding_point);
-        res.second = Max(res.second, data_manager->measures.collision.tet_max_bounding_point);
+        TetBoundingBox();
+        min_point = Min(min_point, data_manager->measures.collision.tet_min_bounding_point);
+        max_point = Max(max_point, data_manager->measures.collision.tet_max_bounding_point);
     }
-    data_manager->measures.collision.min_bounding_point = res.first;
-    data_manager->measures.collision.max_bounding_point = res.second;
-    data_manager->measures.collision.global_origin = res.first;
+    data_manager->measures.collision.min_bounding_point = min_point;
+    data_manager->measures.collision.max_bounding_point = max_point;
+    data_manager->measures.collision.global_origin = min_point;
 
-    LOG(TRACE) << "ChCBroadphase::DetermineBoundingBox() Min : [" << res.first.x << ", " << res.first.y << ", "
-               << res.first.z << "] Max: [" << res.second.x << ", " << res.second.y << ", " << res.second.z << "]";
+    LOG(TRACE) << "ChCBroadphase::DetermineBoundingBox() Min : [" << min_point.x << ", " << min_point.y << ", "
+               << min_point.z << "] Max: [" << max_point.x << ", " << max_point.y << ", " << max_point.z << "]";
 }
 
 void ChCBroadphase::OffsetAABB() {
@@ -50,6 +102,11 @@ void ChCBroadphase::OffsetAABB() {
     thrust::constant_iterator<real3> offset(data_manager->measures.collision.global_origin);
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
+    // Offset tet aabb
+    custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
+    custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
+    thrust::transform(aabb_min_tet.begin(), aabb_min_tet.end(), offset, aabb_min_tet.begin(), thrust::minus<real3>());
+    thrust::transform(aabb_max_tet.begin(), aabb_max_tet.end(), offset, aabb_max_tet.begin(), thrust::minus<real3>());
 }
 
 // Determine resolution of the top level grid
@@ -86,13 +143,11 @@ ChCBroadphase::ChCBroadphase() {
 // =========================================================================================================
 // use spatial subdivision to detect the list of POSSIBLE collisions
 // let user define their own narrow-phase collision detection
-void ChCBroadphase::DetectPossibleCollisions() {
-    DetermineBoundingBox();
-    OffsetAABB();
-    ComputeTopLevelResolution();
-    OneLevelBroadphase();
-    data_manager->num_rigid_contacts = data_manager->measures.collision.number_of_contacts_possible;
-
+void ChCBroadphase::DispatchRigid() {
+    if (data_manager->num_rigid_shapes != 0) {
+        OneLevelBroadphase();
+        data_manager->num_rigid_contacts = data_manager->measures.collision.number_of_contacts_possible;
+    }
     return;
 }
 
@@ -183,19 +238,5 @@ void ChCBroadphase::OneLevelBroadphase() {
     LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;
 }
 //======
-
-void ChCBroadphase::DispatchTets() {
-    custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
-    custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
-    // determine the bounds on the total space and subdivide based on the bins per axis
-    bbox res(aabb_min_tet[0], aabb_min_tet[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(aabb_min_tet.begin(), aabb_min_tet.end(), unary_op, res, binary_op);
-    res = thrust::transform_reduce(aabb_max_tet.begin(), aabb_max_tet.end(), unary_op, res, binary_op);
-
-    data_manager->measures.collision.tet_min_bounding_point = res.first;
-    data_manager->measures.collision.tet_max_bounding_point = res.second;
-}
 }
 }

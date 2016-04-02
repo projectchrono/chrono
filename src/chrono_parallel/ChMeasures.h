@@ -40,6 +40,9 @@ class collision_measures {
         number_of_bins_active = 0;
         number_of_bin_intersections = 0;
 
+        rigid_min_bounding_point = real3(0);
+        rigid_max_bounding_point = real3(0);
+
         ff_min_bounding_point = real3(0);
         ff_max_bounding_point = real3(0);
         ff_bins_per_axis = vec3(0);
@@ -60,6 +63,9 @@ class collision_measures {
     uint number_of_bins_active;        // Number of active bins (containing 1+ AABBs)
     uint number_of_bin_intersections;  // Number of AABB bin intersections
     uint number_of_contacts_possible;  // Number of contacts possible from broadphase
+
+    real3 rigid_min_bounding_point;
+    real3 rigid_max_bounding_point;
 
     // Fluid Collision info
     vec3 ff_bins_per_axis;
