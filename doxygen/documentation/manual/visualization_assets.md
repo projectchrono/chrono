@@ -2,7 +2,7 @@
 Visualization assets      {#visualization_assets}
 ====================
 
-This section is about assets, that is, optional objects that can be attached to rigid [[Chronoengine:Rigid bodies| bodies]. 
+This section is about assets, that is, optional objects that can be attached to [rigid bodies](@ref rigid_bodies). 
 Assets can be used either for attaching 
 * custom user-defined data (es. electric charge, costs, sounds, etc.) 
 * or to attach visualization shapes.

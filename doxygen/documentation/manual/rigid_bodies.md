@@ -19,6 +19,8 @@ complication and slower performance.)
 
 The most used type of rigid bodies is the ChBody.
 
+See @ref chrono::ChBody for API details.
+
 ![](pic_ChBody.png)
 
 - Rigid bodies inherit ChFrameMoving features (position, rotation, velocity, acceleration, etc.)
@@ -35,7 +37,7 @@ The most used type of rigid bodies is the ChBody.
 When you create a ChBody, basically you perform those steps:
 
 - Create the ChBody and set position/mass properties
-- Add the body to a ChSystem
+- Add the body to a @ref chrono::ChSystem
 - Optional: add [collision shapes](@ref collision_shapes)
 - Optional: add [visualization assets](@ref visualization_assets)
 
@@ -65,6 +67,8 @@ my_system.Add(body_b);
 
 This is a special type of rigid body that has an auxiliary 
 frame that does not match necessarily with the COG frame.
+
+See @ref chrono::ChBodyAuxRef for API details.
  
 ![](pic_ChBodyAuxRef.png)
 
@@ -102,13 +106,16 @@ that introduce additional features. In the following we list the most relevant.
 The ChConveyor is a body that has a rectangular collision surface 
 that simulates a conveyor belt.
 
+See @ref chrono::ChConveyor for API details.
+
+
 ## Basic shapes
 
-- ChBodyEasySphere,
-- ChBodyEasyCylinder,
-- ChBodyEasyBox,
-- ChBodyEasyConvexHull,
-- ChBodyEasyClusterOfSpheres,
+- @ref chrono::ChBodyEasySphere,
+- @ref chrono::ChBodyEasyCylinder,
+- @ref chrono::ChBodyEasyBox,
+- @ref chrono::ChBodyEasyConvexHull,
+- @ref chrono::ChBodyEasyClusterOfSpheres,
 
 Those are ready-to-use bodies that simplify the definition of 
 body properties in case the body is a simple shape such as a box, a sphere, etc.
@@ -117,6 +124,7 @@ In fact when you create one of these, you automatically get the following:
 - the mass and inertia tensor are computed from the geometry, given the density
 - optional: a visualization asset showing the shape is added automatically
 - optional: a collision shape is added automatically
+
 
 
 # Examples
