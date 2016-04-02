@@ -434,164 +434,35 @@ void ChFEAContainer::Build_D() {
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
-        real vol = Abs((det) / 6.0);
+        real vol = Abs(1.0 / 6.0 * Dot(c1, Cross(c2, c3)));  // Abs((det) / 6.0);
         real volSqrt = Sqrt(vol);
         Mat33 X = X0[i];
         Mat33 F = Ds * X;  // 4.27
         Mat33 Ftr = Transpose(F);
 
-        Mat33 U, V;
-        real3 SV;
-
-        // chrono::SVD(F, U, SV, V);
-        // Mat33 R = MultTranspose(U, V);
-        // Mat33 S = V * Mat33(SV) * Transpose(V);
-
-        Mat33 strain = Ftr * F;  // 0.5 * (Ftr * F - Mat33(1));  // Green strain
-        // Mat33 strain = S - Mat33(1);
-
-        // Print(Ds, "Ds");
-        // Print(X, "X");
-        // Print(strain, "strain");
-        // std::cin.get();
+        Mat33 strain = 0.5 * (Ftr * F - Mat33(1));  // Green strain
 
         real3 y[4];
-        y[1] = X.col(0);
-        y[2] = X.col(1);
-        y[3] = X.col(2);
+        y[1] = X.row(0);
+        y[2] = X.row(1);
+        y[3] = X.row(2);
         y[0] = -y[1] - y[2] - y[3];
 
-        real3 r1 = Cross(c2, c3);
-        real3 r2 = Cross(c3, c1);
-        real3 r3 = Cross(c1, c2);
+        real3 r1 = 1.0 / 6.0 * Cross(c2, c3);
+        real3 r2 = 1.0 / 6.0 * Cross(c3, c1);
+        real3 r3 = 1.0 / 6.0 * Cross(c1, c2);
         real3 r0 = -r1 - r2 - r3;
 
         // volSqrt = Sqrt(Abs((Determinant(F) - 1.0)));
 
-        real vf = (0.5 * (6 * volSqrt));
+        real vf = 1.0 / (2.0 * volSqrt);
         // This helps to scale jacboian so boundaries aren't ignored
-        real cf = volSqrt;  // 2 * volSqrt;
-                            // diagonal elements of strain matrix
+        real cf = volSqrt;
 
-        // 0 4 8
-        // 1 5 9
-        // 2 6 10
-        //
-        //                Mat33 A1 = cf * Mat33(y[0]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
-        //                Mat33 A2 = cf * Mat33(y[1]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
-        //                Mat33 A3 = cf * Mat33(y[2]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
-        //                Mat33 A4 = cf * Mat33(y[3]) + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
-        Mat33 A1, A2, A3, A4;
-        Mat33 B1, B2, B3, B4;
-        // 0 00
-        // 1 10
-        // 2 11
-        // 3 20
-        // 4 21
-        // 5 22
-        int rrr = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j <= i; j++) {
-                real3 fi = Ds * X.col(i);
-                real3 fj = Ds * X.col(j);
-                real Sij = Dot(fi, fj);
-
-                real3 d[4];
-                d[0] = real3(0.0, 0.0, 0.0);
-                for (int k = 0; k < 3; k++) {
-                    d[k + 1] = (fj * X(k, i) + fi * X(k, j));
-                    d[0] -= d[k + 1];
-                }
-                // printf("[%f %f %f][%f %f %f][%f %f %f][%f %f %f]\n", d[0].x, d[0].y, d[0].z, d[1].x, d[1].y, d[1].z,
-                //       d[2].x, d[2].y, d[2].z, d[3].x, d[3].y, d[3].z);
-                // printf("ROW: %d\n", rrr);
-
-                if (rrr == 0) {
-                    A1[0] = d[0].x;
-                    A1[4] = d[0].y;
-                    A1[8] = d[0].z;
-                    A2[0] = d[1].x;
-                    A2[4] = d[1].y;
-                    A2[8] = d[1].z;
-                    A3[0] = d[2].x;
-                    A3[4] = d[2].y;
-                    A3[8] = d[2].z;
-                    A4[0] = d[3].x;
-                    A4[4] = d[3].y;
-                    A4[8] = d[3].z;
-                } else if (rrr == 2) {
-                    A1[1] = d[0].x;
-                    A1[5] = d[0].y;
-                    A1[9] = d[0].z;
-                    A2[1] = d[1].x;
-                    A2[5] = d[1].y;
-                    A2[9] = d[1].z;
-                    A3[1] = d[2].x;
-                    A3[5] = d[2].y;
-                    A3[9] = d[2].z;
-                    A4[1] = d[3].x;
-                    A4[5] = d[3].y;
-                    A4[9] = d[3].z;
-                } else if (rrr == 5) {
-                    A1[2] = d[0].x;
-                    A1[6] = d[0].y;
-                    A1[10] = d[0].z;
-                    A2[2] = d[1].x;
-                    A2[6] = d[1].y;
-                    A2[10] = d[1].z;
-                    A3[2] = d[2].x;
-                    A3[6] = d[2].y;
-                    A3[10] = d[2].z;
-                    A4[2] = d[3].x;
-                    A4[6] = d[3].y;
-                    A4[10] = d[3].z;
-                } else if (rrr == 1) {
-                    B1[0] = d[0].x;
-                    B1[4] = d[0].y;
-                    B1[8] = d[0].z;
-                    B2[0] = d[1].x;
-                    B2[4] = d[1].y;
-                    B2[8] = d[1].z;
-                    B3[0] = d[2].x;
-                    B3[4] = d[2].y;
-                    B3[8] = d[2].z;
-                    B4[0] = d[3].x;
-                    B4[4] = d[3].y;
-                    B4[8] = d[3].z;
-                } else if (rrr == 3) {
-                    B1[1] = d[0].x;
-                    B1[5] = d[0].y;
-                    B1[9] = d[0].z;
-                    B2[1] = d[1].x;
-                    B2[5] = d[1].y;
-                    B2[9] = d[1].z;
-                    B3[1] = d[2].x;
-                    B3[5] = d[2].y;
-                    B3[9] = d[2].z;
-                    B4[1] = d[3].x;
-                    B4[5] = d[3].y;
-                    B4[9] = d[3].z;
-                } else if (rrr == 4) {
-                    B1[2] = d[0].x;
-                    B1[6] = d[0].y;
-                    B1[10] = d[0].z;
-                    B2[2] = d[1].x;
-                    B2[6] = d[1].y;
-                    B2[10] = d[1].z;
-                    B3[2] = d[2].x;
-                    B3[6] = d[2].y;
-                    B3[10] = d[2].z;
-                    B4[2] = d[3].x;
-                    B4[6] = d[3].y;
-                    B4[10] = d[3].z;
-                }
-                //                SetRow3(D_T, start_tet + i * 7 + rrr, b_off + tet_ind.x * 3, d[0]);
-                //                SetRow3(D_T, start_tet + i * 7 + rrr, b_off + tet_ind.y * 3, d[1]);
-                //                SetRow3(D_T, start_tet + i * 7 + rrr, b_off + tet_ind.z * 3, d[2]);
-                //                SetRow3(D_T, start_tet + i * 7 + rrr, b_off + tet_ind.w * 3, d[3]);
-                rrr++;
-            }
-        }
+        Mat33 A1 = cf * Mat33(y[0]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
+        Mat33 A2 = cf * Mat33(y[1]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
+        Mat33 A3 = cf * Mat33(y[2]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
+        Mat33 A4 = cf * Mat33(y[3]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
 
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
@@ -611,34 +482,16 @@ void ChFEAContainer::Build_D() {
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.w * 3, A4.row(2));
         //
         //        ///==================================================================================================================================
-        //        //         Off diagonal strain elements
-        //        //                Mat33 B1 = 0.5 * cf * SkewSymmetricAlt(y[0]) + vf * OuterProduct(real3(strain[9],
-        //        strain[8],
-        //        //                strain[4]), r0);
-        //        //                Mat33 B2 = 0.5 * cf * SkewSymmetricAlt(y[1]) + vf * OuterProduct(real3(strain[9],
-        //        strain[8],
-        //        //                strain[4]), r1);
-        //        //                Mat33 B3 = 0.5 * cf * SkewSymmetricAlt(y[2]) + vf * OuterProduct(real3(strain[9],
-        //        strain[8],
-        //        //                strain[4]), r2);
-        //        //                Mat33 B4 = 0.5 * cf * SkewSymmetricAlt(y[3]) + vf * OuterProduct(real3(strain[9],
-        //        strain[8],
-        //        //                strain[4]), r3);
-        //
-        //        Mat33 B2 = cf * (OuterProduct(F.col(1), X.col(0)) + OuterProduct(F.col(0), X.col(1)));
-        //        Mat33 B3 = cf * (OuterProduct(F.col(2), X.col(0)) + OuterProduct(F.col(0), X.col(2)));
-        //        Mat33 B4 = cf * (OuterProduct(F.col(2), X.col(1)) + OuterProduct(F.col(1), X.col(2)));
-        //        Mat33 B1 = -(B2 + B3 + B4);
-        //
-        //        //        PrintLine(B1, "B1");
-        //        //        PrintLine(B2, "B2");
-        //        //        PrintLine(B3, "B3");
-        //        //        PrintLine(B4, "B4");
-        //        //        B1 = B1 * (1.0 / Determinant(B1));
-        //        //        B2 = B2 * (1.0 / Determinant(B2));
-        //        //        B3 = B3 * (1.0 / Determinant(B3));
-        //        //        B4 = B4 * (1.0 / Determinant(B4));
-        //
+        //         Off diagonal strain elements
+        Mat33 B1 =
+            .5 * cf * SkewSymmetricAlt(y[0]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
+        Mat33 B2 =
+            .5 * cf * SkewSymmetricAlt(y[1]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
+        Mat33 B3 =
+            .5 * cf * SkewSymmetricAlt(y[2]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
+        Mat33 B4 =
+            .5 * cf * SkewSymmetricAlt(y[3]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
+
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.z * 3, B3.row(0));
@@ -804,66 +657,28 @@ void ChFEAContainer::Build_b() {
         Mat33 Ds = Mat33(c1, c2, c3);
 
         real det = Determinant(Ds);
-        real vol = Abs((det) / 6.0);
+        real volume = (1.0 / 6.0 * Dot(c1, Cross(c2, c3)));  // Abs((det) / 6.0);
+        real vol = Abs(volume);                              // Abs((det) / 6.0);
         real volSqrt = Sqrt(vol);
 
-        Mat33 X = X0[i];
-        Mat33 F = Ds * X;
-        Mat33 Ftr = Transpose(F);
+        Mat33 F = Ds * X0[i];
 
-        //        real3 y[4];
-        //        y[1] = X.row(0);
-        //        y[2] = X.row(1);
-        //        y[3] = X.row(2);
-        //        y[0] = -y[1] - y[2] - y[3];
+        Mat33 strain = .5 * (TransposeMult(F, F) - Mat33(1.0));  // Green strain
+        real cf = volSqrt;                                       // Sqrt(Abs((Determinant(F) - 1.0)));  // volSqrt;
 
-        Mat33 strain = Ftr * F;                       //.5 * (Ftr * F - Mat33(1.0));   // Green strain
-                                                      // Mat33 strain = S - Mat33(1);
-        real cf = Sqrt(Abs((Determinant(F) - 1.0)));  // volSqrt;
+        b_sub[i * 7 + 0] = cf * strain[0];
+        b_sub[i * 7 + 1] = cf * strain[5];
+        b_sub[i * 7 + 2] = cf * strain[10];
 
-        int rrr = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j <= i; j++) {
-                real3 fi = Ds * X.col(i);
-                real3 fj = Ds * X.col(j);
-                real Sij = Dot(fi, fj);
-
-                //                if (i == j) {
-                //                    b_sub[i * 7 + rrr] = (Sij)-1;
-                //                } else {
-                //                    b_sub[i * 7 + rrr] = Sij;
-                //                }
-                if (rrr == 0) {
-                    b_sub[i * 7 + 0] = (Sij)-1;
-                } else if (rrr == 2) {
-                    b_sub[i * 7 + 1] = (Sij)-1;
-                } else if (rrr == 5) {
-                    b_sub[i * 7 + 2] = (Sij)-1;
-                } else if (rrr == 1) {
-                    b_sub[i * 7 + 3] = (Sij);
-                } else if (rrr == 3) {
-                    b_sub[i * 7 + 4] = (Sij);
-                } else if (rrr == 4) {
-                    b_sub[i * 7 + 5] = (Sij);
-                }
-
-                rrr++;
-            }
-        }
-        //        b_sub[i * 7 + 0] = (strain[0]);
-        //        b_sub[i * 7 + 1] = (strain[5]);
-        //        b_sub[i * 7 + 2] = (strain[10]);
-
-        //        b_sub[i * 7 + 3] = strain[4];
-        //        b_sub[i * 7 + 4] = strain[8];
-        //        b_sub[i * 7 + 5] = strain[9];
+        b_sub[i * 7 + 3] = cf * strain[9];
+        b_sub[i * 7 + 4] = cf * strain[8];
+        b_sub[i * 7 + 5] = cf * strain[4];
 
         // Volume
 
-        b_sub[i * 7 + 6] = (Determinant(F) - 1);  //(vol / V[i] - 1.0);
-        // real vv = vol;
+        b_sub[i * 7 + 6] = (volume / V[i] - 1.0);
 
-        printf("vol: %f %f %f\n", (Determinant(F) - 1), (Determinant(Ds) - Determinant(Inverse(X))), 100 * vol - V[i]);
+        // printf("vol: %d %f\n", i, (Determinant(F) - 1));
     }
 
     LOG(INFO) << "ChConstraintRigidNode::Build_b";
