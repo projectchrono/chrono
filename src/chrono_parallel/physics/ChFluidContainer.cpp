@@ -487,13 +487,13 @@ void ChFluidContainer::Build_D() {
 
         //=======COMPUTE DENSITY OF FLUID
         density.resize(num_fluid_bodies);
-        if (mpm_iterations > 0) {
-            Density_FluidMPM();
-            DensityConstraint_FluidMPM();
-        } else {
+//        if (mpm_iterations > 0) {
+//            Density_FluidMPM();
+//            DensityConstraint_FluidMPM();
+//        } else {
             Density_Fluid();
             Normalize_Density_Fluid();
-        }
+        //}
 
         real visca = viscosity;
         real viscb = viscosity;
@@ -558,13 +558,14 @@ void ChFluidContainer::Build_b() {
                                  start_boundary, data_manager);
 
     if (num_fluid_bodies > 0) {
-        if (mpm_iterations > 0) {
-#pragma omp parallel for
-            for (int index = 0; index < num_fluid_bodies; index++) {
-                b[start_density + index] = (1.0 / mpm_jejp[index * 2 + 1]) * (mpm_jejp[index * 2 + 0] - 1.0);
-                // printf("J:%f J:%f  [%f,%f]\n", mpm_jejp[index * 2 + 0], mpm_jejp[index * 2 + 1], b[start_density +
-            }
-        } else {
+//        if (mpm_iterations > 0) {
+//#pragma omp parallel for
+//            for (int index = 0; index < num_fluid_bodies; index++) {
+//                b[start_density + index] = (1.0 / mpm_jejp[index * 2 + 1]) * (mpm_jejp[index * 2 + 0] - 1.0);
+//                // printf("J:%f J:%f  [%f,%f]\n", mpm_jejp[index * 2 + 0], mpm_jejp[index * 2 + 1], b[start_density +
+//            }
+//        } else
+        {
 #pragma omp parallel for
             for (int index = 0; index < num_fluid_bodies; index++) {
                 b[start_density + index] = -(density[index] / rho - 1.0);
