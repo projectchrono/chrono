@@ -35,6 +35,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     ~ChNodeFEAxyzD() { delete variables_D; }
 
     ChNodeFEAxyzD(const ChNodeFEAxyzD& other) : ChNodeFEAxyz(other) {
+        variables_D = new ChLcpVariablesGenericDiagonalMass(3);
         (*this->variables_D) = (*other.variables_D);
 		this->D = other.D;
 		this->D_dt = other.D_dt;
@@ -192,14 +193,14 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     virtual void VariablesQbLoadSpeed() override {
         ChNodeFEAxyz::VariablesQbLoadSpeed();
-        this->variables_D->Get_qb().PasteVector(this->D_dt, 3, 0);
+        this->variables_D->Get_qb().PasteVector(this->D_dt, 0, 0);
     }
 
     virtual void VariablesQbSetSpeed(double step = 0) override {
         ChNodeFEAxyz::VariablesQbSetSpeed(step);
 
         ChVector<> oldD_dt = this->D_dt;
-        this->SetD_dt(this->variables_D->Get_qb().ClipVector(3, 0));
+        this->SetD_dt(this->variables_D->Get_qb().ClipVector(0, 0));
         if (step) {
             this->SetD_dtdt((this->D_dt - oldD_dt) / step);
         }
@@ -213,7 +214,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     virtual void VariablesQbIncrementPosition(double step) override {
         ChNodeFEAxyz::VariablesQbIncrementPosition(step);
 
-        ChVector<> newspeed_D = variables_D->Get_qb().ClipVector(3, 0);
+        ChVector<> newspeed_D = variables_D->Get_qb().ClipVector(0, 0);
 
         // ADVANCE POSITION: pos' = pos + dt * vel
         this->SetD(this->GetD() + newspeed_D * step);
