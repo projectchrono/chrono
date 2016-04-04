@@ -230,9 +230,8 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z) - wheel_frame.GetPos());
             node->SetPos_dt(vel);
-
             node->SetMass(0);
             m_mesh->AddNode(node);
         }

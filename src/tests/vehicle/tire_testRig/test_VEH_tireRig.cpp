@@ -44,6 +44,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono/physics/ChContactContainerBase.h"
@@ -84,8 +85,8 @@ ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI
 enum SolverType { LCP_ITSOR, MKL };
 SolverType solver_type = MKL;
 
-// Type of tire model (FIALA, ANCF)
-TireModelType tire_model = ANCF;
+// Type of tire model (FIALA, ANCF, FEA)
+TireModelType tire_model = FEA;
 
 // Settings specific to FEA-based tires
 bool enable_tire_pressure = true;
@@ -96,6 +97,7 @@ bool use_custom_collision = true;
 // JSON file names for tire models
 std::string fiala_testfile("generic/tire/FialaTire.json");
 std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
+std::string featire_file("hmmwv/tire/HMMWV_FEATire.json");
 
 // Output directories
 std::string out_dir1;
@@ -272,6 +274,9 @@ int main() {
         case ANCF:
             out_dir = out_dir1 + "ANCF/";
             break;
+        case FEA:
+            out_dir = out_dir1 + "FEA/";
+            break;
     }
 
     if (ChFileutils::MakeDirectory(out_dir1.c_str()) < 0) {
@@ -316,7 +321,7 @@ int main() {
     // ----------------------------
 
     // Set contact model to DEM if ANCF tire is used
-    if (tire_model == ANCF) {
+    if (tire_model == ANCF || tire_model == FEA) {
         contact_method = ChMaterialSurfaceBase::DEM;
         collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
     }
@@ -339,6 +344,7 @@ int main() {
     rim->SetInertiaXX(rim_inertiaXX);
 
     rim->SetPos_dt(ChVector<>(desired_speed, 0, 0));
+    
     my_system->AddBody(rim);
     auto cyl_rim = std::make_shared<ChCylinderShape>();
     cyl_rim->GetCylinderGeometry().p1 = ChVector<>(0, -.25, 0);
@@ -358,33 +364,48 @@ int main() {
     double tire_width;
 
     switch (tire_model) {
-        case FIALA: {
-            auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(fiala_testfile));
-            tire_fiala->Initialize(rim, LEFT);
-            tire_radius = tire_fiala->GetRadius();
-            wheel_radius = tire_radius;
-            tire_width = tire_fiala->GetWidth();
-            tire = tire_fiala;
-            break;
-        }
-        case ANCF: {
-#ifdef CHRONO_FEA
-            auto tire_ancf = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
-
-            tire_ancf->EnablePressure(enable_tire_pressure);
-            tire_ancf->EnableContact(enable_tire_contact);
-            tire_ancf->EnableRimConnection(enable_rim_conection);
-
-            tire_ancf->Initialize(rim, LEFT);
-            tire_radius = tire_ancf->GetRadius();
-            wheel_radius = tire_ancf->GetRimRadius();
-            tire_width = tire_ancf->GetWidth();
-            tire = tire_ancf;
-#endif
-            break;
-        }
+    case FIALA: {
+                    auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(fiala_testfile));
+                    tire_fiala->Initialize(rim, LEFT);
+                    tire_radius = tire_fiala->GetRadius();
+                    wheel_radius = tire_radius;
+                    tire_width = tire_fiala->GetWidth();
+                    tire = tire_fiala;
+                    break;
     }
+    case ANCF: {
+#ifdef CHRONO_FEA
+                   auto tire_ancf = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
 
+                   tire_ancf->EnablePressure(enable_tire_pressure);
+                   tire_ancf->EnableContact(enable_tire_contact);
+                   tire_ancf->EnableRimConnection(enable_rim_conection);
+                   rim->SetWvel_loc(ChVector<>(0, desired_speed/0.463, 0));
+                   tire_ancf->Initialize(rim, LEFT);
+                   tire_radius = tire_ancf->GetRadius();
+                   wheel_radius = tire_ancf->GetRimRadius();
+                   tire_width = tire_ancf->GetWidth();
+                   tire = tire_ancf;
+#endif
+                   break;
+    }
+    case FEA: {
+#ifdef CHRONO_FEA
+                  auto tire_fea = std::make_shared<FEATire>(vehicle::GetDataFile(featire_file));
+
+                  tire_fea->EnablePressure(true);
+                  tire_fea->EnableContact(true);
+                  tire_fea->EnableRimConnection(true);
+                  rim->SetWvel_loc(ChVector<>(0, desired_speed/0.7, 0));
+                  tire_fea->Initialize(rim, LEFT);
+                  tire_radius = tire_fea->GetRadius();
+                  wheel_radius = tire_fea->GetRimRadius();
+                  tire_width = tire_fea->GetWidth();
+                  tire = tire_fea;
+#endif
+                  break;
+    }
+    }
     // Create the Chassis Body
     // -----------------------
 
@@ -751,10 +772,15 @@ int main() {
 
     TireTestContactReporter my_reporter;
     double rig_mass = wheel_carrier_mass + set_camber_mass + rim_mass + wheel_mass;
-	// Create connectivity section of VTK file
-	std::vector<std::vector<int> > NodeNeighborElement;
-	NodeNeighborElement.resize(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh()->GetNnodes());
-	CreateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), NodeNeighborElement);
+    
+    std::vector<std::vector<int>> NodeNeighborElement; 
+    switch (tire_model) {
+        case ANCF:
+            // Create connectivity section of VTK file
+            NodeNeighborElement.resize(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh()->GetNnodes());
+            CreateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), NodeNeighborElement);
+            break;
+    }
 
     while (application->GetDevice()->run()) {
         // GetLog() << "Time: " << my_system->GetChTime() << " s. \n";
@@ -794,9 +820,10 @@ int main() {
 
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - sim_step / 2) {
-			UpdateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), simTime,
-				NodeNeighborElement);
-
+            switch (tire_model) {
+                case ANCF:
+                    UpdateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), simTime, NodeNeighborElement);
+            }
             ChMatrix33<> A(wheelstate.rot);
             ChVector<> disc_normal = A.Get_A_Yaxis();
             ChCoordsys<> linkCoordsys = revolute_set_camber_rim->GetLinkRelativeCoords();

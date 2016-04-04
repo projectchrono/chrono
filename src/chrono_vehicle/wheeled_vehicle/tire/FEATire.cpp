@@ -137,6 +137,15 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     ChMeshFileLoader::FromAbaqusFile(m_mesh, GetDataFile(m_input_file).c_str(), m_material, m_node_sets,
                                      wheel_frame.GetPos(),
                                      wheel_frame.GetA() * ChMatrix33<>(CH_C_PI_2, ChVector<>(0, 0, 1)));
+
+    for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(i));
+        // Nodal initial velocity
+        ChVector<> vel =
+            wheel_frame.PointSpeedLocalToParent(ChVector<>(node->GetPos().x, node->GetPos().y, node->GetPos().z)-
+            ChVector<>(wheel_frame.GetPos().x, wheel_frame.GetPos().y, wheel_frame.GetPos().z));
+        node->SetPos_dt(vel);
+    }
 }
 
 std::vector<std::shared_ptr<ChNodeFEAbase>> FEATire::GetInternalNodes() const {
