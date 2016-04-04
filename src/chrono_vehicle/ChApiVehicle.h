@@ -14,4 +14,30 @@
 #define CH_VEHICLE_API ChApiIMPORT
 #endif
 
+
+/**
+    @defgroup vehicle VEHICLE module
+    @brief Ground vehicle modeling
+
+    This module introduces template-based modeling tools
+    for creating wheeled and tracked vehicles.
+
+    For additional information, see:
+    - the [installation guide](@ref module_vehicle_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
+*/
+
+
+namespace chrono {
+
+/// @addtogroup vehicle
+/// @{
+
+/// Namespace with classes for the VEHICLE module.
+namespace vehicle {}
+
+/// @}
+
+}
+
 #endif

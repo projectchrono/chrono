@@ -49,4 +49,19 @@
 */
 
 
+
+namespace chrono {
+
+/// @addtogroup postprocess_module
+/// @{
+
+/// Namespace with classes for the POSTPROCESS module.
+namespace postprocess {}
+
+/// @}
+
+}
+
+
+
 #endif  // END of header

@@ -30,21 +30,9 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
-/**
-    @defgroup vehicle VEHICLE module
-    @brief Ground vehicle modeling
-
-    This module introduces template-based modeling tools
-    for creating wheeled and tracked vehicles.
-
-    For additional information, see:
-    - the [installation guide](@ref module_vehicle_installation)
-    - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
-*/
 
 namespace chrono {
 
-/// Namespace for the Chrono::Vehicle module.
 namespace vehicle {
 
 /// @addtogroup vehicle
