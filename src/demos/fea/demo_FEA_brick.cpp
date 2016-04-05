@@ -119,12 +119,13 @@ int main(int argc, char* argv[]) {
 
         NumNodes(i, 0) = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
         NumNodes(i, 1) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        NumNodes(i, 2) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
-        NumNodes(i, 3) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        NumNodes(i, 2) = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;
+        NumNodes(i, 3) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
         NumNodes(i, 4) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 0);
         NumNodes(i, 5) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 1);
         NumNodes(i, 6) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 2);
         NumNodes(i, 7) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 3);
+
         // Let's keep the element length a fixed number in both direction. (uniform
         // distribution of nodes in both direction)
 

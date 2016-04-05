@@ -36,7 +36,6 @@
 
 namespace chrono {
 
-/// Namespace with classes for the postprocess unit.
 namespace postprocess {
 
 /// Class for post processing implementation that generates

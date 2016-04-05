@@ -19,10 +19,6 @@
 #include "chrono_opengl/core/ChApiOpenGL.h"
 #include "chrono_opengl/ChOpenGLViewer.h"
 
-/**
-    @defgroup opengl Chrono::OpenGL
-    @brief Runtime visualization with OpenGL
-*/
 
 namespace chrono {
 

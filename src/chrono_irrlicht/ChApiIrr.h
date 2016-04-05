@@ -32,4 +32,33 @@
 #define ChApiIrr ChApiIMPORT
 #endif
 
+
+/**
+    @defgroup irrlicht_module IRRLICHT module
+    @brief Runtime visualization with Irrlicht
+
+    This module can be used to provide 3D realtime rendering 
+    in Chrono::Engine.
+
+    For additional information, see:
+    - the [installation guide](@ref module_irrlicht_installation)
+    - the [tutorials](@ref tutorial_root)
+*/
+
+
+namespace chrono {
+
+/// @addtogroup irrlicht_module
+/// @{
+
+/// Namespace with classes for the Irrlicht module.
+namespace irrlicht {}
+
+/// @}
+
+}
+
+
+
+
 #endif

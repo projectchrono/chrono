@@ -69,6 +69,8 @@ class ChMatrixDynamic;
 ///  Warning: for optimization reasons, not all functions will
 /// check about boundaries of element indexes and matrix sizes (in
 /// some cases, if sizes are wrong, debug asserts are used).
+///
+/// Further info at the @ref mathematical_objects manual page.
 
 template <class Real = double>
 class ChMatrix {

@@ -16,7 +16,7 @@ concepts are quite ubiquitous in the rest of the Chrono::Engine API.
 One of the first things to learn about the Chrono::Engine API 
 is to manage linear algebra operations, with vectors and matrices.
 
-Most of these features are detailed in the ChMatrix API documentation. 
+Most of these features are detailed in the @ref chrono::ChMatrix API documentation. 
 ChMatrix is the base class for order-two tensors (matrices, vectors) 
 and it is used in many places.
 
@@ -46,6 +46,7 @@ If you do not worry about performance, this is the type of matrix that you can u
 chrono::ChMatrixDynamic<double> mh(12,4);
 ~~~
 
+See @ref chrono::ChMatrixDynamic for API details.
 
 ##ChMatrixNM##
 
@@ -54,6 +55,8 @@ Use ChMatrixNM<> to create matrices that do not need to be resized, and whose si
 ~~~{.cpp}
 chrono::ChMatrixNM<double,4,4> mm;
 ~~~
+
+See @ref chrono::ChMatrixNM for API details.
 
 
 ##ChMatrix33##
@@ -65,6 +68,8 @@ It inherits the same high-performance features of ChMatrixNM<>, but also offers 
 	chrono::ChMatrix33<> ma;
 ~~~
 
+See @ref chrono::ChMatrix33 for API details.
+
 
 ##ChVectorDynamic##
 
@@ -74,6 +79,9 @@ Do not confuse it with the ChVector class that is used to represent 3D vectors i
 ~~~{.cpp}
 chrono::ChVectorDynamic<double> mv(12);
 ~~~
+
+See @ref chrono::ChVectorDynamic for API details.
+
 
 
 Now let's see some basic operations with matrices:
@@ -229,7 +237,6 @@ that are defined with the ChVector<> class (the Vector is a shortcut for ChVecto
 
 
 
-
 # Function objects  {#ChFunction_objects}
 
 
@@ -238,9 +245,6 @@ These ChFunction objects are used in many places in Chrono::Engine,
 and are used to represent y=f(x) functions, 
 for example when introducing prescribed displacements in a linear actuator.
 
-A detailed description is contained in the API documentation of 
-ChFunction.
-
 These functions are scalar, 
 \f[ 
  x \in \mathbb{R} \rightarrow y \in \mathbb{R}
@@ -248,6 +252,8 @@ These functions are scalar,
 and there are a predefined number of them that are ready to use, 
 such as sine, cosine, constant, etc. If the predefined ones are not enough, 
 the user can implement his custom function by inheriting from the base ChFunction class.
+
+See @ref chrono::ChFunction for API details and a list of subclasses.
 
 
 ### Example 1

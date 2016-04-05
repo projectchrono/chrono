@@ -28,10 +28,9 @@ Tutorials {#tutorial_root}
 
 
 
-Documentation guides
------------------
+## Documentation guides
 
--    @subpage tutorial_converting_wiki
+-    @subpage tutorial_table_of_content_documentation
 
--    @subpage tutorial_writing_whitepapers
+     Learn how to write technical documentation for Chrono if you are developing new modules/features.
 

@@ -56,7 +56,8 @@ class ChContactContainerBase;
 
 
 
-
+/// Physical system.
+///
 /// This class is used to represent a multibody physical system,
 /// so it acts also as a database for most items involved in
 /// simulations, most noticeably objects of ChBody and ChLink
@@ -71,6 +72,7 @@ class ChContactContainerBase;
 /// order to perform simulations (you'll insert rigid bodies and
 /// links into it..)
 ///
+/// Further info at the @ref simulation_system  manual page.
 
 class ChApi ChSystem : public ChAssembly, 
                        public ChIntegrableIIorderEasy {

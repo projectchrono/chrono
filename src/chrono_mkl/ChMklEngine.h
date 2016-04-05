@@ -10,8 +10,8 @@
 //
 
 
-/// Class for interfacing with Pardiso Sparse Direct Solver
-/// from the Intel® MKL Library.
+// Class for interfacing with Pardiso Sparse Direct Solver
+// from the Intel® MKL Library.
 
 
 #ifndef CHMKLENGINE_H

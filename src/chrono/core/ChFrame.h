@@ -40,13 +40,14 @@ namespace chrono {
 /// a rotation respect to a 'parent' coordinate system,
 /// usually the absolute (world) coordinates.
 ///
-///  Differently from a simple ChCoordsys() object, however,
+///  Differently from a simple ChCoordsys object, however,
 /// the ChFrame implements some optimizations because
 /// each ChFrame stores also a 3x3 rotation matrix, which
 /// can speed up coordinate transformations when a large
 /// amount of vectors must be transformed by the same
 /// coordinate frame.
 ///
+/// Further info at the @ref coordinate_transformations manual page.
 
 template <class Real = double>
 class ChFrame {
