@@ -216,10 +216,11 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
             splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
 
-            // Node position
+            // Node position with respect to rim center
             double x = (m_rim_radius + x_prf) * std::cos(phi);
             double y = y_prf;
             double z = (m_rim_radius + x_prf) * std::sin(phi);
+            // Node position in global frame (actual coordinate values)
             ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
 
             // Node direction
@@ -232,7 +233,6 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             // Node velocity
             ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
             node->SetPos_dt(vel);
-
             node->SetMass(0);
             m_mesh->AddNode(node);
         }
