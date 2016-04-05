@@ -10,14 +10,14 @@ Tutorials {#tutorial_root}
 
     Examples about the core functionalities of the Chrono library. **Suggested reading**
 	
--   @subpage tutorial_table_of_content_irrlicht
+-   @subpage tutorial_table_of_content_chrono_irrlicht
 
     Examples with 3D interactive view, using Irrlicht. **Suggested reading**
 	
 	
 ## Optional modules
 
--   @subpage tutorial_table_of_content_postprocessing
+-   @subpage tutorial_table_of_content_chrono_postprocessing
 
     Examples about postprocessing (ex. POVray or GNUplot output).
 
@@ -29,27 +29,27 @@ Tutorials {#tutorial_root}
  
     Learn how to set up vehicle models in Chrono
 	
--   @subpage tutorial_table_of_content_cosimulation
+-   @subpage tutorial_table_of_content_chrono_cosimulation
 
     Examples about cosimulation with Simulink. 
 
--   @subpage tutorial_table_of_content_cascade
+-   @subpage tutorial_table_of_content_chrono_cascade
 
     Examples about loading CAD models 
 	
--   @subpage tutorial_table_of_content_matlab
+-   @subpage tutorial_table_of_content_chrono_matlab
 
     Examples about Matlab inter-operation 
 	
--   @subpage tutorial_table_of_content_parallel
+-   @subpage tutorial_table_of_content_chrono_parallel
 
     Examples about the parallel unit.
 	
--   @subpage tutorial_table_of_content_opengl
+-   @subpage tutorial_table_of_content_chrono_opengl
 
     Examples about the OpenGL unit.
 	
--   @subpage tutorial_table_of_content_python
+-   @subpage tutorial_table_of_content_chrono_python
 
     Examples about how to parse Python programs.
 
