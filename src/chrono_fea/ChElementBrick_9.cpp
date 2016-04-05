@@ -96,12 +96,12 @@ void ChElementBrick_9::SetupInitial(ChSystem* system) {
 void ChElementBrick_9::ShapeFunctions(ChMatrix<>& N, double x, double y, double z) {
     N(0) = 0.125 * (1 - x) * (1 - y) * (1 - z);
     N(1) = 0.125 * (1 + x) * (1 - y) * (1 - z);
-    N(2) = 0.125 * (1 - x) * (1 + y) * (1 - z);
-    N(3) = 0.125 * (1 + x) * (1 + y) * (1 - z);
+    N(2) = 0.125 * (1 + x) * (1 + y) * (1 - z);
+    N(3) = 0.125 * (1 - x) * (1 + y) * (1 - z);
     N(4) = 0.125 * (1 - x) * (1 - y) * (1 + z);
     N(5) = 0.125 * (1 + x) * (1 - y) * (1 + z);
-    N(6) = 0.125 * (1 - x) * (1 + y) * (1 + z);
-    N(7) = 0.125 * (1 + x) * (1 + y) * (1 + z);
+    N(6) = 0.125 * (1 + x) * (1 + y) * (1 + z);
+    N(7) = 0.125 * (1 - x) * (1 + y) * (1 + z);
     //
     N(8) = 0.5 * (x * x - 1);
     N(9) = 0.5 * (y * y - 1);
@@ -113,12 +113,12 @@ void ChElementBrick_9::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, doubl
 
     Nx(0) = 0.125 * factor * (-1) * (1 - y) * (1 - z);
     Nx(1) = 0.125 * factor * (+1) * (1 - y) * (1 - z);
-    Nx(2) = 0.125 * factor * (-1) * (1 + y) * (1 - z);
-    Nx(3) = 0.125 * factor * (+1) * (1 + y) * (1 - z);
+    Nx(2) = 0.125 * factor * (+1) * (1 + y) * (1 - z);
+    Nx(3) = 0.125 * factor * (-1) * (1 + y) * (1 - z);
     Nx(4) = 0.125 * factor * (-1) * (1 - y) * (1 + z);
     Nx(5) = 0.125 * factor * (+1) * (1 - y) * (1 + z);
-    Nx(6) = 0.125 * factor * (-1) * (1 + y) * (1 + z);
-    Nx(7) = 0.125 * factor * (+1) * (1 + y) * (1 + z);
+    Nx(6) = 0.125 * factor * (+1) * (1 + y) * (1 + z);
+    Nx(7) = 0.125 * factor * (-1) * (1 + y) * (1 + z);
     //
     Nx(8) = 0.5 * factor * (2 * x);
     Nx(9) = 0;
@@ -130,12 +130,12 @@ void ChElementBrick_9::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, doubl
 
     Ny(0) = 0.125 * factor * (1 - x) * (-1) * (1 - z);
     Ny(1) = 0.125 * factor * (1 + x) * (-1) * (1 - z);
-    Ny(2) = 0.125 * factor * (1 - x) * (+1) * (1 - z);
-    Ny(3) = 0.125 * factor * (1 + x) * (+1) * (1 - z);
+    Ny(2) = 0.125 * factor * (1 + x) * (+1) * (1 - z);
+    Ny(3) = 0.125 * factor * (1 - x) * (+1) * (1 - z);
     Ny(4) = 0.125 * factor * (1 - x) * (-1) * (1 + z);
     Ny(5) = 0.125 * factor * (1 + x) * (-1) * (1 + z);
-    Ny(6) = 0.125 * factor * (1 - x) * (+1) * (1 + z);
-    Ny(7) = 0.125 * factor * (1 + x) * (+1) * (1 + z);
+    Ny(6) = 0.125 * factor * (1 + x) * (+1) * (1 + z);
+    Ny(7) = 0.125 * factor * (1 - x) * (+1) * (1 + z);
     //
     Ny(8) = 0;
     Ny(9) = 0.5 * factor * (2 * y);
@@ -147,12 +147,12 @@ void ChElementBrick_9::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, doubl
     
     Nz(0) = 0.125 * factor * (1 - x) * (1 - y) * (-1);
     Nz(1) = 0.125 * factor * (1 + x) * (1 - y) * (-1);
-    Nz(2) = 0.125 * factor * (1 - x) * (1 + y) * (-1);
-    Nz(3) = 0.125 * factor * (1 + x) * (1 + y) * (-1);
+    Nz(2) = 0.125 * factor * (1 + x) * (1 + y) * (-1);
+    Nz(3) = 0.125 * factor * (1 - x) * (1 + y) * (-1);
     Nz(4) = 0.125 * factor * (1 - x) * (1 - y) * (+1);
     Nz(5) = 0.125 * factor * (1 + x) * (1 - y) * (+1);
-    Nz(6) = 0.125 * factor * (1 - x) * (1 + y) * (+1);
-    Nz(7) = 0.125 * factor * (1 + x) * (1 + y) * (+1);
+    Nz(6) = 0.125 * factor * (1 + x) * (1 + y) * (+1);
+    Nz(7) = 0.125 * factor * (1 - x) * (1 + y) * (+1);
     //
     Nz(8) = 0;
     Nz(9) = 0;
