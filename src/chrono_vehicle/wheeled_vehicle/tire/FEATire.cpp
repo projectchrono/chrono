@@ -140,10 +140,10 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
 
     for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(i));
-        // Nodal initial velocity
-        ChVector<> vel =
-            wheel_frame.PointSpeedLocalToParent(ChVector<>(node->GetPos().x, node->GetPos().y, node->GetPos().z)-
-            ChVector<>(wheel_frame.GetPos().x, wheel_frame.GetPos().y, wheel_frame.GetPos().z));
+        // Node position (expressed in wheel frame)
+        ChVector<> loc = wheel_frame.TransformPointParentToLocal(node->GetPos());
+        // Node velocity (expressed in absolute frame)
+        ChVector<> vel = wheel_frame.PointSpeedLocalToParent(loc);
         node->SetPos_dt(vel);
     }
 }
