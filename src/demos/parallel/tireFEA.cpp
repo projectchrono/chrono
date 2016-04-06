@@ -30,7 +30,7 @@ using namespace chrono::fea;
 
 ChFEAContainer* fea_container;
 
-real time_step = 0.001;
+real time_step = 0.0005;
 real time_end = 10;
 void AddContainer(ChSystemParallelDVI* sys) {
     // IDs for the two bodies
@@ -43,7 +43,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 
     ChVector<> hdim(2, 2, 2);
 
-    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.2, Vector(0, 0, -.7), QUNIT, true, false, true, true);
+    utils::CreateBoxContainer(sys, 0, mat, hdim, 0.1, Vector(0, 0, -1), QUNIT, true, false, true, true);
 }
 
 int main(int argc, char* argv[]) {
@@ -62,16 +62,16 @@ int main(int argc, char* argv[]) {
     fea_container->material_density = 1000;
     fea_container->contact_mu = 0;
     fea_container->contact_cohesion = 0;
-    fea_container->youngs_modulus = 6100000;  // 2e8;
-    fea_container->poisson_ratio = .49;
+    fea_container->youngs_modulus = 200000000;  // 2e8;
+    fea_container->poisson_ratio = .2;
     fea_container->contact_recovery_speed = 1e8;
     fea_container->rigid_constraint_recovery_speed = .1;
     my_system.GetSettings()->solver.solver_mode = SLIDING;
     my_system.GetSettings()->solver.max_iteration_normal = 0;
-    my_system.GetSettings()->solver.max_iteration_sliding = 500;
+    my_system.GetSettings()->solver.max_iteration_sliding = 100;
     my_system.GetSettings()->solver.max_iteration_spinning = 0;
     my_system.GetSettings()->solver.max_iteration_bilateral = 0;
-    my_system.GetSettings()->solver.tolerance = 1e-8;
+    my_system.GetSettings()->solver.tolerance = 0;
     my_system.GetSettings()->solver.alpha = 0;
     my_system.GetSettings()->solver.use_full_inertia_tensor = false;
     my_system.GetSettings()->solver.contact_recovery_speed = 1;
@@ -79,11 +79,11 @@ int main(int argc, char* argv[]) {
     my_system.ChangeSolverType(BB);
     my_system.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     my_system.GetSettings()->collision.collision_envelope = (fea_container->kernel_radius * .05);
-    my_system.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
-    // my_system.SetLoggingLevel(LOG_TRACE, true);
-    // my_system.SetLoggingLevel(LOG_INFO, true);
+    my_system.GetSettings()->collision.bins_per_axis = vec3(20, 20, 20);
+    my_system.SetLoggingLevel(LOG_TRACE, true);
+    my_system.SetLoggingLevel(LOG_INFO, true);
     double gravity = 9.81;
-    my_system.Set_G_acc(ChVector<>(0, 0, -gravity));
+    my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     AddContainer(&my_system);
 
@@ -135,11 +135,12 @@ int main(int argc, char* argv[]) {
 
     my_system.Initialize();
 
-//
-// THE SOFT-REAL-TIME CYCLE
-//
-
-#ifdef CHRONO_OPENGL
+    //
+    // THE SOFT-REAL-TIME CYCLE
+    //
+    real3 initpos = my_system.data_manager->host_data.pos_node_fea[45];
+    real g = 0;
+#if 0
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "fluidDVI", &my_system);
     gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2);
@@ -151,8 +152,12 @@ int main(int argc, char* argv[]) {
     while (true) {
         if (gl_window.Active()) {
             if (gl_window.DoStepDynamics(time_step)) {
-                real3 pos = my_system.data_manager->host_data.pos_node_fea[45];
-                printf("pos: %f %f %f \n", pos.x, pos.y, pos.z);
+            	real3 pos = my_system.data_manager->host_data.pos_node_fea[45] - initpos;
+            	        printf("pos: %f %f %f [%f]\n", pos.x, pos.y, pos.z, g);
+            	        if (g < gravity) {
+            	            g += 0.001;
+            	        }
+            	        my_system.Set_G_acc(ChVector<>(0, 0, -g));
             }
             gl_window.Render();
         } else {
@@ -166,6 +171,12 @@ int main(int argc, char* argv[]) {
     double time = 0;
     for (int i = 0; i < num_steps; i++) {
         my_system.DoStepDynamics(time_step);
+        real3 pos = my_system.data_manager->host_data.pos_node_fea[45] - initpos;
+        printf("pos: %f %f %f [%f]\n", pos.x, pos.y, pos.z, g);
+        if (g < gravity) {
+            g += 0.001;
+        }
+        my_system.Set_G_acc(ChVector<>(0, 0, -g));
         time += time_step;
     }
 #endif
