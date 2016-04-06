@@ -239,6 +239,11 @@ void ChLcpSolverParallelDVI::ComputeD() {
     data_manager->node_container->GenerateSparsity();
     data_manager->fea_container->GenerateSparsity();
 
+    //Move b code here so that it can be computed along side D
+    DynamicVector<real>& b = data_manager->host_data.b;
+    b.resize(data_manager->num_constraints);
+    reset(b);
+
     data_manager->rigid_rigid->Build_D();
     data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
@@ -284,10 +289,8 @@ void ChLcpSolverParallelDVI::ComputeR() {
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     DynamicVector<real>& R = data_manager->host_data.R_full;
-    DynamicVector<real>& b = data_manager->host_data.b;
 
-    b.resize(data_manager->num_constraints);
-    reset(b);
+    // B is now resized in the Jacobian function
 
     R.resize(data_manager->num_constraints);
     reset(R);
