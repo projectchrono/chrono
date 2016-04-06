@@ -595,7 +595,9 @@ void ChFEAContainer::Build_D() {
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.z * 3, r2);
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.w * 3, r3);
         // rhs
-        real factor = 1. / step_size;
+        real beta = 1e-8;
+        real gam = 1.0 / (.5 + step_size * beta);
+        real factor = gam * 1. / step_size;
         b_sub[i * 7 + 0] = factor * cf * eii.x;
         b_sub[i * 7 + 1] = factor * cf * eii.y;
         b_sub[i * 7 + 2] = factor * cf * eii.z;
