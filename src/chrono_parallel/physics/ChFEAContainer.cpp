@@ -188,6 +188,12 @@ void ChFEAContainer::Update(double ChTime) {
         data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2] = h_gravity.z;
     }
 }
+
+// CUDA_HOST_DEVICE static inline float DoubleDot(const Mat33& A, const Mat33& B) {
+//    return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] +
+//           A[7] * B[7] + A[8] * B[8];
+//}
+
 void ChFEAContainer::UpdatePosition(double ChTime) {
     uint num_nodes = data_manager->num_fea_nodes;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
@@ -196,7 +202,7 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
     //
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<real3>& vel_node = data_manager->host_data.vel_node_fea;
-    //
+#pragma omp parallel for
     for (int i = 0; i < num_nodes; i++) {
         real3 vel;
         vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0];
@@ -210,6 +216,124 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
         vel_node[i] = vel;
         pos_node[i] += vel * data_manager->settings.step_size;
     }
+
+#if 0
+    custom_vector<real3> pos_new = pos_node;
+
+    uint num_tets = data_manager->num_fea_tets;
+
+    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
+    SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
+
+    real lame_lambda = youngs_modulus * poisson_ratio / ((1. + poisson_ratio) * (1. - 2. * poisson_ratio));
+    real lame_mu = youngs_modulus / (2. * (1. + poisson_ratio));
+    custom_vector<real>& mass_node = data_manager->host_data.mass_node_fea;
+    real step_size = data_manager->settings.step_size;
+
+    bool normalizeStretch = true;
+    bool normalizeShear = true;
+
+    for (int iter = 0; iter < 3; iter++) {
+        //#pragma omp parallel for
+        for (int i = 0; i < num_tets; i++) {
+            uint4 tet_ind = tet_indices[i];
+
+            real3 p0 = pos_new[tet_ind.x];
+            real3 p1 = pos_new[tet_ind.y];
+            real3 p2 = pos_new[tet_ind.z];
+            real3 p3 = pos_new[tet_ind.w];
+
+            real3 c1 = p1 - p0;
+            real3 c2 = p2 - p0;
+            real3 c3 = p3 - p0;
+            Mat33 Ds = Mat33(c1, c2, c3);
+
+            real volume = 1.0 / 6.0 * Dot(c1, Cross(c2, c3));
+            Mat33 X = X0[i];
+            Mat33 F = Ds * X;  // 4.27
+            Mat33 Ftr = Transpose(F);
+
+            real invMass0 = 1.0 / mass_node[tet_ind.x];
+            real invMass1 = 1.0 / mass_node[tet_ind.y];
+            real invMass2 = 1.0 / mass_node[tet_ind.z];
+            real invMass3 = 1.0 / mass_node[tet_ind.w];
+
+            real3 corr1 = real3(0), corr2 = real3(0), corr3 = real3(0), corr0 = real3(0);
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j <= i; j++) {
+                    real3 P1 = (p1 + corr1) - (p0 + corr0);  // Gauss - Seidel
+                    real3 P2 = (p2 + corr2) - (p0 + corr0);
+                    real3 P3 = (p3 + corr3) - (p0 + corr0);
+                    Mat33 P(P1, P2, P3);
+
+                    real3 fi = P * X.col(i);
+                    real3 fj = P * X.col(j);
+                    real Sij = Dot(fi, fj);
+
+                    real wi, wj, s1, s3;
+                    if (normalizeShear && i != j) {
+                        wi = Norm(fi);
+                        wj = Norm(fj);
+                        s1 = 1.0 / (wi * wj);
+                        s3 = s1 * s1 * s1;
+                    }
+
+                    real3 d[4];
+                    d[0] = real3(0.0f, 0.0f, 0.0f);
+
+                    for (int k = 0; k < 3; k++) {
+                        d[k + 1] = fj * X(k, i) + fi * X(k, j);
+                        if (normalizeShear && i != j) {
+                            d[k + 1] = s1 * d[k + 1] - Sij * s3 * (wj * wj * fi * X(k, i) + wi * wi * fj * X(k, j));
+                        }
+                        d[0] -= d[k + 1];
+                    }
+                    if (normalizeShear && i != j) {
+                        Sij *= s1;
+                    }
+                    real lambda = invMass0 * NormSq(d[0]) + invMass1 * NormSq(d[1]) + invMass2 * NormSq(d[2]) +
+                                  invMass3 * NormSq(d[3]);
+
+                    //                if (fabs(lambda) < eps)  // foo: threshold should be scale dependent
+                    //                    continue;
+
+                    if (i == j) {  // diagonal, stretch
+                        if (normalizeStretch) {
+                            real s = Sqrt(Sij);
+                            lambda = 2.0f * s * (s - 1.0) / lambda;
+                        } else {
+                            lambda = (Sij - 1.0) / lambda;
+                        }
+                    } else {  // off diagonal, shear
+                        lambda = Sij / lambda * 1;
+                    }
+
+                    corr0 -= lambda * invMass0 * d[0];
+                    corr1 -= lambda * invMass1 * d[1];
+                    corr2 -= lambda * invMass2 * d[2];
+                    corr3 -= lambda * invMass3 * d[3];
+                }
+            }
+
+            pos_new[tet_ind.x] += corr0;
+            pos_new[tet_ind.y] += corr1;
+            pos_new[tet_ind.z] += corr2;
+            pos_new[tet_ind.w] += corr3;
+
+            //        printf("[%f %f %f] [%f %f %f] [%f %f %f] [%f %f %f]\n", corr0.x, corr0.y, corr0.z, corr1.x,
+            //        corr1.y, corr1.z,
+            //               corr2.x, corr2.y, corr2.z, corr3.x, corr3.y, corr3.z);
+        }
+    }
+
+#pragma omp parallel for
+    for (int i = 0; i < num_nodes; i++) {
+        vel_node[i] += (pos_new[i] - pos_node[i]) / step_size;
+    }
+
+#endif
 }
 void ChFEAContainer::Initialize() {
     uint num_tets = data_manager->num_fea_tets;
@@ -253,24 +377,7 @@ void ChFEAContainer::Initialize() {
         mass_node[tet_ind.y] += node_mass;
         mass_node[tet_ind.z] += node_mass;
         mass_node[tet_ind.w] += node_mass;
-
-        // printf("Vol: %f Mass: %f [%d %d %d %d]\n", vol, tet_mass, tet_ind.x,tet_ind.y,tet_ind.z,tet_ind.w);
-
-        //        real3 y[4];
-        //        y[1] = X0[i].row(0);
-        //        y[2] = X0[i].row(1);
-        //        y[3] = X0[i].row(2);
-        //        y[0] = -y[1] - y[2] - y[3];
     }
-
-    //    ed = yDamping;
-    //    nud = pDamping;
-    //    real omnd = 1.0 - nud;
-    //    real om2nd = 1.0 - 2 * nud;
-    //    real fd = ed / (1.0 + nud) / om2nd;
-    //    Mat33 Ed = fd * Mat33(omnd, nud, nud,   //
-    //                          nud, omnd, nud,   //
-    //                          nud, nud, omnd);  //
 
     FindSurface();
 }
@@ -396,29 +503,12 @@ void ChFEAContainer::Build_D() {
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_tets = data_manager->num_fea_tets;
-
-    real e = youngs_modulus;
-    real nu = poisson_ratio;
-
-    const real mu = 0.5 * e / (1.0 + nu);  // 0.5?
-    const real muInv = 1.0 / mu;
-
-    real omn = 1.0 - nu;
-    real om2n = 1.0 - 2 * nu;
-    real s = e / (1.0 + nu);
-    real f = s / om2n;
-    Mat33 E = f * Mat33(omn, nu, nu,   //
-                        nu, omn, nu,   //
-                        nu, nu, omn);  //
-
-    Mat33 Einv = Inverse(E);
-    Mat33 C_upper = Einv;
-    Mat33 C_lower(real3(muInv, muInv, muInv));
-
+    real step_size = data_manager->settings.step_size;
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
+    SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
 #pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
         uint4 tet_ind = tet_indices[i];
@@ -433,9 +523,9 @@ void ChFEAContainer::Build_D() {
         real3 c3 = p3 - p0;
         Mat33 Ds = Mat33(c1, c2, c3);
 
-        real det = Determinant(Ds);
-        real vol = Abs(1.0 / 6.0 * Dot(c1, Cross(c2, c3)));  // Abs((det) / 6.0);
-        real volSqrt = Sqrt(vol);
+        // real det = Determinant(Ds);
+        real volume = 1.0 / 6.0 * Dot(c1, Cross(c2, c3));
+        real volSqrt = Sqrt(Abs(volume));
         Mat33 X = X0[i];
         Mat33 F = Ds * X;  // 4.27
         Mat33 Ftr = Transpose(F);
@@ -453,71 +543,71 @@ void ChFEAContainer::Build_D() {
         real3 r3 = 1.0 / 6.0 * Cross(c1, c2);
         real3 r0 = -r1 - r2 - r3;
 
-        // volSqrt = Sqrt(Abs((Determinant(F) - 1.0)));
-
         real vf = 1.0 / (2.0 * volSqrt);
-        // This helps to scale jacboian so boundaries aren't ignored
         real cf = volSqrt;
+        real3 eii = real3(strain[0], strain[5], strain[10]);
+        real3 eij = real3(strain[9], strain[8], strain[4]);
 
-        Mat33 A1 = cf * Mat33(y[0]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r0);
-        Mat33 A2 = cf * Mat33(y[1]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r1);
-        Mat33 A3 = cf * Mat33(y[2]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r2);
-        Mat33 A4 = cf * Mat33(y[3]) * Ftr + vf * OuterProduct(real3(strain[0], strain[5], strain[10]), r3);
+        Mat33 A1 = cf * Mat33(y[0]) * Ftr + vf * OuterProduct(eii, r0);
+        Mat33 A2 = cf * Mat33(y[1]) * Ftr + vf * OuterProduct(eii, r1);
+        Mat33 A3 = cf * Mat33(y[2]) * Ftr + vf * OuterProduct(eii, r2);
+        Mat33 A4 = cf * Mat33(y[3]) * Ftr + vf * OuterProduct(eii, r3);
+
+        Mat33 B1 = .5 * cf * SkewSymmetricAlt(y[0]) * Ftr + vf * OuterProduct(eij, r0);
+        Mat33 B2 = .5 * cf * SkewSymmetricAlt(y[1]) * Ftr + vf * OuterProduct(eij, r1);
+        Mat33 B3 = .5 * cf * SkewSymmetricAlt(y[2]) * Ftr + vf * OuterProduct(eij, r2);
+        Mat33 B4 = .5 * cf * SkewSymmetricAlt(y[3]) * Ftr + vf * OuterProduct(eij, r3);
 
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.x * 3, A1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.z * 3, A3.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.w * 3, A4.row(0));
-        //        ///==================================================================================================================================
-        //
+        ///==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.x * 3, A1.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.y * 3, A2.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.z * 3, A3.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.w * 3, A4.row(1));
-        //        ///==================================================================================================================================
-        //
+        ///==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.x * 3, A1.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.y * 3, A2.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.z * 3, A3.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.w * 3, A4.row(2));
-        //
-        //        ///==================================================================================================================================
-        //         Off diagonal strain elements
-        Mat33 B1 =
-            .5 * cf * SkewSymmetricAlt(y[0]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r0);
-        Mat33 B2 =
-            .5 * cf * SkewSymmetricAlt(y[1]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r1);
-        Mat33 B3 =
-            .5 * cf * SkewSymmetricAlt(y[2]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r2);
-        Mat33 B4 =
-            .5 * cf * SkewSymmetricAlt(y[3]) * Ftr + vf * OuterProduct(real3(strain[9], strain[8], strain[4]), r3);
-
+        ///==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.z * 3, B3.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.w * 3, B4.row(0));
-        //
-        //        /////==================================================================================================================================
-        //
+        ///==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.x * 3, B1.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.y * 3, B2.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.z * 3, B3.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.w * 3, B4.row(1));
-        //
-        //        /////==================================================================================================================================
-        //
+        ///==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.x * 3, B1.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.y * 3, B2.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.z * 3, B3.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.w * 3, B4.row(2));
-        //
-        //        /////==================================================================================================================================
-        //        // Volume
-        //
+        ///==================================================================================================================================
+        // Volume
+
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.x * 3, r0);
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.y * 3, r1);
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.z * 3, r2);
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.w * 3, r3);
+        // rhs
+        real factor = 1. / step_size;
+        b_sub[i * 7 + 0] = factor * cf * eii.x;
+        b_sub[i * 7 + 1] = factor * cf * eii.y;
+        b_sub[i * 7 + 2] = factor * cf * eii.z;
+
+        b_sub[i * 7 + 3] = factor * cf * eij.x;
+        b_sub[i * 7 + 4] = factor * cf * eij.y;
+        b_sub[i * 7 + 5] = factor * cf * eij.z;
+#if 0
+        b_sub[i * 7 + 6] = (Determinant(F) - 1);
+#else
+        b_sub[i * 7 + 6] = (volume / V[i] - 1.0);
+#endif
     }
 
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
@@ -642,51 +732,11 @@ void ChFEAContainer::Build_b() {
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
     real step_size = data_manager->settings.step_size;
-#pragma omp parallel for
-    for (int i = 0; i < num_tets; i++) {
-        uint4 tet_ind = tet_indices[i];
-
-        real3 p0 = pos_node[tet_ind.x];
-        real3 p1 = pos_node[tet_ind.y];
-        real3 p2 = pos_node[tet_ind.z];
-        real3 p3 = pos_node[tet_ind.w];
-
-        real3 c1 = p1 - p0;
-        real3 c2 = p2 - p0;
-        real3 c3 = p3 - p0;
-        Mat33 Ds = Mat33(c1, c2, c3);
-
-        real det = Determinant(Ds);
-        real volume = (1.0 / 6.0 * Dot(c1, Cross(c2, c3)));  // Abs((det) / 6.0);
-        real vol = Abs(volume);                              // Abs((det) / 6.0);
-        real volSqrt = Sqrt(vol);
-
-        Mat33 F = Ds * X0[i];
-
-        Mat33 strain = .5 * (TransposeMult(F, F) - Mat33(1.0));  // Green strain
-        real cf = volSqrt;                                       // Sqrt(Abs((Determinant(F) - 1.0)));  // volSqrt;
-
-        b_sub[i * 7 + 0] = cf * strain[0];
-        b_sub[i * 7 + 1] = cf * strain[5];
-        b_sub[i * 7 + 2] = cf * strain[10];
-
-        b_sub[i * 7 + 3] = cf * strain[9];
-        b_sub[i * 7 + 4] = cf * strain[8];
-        b_sub[i * 7 + 5] = cf * strain[4];
-
-        // Volume
-
-        b_sub[i * 7 + 6] = (volume / V[i] - 1.0);
-
-        // printf("vol: %d %f\n", i, (Determinant(F) - 1));
-    }
-
+    // b for tet moved to jacobian code
     LOG(INFO) << "ChConstraintRigidNode::Build_b";
     uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-
-    //    if (num_rigid_tet_contacts > 0) {
 
     if (num_rigid_tet_contacts > 0) {
         custom_vector<real4>& face_rigid_tet = data_manager->host_data.face_rigid_tet;
@@ -763,37 +813,33 @@ void ChFEAContainer::Build_E() {
     SubVectorType E_sub = blaze::subvector(data_manager->host_data.E, start_tet, num_tet_constraints);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
-
-    const real mu = 0.5 * youngs_modulus / (1. + poisson_ratio);  // 0.5?
+    real step_size = data_manager->settings.step_size;
+    const real mu = youngs_modulus / (2 * (1. + poisson_ratio));
+    const real lambda = youngs_modulus * poisson_ratio / ((1. + poisson_ratio) * (1 - 2 * poisson_ratio));
     const real muInv = 1. / mu;
 
-    real omn = 1. - poisson_ratio;
-    real om2n = 1. - 2 * poisson_ratio;
-    real s = youngs_modulus / (1. + poisson_ratio);
-    real f = s / om2n;
-    Mat33 E = f * Mat33(omn, poisson_ratio, poisson_ratio, poisson_ratio, omn, poisson_ratio, poisson_ratio,
-                        poisson_ratio, omn);
-
+    //    real omn = 1. - poisson_ratio;
+    //    real om2n = 1. - 2 * poisson_ratio;
+    //    real s = youngs_modulus / (1. + poisson_ratio);
+    //    real f = s / om2n;
+    //    Mat33 E = f * Mat33(omn, poisson_ratio, poisson_ratio, poisson_ratio, omn, poisson_ratio, poisson_ratio,
+    //                        poisson_ratio, omn);
+    Mat33 E = Mat33(lambda + 2 * mu, lambda, lambda, lambda, lambda + 2 * mu, lambda, lambda, lambda, lambda + 2 * mu);
     E = Inverse(E);
-
-// real diag_stretch = youngs_modulus * (1. - poisson_ratio) / ((1. + poisson_ratio) * (1. - 2 * poisson_ratio));
-// real diag_strain = youngs_modulus * (1. - 2 * poisson_ratio) / ((1. + poisson_ratio) * (1. - 2 * poisson_ratio));
-
+    real beta = 1e-8;
+    real gam = 1.0 / (.5 + step_size * beta);
+    real factor = 1.0 / (step_size * step_size);
 #pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
-        E_sub[i * 7 + 0] = E[0];   // diag_stretch;
-        E_sub[i * 7 + 1] = E[5];   // diag_stretch;
-        E_sub[i * 7 + 2] = E[10];  // diag_stretch;
+        E_sub[i * 7 + 0] = gam * factor * E[0];
+        E_sub[i * 7 + 1] = gam * factor * E[5];
+        E_sub[i * 7 + 2] = gam * factor * E[10];
 
-        E_sub[i * 7 + 3] = muInv;  // diag_strain;
-        E_sub[i * 7 + 4] = muInv;  // diag_strain;
-        E_sub[i * 7 + 5] = muInv;  // diag_strain;
+        E_sub[i * 7 + 3] = gam * factor * muInv;
+        E_sub[i * 7 + 4] = gam * factor * muInv;
+        E_sub[i * 7 + 5] = gam * factor * muInv;
         // Volume
         E_sub[i * 7 + 6] = 0;  // 1.0 / youngs_modulus;
-        //        printf("E [%f,%f,%f,%f,%f,%f] \n", E_sub[i * 7 + 0], E_sub[i * 7 + 1], E_sub[i * 7 + 2], E_sub[i *
-        //        7 +
-        //        3],
-        //               E_sub[i * 7 + 4], E_sub[i * 7 + 5], E_sub[i * 7 + 6]);
     }
 
     SubVectorType E_rigid = blaze::subvector(data_manager->host_data.E, start_rigid, num_rigid_constraints);
@@ -964,7 +1010,8 @@ void ChFEAContainer::GenerateSparsity() {
 
 void ChFEAContainer::PreSolve() {
     if (gamma_old.size() > 0 && gamma_old.size() == data_manager->num_fea_tets * (6 + 1)) {
-        blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) = gamma_old;
+        blaze::subvector(data_manager->host_data.gamma, start_tet, data_manager->num_fea_tets * (6 + 1)) =
+            gamma_old * .9;
     }
 
     if (gamma_old_rigid.size() > 0 && gamma_old_rigid.size() == num_rigid_constraints * 3) {
