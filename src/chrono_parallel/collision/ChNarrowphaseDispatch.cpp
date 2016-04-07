@@ -941,7 +941,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                     real3 barycentric;
                     int face;
                     real3 res;
-                    if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
+                    if (MPRCollision(shapeA, shapeB, 0, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
                             // FindTriIndex(ptB, tet_index, node_pos, face, barycentric);
                             // instead of finding the closest face, always use the surface face
