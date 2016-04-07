@@ -113,6 +113,18 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
                          custom_vector<int>& contact_counts,
                          uint& num_contacts);
 
+    void MarkerTetContact(const real sphere_radius,
+                          const int num_spheres,
+                          const custom_vector<real3>& pos_sphere,
+                          const short2& family_sphere,
+                          custom_vector<real3>& norm_marker_tet,
+                          custom_vector<real3>& cptb_marker_tet,
+                          custom_vector<real>& dpth_marker_tet,
+                          custom_vector<int>& neighbor_marker_tet,
+                          custom_vector<real4>& face_marker_tet,
+                          custom_vector<int>& contact_counts,
+                          uint& num_contacts);
+
     void DispatchMPR();
     void DispatchR();
     void DispatchHybridMPR();
@@ -139,9 +151,16 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<uint> f_bin_fluid_number;
     custom_vector<uint> f_bin_start_index;
     custom_vector<uint> is_rigid_bin_active;
+    uint f_number_of_bins_active;
     custom_vector<int> ff_bin_ids;
     custom_vector<int> ff_bin_starts;
     custom_vector<int> ff_bin_ends;
+
+    custom_vector<uint> t_bin_intersections;
+    custom_vector<uint> t_bin_number;
+    custom_vector<uint> t_bin_number_out;
+    custom_vector<uint> t_bin_fluid_number;
+    custom_vector<uint> t_bin_start_index;
 };
 }
 }

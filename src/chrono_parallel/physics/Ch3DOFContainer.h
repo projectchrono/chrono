@@ -230,6 +230,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint start_tet;
     uint start_boundary;
     uint start_boundary_node;
+    uint start_boundary_marker;
     uint start_rigid;
 
     // Id of the rigid body and node number

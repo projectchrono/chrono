@@ -254,6 +254,14 @@ struct host_container {
     custom_vector<int> neighbor_rigid_tet_node;
     custom_vector<int> c_counts_rigid_tet_node;
 
+    custom_vector<real3> norm_marker_tet;
+    custom_vector<real3> cpta_marker_tet;
+    custom_vector<real3> cptb_marker_tet;
+    custom_vector<real> dpth_marker_tet;
+    custom_vector<int> neighbor_marker_tet;
+    custom_vector<real4> face_marker_tet;
+    custom_vector<int> c_counts_marker_tet;
+
     // Contact forces (DEM)
     // These vectors hold the total contact force and torque, respectively,
     // for bodies that are involved in at least one contact.
@@ -425,6 +433,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_fea_nodes;                // Total number of FEM nodes
     uint num_fea_tets;                 // Total number of FEM nodes
     uint num_rigid_tet_contacts;       // The number of contacts between tetrahedron and rigid bodies
+    uint num_marker_tet_contacts;      // The number of contacts between tetrahedron and fluid markers
     uint num_rigid_tet_node_contacts;  // The number of contacts between tetrahedron nodes and rigid bodies
     uint nnz_bilaterals;               // The number of non-zero entries in the bilateral Jacobian
 
