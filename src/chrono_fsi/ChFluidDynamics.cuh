@@ -43,12 +43,13 @@ public:
 
 	void DensityReinitialization();
 
+	virtual void Finalize();
+
 protected:
 	ChFsiDataManager* fsiData;
 	ChFsiForceParallel* forceSystem;
 	SimParams* paramsH;
 	NumberOfObjects* numObjectsH;
-
 
 	void UpdateFluid(SphMarkerDataD * sphMarkersD, Real dT);
 	void ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD);

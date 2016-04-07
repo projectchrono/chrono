@@ -47,6 +47,14 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 
 	InitializeChronoGraphics();
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+
+void ChSystemFsi::Finalize() {
+	FinalizeData();
+	bceWorker->Finalize();
+	fluidDynamics->Finalize();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 
 ChSystemFsi::~ChSystemFsi() {
 	delete fsiData;
@@ -161,9 +169,10 @@ void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mV
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
+	fsiData->ResizeDataManager();
 	// Arman: very important: you cannot change the order of (1-3). Fix the issue later
 	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1)); //(1)
-	fsiData->FinalizeDataManager();	// (2)
+	fsiData->CopyFsiBodiesDataH2D();	// (2)
 	bceWorker->Populate_RigidSPH_MeshPos_LRF(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); // (3)
 	bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); //(4)
 }

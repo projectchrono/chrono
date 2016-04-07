@@ -181,7 +181,8 @@ public:
 	~ChFsiDataManager();
 
 	void AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu);
-	void FinalizeDataManager();
+	void ResizeDataManager();
+	void CopyFsiBodiesDataH2D();
 
 	NumberOfObjects numObjects;
 

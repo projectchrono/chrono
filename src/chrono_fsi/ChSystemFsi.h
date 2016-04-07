@@ -48,6 +48,7 @@ public:
 		chrono::ChVector<> CameraLocation = chrono::ChVector<>(1, 0, 0), 
 		chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0));
 
+	virtual void Finalize();
 
 private:
 	int DoStepChronoSystem(Real dT,

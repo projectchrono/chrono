@@ -152,7 +152,9 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsi
 	int num_fsiBodies_Rigids = fsiBodeisPtr->size();
 	if (fsiBodiesD->posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids
 			|| fsiBodiesH->posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
-		throw std::runtime_error ("number of fsi bodies that are tracked does not match the array size !\n");
+		printf("number of fsi bodies that are tracked (%d) does not match the array sizes (D: %d, H: %d)!\n",
+				num_fsiBodies_Rigids, fsiBodiesD->posRigid_fsiBodies_D.size(), fsiBodiesH->posRigid_fsiBodies_H.size());
+		throw std::runtime_error ("number of fsi bodies that are tracked does not match the array sizes !\n");
 	}
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < num_fsiBodies_Rigids; i++) {

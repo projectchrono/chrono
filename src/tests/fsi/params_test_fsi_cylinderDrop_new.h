@@ -42,7 +42,7 @@ namespace fsi {
  */
 void SetupParamsH(SimParams* paramsH, Real hdimX, Real hdimY, Real hthick, Real basinDepth, Real fluidInitDimX, Real fluidHeight) {
 	paramsH->sizeScale = 1;  // don't change it.
-	paramsH->HSML = 0.1;
+	paramsH->HSML = 0.2;
 	paramsH->MULT_INITSPACE = 1.0;
 	paramsH->epsMinMarkersDis = .001;
 	paramsH->NUM_BOUNDARY_LAYERS = 3;

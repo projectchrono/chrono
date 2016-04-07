@@ -167,10 +167,13 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(
 	NumberOfObjects* otherNumObjects)
 : sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 	sphMarkersD = NULL;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChCollisionSystemFsi::Finalize() {
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {

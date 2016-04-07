@@ -258,6 +258,9 @@ ChBce::ChBce(FsiGeneralData* otherFsiGeneralData,
 	SimParams* otherParamsH, 
 	NumberOfObjects* otherNumObjects) :
 			 fsiGeneralData(otherFsiGeneralData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChBce::Finalize() {
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 	totalSurfaceInteractionRigid4.resize(numObjectsH->numRigidBodies);

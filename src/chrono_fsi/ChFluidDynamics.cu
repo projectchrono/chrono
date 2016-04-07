@@ -323,11 +323,13 @@ ChFluidDynamics::ChFluidDynamics(
 		&(fsiData->fsiGeneralData),
 		paramsH,
 		numObjectsH);
-
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChFluidDynamics::Finalize() {
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+	forceSystem->Finalize();
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChFluidDynamics::~ChFluidDynamics() {

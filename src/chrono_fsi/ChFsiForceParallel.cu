@@ -341,12 +341,18 @@ ChFsiForceParallel::ChFsiForceParallel(
 paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 
 	fsiCollisionSystem = new ChCollisionSystemFsi(sortedSphMarkersD, markersProximityD, paramsH, numObjectsH);
-	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
-	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
 
 	sphMarkersD = NULL;
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------
+
+void ChFsiForceParallel::Finalize() {
+	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
+	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+	fsiCollisionSystem->Finalize();
+
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChFsiForceParallel::~ChFsiForceParallel() {

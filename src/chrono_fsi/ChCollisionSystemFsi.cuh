@@ -40,6 +40,8 @@ class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 */
 		void ArrangeData(SphMarkerDataD * otherSphMarkersD);
 
+		virtual void Finalize();
+
 	private:
 		SphMarkerDataD * sphMarkersD;
 		SphMarkerDataD * sortedSphMarkersD;

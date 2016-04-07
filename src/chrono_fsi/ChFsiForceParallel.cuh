@@ -46,6 +46,8 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral{
 		SphMarkerDataD * otherSphMarkersD,
 		FsiBodiesDataD * otherFsiBodiesD);
 
+		virtual void Finalize();
+
 ///////////////////////////////////////////////////////////////////
 	static void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
 		thrust::device_vector<Real3>& sorted,

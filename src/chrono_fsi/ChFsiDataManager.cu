@@ -129,6 +129,7 @@ void ChFsiDataManager::InitNumObjects() {
 }
 
 void ChFsiDataManager::CalcNumObjects() {
+	printf("*** calcnumobjects\n");
 	InitNumObjects();
 	int rSize = fsiGeneralData.referenceArray.size();
 	bool flagRigid = false;
@@ -173,6 +174,17 @@ void ChFsiDataManager::CalcNumObjects() {
 	numObjects.startFlexMarkers = (flagFlex) ? 
 		(numObjects.numFluidMarkers + numObjects.numBoundaryMarkers + numObjects.numRigid_SphMarkers) :
 		numObjects.numAllMarkers;
+
+
+
+	printf("numFluid %d boundary %d ridigSph %d flexSph %d all %d start rigid %d startFlex %d \n",
+			numObjects.numFluidMarkers,
+			numObjects.numBoundaryMarkers,
+			numObjects.numRigid_SphMarkers,
+			numObjects.numFlex_SphMarkers,
+			numObjects.numAllMarkers,
+			numObjects.startRigidMarkers,
+			numObjects.startFlexMarkers);
 }
 
 void ChFsiDataManager::ConstructReferenceArray() {
@@ -215,34 +227,37 @@ void ChFsiDataManager::ConstructReferenceArray() {
 	numComponentMarkers.clear();
 }
 
+////--------------------------------------------------------------------------------------------------------------------------------
+void ChFsiDataManager::ResizeDataManager() {
+	ConstructReferenceArray();
+		if (numObjects.numAllMarkers != sphMarkersH.rhoPresMuH.size()) {
+			printf("Error! numObjects wrong! thrown from FinalizeDataManager");
+		}
+		sphMarkersD1.resize(numObjects.numAllMarkers);
+		sphMarkersD2.resize(numObjects.numAllMarkers);
+		fsiGeneralData.derivVelRhoD.resize(numObjects.numAllMarkers);
+		fsiGeneralData.vel_XSPH_D.resize(numObjects.numAllMarkers);
+
+		thrust::copy(sphMarkersH.posRadH.begin(), sphMarkersH.posRadH.end(), sphMarkersD1.posRadD.begin());
+		thrust::copy(sphMarkersH.velMasH.begin(), sphMarkersH.velMasH.end(), sphMarkersD1.velMasD.begin());
+		thrust::copy(sphMarkersH.rhoPresMuH.begin(), sphMarkersH.rhoPresMuH.end(), sphMarkersD1.rhoPresMuD.begin());
+
+		thrust::copy(sphMarkersD1.posRadD.begin(), sphMarkersD1.posRadD.end(), sphMarkersD2.posRadD.begin());
+		thrust::copy(sphMarkersD1.velMasD.begin(), sphMarkersD1.velMasD.end(), sphMarkersD2.velMasD.begin());
+		thrust::copy(sphMarkersD1.rhoPresMuD.begin(), sphMarkersD1.rhoPresMuD.end(), sphMarkersD2.rhoPresMuD.begin());
+
+		// copy rigids
+		fsiBodiesD1.resize(numObjects.numRigidBodies);
+		fsiBodiesD2.resize(numObjects.numRigidBodies);
+		fsiGeneralData.rigid_FSI_ForcesD.resize(numObjects.numRigidBodies);
+		fsiGeneralData.rigid_FSI_TorquesD.resize(numObjects.numRigidBodies);
+		fsiGeneralData.rigidIdentifierD.resize(numObjects.numRigid_SphMarkers);
+		fsiGeneralData.rigidSPH_MeshPos_LRF_D.resize(numObjects.numRigid_SphMarkers);
+}
 
 ////--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiDataManager::FinalizeDataManager() {
-	ConstructReferenceArray();
-	if (numObjects.numAllMarkers != sphMarkersH.rhoPresMuH.size()) {
-		printf("Error! numObjects wrong! thrown from FinalizeDataManager");
-	}
-	sphMarkersD1.resize(numObjects.numAllMarkers);
-	sphMarkersD2.resize(numObjects.numAllMarkers);
-	fsiGeneralData.derivVelRhoD.resize(numObjects.numAllMarkers);
-	fsiGeneralData.vel_XSPH_D.resize(numObjects.numAllMarkers);
-
-	thrust::copy(sphMarkersH.posRadH.begin(), sphMarkersH.posRadH.end(), sphMarkersD1.posRadD.begin());
-	thrust::copy(sphMarkersH.velMasH.begin(), sphMarkersH.velMasH.end(), sphMarkersD1.velMasD.begin());
-	thrust::copy(sphMarkersH.rhoPresMuH.begin(), sphMarkersH.rhoPresMuH.end(), sphMarkersD1.rhoPresMuD.begin());
-
-	thrust::copy(sphMarkersD1.posRadD.begin(), sphMarkersD1.posRadD.end(), sphMarkersD2.posRadD.begin());
-	thrust::copy(sphMarkersD1.velMasD.begin(), sphMarkersD1.velMasD.end(), sphMarkersD2.velMasD.begin());
-	thrust::copy(sphMarkersD1.rhoPresMuD.begin(), sphMarkersD1.rhoPresMuD.end(), sphMarkersD2.rhoPresMuD.begin());
-
-	// copy rigids
-	fsiBodiesD1.resize(numObjects.numRigidBodies);
-	fsiBodiesD2.resize(numObjects.numRigidBodies);
-	fsiGeneralData.rigid_FSI_ForcesD.resize(numObjects.numRigidBodies);
-	fsiGeneralData.rigid_FSI_TorquesD.resize(numObjects.numRigidBodies);
-	fsiGeneralData.rigidIdentifierD.resize(numObjects.numRigid_SphMarkers);
-	fsiGeneralData.rigidSPH_MeshPos_LRF_D.resize(numObjects.numRigid_SphMarkers);
+void ChFsiDataManager::CopyFsiBodiesDataH2D() {
 
 	// Arman: do it with zip iterator
 	thrust::copy(fsiBodiesH.posRigid_fsiBodies_H.begin(), fsiBodiesH.posRigid_fsiBodies_H.end(), fsiBodiesD1.posRigid_fsiBodies_D.begin());

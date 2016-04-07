@@ -182,11 +182,11 @@ void AddSphereBce(
 	thrust::host_vector<Real3> posRadBCE;
 	CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
 
-	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
-		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
-		std::cin.get();
-	}
+//	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
+//		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
+//				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
+//		std::cin.get();
+//	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
 
@@ -207,11 +207,11 @@ void AddCylinderBce(
 	thrust::host_vector<Real3> posRadBCE;
 	CreateBCE_On_Cylinder(posRadBCE, radius, height, paramsH);
 
-	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
-		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
-		std::cin.get();
-	}
+//	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
+//		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
+//				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
+//		std::cin.get();
+//	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
 	posRadBCE.clear();
@@ -236,11 +236,11 @@ void AddBoxBce(
 	thrust::host_vector<Real3> posRadBCE;
 
 	CreateBCE_On_Box(posRadBCE, ChFsiTypeConvert::ChVectorToReal3(size), 12, paramsH);
-	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
-		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
-		std::cin.get();
-	}
+//	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
+//		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
+//				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
+//		std::cin.get();
+//	}
 
 	CreateBceGlobalMarkersFromBceLocalPosBoundary(fsiData, paramsH, posRadBCE, body,
 			relPos, relRot);
@@ -260,11 +260,11 @@ void AddBCE_FromFile(
 
 	LoadBCE_fromFile(posRadBCE, dataPath);
 
-	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
-		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
-				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
-		std::cin.get();
-	}
+//	if (fsiData->sphMarkersH.posRadH.size() != fsiData->numObjects.numAllMarkers) {
+//		printf("Error! numMarkers, %d, does not match posRadH.size(), %d\n",
+//				fsiData->numObjects.numAllMarkers, fsiData->sphMarkersH.posRadH.size());
+//		std::cin.get();
+//	}
 
 	CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
 	posRadBCE.clear();

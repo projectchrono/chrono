@@ -52,6 +52,8 @@ public:
 
 	void Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD, FsiBodiesDataD * fsiBodiesD);
 
+	virtual void Finalize();
+
 private:
 
 	FsiGeneralData* fsiGeneralData;
@@ -65,7 +67,6 @@ private:
 	thrust::device_vector<Real4> totalSurfaceInteractionRigid4;
 	thrust::device_vector<Real3> torqueMarkersD;
 	thrust::device_vector<int> dummyIdentify;
-
 	void CalcBceAcceleration(
 		thrust::device_vector<Real3>& bceAcc,
 		const thrust::device_vector<Real4>& q_fsiBodies_D,

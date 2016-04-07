@@ -43,7 +43,7 @@ public:
  */
 	void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads);
 	void setParameters(SimParams* hostParams, NumberOfObjects* hostNumObjects);
-
+	virtual void Finalize() {};
 
 protected:
 	uint iDivUp(uint a, uint b);
