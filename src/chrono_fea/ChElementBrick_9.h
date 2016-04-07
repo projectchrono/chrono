@@ -93,6 +93,8 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     void SetGravityOn(bool val) { m_gravity_on = val; }
     /// Check if internal gravity calculation is enabled/disabled.
     bool IsGravityOn() const { return m_gravity_on; }
+	/// Set the structural damping.
+	void SetAlphaDamp(double a) { m_Alpha = a; }
 
     /// Calculate shape functions and their derivatives.
     ///   N = [N1, N2, N3, N4, ...]                               (1x11 row vector)
@@ -157,6 +159,8 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
     virtual double GetDensity() override { return this->m_material->Get_density(); }
 
+	virtual ChMatrixNM<double, 6, 6> GetE_eps() { return m_E_eps; }
+
   private:
     // -----------------------------------
     // Data
@@ -172,8 +176,14 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     ChMatrixNM<double, 33, 1> m_GravForce;        ///< gravitational force
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-
-    ChMatrixNM<double, 11, 3> m_d0;  ///< initial nodal coordinates (in matrix form)
+	double m_GaussScaling;
+	double m_Alpha;                               ///< structural damping
+    ChMatrixNM<double, 11, 3> m_d0;				  ///< initial nodal coordinates (in matrix form)
+	ChMatrixNM<double, 11, 3> m_d;                ///< current nodal coordinates
+	ChMatrixNM<double, 11, 11> m_ddT;             ///< matrix m_d * m_d^T
+	ChMatrixNM<double, 11, 11> m_d0d0T;           ///< matrix m_d0 * m_d0^T
+	ChMatrixNM<double, 33, 1> m_d_dt;             ///< current nodal velocities
+	ChMatrixNM<double, 6, 6> m_E_eps;
 
     // -----------------------------------
     // Interface to base classes
@@ -230,6 +240,9 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
 
     // Calculate the current 11x3 matrix of nodal coordinates.
     void CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d);
+
+	// Calculate the current 33x1 matrix of nodal coordinate derivatives.
+	void CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt);
 
     friend class MyMassBrick9;
     friend class MyGravityBrick9;
