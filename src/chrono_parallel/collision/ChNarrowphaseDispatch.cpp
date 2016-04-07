@@ -487,7 +487,7 @@ void ChCNarrowphaseDispatch::DispatchRigidTet() {
     // determine if fluid and tet bin are the same
     // collide tet with fluid
     if (data_manager->num_fluid_bodies > 0) {
-    	 LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchMarkerTet() S";
+        LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchMarkerTet() S";
         MarkerTetContact(data_manager->node_container->kernel_radius,  //
                          data_manager->num_fluid_bodies,               //
                          data_manager->host_data.sorted_pos_3dof,      //
@@ -497,7 +497,6 @@ void ChCNarrowphaseDispatch::DispatchRigidTet() {
                          data_manager->host_data.face_marker_tet, data_manager->host_data.c_counts_marker_tet,
                          data_manager->num_marker_tet_contacts);
         LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchMarkerTet() E " << data_manager->num_marker_tet_contacts;
-
     }
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidTet() S";
 
@@ -547,7 +546,10 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 #pragma omp parallel for
     for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
         uint bin_number = data_manager->host_data.bin_number_out[index];
-        is_rigid_bin_active[bin_number] = index;
+        if (bin_number < total_bins) {
+            // printf("bin_number: %d\n", index, bin_number);
+            is_rigid_bin_active[bin_number] = index;
+        }
     }
     f_bin_intersections.resize(num_spheres + 1);
     f_bin_intersections[num_spheres] = 0;
@@ -689,7 +691,10 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
 #pragma omp parallel for
     for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
         uint bin_number = data_manager->host_data.bin_number_out[index];
-        is_rigid_bin_active[bin_number] = index;
+        if (bin_number < total_bins) {
+            // printf("bin_number: %d\n", index, bin_number);
+            is_rigid_bin_active[bin_number] = index;
+        }
     }
     t_bin_intersections.resize(num_tets + 1);
     t_bin_intersections[num_tets] = 0;
