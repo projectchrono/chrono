@@ -9,7 +9,7 @@ using namespace chrono;
         uint current = M.capacity();                                                         \
         clear(M);                                                                            \
         if (current < nnz) {                                                                 \
-            M.reserve(nnz * 1.5);                                                            \
+            M.reserve(nnz * 1.1);                                                            \
             LOG(INFO) << "Increase Capacity of: " << str(M) << " " << current << " " << nnz; \
         }                                                                                    \
         M.resize(rows, cols, false);                                                         \
