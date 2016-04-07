@@ -1746,6 +1746,9 @@ int ChSystem::Integrate_Y() {
     // tell them to record their variables (ususally x-y couples)
     RecordAllProbes();
 
+    // Call method to gather contact forces/torques in rigid bodies
+    contact_container->ComputeContactForces();
+
     // Time elapsed for step..
     timer_step.stop();
 

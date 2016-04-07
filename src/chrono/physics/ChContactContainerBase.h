@@ -15,8 +15,11 @@
 #include "chrono/collision/ChCCollisionInfo.h"
 #include "chrono/physics/ChMaterialCouple.h"
 #include "chrono/physics/ChPhysicsItem.h"
-
+#include "chrono/physics/ChContactable.h"
+#include <unordered_map>
+#include <map>
 namespace chrono {
+
 
 /// Class to be used as a callback interface for some user defined
 /// action to be taken each time a contact is added to the container.
@@ -59,18 +62,29 @@ class ChApi ChReportContactCallback {
 /// Class representing a container of many contacts.
 /// There might be implementations of this interface in form of plain CPU linked lists of contact objects,
 /// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
+/// Struct to store resultant contact force/torque applied on rigid body
+struct ForceTorque {
+    ChVector<> Force;
+    ChVector<> Torque;
+};
+
 class ChApi ChContactContainerBase : public ChPhysicsItem {
     CH_RTTI(ChContactContainerBase, ChPhysicsItem);
 
   protected:
+
     //
     // DATA
     //
-
+    std::unordered_map<ChContactable*, ForceTorque> BodyContactForce;
     ChAddContactCallback* add_contact_callback;
     ChReportContactCallback* report_contact_callback;
 
   public:
+
+      //
+    // DATA
+    // 
     //
     // CONSTRUCTORS
     //
@@ -126,6 +140,29 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     /// Child classes of ChContactContainerBase should try to implement this.
     virtual void ReportAllContacts(ChReportContactCallback* mcallback) {}
 
+    /// Create a hash table with rigid body addresses as key and resultant contact force
+    /// and torque as data. Forces/torques are given in global coordinates. Handy to use,
+    /// e.g., in co-simulation strategies.
+    virtual void ComputeContactForces() = 0;
+
+    ChVector<> GetContactableForce(ChContactable* Contactable){
+        ChVector<> Resultant(0);
+        std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator =
+            BodyContactForce.find(Contactable);
+        if (Iterator != BodyContactForce.end()) {
+            Resultant = Iterator->second.Force;
+        }
+        return Resultant;
+    }
+    ChVector<> GetContactableTorque(ChContactable* Contactable){
+        ChVector<> Resultant(0);
+        std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator =
+            BodyContactForce.find(Contactable);
+        if (Iterator != BodyContactForce.end()) {
+            Resultant = Iterator->second.Torque;
+        }
+        return Resultant;
+    }
     //
     // SERIALIZATION
     //

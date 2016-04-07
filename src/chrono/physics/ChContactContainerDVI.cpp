@@ -198,6 +198,58 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
 
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
+template <class Tcont>
+void _SumAllContactForces(std::list<Tcont*>& contactlist, std::unordered_map<ChContactable*, ForceTorque>& BodyContactForce_) {
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    while (itercontact != contactlist.end()) {
+        if (ChBody* b1 = dynamic_cast<ChBody*>((*itercontact)->GetObjA())) {
+            // Obtain contact force vector in global frame
+            ForceTorque ForcTorq1;
+            ForcTorq1.Force = ((*itercontact)->GetContactPlane())->Matr_x_Vect((*itercontact)->GetContactForce());
+            ForcTorq1.Torque = ((*itercontact)->GetContactPlane())->Matr_x_Vect((*itercontact)->GetContactForce());
+
+            // Check whether there already exist an entry for this body
+            std::unordered_map<ChContactable*, ForceTorque>::const_iterator bodyiter1 = BodyContactForce_.find(b1);
+            ForceTorque StrGlob1;  // ForceTorque struct (maybe) already stored
+            StrGlob1.Force(0);
+            StrGlob1.Torque(0);
+            if (bodyiter1 != BodyContactForce_.end()) {
+                ForceTorque StrGlob1 = BodyContactForce_[b1];
+            }
+            StrGlob1.Force += ForcTorq1.Force;
+            StrGlob1.Torque += ForcTorq1.Torque;
+            std::pair<ChContactable*, ForceTorque> Body1Hash(b1, StrGlob1);  // Accumulate force
+            BodyContactForce_.insert(Body1Hash);
+        }
+        if (ChBody* b2 = dynamic_cast<ChBody*>((*itercontact)->GetObjB())) {
+            // Obtain contact force in global frame
+            ForceTorque ForcTorq2;
+            ForcTorq2.Force = ((*itercontact)->GetContactPlane())->Matr_x_Vect((*itercontact)->GetContactForce());
+            ForcTorq2.Torque = ((*itercontact)->GetContactPlane())->Matr_x_Vect((*itercontact)->GetContactForce());
+
+            // Check whether there already exist an entry for this body
+            std::unordered_map<ChContactable*, ForceTorque>::const_iterator bodyiter2 = BodyContactForce_.find(b2);
+            ForceTorque StrGlob2;  // ForceTorque struct (maybe) already stored
+            StrGlob2.Force(0);
+            StrGlob2.Torque(0);
+            if (bodyiter2 != BodyContactForce_.end()) {
+                ForceTorque StrGlob2 = BodyContactForce_[b2];
+            }
+            StrGlob2.Force += ForcTorq2.Force;
+            StrGlob2.Torque += ForcTorq2.Torque;
+            std::pair<ChContactable*, ForceTorque> Body2Hash(b2, StrGlob2);  // Accumulate force
+            BodyContactForce_.insert(Body2Hash);
+        }
+
+        ++itercontact;
+    }
+}
+
+void ChContactContainerDVI::ComputeContactForces() {
+    BodyContactForce.clear();
+    _SumAllContactForces(contactlist_6_6, BodyContactForce);
+    _SumAllContactForces(contactlist_6_3, BodyContactForce);
+}
 
 template <class Tcont>
 void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
