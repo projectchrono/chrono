@@ -70,6 +70,7 @@ ChFEAContainer::ChFEAContainer(ChSystemParallelDVI* system) {
     rigid_constraint_recovery_speed = 1;
     family.x = 1;
     family.y = 0x7FFF;
+    beta = 0;
 }
 
 ChFEAContainer::~ChFEAContainer() {}
@@ -595,7 +596,7 @@ void ChFEAContainer::Build_D() {
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.z * 3, r2);
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.w * 3, r3);
         // rhs
-        real beta = 1e-8;
+
         real gam = 1.0 / (.5 + step_size * beta);
         real factor = gam * 1. / step_size;
         b_sub[i * 7 + 0] = factor * cf * eii.x;
@@ -828,7 +829,6 @@ void ChFEAContainer::Build_E() {
     //                        poisson_ratio, omn);
     Mat33 E = Mat33(lambda + 2 * mu, lambda, lambda, lambda, lambda + 2 * mu, lambda, lambda, lambda, lambda + 2 * mu);
     E = Inverse(E);
-    real beta = 1e-8;
     real gam = 1.0 / (.5 + step_size * beta);
     real factor = 1.0 / (step_size * step_size);
 #pragma omp parallel for

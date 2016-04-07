@@ -62,9 +62,10 @@ int main(int argc, char* argv[]) {
     fea_container->material_density = 1000;
     fea_container->contact_mu = 0;
     fea_container->contact_cohesion = 0;
-    fea_container->youngs_modulus = 200000000;  // 2e8;
+    fea_container->youngs_modulus = 20000000;  // 2e8;
     fea_container->poisson_ratio = .2;
     fea_container->contact_recovery_speed = 1e8;
+    fea_container->beta = 10;
     fea_container->rigid_constraint_recovery_speed = .1;
     my_system.GetSettings()->solver.solver_mode = SLIDING;
     my_system.GetSettings()->solver.max_iteration_normal = 0;
@@ -140,7 +141,7 @@ int main(int argc, char* argv[]) {
     //
     real3 initpos = my_system.data_manager->host_data.pos_node_fea[45];
     real g = 0;
-#if 0
+#if 1
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "fluidDVI", &my_system);
     gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2);
