@@ -286,14 +286,14 @@ CUDA_GLOBAL void kApplyForces(const float* sorted_pos,      // input
         Mat33f FE_hat = marker_Fe_hat[p];
 
 #if 1
-        float a = -1.0 / 3.0;
-        float Ja = powf(Determinant(FE_hat), a);
+        const float a = -1.0 / 3.0;
+        const float Ja = powf(Determinant(FE_hat), a);
 
-        float current_mu = device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
+        const float current_mu = device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
 
-        Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, current_mu, PolarR[p], PolarS[p]);
+        const Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, current_mu, PolarR[p], PolarS[p]);
 
-        Mat33f vPEDFepT =
+        const Mat33f vPEDFepT =
             device_settings.dt * marker_volume[p] * Z__B(A, FE_hat, Ja, a, InverseTranspose(FE_hat)) * Transpose(FE);
 #else
         Mat33f vPEDFepT =
@@ -388,29 +388,31 @@ CUDA_GLOBAL void kMultiplyA(const float* sorted_pos,  // input
             delta_F[3] += vnx * valy; delta_F[4] += vny * valy; delta_F[5] += vnz * valy;  //
             delta_F[6] += vnx * valz; delta_F[7] += vny * valz; delta_F[8] += vnz * valz;)
 
-        Mat33f m_FE = marker_Fe[p];
+        const Mat33f m_FE = marker_Fe[p];
         delta_F = delta_F * m_FE;
 
-        float current_mu = device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
-        Mat33f RE = PolarR[p];
-        Mat33f SE = PolarS[p];
-        Mat33f F = marker_Fe_hat[p];
-        float a = -one_third;
-        float Ja = powf(Determinant(F), a);
-        Mat33f H = InverseTranspose(F);
-        Mat33f FE = Ja * F;
+        float current_mu = 2.0f * device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
+        const Mat33f RE = PolarR[p];
 
-        Mat33f B_Z = B__Z(delta_F, F, Ja, a, H);
-        Mat33f WE = TransposeMult(RE, B_Z);
+        const Mat33f F = marker_Fe_hat[p];
+        const float a = -one_third;
+        const float Ja = powf(Determinant(F), a);
+        const Mat33f H = InverseTranspose(F);
+        const Mat33f FE = Ja * F;
+
+        const Mat33f B_Z = B__Z(delta_F, F, Ja, a, H);
+        const Mat33f WE = TransposeMult(RE, B_Z);
         // C is the original second derivative
-        Mat33f C_B_Z = 2 * current_mu * (B_Z - Solve_dR(RE, SE, WE));
+        const Mat33f SE = PolarS[p];
+        const Mat33f C_B_Z = current_mu * (B_Z - Solve_dR(RE, SE, WE));
 
-        Mat33f A = float(2.) * current_mu * (FE - RE);
-        Mat33f VAP = marker_volume[p] *
-                     MultTranspose(Z__B(C_B_Z, F, Ja, a, H) + a * DoubleDot(H, delta_F) * Z__B(A, F, Ja, a, H) +
-                                       a * Ja * DoubleDot(A, delta_F) * H +
-                                       -a * Ja * DoubleDot(A, F) * H * TransposeMult(delta_F, H),
-                                   m_FE);
+        const Mat33f A = current_mu * (FE - RE);
+        const Mat33f P1 = Z__B(C_B_Z, F, Ja, a, H);
+        const Mat33f P2 = a * DoubleDot(H, delta_F) * Z__B(A, F, Ja, a, H);
+        const Mat33f P3 = a * Ja * DoubleDot(A, delta_F) * H;
+        const Mat33f P4 = -a * Ja * DoubleDot(A, F) * H * TransposeMult(delta_F, H);
+
+        const Mat33f VAP = marker_volume[p] * MultTranspose(P1 + P2 + P3 + P4, m_FE);
 
         // Mat33f VAP = d2PsidFdFO(delta_F, m_FE_hat, PolarR[p], PolarS[p], current_mu);
 
@@ -909,9 +911,7 @@ void MPM_UpdateDeformationGradient(MPM_Settings& settings,
     printf("kUpdateDeformationGradient: %f\n", time_measured);
     time_measured = 0;
 }
-void MPM_Solve(MPM_Settings& settings,
-               std::vector<float>& positions,
-               std::vector<float>& velocities) {
+void MPM_Solve(MPM_Settings& settings, std::vector<float>& positions, std::vector<float>& velocities) {
     old_vel_node_mpm.resize(host_settings.num_mpm_nodes * 3);
     rhs.resize(host_settings.num_mpm_nodes * 3);
     old_vel_node_mpm = grid_vel;
@@ -986,6 +986,8 @@ CUDA_GLOBAL void kInitFeFp(Mat33f* marker_Fe, Mat33f* marker_Fp, Mat33f* marker_
 }
 
 void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions) {
+    cudaDeviceSetCacheConfig(cudaFuncCachePreferL1);
+
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 

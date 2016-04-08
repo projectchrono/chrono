@@ -25,10 +25,10 @@ namespace chrono {
 #define FLT_EPSILON 1.19209290E-07F
 #define FLT_MAX 3.40282347E+38F
 
-#define OPERATOR_EQUALSALT(op, tin, tout)                            \
-    static inline tout& operator op##=(tout & a, const tin& scale) { \
-        a = a op scale;                                              \
-        return a;                                                    \
+#define OPERATOR_EQUALSALT(op, tin, tout)                           \
+    static inline tout& operator op##=(tout& a, const tin& scale) { \
+        a = a op scale;                                             \
+        return a;                                                   \
     }
 
 template <typename T>
@@ -76,13 +76,13 @@ CUDA_HOST_DEVICE static inline float3 operator-(const float3& a, float b) {
 CUDA_HOST_DEVICE static inline float3 operator*(const float3& a, float b) {
     return make_float3(a.x * b, a.y * b, a.z * b);
 }
-CUDA_HOST_DEVICE static inline float3 operator*(float b, const float3& a) {
+CUDA_HOST_DEVICE static inline float3 operator*(const float b, const float3& a) {
     return make_float3(a.x * b, a.y * b, a.z * b);
 }
-CUDA_HOST_DEVICE static inline float3 operator/(const float3& a, float b) {
+CUDA_HOST_DEVICE static inline float3 operator/(const float3& a, const float b) {
     return make_float3(a.x / b, a.y / b, a.z / b);
 }
-CUDA_HOST_DEVICE static inline float3 operator/(float b, const float3& a) {
+CUDA_HOST_DEVICE static inline float3 operator/(const float b, const float3& a) {
     return make_float3(b / a.x, b / a.y, b / a.z);
 }
 CUDA_HOST_DEVICE static inline float3 operator+(const float3& a, const float3& b) {
@@ -125,13 +125,13 @@ CUDA_HOST_DEVICE static inline float3 Cross(const float3& a, const float3& b) {
 CUDA_HOST_DEVICE static inline float3 Max(const float3& a, const float3& b) {
     return make_float3(fmaxf(a.x, b.x), fmaxf(a.y, b.y), fmaxf(a.z, b.z));
 }
-CUDA_HOST_DEVICE static inline float3 Max(const float3& a, float b) {
+CUDA_HOST_DEVICE static inline float3 Max(const float3& a, const float b) {
     return make_float3(fmaxf(a.x, b), fmaxf(a.y, b), fmaxf(a.z, b));
 }
 CUDA_HOST_DEVICE static inline float3 Min(const float3& a, const float3& b) {
     return make_float3(fminf(a.x, b.x), fminf(a.y, b.y), fminf(a.z, b.z));
 }
-CUDA_HOST_DEVICE static inline float3 Min(const float3& a, float b) {
+CUDA_HOST_DEVICE static inline float3 Min(const float3& a, const float b) {
     return make_float3(fminf(a.x, b), fminf(a.y, b), fminf(a.z, b));
 }
 
@@ -152,7 +152,7 @@ CUDA_HOST_DEVICE static inline float3 UnitOrthogonalVector(const float3& v) {
 }
 
 //=======
-CUDA_HOST_DEVICE static inline float2 operator/(const float2& a, float b) {
+CUDA_HOST_DEVICE static inline float2 operator/(const float2& a, const float b) {
     return make_float2(a.x / b, a.y / b);
 }
 CUDA_HOST_DEVICE static inline float Dot(const float2& v) {
@@ -201,14 +201,14 @@ class Mat33f {
         array[8] = M.array[8];
     }
 
-    CUDA_HOST_DEVICE inline float operator[](unsigned int i) const { return array[i]; }
-    CUDA_HOST_DEVICE inline float& operator[](unsigned int i) { return array[i]; }
-    CUDA_HOST_DEVICE inline float operator()(int i, int j) const { return array[j * 3 + i]; }
-    CUDA_HOST_DEVICE inline float& operator()(int i, int j) { return array[j * 3 + i]; }
-    CUDA_HOST_DEVICE inline float3 col(unsigned int i) const {
+    CUDA_HOST_DEVICE inline float operator[](const unsigned int i) const { return array[i]; }
+    CUDA_HOST_DEVICE inline float& operator[](const unsigned int i) { return array[i]; }
+    CUDA_HOST_DEVICE inline float operator()(const int i, const int j) const { return array[j * 3 + i]; }
+    CUDA_HOST_DEVICE inline float& operator()(const int i, const int j) { return array[j * 3 + i]; }
+    CUDA_HOST_DEVICE inline float3 col(const unsigned int i) const {
         return make_float3(array[i * 3], array[i * 3 + 1], array[i * 3 + 2]);
     }
-    CUDA_HOST_DEVICE inline float3 row(unsigned int i) const {
+    CUDA_HOST_DEVICE inline float3 row(const unsigned int i) const {
         return make_float3(array[0 * 3 + i], array[1 * 3 + i], array[2 * 3 + i]);
     }
 
@@ -247,7 +247,7 @@ struct DiagMat33f {
     CUDA_HOST_DEVICE DiagMat33f() {}
     CUDA_HOST_DEVICE DiagMat33f(const DiagMat33f& M) : x11(M.x11), x22(M.x22), x33(M.x33) {}
     CUDA_HOST_DEVICE DiagMat33f(const float v11, const float v22, const float v33) : x11(v11), x22(v22), x33(v33) {}
-    CUDA_HOST_DEVICE DiagMat33f(const float3 v) : x11(v.x), x22(v.y), x33(v.z) {}
+    CUDA_HOST_DEVICE DiagMat33f(const float3& v) : x11(v.x), x22(v.y), x33(v.z) {}
 
     float x11, x22, x33;
 };
@@ -265,8 +265,8 @@ struct SymMat33f {
                                const float y32,
                                const float y33)
         : x11(y11), x21(y21), x31(y31), x22(y22), x32(y32), x33(y33) {}
-    CUDA_HOST_DEVICE inline float operator[](unsigned int i) const { return array[i]; }
-    CUDA_HOST_DEVICE inline float& operator[](unsigned int i) { return array[i]; }
+    CUDA_HOST_DEVICE inline float operator[](const unsigned int i) const { return array[i]; }
+    CUDA_HOST_DEVICE inline float& operator[](const unsigned int i) { return array[i]; }
     CUDA_HOST_DEVICE void operator=(const SymMat33f& N) {
         x11 = N.x11;
         x21 = N.x21;
@@ -287,10 +287,10 @@ struct SymMat33f {
 
 struct Mat32f {
     CUDA_HOST_DEVICE Mat32f() {}
-    CUDA_HOST_DEVICE Mat32f(const float3 col1, const float3 col2)
+    CUDA_HOST_DEVICE Mat32f(const float3& col1, const float3& col2)
         : array{col1.x, col1.y, col1.z, col2.x, col2.y, col2.z} {}
-    CUDA_HOST_DEVICE inline float operator[](unsigned int i) const { return array[i]; }
-    CUDA_HOST_DEVICE inline float& operator[](unsigned int i) { return array[i]; }
+    CUDA_HOST_DEVICE inline float operator[](const unsigned int i) const { return array[i]; }
+    CUDA_HOST_DEVICE inline float& operator[](const unsigned int i) { return array[i]; }
     float array[6];
     // 0 3
     // 1 4
@@ -483,7 +483,7 @@ CUDA_HOST_DEVICE static inline float Determinant(const Mat33f& m) {
 CUDA_HOST_DEVICE static inline Mat33f Inverse(const Mat33f& A) {
     float s = Determinant(A);
     if (s > 0.0) {
-        return Adjoint(A) * float(1.0 / s);
+        return Adjoint(A) * (1.0f / s);
     } else {
         return Mat33f(0);
     }
@@ -493,7 +493,7 @@ CUDA_HOST_DEVICE static inline Mat33f Inverse(const Mat33f& A) {
 CUDA_HOST_DEVICE static inline Mat33f InverseTranspose(const Mat33f& A) {
     float s = Determinant(A);
     if (s > 0.0) {
-        return AdjointTranspose(A) * float(1.0 / s);
+        return AdjointTranspose(A) * (1.0f / s);
     } else {
         return Mat33f(0);
     }
@@ -534,7 +534,7 @@ CUDA_HOST_DEVICE static inline float3 operator*(const DiagMat33f& M, const float
     return result;
 }
 //// ========================================================================================
-CUDA_HOST_DEVICE static inline SymMat33f operator-(const SymMat33f& M, const float& v) {
+CUDA_HOST_DEVICE static inline SymMat33f operator-(const SymMat33f& M, const float v) {
     return SymMat33f(M.x11 - v, M.x21, M.x31, M.x22 - v, M.x32, M.x33 - v);  // only subtract diagonal
 }
 CUDA_HOST_DEVICE static inline SymMat33f CofactorMatrix(const SymMat33f& A) {
@@ -602,7 +602,7 @@ CUDA_HOST_DEVICE static inline Mat32f operator*(const SymMat33f& M, const Mat32f
     return result;
 }
 //// ========================================================================================
-CUDA_HOST_DEVICE static inline SymMat22f operator-(const SymMat22f& M, const float& v) {
+CUDA_HOST_DEVICE static inline SymMat22f operator-(const SymMat22f& M, const float v) {
     return SymMat22f(M.x11 - v, M.x21, M.x22 - v);  //
 }
 CUDA_HOST_DEVICE static inline SymMat22f CofactorMatrix(const SymMat22f& A) {

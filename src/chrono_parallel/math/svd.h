@@ -22,22 +22,22 @@ namespace chrono {
 // DOI=http://dx.doi.org/10.1145/355578.366316
 CUDA_HOST_DEVICE static float3 Fast_Eigenvalues(const SymMat33f& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts
 {
-    float m = float(1.0) / float(3.0) * (A.x11 + A.x22 + A.x33);
-    float a11 = A.x11 - m;
-    float a22 = A.x22 - m;
-    float a33 = A.x33 - m;
-    float a12_sqr = A.x21 * A.x21;
-    float a13_sqr = A.x31 * A.x31;
-    float a23_sqr = A.x32 * A.x32;
-    float p = float(1.0) / float(6.0) * (a11 * a11 + a22 * a22 + a33 * a33 + 2 * (a12_sqr + a13_sqr + a23_sqr));
-    float q = float(0.5) * (a11 * (a22 * a33 - a23_sqr) - a22 * a13_sqr - a33 * a12_sqr) + A.x21 * A.x31 * A.x32;
-    float sqrt_p = sqrtf(p);
-    float disc = p * p * p - q * q;
-    float phi = float(1.0) / float(3.0) * atan2f(sqrtf(fmaxf(float(0.0), disc)), q);
-    float c = cosf(phi);
-    float s = sinf(phi);
-    float sqrt_p_cos = sqrt_p * c;
-    float root_three_sqrt_p_sin = sqrtf(float(3.0)) * sqrt_p * s;
+    const float m = float(1.0) / float(3.0) * (A.x11 + A.x22 + A.x33);
+    const float a11 = A.x11 - m;
+    const float a22 = A.x22 - m;
+    const float a33 = A.x33 - m;
+    const float a12_sqr = A.x21 * A.x21;
+    const float a13_sqr = A.x31 * A.x31;
+    const float a23_sqr = A.x32 * A.x32;
+    const float p = float(1.0) / float(6.0) * (a11 * a11 + a22 * a22 + a33 * a33 + 2 * (a12_sqr + a13_sqr + a23_sqr));
+    const float q = float(0.5) * (a11 * (a22 * a33 - a23_sqr) - a22 * a13_sqr - a33 * a12_sqr) + A.x21 * A.x31 * A.x32;
+    const float sqrt_p = sqrtf(p);
+    const float disc = p * p * p - q * q;
+    const float phi = float(1.0) / float(3.0) * atan2f(sqrtf(fmaxf(float(0.0), disc)), q);
+    const float c = cosf(phi);
+    const float s = sinf(phi);
+    const float sqrt_p_cos = sqrt_p * c;
+    const float root_three_sqrt_p_sin = sqrtf(float(3.0)) * sqrt_p * s;
     float3 lambda = make_float3(m + float(2.0) * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin,
                                 m - sqrt_p_cos + root_three_sqrt_p_sin);
     Sort(lambda.z, lambda.y, lambda.x);
@@ -54,19 +54,19 @@ CUDA_HOST_DEVICE static Mat33f Fast_Eigenvectors(const SymMat33f& A, float3& lam
     }
 
     // get first eigenvector
-    float3 v1 =
+    const float3 v1 =
         LargestColumnNormalized(CofactorMatrix(A - lambda_flip.x));  // 3a + 12m+6a + 9m+6a+1d+1s = 21m+15a+1d+1s
     // form basis for orthogonal complement to v1, and reduce A to this space
-    float3 v1_orthogonal = UnitOrthogonalVector(v1);           // 6m+2a+1d+1s (tweak: 5m+1a+1d+1s)
-    Mat32f other_v(v1_orthogonal, Cross(v1, v1_orthogonal));   // 6m+3a (tweak: 4m+1a)
-    SymMat22f A_reduced = ConjugateWithTranspose(other_v, A);  // 21m+12a (tweak: 18m+9a)
+    const float3 v1_orthogonal = UnitOrthogonalVector(v1);           // 6m+2a+1d+1s (tweak: 5m+1a+1d+1s)
+    const Mat32f other_v(v1_orthogonal, Cross(v1, v1_orthogonal));   // 6m+3a (tweak: 4m+1a)
+    const SymMat22f A_reduced = ConjugateWithTranspose(other_v, A);  // 21m+12a (tweak: 18m+9a)
     // find third eigenvector from A_reduced, and fill in second via cross product
 
     // 6m+3a + 2a + 5m+2a+1d+1s = 11m+7a+1d+1s (tweak: 10m+6a+1d+1s)
 
-    float3 v3 = other_v * LargestColumnNormalized(CofactorMatrix(A_reduced - lambda_flip.z));
+    const float3 v3 = other_v * LargestColumnNormalized(CofactorMatrix(A_reduced - lambda_flip.z));
 
-    float3 v2 = Cross(v3, v1);  // 6m+3a
+    const float3 v2 = Cross(v3, v1);  // 6m+3a
     // finish
     return flipped ? Mat33f(v3.x, v3.y, v3.z, v2.x, v2.y, v2.z, -v1.x, -v1.y, -v1.z)
                    : Mat33f(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
@@ -78,7 +78,7 @@ CUDA_HOST_DEVICE static void Fast_Solve_EigenProblem(const SymMat33f& A, float3&
 }
 
 CUDA_HOST_DEVICE static void SVD(const Mat33f& A, Mat33f& U, float3& singular_values, Mat33f& V) {
-    SymMat33f ATA = NormalEquationsMatrix(A);
+    const SymMat33f ATA = NormalEquationsMatrix(A);
     float3 lambda;
     Fast_Solve_EigenProblem(ATA, lambda, V);
 
@@ -91,16 +91,16 @@ CUDA_HOST_DEVICE static void SVD(const Mat33f& A, Mat33f& U, float3& singular_va
     }
 
     // compute singular vectors
-    float3 c0 = Normalize(A * V.col(0));   // 15m+8a+1d+1s
-    float3 v1 = UnitOrthogonalVector(c0);  // 6m+2a+1d+1s
-    float3 v2 = Cross(c0, v1);             // 6m+3a
+    const float3 c0 = Normalize(A * V.col(0));   // 15m+8a+1d+1s
+    const float3 v1 = UnitOrthogonalVector(c0);  // 6m+2a+1d+1s
+    const float3 v2 = Cross(c0, v1);             // 6m+3a
 
     // 6m+3a + 6m+4a + 9m+6a + 6m+2a+1d+1s = 27m+15a+1d+1s
-    float3 v3 = A * V.col(1);
-    float2 other_v = Normalize(make_float2(Dot(v1, v3), Dot(v2, v3)));
-    float3 c1 = make_float3(v1.x * other_v.x + v2.x * other_v.y, v1.y * other_v.x + v2.y * other_v.y,
-                            v1.z * other_v.x + v2.z * other_v.y);
-    float3 c2 = Cross(c0, c1);  // 6m+3a
+    const float3 v3 = A * V.col(1);
+    const float2 other_v = Normalize(make_float2(Dot(v1, v3), Dot(v2, v3)));
+    const float3 c1 = make_float3(v1.x * other_v.x + v2.x * other_v.y, v1.y * other_v.x + v2.y * other_v.y,
+                                  v1.z * other_v.x + v2.z * other_v.y);
+    const float3 c2 = Cross(c0, c1);  // 6m+3a
 
     U = Mat33f(c0.x, c0.y, c0.z, c1.x, c1.y, c1.z, c2.x, c2.y, c2.z);
 }
