@@ -25,7 +25,7 @@ main:
     - title: Movies
       url: '/gallery/'
       sub:
-	   -
+       -
          title: Gallery
          url: '/gallery/'
        -
@@ -40,5 +40,12 @@ main:
       url: '/forum/'
     - title: About
       url: '/about/'
+      sub:
+       -
+         title: What is ProjectChrono
+         url: '/about/'
+       -
+         title: Users
+         url: '/testimonials/'
     - title: Old Website
       url: 'http://old.projectchrono.org'
