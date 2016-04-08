@@ -51,6 +51,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_fea/ChElementShellANCF.h"
 
+// #define USE_IRRLICHT
 
 #ifdef CHRONO_OPENMP_ENABLED
 #include <omp.h>
@@ -86,7 +87,7 @@ enum SolverType { LCP_ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF, FEA)
-TireModelType tire_model = FEA;
+TireModelType tire_model = ANCF;
 
 // Settings specific to FEA-based tires
 bool enable_tire_pressure = true;
@@ -288,10 +289,10 @@ int main() {
         return 1;
     }
 
-
+    /*
 #ifdef CHRONO_OPENMP_ENABLED
     omp_set_num_threads(8);
-#endif
+#endif*/
 
     // Set the simulation and output time settings
     double sim_step = 1e-4;
@@ -708,7 +709,7 @@ int main() {
 
     // Create the Irrlicht application for visualization
     // -------------------------------------------------
-
+#ifdef USE_IRRLICHT
     ChIrrApp* application =
         new ChIrrApp(my_system, L"Tire Test Rig", core::dimension2d<u32>(800, 600), false, true);
     application->AddTypicalLogo();
@@ -721,6 +722,9 @@ int main() {
     application->AssetUpdateAll();
 
     application->SetTimestep(sim_step);
+#endif // !USE_IRRLICHT
+
+
 
     // Perform the simulation
     // -----------------------
@@ -782,15 +786,19 @@ int main() {
             break;
     }
 
+#ifdef USE_IRRLICHT
     while (application->GetDevice()->run()) {
+#else
+    while (simTime < sim_endtime) {
+#endif
         // GetLog() << "Time: " << my_system->GetChTime() << " s. \n";
         // my_system->DoStepDynamics(sim_step);
-
+#ifdef USE_IRRLICHT
         // Render scene
         application->BeginScene();
         application->DrawAll();
         application->EndScene();
-
+#endif
         // Get state of wheel body
         wheelstate.pos = wheel->GetPos();           // global position
         wheelstate.rot = wheel->GetRot();           // orientation with respect to global frame
@@ -815,7 +823,11 @@ int main() {
         wheel->Accumulate_torque(tireforce.moment, false);
 
         // Advance simulation
+#ifdef USE_IRRLICHT
         application->DoStep();
+#else
+        my_system->DoStepDynamics(sim_step);
+#endif
         tire->Advance(sim_step);
 
         // Ensure that the final data point is recorded.
@@ -903,7 +915,10 @@ int main() {
             break;
     }
 
+#ifdef USE_IRRLICHT
     delete application;
+#endif
+
     delete my_system;
     delete my_collider;
 
