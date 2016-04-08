@@ -6,13 +6,16 @@ Here is a short list of papers that describe the mathematical / algorithmical ba
 ## Technical documentation and theory
 
 - **Rotations in Chrono::Engine**
-  [download PDF](http://www.projectchrono.org/white_papers/rotations.pdf)
+  [download PDF](http://www.projectchrono.org/assets/white_papers/rotations.pdf)
 
 - **Frame kinematics in Chrono::Engine** 
-  [download PDF](http://www.projectchrono.org/white_papers/frame_kinematics.pdf)
+  [download PDF](http://www.projectchrono.org/assets/white_papers/frame_kinematics.pdf)
 
 - **Time integrators** 
-  [download PDF](http://www.projectchrono.org/white_papers/integrator.pdf)
+  [download PDF](http://www.projectchrono.org/assets/white_papers/integrator.pdf)
+  
+- **Corotational Euler-Bernoulli beams** 
+  [download PDF](http://www.projectchrono.org/assets/white_papers/euler_beams.pdf)
 
 
 ## Journal papers

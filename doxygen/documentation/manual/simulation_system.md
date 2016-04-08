@@ -130,7 +130,7 @@ As such, they are also known as _time integrators_.
 
 Technical and theoretical details on time integration are explained in PDF documents 
 available at the [white papers page](@ref whitepaper_root), for example
-[this PDF](http://projectchrono.org/white_papers/integrator.pdf) explains how 
+[this PDF](http://projectchrono.org/assets/white_papers/integrator.pdf) explains how 
 implicit integrators are implemented in Chrono.
 
 Time steppers can be changed in two ways:

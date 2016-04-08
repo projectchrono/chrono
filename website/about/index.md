@@ -7,7 +7,9 @@ permalink: /about/
 
 <h3>What is {% include module.html first="PROJECT" second="CHRONO" %}?</h3>
 
-{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to develop simulation software. The other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
+{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. 
+The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to develop simulation software. 
+Among the other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
 
 - Chrono::Parallel, a library for enabling parallel computation in Chrono
 - Chrono::Vehicle, which provides support for vehicle dynamics simulation
@@ -19,10 +21,14 @@ permalink: /about/
 
 <h4> Project Leaders</h4>
 
+ <a href="http://dynamics.eng.unipr.it/tasora"><img alt="" src="http://projectchrono.org/assets/people/125px-PhotoDan.jpg" border="0" />
+  Dan Negrut
+  </a>  - Associate Professor, University of Wisconsin-Madison, USA
 
-- <a href="http://homepages.cae.wisc.edu/~negrut/index.htm">Dan Negrut</a> - Associate Professor, University of Wisconsin-Madison, USA
-- <a href="http://dynamics.eng.unipr.it/tasora">Alessandro Tasora</a> - Associate Professor, Università degli Studi di Parma, Italy
 
+ <a href="http://dynamics.eng.unipr.it/tasora"><img alt="" src="http://projectchrono.org/assets/people/125px-PhotoAlessandro.jpg" border="0" />
+  Alessandro Tasora
+  </a> - Associate Professor, Università degli Studi di Parma, Italy
 
 
 <h4>Key Project Chrono Developers</h4>
@@ -46,6 +52,7 @@ permalink: /about/
 
 The first version of the Chrono::Engine was developed in 1998 by [Prof. Alessandro Tasora](http://dynamics.eng.unipr.it/tasora) when he was a student at the Politecnico di Milano. It was the result of a thesis in Mechanical Engineering. Originally, Chrono::Engine was meant to be a multibody simulation tool for robotics and biomechanics applications.
 
+
 Until 2002, Chrono::Engine was tightly linked to the Realsoft3D modeller. In 2002-2005 the software was gradually reorganized in the form of a standalone library, just like it is today. Alessandro started working in 2005 with [Professor Mihai Anitescu](http://www.mcs.anl.gov/~anitescu/) from University of Chicago and Argonne National Laboratories. Their work strengthened the handling of large frictional contact models in Chrono. 
 
 [Professor Dan Negrut](http://homepages.cae.wisc.edu/~negrut/index.htm) joined the Project Chrono effort in 2007. The members of Simulation-Based Engineering Lab [\(SBEL\)](http://sbel.wisc.edu) at the University of Wisconsin-Madison have been active in its development ever since. 
@@ -55,5 +62,11 @@ We took the decision to release Chrono as open source in 2013, when we started t
 ### Copyright
 Chrono is copyrighted by {% include module.html first="PROJECT" second="CHRONO" %}, a nonprofit set up in the US, and released under a BSD 3 license. 
 
+
+### Stats
+
+<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_basic_stats?format=js'></script>
+<br>
+<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_factoids?format=js'></script>
 
 <br><br>

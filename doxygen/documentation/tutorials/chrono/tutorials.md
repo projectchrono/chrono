@@ -37,16 +37,16 @@ for demos with a 3D graphical output.
 
 -   @subpage tutorial_demo_math
 
-	Tutorial that teaches main mathematical tools (vectors, matrices)
+    Tutorial that teaches main mathematical tools (vectors, matrices)
 	
 -   @subpage tutorial_demo_coords
 
-	Tutorial that teaches coordinate transformations
+    Tutorial that teaches coordinate transformations
 	
 -   @subpage tutorial_demo_stream
 
-	Tutorial that teaches how to use ChStream classes to write/load from file streams.
+    Tutorial that teaches how to use ChStream classes to write/load from file streams.
 
 -   @subpage tutorial_demo_archive
 
-	Tutorial that teaches how to perform serialization/deserialization of C++ classes
+    Tutorial that teaches how to perform serialization/deserialization of C++ classes
