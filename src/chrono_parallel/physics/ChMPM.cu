@@ -279,34 +279,38 @@ CUDA_GLOBAL void kApplyForces(const float* sorted_pos,      // input
                               float* grid_vel) {
     const int p = blockIdx.x * blockDim.x + threadIdx.x;
     if (p < device_settings.num_mpm_markers) {
-        const float xix = sorted_pos[p * 3 + 0];
-        const float xiy = sorted_pos[p * 3 + 1];
-        const float xiz = sorted_pos[p * 3 + 2];
-        Mat33f FE = marker_Fe[p];
-        Mat33f FE_hat = marker_Fe_hat[p];
+        const Mat33f FE = marker_Fe[p];
+        const Mat33f FE_hat = marker_Fe_hat[p];
 
-#if 1
-        const float a = -1.0 / 3.0;
-        const float Ja = powf(Determinant(FE_hat), a);
+        const float a = -one_third;
+        const float J = Determinant(FE_hat);
+        const float Ja = powf(J, a);
 
         const float current_mu = device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
+#if 1
+        Mat33f JaFE = Ja * FE;
+        Mat33f UE, VE;
+        float3 EE;
+        SVD(JaFE, UE, EE, VE); /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/
+        Mat33f RE = MultTranspose(UE, VE);
+        Mat33f SE = VE * MultTranspose(EE, VE);
 
-        const Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, current_mu, PolarR[p], PolarS[p]);
-
-        const Mat33f vPEDFepT =
-            device_settings.dt * marker_volume[p] * Z__B(A, FE_hat, Ja, a, InverseTranspose(FE_hat)) * Transpose(FE);
+        PolarR[p] = RE;
+        PolarS[p] = SE;
 #else
-        Mat33f vPEDFepT =
-            device_settings.dt * marker_volume[p] *
-            Potential_Energy_Derivative_Deviatoric(FE_hat, FP, device_settings.mu,
-                                                   device_settings.hardening_coefficient, PolarR[p], PolarS[p]) *
-            Transpose(FE);
+        const Mat33f A = Potential_Energy_Derivative_Deviatoric(Ja * FE_hat, current_mu, PolarR[p], PolarS[p]);
 #endif
+        const Mat33f H = AdjointTranspose(FE_hat) * (1.0f / J);
+        const Mat33f A = 2.f * current_mu * (JaFE - RE);
+        const Mat33f Z_B = Z__B(A, FE_hat, Ja, a, H);
+        const Mat33f vPEDFepT = device_settings.dt * marker_volume[p] * MultTranspose(Z_B, FE);
 
         int cx, cy, cz;
         const float bin_edge = device_settings.bin_edge;
         const float inv_bin_edge = device_settings.inv_bin_edge;
-
+        const float xix = sorted_pos[p * 3 + 0];
+        const float xiy = sorted_pos[p * 3 + 1];
+        const float xiz = sorted_pos[p * 3 + 2];
         LOOP_TWO_RING_GPUSP(  //
 
             float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
@@ -396,8 +400,9 @@ CUDA_GLOBAL void kMultiplyA(const float* sorted_pos,  // input
 
         const Mat33f F = marker_Fe_hat[p];
         const float a = -one_third;
-        const float Ja = powf(Determinant(F), a);
-        const Mat33f H = InverseTranspose(F);
+        const float J = Determinant(F);
+        const float Ja = powf(J, a);
+        const Mat33f H = AdjointTranspose(F) * (1.0f / J);
         const Mat33f FE = Ja * F;
 
         const Mat33f B_Z = B__Z(delta_F, F, Ja, a, H);

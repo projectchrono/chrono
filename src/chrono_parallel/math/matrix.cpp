@@ -525,7 +525,16 @@ CUDA_HOST_DEVICE Mat33 InverseTranspose(const Mat33& A) {
         return Mat33(0);
     }
 }
+CUDA_HOST_DEVICE Mat33 InverseUnsafe(const Mat33& A) {
+    real s = Determinant(A);
+    return Adjoint(A) * real(1.0 / s);
+}
 
+// Same as inverse but we store it transposed
+CUDA_HOST_DEVICE Mat33 InverseTransposeUnsafe(const Mat33& A) {
+    real s = Determinant(A);
+    return AdjointTranspose(A) * real(1.0 / s);
+}
 CUDA_HOST_DEVICE real Norm(const Mat33& A) {
     return Sqrt(Trace(A * Transpose(A)));
 }

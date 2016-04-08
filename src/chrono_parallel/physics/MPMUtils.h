@@ -18,25 +18,25 @@
 #pragma once
 
 #include "chrono_parallel/math/svd.h"
-#define one_third 1. / 3
-#define two_thirds 2. / 3
-#define three_halves 3. / 2
-#define four_thirds 4. / 3
-#define three_fourths 3. / 4
-#define five_thirds 5. / 3
-#define one_sixth 1. / 6
-#define one_ninth 1. / 9
-#define one_twelfth 1. / 12
-#define one_twenty_fourth 1. / 24
-#define one_twenty_seventh 1. / 27
-#define one_sixtieth 1. / 60
-#define thirteen_over_twelve 13. / 12
-#define root_two sqrtf(2.)
-#define root_three sqrtf(3.)
-#define root_six sqrtf(6.)
-#define root_two_thirds sqrtf(2. / 3)
-#define one_over_root_two 1. / sqrtf(2.)
-#define one_over_root_three 1. / sqrtf(3.)
+#define one_third 1.f / 3.f
+#define two_thirds 2.f / 3.f
+#define three_halves 3.f / 2.f
+#define four_thirds 4.f / 3.f
+#define three_fourths 3.f / 4.f
+#define five_thirds 5.f / 3.f
+#define one_sixth 1.f / 6.f
+#define one_ninth 1.f / 9.f
+#define one_twelfth 1.f / 12.f
+#define one_twenty_fourth 1.f / 24.f
+#define one_twenty_seventh 1.f / 27.f
+#define one_sixtieth 1.f / 60.f
+#define thirteen_over_twelve 13.f / 12.f
+#define root_two sqrtf(2.f)
+#define root_three sqrtf(3.f)
+#define root_six sqrtf(6.f)
+#define root_two_thirds sqrtf(2.f / 3.f)
+#define one_over_root_two 1.f / sqrtf(2.f)
+#define one_over_root_three 1.f / sqrtf(3.f)
 
 namespace chrono {
 // Interpolation Functions

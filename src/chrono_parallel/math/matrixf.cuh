@@ -317,14 +317,14 @@ struct SymMat22f {
 };
 
 // dot product of each column of a matrix with itself
-CUDA_HOST_DEVICE static inline float3 DotMM(const float* M) {
+CUDA_HOST_DEVICE static inline float3 DotMM(const Mat33f& M) {
     float3 result;
     result.x = M[0] * M[0] + M[1] * M[1] + M[2] * M[2];
     result.y = M[3] * M[3] + M[4] * M[4] + M[5] * M[5];
     result.z = M[6] * M[6] + M[7] * M[7] + M[8] * M[8];
     return result;
 }  // dot product of each column of a matrix with another matrix
-CUDA_HOST_DEVICE static inline float3 DotMM(const float* M, const float* N) {
+CUDA_HOST_DEVICE static inline float3 DotMM(const Mat33f& M, const Mat33f& N) {
     float3 result;
     result.x = M[0] * N[0] + M[1] * N[1] + M[2] * N[2];
     result.y = M[3] * N[3] + M[4] * N[4] + M[5] * N[5];
@@ -406,8 +406,36 @@ CUDA_HOST_DEVICE static inline Mat33f Transpose(const Mat33f& a) {
 }
 
 CUDA_HOST_DEVICE static inline Mat33f MultTranspose(const Mat33f& M, const Mat33f& N) {
-    // Not a clean way to write this in AVX, might as well transpose first and then multiply
-    return M * Transpose(N);
+    Mat33f r;
+    r[0] = M[0] * N[0] + M[3] * N[3] + M[6] * N[6];
+    r[1] = M[1] * N[0] + M[4] * N[3] + M[7] * N[6];
+    r[2] = M[2] * N[0] + M[5] * N[3] + M[8] * N[6];
+
+    r[3] = M[0] * N[1] + M[3] * N[4] + M[6] * N[7];
+    r[4] = M[1] * N[1] + M[4] * N[4] + M[7] * N[7];
+    r[5] = M[2] * N[1] + M[5] * N[4] + M[8] * N[7];
+
+    r[6] = M[0] * N[2] + M[3] * N[5] + M[6] * N[8];
+    r[7] = M[1] * N[2] + M[4] * N[5] + M[7] * N[8];
+    r[8] = M[2] * N[2] + M[5] * N[5] + M[8] * N[8];
+    return r;
+}
+
+// Multiply by diagonal matrix
+CUDA_HOST_DEVICE static inline Mat33f MultTranspose(const float3& M, const Mat33f& N) {
+    Mat33f r;
+    r[0] = M.x * N[0];
+    r[1] = M.y * N[3];
+    r[2] = M.z * N[6];
+
+    r[3] = M.x * N[1];
+    r[4] = M.y * N[4];
+    r[5] = M.z * N[7];
+
+    r[6] = M.x * N[2];
+    r[7] = M.y * N[5];
+    r[8] = M.z * N[8];
+    return r;
 }
 
 CUDA_HOST_DEVICE static inline Mat33f TransposeMult(const Mat33f& M, const Mat33f& N) {
@@ -440,7 +468,7 @@ CUDA_HOST_DEVICE static inline Mat33f OuterProduct(const float3& A, const float3
 }
 
 CUDA_HOST_DEVICE static inline float InnerProduct(const Mat33f& A, const Mat33f& B) {
-    return HorizontalAdd(DotMM(A.array, B.array));
+    return HorizontalAdd(DotMM(A, B));
 }
 
 CUDA_HOST_DEVICE static inline Mat33f Adjoint(const Mat33f& A) {
@@ -498,18 +526,30 @@ CUDA_HOST_DEVICE static inline Mat33f InverseTranspose(const Mat33f& A) {
         return Mat33f(0);
     }
 }
-
-CUDA_HOST_DEVICE static inline float Norm(const Mat33f& A) {
-    return sqrtf(Trace(A * Transpose(A)));
+CUDA_HOST_DEVICE static inline Mat33f InverseUnsafe(const Mat33f& A) {
+    float s = Determinant(A);
+    return Adjoint(A) * float(1.0f / s);
 }
 
+// Same as inverse but we store it transposed
+CUDA_HOST_DEVICE static inline Mat33f InverseTransposeUnsafe(const Mat33f& A) {
+    float s = Determinant(A);
+    return AdjointTranspose(A) * float(1.0f / s);
+}
+CUDA_HOST_DEVICE static inline float Norm(const Mat33f& A) {
+    float x = A[0] * A[0] + A[3] * A[3] + A[6] * A[6];
+    float y = A[1] * A[1] + A[4] * A[4] + A[7] * A[7];
+    float z = A[2] * A[2] + A[5] * A[5] + A[8] * A[8];
+    return sqrtf(x + y + z);
+}
+// 9add
 CUDA_HOST_DEVICE static inline float DoubleDot(const Mat33f& A, const Mat33f& B) {
     return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[3] * B[3] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] +
            A[7] * B[7] + A[8] * B[8];
 }
 
 CUDA_HOST_DEVICE static inline float3 LargestColumnNormalized(const Mat33f& A) {
-    float3 scale = DotMM(A.array);
+    float3 scale = DotMM(A);
     float3 sqrt_scale = Sqrt(scale);
     if (scale.x > scale.y) {
         if (scale.x > scale.z) {
