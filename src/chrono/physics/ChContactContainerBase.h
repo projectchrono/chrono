@@ -128,7 +128,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     /// Compute contact forces on all contactable objects in this container.
     /// If implemented by a derived class, these forces must be stored in the hash table
     /// contact_forces (with key a pointer to ChContactable and value a ForceTorque structure).
-    virtual void ComputeContactForces() = 0;
+    virtual void ComputeContactForces() {}
 
     /// Return the resultant contact force acting on the specified contactable object.
     ChVector<> GetContactableForce(ChContactable* Contactable);
