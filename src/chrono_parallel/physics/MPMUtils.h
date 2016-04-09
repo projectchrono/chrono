@@ -209,32 +209,45 @@ CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative(const Mat33f& FE,
 
     return float(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
 }
-CUDA_HOST_DEVICE static inline Mat33f Solve_dR(const Mat33f& R, const Mat33f& S, const Mat33f& W) {
+CUDA_HOST_DEVICE static inline Mat33f Solve_dR(const Mat33f& R, const SymMat33f& S, const Mat33f& W) {
     Mat33f A;
     float3 b;
     // setup 3x3 system
     // Multiply out (R^TdR)*S + S*(R^TdR) and because it is skew symmetric we will only have three unknowns
-    A[0] = S[6];
-    A[1] = S[3];
-    A[2] = -(S[4] + S[8]);
+    A[0] = S[2];
+    A[1] = S[1];
+    A[2] = -(S[3] + S[5]);
 
-    A[3] = S[7];
-    A[4] = -(S[0] + S[8]);
-    A[5] = S[3];
+    A[3] = S[4];
+    A[4] = -(S[0] + S[5]);
+    A[5] = S[1];
 
-    A[6] = -(S[0] + S[4]);
-    A[7] = S[7];
-    A[8] = S[6];
+    A[6] = -(S[0] + S[3]);
+    A[7] = S[4];
+    A[8] = S[2];
+
+    // 013
+    //-24
+    //--5
+
+    // 0--
+    // 13-
+    // 245
+
+    // 036  //11 12 13
+    //-47  //21 22 23
+    //--8  //31 32 33
     // dF^TR is just the transpose of W which is R^TdF, this is the right hand side
     b.x = W[3] - W[1];
     b.y = W[2] - W[6];
     b.z = W[7] - W[5];
 
     // solve for R^TdR
-    float3 r = Inverse(A) * b;
-    Mat33f rx = SkewSymmetric(r);
+    float3 r = InverseUnsafe(A) * b;
+    // Mat33f rx = SkewSymmetric(r);
+    // Mat33f dR =R * rx
 
-    Mat33f dR = R * rx;
+    Mat33f dR = MultSkew(R, r);
     return dR;
 }
 
@@ -319,7 +332,7 @@ CUDA_HOST_DEVICE static inline Mat33f B__Z(const Mat33f& Z,
                                            const float Ja,
                                            const float a,
                                            const Mat33f& H) {
-    return Ja * (Z + a * (DoubleDot(H, Z)) * F);
+    return Ja * (Z + (a * DoubleDot(H, Z)) * F);
 }
 
 CUDA_HOST_DEVICE static inline Mat33f Z__B(const Mat33f& Z,
@@ -327,7 +340,7 @@ CUDA_HOST_DEVICE static inline Mat33f Z__B(const Mat33f& Z,
                                            const float Ja,
                                            const float a,
                                            const Mat33f& H) {
-    return Ja * (Z + a * (DoubleDot(F, Z)) * H);
+    return Ja * (Z + (a * DoubleDot(F, Z)) * H);
 }
 //
 // CUDA_HOST_DEVICE static inline Mat33f d2PsidFdF(const Mat33f& Z,  // This is deltaF

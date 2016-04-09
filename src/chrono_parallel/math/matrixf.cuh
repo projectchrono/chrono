@@ -34,11 +34,11 @@ namespace chrono {
 template <typename T>
 CUDA_HOST_DEVICE static inline T Sign(const T& x) {
     if (x < 0) {
-        return T(-1);
-    } else if (x > 0) {
-        return T(1);
+        return T(-1.0f);
+    } else if (x > 0.0f) {
+        return T(1.0f);
     } else {
-        return T(0);
+        return T(0.0f);
     }
 }
 template <typename T>
@@ -142,9 +142,9 @@ CUDA_HOST_DEVICE static inline float HorizontalAdd(const float3& a) {
 CUDA_HOST_DEVICE static inline float3 OrthogonalVector(const float3& v) {
     float3 abs = Abs(v);
     if (abs.x < abs.y) {
-        return abs.x < abs.z ? make_float3(0, v.z, -v.y) : make_float3(v.y, -v.x, 0);
+        return abs.x < abs.z ? make_float3(0.0f, v.z, -v.y) : make_float3(v.y, -v.x, 0.0f);
     } else {
-        return abs.y < abs.z ? make_float3(-v.z, 0, v.x) : make_float3(v.y, -v.x, 0);
+        return abs.y < abs.z ? make_float3(-v.z, 0.0f, v.x) : make_float3(v.y, -v.x, 0.0f);
     }
 }
 CUDA_HOST_DEVICE static inline float3 UnitOrthogonalVector(const float3& v) {
@@ -167,26 +167,30 @@ CUDA_HOST_DEVICE static inline float2 Normalize(const float2& v) {
 class Mat33f {
   public:
     // Zero constructor
-    CUDA_HOST_DEVICE Mat33f() {}
+    CUDA_HOST_DEVICE inline Mat33f() {}
     // Diagonal matrix constructor
-    CUDA_HOST_DEVICE explicit Mat33f(float v) : array{v, 0, 0, 0, v, 0, 0, 0, v} {}
+    CUDA_HOST_DEVICE inline explicit Mat33f(float v) : array{v, 0.0f, 0.0f, 0.0f, v, 0.0f, 0.0f, 0.0f, v} {}
     // Diagonal matrix constructor
-    CUDA_HOST_DEVICE explicit Mat33f(float3 v) : array{v.x, 0, 0, 0, v.y, 0, 0, 0, v.z} {}
+    CUDA_HOST_DEVICE inline explicit Mat33f(float3 v) : array{v.x, 0.0f, 0.0f, 0.0f, v.y, 0.0f, 0.0f, 0.0f, v.z} {}
+    // Coalesced load, each thread p loads a value with a stride
+    CUDA_HOST_DEVICE inline explicit Mat33f(const float* N, const int p, const int s)
+        : array{N[p + s * 0], N[p + s * 1], N[p + s * 2], N[p + s * 3], N[p + s * 4],
+                N[p + s * 5], N[p + s * 6], N[p + s * 7], N[p + s * 8]} {}
 
     // Constructor that takes three columns of the matrix
-    CUDA_HOST_DEVICE Mat33f(const float3& col1, const float3& col2, const float3& col3)
+    CUDA_HOST_DEVICE inline Mat33f(const float3& col1, const float3& col2, const float3& col3)
         : array{col1.x, col1.y, col1.z, col2.x, col2.y, col2.z, col3.x, col3.y, col3.z} {}
 
     // Constructor that takes individial elements
-    CUDA_HOST_DEVICE Mat33f(const float& v11,
-                            const float& v21,
-                            const float& v31,
-                            const float& v12,
-                            const float& v22,
-                            const float& v32,
-                            const float& v13,
-                            const float& v23,
-                            const float& v33)
+    CUDA_HOST_DEVICE inline Mat33f(const float& v11,
+                                   const float& v21,
+                                   const float& v31,
+                                   const float& v12,
+                                   const float& v22,
+                                   const float& v32,
+                                   const float& v13,
+                                   const float& v23,
+                                   const float& v33)
         : array{v11, v21, v31, v12, v22, v32, v13, v23, v33} {}
     // Copy constructor
     CUDA_HOST_DEVICE inline Mat33f(const Mat33f& M) {
@@ -226,6 +230,18 @@ class Mat33f {
         return *this;
     }
 
+    CUDA_HOST_DEVICE inline void Store(float* N, const int p, const int s) {
+        N[p + 0 * s] = array[0];
+        N[p + 1 * s] = array[1];
+        N[p + 2 * s] = array[2];
+        N[p + 3 * s] = array[3];
+        N[p + 4 * s] = array[4];
+        N[p + 5 * s] = array[5];
+        N[p + 6 * s] = array[6];
+        N[p + 7 * s] = array[7];
+        N[p + 8 * s] = array[8];
+    }
+
     float array[9];
 
     // c1 c2 c3
@@ -256,8 +272,9 @@ struct DiagMat33f {
 //
 
 struct SymMat33f {
-    CUDA_HOST_DEVICE SymMat33f() : x11(0), x21(0), x31(0), x22(0), x32(0), x33(0) {}
-
+    CUDA_HOST_DEVICE SymMat33f() {}
+    CUDA_HOST_DEVICE SymMat33f(const float f) : array{f, 0.0f, 0.0f, f, 0.0f, f} {}
+    CUDA_HOST_DEVICE SymMat33f(const float* N) : array{N[0], N[1], N[2], N[3], N[4], N[5]} {}
     CUDA_HOST_DEVICE SymMat33f(const float y11,
                                const float y21,
                                const float y31,
@@ -275,10 +292,30 @@ struct SymMat33f {
         x32 = N.x32;
         x33 = N.x33;
     }
+    CUDA_HOST_DEVICE void operator=(const Mat33f& N) {
+        x11 = N[0];
+        x21 = N[1];
+        x31 = N[2];
+        x22 = N[4];
+        x32 = N[5];
+        x33 = N[8];
+    }
+    CUDA_HOST_DEVICE void Load(const float* N) {
+        x11 = N[0];
+        x21 = N[1];
+        x31 = N[2];
+        x22 = N[3];
+        x32 = N[4];
+        x33 = N[5];
+    }
+    // 0--
+    // 13-
+    // 245
     union {
-        float array[8];
+        float array[6];
         struct {
             float x11, x21, x31, x22, x32, x33;
+            //    0     1    2    3    4    5
         };
     };
 };
@@ -310,7 +347,8 @@ struct Mat23f {
 // ========================================================================================
 
 struct SymMat22f {
-    CUDA_HOST_DEVICE SymMat22f() : x11(0), x21(0), x22(0) {}
+    CUDA_HOST_DEVICE SymMat22f() {}
+    CUDA_HOST_DEVICE SymMat22f(const float f) : x11(f), x21(f), x22(f) {}
     CUDA_HOST_DEVICE SymMat22f(const float v11, const float v21, const float v22) : x11(v11), x21(v21), x22(v22) {}
 
     float x11, x21, x22;
@@ -378,6 +416,23 @@ CUDA_HOST_DEVICE static inline Mat33f operator*(const Mat33f& M, const Mat33f& N
     r[8] = M[2] * N[6] + M[5] * N[7] + M[8] * N[8];
     return r;
 }
+// Multiply by the skew symmetric form of N
+CUDA_HOST_DEVICE static inline Mat33f MultSkew(const Mat33f& M, const float3& N) {
+    Mat33f r;
+    r[0] = M[3] * N.z + M[6] * -N.y;
+    r[1] = M[4] * N.z + M[7] * -N.y;
+    r[2] = M[5] * N.z + M[8] * -N.y;
+
+    r[3] = M[0] * -N.z + M[6] * N.x;
+    r[4] = M[1] * -N.z + M[7] * N.x;
+    r[5] = M[2] * -N.z + M[8] * N.x;
+
+    r[6] = M[0] * N.y + M[3] * -N.x;
+    r[7] = M[1] * N.y + M[4] * -N.x;
+    r[8] = M[2] * N.y + M[5] * -N.x;
+    return r;
+}
+
 CUDA_HOST_DEVICE static inline Mat33f operator+(const Mat33f& M, const Mat33f& N) {
     return Mat33f(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[3] + N[3], M[4] + N[4], M[5] + N[5], M[6] + N[6],
                   M[7] + N[7], M[8] + N[8]);
@@ -510,20 +565,20 @@ CUDA_HOST_DEVICE static inline float Determinant(const Mat33f& m) {
 
 CUDA_HOST_DEVICE static inline Mat33f Inverse(const Mat33f& A) {
     float s = Determinant(A);
-    if (s > 0.0) {
+    if (s > 0.0f) {
         return Adjoint(A) * (1.0f / s);
     } else {
-        return Mat33f(0);
+        return Mat33f(0.0f);
     }
 }
 
 // Same as inverse but we store it transposed
 CUDA_HOST_DEVICE static inline Mat33f InverseTranspose(const Mat33f& A) {
     float s = Determinant(A);
-    if (s > 0.0) {
+    if (s > 0.0f) {
         return AdjointTranspose(A) * (1.0f / s);
     } else {
-        return Mat33f(0);
+        return Mat33f(0.0f);
     }
 }
 CUDA_HOST_DEVICE static inline Mat33f InverseUnsafe(const Mat33f& A) {
@@ -598,10 +653,10 @@ CUDA_HOST_DEVICE static inline float3 LargestColumnNormalized(const SymMat33f& A
     } else if (scale2 > scale3) {
         return make_float3(A.x21, A.x22, A.x32) / sqrtf(scale2);
     }
-    if (scale3 > 0)
+    if (scale3 > 0.0f)
         return make_float3(A.x31, A.x32, A.x33) / sqrtf(scale3);
     else {
-        return (make_float3(1, 0, 0));
+        return (make_float3(1.0f, 0.0f, 0.0f));
     }
 }
 CUDA_HOST_DEVICE static inline SymMat33f NormalEquationsMatrix(const Mat33f& A) {
@@ -657,10 +712,10 @@ CUDA_HOST_DEVICE static inline float2 LargestColumnNormalized(const SymMat22f& A
     float scale2 = Length2(make_float2(A.x21, A.x22));
     if (scale1 > scale2) {
         return make_float2(A.x11, A.x21) / sqrtf(scale1);
-    } else if (scale2 > 0) {
+    } else if (scale2 > 0.0f) {
         return make_float2(A.x21, A.x22) / sqrtf(scale2);
     } else {
-        return make_float2(1, 0);
+        return make_float2(1.0f, 0.0f);
     }
 }
 

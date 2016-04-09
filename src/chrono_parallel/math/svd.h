@@ -22,23 +22,23 @@ namespace chrono {
 // DOI=http://dx.doi.org/10.1145/355578.366316
 CUDA_HOST_DEVICE static float3 Fast_Eigenvalues(const SymMat33f& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts
 {
-    const float m = float(1.0) / float(3.0) * (A.x11 + A.x22 + A.x33);
+    const float m = (1.0f) / (3.0f) * (A.x11 + A.x22 + A.x33);
     const float a11 = A.x11 - m;
     const float a22 = A.x22 - m;
     const float a33 = A.x33 - m;
     const float a12_sqr = A.x21 * A.x21;
     const float a13_sqr = A.x31 * A.x31;
     const float a23_sqr = A.x32 * A.x32;
-    const float p = float(1.0) / float(6.0) * (a11 * a11 + a22 * a22 + a33 * a33 + 2 * (a12_sqr + a13_sqr + a23_sqr));
-    const float q = float(0.5) * (a11 * (a22 * a33 - a23_sqr) - a22 * a13_sqr - a33 * a12_sqr) + A.x21 * A.x31 * A.x32;
+    const float p = (1.0f) / (6.0f) * (a11 * a11 + a22 * a22 + a33 * a33 + 2 * (a12_sqr + a13_sqr + a23_sqr));
+    const float q = (0.5f) * (a11 * (a22 * a33 - a23_sqr) - a22 * a13_sqr - a33 * a12_sqr) + A.x21 * A.x31 * A.x32;
     const float sqrt_p = sqrtf(p);
     const float disc = p * p * p - q * q;
-    const float phi = float(1.0) / float(3.0) * atan2f(sqrtf(fmaxf(float(0.0), disc)), q);
+    const float phi = (1.0f) / (3.0f) * atan2f(sqrtf(fmaxf((0.0f), disc)), q);
     const float c = cosf(phi);
     const float s = sinf(phi);
     const float sqrt_p_cos = sqrt_p * c;
-    const float root_three_sqrt_p_sin = sqrtf(float(3.0)) * sqrt_p * s;
-    float3 lambda = make_float3(m + float(2.0) * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin,
+    const float root_three_sqrt_p_sin = sqrtf((3.0f)) * sqrt_p * s;
+    float3 lambda = make_float3(m + (2.0f) * sqrt_p_cos, m - sqrt_p_cos - root_three_sqrt_p_sin,
                                 m - sqrt_p_cos + root_three_sqrt_p_sin);
     Sort(lambda.z, lambda.y, lambda.x);
     return lambda;
@@ -83,7 +83,7 @@ CUDA_HOST_DEVICE static void SVD(const Mat33f& A, Mat33f& U, float3& singular_va
     Fast_Solve_EigenProblem(ATA, lambda, V);
 
     if (lambda.z < 0) {
-        lambda = Max(lambda, float(0.0));
+        lambda = Max(lambda, (0.0f));
     }
     singular_values = Sqrt(lambda);  // 3s
     if (Determinant(A) < 0) {
