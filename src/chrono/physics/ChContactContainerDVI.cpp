@@ -198,8 +198,10 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
 
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
+
 template <class Tcont>
-void _SumAllContactForces(std::list<Tcont*>& contactlist, std::unordered_map<ChContactable*, ForceTorque>& BodyContactForce_) {
+void ChContactContainerDVI::SumAllContactForces(std::list<Tcont*>& contactlist,
+                                                std::unordered_map<ChContactable*, ForceTorque>& BodyContactForce_) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         if (ChBody* b1 = dynamic_cast<ChBody*>((*itercontact)->GetObjA())) {
@@ -246,9 +248,9 @@ void _SumAllContactForces(std::list<Tcont*>& contactlist, std::unordered_map<ChC
 }
 
 void ChContactContainerDVI::ComputeContactForces() {
-    BodyContactForce.clear();
-    _SumAllContactForces(contactlist_6_6, BodyContactForce);
-    _SumAllContactForces(contactlist_6_3, BodyContactForce);
+    contact_forces.clear();
+    SumAllContactForces(contactlist_6_6, contact_forces);
+    SumAllContactForces(contactlist_6_3, contact_forces);
 }
 
 template <class Tcont>

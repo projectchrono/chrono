@@ -103,8 +103,9 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     /// results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true);
 
-    /// Temporary method added to create a hash table with resultant of contact forces/torques
+    /// Compute contact forces on all contactable objects in this container.
     virtual void ComputeContactForces() override;
+
     //
     // STATE FUNCTIONS
     //
@@ -162,6 +163,11 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
         RemoveAllContacts();
         // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
     }
+
+  private:
+    template <class Tcont>
+    void SumAllContactForces(std::list<Tcont*>& contactlist,
+                             std::unordered_map<ChContactable*, ForceTorque>& BodyContactForce_);
 };
 
 }  // END_OF_NAMESPACE____

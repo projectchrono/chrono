@@ -12,14 +12,14 @@
 #ifndef CHCONTACTCONTAINERBASE_H
 #define CHCONTACTCONTAINERBASE_H
 
+#include <unordered_map>
+
 #include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialCouple.h"
 #include "chrono/physics/ChPhysicsItem.h"
-#include "chrono/physics/ChContactable.h"
-#include <unordered_map>
-#include <map>
-namespace chrono {
 
+namespace chrono {
 
 /// Class to be used as a callback interface for some user defined
 /// action to be taken each time a contact is added to the container.
@@ -29,7 +29,7 @@ namespace chrono {
 /// implement a custom ContactCallback() function.
 class ChApi ChAddContactCallback {
   public:
-    /// Callback, used to report contact points being added to the container.
+    /// Callback used to report contact points being added to the container.
     /// This must be implemented by a child class of ChAddContactCallback
     virtual void ContactCallback(
         const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
@@ -63,31 +63,20 @@ class ChApi ChReportContactCallback {
 /// There might be implementations of this interface in form of plain CPU linked lists of contact objects,
 /// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
 /// Struct to store resultant contact force/torque applied on rigid body
-struct ForceTorque {
-    ChVector<> Force;
-    ChVector<> Torque;
-};
-
 class ChApi ChContactContainerBase : public ChPhysicsItem {
     CH_RTTI(ChContactContainerBase, ChPhysicsItem);
 
   protected:
+    struct ForceTorque {
+        ChVector<> Force;
+        ChVector<> Torque;
+    };
 
-    //
-    // DATA
-    //
-    std::unordered_map<ChContactable*, ForceTorque> BodyContactForce;
+    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
     ChAddContactCallback* add_contact_callback;
     ChReportContactCallback* report_contact_callback;
 
   public:
-
-      //
-    // DATA
-    // 
-    //
-    // CONSTRUCTORS
-    //
 
     ChContactContainerBase() {
         add_contact_callback = 0;
@@ -96,11 +85,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
 
     virtual ~ChContactContainerBase() {}
 
-    //
-    // FUNCTIONS
-    //
-
-    /// Tell the number of added contacts. To be implemented by child classes.
+    /// Get the number of added contacts. To be implemented by child classes.
     virtual int GetNcontacts() = 0;
 
     /// Remove (delete) all contained contact data. To be implemented by child classes.
@@ -140,49 +125,22 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     /// Child classes of ChContactContainerBase should try to implement this.
     virtual void ReportAllContacts(ChReportContactCallback* mcallback) {}
 
-    /// Create a hash table with rigid body addresses as key and resultant contact force
-    /// and torque as data. Forces/torques are given in global coordinates. Handy to use,
-    /// e.g., in co-simulation strategies.
+    /// Compute contact forces on all contactable objects in this container.
+    /// If implemented by a derived class, these forces must be stored in the hash table
+    /// contact_forces (with key a pointer to ChContactable and value a ForceTorque structure).
     virtual void ComputeContactForces() = 0;
 
-    ChVector<> GetContactableForce(ChContactable* Contactable){
-        ChVector<> Resultant(0);
-        std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator =
-            BodyContactForce.find(Contactable);
-        if (Iterator != BodyContactForce.end()) {
-            Resultant = Iterator->second.Force;
-        }
-        return Resultant;
-    }
-    ChVector<> GetContactableTorque(ChContactable* Contactable){
-        ChVector<> Resultant(0);
-        std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator =
-            BodyContactForce.find(Contactable);
-        if (Iterator != BodyContactForce.end()) {
-            Resultant = Iterator->second.Torque;
-        }
-        return Resultant;
-    }
-    //
-    // SERIALIZATION
-    //
+    /// Return the resultant contact force acting on the specified contactable object.
+    ChVector<> GetContactableForce(ChContactable* Contactable);
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChPhysicsItem::ArchiveOUT(marchive);
-        // serialize all member data:
-    }
+    /// Return the resultant contact torque acting on the specified contactable object.
+    ChVector<> GetContactableTorque(ChContactable* Contactable);
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChPhysicsItem::ArchiveIN(marchive);
-        // stream in all member data:
-    }
+    /// Method for serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method for de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // END_OF_NAMESPACE____

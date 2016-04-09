@@ -875,6 +875,13 @@ void ChBody::ComputeJacobianForRollingContactPart(
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
 }
 
+ChVector<> ChBody::GetContactForce() {
+    return GetSystem()->GetContactContainer()->GetContactableForce(this);
+}
+
+ChVector<> ChBody::GetContactTorque() {
+    return GetSystem()->GetContactContainer()->GetContactableTorque(this);
+}
 
 //////// FILE I/O
 

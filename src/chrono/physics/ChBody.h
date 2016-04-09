@@ -646,21 +646,12 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
 
-    /// Get contact force resultant from contact container.
-    /// It sums all the forces coming from contact interaction: e.g. from all particules in granular terrain.
-    /// Useful when using co-simulation techniques.
-    ChVector<> GetContactForce() {
-         ChSystem* MySystem = GetSystem();
-       // ChVector<> MyTry = GetSystem()->GetContactContainer()->GetContactableTorque(this);
+    /// Get the resultant contact force acting on this body.
+    ChVector<> GetContactForce();
 
-            return ChVector<>(0); 
-    }
-    /// Get contact torque resultant from contact container.
-    /// It sums all the torques coming from contact interaction: e.g. from all particules in granular terrain.
-    /// Useful when using co-simulation techniques.
-    ChVector<> GetContactTorque() {
-        return ChVector<>(0); // GetSystem()->GetContactContainer()->GetContactableTorque(this);
-    } 
+    /// Get the resultant contact torque acting on this body.
+    ChVector<> GetContactTorque();
+
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
         ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
