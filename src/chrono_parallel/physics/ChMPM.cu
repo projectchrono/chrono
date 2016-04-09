@@ -143,9 +143,9 @@ CUDA_GLOBAL void kRasterize(const float* sorted_pos,  // input
                            N((xiz - current_node_locationz) * inv_bin_edge) * device_settings.mass;
 
             atomicAdd(&grid_mass[current_node], weight);  //
-            atomicAdd(&grid_vel[current_node + device_settings.num_mpm_nodes * 0], weight * vix);
-            atomicAdd(&grid_vel[current_node + device_settings.num_mpm_nodes * 1], weight * viy);
-            atomicAdd(&grid_vel[current_node + device_settings.num_mpm_nodes * 2], weight * viz);)
+            atomicAdd(&grid_vel[current_node * 3 + 0], weight * vix);
+            atomicAdd(&grid_vel[current_node * 3 + 1], weight * viy);
+            atomicAdd(&grid_vel[current_node * 3 + 2], weight * viz);)
     }
 }
 CUDA_GLOBAL void kRasterize(const float* sorted_pos,  // input
@@ -176,9 +176,9 @@ CUDA_GLOBAL void kNormalizeWeights(float* grid_mass,   // input
     if (i < device_settings.num_mpm_nodes) {
         float n_mass = grid_mass[i];
         if (n_mass > FLT_EPSILON) {
-            grid_vel[i + device_settings.num_mpm_nodes * 0] /= n_mass;
-            grid_vel[i + device_settings.num_mpm_nodes * 1] /= n_mass;
-            grid_vel[i + device_settings.num_mpm_nodes * 2] /= n_mass;
+            grid_vel[i * 3 + 0] /= n_mass;
+            grid_vel[i * 3 + 1] /= n_mass;
+            grid_vel[i * 3 + 2] /= n_mass;
         }
     }
 }
@@ -226,9 +226,9 @@ CUDA_GLOBAL void kFeHat(const float* sorted_pos,  // input
 
         LOOP_TWO_RING_GPUSP(
 
-            float vnx = grid_vel[current_node + device_settings.num_mpm_nodes * 0];  //
-            float vny = grid_vel[current_node + device_settings.num_mpm_nodes * 1];  //
-            float vnz = grid_vel[current_node + device_settings.num_mpm_nodes * 2];
+            float vnx = grid_vel[current_node * 3 + 0];  //
+            float vny = grid_vel[current_node * 3 + 1];  //
+            float vnz = grid_vel[current_node * 3 + 2];
 
             float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
             float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
@@ -333,9 +333,9 @@ CUDA_GLOBAL void kApplyForces(const float* sorted_pos,     // input
 
             float mass = node_mass[current_node];  //
             if (mass > 0) {
-                atomicAdd(&grid_vel[current_node + device_settings.num_mpm_nodes * 0], -fx / mass);  //
-                atomicAdd(&grid_vel[current_node + device_settings.num_mpm_nodes * 1], -fy / mass);  //
-                atomicAdd(&grid_vel[current_node + device_settings.num_mpm_nodes * 2], -fz / mass);  //
+                atomicAdd(&grid_vel[current_node * 3 + 0], -fx / mass);  //
+                atomicAdd(&grid_vel[current_node * 3 + 1], -fy / mass);  //
+                atomicAdd(&grid_vel[current_node * 3 + 2], -fz / mass);  //
             })
     }
 }
@@ -346,16 +346,13 @@ CUDA_GLOBAL void kRhs(const float* node_mass,  // input
     if (current_node < device_settings.num_mpm_nodes) {
         float mass = node_mass[current_node];  //
         if (mass > 0) {
-            rhs[current_node + device_settings.num_mpm_nodes * 0] =
-                mass * grid_vel[current_node + device_settings.num_mpm_nodes * 0];  //
-            rhs[current_node + device_settings.num_mpm_nodes * 1] =
-                mass * grid_vel[current_node + device_settings.num_mpm_nodes * 1];  //
-            rhs[current_node + device_settings.num_mpm_nodes * 2] =
-                mass * grid_vel[current_node + device_settings.num_mpm_nodes * 2];  //
+            rhs[current_node * 3 + 0] = mass * grid_vel[current_node * 3 + 0];  //
+            rhs[current_node * 3 + 1] = mass * grid_vel[current_node * 3 + 1];  //
+            rhs[current_node * 3 + 2] = mass * grid_vel[current_node * 3 + 2];  //
         } else {
-            rhs[current_node + device_settings.num_mpm_nodes * 0] = 0;
-            rhs[current_node + device_settings.num_mpm_nodes * 1] = 0;
-            rhs[current_node + device_settings.num_mpm_nodes * 2] = 0;
+            rhs[current_node * 3 + 0] = 0;
+            rhs[current_node * 3 + 1] = 0;
+            rhs[current_node * 3 + 2] = 0;
         }
     }
 }
@@ -383,9 +380,9 @@ CUDA_GLOBAL void kMultiplyA(const float* sorted_pos,  // input
 
         LOOP_TWO_RING_GPUSP(  //
 
-            float vnx = v_array[current_node + device_settings.num_mpm_nodes * 0];  //
-            float vny = v_array[current_node + device_settings.num_mpm_nodes * 1];  //
-            float vnz = v_array[current_node + device_settings.num_mpm_nodes * 2];
+            float vnx = v_array[current_node * 3 + 0];  //
+            float vny = v_array[current_node * 3 + 1];  //
+            float vnz = v_array[current_node * 3 + 2];
 
             float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
             float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
@@ -450,9 +447,8 @@ CUDA_GLOBAL void kMultiplyA(const float* sorted_pos,  // input
             float resy = VAP[1] * valx + VAP[4] * valy + VAP[7] * valz;
             float resz = VAP[2] * valx + VAP[5] * valy + VAP[8] * valz;
 
-            atomicAdd(&result_array[current_node + device_settings.num_mpm_nodes * 0], resx);
-            atomicAdd(&result_array[current_node + device_settings.num_mpm_nodes * 1], resy);
-            atomicAdd(&result_array[current_node + device_settings.num_mpm_nodes * 2], resz););
+            atomicAdd(&result_array[current_node * 3 + 0], resx); atomicAdd(&result_array[current_node * 3 + 1], resy);
+            atomicAdd(&result_array[current_node * 3 + 2], resz););
     }
 }
 CUDA_GLOBAL void kMultiplyB(const float* v_array, const float* node_mass, float* result_array) {
@@ -460,12 +456,9 @@ CUDA_GLOBAL void kMultiplyB(const float* v_array, const float* node_mass, float*
     if (i < device_settings.num_mpm_nodes) {
         float mass = node_mass[i];
         if (mass > 0) {
-            result_array[i + device_settings.num_mpm_nodes * 0] +=
-                mass * (v_array[i + device_settings.num_mpm_nodes * 0]);
-            result_array[i + device_settings.num_mpm_nodes * 1] +=
-                mass * (v_array[i + device_settings.num_mpm_nodes * 1]);
-            result_array[i + device_settings.num_mpm_nodes * 2] +=
-                mass * (v_array[i + device_settings.num_mpm_nodes * 2]);
+            result_array[i * 3 + 0] += mass * (v_array[i * 3 + 0]);
+            result_array[i * 3 + 1] += mass * (v_array[i * 3 + 1]);
+            result_array[i * 3 + 2] += mass * (v_array[i * 3 + 2]);
         }
     }
 }
@@ -707,12 +700,9 @@ void MPM_BBSolver(gpu_vector<float>& r, gpu_vector<float>& delta_v) {
 CUDA_GLOBAL void kIncrementVelocity(float* delta_v, float* old_vel_node_mpm, float* grid_vel) {
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < device_settings.num_mpm_nodes) {
-        grid_vel[i + device_settings.num_mpm_nodes * 0] +=
-            delta_v[i + device_settings.num_mpm_nodes * 0] - old_vel_node_mpm[i + device_settings.num_mpm_nodes * 0];
-        grid_vel[i + device_settings.num_mpm_nodes * 1] +=
-            delta_v[i + device_settings.num_mpm_nodes * 1] - old_vel_node_mpm[i + device_settings.num_mpm_nodes * 1];
-        grid_vel[i + device_settings.num_mpm_nodes * 2] +=
-            delta_v[i + device_settings.num_mpm_nodes * 2] - old_vel_node_mpm[i + device_settings.num_mpm_nodes * 2];
+        grid_vel[i * 3 + 0] += delta_v[i * 3 + 0] - old_vel_node_mpm[i * 3 + 0];
+        grid_vel[i * 3 + 1] += delta_v[i * 3 + 1] - old_vel_node_mpm[i * 3 + 1];
+        grid_vel[i * 3 + 2] += delta_v[i * 3 + 2] - old_vel_node_mpm[i * 3 + 2];
     }
 }
 
@@ -742,16 +732,16 @@ CUDA_GLOBAL void kUpdateParticleVelocity(float* grid_vel,
                            N((xiy - current_node_locationy) * inv_bin_edge) *
                            N((xiz - current_node_locationz) * inv_bin_edge);
 
-            float vnx = grid_vel[current_node + device_settings.num_mpm_nodes * 0];  //
-            float vny = grid_vel[current_node + device_settings.num_mpm_nodes * 1];  //
-            float vnz = grid_vel[current_node + device_settings.num_mpm_nodes * 2];
+            float vnx = grid_vel[current_node * 3 + 0];  //
+            float vny = grid_vel[current_node * 3 + 1];  //
+            float vnz = grid_vel[current_node * 3 + 2];
 
-            V_pic.x += vnx * weight;                                                                          //
-            V_pic.y += vny * weight;                                                                          //
-            V_pic.z += vnz * weight;                                                                          //
-            V_flip.x += (vnx - old_vel_node_mpm[current_node + device_settings.num_mpm_nodes * 0]) * weight;  //
-            V_flip.y += (vny - old_vel_node_mpm[current_node + device_settings.num_mpm_nodes * 1]) * weight;  //
-            V_flip.z += (vnz - old_vel_node_mpm[current_node + device_settings.num_mpm_nodes * 2]) * weight;  //
+            V_pic.x += vnx * weight;                                              //
+            V_pic.y += vny * weight;                                              //
+            V_pic.z += vnz * weight;                                              //
+            V_flip.x += (vnx - old_vel_node_mpm[current_node * 3 + 0]) * weight;  //
+            V_flip.y += (vny - old_vel_node_mpm[current_node * 3 + 1]) * weight;  //
+            V_flip.z += (vnz - old_vel_node_mpm[current_node * 3 + 2]) * weight;  //
             )
         float3 new_vel = (1.0 - alpha) * V_pic + alpha * V_flip;
 
@@ -781,9 +771,9 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
         const float bin_edge = device_settings.bin_edge;
         const float inv_bin_edge = device_settings.inv_bin_edge;
 
-        LOOP_TWO_RING_GPUSP(float vnx = grid_vel[current_node + device_settings.num_mpm_nodes * 0];  //
-                            float vny = grid_vel[current_node + device_settings.num_mpm_nodes * 1];  //
-                            float vnz = grid_vel[current_node + device_settings.num_mpm_nodes * 2];
+        LOOP_TWO_RING_GPUSP(float vnx = grid_vel[current_node * 3 + 0];  //
+                            float vny = grid_vel[current_node * 3 + 1];  //
+                            float vnz = grid_vel[current_node * 3 + 2];
 
                             float Tx = (xix - current_node_locationx) * inv_bin_edge;  //
                             float Ty = (xiy - current_node_locationy) * inv_bin_edge;  //
