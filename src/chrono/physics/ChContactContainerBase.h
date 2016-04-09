@@ -66,16 +66,6 @@ class ChApi ChReportContactCallback {
 class ChApi ChContactContainerBase : public ChPhysicsItem {
     CH_RTTI(ChContactContainerBase, ChPhysicsItem);
 
-  protected:
-    struct ForceTorque {
-        ChVector<> Force;
-        ChVector<> Torque;
-    };
-
-    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
-    ChAddContactCallback* add_contact_callback;
-    ChReportContactCallback* report_contact_callback;
-
   public:
 
     ChContactContainerBase() {
@@ -131,16 +121,73 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     virtual void ComputeContactForces() {}
 
     /// Return the resultant contact force acting on the specified contactable object.
-    ChVector<> GetContactableForce(ChContactable* Contactable);
+    ChVector<> GetContactableForce(ChContactable* contactable);
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    ChVector<> GetContactableTorque(ChContactable* Contactable);
+    ChVector<> GetContactableTorque(ChContactable* contactable);
 
     /// Method for serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method for de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
+
+  protected:
+    struct ForceTorque {
+        ChVector<> force;
+        ChVector<> torque;
+    };
+
+    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
+    ChAddContactCallback* add_contact_callback;
+    ChReportContactCallback* report_contact_callback;
+
+    template <class Tcont>
+    void SumAllContactForces(std::list<Tcont*>& contactlist,
+                             std::unordered_map<ChContactable*, ForceTorque>& contactforces) {
+        for (auto contact = contactlist.begin(); contact != contactlist.end(); ++contact) {
+            // Extract information for current contact (expressed in global frame)
+            ChVector<> force = (*contact)->GetContactForce();
+            ChVector<> p1 = (*contact)->GetContactP1();
+            ChVector<> p2 = (*contact)->GetContactP2();
+
+            // Calculate contact torque for first object (expressed in global frame).
+            // Recall that -force is applied to the first object.
+            ChVector<> torque1(0);
+            if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjA())) {
+                torque1 = Vcross(p1 - body->GetPos(), -force);
+            }
+
+            // If there is already an entry for the first object, accumulate.
+            // Otherwise, insert a new entry.
+            auto entry1 = contactforces.find((*contact)->GetObjA());
+            if (entry1 != contactforces.end()) {
+                entry1->second.force -= force;
+                entry1->second.torque += torque1;
+            } else {
+                ForceTorque ft{-force, torque1};
+                contactforces.insert(std::make_pair((*contact)->GetObjA(), ft));
+            }
+
+            // Calculate contact torque for second object (expressed in global frame).
+            // Recall that +force is applied to the second object.
+            ChVector<> torque2(0);
+            if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjB())) {
+                torque2 = Vcross(p2 - body->GetPos(), force);
+            }
+
+            // If there is already an entry for the first object, accumulate.
+            // Otherwise, insert a new entry.
+            auto entry2 = contactforces.find((*contact)->GetObjB());
+            if (entry2 != contactforces.end()) {
+                entry2->second.force += force;
+                entry2->second.torque += torque2;
+            } else {
+                ForceTorque ft{force, torque2};
+                contactforces.insert(std::make_pair((*contact)->GetObjB(), ft));
+            }
+        }
+    }
 };
 
 }  // END_OF_NAMESPACE____

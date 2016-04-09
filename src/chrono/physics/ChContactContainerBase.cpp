@@ -17,18 +17,18 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegisterABSTRACT<ChContactContainerBase> a_registration_ChContactContainerBase;
 
-ChVector<> ChContactContainerBase::GetContactableForce(ChContactable* Contactable) {
-    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(Contactable);
+ChVector<> ChContactContainerBase::GetContactableForce(ChContactable* contactable) {
+    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
-        return Iterator->second.Force;
+        return Iterator->second.force;
     }
     return ChVector<>(0);
 }
 
-ChVector<> ChContactContainerBase::GetContactableTorque(ChContactable* Contactable) {
-    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(Contactable);
+ChVector<> ChContactContainerBase::GetContactableTorque(ChContactable* contactable) {
+    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
-        return Iterator->second.Torque;
+        return Iterator->second.torque;
     }
     return ChVector<>(0);
 }

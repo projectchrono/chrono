@@ -146,11 +146,6 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
         RemoveAllContacts();
         // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
     }
-
-  private:
-    template <class Tcont>
-    void SumAllContactForces(std::list<Tcont*>& contactlist,
-                             std::unordered_map<ChContactable*, ForceTorque>& BodyContactForce_);
 };
 
 }  // END_OF_NAMESPACE____
