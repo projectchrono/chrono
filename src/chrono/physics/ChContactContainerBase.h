@@ -12,12 +12,13 @@
 #ifndef CHCONTACTCONTAINERBASE_H
 #define CHCONTACTCONTAINERBASE_H
 
+#include <list>
 #include <unordered_map>
 
 #include "chrono/collision/ChCCollisionInfo.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialCouple.h"
-#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 
