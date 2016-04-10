@@ -26,7 +26,6 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelDVI* physics_system) {
     body_offset = 0;
     epsilon = 1e-3;
     tau = 4 * .001;
-    alpha = 0;
     rho = 1000;
     mass = 1;
 

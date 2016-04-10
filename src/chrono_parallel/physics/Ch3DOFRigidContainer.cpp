@@ -30,7 +30,6 @@ Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelDVI* physics_system) 
     start_boundary = 0;
     start_contact = 0;
     mpm_iterations = 0;
-    alpha = 0;
     nu = .2;
     youngs_modulus = 1.4e5;
     hardening_coefficient = 10;

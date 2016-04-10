@@ -765,7 +765,7 @@ void ChFEAContainer::Build_D() {
         custom_vector<int>& neighbor_marker_tet = data_manager->host_data.neighbor_marker_tet;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_marker_tet;
         custom_vector<real4>& face_marker_tet = data_manager->host_data.face_marker_tet;
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
@@ -846,6 +846,10 @@ void ChFEAContainer::Build_b() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
+    real inv_h = 1 / data_manager->settings.step_size;
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
+    real inv_hhpa = inv_h * inv_hpa;
+
     if (num_rigid_tet_contacts > 0) {
         custom_vector<real4>& face_rigid_tet = data_manager->host_data.face_rigid_tet;
         custom_vector<int>& neighbor_rigid_node = data_manager->host_data.neighbor_rigid_tet;
@@ -865,8 +869,12 @@ void ChFEAContainer::Build_b() {
 
                 // real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
                 // uvec3 sortedf = SortedFace(face.w, tetind);
-
-                bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
+                if (alpha) {
+                    bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                }  //
+                else {
+                    bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
+                }
                 //
                 data_manager->host_data.b[start_boundary + index + 0] = bi;
                 data_manager->host_data.b[start_boundary + num_rigid_tet_contacts + index * 2 + 0] = 0;
@@ -885,8 +893,13 @@ void ChFEAContainer::Build_b() {
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 real depth = data_manager->host_data.dpth_rigid_tet_node[p * max_rigid_neighbors + i];
-
-                real bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
+                real bi = 0;
+                if (alpha) {
+                    bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                }  //
+                else {
+                    bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
+                }
                 //
                 data_manager->host_data.b[start_boundary_node + index + 0] = bi;
                 data_manager->host_data.b[start_boundary_node + num_rigid_tet_node_contacts + index * 2 + 0] = 0;
@@ -896,33 +909,38 @@ void ChFEAContainer::Build_b() {
     }
 
     if (num_marker_tet_contacts > 0) {
-            custom_vector<real4>& face_marker_tet = data_manager->host_data.face_marker_tet;
-            custom_vector<int>& neighbor_marker_node = data_manager->host_data.neighbor_marker_tet;
-            custom_vector<int>& contact_counts = data_manager->host_data.c_counts_marker_tet;
-            int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
-            custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
+        custom_vector<real4>& face_marker_tet = data_manager->host_data.face_marker_tet;
+        custom_vector<int>& neighbor_marker_node = data_manager->host_data.neighbor_marker_tet;
+        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_marker_tet;
+        int num_boundary_tets = data_manager->host_data.boundary_element_fea.size();
+        custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
 
-            //#pragma omp parallel for
-            for (int p = 0; p < num_boundary_tets; p++) {
-                int start = contact_counts[p];
-                int end = contact_counts[p + 1];
-                uint4 tetind = tet_indices[boundary_element_fea[p]];
-                for (int index = start; index < end; index++) {
-                    int i = index - start;  // index that goes from 0
-                    real bi = 0;
-                    real depth = data_manager->host_data.dpth_marker_tet[p * max_rigid_neighbors + i];
+        //#pragma omp parallel for
+        for (int p = 0; p < num_boundary_tets; p++) {
+            int start = contact_counts[p];
+            int end = contact_counts[p + 1];
+            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            for (int index = start; index < end; index++) {
+                int i = index - start;  // index that goes from 0
+                real bi = 0;
+                real depth = data_manager->host_data.dpth_marker_tet[p * max_rigid_neighbors + i];
 
-                    // real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
-                    // uvec3 sortedf = SortedFace(face.w, tetind);
+                // real4 face = face_rigid_tet[p * max_rigid_neighbors + i];
+                // uvec3 sortedf = SortedFace(face.w, tetind);
 
+                if (alpha) {
+                    bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                }  //
+                else {
                     bi = std::max(real(1.0) / step_size * depth, -contact_recovery_speed);
-                    //
-                    data_manager->host_data.b[start_boundary_marker + index + 0] = bi;
-                    data_manager->host_data.b[start_boundary_marker + num_marker_tet_contacts + index * 2 + 0] = 0;
-                    data_manager->host_data.b[start_boundary_marker + num_marker_tet_contacts + index * 2 + 1] = 0;
                 }
+                //
+                data_manager->host_data.b[start_boundary_marker + index + 0] = bi;
+                data_manager->host_data.b[start_boundary_marker + num_marker_tet_contacts + index * 2 + 0] = 0;
+                data_manager->host_data.b[start_boundary_marker + num_marker_tet_contacts + index * 2 + 1] = 0;
             }
         }
+    }
 
     if (num_rigid_constraints > 0) {
         for (int index = 0; index < num_rigid_constraints; index++) {
@@ -977,6 +995,41 @@ void ChFEAContainer::Build_E() {
         E_sub[i * 7 + 5] = gam * factor * muInv;
         // Volume
         E_sub[i * 7 + 6] = 0;  // 1.0 / youngs_modulus;
+    }
+
+    real inv_h = 1.0 / data_manager->settings.step_size;
+    real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
+    real inv_hhpa = inv_h * inv_hpa;
+    real com = 0;
+    if (alpha) {
+        com = inv_hhpa * contact_compliance;
+    }
+    uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
+    if (num_rigid_tet_contacts > 0) {
+#pragma omp parallel for
+        for (int i = 0; i < num_rigid_tet_contacts; i++) {
+            data_manager->host_data.E[start_boundary + i + 0] = com;
+            data_manager->host_data.E[start_boundary + num_rigid_tet_contacts + i * 2 + 0] = 0;
+            data_manager->host_data.E[start_boundary + num_rigid_tet_contacts + i * 2 + 1] = 0;
+        }
+    }
+    uint num_rigid_tet_node_contacts = data_manager->num_rigid_tet_node_contacts;
+    if (num_rigid_tet_node_contacts > 0) {
+#pragma omp parallel for
+        for (int i = 0; i < num_rigid_tet_node_contacts; i++) {
+            data_manager->host_data.E[start_boundary_node + i + 0] = com;
+            data_manager->host_data.E[start_boundary_node + num_rigid_tet_node_contacts + i * 2 + 0] = 0;
+            data_manager->host_data.E[start_boundary_node + num_rigid_tet_node_contacts + i * 2 + 1] = 0;
+        }
+    }
+    uint num_marker_tet_contacts = data_manager->num_marker_tet_contacts;
+    if (num_marker_tet_contacts > 0) {
+#pragma omp parallel for
+        for (int i = 0; i < num_marker_tet_contacts; i++) {
+            data_manager->host_data.E[start_boundary_marker + i + 0] = com;
+            data_manager->host_data.E[start_boundary_marker + num_marker_tet_contacts + i * 2 + 0] = 0;
+            data_manager->host_data.E[start_boundary_marker + num_marker_tet_contacts + i * 2 + 1] = 0;
+        }
     }
 
     SubVectorType E_rigid = blaze::subvector(data_manager->host_data.E, start_rigid, num_rigid_constraints);

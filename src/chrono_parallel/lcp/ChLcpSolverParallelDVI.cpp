@@ -79,6 +79,7 @@ void ChLcpSolverParallelDVI::RunTimeStep() {
     }
     ShurProductFull.Setup(data_manager);
     ShurProductBilateral.Setup(data_manager);
+    ShurProductFEM.Setup(data_manager);
     ProjectFull.Setup(data_manager);
 
     PerformStabilization();

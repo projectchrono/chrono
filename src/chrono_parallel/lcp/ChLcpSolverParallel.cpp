@@ -185,22 +185,39 @@ void ChLcpSolverParallel::PerformStabilization() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
-    if (data_manager->settings.solver.max_iteration_bilateral <= 0 || num_bilaterals <= 0) {
-        return;
+    if (data_manager->settings.solver.max_iteration_bilateral > 0 && num_bilaterals > 0) {
+        const DynamicVector<real> R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
+        DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+
+        data_manager->system_timer.start("ChLcpSolverParallel_Stab");
+
+        data_manager->measures.solver.total_iteration +=
+            bilateral_solver->Solve(ShurProductBilateral,                                   //
+                                    ProjectNone,                                            //
+                                    data_manager->settings.solver.max_iteration_bilateral,  //
+                                    num_bilaterals,                                         //
+                                    R_b,                                                    //
+                                    gamma_b);                                               //
+        blaze::subvector(gamma, num_unilaterals, num_bilaterals) = gamma_b;
     }
+    if (data_manager->settings.solver.max_iteration_fem > 0 && data_manager->num_fea_tets > 0) {
+        uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
+        uint start_tet = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
+        int num_constraints = data_manager->num_fea_tets * (6 + 1);
+        uint start_nodes =
+            data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_fluid_bodies * 3;
 
-    const DynamicVector<real> R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
-    DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
+        const DynamicVector<real> R_fem = blaze::subvector(R_full, start_tet, num_constraints);
+        DynamicVector<real> gamma_fem = blaze::subvector(gamma, start_tet, num_constraints);
 
-    data_manager->system_timer.start("ChLcpSolverParallel_Stab");
-
-    data_manager->measures.solver.total_iteration +=
-        bilateral_solver->Solve(ShurProductBilateral,                                   //
-                                ProjectNone,                                            //
-                                data_manager->settings.solver.max_iteration_bilateral,  //
-                                num_bilaterals,                                         //
-                                R_b,                                                    //
-                                gamma_b);                                               //
-    blaze::subvector(gamma, num_unilaterals, num_bilaterals) = gamma_b;
+        data_manager->measures.solver.total_iteration +=
+            bilateral_solver->Solve(ShurProductFEM,                                   //
+                                    ProjectNone,                                      //
+                                    data_manager->settings.solver.max_iteration_fem,  //
+                                    num_constraints,                                  //
+                                    R_fem,                                            //
+                                    gamma_fem);                                       //
+        blaze::subvector(gamma, start_tet, num_constraints) = gamma_fem;
+    }
     data_manager->system_timer.stop("ChLcpSolverParallel_Stab");
 }

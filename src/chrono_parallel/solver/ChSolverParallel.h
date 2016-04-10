@@ -73,6 +73,19 @@ class CH_PARALLEL_API ChShurProductBilateral : public ChShurProduct {
 
     CompressedMatrix<real> NshurB;
 };
+
+class CH_PARALLEL_API ChShurProductFEM : public ChShurProduct {
+  public:
+    ChShurProductFEM() {}
+    virtual ~ChShurProductFEM() {}
+    virtual void Setup(ChParallelDataManager* data_container_);
+
+    // Perform the Shur Product
+    virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
+
+    CompressedMatrix<real> NshurB;
+};
+
 //========================================================================================================
 class CH_PARALLEL_API ChSolverParallel {
   public:
@@ -238,10 +251,10 @@ class CH_PARALLEL_API ChSolverCG : public ChSolverParallel {
     // Solve using the conjugate gradient method
     uint Solve(ChShurProduct& ShurProduct,
                ChProjectConstraints& Project,
-               const uint max_iter,     // Maximum number of iterations
-               const uint size,         // Number of unknowns
+               const uint max_iter,           // Maximum number of iterations
+               const uint size,               // Number of unknowns
                const DynamicVector<real>& b,  // Rhs vector
-               DynamicVector<real>& x   // The vector of unknowns
+               DynamicVector<real>& x         // The vector of unknowns
                );
 
     DynamicVector<real> r, q, s;

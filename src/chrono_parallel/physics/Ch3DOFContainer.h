@@ -99,6 +99,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     real contact_mu;    // friction
     real max_velocity;  // limit on the maximum speed the fluid can move at
     uint start_row;
+    real alpha;
 
     // Store boundary forces here for rigid bodies
     DynamicVector<real> contact_forces;
@@ -158,7 +159,6 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     uint start_density;
     uint start_viscous;
     real yield_stress;
-    real alpha;
     real epsilon;  // Regularization parameter
     real tau;      // Constraint relaxation time
     real rho;
@@ -222,6 +222,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     int num_boundary_nodes;
 
     custom_vector<real> V;  // volume of tet
+
     real youngs_modulus;
     real poisson_ratio;
     real material_density;
@@ -276,7 +277,6 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real mu;
     real cohesion;
     real mass;
-    real alpha;
     uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
     real yield_stress;
     //

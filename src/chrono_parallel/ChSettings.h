@@ -101,7 +101,7 @@ class solver_settings {
         max_iteration_sliding = 100;
         max_iteration_spinning = 0;
         max_iteration_bilateral = 100;
-
+        max_iteration_fem = 0;
         solver_type = APGD;
         solver_mode = SLIDING;
         local_solver_mode = NORMAL;
@@ -194,6 +194,7 @@ class solver_settings {
     // Bilaterals are still solved
     uint max_iteration_spinning;
     uint max_iteration_bilateral;
+    uint max_iteration_fem;
 
     // This variable is the tolerance for the solver in terms of speeds
     real tolerance;

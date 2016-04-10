@@ -57,6 +57,7 @@ class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
     ChLcpSolverParallel(ChParallelDataManager* dc);
 
     ChShurProductBilateral ShurProductBilateral;
+    ChShurProductFEM ShurProductFEM;
     ChProjectNone ProjectNone;
 };
 

@@ -35,6 +35,7 @@ Ch3DOFContainer::Ch3DOFContainer() {
     num_shafts = 0;
     num_fea_tets = 0;
     num_fea_nodes = 0;
+    alpha = 0;
 }
 
 Ch3DOFContainer::~Ch3DOFContainer() {}
