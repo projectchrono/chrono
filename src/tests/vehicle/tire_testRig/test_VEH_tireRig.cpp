@@ -30,6 +30,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include <algorithm>
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
@@ -68,12 +69,12 @@ using namespace chrono::irrlicht;
 using namespace irr;
 using namespace fea;
 
+#ifdef CHRONO_FEA
 // Forward declarations
-
 void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>> & NodeNeighborElement);
 void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 	std::vector<std::vector<int>> & NodeNeighborElement);
-
+#endif 
 
 // =============================================================================
 // USER SETTINGS
@@ -776,8 +777,10 @@ int main() {
 
     TireTestContactReporter my_reporter;
     double rig_mass = wheel_carrier_mass + set_camber_mass + rim_mass + wheel_mass;
-    
-    std::vector<std::vector<int>> NodeNeighborElement; 
+
+#ifdef CHRONO_FEA
+    std::vector<std::vector<int>> NodeNeighborElement;
+
     switch (tire_model) {
         case ANCF:
             // Create connectivity section of VTK file
@@ -785,6 +788,7 @@ int main() {
             CreateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), NodeNeighborElement);
             break;
     }
+#endif
 
 #ifdef USE_IRRLICHT
     while (application->GetDevice()->run()) {
@@ -832,10 +836,12 @@ int main() {
 
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - sim_step / 2) {
+#ifdef CHRONO_FEA
             switch (tire_model) {
                 case ANCF:
                     UpdateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), simTime, NodeNeighborElement);
             }
+#endif
             ChMatrix33<> A(wheelstate.rot);
             ChVector<> disc_normal = A.Get_A_Yaxis();
             ChCoordsys<> linkCoordsys = revolute_set_camber_rim->GetLinkRelativeCoords();
