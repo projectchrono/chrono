@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
     auto matDVI = std::make_shared<ChMaterialSurface>();
 
     bool DEM_passed = test_computecontact(ChMaterialSurfaceBase::DEM, matDEM);
-    bool DVI_passed = test_computecontact(ChMaterialSurfaceBase::DVI, matDVI);
-    if (DEM_passed && DVI_passed) {
+    // bool DVI_passed = test_computecontact(ChMaterialSurfaceBase::DVI, matDVI);
+    if (DEM_passed) {
         return 0;
     } else
         return 1;
@@ -206,9 +206,9 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method, std::share
     while (simtime < endtime) {
         system->DoStepDynamics(time_step);
 
-        GetLog() << "t = " << system->GetChTime() << "  NR iters. = " << integrator->GetNumIterations() << "\n";
+        // GetLog() << "t = " << system->GetChTime() << "  NR iters. = " << integrator->GetNumIterations() << "\n";
         system->GetContactContainer()->ComputeContactForces();
-        GetLog() << "Total force on ground:  " << ground->GetContactForce() << "\n";
+        // GetLog() << "Total force on ground:  " << ground->GetContactForce() << "\n";
 
         if (simtime > 0.25) {
             if (std::abs(noBalls * mass * gravity - ground->GetContactForce().y) <
