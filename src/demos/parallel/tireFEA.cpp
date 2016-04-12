@@ -63,13 +63,13 @@ int main(int argc, char* argv[]) {
     fea_container->contact_mu = 0;
     fea_container->contact_cohesion = 0;
     fea_container->youngs_modulus = 1e7;  // 2e8;
-    fea_container->poisson_ratio = .33;
+    fea_container->poisson_ratio = .2;
     fea_container->contact_recovery_speed = 12;
-    fea_container->beta = 100;
+    fea_container->beta = .1/time_step;
     fea_container->rigid_constraint_recovery_speed = .1;
     my_system.GetSettings()->solver.solver_mode = SLIDING;
     my_system.GetSettings()->solver.max_iteration_normal = 0;
-    my_system.GetSettings()->solver.max_iteration_sliding = 50;
+    my_system.GetSettings()->solver.max_iteration_sliding = 80;
     my_system.GetSettings()->solver.max_iteration_spinning = 0;
     my_system.GetSettings()->solver.max_iteration_bilateral = 0;
     my_system.GetSettings()->solver.max_iteration_fem = 0;
@@ -82,8 +82,8 @@ int main(int argc, char* argv[]) {
     my_system.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     my_system.GetSettings()->collision.collision_envelope = (fea_container->kernel_radius * .05);
     my_system.GetSettings()->collision.bins_per_axis = vec3(20, 20, 20);
-    my_system.SetLoggingLevel(LOG_TRACE, true);
-    my_system.SetLoggingLevel(LOG_INFO, true);
+    //my_system.SetLoggingLevel(LOG_TRACE, true);
+   // my_system.SetLoggingLevel(LOG_INFO, true);
     double gravity = 9.81;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
-    real3 initpos = my_system.data_manager->host_data.pos_node_fea[45];
+    real3 initpos = my_system.data_manager->host_data.pos_node_fea[42];
     real g = 0;
 #if 1
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     while (true) {
         if (gl_window.Active()) {
             if (gl_window.DoStepDynamics(time_step)) {
-            	real3 pos = my_system.data_manager->host_data.pos_node_fea[45] - initpos;
+            	real3 pos = my_system.data_manager->host_data.pos_node_fea[42] - initpos;
             	        printf("pos: %f %f %f [%f]\n", pos.x, pos.y, pos.z, g);
             	        if (g < gravity) {
             	            g += 0.001;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     for (int i = 0; i < num_steps; i++) {
         my_system.DoStepDynamics(time_step);
-        real3 pos = my_system.data_manager->host_data.pos_node_fea[45] - initpos;
+        real3 pos = my_system.data_manager->host_data.pos_node_fea[42] - initpos;
         printf("pos: %f %f %f [%f]\n", pos.x, pos.y, pos.z, g);
         if (g < gravity) {
             g += 0.001;
