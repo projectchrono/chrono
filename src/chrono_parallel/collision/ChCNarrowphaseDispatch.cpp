@@ -240,8 +240,7 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
 
     Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
 
-    if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
-      effective_radius[icoll] = edge_radius;
+    if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll], effective_radius[icoll], edge_radius)) {
       // The number of contacts reported by MPR is always 1.
       Dispatch_Finalize(icoll, ID_A, ID_B, 1);
     }
@@ -318,8 +317,7 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
                    &effective_radius[icoll], nC)) {
       Dispatch_Finalize(icoll, ID_A, ID_B, nC);
     } else if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
-                            contactDepth[icoll])) {
-      effective_radius[icoll] = edge_radius;
+                            contactDepth[icoll], effective_radius[icoll], edge_radius)) {
       Dispatch_Finalize(icoll, ID_A, ID_B, 1);
     }
   }
