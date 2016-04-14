@@ -87,6 +87,11 @@ inline double CalcBoxVolume(const ChVector<>& hdims) {
     return 8.0 * hdims.x * hdims.y * hdims.z;
 }
 
+inline double CalcBiSphereVolume(double radius, double cDist) {
+	// TODO, simple implementation for now
+    return (4.0 / 3.0) * CH_C_PI * radius * radius * radius;
+}
+
 inline double CalcCapsuleVolume(double radius, double hlen) {
     double tmp = radius * radius * hlen + (2.0 / 3.0) * radius * radius * radius;
     return 2.0 * CH_C_PI * tmp;
@@ -168,6 +173,25 @@ inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
     J.SetElement(0, 0, (1.0 / 3.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
     J.SetElement(1, 1, (1.0 / 3.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
     J.SetElement(2, 2, (1.0 / 3.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+
+    TransformGyration(J, pos, rot);
+
+    return J;
+}
+
+// Calculate the gyration tensor of a bisphere, which is two identical spheres attached to
+// each other. delta is the overlap length and radius is the radius of each sphere
+inline ChMatrix33<> CalcBiSphereGyration(double radius,
+                                                double cDist,
+                                                const ChVector<>& pos = ChVector<>(0, 0, 0),
+                                                const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
+	// TODO: simple implementation for now
+    ChMatrix33<> J;
+    double Jxx = (2.0 / 5.0) * radius * radius;
+
+    J.SetElement(0, 0, Jxx);
+    J.SetElement(1, 1, Jxx);
+    J.SetElement(2, 2, Jxx);
 
     TransformGyration(J, pos, rot);
 

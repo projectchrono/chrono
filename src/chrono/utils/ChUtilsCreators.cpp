@@ -78,6 +78,26 @@ void AddBoxGeometry(ChBody* body,
 
 // -----------------------------------------------------------------------------
 
+void AddBiSphereGeometry(ChBody* body,
+                         double radius,
+                         double cDist,
+                         const ChVector<>& pos,
+                         const ChQuaternion<>& rot,
+                         bool visualization) {
+    ChFrame<> frame;
+    frame = ChFrame<>(pos, rot);
+    if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
+        frame = frame >> body_ar->GetFrame_REF_to_COG();
+    }
+    const ChVector<>& position = frame.GetPos();
+    const ChQuaternion<>& rotation = frame.GetRot();
+
+    AddSphereGeometry(body, radius, position + ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
+    AddSphereGeometry(body, radius, position - ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
+}
+
+// -----------------------------------------------------------------------------
+
 void AddCapsuleGeometry(ChBody* body,
                         double radius,
                         double hlen,

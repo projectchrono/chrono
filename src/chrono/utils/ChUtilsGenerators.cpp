@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Hammad Mazhar
+// Authors: Radu Serban, Hammad Mazhar, Arman Pazouki
 // =============================================================================
 //
 // =============================================================================
@@ -231,6 +231,10 @@ void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volum
         case CONE:
             volume = CalcConeVolume(size.x, size.y);
             gyration = CalcConeGyration(size.x, size.y).Get_Diag();
+            break;
+        case BISPHERE:
+            volume = CalcBiSphereVolume(size.x, size.y);
+            gyration = CalcBiSphereGyration(size.x, size.y).Get_Diag();
             break;
         case CAPSULE:
             volume = CalcCapsuleVolume(size.x, size.y);
@@ -551,6 +555,9 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
                 break;
             case CONE:
                 AddConeGeometry(body, size.x, size.y);
+                break;
+            case BISPHERE:
+            	AddBiSphereGeometry(body, size.x, size.y);
                 break;
             case CAPSULE:
                 AddCapsuleGeometry(body, size.x, size.y);
