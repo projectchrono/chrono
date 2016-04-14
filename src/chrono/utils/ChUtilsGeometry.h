@@ -88,8 +88,9 @@ inline double CalcBoxVolume(const ChVector<>& hdims) {
 }
 
 inline double CalcBiSphereVolume(double radius, double cDist) {
-	// TODO, simple implementation for now
-    return (4.0 / 3.0) * CH_C_PI * radius * radius * radius;
+	double delta = 2 * radius - cDist;
+	double cos_theta = (radius - 0.5 * delta) / radius;
+	return (4.0 / 3.0) * CH_C_PI * radius * radius * radius * (1 + cos_theta);
 }
 
 inline double CalcCapsuleVolume(double radius, double hlen) {
@@ -186,11 +187,23 @@ inline ChMatrix33<> CalcBiSphereGyration(double radius,
                                                 const ChVector<>& pos = ChVector<>(0, 0, 0),
                                                 const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
 	// TODO: simple implementation for now
+
+	double delta = 2 * radius - cDist;
+	double cos_theta = (radius - 0.5 * delta) / radius;
+	double z_prim = radius - 0.5 * delta;
+
     ChMatrix33<> J;
-    double Jxx = (2.0 / 5.0) * radius * radius;
+	double comp1 =  0.4 * radius * radius * ( 1 + cos_theta );
+	double comp2 = - 0.2 * radius * radius * ( 1./3. * ( - cos_theta * cos_theta * cos_theta - 1 ) + (1 + cos_theta));
+	double comp3 = 2. / 3. * z_prim * z_prim * (1 + cos_theta);
+	double comp4 = 0.5 * radius * z_prim * sqrt(1 - cos_theta * cos_theta);
+	double numerator = 2 * (comp1 + comp2 + comp3 + comp4);
+	double denominator = 4. / 3. * (1 + cos_theta);
+	double Jxx = numerator / denominator;
+	double Jyy = 0.6 * radius * radius * ( 1./3. * ( - cos_theta * cos_theta * cos_theta - 1 ) + ( 1 + cos_theta ) ) / (1 + cos_theta);
 
     J.SetElement(0, 0, Jxx);
-    J.SetElement(1, 1, Jxx);
+    J.SetElement(1, 1, Jyy);
     J.SetElement(2, 2, Jxx);
 
     TransformGyration(J, pos, rot);
