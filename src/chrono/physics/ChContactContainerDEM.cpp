@@ -273,7 +273,7 @@ void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback*
     while (itercontact != contactlist.end()) {
         bool proceed = mcallback->ReportContactCallback(
             (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
-            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForceLocal(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
             VNULL,  // no react torques
             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
         if (!proceed)

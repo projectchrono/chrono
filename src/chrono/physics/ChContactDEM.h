@@ -69,14 +69,14 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         delete m_Jac;
     }
 
-    /// Get the contact force, if computed, in absolute coordinate system.
-    virtual ChVector<> GetContactForce() override { return m_force; }
+    /// Get the contact force, if computed, in contact coordinate system
+    virtual ChVector<> GetContactForce() override { return this->contact_plane.MatrT_x_Vect(m_force); }
 
     /// Get the contact penetration (positive if there is overlap).
     double GetContactPenetration() const { return -this->norm_dist; }
 
     /// Get the contact force, expressed in the frame of the contact.
-    ChVector<> GetContactForceLocal() const { return this->contact_plane.MatrT_x_Vect(m_force); }
+    ChVector<> GetContactForceAbs() const { return m_force; }
 
     /// Access the proxy to the Jacobian.
     const ChLcpKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
