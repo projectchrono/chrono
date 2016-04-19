@@ -4,6 +4,7 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 SET(TESTS
     utest_CH_slider_pend
     utest_CH_double_pend
+    utest_CH_compute_contact
 )
 
 MESSAGE(STATUS "Unit test programs for PHYSICS module...")
