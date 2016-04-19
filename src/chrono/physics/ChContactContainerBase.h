@@ -148,7 +148,9 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
                              std::unordered_map<ChContactable*, ForceTorque>& contactforces) {
         for (auto contact = contactlist.begin(); contact != contactlist.end(); ++contact) {
             // Extract information for current contact (expressed in global frame)
-            ChVector<> force = (*contact)->GetContactForce();
+            ChMatrix33<>* A = (*contact)->GetContactPlane();
+            ChVector<> force_loc = (*contact)->GetContactForce();
+            ChVector<> force = A->Matr_x_Vect(force_loc);
             ChVector<> p1 = (*contact)->GetContactP1();
             ChVector<> p2 = (*contact)->GetContactP2();
 
