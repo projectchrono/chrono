@@ -240,6 +240,10 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
         collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
     }
 
+    // Set default collision envelope and margin.
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+
     timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 
     collisionpoint_callback = 0;
