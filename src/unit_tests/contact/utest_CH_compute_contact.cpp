@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Antonio Recuero
+// Author: Antonio Recuero, Radu Serban
 // =============================================================================
 //
 // Unit test for ComputeContactForces utility.
@@ -22,6 +22,8 @@
 //
 // =============================================================================
 
+#include <vector>
+
 #include "chrono/ChConfig.h"
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/lcp/ChLcpSolverDEM.h"
@@ -32,24 +34,22 @@
 using namespace chrono;
 
 // ====================================================================================
-// Parameters for simulations
-
-double endtime = 3.0;
-
-// Relative tolerance
-double rtol = 0.01;
 
 // ---------------------
 // Simulation parameters
 // ---------------------
 
-double gravity = -9.81;   // gravitational acceleration
-double time_step = 5e-3;  // integration step size
+double end_time = 3.0;     // total simulation time
+double start_time = 0.25;  // start check after this period
+double time_step = 5e-3;   // integration step size
+double gravity = -9.81;    // gravitational acceleration
 
 enum SolverType { DEFAULT_SOLVER, MINRES_SOLVER, MKL_SOLVER };
-SolverType solver_type = MINRES_SOLVER;
+SolverType solver_type = DEFAULT_SOLVER;
 
 bool stiff_contact = true;
+
+double rtol = 1e-3;  // validation relative error
 
 // ---------------------------
 // Contact material properties
@@ -61,22 +61,24 @@ ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
 
 float young_modulus = 2e4f;
 float friction = 0.4f;
-float restitution = 0.99f;
-float adhesion = 0.0f;
+float restitution = 0;
+float adhesion = 0;
 
 float kn = 2e4;
 float gn = 5e2;
 float kt = 0;
 float gt = 0;
 
-// -------------------------------
-// Parameters for the falling ball
-// -------------------------------
+// --------------------------------
+// Parameters for the falling balls
+// --------------------------------
 
-int ballId = 100;
+unsigned int num_balls = 8;
+
+int ballId = 1;
 double radius = 0.05;
 double mass = 5;
-ChVector<> pos(0, 0.051, 0);
+ChVector<> pos(0, 0.06, 0);
 ChQuaternion<> rot(1, 0, 0, 0);
 ChVector<> init_vel(0, 0, 0);
 ChVector<> init_omg(0, 0, 0);
@@ -85,87 +87,107 @@ ChVector<> init_omg(0, 0, 0);
 // Parameters for the containing bin
 // ---------------------------------
 
-int binId = 200;
-double width_ = 20;
-double length_ = 20;
-double thickness = 0.1;
+int binId = 0;
+double bin_width = 20;
+double bin_length = 20;
+double bin_thickness = 0.1;
 
 // Forward declaration
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method, std::shared_ptr<ChMaterialSurfaceBase> mat);
+bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method);
+
+// ====================================================================================
 
 int main(int argc, char* argv[]) {
 
-    auto matDEM = std::make_shared<ChMaterialSurfaceDEM>();
-    auto matDVI = std::make_shared<ChMaterialSurface>();
+    bool passed = true;
+    passed &= test_computecontact(ChMaterialSurfaceBase::DEM);
+    passed &= test_computecontact(ChMaterialSurfaceBase::DVI);
 
-    bool DEM_passed = test_computecontact(ChMaterialSurfaceBase::DEM, matDEM);
-    // bool DVI_passed = test_computecontact(ChMaterialSurfaceBase::DVI, matDVI);
-    if (DEM_passed) {
-        return 0;
-    } else
-        return 1;
+    // Return 0 if all tests passed.
+    return !passed;
 }
 
 // ====================================================================================
 
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method, std::shared_ptr<ChMaterialSurfaceBase> mat) {
-    ChSystem* system =
-        (method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM(use_mat_properties, use_history);
+bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
+    // Create system and contact material.
+    ChSystem* system;
+    std::shared_ptr<ChMaterialSurfaceBase> material;
 
-    if (method == ChMaterialSurfaceBase::DEM) {
-        if (auto material = std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(mat)) {
-            // Set the DEM contact force model
-            dynamic_cast<ChSystemDEM*>(system)->SetContactForceModel(force_model);
-            // Set contact forces as stiff (to force Jacobian computation) or non-stiff
-            dynamic_cast<ChSystemDEM*>(system)->SetStiffContact(stiff_contact);
-            // Create a material (will be used by both objects)
-            material->SetYoungModulus(young_modulus);
-            material->SetRestitution(restitution);
-            material->SetFriction(friction);
-            material->SetAdhesion(adhesion);
-            material->SetKn(kn);
-            material->SetGn(gn);
-            material->SetKt(kt);
-            material->SetGt(gt);
+    switch (method) {
+        case ChMaterialSurfaceBase::DEM: {
+            GetLog() << "Using PENALTY method.\n";
+
+            ChSystemDEM* sys = new ChSystemDEM;
+            sys->UseMaterialProperties(use_mat_properties);
+            sys->UseContactHistory(use_history);
+            sys->SetContactForceModel(force_model);
+            sys->SetStiffContact(stiff_contact);
+            system = sys;
+
+            auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+            mat->SetYoungModulus(young_modulus);
+            mat->SetRestitution(restitution);
+            mat->SetFriction(friction);
+            mat->SetAdhesion(adhesion);
+            mat->SetKn(kn);
+            mat->SetGn(gn);
+            mat->SetKt(kt);
+            mat->SetGt(gt);
+            material = mat;
+
+            break;
         }
-    } else if (method == ChMaterialSurfaceBase::DVI) {
-        if (auto material = std::dynamic_pointer_cast<ChMaterialSurface>(mat)) {
-            // Create a material (will be used by both objects)
-            material->SetRestitution(restitution);
-            material->SetFriction(friction);
+        case ChMaterialSurfaceBase::DVI: {
+            GetLog() << "Using COMPLEMENTARITY method.\n";
+
+            system = new ChSystem;
+
+            auto mat = std::make_shared<ChMaterialSurface>();
+            mat->SetRestitution(restitution);
+            mat->SetFriction(friction);
+            material = mat;
+
+            break;
         }
     }
+
     system->Set_G_acc(ChVector<>(0, gravity, 0));
 
-    // Establish number of falling balls
-    unsigned int noBalls = 8;
-
     // Create the falling balls
+    std::vector<std::shared_ptr<ChBody>> balls(num_balls);
+    double total_weight = 0;
 
-    for (unsigned int i = 0; i < noBalls; i++) {
-        auto ball = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);  // use also complementarity
+    for (unsigned int i = 0; i < num_balls; i++) {
+        auto ball = std::shared_ptr<ChBody>(system->NewBody());
 
-        ball->SetIdentifier(ballId);
+        ball->SetIdentifier(ballId++);
         ball->SetMass(mass);
         ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
-        ball->SetPos(pos + ChVector<>(double(i) * 0.1, 0, double(i) * 0.1));
+        ball->SetPos(pos + ChVector<>(i * 2 * radius, 0, i * 2 * radius));
         ball->SetRot(rot);
         ball->SetPos_dt(init_vel);
         ball->SetWvel_par(init_omg);
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
-        ball->SetMaterialSurface(mat);
+        ball->SetMaterialSurface(material);
 
         ball->GetCollisionModel()->ClearModel();
         ball->GetCollisionModel()->AddSphere(radius);
         ball->GetCollisionModel()->BuildModel();
 
         system->AddBody(ball);
+        balls[i] = ball;
+
+        total_weight += ball->GetMass();
     }
+    total_weight *= gravity;
+    GetLog() << "Total weight = " << total_weight << "\n";
 
     // Create container box
-    auto ground = utils::CreateBoxContainer(system, binId, mat, ChVector<>(width_, length_, 0), thickness,
+    auto ground = utils::CreateBoxContainer(system, binId, material, ChVector<>(bin_width, bin_length, 2 * radius), bin_thickness,
                                             ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
+
     // -------------------
     // Setup linear solver
     // -------------------
@@ -192,32 +214,42 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method, std::share
     // Setup integrator
     // ----------------
 
-    system->SetIntegrationType(ChSystem::INT_HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
-    integrator->SetAlpha(0.0);
-    integrator->SetMaxiters(100);
-    integrator->SetAbsTolerances(1e-08);
-    integrator->SetScaling(false);
+    if (method == ChMaterialSurfaceBase::DEM) {
+        GetLog() << "Using HHT integrator.\n";
+        system->SetIntegrationType(ChSystem::INT_HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
+        integrator->SetAlpha(0.0);
+        integrator->SetMaxiters(100);
+        integrator->SetAbsTolerances(1e-08);
+        integrator->SetScaling(false);
+    } else {
+        GetLog() << "Using default integrator.\n";
+    }
 
     // ---------------
     // Simulation loop
-    double simtime = 0.0;
     // ---------------
-    while (simtime < endtime) {
+
+    bool passed = true;
+    while (system->GetChTime() < end_time) {
         system->DoStepDynamics(time_step);
 
-        // GetLog() << "t = " << system->GetChTime() << "  NR iters. = " << integrator->GetNumIterations() << "\n";
         system->GetContactContainer()->ComputeContactForces();
-        // GetLog() << "Total force on ground:  " << ground->GetContactForce() << "\n";
+        ChVector<> contact_force = ground->GetContactForce();
+        ////GetLog() << "t = " << system->GetChTime() << " num contacts = " << system->GetContactContainer()->GetNcontacts()
+        ////         << "  force =  " << contact_force.y << "\n";
 
-        if (simtime > 0.25) {
-            if (std::abs(noBalls * mass * gravity - ground->GetContactForce().y) <
-                rtol * std::abs(noBalls * mass * gravity))
-                return true;
-            else
-                return false;
+        if (system->GetChTime() > start_time) {
+            if (std::abs(1 - contact_force.y / total_weight) > rtol) {
+                GetLog() << "t = " << system->GetChTime() << "  force =  " << contact_force.y << "\n";
+                passed = false;
+                break;
+            }
         }
-        simtime += time_step;
     }
-    return false;
+
+    GetLog() << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
+
+    delete system;
+    return passed;
 }
