@@ -98,6 +98,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   /// Gets the total time for the collision detection step
   double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }
 
+  /// Calculate cummulative contact forces for all bodies in the system.
+  virtual void CalculateContactForces() {}
+
   /// Get the contact force on the body with specified id.
   virtual real3 GetBodyContactForce(uint body_id) const = 0;
   /// Get the contact torque on the body with specified id.
@@ -152,7 +155,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
   virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
   virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
-  void CalculateContactForces();
+  virtual void CalculateContactForces() override;
 
   virtual real3 GetBodyContactForce(uint body_id) const;
   virtual real3 GetBodyContactTorque(uint body_id) const;
