@@ -12,9 +12,13 @@
 #ifndef CHCONTACTCONTAINERBASE_H
 #define CHCONTACTCONTAINERBASE_H
 
+#include <list>
+#include <unordered_map>
+
 #include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialCouple.h"
-#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 
@@ -26,7 +30,7 @@ namespace chrono {
 /// implement a custom ContactCallback() function.
 class ChApi ChAddContactCallback {
   public:
-    /// Callback, used to report contact points being added to the container.
+    /// Callback used to report contact points being added to the container.
     /// This must be implemented by a child class of ChAddContactCallback
     virtual void ContactCallback(
         const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
@@ -59,21 +63,11 @@ class ChApi ChReportContactCallback {
 /// Class representing a container of many contacts.
 /// There might be implementations of this interface in form of plain CPU linked lists of contact objects,
 /// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
+/// Struct to store resultant contact force/torque applied on rigid body
 class ChApi ChContactContainerBase : public ChPhysicsItem {
     CH_RTTI(ChContactContainerBase, ChPhysicsItem);
 
-  protected:
-    //
-    // DATA
-    //
-
-    ChAddContactCallback* add_contact_callback;
-    ChReportContactCallback* report_contact_callback;
-
   public:
-    //
-    // CONSTRUCTORS
-    //
 
     ChContactContainerBase() {
         add_contact_callback = 0;
@@ -82,11 +76,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
 
     virtual ~ChContactContainerBase() {}
 
-    //
-    // FUNCTIONS
-    //
-
-    /// Tell the number of added contacts. To be implemented by child classes.
+    /// Get the number of added contacts. To be implemented by child classes.
     virtual int GetNcontacts() = 0;
 
     /// Remove (delete) all contained contact data. To be implemented by child classes.
@@ -126,25 +116,80 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     /// Child classes of ChContactContainerBase should try to implement this.
     virtual void ReportAllContacts(ChReportContactCallback* mcallback) {}
 
-    //
-    // SERIALIZATION
-    //
+    /// Compute contact forces on all contactable objects in this container.
+    /// If implemented by a derived class, these forces must be stored in the hash table
+    /// contact_forces (with key a pointer to ChContactable and value a ForceTorque structure).
+    virtual void ComputeContactForces() {}
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChPhysicsItem::ArchiveOUT(marchive);
-        // serialize all member data:
-    }
+    /// Return the resultant contact force acting on the specified contactable object.
+    ChVector<> GetContactableForce(ChContactable* contactable);
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChPhysicsItem::ArchiveIN(marchive);
-        // stream in all member data:
+    /// Return the resultant contact torque acting on the specified contactable object.
+    ChVector<> GetContactableTorque(ChContactable* contactable);
+
+    /// Method for serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method for de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
+  protected:
+    struct ForceTorque {
+        ChVector<> force;
+        ChVector<> torque;
+    };
+
+    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
+    ChAddContactCallback* add_contact_callback;
+    ChReportContactCallback* report_contact_callback;
+
+    template <class Tcont>
+    void SumAllContactForces(std::list<Tcont*>& contactlist,
+                             std::unordered_map<ChContactable*, ForceTorque>& contactforces) {
+        for (auto contact = contactlist.begin(); contact != contactlist.end(); ++contact) {
+            // Extract information for current contact (expressed in global frame)
+            ChMatrix33<>* A = (*contact)->GetContactPlane();
+            ChVector<> force_loc = (*contact)->GetContactForce();
+            ChVector<> force = A->Matr_x_Vect(force_loc);
+            ChVector<> p1 = (*contact)->GetContactP1();
+            ChVector<> p2 = (*contact)->GetContactP2();
+
+            // Calculate contact torque for first object (expressed in global frame).
+            // Recall that -force is applied to the first object.
+            ChVector<> torque1(0);
+            if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjA())) {
+                torque1 = Vcross(p1 - body->GetPos(), -force);
+            }
+
+            // If there is already an entry for the first object, accumulate.
+            // Otherwise, insert a new entry.
+            auto entry1 = contactforces.find((*contact)->GetObjA());
+            if (entry1 != contactforces.end()) {
+                entry1->second.force -= force;
+                entry1->second.torque += torque1;
+            } else {
+                ForceTorque ft{-force, torque1};
+                contactforces.insert(std::make_pair((*contact)->GetObjA(), ft));
+            }
+
+            // Calculate contact torque for second object (expressed in global frame).
+            // Recall that +force is applied to the second object.
+            ChVector<> torque2(0);
+            if (ChBody* body = dynamic_cast<ChBody*>((*contact)->GetObjB())) {
+                torque2 = Vcross(p2 - body->GetPos(), force);
+            }
+
+            // If there is already an entry for the first object, accumulate.
+            // Otherwise, insert a new entry.
+            auto entry2 = contactforces.find((*contact)->GetObjB());
+            if (entry2 != contactforces.end()) {
+                entry2->second.force += force;
+                entry2->second.torque += torque2;
+            } else {
+                ForceTorque ft{force, torque2};
+                contactforces.insert(std::make_pair((*contact)->GetObjB(), ft));
+            }
+        }
     }
 };
 
