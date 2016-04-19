@@ -29,7 +29,7 @@ namespace fea {
 
 ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
 	FEMmesh = &mymesh;
-	fem_data_type = E_PLOT_NODE_DISP_NORM;
+	fem_data_type = E_PLOT_SURFACE;
 	fem_glyph = E_GLYPH_NONE;
 
 	colorscale_min= 0;
