@@ -351,12 +351,13 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChQuaternion<> Td = rD * m_element->GetNodeDreferenceRot().GetConjugate();
     
     // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-    ChQuaternion<> Tavg =(m_element->GetNodeA()->GetRot() * m_element->GetNodeAreferenceRot().GetConjugate() +
-                          m_element->GetNodeB()->GetRot() * m_element->GetNodeBreferenceRot().GetConjugate() +
-                          m_element->GetNodeC()->GetRot() * m_element->GetNodeCreferenceRot().GetConjugate() +
-                          m_element->GetNodeD()->GetRot() * m_element->GetNodeDreferenceRot().GetConjugate() ).GetNormalized();
+    ChQuaternion<> Tavg =(Ta +
+                          Tb +
+                          Tc +
+                          Td ).GetNormalized();
     // Tavg' 
     ChQuaternion<> TavgT = Tavg.GetConjugate();
+//if (do_logv) GetLog() << "Tavg = " << Tavg.Q_to_Rotv();
 
     // R_rel_n = Tavg'* T_n
     // F_rel_n = log(R_rel_n)    i.e. to rot vector
@@ -615,10 +616,10 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     ChQuaternion<> Td = rD * m_element->GetNodeDreferenceRot().GetConjugate();
     
     // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-    ChQuaternion<> Tavg =(m_element->GetNodeA()->GetRot() * m_element->GetNodeAreferenceRot().GetConjugate() +
-                          m_element->GetNodeB()->GetRot() * m_element->GetNodeBreferenceRot().GetConjugate() +
-                          m_element->GetNodeC()->GetRot() * m_element->GetNodeCreferenceRot().GetConjugate() +
-                          m_element->GetNodeD()->GetRot() * m_element->GetNodeDreferenceRot().GetConjugate() ).GetNormalized();
+    ChQuaternion<> Tavg =(Ta +
+                          Tb +
+                          Tc +
+                          Td ).GetNormalized();
     // Tavg' 
     ChQuaternion<> TavgT = Tavg.GetConjugate();
 
