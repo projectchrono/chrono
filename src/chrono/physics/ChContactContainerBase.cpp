@@ -9,15 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChContactContainerBase.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include "physics/ChContactContainerBase.h"
 
 namespace chrono {
@@ -26,4 +17,36 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegisterABSTRACT<ChContactContainerBase> a_registration_ChContactContainerBase;
 
-}  // END_OF_NAMESPACE____
+ChVector<> ChContactContainerBase::GetContactableForce(ChContactable* contactable) {
+    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
+    if (Iterator != contact_forces.end()) {
+        return Iterator->second.force;
+    }
+    return ChVector<>(0);
+}
+
+ChVector<> ChContactContainerBase::GetContactableTorque(ChContactable* contactable) {
+    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
+    if (Iterator != contact_forces.end()) {
+        return Iterator->second.torque;
+    }
+    return ChVector<>(0);
+}
+
+void ChContactContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
+    // serialize all member data:
+}
+
+void ChContactContainerBase::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChPhysicsItem::ArchiveIN(marchive);
+    // stream in all member data:
+}
+
+}  // end namespace chrono

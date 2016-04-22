@@ -44,4 +44,18 @@
     - the [tutorials](@ref tutorial_root)
 */
 
+
+
+namespace chrono {
+
+/// @addtogroup cosimulation_module
+/// @{
+
+/// Namespace with classes for the cosimulation module.
+namespace cosimul {}
+
+/// @}
+
+}
+
 #endif  // END of header

@@ -47,7 +47,7 @@ namespace chrono {
 namespace utils {
 
 // Enumeration of various geometric shapes
-enum MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE, ROUNDEDCYLINDER };
+enum MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE, BISPHERE, ROUNDEDCYLINDER };
 
 // Forward declarations
 class Generator;

@@ -67,7 +67,7 @@ void ChMaterialShellEANS::ComputeStress(ChVector<>& n_u,
     m_u.y = kur_u.y * D  +  kur_v.x * (- m_nu * D);
     m_u.z = kur_u.z * m_beta * F;
     m_v.x = kur_v.x * D  +  kur_u.y * (- m_nu * D);
-    m_v.x = kur_v.x * 2* F;
+    m_v.y = kur_v.y * 2* F;
     m_v.z = kur_v.z * m_beta * F;
 }
 
@@ -319,7 +319,7 @@ void ComputeGammaMatrix(ChMatrix33<>& H, const ChVector<> phi) {
 void ComputeGammaMatrixInverse(ChMatrix33<>& H, const ChVector<> phi) {
     H.Set33Identity();
     double ang = phi.Length();
-    if (fabs(ang)>1e-3) {
+    if (fabs(ang)>1e-7) {
         ChMatrix33<> Phi;
         Phi.Set_X_matrix(phi);
         H += (Phi * ((1.-cos(ang))/(ang*ang)));
@@ -357,7 +357,6 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChQuaternion<> Td = rD * m_element->GetNodeDreferenceRot().GetConjugate();
     
     // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-//    ChQuaternion<> Tavg = (Ta+Tb+Tc+Td).GetNormalized();
     ChQuaternion<> Tavg =(m_element->GetNodeA()->GetRot() * m_element->GetNodeAreferenceRot().GetConjugate() +
                           m_element->GetNodeB()->GetRot() * m_element->GetNodeBreferenceRot().GetConjugate() +
                           m_element->GetNodeC()->GetRot() * m_element->GetNodeCreferenceRot().GetConjugate() +
@@ -371,7 +370,7 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChVector<> F_relB = (TavgT * Tb).Q_to_Rotv();
     ChVector<> F_relC = (TavgT * Tc).Q_to_Rotv();
     ChVector<> F_relD = (TavgT * Td).Q_to_Rotv();
-    
+//GetLog() << "F_relA" << F_relA << "F_relB" << F_relB << "F_relC" << F_relC << "F_relD" << F_relD ;    
     // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
     ChVector<> F_rel_i = N(0)*F_relA + 
                          N(1)*F_relB + 
@@ -397,9 +396,10 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     // kur_v = T_i'* abs_kur,v = Hi' * sum( Nin,u F_rel_n )
     ChVector<> F_rel_u =  Nu(0) * F_relA +   Nu(1) * F_relB +  Nu(2) * F_relC +  Nu(3) * F_relD ;
     ChVector<> F_rel_v =  Nv(0) * F_relA +   Nv(1) * F_relB +  Nv(2) * F_relC +  Nv(3) * F_relD ;
+//GetLog() << "F_rel_u" << F_rel_u << "F_rel_v" << F_rel_v;
     ChMatrix33<> Hi;
     ComputeGammaMatrix(Hi,F_rel_i);
- //Hi.Set33Identity();
+//Hi.Set33Identity();
     ChVector<> kur_u = Hi.MatrT_x_Vect( F_rel_u );
     ChVector<> kur_v = Hi.MatrT_x_Vect( F_rel_v );
 
@@ -413,11 +413,12 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ComputeGammaMatrixInverse(Hci,F_relC);
     ChMatrix33<> Hdi;
     ComputeGammaMatrixInverse(Hdi,F_relD);
-// Hai.Set33Identity();
-// Hbi.Set33Identity();
-// Hci.Set33Identity();
-// Hdi.Set33Identity();
-
+/*
+ Hai.Set33Identity();
+ Hbi.Set33Identity();
+ Hci.Set33Identity();
+ Hdi.Set33Identity();
+*/
     ChMatrix33<> mTavgT(TavgT);
     ChMatrix33<> mTavg(Tavg);
     ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * m_element->GetNodeA()->GetA(); 
@@ -458,7 +459,7 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     block = mT_i_t * myi_v_X * PhiC * N(2);     B.PasteMatrix(&block, 3,15);
     block = mT_i_t * myi_u_X * PhiD * N(3);     B.PasteMatrix(&block, 0,21);
     block = mT_i_t * myi_v_X * PhiD * N(3);     B.PasteMatrix(&block, 3,21);
-    
+   
     ChMatrix33<> mKu = PhiA*Nu(0); // .. + Elle() term, to be added?
     ChMatrix33<> mKv = PhiA*Nv(0); // .. + Elle() term, to be added?
     block = mT_i_t * (mk_u_X * PhiA * N(0) + mKu);      B.PasteMatrix(&block, 6,3);
@@ -483,14 +484,15 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
             + N_ANS(3)*this->m_element->m_strainANS(2,3); // (0,+1)
     eps_v.z = N_ANS(0)*this->m_element->m_strainANS(5,0)  // (-1,0)
             + N_ANS(1)*this->m_element->m_strainANS(5,1); // (+1,0)
+    
     for (int ic=0; ic<24; ++ic)
         B(2,ic) = N_ANS(2)* this->m_element->m_B3_ANS(2,ic) + 
                   N_ANS(3)* this->m_element->m_B3_ANS(3,ic);
     for (int ic=0; ic<24; ++ic)
         B(5,ic) = N_ANS(0)* this->m_element->m_B6_ANS(0,ic) + 
                   N_ANS(1)* this->m_element->m_B6_ANS(1,ic);
-                  
-    //GetLog() << eps_u << eps_v << "\n .....";
+
+  //GetLog() << "eps_u=" << eps_u << "eps_v=" << eps_v << "\n .....";
 
     // STRESSES - forces n and torques m 
     ChVector<> n_u;
@@ -498,7 +500,9 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChVector<> m_u;
     ChVector<> m_v;
     m_element->GetLayer(layer_i).GetMaterial()->ComputeStress(n_u, n_v, m_u, m_v, eps_u, eps_v, kur_u, kur_v);
-
+//GetLog() << "m_u" << m_u << "m_v" << m_v;
+//GetLog() << "kur_u" << m_u << "kur_v" << m_v;
+//GetLog() << "n_u" << n_u << "n_v" << n_v;
     // CONVERT n AND m TO GENERALIZED FORCES 'result':
     ChMatrixNM<double,12,1> sigma;
     sigma.PasteVector(n_u, 0,0);
@@ -621,7 +625,6 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     ChQuaternion<> Td = rD * m_element->GetNodeDreferenceRot().GetConjugate();
     
     // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-//    ChQuaternion<> Tavg = (Ta+Tb+Tc+Td).GetNormalized();
     ChQuaternion<> Tavg =(m_element->GetNodeA()->GetRot() * m_element->GetNodeAreferenceRot().GetConjugate() +
                           m_element->GetNodeB()->GetRot() * m_element->GetNodeBreferenceRot().GetConjugate() +
                           m_element->GetNodeC()->GetRot() * m_element->GetNodeCreferenceRot().GetConjugate() +

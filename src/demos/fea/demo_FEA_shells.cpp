@@ -28,6 +28,7 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_mkl/ChLcpMklSolver.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -118,14 +119,17 @@ int main(int argc, char* argv[]) {
     //
     // Add an EANS SHELL:
     //
+    std::shared_ptr<ChNodeFEAxyzrot> node3;
+    std::shared_ptr<ChNodeFEAxyzrot> node4;
+
     if (true)
     {
         double shell_thickness = 0.01;
-        double shell_L = 0.4;
-        double shell_W = 0.2;
+        double shell_L = 0.2;
+        double shell_W = 0.4;
 
         // Create an orthotropic material 
-        double rho = 500;
+        double rho = 5;
         double E = 2.1e7;
         double nu = 0.3; 
         auto mat = std::make_shared<ChMaterialShellEANS>(shell_thickness,
@@ -133,13 +137,15 @@ int main(int argc, char* argv[]) {
                                                          E, 
                                                          nu,
                                                          1,
-                                                         0.01);
+                                                         100.0);
 
         // Create the nodes (each with position & normal to shell)
         auto hnodeeans1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
         auto hnodeeans2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, 0, 0)));
         auto hnodeeans3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W, 0 )));
         auto hnodeeans4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W, 0)));
+        node3 = hnodeeans3;
+        node4 = hnodeeans4;
 
         my_mesh->AddNode(hnodeeans1);
         my_mesh->AddNode(hnodeeans2);
@@ -169,17 +175,17 @@ int main(int argc, char* argv[]) {
         elementeans->AddLayer(shell_thickness, 0 * CH_C_DEG_TO_RAD, mat);
 
         // Set other element properties
-        elementeans->SetAlphaDamp(0.0);    // Structural damping for this element
+        elementeans->SetAlphaDamp(0.01);    // Structural damping for this element
 
         // Apply a lumped force to a node:
        // hnodeeans3->SetPos(hnodeeans3->GetPos()+ChVector<>(0, 0, 0.01));
        // hnodeeans4->SetPos(hnodeeans4->GetPos()+ChVector<>(0, 0, 0.01));
-        hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
-        hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
-       // hnodeeans3->SetForce(ChVector<>(0, 0, 50));
-      //  hnodeeans4->SetForce(ChVector<>(0, 0, 50));
-      // hnodeeans3->SetTorque(ChVector<>(0.2, 0, 0));
-      // hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
+       // hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
+       // hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
+        hnodeeans3->SetForce(ChVector<>(0, 0, 50));
+        hnodeeans4->SetForce(ChVector<>(0, 0, 50));
+       //hnodeeans3->SetTorque(ChVector<>(0.2, 0, 0));
+       //hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
        // hnodeeans4->SetMass(2000);
 
 
@@ -226,20 +232,22 @@ int main(int argc, char* argv[]) {
     // Do not forget AddAsset() at the end!
 
     auto mvisualizeshellA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    // mvisualizeshellA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);// not yet working
-    // mvisualizeshellA->SetColorscaleMinMax(-0.4,0.4);
     mvisualizeshellA->SetSmoothFaces(true);
 	mvisualizeshellA->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizeshellA);
 
     auto mvisualizeshellB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    // mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);// not yet working
-    mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.006);
-    mvisualizeshellB->SetSymbolsScale(0.01);
-    mvisualizeshellB->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizeshellB);
+
+    auto mvisualizeshellC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    mvisualizeshellC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizeshellC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+    mvisualizeshellC->SetSymbolsThickness(0.02);
+    mvisualizeshellC->SetZbufferHide(false);
+    my_mesh->AddAsset(mvisualizeshellC);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -259,6 +267,14 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+    // Change solver to MKL
+    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
+    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    my_system.ChangeLcpSolverStab(mkl_solver_stab);
+    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+	mkl_solver_stab->SetSparsityPatternLock(true);
+	mkl_solver_speed->SetSparsityPatternLock(true);
+    /*
     my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS or Matlab or MKL solver
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(200);
@@ -267,20 +283,21 @@ int main(int argc, char* argv[]) {
 	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
+    */
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    /*
+ /*   
     my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
         mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(2);
+        mystepper->SetMaxiters(5);
         mystepper->SetAbsTolerances(1e-6);
     }
-    */
-    application.SetTimestep(0.01);
+*/    
+    application.SetTimestep(0.005);
     application.SetPaused(true);
     my_system.Setup();
     my_system.Update();
@@ -292,6 +309,15 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         application.DoStep();
+
+        if(!application.GetPaused()) {
+            GetLog() << "\n\n Time = " << application.GetSystem()->GetChTime();
+
+            if (node3) 
+                GetLog() << "Node 3 pos:" << node3->GetPos() << "Node 3 rot: " << node3->GetRot().Q_to_Rotv() << "\n";
+            if (node4) 
+                GetLog() << "Node 4 pos:" << node4->GetPos() << "Node 4 rot: " << node4->GetRot().Q_to_Rotv() << "\n\n";
+        }
 
         application.EndScene();
     }

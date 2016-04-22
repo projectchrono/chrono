@@ -19,7 +19,6 @@
 
 namespace chrono {
 
-/// Namespace with classes for the cosimulation unit.
 namespace cosimul {
 
 /// @addtogroup cosimulation_module

@@ -58,6 +58,7 @@ class ChSystem;
 /// These objects have mass and inertia properties. A shape can also
 /// be associated to the body, for collision detection.
 ///
+/// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBody :            public ChPhysicsItem, 
                                 public ChBodyFrame, 
@@ -644,6 +645,12 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
+
+    /// Get the resultant contact force acting on this body.
+    ChVector<> GetContactForce();
+
+    /// Get the resultant contact torque acting on this body.
+    ChVector<> GetContactTorque();
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {

@@ -41,6 +41,7 @@ namespace chrono {
 /// This matrix cannot be resized.
 /// The 3x3 matrix can be multiplied/added with other matrix types.
 ///
+/// Further info at the @ref manual_ChMatrix33 manual page.
 
 template <class Real = double>
 class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {

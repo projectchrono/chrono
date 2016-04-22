@@ -1,9 +1,12 @@
-Chrono Tutorials, Core Features {#tutorial_table_of_content_chrono}
+Chrono core tutorials      {#tutorial_table_of_content_chrono}
 ==========================
 
 The following links describe a set of basic Chrono tutorials. 
 
-These tutorials teach how to setup physical systems in Chrono::Engine. Here we do not use any graphical user interface: see the 'Irrlicht' tutorials for demos with a 3D graphical output. 
+These tutorials teach how to setup physical systems in Chrono::Engine. 
+Here we do not use any graphical user interface: see 
+the [Irrlicht tutorials](@ref tutorial_table_of_content_chrono_irrlicht) 
+for demos with a 3D graphical output. 
 
 -   @subpage tutorial_demo_buildsystem
 	
@@ -31,3 +34,19 @@ These tutorials teach how to setup physical systems in Chrono::Engine. Here we d
     - create and use ChFunction objects, from available classes.
     - define a custom function by inheriting from ChFunction class. 
     - No GUI: only text output. 
+
+-   @subpage tutorial_demo_math
+
+    Tutorial that teaches main mathematical tools (vectors, matrices)
+	
+-   @subpage tutorial_demo_coords
+
+    Tutorial that teaches coordinate transformations
+	
+-   @subpage tutorial_demo_stream
+
+    Tutorial that teaches how to use ChStream classes to write/load from file streams.
+
+-   @subpage tutorial_demo_archive
+
+    Tutorial that teaches how to perform serialization/deserialization of C++ classes

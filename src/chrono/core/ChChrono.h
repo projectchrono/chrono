@@ -45,7 +45,12 @@
     @}
 */
 
-/// This is the main namespace for the Chrono package
+/// @addtogroup chrono
+/// @{
+
+/// This is the main namespace for the Chrono package.
 namespace chrono {}
+
+/// @} chrono
 
 #endif  // END of header

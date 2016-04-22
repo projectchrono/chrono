@@ -78,6 +78,26 @@ void AddBoxGeometry(ChBody* body,
 
 // -----------------------------------------------------------------------------
 
+void AddBiSphereGeometry(ChBody* body,
+                         double radius,
+                         double cDist,
+                         const ChVector<>& pos,
+                         const ChQuaternion<>& rot,
+                         bool visualization) {
+    ChFrame<> frame;
+    frame = ChFrame<>(pos, rot);
+    if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
+        frame = frame >> body_ar->GetFrame_REF_to_COG();
+    }
+    const ChVector<>& position = frame.GetPos();
+    const ChQuaternion<>& rotation = frame.GetRot();
+
+    AddSphereGeometry(body, radius, position + ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
+    AddSphereGeometry(body, radius, position - ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
+}
+
+// -----------------------------------------------------------------------------
+
 void AddCapsuleGeometry(ChBody* body,
                         double radius,
                         double hlen,
@@ -623,6 +643,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
         }
         utils::AddBoxGeometry(body.get(), p_boxSize, p_pos, p_quat, m_visualization);
     }
+
     // Add ground piece
     if (isBoxBase) {
         utils::AddBoxGeometry(body.get(), Vector(hdim.x + 2 * hthick, hdim.x + 2 * hthick, hthick),
@@ -642,8 +663,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
         }
     }
 
-    // add up volume of bucket and multiply by rho to get mass;
-    body->GetCollisionModel()->SetDefaultSuggestedEnvelope(0.2 * hthick);
+    body->GetCollisionModel()->SetEnvelope(0.2 * hthick);
     body->GetCollisionModel()->BuildModel();
 
     system->AddBody(body);

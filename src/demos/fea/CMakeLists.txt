@@ -24,7 +24,6 @@ SET(FEA_DEMOS_IRR
 # List all FEA demos that use both Irrlicht and Matlab
 SET(FEA_DEMOS_IRR_MATLAB
     demo_FEA_miniature
-    demo_FEA_shells
     demo_FEA_cablesMATLAB
 )
 
@@ -35,7 +34,7 @@ SET(FEA_DEMOS_IRR_MKL
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_abaqus_wheel4
-
+	demo_FEA_shells
     demo_4HumveeTires
     demo_FEA_HMMWVLuGre
     demo_FEA_ContactANCF

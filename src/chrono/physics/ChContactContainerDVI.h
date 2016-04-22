@@ -103,6 +103,9 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     /// results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true);
 
+    /// Compute contact forces on all contactable objects in this container.
+    virtual void ComputeContactForces() override;
+
     //
     // STATE FUNCTIONS
     //

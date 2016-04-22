@@ -85,6 +85,13 @@ ChApi void AddBoxGeometry(ChBody* body,
                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                           bool visualization = true);
 
+ChApi void AddBiSphereGeometry(ChBody* body,
+                               double radius,
+                               double cDist,
+                               const ChVector<>& pos = ChVector<>(0, 0, 0),
+                               const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
+                               bool visualization = true);
+
 ChApi void AddCapsuleGeometry(ChBody* body,
                               double radius,
                               double hlen,

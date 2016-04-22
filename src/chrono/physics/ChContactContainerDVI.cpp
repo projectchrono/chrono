@@ -199,6 +199,12 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
+void ChContactContainerDVI::ComputeContactForces() {
+    contact_forces.clear();
+    SumAllContactForces(contactlist_6_6, contact_forces);
+    SumAllContactForces(contactlist_6_3, contact_forces);
+}
+
 template <class Tcont>
 void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();

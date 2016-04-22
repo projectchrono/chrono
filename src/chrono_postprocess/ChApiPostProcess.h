@@ -44,9 +44,24 @@
     - GNUplot
 
     For additional information, see:
-    - the [installation guide](@ref module_postprocessing_installation)
+    - the [installation guide](@ref module_postprocess_installation)
     - the [tutorials](@ref tutorial_root)
 */
+
+
+
+namespace chrono {
+
+/// @addtogroup postprocess_module
+/// @{
+
+/// Namespace with classes for the POSTPROCESS module.
+namespace postprocess {}
+
+/// @}
+
+}
+
 
 
 #endif  // END of header

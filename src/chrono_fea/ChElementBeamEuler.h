@@ -29,6 +29,13 @@ namespace fea {
 /// Simple beam element with two nodes and Euler-Bernoulli formulation.
 /// For this 'basic' implementation, constant section and constant
 /// material are assumed.
+///
+/// Further information in the 
+/// [white paper PDF](http://www.projectchrono.org/assets/white_papers/euler_beams.pdf)
+///
+/// Note that there are also ChElementBeamANCF if no torsional effects
+/// are needed, as in cables. 
+
 class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                     public ChLoadableU,
                                     public ChLoadableUVW,
