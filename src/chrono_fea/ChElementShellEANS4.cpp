@@ -339,16 +339,10 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     m_element->ShapeFunctionsDerivativeX(Nu, x, y, 0);
     m_element->ShapeFunctionsDerivativeY(Nv, x, y, 0);
 
-
-
     const ChVector<>& pA0 = m_element->GetNodeA()->GetX0().GetPos();
     const ChVector<>& pB0 = m_element->GetNodeB()->GetX0().GetPos();
     const ChVector<>& pC0 = m_element->GetNodeC()->GetX0().GetPos();
     const ChVector<>& pD0 = m_element->GetNodeD()->GetX0().GetPos();
-    ChVector<> yA = pA - pA0;
-    ChVector<> yB = pB - pB0;
-    ChVector<> yC = pC - pC0;
-    ChVector<> yD = pD - pD0;
 
     // Tn = Rn*Rn0'
     ChQuaternion<> Ta = rA * m_element->GetNodeAreferenceRot().GetConjugate();
@@ -613,10 +607,6 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     const ChVector<>& pB0 = m_element->GetNodeB()->GetX0().GetPos();
     const ChVector<>& pC0 = m_element->GetNodeC()->GetX0().GetPos();
     const ChVector<>& pD0 = m_element->GetNodeD()->GetX0().GetPos();
-    ChVector<> yA = pA - pA0;
-    ChVector<> yB = pB - pB0;
-    ChVector<> yC = pC - pC0;
-    ChVector<> yD = pD - pD0;
 
     // Tn = Rn*Rn0'
     ChQuaternion<> Ta = rA * m_element->GetNodeAreferenceRot().GetConjugate();
