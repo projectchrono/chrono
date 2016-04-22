@@ -380,10 +380,20 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     // STRAIN  in local frame
     // eps_u = T_i'* Yi,u = T_i' * sum_n(Nin,u Yn)
     // eps_v = T_i'* Yi,v = T_i' * sum_n(Nin,v Yn)
-    ChVector<> yi_u =  Nu(0) * yA +   Nu(1) * yB +  Nu(2) * yC +  Nu(3) * yD ;
-    ChVector<> yi_v =  Nv(0) * yA +   Nv(1) * yB +  Nv(2) * yC +  Nv(3) * yD ;
-    ChVector<> eps_u = T_i.RotateBack ( yi_u );
-    ChVector<> eps_v = T_i.RotateBack ( yi_v );
+    ChVector<> yi_u =  Nu(0) * pA +   Nu(1) * pB +  Nu(2) * pC +  Nu(3) * pD ;
+    ChVector<> yi_v =  Nv(0) * pA +   Nv(1) * pB +  Nv(2) * pC +  Nv(3) * pD ;
+    ChVector<> eyi_u = yi_u - (
+        Nu(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nu(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nu(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nu(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eyi_v = yi_v - (
+        Nv(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nv(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nv(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nv(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eps_u = T_i.RotateBack ( eyi_u );
+    ChVector<> eps_v = T_i.RotateBack ( eyi_v );
 
 
     // CURVATURES in local frame
@@ -644,8 +654,20 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     // STRAIN  in local frame
     // eps_u = T_i'* Yi,u = T_i' * sum_n(Nin,u Yn)
     // eps_v = T_i'* Yi,v = T_i' * sum_n(Nin,v Yn)
-    ChVector<> yi_u =  Nu(0) * yA +   Nu(1) * yB +  Nu(2) * yC +  Nu(3) * yD ;
-    ChVector<> yi_v =  Nv(0) * yA +   Nv(1) * yB +  Nv(2) * yC +  Nv(3) * yD ;
+    ChVector<> yi_u =  Nu(0) * pA +   Nu(1) * pB +  Nu(2) * pC +  Nu(3) * pD ;
+    ChVector<> yi_v =  Nv(0) * pA +   Nv(1) * pB +  Nv(2) * pC +  Nv(3) * pD ;
+    ChVector<> eyi_u = yi_u - (
+        Nu(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nu(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nu(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nu(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eyi_v = yi_v - (
+        Nv(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nv(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nv(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nv(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eps_u = T_i.RotateBack ( eyi_u );
+    ChVector<> eps_v = T_i.RotateBack ( eyi_v );
 
 
     // CURVATURES in local frame
@@ -984,10 +1006,20 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
         // STRAIN  in local frame
         // eps_u = T_i'* Yi,u = T_i' * sum_n(Nin,u Yn)
         // eps_v = T_i'* Yi,v = T_i' * sum_n(Nin,v Yn)
-        ChVector<> yi_u =  Nu(0) * yA +   Nu(1) * yB +  Nu(2) * yC +  Nu(3) * yD ;
-        ChVector<> yi_v =  Nv(0) * yA +   Nv(1) * yB +  Nv(2) * yC +  Nv(3) * yD ;
-        ChVector<> eps_u = T_i.RotateBack ( yi_u );
-        ChVector<> eps_v = T_i.RotateBack ( yi_v );
+        ChVector<> yi_u =  Nu(0) * pA +   Nu(1) * pB +  Nu(2) * pC +  Nu(3) * pD ;
+        ChVector<> yi_v =  Nv(0) * pA +   Nv(1) * pB +  Nv(2) * pC +  Nv(3) * pD ;
+        ChVector<> eyi_u = yi_u - (
+            Nu(0) * this->GetNodeA()->GetX0().GetPos() +
+            Nu(1) * this->GetNodeB()->GetX0().GetPos() +
+            Nu(2) * this->GetNodeC()->GetX0().GetPos() +
+            Nu(3) * this->GetNodeD()->GetX0().GetPos() );
+        ChVector<> eyi_v = yi_v - (
+            Nv(0) * this->GetNodeA()->GetX0().GetPos() +
+            Nv(1) * this->GetNodeB()->GetX0().GetPos() +
+            Nv(2) * this->GetNodeC()->GetX0().GetPos() +
+            Nv(3) * this->GetNodeD()->GetX0().GetPos() );
+        ChVector<> eps_u = T_i.RotateBack ( eyi_u );
+        ChVector<> eps_v = T_i.RotateBack ( eyi_v );
 
         this->m_strainANS.PasteVector(eps_u,0,kk);
         this->m_strainANS.PasteVector(eps_v,3,kk);
