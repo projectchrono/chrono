@@ -325,13 +325,13 @@ int main() {
     // Set contact model to DEM if ANCF tire is used
     if (tire_model == ANCF || tire_model == FEA) {
         contact_method = ChMaterialSurfaceBase::DEM;
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
     }
 
     ChSystem* my_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
 
     if (auto sysDEM = dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
         sysDEM->SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
     }
 
     my_system->Set_G_acc(ChVector<>(0.0, 0.0, -g));
