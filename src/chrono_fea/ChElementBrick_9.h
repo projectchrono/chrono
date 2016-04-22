@@ -96,6 +96,17 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
 	/// Set the structural damping.
 	void SetAlphaDamp(double a) { m_Alpha = a; }
 
+	enum StrainFormulation { GreenLagrange, Hencky };
+
+	void SetStrainFormulation(StrainFormulation val) { m_strain_form = val; }
+	void SetHenckyStrain(bool val) { m_Hencky = val; }
+	void SetPlasticity(bool val) { m_Plasticity = val; }
+
+	void SetYieldStress(double a) { m_YieldStress = a; }
+	void SetHardeningSlope(double a) { m_HardeningSlope = a; }
+
+	void SetCCPInitial(ChMatrixNM<double, 9, 8> mat) { m_CCPinv_Plast = mat; }
+
     /// Calculate shape functions and their derivatives.
     ///   N = [N1, N2, N3, N4, ...]                               (1x11 row vector)
     ///   S = [N1*eye(3), N2*eye(3), N3*eye(3) ,N4*eye(3), ...]   (3x11 matrix)
@@ -184,6 +195,19 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
 	ChMatrixNM<double, 11, 11> m_d0d0T;           ///< matrix m_d0 * m_d0^T
 	ChMatrixNM<double, 33, 1> m_d_dt;             ///< current nodal velocities
 	ChMatrixNM<double, 6, 6> m_E_eps;
+	
+	StrainFormulation m_strain_form;
+	bool m_Hencky;
+	bool m_Plasticity;
+
+	double m_YieldStress;
+	double m_HardeningSlope;
+	ChMatrixNM<double, 8, 1> m_Alpha_Plast;
+	ChMatrixNM<double, 9, 8> m_CCPinv_Plast;
+	int m_InteCounter;
+
+
+	
 
     // -----------------------------------
     // Interface to base classes
@@ -243,6 +267,13 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
 
 	// Calculate the current 33x1 matrix of nodal coordinate derivatives.
 	void CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt);
+
+	void EPSP_Euerian_SolidANCF33(ChMatrixNM<double, 6, 33> &strainD,
+		ChMatrixNM<double, 1, 11> Nx,
+		ChMatrixNM<double, 1, 11> Ny,
+		ChMatrixNM<double, 1, 11> Nz,
+		ChMatrixNM<double, 3, 3> FI,
+		ChMatrixNM<double, 3, 3> J0I);
 
     friend class MyMassBrick9;
     friend class MyGravityBrick9;
