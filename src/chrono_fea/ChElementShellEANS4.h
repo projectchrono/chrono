@@ -112,18 +112,13 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
               std::shared_ptr<ChMaterialShellEANS> material  ///< layer material
               );
 
-        double Get_detJ0C() const { return m_detJ0C; }
-        const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
-
-        /// Initial setup for this layer: calculate T0 and detJ0 at the element center.
+        /// Initial setup for this layer
         void SetupInitial();
 
         ChElementShellEANS4* m_element;                    ///< containing ANCF shell element
         std::shared_ptr<ChMaterialShellEANS> m_material;  ///< layer material
         double m_thickness;                               ///< layer thickness
         double m_theta;                                   ///< fiber angle
-        double m_detJ0C;
-        ChMatrixNM<double, 6, 6> m_T0;
 
         friend class ChElementShellEANS4;
         friend class MyForce;
