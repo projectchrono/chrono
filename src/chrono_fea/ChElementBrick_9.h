@@ -93,19 +93,19 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     void SetGravityOn(bool val) { m_gravity_on = val; }
     /// Check if internal gravity calculation is enabled/disabled.
     bool IsGravityOn() const { return m_gravity_on; }
-	/// Set the structural damping.
-	void SetAlphaDamp(double a) { m_Alpha = a; }
+    /// Set the structural damping.
+    void SetAlphaDamp(double a) { m_Alpha = a; }
 
-	enum StrainFormulation { GreenLagrange, Hencky };
+    enum StrainFormulation { GreenLagrange, Hencky };
 
-	void SetStrainFormulation(StrainFormulation val) { m_strain_form = val; }
-	void SetHenckyStrain(bool val) { m_Hencky = val; }
-	void SetPlasticity(bool val) { m_Plasticity = val; }
+    void SetStrainFormulation(StrainFormulation val) { m_strain_form = val; }
+    void SetHenckyStrain(bool val) { m_Hencky = val; }
+    void SetPlasticity(bool val) { m_Plasticity = val; }
 
-	void SetYieldStress(double a) { m_YieldStress = a; }
-	void SetHardeningSlope(double a) { m_HardeningSlope = a; }
+    void SetYieldStress(double a) { m_YieldStress = a; }
+    void SetHardeningSlope(double a) { m_HardeningSlope = a; }
 
-	void SetCCPInitial(ChMatrixNM<double, 9, 8> mat) { m_CCPinv_Plast = mat; }
+    void SetCCPInitial(ChMatrixNM<double, 9, 8> mat) { m_CCPinv_Plast = mat; }
 
     /// Calculate shape functions and their derivatives.
     ///   N = [N1, N2, N3, N4, ...]                               (1x11 row vector)
@@ -125,7 +125,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     virtual unsigned int GetSubBlockOffset(int nblock) override {
         if (nblock < 8)
             return m_nodes[nblock]->NodeGetOffset_w();
-    
+
         return m_central_node->NodeGetOffset_w();
     }
 
@@ -170,7 +170,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
     virtual double GetDensity() override { return this->m_material->Get_density(); }
 
-	virtual ChMatrixNM<double, 6, 6> GetE_eps() { return m_E_eps; }
+    virtual ChMatrixNM<double, 6, 6> GetE_eps() { return m_E_eps; }
 
   private:
     // -----------------------------------
@@ -187,27 +187,24 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     ChMatrixNM<double, 33, 1> m_GravForce;        ///< gravitational force
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-	double m_GaussScaling;
-	double m_Alpha;                               ///< structural damping
-    ChMatrixNM<double, 11, 3> m_d0;				  ///< initial nodal coordinates (in matrix form)
-	ChMatrixNM<double, 11, 3> m_d;                ///< current nodal coordinates
-	ChMatrixNM<double, 11, 11> m_ddT;             ///< matrix m_d * m_d^T
-	ChMatrixNM<double, 11, 11> m_d0d0T;           ///< matrix m_d0 * m_d0^T
-	ChMatrixNM<double, 33, 1> m_d_dt;             ///< current nodal velocities
-	ChMatrixNM<double, 6, 6> m_E_eps;
-	
-	StrainFormulation m_strain_form;
-	bool m_Hencky;
-	bool m_Plasticity;
+    double m_GaussScaling;
+    double m_Alpha;                      ///< structural damping
+    ChMatrixNM<double, 11, 3> m_d0;      ///< initial nodal coordinates (in matrix form)
+    ChMatrixNM<double, 11, 3> m_d;       ///< current nodal coordinates
+    ChMatrixNM<double, 11, 11> m_ddT;    ///< matrix m_d * m_d^T
+    ChMatrixNM<double, 11, 11> m_d0d0T;  ///< matrix m_d0 * m_d0^T
+    ChMatrixNM<double, 33, 1> m_d_dt;    ///< current nodal velocities
+    ChMatrixNM<double, 6, 6> m_E_eps;
 
-	double m_YieldStress;
-	double m_HardeningSlope;
-	ChMatrixNM<double, 8, 1> m_Alpha_Plast;
-	ChMatrixNM<double, 9, 8> m_CCPinv_Plast;
-	int m_InteCounter;
+    StrainFormulation m_strain_form;
+    bool m_Hencky;
+    bool m_Plasticity;
 
-
-	
+    double m_YieldStress;
+    double m_HardeningSlope;
+    ChMatrixNM<double, 8, 1> m_Alpha_Plast;
+    ChMatrixNM<double, 9, 8> m_CCPinv_Plast;
+    int m_InteCounter;
 
     // -----------------------------------
     // Interface to base classes
@@ -225,7 +222,10 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override;
     /// Set H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override;
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+                                          double Kfactor,
+                                          double Rfactor = 0,
+                                          double Mfactor = 0) override;
 
     /// Compute internal forces and load them in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
@@ -265,15 +265,15 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     // Calculate the current 11x3 matrix of nodal coordinates.
     void CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d);
 
-	// Calculate the current 33x1 matrix of nodal coordinate derivatives.
-	void CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt);
+    // Calculate the current 33x1 matrix of nodal coordinate derivatives.
+    void CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt);
 
-	void EPSP_Euerian_SolidANCF33(ChMatrixNM<double, 6, 33> &strainD,
-		ChMatrixNM<double, 1, 11> Nx,
-		ChMatrixNM<double, 1, 11> Ny,
-		ChMatrixNM<double, 1, 11> Nz,
-		ChMatrixNM<double, 3, 3> FI,
-		ChMatrixNM<double, 3, 3> J0I);
+    void EPSP_Euerian_SolidANCF33(ChMatrixNM<double, 6, 33>& strainD,
+                                  ChMatrixNM<double, 1, 11> Nx,
+                                  ChMatrixNM<double, 1, 11> Ny,
+                                  ChMatrixNM<double, 1, 11> Nz,
+                                  ChMatrixNM<double, 3, 3> FI,
+                                  ChMatrixNM<double, 3, 3> J0I);
 
     friend class MyMassBrick9;
     friend class MyGravityBrick9;
