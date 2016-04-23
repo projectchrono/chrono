@@ -9,18 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Milad Rakhsha, Radu Serban
+// Authors: Bryan Peterson, Antonio Recuero
 // =============================================================================
-//
-// Demo on using ANCF shell elements
-//
+// Demo for 9-node, large deformation brick element
 // =============================================================================
 
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
@@ -386,7 +383,7 @@ int main(int argc, char* argv[]) {
 	double dx = plate_lenght_x / numDiv_x;
 	double dy = plate_lenght_y / numDiv_y;
 	double dz = plate_lenght_z / numDiv_z;
-	double timestep = 5e-5;
+	double timestep = 2e-3;
 
 
 	// Create and add the nodes
@@ -414,7 +411,7 @@ int main(int argc, char* argv[]) {
 
 	for (int i = 0; i < TotalNumElements; i++)
 	{
-		auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(1.0, 2.0, 3.0), ChVector<>(4.0, 5.0, 6.0), ChVector<>(7.0, 8.0, 9.0));
+		auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0));
 		node->SetMass(0);
 		my_mesh->AddNode(node);
 	}
@@ -422,7 +419,6 @@ int main(int argc, char* argv[]) {
 	double force = 0.0;
 	// Get a handle to the tip node.
 	auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(2 * XYNumNodes - 1));
-	nodetip->SetForce(ChVector<>(0.0, 0.0, -0.0));
 	// Create an orthotropic material.
 	// All layers for all elements share the same material.
 	double rho = 500;
@@ -471,10 +467,10 @@ int main(int argc, char* argv[]) {
 		element->SetMaterial(material);
 
 		// Set other element properties
-		element->SetAlphaDamp(0.005);    // Structural damping for this element
+		element->SetAlphaDamp(0.095);    // Structural damping for this element
 		element->SetGravityOn(false);  // turn internal gravitational force calculation off
 		//element->SetStrainFormulation(Hencky);
-		element->SetHenckyStrain(true);
+		element->SetHenckyStrain(false);
 		element->SetPlasticity(false);
 
 		// Add element to mesh
@@ -553,7 +549,7 @@ int main(int argc, char* argv[]) {
 	my_system.SetIntegrationType(ChSystem::INT_HHT);
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
 	mystepper->SetAlpha(-0.2);
-	mystepper->SetMaxiters(20);
+	mystepper->SetMaxiters(2000);
 	mystepper->SetAbsTolerances(5e-5, 1e-1);
 	mystepper->SetMode(ChTimestepperHHT::POSITION);
 	mystepper->SetVerbose(true);
@@ -569,11 +565,23 @@ int main(int argc, char* argv[]) {
 	fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
 	fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
 	fprintf(outputfile, "\n  ");
-	double timecount = 0;
 	double ChTime = 0.0;
+    application.SetPaused(true);
 	while (application.GetDevice()->run()) {
 		application.BeginScene();
 		application.DrawAll();
+		if (!application.GetPaused()) {
+            if (my_system.GetChTime() > 1.0) {
+                force = -50;
+            } else {
+                force = -50 * my_system.GetChTime();
+            }
+
+            nodetip->SetForce(ChVector<>(0.0, 0.0, force));
+
+            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x << " " << nodetip->GetPos().y << " "
+                     << nodetip->GetPos().z << "\n";
+        }
 		application.DoStep();
 		GetLog() << "Force: " << force << "\n";
 		fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
@@ -582,23 +590,11 @@ int main(int argc, char* argv[]) {
 		fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
 		fprintf(outputfile, "\n  ");
 		application.EndScene();
-		if (!application.GetPaused()) {
-			timecount++;
-			//if (timecount*timestep == 0.05){
-				//force = force - 0.25;
-				//if (force <= -50.0)
-				//{
-					force = -50;
-				//}
-				nodetip->SetForce(ChVector<>(0.0, 0.0, force));
-				timecount = 0;
-			//}
-			GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x << " " << nodetip->GetPos().y << " " << nodetip->GetPos().z << "\n";
-		}
-	}
+
+    }
 	
 
-	while (my_system.GetChTime() < 15.0) {
+	/*while (my_system.GetChTime() < 15.0) {
 		//==Start analysis==//
 		my_system.DoStepDynamics(timestep);
 		GetLog() << "t = " << my_system.GetChTime() << "\nX: " << nodetip->GetPos().x << " Y: " << nodetip->GetPos().y << " Z: " << nodetip->GetPos().z << "\n";
@@ -620,7 +616,7 @@ int main(int argc, char* argv[]) {
 		}
 		GetLog() << "Force: " << force << "\n";
 
-	}
+	}*/
 
 	return 0;
 }
