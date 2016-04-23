@@ -104,33 +104,29 @@ namespace chrono {
 			double a = GetDimensions().x;
 			double b = GetDimensions().y;
 			double c = GetDimensions().z;
-			N(0) = x*(-1.0 / 8.0) - y*(1.0 / 8.0) - z*(1.0 / 8.0) + x*y*(1.0 / 8.0) + x*z*(1.0 / 8.0) + y*z*(1.0 / 8.0) - x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			N(1) = x*(1.0 / 8.0) - y*(1.0 / 8.0) - z*(1.0 / 8.0) - x*y*(1.0 / 8.0) - x*z*(1.0 / 8.0) + y*z*(1.0 / 8.0) + x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			N(2) = x*(1.0 / 8.0) + y*(1.0 / 8.0) - z*(1.0 / 8.0) + x*y*(1.0 / 8.0) - x*z*(1.0 / 8.0) - y*z*(1.0 / 8.0) - x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			N(3) = x*(-1.0 / 8.0) + y*(1.0 / 8.0) - z*(1.0 / 8.0) - x*y*(1.0 / 8.0) + x*z*(1.0 / 8.0) - y*z*(1.0 / 8.0) + x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			N(4) = x*(-1.0 / 8.0) - y*(1.0 / 8.0) + z*(1.0 / 8.0) + x*y*(1.0 / 8.0) - x*z*(1.0 / 8.0) - y*z*(1.0 / 8.0) + x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			N(5) = x*(1.0 / 8.0) - y*(1.0 / 8.0) + z*(1.0 / 8.0) - x*y*(1.0 / 8.0) + x*z*(1.0 / 8.0) - y*z*(1.0 / 8.0) - x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			N(6) = x*(1.0 / 8.0) + y*(1.0 / 8.0) + z*(1.0 / 8.0) + x*y*(1.0 / 8.0) + x*z*(1.0 / 8.0) + y*z*(1.0 / 8.0) + x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			N(7) = x*(-1.0 / 8.0) + y*(1.0 / 8.0) + z*(1.0 / 8.0) - x*y*(1.0 / 8.0) - x*z*(1.0 / 8.0) + y*z*(1.0 / 8.0) - x*y*z*(1.0 / 8.0) + 1.0 / 8.0;
-			//
+            N(0) = 0.125 * (1 - x) * (1 - y) * (1 - z);
+            N(1) = 0.125 * (1 + x) * (1 - y) * (1 - z);
+            N(2) = 0.125 * (1 + x) * (1 + y) * (1 - z);
+            N(3) = 0.125 * (1 - x) * (1 + y) * (1 - z);
+            N(4) = 0.125 * (1 - x) * (1 - y) * (1 + z);
+            N(5) = 0.125 * (1 + x) * (1 - y) * (1 + z);
+            N(6) = 0.125 * (1 + x) * (1 + y) * (1 + z);
+            N(7) = 0.125 * (1 - x) * (1 + y) * (1 + z);
 			N(8) = (a*a)*(-1.0 / 8.0) + (a*a)*(x*x)*(1.0 / 8.0);
 			N(9) = (b*b)*(-1.0 / 8.0) + (b*b)*(y*y)*(1.0 / 8.0);
 			N(10) = (c*c)*(-1.0 / 8.0) + (c*c)*(z*z)*(1.0 / 8.0);
 		}
 
 		void ChElementBrick_9::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z) {
-			double factor = 2 / GetDimensions().x;
 			double a = GetDimensions().x;
-			double b = GetDimensions().y;
-			double c = GetDimensions().z;
-			Nx(0) = (y*(1.0 / 4.0)) / a + (z*(1.0 / 4.0)) / a - (1.0 / 4.0) / a - (y*z*(1.0 / 4.0)) / a;
-			Nx(1) = (y*(-1.0 / 4.0)) / a - (z*(1.0 / 4.0)) / a + (1.0 / 4.0) / a + (y*z*(1.0 / 4.0)) / a;
-			Nx(2) = (y*(1.0 / 4.0)) / a - (z*(1.0 / 4.0)) / a + (1.0 / 4.0) / a - (y*z*(1.0 / 4.0)) / a;
-			Nx(3) = (y*(-1.0 / 4.0)) / a + (z*(1.0 / 4.0)) / a - (1.0 / 4.0) / a + (y*z*(1.0 / 4.0)) / a;
-			Nx(4) = (y*(1.0 / 4.0)) / a - (z*(1.0 / 4.0)) / a - (1.0 / 4.0) / a + (y*z*(1.0 / 4.0)) / a;
-			Nx(5) = (y*(-1.0 / 4.0)) / a + (z*(1.0 / 4.0)) / a + (1.0 / 4.0) / a - (y*z*(1.0 / 4.0)) / a;
-			Nx(6) = (y*(1.0 / 4.0)) / a + (z*(1.0 / 4.0)) / a + (1.0 / 4.0) / a + (y*z*(1.0 / 4.0)) / a;
-			Nx(7) = (y*(-1.0 / 4.0)) / a - (z*(1.0 / 4.0)) / a - (1.0 / 4.0) / a - (y*z*(1.0 / 4.0)) / a;
+            Nx(0) = 0.25 / a * (-1) * (1 - y) * (1 - z);
+            Nx(1) = 0.25 / a * (+1) * (1 - y) * (1 - z);
+            Nx(2) = 0.25 / a * (+1) * (1 + y) * (1 - z);
+            Nx(3) = 0.25 / a * (-1) * (1 + y) * (1 - z);
+            Nx(4) = 0.25 / a * (-1) * (1 - y) * (1 + z);
+            Nx(5) = 0.25 / a * (+1) * (1 - y) * (1 + z);
+            Nx(6) = 0.25 / a * (+1) * (1 + y) * (1 + z);
+            Nx(7) = 0.25 / a * (-1) * (1 + y) * (1 + z);
 			//
 			Nx(8) = a*x*(1.0 / 2.0);
 			Nx(9) = 0;
@@ -138,18 +134,15 @@ namespace chrono {
 		}
 
 		void ChElementBrick_9::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z) {
-			double factor = 2 / GetDimensions().y;
-			double a = GetDimensions().x;
 			double b = GetDimensions().y;
-			double c = GetDimensions().z;
-			Ny(0) = (x*(1.0 / 4.0)) / b + (z*(1.0 / 4.0)) / b - (1.0 / 4.0) / b - (x*z*(1.0 / 4.0)) / b;
-			Ny(1) = (x*(-1.0 / 4.0)) / b + (z*(1.0 / 4.0)) / b - (1.0 / 4.0) / b + (x*z*(1.0 / 4.0)) / b;
-			Ny(2) = (x*(1.0 / 4.0)) / b - (z*(1.0 / 4.0)) / b + (1.0 / 4.0) / b - (x*z*(1.0 / 4.0)) / b;
-			Ny(3) = (x*(-1.0 / 4.0)) / b - (z*(1.0 / 4.0)) / b + (1.0 / 4.0) / b + (x*z*(1.0 / 4.0)) / b;
-			Ny(4) = (x*(1.0 / 4.0)) / b - (z*(1.0 / 4.0)) / b - (1.0 / 4.0) / b + (x*z*(1.0 / 4.0)) / b;
-			Ny(5) = (x*(-1.0 / 4.0)) / b - (z*(1.0 / 4.0)) / b - (1.0 / 4.0) / b - (x*z*(1.0 / 4.0)) / b;
-			Ny(6) = (x*(1.0 / 4.0)) / b + (z*(1.0 / 4.0)) / b + (1.0 / 4.0) / b + (x*z*(1.0 / 4.0)) / b;
-			Ny(7) = (x*(-1.0 / 4.0)) / b + (z*(1.0 / 4.0)) / b + (1.0 / 4.0) / b - (x*z*(1.0 / 4.0)) / b;
+            Ny(0) = 0.25 / b * (1 - x) * (-1) * (1 - z);
+            Ny(1) = 0.25 / b * (1 + x) * (-1) * (1 - z);
+            Ny(2) = 0.25 / b * (1 + x) * (+1) * (1 - z);
+            Ny(3) = 0.25 / b * (1 - x) * (+1) * (1 - z);
+            Ny(4) = 0.25 / b * (1 - x) * (-1) * (1 + z);
+            Ny(5) = 0.25 / b * (1 + x) * (-1) * (1 + z);
+            Ny(6) = 0.25 / b * (1 + x) * (+1) * (1 + z);
+            Ny(7) = 0.25 / b * (1 - x) * (+1) * (1 + z);
 			//
 			Ny(8) = 0;
 			Ny(9) = b*y*(1.0 / 2.0);
@@ -157,18 +150,15 @@ namespace chrono {
 		}
 
 		void ChElementBrick_9::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z) {
-			double factor = 2 / GetDimensions().z;
-			double a = GetDimensions().x;
-			double b = GetDimensions().y;
 			double c = GetDimensions().z;
-			Nz(0) = (x*(1.0 / 4.0)) / c + (y*(1.0 / 4.0)) / c - (1.0 / 4.0) / c - (x*y*(1.0 / 4.0)) / c;
-			Nz(1) = (x*(-1.0 / 4.0)) / c + (y*(1.0 / 4.0)) / c - (1.0 / 4.0) / c + (x*y*(1.0 / 4.0)) / c;
-			Nz(2) = (x*(-1.0 / 4.0)) / c - (y*(1.0 / 4.0)) / c - (1.0 / 4.0) / c - (x*y*(1.0 / 4.0)) / c;
-			Nz(3) = (x*(1.0 / 4.0)) / c - (y*(1.0 / 4.0)) / c - (1.0 / 4.0) / c + (x*y*(1.0 / 4.0)) / c;
-			Nz(4) = (x*(-1.0 / 4.0)) / c - (y*(1.0 / 4.0)) / c + (1.0 / 4.0) / c + (x*y*(1.0 / 4.0)) / c;
-			Nz(5) = (x*(1.0 / 4.0)) / c - (y*(1.0 / 4.0)) / c + (1.0 / 4.0) / c - (x*y*(1.0 / 4.0)) / c;
-			Nz(6) = (x*(1.0 / 4.0)) / c + (y*(1.0 / 4.0)) / c + (1.0 / 4.0) / c + (x*y*(1.0 / 4.0)) / c;
-			Nz(7) = (x*(-1.0 / 4.0)) / c + (y*(1.0 / 4.0)) / c + (1.0 / 4.0) / c - (x*y*(1.0 / 4.0)) / c;
+            Nz(0) = 0.25 / c * (1 - x) * (1 - y) * (-1);
+            Nz(1) = 0.25 / c * (1 + x) * (1 - y) * (-1);
+            Nz(2) = 0.25 / c * (1 + x) * (1 + y) * (-1);
+            Nz(3) = 0.25 / c * (1 - x) * (1 + y) * (-1);
+            Nz(4) = 0.25 / c * (1 - x) * (1 - y) * (+1);
+            Nz(5) = 0.25 / c * (1 + x) * (1 - y) * (+1);
+            Nz(6) = 0.25 / c * (1 + x) * (1 + y) * (+1);
+            Nz(7) = 0.25 / c * (1 - x) * (1 + y) * (+1);
 			//
 			Nz(8) = 0;
 			Nz(9) = 0;
@@ -234,13 +224,6 @@ namespace chrono {
 
 			MyMassBrick9 myformula(this);
 
-			//ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 33>>(m_MassMatrix,  // result of integration will go there
-			//	myformula,     // formula to integrate
-			//	-GetDimensions().x, GetDimensions().x,         // limits in x direction
-			//	-GetDimensions().y, GetDimensions().y,         // limits in y direction
-			//	-GetDimensions().z, GetDimensions().z,         // limits in z direction
-			//	2              // order of integration
-			//	);
 			ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 33>>(m_MassMatrix,  // result of integration will go there
 				myformula,     // formula to integrate
 				-1, 1,         // limits in x direction
@@ -250,11 +233,6 @@ namespace chrono {
 				);
 
 			m_MassMatrix *= m_material->Get_density();
-			//for (int i = 0; i < 33; i++)
-			//{
-			//	GetLog() << m_MassMatrix(0, i) << "\n";
-			//}
-			//system("pause");
 			
 		}
 
@@ -1359,159 +1337,6 @@ namespace chrono {
 			}
 		}
 
-		// -----------------------------------------------------------------------------
-		// Functions for internal computations
-		// -----------------------------------------------------------------------------
-
-		//void ChElementBrick_9::CG(int n, 
-		//	ChMatrixDynamic<double> &A_Real, 
-		//	ChMatrixDynamic<double> &A_Imagine, 
-		//	ChVectorDynamic<double> &W_Real, 
-		//	ChVectorDynamic<double> &W_Imagine, 
-		//	int matz, 
-		//	ChMatrixDynamic<double> &Z_Real, 
-		//	ChMatrixDynamic<double> &Z_Imagine, 
-		//	int &ierr)
-		//{
-
-		//}
-
-		//void ChElementBrick_9::CBAL(int n, 
-		//	ChMatrixDynamic<double> &A_Real, 
-		//	ChMatrixDynamic<double> &A_Imagine, 
-		//	int &low,
-		//	int &igh,
-		//	ChVectorDynamic<double> &scale)
-		//{
-		//	double radix = 16.0;
-		//	int iexc = 0;
-		//	int j = 0;
-		//	int m = 0;
-		//	double b2 = radix*radix;
-		//	int k = 1;
-		//	int l = n;
-
-		//	for (int jj = 0; jj < l; jj++)
-		//	{
-		//		j = l + 1 - jj;
-
-		//		for (int i = 0; i < l; i++)
-		//		{
-		//			if (i != j)
-		//			{
-		//				if (A_Real(j, i) != 0.0 || A_Imagine(j, i) != 0.0)
-		//				{
-		//					
-		//				}
-		//			}
-		//		}
-		//	}
-
-		//}
-
-		//void r8_swap(double &x, double &y)
-		//{
-		//	double z;
-
-		//	z = x;
-		//	x = y;
-		//	y = z;
-		//}
-
-		//void CORTH(int n,
-		//	int low,
-		//	int igh,
-		//	ChMatrixDynamic<double> &A_Real,
-		//	ChMatrixDynamic<double> &A_Imagine,
-		//	ChVectorDynamic<double> &Ort_Real,
-		//	ChVectorDynamic<double> &Ort_Imagine)
-		//{
-
-		//}
-
-		//void COMQR(int n,
-		//	int low,
-		//	int igh,
-		//	ChMatrixDynamic<double> &H_Real,
-		//	ChMatrixDynamic<double> &H_Imagine,
-		//	ChVectorDynamic<double> &W_Real,
-		//	ChVectorDynamic<double> &W_Imagine,
-		//	int &ierr)
-		//{
-
-		//}
-
-		//void CSROOT(double xr, double xi, double &yr, double &yi)
-		//{
-		//	double tr = xr;
-		//	double ti = xi;
-		//	double s = sqrt(0.5*pythag(tr, ti) + abs(tr));
-
-		//	if (tr >= 0.0) yr = s;
-
-		//	if (ti < 0.0) s = -s;
-
-		//	if (tr <= 0.0) yi = s;
-
-		//	if (tr < 0.0) yr = 0.5*(ti / yi);
-		//	else if (tr>0.0) yi = 0.5*(ti / yr);
-		//}
-
-		//double pythag(double a, double b){
-		//	double r;
-		//	double s;
-		//	double t;
-		//	double u;
-		//	double p = ChMax(abs(a), abs(b));
-		//	if (p != 0.0)
-		//	{
-		//		r = (ChMin(abs(a), abs(b)) / p) *(ChMin(abs(a), abs(b)) / p);
-		//		t = 4.0 + r;
-		//		while (t != 4.0)
-		//		{
-		//			s = r / t;
-		//			u = 1.0 + 2.0*s;
-		//			p = u*p;
-		//			r = (s / u)*(s / u)*r;
-		//		}
-		//	}
-		//	return p;
-		//}
-
-		//void CDIV(double ar, double ai, double br, double bi, double &cr, double &ci){
-		//	double s;
-		//	double ars;
-		//	double ais;
-		//	double brs;
-		//	double bis;
-
-		//	s = abs(br) + abs(bi);
-		//	
-		//	ars = ar / s;
-		//	ais = ai / s;
-		//	brs = br / s;
-		//	bis = bi / s;
-
-		//	s = brs*brs + bis*bis;
-		//	cr = (ars*brs + ais*bis) / s;
-		//	ci = (ais*brs - ars*bis) / s;
-		//}
-
-		//void COMQR2(int n,
-		//	int low,
-		//	int igh,
-		//	ChVectorDynamic<double> &Ort_Real,
-		//	ChVectorDynamic<double> &Ort_Imagine,
-		//	ChMatrixDynamic<double> &H_Real,
-		//	ChMatrixDynamic<double> &H_Imagine,
-		//	ChVectorDynamic<double> &W_Real,
-		//	ChVectorDynamic<double> &W_Imagine,
-		//	ChMatrixDynamic<double> &Z_Real,
-		//	ChMatrixDynamic<double> &Z_Imagine,
-		//	int &ierr)
-		//{
-
-		//}
 
 		void ChElementBrick_9::EPSP_Euerian_SolidANCF33(ChMatrixNM<double, 6, 33> &strainD,
 			ChMatrixNM<double, 1, 11> Nx,
