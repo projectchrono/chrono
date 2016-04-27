@@ -241,8 +241,10 @@ void MyMassEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, co
     result(23,23) = N33*rotfactor;
 };
 
+//***TODO*** just lumped?
 void ChElementShellEANS4::ComputeMassMatrix() {
     m_MassMatrix.Reset();
+    //***TODO*** use true gauss point determinant of jacobian
     double jacobian = this->m_lenY * this->m_lenX / 4.0;
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
@@ -327,6 +329,8 @@ void ComputeGammaMatrixInverse(ChMatrix33<>& H, const ChVector<> phi) {
     }
 }
 
+static bool do_logv = false;
+
 void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, const double y) {
     // Element shape function
     ChMatrixNM<double, 1, 4> N;
@@ -339,16 +343,10 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     m_element->ShapeFunctionsDerivativeX(Nu, x, y, 0);
     m_element->ShapeFunctionsDerivativeY(Nv, x, y, 0);
 
-
-
     const ChVector<>& pA0 = m_element->GetNodeA()->GetX0().GetPos();
     const ChVector<>& pB0 = m_element->GetNodeB()->GetX0().GetPos();
     const ChVector<>& pC0 = m_element->GetNodeC()->GetX0().GetPos();
     const ChVector<>& pD0 = m_element->GetNodeD()->GetX0().GetPos();
-    ChVector<> yA = pA - pA0;
-    ChVector<> yB = pB - pB0;
-    ChVector<> yC = pC - pC0;
-    ChVector<> yD = pD - pD0;
 
     // Tn = Rn*Rn0'
     ChQuaternion<> Ta = rA * m_element->GetNodeAreferenceRot().GetConjugate();
@@ -357,12 +355,13 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChQuaternion<> Td = rD * m_element->GetNodeDreferenceRot().GetConjugate();
     
     // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-    ChQuaternion<> Tavg =(m_element->GetNodeA()->GetRot() * m_element->GetNodeAreferenceRot().GetConjugate() +
-                          m_element->GetNodeB()->GetRot() * m_element->GetNodeBreferenceRot().GetConjugate() +
-                          m_element->GetNodeC()->GetRot() * m_element->GetNodeCreferenceRot().GetConjugate() +
-                          m_element->GetNodeD()->GetRot() * m_element->GetNodeDreferenceRot().GetConjugate() ).GetNormalized();
+    ChQuaternion<> Tavg =(Ta +
+                          Tb +
+                          Tc +
+                          Td ).GetNormalized();
     // Tavg' 
     ChQuaternion<> TavgT = Tavg.GetConjugate();
+//if (do_logv) GetLog() << "Tavg = " << Tavg.Q_to_Rotv();
 
     // R_rel_n = Tavg'* T_n
     // F_rel_n = log(R_rel_n)    i.e. to rot vector
@@ -370,7 +369,7 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChVector<> F_relB = (TavgT * Tb).Q_to_Rotv();
     ChVector<> F_relC = (TavgT * Tc).Q_to_Rotv();
     ChVector<> F_relD = (TavgT * Td).Q_to_Rotv();
-//GetLog() << "F_relA" << F_relA << "F_relB" << F_relB << "F_relC" << F_relC << "F_relD" << F_relD ;    
+//if (do_logv) GetLog() << "F_relA" << F_relA << "F_relB" << F_relB << "F_relC" << F_relC << "F_relD" << F_relD ;    
     // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
     ChVector<> F_rel_i = N(0)*F_relA + 
                          N(1)*F_relB + 
@@ -385,10 +384,20 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     // STRAIN  in local frame
     // eps_u = T_i'* Yi,u = T_i' * sum_n(Nin,u Yn)
     // eps_v = T_i'* Yi,v = T_i' * sum_n(Nin,v Yn)
-    ChVector<> yi_u =  Nu(0) * yA +   Nu(1) * yB +  Nu(2) * yC +  Nu(3) * yD ;
-    ChVector<> yi_v =  Nv(0) * yA +   Nv(1) * yB +  Nv(2) * yC +  Nv(3) * yD ;
-    ChVector<> eps_u = T_i.RotateBack ( yi_u );
-    ChVector<> eps_v = T_i.RotateBack ( yi_v );
+    ChVector<> yi_u =  Nu(0) * pA +   Nu(1) * pB +  Nu(2) * pC +  Nu(3) * pD ;
+    ChVector<> yi_v =  Nv(0) * pA +   Nv(1) * pB +  Nv(2) * pC +  Nv(3) * pD ;
+    ChVector<> eyi_u = yi_u - (
+        Nu(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nu(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nu(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nu(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eyi_v = yi_v - (
+        Nv(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nv(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nv(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nv(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eps_u = T_i.RotateBack ( eyi_u );
+    ChVector<> eps_v = T_i.RotateBack ( eyi_v );
 
 
     // CURVATURES in local frame
@@ -396,7 +405,7 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     // kur_v = T_i'* abs_kur,v = Hi' * sum( Nin,u F_rel_n )
     ChVector<> F_rel_u =  Nu(0) * F_relA +   Nu(1) * F_relB +  Nu(2) * F_relC +  Nu(3) * F_relD ;
     ChVector<> F_rel_v =  Nv(0) * F_relA +   Nv(1) * F_relB +  Nv(2) * F_relC +  Nv(3) * F_relD ;
-//GetLog() << "F_rel_u" << F_rel_u << "F_rel_v" << F_rel_v;
+//if (do_logv) GetLog() << "F_rel_u" << F_rel_u << "F_rel_v" << F_rel_v;
     ChMatrix33<> Hi;
     ComputeGammaMatrix(Hi,F_rel_i);
 //Hi.Set33Identity();
@@ -459,7 +468,7 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     block = mT_i_t * myi_v_X * PhiC * N(2);     B.PasteMatrix(&block, 3,15);
     block = mT_i_t * myi_u_X * PhiD * N(3);     B.PasteMatrix(&block, 0,21);
     block = mT_i_t * myi_v_X * PhiD * N(3);     B.PasteMatrix(&block, 3,21);
-   
+
     ChMatrix33<> mKu = PhiA*Nu(0); // .. + Elle() term, to be added?
     ChMatrix33<> mKv = PhiA*Nv(0); // .. + Elle() term, to be added?
     block = mT_i_t * (mk_u_X * PhiA * N(0) + mKu);      B.PasteMatrix(&block, 6,3);
@@ -477,6 +486,8 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     block = mT_i_t * (mk_u_X * PhiD * N(3) + mKu);      B.PasteMatrix(&block, 6,21);
     block = mT_i_t * (mk_v_X * PhiD * N(3) + mKv);      B.PasteMatrix(&block, 9,21);
 
+//if (do_logv) GetLog() << "B:" << B << "\n ...";
+
     // ANS CORRECTION:
 
     // replace transversal shear with ANS interpolated shear from tying points:
@@ -492,7 +503,8 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
         B(5,ic) = N_ANS(0)* this->m_element->m_B6_ANS(0,ic) + 
                   N_ANS(1)* this->m_element->m_B6_ANS(1,ic);
 
-  //GetLog() << "eps_u=" << eps_u << "eps_v=" << eps_v << "\n .....";
+
+//if (do_logv) GetLog() << "B:" << B << "\n ...";
 
     // STRESSES - forces n and torques m 
     ChVector<> n_u;
@@ -500,20 +512,22 @@ void MyForceEANS::Evaluate(ChMatrixNM<double, 24, 1>& result, const double x, co
     ChVector<> m_u;
     ChVector<> m_v;
     m_element->GetLayer(layer_i).GetMaterial()->ComputeStress(n_u, n_v, m_u, m_v, eps_u, eps_v, kur_u, kur_v);
-//GetLog() << "m_u" << m_u << "m_v" << m_v;
-//GetLog() << "kur_u" << m_u << "kur_v" << m_v;
-//GetLog() << "n_u" << n_u << "n_v" << n_v;
+//if (do_logv) GetLog() << "eps_u=" << eps_u << "eps_v=" << eps_v;
+//if (do_logv) GetLog() << "kur_u" << kur_u << "kur_v" << kur_v;
+//if (do_logv) GetLog() << "n_u" << n_u << "n_v" << n_v;
+//if (do_logv) GetLog() << "m_u" << m_u << "m_v" << m_v;
     // CONVERT n AND m TO GENERALIZED FORCES 'result':
     ChMatrixNM<double,12,1> sigma;
     sigma.PasteVector(n_u, 0,0);
     sigma.PasteVector(n_v, 3,0);
     sigma.PasteVector(m_u, 6,0);
     sigma.PasteVector(m_v, 9,0);
-     //GetLog() << "sigma:" << sigma << "\n ..."; 
+     //if (do_logv) GetLog() << "sigma:" << sigma << "\n ..."; 
     // F = int{B*sigma*dv} , so at each Gauss integration point:  
     //   F_i = B_i * sigma_i  
+
     result.MatrTMultiply(B,sigma);
-    //GetLog() << "Fi:" << result << "\n ...";
+// if (do_logv) GetLog() << "Fi:" << result << "\n ...";
     result.MatrScale(-1);
 }
 
@@ -564,6 +578,7 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         Fi += TempForce;
 
     }  // Layer Loop
+  if (do_logv) GetLog() << "Fi tot:" << Fi << "\n ...";
 }
 
 // -----------------------------------------------------------------------------
@@ -613,10 +628,6 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     const ChVector<>& pB0 = m_element->GetNodeB()->GetX0().GetPos();
     const ChVector<>& pC0 = m_element->GetNodeC()->GetX0().GetPos();
     const ChVector<>& pD0 = m_element->GetNodeD()->GetX0().GetPos();
-    ChVector<> yA = pA - pA0;
-    ChVector<> yB = pB - pB0;
-    ChVector<> yC = pC - pC0;
-    ChVector<> yD = pD - pD0;
 
     // Tn = Rn*Rn0'
     ChQuaternion<> Ta = rA * m_element->GetNodeAreferenceRot().GetConjugate();
@@ -625,10 +636,10 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     ChQuaternion<> Td = rD * m_element->GetNodeDreferenceRot().GetConjugate();
     
     // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-    ChQuaternion<> Tavg =(m_element->GetNodeA()->GetRot() * m_element->GetNodeAreferenceRot().GetConjugate() +
-                          m_element->GetNodeB()->GetRot() * m_element->GetNodeBreferenceRot().GetConjugate() +
-                          m_element->GetNodeC()->GetRot() * m_element->GetNodeCreferenceRot().GetConjugate() +
-                          m_element->GetNodeD()->GetRot() * m_element->GetNodeDreferenceRot().GetConjugate() ).GetNormalized();
+    ChQuaternion<> Tavg =(Ta +
+                          Tb +
+                          Tc +
+                          Td ).GetNormalized();
     // Tavg' 
     ChQuaternion<> TavgT = Tavg.GetConjugate();
 
@@ -653,8 +664,20 @@ void MyJacobianEANS::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     // STRAIN  in local frame
     // eps_u = T_i'* Yi,u = T_i' * sum_n(Nin,u Yn)
     // eps_v = T_i'* Yi,v = T_i' * sum_n(Nin,v Yn)
-    ChVector<> yi_u =  Nu(0) * yA +   Nu(1) * yB +  Nu(2) * yC +  Nu(3) * yD ;
-    ChVector<> yi_v =  Nv(0) * yA +   Nv(1) * yB +  Nv(2) * yC +  Nv(3) * yD ;
+    ChVector<> yi_u =  Nu(0) * pA +   Nu(1) * pB +  Nu(2) * pC +  Nu(3) * pD ;
+    ChVector<> yi_v =  Nv(0) * pA +   Nv(1) * pB +  Nv(2) * pC +  Nv(3) * pD ;
+    ChVector<> eyi_u = yi_u - (
+        Nu(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nu(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nu(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nu(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eyi_v = yi_v - (
+        Nv(0) * m_element->GetNodeA()->GetX0().GetPos() +
+        Nv(1) * m_element->GetNodeB()->GetX0().GetPos() +
+        Nv(2) * m_element->GetNodeC()->GetX0().GetPos() +
+        Nv(3) * m_element->GetNodeD()->GetX0().GetPos() );
+    ChVector<> eps_u = T_i.RotateBack ( eyi_u );
+    ChVector<> eps_v = T_i.RotateBack ( eyi_v );
 
 
     // CURVATURES in local frame
@@ -779,6 +802,8 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
     
     if (use_numerical_differentiation) {
 
+        do_logv = false;
+
         double diff = 1e-4;
         ChMatrixNM<double,24,1> Kcolumn;
         ChMatrixDynamic<> F0(24, 1);
@@ -845,6 +870,7 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 5 + inode * 6);
             rot[inode] = qbackup;
         }
+        do_logv = true;
     }
     else {
         double jacobian = this->m_lenY * this->m_lenX  / 4.0;
@@ -951,23 +977,19 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
         const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
         const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
         const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
-        ChVector<> yA = pA - pA0;
-        ChVector<> yB = pB - pB0;
-        ChVector<> yC = pC - pC0;
-        ChVector<> yD = pD - pD0;
 
         // Tn = Rn*Rn0'
-        ChQuaternion<> Ta = rA * GetNodeAreferenceRot();
-        ChQuaternion<> Tb = rB * GetNodeBreferenceRot();
-        ChQuaternion<> Tc = rC * GetNodeCreferenceRot();
-        ChQuaternion<> Td = rD * GetNodeDreferenceRot();
+        ChQuaternion<> Ta = rA * GetNodeAreferenceRot().GetConjugate();
+        ChQuaternion<> Tb = rB * GetNodeBreferenceRot().GetConjugate();
+        ChQuaternion<> Tc = rC * GetNodeCreferenceRot().GetConjugate();
+        ChQuaternion<> Td = rD * GetNodeDreferenceRot().GetConjugate();
     
         // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
     // ChQuaternion<> Tavg = (Ta+Tb+Tc+Td).GetNormalized();
-    ChQuaternion<> Tavg =(this->GetNodeA()->GetRot() * this->GetNodeAreferenceRot().GetConjugate() +
-                          this->GetNodeB()->GetRot() * this->GetNodeBreferenceRot().GetConjugate() +
-                          this->GetNodeC()->GetRot() * this->GetNodeCreferenceRot().GetConjugate() +
-                          this->GetNodeD()->GetRot() * this->GetNodeDreferenceRot().GetConjugate() ).GetNormalized();
+    ChQuaternion<> Tavg =(Ta +
+                          Tb +
+                          Tc +
+                          Td ).GetNormalized();
 
         // Tavg' 
         ChQuaternion<> TavgT = Tavg.GetConjugate();
@@ -993,10 +1015,20 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
         // STRAIN  in local frame
         // eps_u = T_i'* Yi,u = T_i' * sum_n(Nin,u Yn)
         // eps_v = T_i'* Yi,v = T_i' * sum_n(Nin,v Yn)
-        ChVector<> yi_u =  Nu(0) * yA +   Nu(1) * yB +  Nu(2) * yC +  Nu(3) * yD ;
-        ChVector<> yi_v =  Nv(0) * yA +   Nv(1) * yB +  Nv(2) * yC +  Nv(3) * yD ;
-        ChVector<> eps_u = T_i.RotateBack ( yi_u );
-        ChVector<> eps_v = T_i.RotateBack ( yi_v );
+        ChVector<> yi_u =  Nu(0) * pA +   Nu(1) * pB +  Nu(2) * pC +  Nu(3) * pD ;
+        ChVector<> yi_v =  Nv(0) * pA +   Nv(1) * pB +  Nv(2) * pC +  Nv(3) * pD ;
+        ChVector<> eyi_u = yi_u - (
+            Nu(0) * this->GetNodeA()->GetX0().GetPos() +
+            Nu(1) * this->GetNodeB()->GetX0().GetPos() +
+            Nu(2) * this->GetNodeC()->GetX0().GetPos() +
+            Nu(3) * this->GetNodeD()->GetX0().GetPos() );
+        ChVector<> eyi_v = yi_v - (
+            Nv(0) * this->GetNodeA()->GetX0().GetPos() +
+            Nv(1) * this->GetNodeB()->GetX0().GetPos() +
+            Nv(2) * this->GetNodeC()->GetX0().GetPos() +
+            Nv(3) * this->GetNodeD()->GetX0().GetPos() );
+        ChVector<> eps_u = T_i.RotateBack ( eyi_u );
+        ChVector<> eps_v = T_i.RotateBack ( eyi_v );
 
         this->m_strainANS.PasteVector(eps_u,0,kk);
         this->m_strainANS.PasteVector(eps_v,3,kk);
@@ -1256,16 +1288,9 @@ ChVector<> ChElementShellEANS4::ComputeNormal(const double U, const double V) {
     return mnorm.GetNormalized();
 }
 
-// -----------------------------------------------------------------------------
-// Utility functions for inverting a 5x5 matrix
-// -----------------------------------------------------------------------------
 
 
 
-
-// ============================================================================
-// Implementation of ChElementShellANCF::Layer methods
-// ============================================================================
 
 // Private constructor (a layer can be created only by adding it to an element)
 ChElementShellEANS4::Layer::Layer(ChElementShellEANS4* element,
@@ -1276,131 +1301,7 @@ ChElementShellEANS4::Layer::Layer(ChElementShellEANS4* element,
 
 // Initial setup for this layer:
 void ChElementShellEANS4::Layer::SetupInitial() {
-    /*
-    // Evaluate shape functions at element center
-    ChMatrixNM<double, 1, 8> Nx;
-    ChMatrixNM<double, 1, 8> Ny;
-    ChMatrixNM<double, 1, 8> Nz;
-    m_element->ShapeFunctionsDerivativeX(Nx, 0, 0, 0);
-    m_element->ShapeFunctionsDerivativeY(Ny, 0, 0, 0);
-
-    ChMatrixNM<double, 1, 3> Nx_d0 = Nx * m_element->m_d0;
-    ChMatrixNM<double, 1, 3> Ny_d0 = Ny * m_element->m_d0;
-    ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_element->m_d0;
-
-    // Determinant of position vector gradient matrix: Initial configuration
-    m_detJ0C = Nx_d0(0, 0) * Ny_d0(0, 1) * Nz_d0(0, 2) + Ny_d0(0, 0) * Nz_d0(0, 1) * Nx_d0(0, 2) +
-               Nz_d0(0, 0) * Nx_d0(0, 1) * Ny_d0(0, 2) - Nx_d0(0, 2) * Ny_d0(0, 1) * Nz_d0(0, 0) -
-               Ny_d0(0, 2) * Nz_d0(0, 1) * Nx_d0(0, 0) - Nz_d0(0, 2) * Nx_d0(0, 1) * Ny_d0(0, 0);
-
-    //// Transformation : Orthogonal transformation (A and J) ////
-    ChVector<double> G1xG2;  // Cross product of first and second column of
-    double G1dotG1;          // Dot product of first column of position vector gradient
-
-    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
-    G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
-
-    // Tangent Frame
-    ChVector<double> A1;
-    ChVector<double> A2;
-    ChVector<double> A3;
-    A1.x = Nx_d0[0][0];
-    A1.y = Nx_d0[0][1];
-    A1.z = Nx_d0[0][2];
-    A1 = A1 / sqrt(G1dotG1);
-    A3 = G1xG2.GetNormalized();
-    A2.Cross(A3, A1);
-
-    ChVector<double> AA1;
-    ChVector<double> AA2;
-    ChVector<double> AA3;
-    AA1 = A1 * cos(m_theta) + A2 * sin(m_theta);
-    AA2 = -A1 * sin(m_theta) + A2 * cos(m_theta);
-    AA3 = A3;
-
-    ////Beta
-    ChMatrixNM<double, 3, 3> j0;
-    ChVector<double> j01;
-    ChVector<double> j02;
-    ChVector<double> j03;
-    ChMatrixNM<double, 9, 1> beta;
-
-    j0(0, 0) = Ny_d0[0][1] * Nz_d0[0][2] - Nz_d0[0][1] * Ny_d0[0][2];
-    j0(0, 1) = Ny_d0[0][2] * Nz_d0[0][0] - Ny_d0[0][0] * Nz_d0[0][2];
-    j0(0, 2) = Ny_d0[0][0] * Nz_d0[0][1] - Nz_d0[0][0] * Ny_d0[0][1];
-    j0(1, 0) = Nz_d0[0][1] * Nx_d0[0][2] - Nx_d0[0][1] * Nz_d0[0][2];
-    j0(1, 1) = Nz_d0[0][2] * Nx_d0[0][0] - Nx_d0[0][2] * Nz_d0[0][0];
-    j0(1, 2) = Nz_d0[0][0] * Nx_d0[0][1] - Nz_d0[0][1] * Nx_d0[0][0];
-    j0(2, 0) = Nx_d0[0][1] * Ny_d0[0][2] - Ny_d0[0][1] * Nx_d0[0][2];
-    j0(2, 1) = Ny_d0[0][0] * Nx_d0[0][2] - Nx_d0[0][0] * Ny_d0[0][2];
-    j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
-    j0.MatrDivScale(m_detJ0C);
-
-    j01(0) = j0(0, 0);
-    j02(0) = j0(1, 0);
-    j03(0) = j0(2, 0);
-    j01(1) = j0(0, 1);
-    j02(1) = j0(1, 1);
-    j03(1) = j0(2, 1);
-    j01(2) = j0(0, 2);
-    j02(2) = j0(1, 2);
-    j03(2) = j0(2, 2);
-
-    beta(0) = Vdot(AA1, j01);
-    beta(1) = Vdot(AA2, j01);
-    beta(2) = Vdot(AA3, j01);
-    beta(3) = Vdot(AA1, j02);
-    beta(4) = Vdot(AA2, j02);
-    beta(5) = Vdot(AA3, j02);
-    beta(6) = Vdot(AA1, j03);
-    beta(7) = Vdot(AA2, j03);
-    beta(8) = Vdot(AA3, j03);
-
-    // Calculate T0: transformation matrix, function of fiber angle (see Yamashita et al, 2015, JCND)
-    m_T0(0, 0) = pow(beta(0), 2);
-    m_T0(1, 0) = pow(beta(1), 2);
-    m_T0(2, 0) = 2.0 * beta(0) * beta(1);
-    m_T0(3, 0) = pow(beta(2), 2);
-    m_T0(4, 0) = 2.0 * beta(0) * beta(2);
-    m_T0(5, 0) = 2.0 * beta(1) * beta(2);
-
-    m_T0(0, 1) = pow(beta(3), 2);
-    m_T0(1, 1) = pow(beta(4), 2);
-    m_T0(2, 1) = 2.0 * beta(3) * beta(4);
-    m_T0(3, 1) = pow(beta(5), 2);
-    m_T0(4, 1) = 2.0 * beta(3) * beta(5);
-    m_T0(5, 1) = 2.0 * beta(4) * beta(5);
-
-    m_T0(0, 2) = beta(0) * beta(3);
-    m_T0(1, 2) = beta(1) * beta(4);
-    m_T0(2, 2) = beta(0) * beta(4) + beta(1) * beta(3);
-    m_T0(3, 2) = beta(2) * beta(5);
-    m_T0(4, 2) = beta(0) * beta(5) + beta(2) * beta(3);
-    m_T0(5, 2) = beta(2) * beta(4) + beta(1) * beta(5);
-
-    m_T0(0, 3) = pow(beta(6), 2);
-    m_T0(1, 3) = pow(beta(7), 2);
-    m_T0(2, 3) = 2.0 * beta(6) * beta(7);
-    m_T0(3, 3) = pow(beta(8), 2);
-    m_T0(4, 3) = 2.0 * beta(6) * beta(8);
-    m_T0(5, 3) = 2.0 * beta(7) * beta(8);
-
-    m_T0(0, 4) = beta(0) * beta(6);
-    m_T0(1, 4) = beta(1) * beta(7);
-    m_T0(2, 4) = beta(0) * beta(7) + beta(6) * beta(1);
-    m_T0(3, 4) = beta(2) * beta(8);
-    m_T0(4, 4) = beta(0) * beta(8) + beta(2) * beta(6);
-    m_T0(5, 4) = beta(1) * beta(8) + beta(2) * beta(7);
-
-    m_T0(0, 5) = beta(3) * beta(6);
-    m_T0(1, 5) = beta(4) * beta(7);
-    m_T0(2, 5) = beta(3) * beta(7) + beta(4) * beta(6);
-    m_T0(3, 5) = beta(5) * beta(8);
-    m_T0(4, 5) = beta(3) * beta(8) + beta(6) * beta(5);
-    m_T0(5, 5) = beta(4) * beta(8) + beta(5) * beta(7);
-    */
+ 
 }
 
 }  // end of namespace fea

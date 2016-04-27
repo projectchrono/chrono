@@ -124,20 +124,20 @@ int main(int argc, char* argv[]) {
 
     if (true)
     {
-        double shell_thickness = 0.01;
-        double shell_L = 0.2;
-        double shell_W = 0.4;
+        double shell_thickness = 0.02;
+        double shell_L = 1;
+        double shell_W = 1;
 
         // Create an orthotropic material 
-        double rho = 5;
-        double E = 2.1e7;
-        double nu = 0.3; 
+        double rho = 0.0;
+        double E = 1e9;
+        double nu = 0.4; 
         auto mat = std::make_shared<ChMaterialShellEANS>(shell_thickness,
                                                          rho, 
                                                          E, 
                                                          nu,
                                                          1,
-                                                         100.0);
+                                                         10.01);
 
         // Create the nodes (each with position & normal to shell)
         auto hnodeeans1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
@@ -146,7 +146,15 @@ int main(int argc, char* argv[]) {
         auto hnodeeans4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W, 0)));
         node3 = hnodeeans3;
         node4 = hnodeeans4;
-
+        double mn = 10.5;
+        hnodeeans1->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans2->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans3->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans4->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans1->SetMass(mn);
+        hnodeeans1->SetMass(mn);
+        hnodeeans1->SetMass(mn);
+        hnodeeans1->SetMass(mn);
         my_mesh->AddNode(hnodeeans1);
         my_mesh->AddNode(hnodeeans2);
         my_mesh->AddNode(hnodeeans3);
@@ -162,12 +170,7 @@ int main(int argc, char* argv[]) {
 
         // Set its nodes
         elementeans->SetNodes(hnodeeans1, hnodeeans2, hnodeeans3, hnodeeans4);
-/*
-        elementeans->SetNodeAreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
-        elementeans->SetNodeBreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
-        elementeans->SetNodeCreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
-        elementeans->SetNodeDreferenceRot(Q_from_AngAxis(-CH_C_PI_2, VECT_X));
-*/
+
         // Set element dimensions
         //elementeans->SetDimensions(shell_L, shell_W); // not needed, already set at initialization from initial pos of nodes
 
@@ -182,8 +185,8 @@ int main(int argc, char* argv[]) {
        // hnodeeans4->SetPos(hnodeeans4->GetPos()+ChVector<>(0, 0, 0.01));
        // hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
        // hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
-        hnodeeans3->SetForce(ChVector<>(0, 0, 50));
-        hnodeeans4->SetForce(ChVector<>(0, 0, 50));
+        hnodeeans3->SetForce(ChVector<>(0, 0, 250));
+        hnodeeans4->SetForce(ChVector<>(0, 0, 250));
        //hnodeeans3->SetTorque(ChVector<>(0.2, 0, 0));
        //hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
        // hnodeeans4->SetMass(2000);
@@ -213,12 +216,13 @@ int main(int argc, char* argv[]) {
         // Set other element properties
         elementeansb->SetAlphaDamp(0.0);    // Structural damping for this element
 
-        hnodeeans5->SetForce(ChVector<>(0, 1000, 0));
-        hnodeeans6->SetForce(ChVector<>(0, 1000, 0));
+        hnodeeans5->SetForce(ChVector<>(0, 0, 5));
+        hnodeeans6->SetForce(ChVector<>(0, 0, 5));
         //hnodeeans5->SetTorque(ChVector<>(5, 0, 0));
         //hnodeeans6->SetTorque(ChVector<>(5, 0, 0));
         //hnodeeans6->SetMass(2000);
         */
+        
     }
 
     
