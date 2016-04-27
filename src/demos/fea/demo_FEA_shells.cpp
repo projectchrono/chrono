@@ -185,16 +185,20 @@ int main(int argc, char* argv[]) {
        // hnodeeans4->SetPos(hnodeeans4->GetPos()+ChVector<>(0, 0, 0.01));
        // hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
        // hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
-        hnodeeans3->SetForce(ChVector<>(0, 0, 250));
-        hnodeeans4->SetForce(ChVector<>(0, 0, 250));
+       //hnodeeans3->SetForce(ChVector<>(0, 0, 250));
+       //hnodeeans4->SetForce(ChVector<>(0, 0, 250));
        //hnodeeans3->SetTorque(ChVector<>(0.2, 0, 0));
        //hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
        // hnodeeans4->SetMass(2000);
 
 
-        /*
+        
         auto hnodeeans5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W*2, 0 )));
         auto hnodeeans6 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W*2, 0)));
+        hnodeeans5->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans6->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans5->SetMass(mn);
+        hnodeeans6->SetMass(mn);
 
         my_mesh->AddNode(hnodeeans5);
         my_mesh->AddNode(hnodeeans6);
@@ -216,12 +220,12 @@ int main(int argc, char* argv[]) {
         // Set other element properties
         elementeansb->SetAlphaDamp(0.0);    // Structural damping for this element
 
-        hnodeeans5->SetForce(ChVector<>(0, 0, 5));
-        hnodeeans6->SetForce(ChVector<>(0, 0, 5));
+        hnodeeans5->SetForce(ChVector<>(0, 0, 50));
+        hnodeeans6->SetForce(ChVector<>(0, 0, 50));
         //hnodeeans5->SetTorque(ChVector<>(5, 0, 0));
         //hnodeeans6->SetTorque(ChVector<>(5, 0, 0));
         //hnodeeans6->SetMass(2000);
-        */
+        
         
     }
 
@@ -314,6 +318,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
+        if (false)
         if(!application.GetPaused()) {
             GetLog() << "\n\n Time = " << application.GetSystem()->GetChTime();
 
