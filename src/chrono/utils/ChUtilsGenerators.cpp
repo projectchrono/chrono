@@ -53,15 +53,16 @@ MixtureIngredient::~MixtureIngredient() {
     delete m_sizeDist;
 }
 
-// Functions to set constant properties for all objects created based on this
-// ingredient.
-void MixtureIngredient::setDefaultMaterialDVI(const std::shared_ptr<ChMaterialSurface>& mat) {
-    m_defMaterialDVI = mat;
-    freeMaterialDist();
-}
+// Set constant material properties for all objects based on this ingredient.
+void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurfaceBase> mat) {
+    assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
-void MixtureIngredient::setDefaultMaterialDEM(const std::shared_ptr<ChMaterialSurfaceDEM>& mat) {
-    m_defMaterialDEM = mat;
+    if (mat->GetContactMethod() == ChMaterialSurfaceBase::DVI) {
+        m_defMaterialDVI = std::static_pointer_cast<ChMaterialSurface>(mat);
+    } else {
+        m_defMaterialDEM = std::static_pointer_cast<ChMaterialSurfaceDEM>(mat);
+    }
+
     freeMaterialDist();
 }
 

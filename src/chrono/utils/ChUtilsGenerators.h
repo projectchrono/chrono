@@ -80,8 +80,7 @@ class ChApi MixtureIngredient {
     MixtureIngredient(Generator* generator, MixtureType type, double ratio);
     ~MixtureIngredient();
 
-    void setDefaultMaterialDVI(const std::shared_ptr<ChMaterialSurface>& mat);
-    void setDefaultMaterialDEM(const std::shared_ptr<ChMaterialSurfaceDEM>& mat);
+    void setDefaultMaterial(std::shared_ptr<ChMaterialSurfaceBase> mat);
     void setDefaultDensity(double density);
     void setDefaultSize(const ChVector<>& size);
 
