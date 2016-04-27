@@ -392,44 +392,40 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         strain(5, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
 
         ChMatrixNM<double, 6, 33> strainD;
-        ChMatrixNM<double, 3, 3> Id3;
         ChMatrixNM<double, 3, 3> Dm;
         ChMatrixNM<double, 6, 9> DepsDDm;
-        Id3(0, 0) = 1.0;
-        Id3(1, 1) = 1.0;
-        Id3(2, 2) = 1.0;
-        Dm = DefF - Id3;
-        DepsDDm(0, 0) = 1.0 + Dm(0, 0);
-        DepsDDm(0, 1) = Dm(1, 0);
-        DepsDDm(0, 2) = Dm(2, 0);
-        DepsDDm(1, 3) = Dm(0, 1);
-        DepsDDm(1, 4) = 1.0 + Dm(1, 1);
-        DepsDDm(1, 5) = Dm(2, 1);
 
-        DepsDDm(2, 0) = Dm(0, 1);
-        DepsDDm(2, 1) = (1.0 + Dm(1, 1));
-        DepsDDm(2, 2) = Dm(2, 1);
-        DepsDDm(2, 3) = (1.0 + Dm(0, 0));
-        DepsDDm(2, 4) = Dm(1, 0);
-        DepsDDm(2, 5) = Dm(2, 0);
+        DepsDDm(0, 0) = DefF(0, 0);
+        DepsDDm(0, 1) = DefF(1, 0);
+        DepsDDm(0, 2) = DefF(2, 0);
+        DepsDDm(1, 3) = DefF(0, 1);
+        DepsDDm(1, 4) = DefF(1, 1);
+        DepsDDm(1, 5) = DefF(2, 1);
 
-        DepsDDm(3, 6) = Dm(0, 2);
-        DepsDDm(3, 7) = Dm(1, 2);
-        DepsDDm(3, 8) = 1.0 + Dm(2, 2);
+        DepsDDm(2, 0) = DefF(0, 1);
+        DepsDDm(2, 1) = DefF(1, 1);
+        DepsDDm(2, 2) = DefF(2, 1);
+        DepsDDm(2, 3) = DefF(0, 0);
+        DepsDDm(2, 4) = DefF(1, 0);
+        DepsDDm(2, 5) = DefF(2, 0);
 
-        DepsDDm(4, 0) = Dm(0, 2);
-        DepsDDm(4, 1) = Dm(1, 2);
-        DepsDDm(4, 2) = (1.0 + Dm(2, 2));
-        DepsDDm(4, 6) = (1.0 + Dm(0, 0));
-        DepsDDm(4, 7) = Dm(1, 0);
-        DepsDDm(4, 8) = Dm(2, 0);
+        DepsDDm(3, 6) = DefF(0, 2);
+        DepsDDm(3, 7) = DefF(1, 2);
+        DepsDDm(3, 8) = DefF(2, 2);
 
-        DepsDDm(5, 3) = Dm(0, 2);
-        DepsDDm(5, 4) = Dm(1, 2);
-        DepsDDm(5, 5) = (1.0 + Dm(2, 2));
-        DepsDDm(5, 6) = Dm(0, 1);
-        DepsDDm(5, 7) = (1.0 + Dm(1, 1));
-        DepsDDm(5, 8) = Dm(2, 1);
+        DepsDDm(4, 0) = DefF(0, 2);
+        DepsDDm(4, 1) = DefF(1, 2);
+        DepsDDm(4, 2) = DefF(2, 2);
+        DepsDDm(4, 6) = DefF(0, 0);
+        DepsDDm(4, 7) = DefF(1, 0);
+        DepsDDm(4, 8) = DefF(2, 0);
+
+        DepsDDm(5, 3) = DefF(0, 2);
+        DepsDDm(5, 4) = DefF(1, 2);
+        DepsDDm(5, 5) = DefF(2, 2);
+        DepsDDm(5, 6) = DefF(0, 1);
+        DepsDDm(5, 7) = DefF(1, 1);
+        DepsDDm(5, 8) = DefF(2, 1);
 
         ChMatrixNM<double, 9, 33> Gd;
         for (int ii = 0; ii < 11; ii++) {
@@ -744,8 +740,9 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
     j0(2, 1) = Ny_d0(0, 0) * Nx_d0(0, 2) - Nx_d0(0, 0) * Ny_d0(0, 2);
     j0(2, 2) = Nx_d0(0, 0) * Ny_d0(0, 1) - Ny_d0(0, 0) * Nx_d0(0, 1);
     j0.MatrDivScale(detJ0);
+    // Current deformation gradient matrix
+    ChMatrixNM<double, 3, 3> DefF; 
 
-    ChMatrixNM<double, 3, 3> DefF;
     DefF(0, 0) = Nx_d(0, 0);
     DefF(1, 0) = Nx_d(0, 1);
     DefF(2, 0) = Nx_d(0, 2);
@@ -776,8 +773,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
     E_eps(4, 4) = C2;
     E_eps(5, 5) = C2;
 
-    // if (m_element->m_strain_form == GreenLagrange)
     if (!m_element->m_Hencky) {
+
         ChMatrixNM<double, 11, 1> ddNx;
         ChMatrixNM<double, 11, 1> ddNy;
         ChMatrixNM<double, 11, 1> ddNz;
@@ -804,47 +801,44 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         ChMatrixNM<double, 6, 1> strain;
         strain = strain_til;
 
-        ChMatrixNM<double, 6, 33> strainD;
-        ChMatrixNM<double, 6, 33> strainDT;
-        ChMatrixNM<double, 3, 3> Id3;
-        ChMatrixNM<double, 3, 3> Dm;
-        ChMatrixNM<double, 6, 9> DepsDDm;
-        Id3(0, 0) = 1.0;
-        Id3(1, 1) = 1.0;
-        Id3(2, 2) = 1.0;
-        Dm = DefF - Id3;
-        DepsDDm(0, 0) = 1.0 + Dm(0, 0);
-        DepsDDm(0, 1) = Dm(1, 0);
-        DepsDDm(0, 2) = Dm(2, 0);
-        DepsDDm(1, 3) = Dm(0, 1);
-        DepsDDm(1, 4) = 1.0 + Dm(1, 1);
-        DepsDDm(1, 5) = Dm(2, 1);
+        ChMatrixNM<double, 6, 33> strainD; // Derivative of strain vector w.r.t. element coordinates
+        ChMatrixNM<double, 6, 9> DepsDDm; // Derivative of strain vector w.r.t. deformation gradient elements
 
-        DepsDDm(2, 0) = Dm(0, 1);
-        DepsDDm(2, 1) = (1.0 + Dm(1, 1));
-        DepsDDm(2, 2) = Dm(2, 1);
-        DepsDDm(2, 3) = (1.0 + Dm(0, 0));
-        DepsDDm(2, 4) = Dm(1, 0);
-        DepsDDm(2, 5) = Dm(2, 0);
+        // (d)eps_xx/(d)DefF(i)
+        DepsDDm(0, 0) = DefF(0, 0);
+        DepsDDm(0, 1) = DefF(1, 0);
+        DepsDDm(0, 2) = DefF(2, 0);
+        // (d)eps_yy/(d)DefF(i)
+        DepsDDm(1, 3) = DefF(0, 1);
+        DepsDDm(1, 4) = DefF(1, 1);
+        DepsDDm(1, 5) = DefF(2, 1);
+        // (d)eps_xy/(d)DefF(i)
+        DepsDDm(2, 0) = DefF(0, 1);
+        DepsDDm(2, 1) = DefF(1, 1);
+        DepsDDm(2, 2) = DefF(2, 1);
+        DepsDDm(2, 3) = DefF(0, 0);
+        DepsDDm(2, 4) = DefF(1, 0);
+        DepsDDm(2, 5) = DefF(2, 0);
+        // (d)eps_zz/(d)DefF(i)
+        DepsDDm(3, 6) = DefF(0, 2);
+        DepsDDm(3, 7) = DefF(1, 2);
+        DepsDDm(3, 8) = DefF(2, 2);
+        // (d)eps_xz/(d)DefF(i)
+        DepsDDm(4, 0) = DefF(0, 2);
+        DepsDDm(4, 1) = DefF(1, 2);
+        DepsDDm(4, 2) = DefF(2, 2);
+        DepsDDm(4, 6) = DefF(0, 0);
+        DepsDDm(4, 7) = DefF(1, 0);
+        DepsDDm(4, 8) = DefF(2, 0);
+        // (d)eps_yz/(d)DefF(i)
+        DepsDDm(5, 3) = DefF(0, 2);
+        DepsDDm(5, 4) = DefF(1, 2);
+        DepsDDm(5, 5) = DefF(2, 2);
+        DepsDDm(5, 6) = DefF(0, 1);
+        DepsDDm(5, 7) = DefF(1, 1);
+        DepsDDm(5, 8) = DefF(2, 1);
 
-        DepsDDm(3, 6) = Dm(0, 2);
-        DepsDDm(3, 7) = Dm(1, 2);
-        DepsDDm(3, 8) = 1.0 + Dm(2, 2);
-
-        DepsDDm(4, 0) = Dm(0, 2);
-        DepsDDm(4, 1) = Dm(1, 2);
-        DepsDDm(4, 2) = (1.0 + Dm(2, 2));
-        DepsDDm(4, 6) = (1.0 + Dm(0, 0));
-        DepsDDm(4, 7) = Dm(1, 0);
-        DepsDDm(4, 8) = Dm(2, 0);
-
-        DepsDDm(5, 3) = Dm(0, 2);
-        DepsDDm(5, 4) = Dm(1, 2);
-        DepsDDm(5, 5) = (1.0 + Dm(2, 2));
-        DepsDDm(5, 6) = Dm(0, 1);
-        DepsDDm(5, 7) = (1.0 + Dm(1, 1));
-        DepsDDm(5, 8) = Dm(2, 1);
-
+        // Derivative of J=F*F^{-1}_{0} w.t.r. the element coordinates: (d)J/(d)e
         ChMatrixNM<double, 9, 33> Gd;
         for (int ii = 0; ii < 11; ii++) {
             Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -862,15 +856,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
         strainD.MatrMultiply(DepsDDm, Gd);
 
-        // for (int i = 0; i < 33; i++)
-        //{
-        //	GetLog() << strainD(0, i) << " " << strainD(1, i) << " " << strainD(2, i) << "\n" << strainD(3, i) << " " <<
-        //strainD(4, i) << " " << strainD(5, i) << "\n";
-        //}
-        // system("pause");
-
         ChMatrixNM<double, 6, 1> DEPS;
-        DEPS.Reset();
         for (int ii = 0; ii < 33; ii++) {
             DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
             DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -936,7 +922,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         ChMatrixNM<double, 33, 33> KT1;
         KT1 = temp336*strainD* (m_Kfactor + m_Rfactor * m_element->m_Alpha);*/
 
-        KTE = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
+        KTE = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) +(temp339 * Gd) * m_Kfactor;
         KTE.MatrScale(detJ0 * m_element->m_GaussScaling);
         result = KTE;
     }
