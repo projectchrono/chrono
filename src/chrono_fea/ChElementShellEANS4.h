@@ -238,6 +238,16 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     ChMatrixNM<double, 4,  24> m_B6_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
     std::array<ChQuaternion<>, 4> T_i0;                    ///< initial rotations at gauss points
     std::array<ChQuaternion<>, 4> T_S0;                    ///< initial rotations at shear stitching points
+ 
+    enum constants
+    {
+       NUMGP=4, // number of gauss points
+       NUMSP=4, // number of shear stitching points points
+    };
+    static double xi_i[NUMGP][2]; // gauss points coords
+	static double  w_i[NUMGP];    // gauss points weights
+    static double xi_A[NUMSP][2]; // shear stitching points coords
+
 
     // Interface to ChElementBase base class
     // -------------------------------------
