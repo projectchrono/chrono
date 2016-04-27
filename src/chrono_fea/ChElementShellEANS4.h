@@ -18,6 +18,7 @@
 #define CHELEMENTSHELLEANS4_H
 
 #include <vector>
+#include <array>
 
 #include "chrono/core/ChQuadrature.h"
 #include "chrono_fea/ChApiFEA.h"
@@ -235,6 +236,8 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     ChMatrixNM<double, 6,   4> m_strainANS;                ///< ANS strains at shear stitching points
     ChMatrixNM<double, 4,  24> m_B3_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
     ChMatrixNM<double, 4,  24> m_B6_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
+    std::array<ChQuaternion<>, 4> T_i0;                    ///< initial rotations at gauss points
+    std::array<ChQuaternion<>, 4> T_S0;                    ///< initial rotations at shear stitching points
 
     // Interface to ChElementBase base class
     // -------------------------------------
