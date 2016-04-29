@@ -176,22 +176,9 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     /// Get a handle to the fourth node of this element.
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeD() const { return m_nodes[3]; }
 
-    /// Set the neutral rotation of nodeA respect to the element rotation.
-    void SetNodeAreferenceRot(ChQuaternion<> mrot) { q_refrotA = mrot; }
-    ChQuaternion<> GetNodeAreferenceRot() { return q_refrotA; }
-
-    /// Set the neutral rotation of nodeB respect to the element rotation.
-    void SetNodeBreferenceRot(ChQuaternion<> mrot) { q_refrotB = mrot; }
-    ChQuaternion<> GetNodeBreferenceRot() { return q_refrotB; }
-
-    /// Set the neutral rotation of nodeC respect to the element rotation.
-    void SetNodeCreferenceRot(ChQuaternion<> mrot) { q_refrotC = mrot; }
-    ChQuaternion<> GetNodeCreferenceRot() { return q_refrotC; }
-
-    /// Set the neutral rotation of nodeD respect to the element rotation.
-    void SetNodeDreferenceRot(ChQuaternion<> mrot) { q_refrotD = mrot; }
-    ChQuaternion<> GetNodeDreferenceRot() { return q_refrotD; }
-
+    /// Sets the neutral rotations of nodes A,B,C,D, at once, 
+    /// assuming the current element position is for zero strain.
+    void ChElementShellEANS4::SetAsNeutral();
 
     /// Add a layer.
     void AddLayer(double thickness,                              ///< layer thickness
@@ -239,10 +226,6 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
 
   private:
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > m_nodes;///< element nodes
-    ChQuaternion<> q_refrotA;                              ///< reference rotation for neutral case
-    ChQuaternion<> q_refrotB;                              ///< reference rotation for neutral case
-    ChQuaternion<> q_refrotC;                              ///< reference rotation for neutral case
-    ChQuaternion<> q_refrotD;                              ///< reference rotation for neutral case
     std::vector<Layer> m_layers;                           ///< element layers
     size_t m_numLayers;                                    ///< number of layers for this element
     double m_thickness;                                    ///< total element thickness
@@ -252,20 +235,41 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     std::vector<double> m_GaussZ;                          ///< layer separation z values (scaled to [-1,1])
     ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 6,   4> m_strainANS;                ///< ANS strains at shear stitching points
-    ChMatrixNM<double, 4,  24> m_B3_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
-    ChMatrixNM<double, 4,  24> m_B6_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
-    std::array<ChQuaternion<>, 4> T_i0;                    ///< initial rotations at gauss points
-    std::array<ChQuaternion<>, 4> T_S0;                    ///< initial rotations at shear stitching points
- 
+
     enum constants
     {
+       NUMNO=4, // number of nodes 
        NUMGP=4, // number of gauss points
        NUMSP=4, // number of shear stitching points points
     };
+
+    ChMatrixNM<double, 6,   4> m_strainANS;                ///< ANS strains at shear stitching points
+    ChMatrixNM<double, 4,  24> m_B3_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
+    ChMatrixNM<double, 4,  24> m_B6_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
+
+    std::array<ChQuaternion<>, NUMNO> iTa;                 ///< inverse of reference rotations at nodes
+
+    std::array<ChQuaternion<>, NUMGP> T_i0;                ///< initial rotations at gauss points
+    std::array<ChQuaternion<>, NUMSP> T_S0;                ///< initial rotations at shear stitching points
+    double alpha_i[NUMGP];                                 ///< gauss points jacobians 
+
     static double xi_i[NUMGP][2]; // gauss points coords
 	static double  w_i[NUMGP];    // gauss points weights
-    static double xi_A[NUMSP][2]; // shear stitching points coords
+    
+    static double xi_S[NUMSP][2]; // shear stitching points coords
+    static double xi_n[NUMNO][2]; // nodes coords
+
+private:
+    void ComputeNodeAndAverageRotations(
+        const ChQuaternion<>& mrA, const ChQuaternion<>& mrB,
+        const ChQuaternion<>& mrC, const ChQuaternion<>& mrD,
+        ChQuaternion<>& mTavg, 
+        ChQuaternion<>& mTa, ChQuaternion<>& mTb, 
+        ChQuaternion<>& mTc, ChQuaternion<>& mTd,
+        ChVector<>& mF_relA, ChVector<>& mF_relB,
+        ChVector<>& mF_relC, ChVector<>& mF_relD);
+
+public:
 
 
     // Interface to ChElementBase base class

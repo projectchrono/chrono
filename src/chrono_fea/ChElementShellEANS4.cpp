@@ -89,14 +89,19 @@ double ChElementShellEANS4::w_i[ChElementShellEANS4::NUMGP] = {
 	1.
 };
 
-double ChElementShellEANS4::xi_A[ChElementShellEANS4::NUMSP][2] =  {
+double ChElementShellEANS4::xi_S[ChElementShellEANS4::NUMSP][2] =  {
 	{-1.,  0.},
 	{ 1.,  0.},
 	{ 0., -1.},
 	{ 0.,  1.}
 };
 
-
+double ChElementShellEANS4::xi_n[ChElementShellEANS4::NUMNO][2] = {
+	{ -1.,  -1.},
+	{  1.,  -1.},
+	{  1.,   1.},
+	{ -1.,   1.}
+};
 
 
 
@@ -108,11 +113,7 @@ ChElementShellEANS4::ChElementShellEANS4() :  m_numLayers(0), m_thickness(0) {
     m_nodes.resize(4);
     m_Alpha = 0;
 
-    q_refrotA = QUNIT;
-    q_refrotB = QUNIT;
-    q_refrotC = QUNIT;
-    q_refrotD = QUNIT;
-
+    iTa  = {QUNIT, QUNIT, QUNIT, QUNIT};
     T_i0 = {QUNIT, QUNIT, QUNIT, QUNIT};
     T_S0 = {QUNIT, QUNIT, QUNIT, QUNIT};
 }
@@ -150,6 +151,59 @@ void ChElementShellEANS4::AddLayer(double thickness, double theta, std::shared_p
     m_layers.push_back(Layer(this, thickness, theta, material));
 }
 
+
+// -----------------------------------------------------------------------------
+// Set as neutral position
+// -----------------------------------------------------------------------------
+
+// Initial element setup.
+void ChElementShellEANS4::SetAsNeutral() {
+
+    GetNodeA()->GetX0().SetPos( GetNodeA()->GetX0().GetPos() );
+    GetNodeB()->GetX0().SetPos( GetNodeB()->GetX0().GetPos() );
+    GetNodeC()->GetX0().SetPos( GetNodeC()->GetX0().GetPos() );
+    GetNodeD()->GetX0().SetPos( GetNodeD()->GetX0().GetPos() );
+    GetNodeA()->GetX0().SetRot( GetNodeA()->GetX0().GetRot() );
+    GetNodeB()->GetX0().SetRot( GetNodeB()->GetX0().GetRot() );
+    GetNodeC()->GetX0().SetRot( GetNodeC()->GetX0().GetRot() );
+    GetNodeD()->GetX0().SetRot( GetNodeD()->GetX0().GetRot() );
+
+}
+
+// -----------------------------------------------------------------------------
+// Compute instant net rotations and avg. rotation
+// -----------------------------------------------------------------------------
+
+
+void ChElementShellEANS4::ComputeNodeAndAverageRotations(
+        const ChQuaternion<>& mrA, const ChQuaternion<>& mrB,
+        const ChQuaternion<>& mrC, const ChQuaternion<>& mrD,  
+        ChQuaternion<>& mTavg, 
+        ChQuaternion<>& mTa, ChQuaternion<>& mTb, 
+        ChQuaternion<>& mTc, ChQuaternion<>& mTd,
+        ChVector<>& mF_relA, ChVector<>& mF_relB,
+        ChVector<>& mF_relC, ChVector<>& mF_relD) {
+
+    // Tn = Rn*iTa  = Rn*(R0'*t0)
+    mTa = mrA * iTa[0];
+    mTb = mrB * iTa[1];
+    mTc = mrC * iTa[2];
+    mTd = mrD * iTa[3];
+    
+    // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
+    mTavg =(mTa + mTb + mTc + mTd ).GetNormalized();
+    // Tavg' 
+    ChQuaternion<> mTavgT = mTavg.GetConjugate();
+
+    // R_rel_n = Tavg'* T_n
+    // F_rel_n = log(R_rel_n)    i.e. to rot vector
+    mF_relA = (mTavgT * mTa).Q_to_Rotv();
+    mF_relB = (mTavgT * mTb).Q_to_Rotv();
+    mF_relC = (mTavgT * mTc).Q_to_Rotv();
+    mF_relD = (mTavgT * mTd).Q_to_Rotv();
+}
+
+
 // -----------------------------------------------------------------------------
 // Interface to ChElementBase base class
 // -----------------------------------------------------------------------------
@@ -157,32 +211,77 @@ void ChElementShellEANS4::AddLayer(double thickness, double theta, std::shared_p
 // Initial element setup.
 void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 
+    // Align initial pos/rot of nodes to actual pos/rot
+    SetAsNeutral();
+
+    // Shortcuts:
+    const std::array<const ChVector<>, 4> pi0 = {
+        GetNodeA()->GetX0().GetPos(),
+        GetNodeB()->GetX0().GetPos(),
+        GetNodeC()->GetX0().GetPos(),
+        GetNodeD()->GetX0().GetPos()};
+    const std::array<const ChQuaternion<>, 4> ri0 = {
+        GetNodeA()->GetX0().GetRot(),
+        GetNodeB()->GetX0().GetRot(),
+        GetNodeC()->GetX0().GetRot(),
+        GetNodeD()->GetX0().GetRot()};
+    const std::array<const ChVector<>, 4> pi = {
+        GetNodeA()->GetPos(),
+        GetNodeB()->GetPos(),
+        GetNodeC()->GetPos(),
+        GetNodeD()->GetPos()};
+    const std::array<const ChQuaternion<>, 4> ri = {
+        GetNodeA()->GetRot(),
+        GetNodeB()->GetRot(),
+        GetNodeC()->GetRot(),
+        GetNodeD()->GetRot()};
+    const ChQuaternion<>& rA = GetNodeA()->GetRot();
+    const ChQuaternion<>& rB = GetNodeB()->GetRot();
+    const ChQuaternion<>& rC = GetNodeC()->GetRot();
+    const ChQuaternion<>& rD = GetNodeD()->GetRot();
+
+    // Pre-compute the iTa rotations:
+    for (int inode = 0; inode < NUMNO; inode++) {
+        // Element shape functions
+        double u = xi_n[inode][0];
+        double v = xi_n[inode][1];
+        ChMatrixNM<double, 1, 4> Nu;
+        ChMatrixNM<double, 1, 4> Nv;
+        this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
+        this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
+		ChVector<> t1 = Nu(0) * pi[0] +   Nu(1) * pi[1] +  Nu(2) * pi[2] +  Nu(3) * pi[3] ;
+		ChVector<> t2 = Nv(0) * pi[0] +   Nv(1) * pi[1] +  Nv(2) * pi[2] +  Nv(3) * pi[3] ;
+        t1.Normalize();
+		t2.Normalize();
+		ChVector<> t3 = Vcross(t1,t2);
+		t3.Normalize();
+		t2 = Vcross(t3,t1);
+        ChMatrix33<> T123; 
+        T123.Set_A_axis(t1,t2,t3);
+        //GetLog() << "T123=" << ChMatrix33<>(T123) << "\n";
+		iTa[inode] = ri0[inode].GetConjugate()  *  T123.Get_A_quaternion();  
+	}
+
+    // Compute net node rotations, average shell rotation, rot. vectors respect to average:
+    ChQuaternion<>  Ta, Tb, Tc, Td, Tavg;
+    ChVector<>      F_relA, F_relB, F_relC, F_relD;
+    ComputeNodeAndAverageRotations(
+        rA, rB, rC, rD, //in
+        Tavg, Ta, Tb, Tc, Td, F_relA, F_relB, F_relC, F_relD); //out
+
+    // Precompute Gauss-point values
     for (int igp = 0; igp < NUMGP; igp++) {
         // Element shape functions
         double u = xi_i[igp][0];
         double v = xi_i[igp][1];
         ChMatrixNM<double, 1, 4> N;
         this->ShapeFunctions(N, u, v, 0);
-        ChMatrixNM<double, 1, 4> N_ANS;
-        this->ShapeFunctionANSbilinearShell(N_ANS, u, v);
-
-        // Tn = Rn*Rn0'
-        ChQuaternion<> Ta = GetNodeA()->GetRot() * GetNodeAreferenceRot().GetConjugate();
-        ChQuaternion<> Tb = GetNodeB()->GetRot() * GetNodeBreferenceRot().GetConjugate();
-        ChQuaternion<> Tc = GetNodeC()->GetRot() * GetNodeCreferenceRot().GetConjugate();
-        ChQuaternion<> Td = GetNodeD()->GetRot() * GetNodeDreferenceRot().GetConjugate();
-    
-        // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-        ChQuaternion<> Tavg =(Ta + Tb + Tc + Td ).GetNormalized();
-        // Tavg' 
-        ChQuaternion<> TavgT = Tavg.GetConjugate();
-
-        // R_rel_n = Tavg'* T_n
-        // F_rel_n = log(R_rel_n)    i.e. to rot vector
-        ChVector<> F_relA = (TavgT * Ta).Q_to_Rotv();
-        ChVector<> F_relB = (TavgT * Tb).Q_to_Rotv();
-        ChVector<> F_relC = (TavgT * Tc).Q_to_Rotv();
-        ChVector<> F_relD = (TavgT * Td).Q_to_Rotv();
+        ChMatrixNM<double, 1, 4> Nu;
+        ChMatrixNM<double, 1, 4> Nv;
+        this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
+        this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
+		ChVector<> t1 = Nu(0) * pi[0] +   Nu(1) * pi[1] +  Nu(2) * pi[2] +  Nu(3) * pi[3] ;
+		ChVector<> t2 = Nv(0) * pi[0] +   Nv(1) * pi[1] +  Nv(2) * pi[2] +  Nv(3) * pi[3] ;
 
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
         ChVector<> F_rel_i = N(0)*F_relA + 
@@ -193,10 +292,47 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         // T_i = Tavg*exp(phi_i)
         ChQuaternion<> expPhi; 
         expPhi.Q_from_Rotv(F_rel_i);
-        T_i0[igp] = Tavg * expPhi;
+        T_i0[igp] = Tavg * expPhi;                          // -----store T_i0;
+        //GetLog() << "T_i0=" << ChMatrix33<>(T_i0[igp]) << "\n";
+
+        ChMatrix33<> T_0_i(T_i0[igp]);
+		double S_alpha_beta_i11 = T_0_i.Get_A_Xaxis() ^ t1;
+		double S_alpha_beta_i21 = T_0_i.Get_A_Yaxis() ^ t1;
+		double S_alpha_beta_i12 = T_0_i.Get_A_Xaxis() ^ t2;
+		double S_alpha_beta_i22 = T_0_i.Get_A_Yaxis() ^ t2;
+		// alpha_i = det(S_alpha_beta_i)
+		alpha_i[igp] = S_alpha_beta_i11 * S_alpha_beta_i22 -
+			S_alpha_beta_i12 * S_alpha_beta_i21;             // -----store alpha_i;
     }
 
-    // Perform layer initialization and accumulate element thickness.
+    // Precompute shear stitching point values
+    for (int isp = 0; isp < NUMSP; isp++) {
+        // Element shape functions
+        double u = xi_S[isp][0];
+        double v = xi_S[isp][1];
+        ChMatrixNM<double, 1, 4> N;
+        this->ShapeFunctions(N, u, v, 0);
+        ChMatrixNM<double, 1, 4> Nu;
+        ChMatrixNM<double, 1, 4> Nv;
+        this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
+        this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
+		ChVector<> t1 = Nu(0) * pi[0] +   Nu(1) * pi[1] +  Nu(2) * pi[2] +  Nu(3) * pi[3] ;
+		ChVector<> t2 = Nv(0) * pi[0] +   Nv(1) * pi[1] +  Nv(2) * pi[2] +  Nv(3) * pi[3] ;
+
+        // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
+        ChVector<> F_rel_i = N(0)*F_relA + 
+                             N(1)*F_relB + 
+                             N(2)*F_relC +
+                             N(3)*F_relD;
+    
+        // T_i = Tavg*exp(phi_i)
+        ChQuaternion<> expPhi; 
+        expPhi.Q_from_Rotv(F_rel_i);
+        T_S0[isp] = Tavg * expPhi;                          // -----store T_S0;
+        //GetLog() << "T_i0=" << ChMatrix33<>(T_i0[igp]) << "\n";
+    }
+
+    // Perform layer initialization and accumulate element thickness. OBSOLETE
     m_numLayers = m_layers.size();
     m_thickness = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
@@ -205,7 +341,7 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
     }
 
     // Loop again over the layers and calculate the range for Gauss integration in the
-    // z direction (values in [-1,1]).
+    // z direction (values in [-1,1]). OBSOLETE
     m_GaussZ.push_back(-1);
     double z = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
@@ -214,10 +350,10 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
     }
 
     // compute initial sizes
-    m_lenX = (0.5*(GetNodeA()->coord.pos+GetNodeC()->coord.pos) - 0.5*(GetNodeB()->coord.pos+GetNodeD()->coord.pos) ).Length();
-    m_lenY = (0.5*(GetNodeA()->coord.pos+GetNodeB()->coord.pos) - 0.5*(GetNodeC()->coord.pos+GetNodeD()->coord.pos) ).Length();
+    m_lenX = (0.5*(GetNodeA()->coord.pos+GetNodeD()->coord.pos) - 0.5*(GetNodeB()->coord.pos+GetNodeC()->coord.pos) ).Length();
+    m_lenY = (0.5*(GetNodeA()->coord.pos+GetNodeB()->coord.pos) - 0.5*(GetNodeD()->coord.pos+GetNodeC()->coord.pos) ).Length();
 
-    // Compute mass matrix and gravitational forces (constant)
+    // Compute mass matrix and gravitational forces 
     ComputeMassMatrix();
 }
 
@@ -263,7 +399,7 @@ void ChElementShellEANS4::ComputeMmatrixGlobal(ChMatrix<>& M) {
 // -----------------------------------------------------------------------------
 
 
-//***TODO*** just lumped?
+//***TODO*** just lumped? maybe approximating as 4 tiles for the inertias?
 void ChElementShellEANS4::ComputeMassMatrix() {
     m_MassMatrix.Reset();
     //***TODO*** use true gauss point determinant of jacobian
@@ -355,6 +491,7 @@ void ComputeGammaMatrixInverse(ChMatrix33<>& H, const ChVector<> phi) {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
+bool do_log = false;
 
 void ChElementShellEANS4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     this->ComputeInternalForces_Impl(
@@ -371,9 +508,20 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
                                     const ChVector<>& pD, const ChQuaternion<>& rD,
                                     ChMatrixDynamic<>& Fi) {
 
-    double jacobian = this->m_lenY * this->m_lenX  / 4.0;  //***TODO*** real gauss-point dependant jacobian
-
     Fi.Reset();
+
+    // Shortcuts
+    const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
+    const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
+    const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
+    const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
+
+    // Compute net node rotations, average shell rotation, rot. vectors respect to average:
+    ChQuaternion<>  Ta, Tb, Tc, Td, Tavg;
+    ChVector<>      F_relA, F_relB, F_relC, F_relD;
+    ComputeNodeAndAverageRotations(
+        rA, rB, rC, rD, //in
+        Tavg, Ta, Tb, Tc, Td, F_relA, F_relB, F_relC, F_relD); //out
 
     // Assumed Natural Strain (ANS):  precompute m_strainANS 
     CalcStrainANSbilinearShell(pA,rA, pB,rB, pC,rC, pD,rD);
@@ -391,30 +539,7 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         ChMatrixNM<double, 1, 4> Nu;
         ChMatrixNM<double, 1, 4> Nv;
         this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
-        this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
-
-        const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
-        const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
-        const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
-        const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
-
-        // Tn = Rn*Rn0'
-        ChQuaternion<> Ta = rA * GetNodeAreferenceRot().GetConjugate();
-        ChQuaternion<> Tb = rB * GetNodeBreferenceRot().GetConjugate();
-        ChQuaternion<> Tc = rC * GetNodeCreferenceRot().GetConjugate();
-        ChQuaternion<> Td = rD * GetNodeDreferenceRot().GetConjugate();
-    
-        // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-        ChQuaternion<> Tavg =(Ta + Tb + Tc + Td ).GetNormalized();
-        // Tavg' 
-        ChQuaternion<> TavgT = Tavg.GetConjugate();
-
-        // R_rel_n = Tavg'* T_n
-        // F_rel_n = log(R_rel_n)    i.e. to rot vector
-        ChVector<> F_relA = (TavgT * Ta).Q_to_Rotv();
-        ChVector<> F_relB = (TavgT * Tb).Q_to_Rotv();
-        ChVector<> F_relC = (TavgT * Tc).Q_to_Rotv();
-        ChVector<> F_relD = (TavgT * Td).Q_to_Rotv();
+        this->ShapeFunctionsDerivativeY(Nv, u, v, 0);  
 
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
         ChVector<> F_rel_i = N(0)*F_relA + 
@@ -426,6 +551,9 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         ChQuaternion<> expPhi; 
         expPhi.Q_from_Rotv(F_rel_i);
         ChQuaternion<> T_i = Tavg * expPhi;
+//if (do_log) GetLog() << "F_rel_i=" << F_rel_i << "\n";
+//if (do_log) GetLog() << "Tavg=" << ChMatrix33<>(Tavg) << "\n";
+//if (do_log) GetLog() << "T_i=" << ChMatrix33<>(T_i) << "\n";
 
         // STRAIN  in local frame
         // eps_u = T_i'* Yi,u = T_i' * sum_n(Nin,u Yn)
@@ -436,6 +564,8 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         ChVector<> yi_v0 =  Nv(0) * pA0 +   Nv(1) * pB0 +  Nv(2) * pC0 +  Nv(3) * pD0 ;
         ChVector<> eps_u = T_i.RotateBack ( yi_u ) - T_i0[igp].RotateBack(yi_u0);
         ChVector<> eps_v = T_i.RotateBack ( yi_v ) - T_i0[igp].RotateBack(yi_v0);
+//if (do_log) GetLog() << "eps_u=" << eps_u << "\n";
+//if (do_log) GetLog() << "eps_v=" << eps_v << "\n";
 
         // CURVATURES in local frame
         // kur_u = T_i'* abs_kur,u = Hi' * sum( Nin,u F_rel_n )
@@ -448,7 +578,8 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
 
         ChVector<> kur_u = Hi.MatrT_x_Vect( F_rel_u );
         ChVector<> kur_v = Hi.MatrT_x_Vect( F_rel_v );
-
+if (do_log) GetLog() << "kur_u=" << kur_u << "\n";
+if (do_log) GetLog() << "kur_v=" << kur_v << "\n";
         // some complication: compute the Phi matrices:
         ChMatrix33<> Hai;
         ComputeGammaMatrixInverse(Hai,F_relA);
@@ -459,7 +590,7 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         ChMatrix33<> Hdi;
         ComputeGammaMatrixInverse(Hdi,F_relD);
 
-        ChMatrix33<> mTavgT(TavgT);
+        ChMatrix33<> mTavgT(Tavg.GetConjugate());
         ChMatrix33<> mTavg(Tavg);
         ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * GetNodeA()->GetA(); 
         ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * GetNodeB()->GetA();
@@ -527,7 +658,8 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         for (int ic=0; ic<24; ++ic)
             B(5,ic) = N_ANS(0)* this->m_B6_ANS(0,ic) + 
                       N_ANS(1)* this->m_B6_ANS(1,ic);
-
+if (do_log) GetLog() << "eps_u'=" << eps_u << "\n";
+if (do_log) GetLog() << "eps_v'=" << eps_v << "\n";
         // STRESSES - forces n and torques m 
         ChVector<> n_u;
         ChVector<> n_v;
@@ -548,12 +680,14 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
 
         result.MatrTMultiply(B,sigma);
 
-        result.MatrScale(-jacobian);
+        result.MatrScale(- alpha_i[igp]); // scale by jacobian (determinant of parametric-carthesian transformation)
 
         Fi += result;
 
-    }  // end loop on gauss points
+        //***TODO*** add optional EAS terms
 
+    }  // end loop on gauss points
+    if (do_log) GetLog() << "Fi = " << Fi << "\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -568,6 +702,8 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
     bool use_numerical_differentiation = true;
     
     if (use_numerical_differentiation) {
+        
+        do_log = false;
 
         double diff = 1e-4;
         ChMatrixNM<double,24,1> Kcolumn;
@@ -635,17 +771,16 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 5 + inode * 6);
             rot[inode] = qbackup;
         }
+       // do_log = true;
     }
     else {
-        //**TODO*** compute true jacobian on per-gauss point basis
-        double jacobian = this->m_lenY * this->m_lenX  / 4.0;
-
                // Assumed Natural Strain (ANS):  precompute m_strainANS 
         CalcStrainANSbilinearShell( GetNodeA()->GetPos(),GetNodeA()->GetRot(),
                                     GetNodeB()->GetPos(),GetNodeB()->GetRot(),
                                     GetNodeC()->GetPos(),GetNodeC()->GetRot(),
                                     GetNodeD()->GetPos(),GetNodeD()->GetRot());
 
+        // Shortcuts:
         const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
         const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
         const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
@@ -658,6 +793,13 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
         const ChQuaternion<>& rB = GetNodeB()->GetRot();
         const ChQuaternion<>& rC = GetNodeC()->GetRot();
         const ChQuaternion<>& rD = GetNodeD()->GetRot();
+
+        // Compute net node rotations, average shell rotation, rot. vectors respect to average:
+        ChQuaternion<>  Ta, Tb, Tc, Td, Tavg;
+        ChVector<>      F_relA, F_relB, F_relC, F_relD;
+        ComputeNodeAndAverageRotations(
+        rA, rB, rC, rD, //in
+        Tavg, Ta, Tb, Tc, Td, F_relA, F_relB, F_relC, F_relD); //out
 
         for (int igp = 0; igp < NUMGP; igp++) {
 
@@ -673,27 +815,6 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             ChMatrixNM<double, 1, 4> Nv;
             this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
             this->ShapeFunctionsDerivativeY(Nv, u, v, 0);  
-
-            // Tn = Rn*Rn0'
-            ChQuaternion<> Ta = rA * GetNodeAreferenceRot().GetConjugate();
-            ChQuaternion<> Tb = rB * GetNodeBreferenceRot().GetConjugate();
-            ChQuaternion<> Tc = rC * GetNodeCreferenceRot().GetConjugate();
-            ChQuaternion<> Td = rD * GetNodeDreferenceRot().GetConjugate();
-    
-            // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-            ChQuaternion<> Tavg =(Ta +
-                                  Tb +
-                                  Tc +
-                                  Td ).GetNormalized();
-            // Tavg' 
-            ChQuaternion<> TavgT = Tavg.GetConjugate();
-
-            // R_rel_n = Tavg'* T_n
-            // F_rel_n = log(R_rel_n)    i.e. to rot vector
-            ChVector<> F_relA = (TavgT * Ta).Q_to_Rotv();
-            ChVector<> F_relB = (TavgT * Tb).Q_to_Rotv();
-            ChVector<> F_relC = (TavgT * Tc).Q_to_Rotv();
-            ChVector<> F_relD = (TavgT * Td).Q_to_Rotv();
     
             // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
             ChVector<> F_rel_i = N(0)*F_relA + 
@@ -738,7 +859,7 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             ChMatrix33<> Hdi;
             ComputeGammaMatrixInverse(Hdi,F_relD);
 
-            ChMatrix33<> mTavgT(TavgT);
+            ChMatrix33<> mTavgT(Tavg.GetConjugate());
             ChMatrix33<> mTavg(Tavg);
             ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * GetNodeA()->GetA(); 
             ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * GetNodeB()->GetA();
@@ -830,8 +951,13 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                 result.PasteMatrix(&Kmi,0,ic);
             }
 
+            double jacobian = alpha_i[igp]; // scale by jacobian (determinant of parametric-carthesian transformation)
+
             result.MatrScale(jacobian * (Kfactor + Rfactor * this->m_Alpha));
             this->m_JacobianMatrix += result;
+
+            //***TODO*** add geometric tangent matrix
+            //***TODO*** add optional EAS terms
 
         } // end loop on gauss points
     }
@@ -842,28 +968,27 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 // -----------------------------------------------------------------------------
 
 void ChElementShellEANS4::ShapeFunctions(ChMatrix<>& N, double x, double y, double z) {
+
     N(0) = 0.25 * (1.0 - x) * (1.0 - y);
     N(1) = 0.25 * (1.0 + x) * (1.0 - y);
-    N(2) = 0.25 * (1.0 - x) * (1.0 + y);
-    N(3) = 0.25 * (1.0 + x) * (1.0 + y);
+    N(2) = 0.25 * (1.0 + x) * (1.0 + y);
+    N(3) = 0.25 * (1.0 - x) * (1.0 + y);
 }
 
 void ChElementShellEANS4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z) {
-    double a = GetLengthX();
 
-    Nx(0) = 0.25 * (-2.0 / a) * (1.0 - y);
-    Nx(1) = 0.25 * (2.0 / a) * (1.0 - y);
-    Nx(2) = 0.25 * (-2.0 / a) * (1.0 + y);
-    Nx(3) = 0.25 * (2.0 / a) * (1.0 + y);
+    Nx(0) = - 0.25 * (1.0 - y);
+    Nx(1) =   0.25 * (1.0 - y);
+    Nx(2) =   0.25 * (1.0 + y);
+    Nx(3) = - 0.25 * (1.0 + y);
 }
 
 void ChElementShellEANS4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z) {
-    double b = GetLengthY();
 
-    Ny(0) = 0.25 * (1.0 - x) * (-2.0 / b);
-    Ny(1) = 0.25 * (1.0 + x) * (-2.0 / b);
-    Ny(2) = 0.25 * (1.0 - x) * (2.0 / b);
-    Ny(3) = 0.25 * (1.0 + x) * (2.0 / b);
+    Ny(0) = - 0.25 * (1.0 - x);
+    Ny(1) = - 0.25 * (1.0 + x);
+    Ny(2) =   0.25 * (1.0 + x);
+    Ny(3) =   0.25 * (1.0 - x);
 }
 
 
@@ -891,43 +1016,29 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
                                     const ChVector<>& pC, const ChQuaternion<>& rC,
                                     const ChVector<>& pD, const ChQuaternion<>& rD) {
 
+    // Shortcuts
+    const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
+    const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
+    const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
+    const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
+
     ChMatrixNM<double, 1, 4> N;
     ChMatrixNM<double, 1, 4> Nu;
     ChMatrixNM<double, 1, 4> Nv;
 
+    // Compute net node rotations, average shell rotation, rot. vectors respect to average:
+    ChQuaternion<>  Ta, Tb, Tc, Td, Tavg;
+    ChVector<>      F_relA, F_relB, F_relC, F_relD;
+    ComputeNodeAndAverageRotations(
+        rA, rB, rC, rD, //in
+        Tavg, Ta, Tb, Tc, Td, F_relA, F_relB, F_relC, F_relD); //out
+
     for (int kk = 0; kk < 4; kk++) {
-        double xi_Au = xi_A[kk][0];
-        double xi_Av = xi_A[kk][1];
+        double xi_Au = xi_S[kk][0];
+        double xi_Av = xi_S[kk][1];
         ShapeFunctions(N, xi_Au, xi_Av, 0);
         ShapeFunctionsDerivativeX(Nu, xi_Au, xi_Av, 0);
         ShapeFunctionsDerivativeY(Nv, xi_Au, xi_Av, 0);
-
-        const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
-        const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
-        const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
-        const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
-
-        // Tn = Rn*Rn0'
-        ChQuaternion<> Ta = rA * GetNodeAreferenceRot().GetConjugate();
-        ChQuaternion<> Tb = rB * GetNodeBreferenceRot().GetConjugate();
-        ChQuaternion<> Tc = rC * GetNodeCreferenceRot().GetConjugate();
-        ChQuaternion<> Td = rD * GetNodeDreferenceRot().GetConjugate();
-    
-        // Tavg = exp(log(1/4(Ta+Tb+Tc+Td)), also approx as:
-        ChQuaternion<> Tavg =(Ta +
-                              Tb +
-                              Tc +
-                              Td ).GetNormalized();
-
-        // Tavg' 
-        ChQuaternion<> TavgT = Tavg.GetConjugate();
-
-        // R_rel_n = Tavg'* T_n
-        // F_rel_n = log(R_rel_n)    i.e. to rot vector
-        ChVector<> F_relA = (TavgT * Ta).Q_to_Rotv();
-        ChVector<> F_relB = (TavgT * Tb).Q_to_Rotv();
-        ChVector<> F_relC = (TavgT * Tc).Q_to_Rotv();
-        ChVector<> F_relD = (TavgT * Td).Q_to_Rotv();
     
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
         ChVector<> F_rel_i = N(0)*F_relA + 
@@ -966,7 +1077,7 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
         ChMatrix33<> Hdi;
         ComputeGammaMatrixInverse(Hdi,F_relD);
 
-        ChMatrix33<> mTavgT(TavgT);
+        ChMatrix33<> mTavgT(Tavg.GetConjugate());
         ChMatrix33<> mTavg(Tavg);
         ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * this->GetNodeA()->GetA(); 
         ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * this->GetNodeB()->GetA();
