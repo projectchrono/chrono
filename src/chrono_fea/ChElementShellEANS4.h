@@ -88,6 +88,16 @@ class ChApiFea ChMaterialShellEANS {
 /// Based on the paper:
 /// "Implementation and validation of a 4-node shell finite element"
 /// Marco Morandini, Pierangelo Masarati.  IDETC/CIE 2014.
+/// 
+/// The node numbering is in ccw fashion as in the following scheme:
+///         v
+///         ^
+/// D o-----+-----o C
+///   |     |     |
+/// --+-----+-----+-> u
+///   |     |     |
+/// A o-----+-----o B
+///
 class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellEANS4();
@@ -136,6 +146,15 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     virtual int GetNodeNdofs(int n) override { return 6; }
 
     /// Specify the nodes of this element.
+    /// The node numbering is in ccw fashion as in the following scheme:
+    ///         v
+    ///         ^
+    /// D o-----+-----o C
+    ///   |     |     |
+    /// --+-----+-----+-> u
+    ///   |     |     |
+    /// A o-----+-----o B
+    ///
     void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA,
                   std::shared_ptr<ChNodeFEAxyzrot> nodeB,
                   std::shared_ptr<ChNodeFEAxyzrot> nodeC,
