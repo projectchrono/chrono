@@ -660,7 +660,12 @@ void ChIrrAppInterface::DoStep() {
     else
         dt = timestep;
 
-    system->DoStepDynamics(dt);
+    try{
+        system->DoStepDynamics(dt);
+    } 
+    catch(ChException my_exception) {
+        GetLog() << my_exception.what() << "\n";
+    }
 }
 
 // Redraw all 3D shapes and GUI elements
