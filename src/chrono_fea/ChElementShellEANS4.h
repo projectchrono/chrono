@@ -178,7 +178,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
 
     /// Sets the neutral rotations of nodes A,B,C,D, at once, 
     /// assuming the current element position is for zero strain.
-    void ChElementShellEANS4::SetAsNeutral();
+    void SetAsNeutral();
 
     /// Add a layer.
     void AddLayer(double thickness,                              ///< layer thickness
