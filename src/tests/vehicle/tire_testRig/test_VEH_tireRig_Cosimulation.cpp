@@ -302,7 +302,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     ChVector<> inertia_g = 0.4 * mass_g * m_rg * m_rg * ChVector<>(1, 1, 1);
     unsigned int num_particles = 1;
 
-    m_rp = 0.005;
+    m_rp = 0.01;
 
     // Create parallel system and contact material
     switch (m_method) {
@@ -310,11 +310,11 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
             ChSystemParallelDEM* sys = new ChSystemParallelDEM;
             sys->GetSettings()->solver.contact_force_model = ChSystemDEM::Hooke;
             sys->GetSettings()->solver.tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
-            sys->GetSettings()->solver.use_material_properties = true;
+            sys->GetSettings()->solver.use_material_properties = false;
             m_system = sys;
 
             auto mat = std::make_shared<ChMaterialSurfaceDEM>();
-            mat->SetYoungModulus(2e6f);
+            mat->SetYoungModulus(2e7f);
             mat->SetRestitution(0.1f);
             mat->SetFriction(0.9f);
             mat->SetAdhesion(0);
