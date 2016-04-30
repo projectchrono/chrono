@@ -30,6 +30,7 @@
 #include <omp.h>
 #include <algorithm>
 #include <vector>
+#include <set>
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemDEM.h"
@@ -72,9 +73,10 @@ class RigNode {
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;
 
     void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indeces) {
-        std::cout << "[Rig node] contact forces" << std::endl;
+        std::cout << "[Rig node    ] contact forces" << std::endl;
         for (int i = 0; i < indeces.size(); i++) {
-            std::cout << indeces[i] << "    " << forces[i].x << "  " << forces[i].y << "  " << forces[i].z << std::endl;
+            std::cout << "  id = " << indeces[i] << "  force = " << forces[i].x << "  " << forces[i].y << "  "
+                      << forces[i].z << std::endl;
         }
     }
 };
@@ -120,7 +122,7 @@ void RigNode::Initialize() {
     MPI_Status status;
     MPI_Recv(&init_height, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-    std::cout << "[Rig node] Received init_height = " << init_height << std::endl;
+    std::cout << "[Rig node    ] Received init_height = " << init_height << std::endl;
 
     // Model parameters
     double desired_speed = 0;//// 20;
@@ -164,7 +166,7 @@ void RigNode::Initialize() {
     props[1] = contact_surface->GetNumTriangles();
     MPI_Send(props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    std::cout << "[Rig node] vertices = " << props[0] << "  triangles = " << props[1] << std::endl;
+    std::cout << "[Rig node    ] vertices = " << props[0] << "  triangles = " << props[1] << std::endl;
 
     //// TODO: complete construction of the test rig
 
@@ -179,10 +181,18 @@ void RigNode::Synchronize(int step_number, double time) {
     std::vector<ChVector<>> vert_vel;
     std::vector<ChVector<int>> triangles;
     m_contact_load->OutputSimpleMesh(vert_pos, vert_vel, triangles);
-    unsigned int num_vert = (unsigned int)vert_pos.size();
-    unsigned int num_tri = (unsigned int)triangles.size();
+
+    // Display information on lowest contact vertex.
+    auto lowest = std::min_element(vert_pos.begin(), vert_pos.end(),
+                                   [](const ChVector<>& a, const ChVector<>& b) { return a.z < b.z; });
+    int index = lowest - vert_pos.begin();
+    const ChVector<>& vel = vert_vel[index];
+    std::cout << "[Rig node    ] lowest vertex:  index = " << index << "  height = " << (*lowest).z
+              << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
 
     // Send tire mesh vertex locations and velocities to the terrain node
+    unsigned int num_vert = (unsigned int)vert_pos.size();
+    unsigned int num_tri = (unsigned int)triangles.size();
     double* vert_data = new double[2 * 3 * num_vert];
     int* tri_data = new int[3 * num_tri];
     for (unsigned int iv = 0; iv < num_vert; iv++) {
@@ -217,7 +227,7 @@ void RigNode::Synchronize(int step_number, double time) {
     MPI_Recv(index_data, count, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
     MPI_Recv(force_data, 3 * count, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-    std::cout << "[Rig node] step number: " << step_number << " vertices in contact: " << count << std::endl;
+    std::cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << std::endl;
 
     // Repack data and apply forces to the mesh vertices
     std::vector<ChVector<>> vert_forces;
@@ -277,13 +287,8 @@ private:
     unsigned int m_num_vert;
     unsigned int m_num_tri;
 
-    double FindLowestProxy() {
-        double z = 1e10;
-        for (unsigned int iv = 0; iv < m_num_vert; iv++) {
-            z = std::min<>(z, m_proxies[iv].m_body->GetPos().z);
-        }
-        return z;
-    }
+    void PrintContactData();
+
 };
 
 TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
@@ -295,7 +300,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     double hthick = 0.25;
 
     m_rg = 0.02;
-    int Id_g = 1;
+    int Id_g = 10000;
     double rho_g = 2500;
     double vol_g = (4.0 / 3) * CH_C_PI * m_rg * m_rg * m_rg;
     double mass_g = rho_g * vol_g;
@@ -443,7 +448,7 @@ void TerrainNode::Settle() {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Terrain Node", m_system);
-    gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+    gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
 
@@ -496,12 +501,15 @@ void TerrainNode::Initialize() {
 
     // Create bodies with spherical contact geometry as proxies for the tire
     // mesh vertices and add them to the Chrono system.
+    // Assign to each body an identifier equal to the index of its corresponding
+    // mesh vertex.
     // Maintain lists of all bodies associated with the tire.
     double mass = 1;
     ChVector<> inertia = 0.4 * mass * m_rp * m_rp * ChVector<>(1, 1, 1);
     for (unsigned int iv = 0; iv < m_num_vert; iv++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         m_system->AddBody(body);
+        body->SetIdentifier(iv);
         body->SetMass(mass);
         body->SetInertiaXX(inertia);
         body->SetBodyFixed(true);
@@ -514,9 +522,7 @@ void TerrainNode::Initialize() {
 
         m_proxies.push_back(ProxyNodeBody(body, iv));
     }
-
 }
-
 
 void TerrainNode::Synchronize(int step_number, double time) {
     // Receive tire mesh vertex locations and velocities.
@@ -537,7 +543,14 @@ void TerrainNode::Synchronize(int step_number, double time) {
     delete[] vert_data;
     delete[] tri_data;
 
-    std::cout << "[Terrain node] lowest proxy = " << FindLowestProxy() << std::endl;
+    // Display information on lowest proxy.
+    auto lowest = std::min_element(
+        m_proxies.begin(), m_proxies.end(),
+        [](const ProxyNodeBody& a, const ProxyNodeBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
+    const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
+    double height = (*lowest).m_body->GetPos().z;
+    std::cout << "[Terrain node] lowest vertex   index = " << (*lowest).m_index << "  height = " << height
+              << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
 
     // Calculate cumulative contact forces for all bodies in system.
     m_system->CalculateContactForces();
@@ -563,7 +576,8 @@ void TerrainNode::Synchronize(int step_number, double time) {
     MPI_Send(vert_indeces.data(), num_vert, MPI_INT, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
     MPI_Send(vert_forces.data(), 3 * num_vert, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-    std::cout << "[Terrain node] step number: " << step_number << "  vertices in contact: " << num_vert << std::endl;
+    std::cout << "[Terrain node] step number: " << step_number << "  num contacts: " << m_system->GetNcontacts()
+              << "  vertices in contact: " << num_vert << std::endl;
 }
 
 void TerrainNode::Advance(double step_size) {
@@ -576,6 +590,54 @@ void TerrainNode::Advance(double step_size) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 #endif
+
+    PrintContactData();
+}
+
+void TerrainNode::PrintContactData() {
+    // Information on all contacts.
+    // Note that proxy body identifiers match the index of the associated mesh vertex.
+    auto bodies = m_system->Get_bodylist();
+    auto dm = m_system->data_manager;
+    auto& bids = dm->host_data.bids_rigid_rigid;
+    auto& cpta = dm->host_data.cpta_rigid_rigid;
+    auto& cptb = dm->host_data.cptb_rigid_rigid;
+    auto& dpth = dm->host_data.dpth_rigid_rigid;
+    auto& norm = dm->host_data.norm_rigid_rigid;
+    std::set<int> vertices_in_contact;
+    std::cout << "[Terrain node] contact information (" << dm->num_rigid_contacts << ")" << std::endl;
+    for (uint ic = 0; ic < dm->num_rigid_contacts; ic++) {
+        int idA = bids[ic].x;
+        int idB = bids[ic].y;
+        int indexA = (*bodies)[idA]->GetIdentifier();
+        int indexB = (*bodies)[idB]->GetIdentifier();
+        if (indexA > 0) vertices_in_contact.insert(indexA);
+        if (indexB > 0) vertices_in_contact.insert(indexB);
+
+        std::cout << "  id1 = " << indexA << "  id2 = " << indexB << "   dpth = " << dpth[ic]
+                  << "  normal = " << norm[ic].x << "  " << norm[ic].y << "  " << norm[ic].z << std::endl;
+    }
+
+    // Cumulative contact forces on proxy bodies.
+    m_system->CalculateContactForces();
+    std::cout << "[Terrain node] vertex forces (" << vertices_in_contact.size() << ")" << std::endl;
+    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
+        if (vertices_in_contact.find(iv) != vertices_in_contact.end()) {
+            real3 force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
+            std::cout << "  id = " << m_proxies[iv].m_index << "  force = " << force.x << "  " << force.y << "  "
+                      << force.z << std::endl;
+        }
+    }
+
+    ////auto container = std::static_pointer_cast<ChContactContainerParallel>(m_system->GetContactContainer());
+    ////auto contacts = container->GetContactList();
+
+    ////for (auto it = contacts.begin(); it != contacts.end(); ++it) {
+    ////    ChBody* bodyA = static_cast<ChBody*>((*it)->GetObjA());
+    ////    ChBody* bodyB = static_cast<ChBody*>((*it)->GetObjA());
+
+    ////    std::cout << " id1 = " << bodyA->GetIdentifier() << "  id2 = " << bodyB->GetIdentifier() << std::endl;
+    ////}
 }
 
 // =============================================================================
@@ -631,7 +693,9 @@ int main() {
 
         switch (rank) {
             case RIG_NODE_RANK:
+                std::cout << " ---------------------------- " << std::endl;
                 my_rig->Synchronize(is, time);
+                std::cout << " --- " << std::endl;
                 my_rig->Advance(step_size);
                 break;
             case TERRAIN_NODE_RANK:
