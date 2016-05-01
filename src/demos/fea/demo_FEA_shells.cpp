@@ -140,10 +140,18 @@ int main(int argc, char* argv[]) {
                                                          10.01);
 
         // Create the nodes (each with position & normal to shell)
+        
         auto hnodeeans1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
         auto hnodeeans2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, 0, 0)));
-        auto hnodeeans3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W, 0 )));
-        auto hnodeeans4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W, 0)));
+        auto hnodeeans3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W, 0)));
+        auto hnodeeans4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W, 0 )));
+        
+        /*
+        auto hnodeeans1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
+        auto hnodeeans2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, 0, 0)));
+        auto hnodeeans3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, 0, shell_W)));
+        auto hnodeeans4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0 , shell_W )));
+        */
         node3 = hnodeeans3;
         node4 = hnodeeans4;
         double mn = 10.5;
@@ -178,23 +186,33 @@ int main(int argc, char* argv[]) {
         elementeans->AddLayer(shell_thickness, 0 * CH_C_DEG_TO_RAD, mat);
 
         // Set other element properties
-        elementeans->SetAlphaDamp(0.01);    // Structural damping for this element
+        elementeans->SetAlphaDamp(0.02);    // Structural damping for this element
 
         // Apply a lumped force to a node:
        // hnodeeans3->SetPos(hnodeeans3->GetPos()+ChVector<>(0, 0, 0.01));
        // hnodeeans4->SetPos(hnodeeans4->GetPos()+ChVector<>(0, 0, 0.01));
        // hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
        // hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
-        hnodeeans3->SetForce(ChVector<>(0, 0, 250));
-        hnodeeans4->SetForce(ChVector<>(0, 0, 250));
+       //hnodeeans3->SetForce(ChVector<>(0, 0, 100));
+       //hnodeeans4->SetForce(ChVector<>(0, 0, 100));
+       // hnodeeans3->SetForce(ChVector<>(0, 50, 0));
+       // hnodeeans4->SetForce(ChVector<>(0, 50, 0));
        //hnodeeans3->SetTorque(ChVector<>(0.2, 0, 0));
        //hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
        // hnodeeans4->SetMass(2000);
 
 
-        /*
-        auto hnodeeans5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W*2, 0 )));
-        auto hnodeeans6 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W*2, 0)));
+        
+        auto hnodeeans5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, shell_W*2, 0)));
+        auto hnodeeans6 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, shell_W*2, 0 )));
+        
+        //auto hnodeeans5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(shell_L, 0, shell_W*2)));
+        //auto hnodeeans6 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, shell_W*2 )));
+        
+        hnodeeans5->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans6->GetInertia().FillDiag(1./12.*pow((shell_L/2.),3)*mn);
+        hnodeeans5->SetMass(mn);
+        hnodeeans6->SetMass(mn);
 
         my_mesh->AddNode(hnodeeans5);
         my_mesh->AddNode(hnodeeans6);
@@ -205,7 +223,7 @@ int main(int argc, char* argv[]) {
         my_mesh->AddElement(elementeansb);
 
         // Set its nodes
-        elementeansb->SetNodes(hnodeeans3, hnodeeans4, hnodeeans5, hnodeeans6);
+        elementeansb->SetNodes(hnodeeans4, hnodeeans3, hnodeeans5, hnodeeans6);
 
         // Set element dimensions
         //elementeans->SetDimensions(shell_L, shell_W); // not needed, already set at initialization from initial pos of nodes
@@ -216,12 +234,14 @@ int main(int argc, char* argv[]) {
         // Set other element properties
         elementeansb->SetAlphaDamp(0.0);    // Structural damping for this element
 
-        hnodeeans5->SetForce(ChVector<>(0, 0, 5));
-        hnodeeans6->SetForce(ChVector<>(0, 0, 5));
+        hnodeeans5->SetForce(ChVector<>(0, 0, 10));
+        hnodeeans6->SetForce(ChVector<>(0, 0, 10));
+        //hnodeeans5->SetForce(ChVector<>(0, 10, 0));
+        //hnodeeans6->SetForce(ChVector<>(0, 10, 0));
         //hnodeeans5->SetTorque(ChVector<>(5, 0, 0));
         //hnodeeans6->SetTorque(ChVector<>(5, 0, 0));
         //hnodeeans6->SetMass(2000);
-        */
+        
         
     }
 
@@ -314,6 +334,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
+        if (false)
         if(!application.GetPaused()) {
             GetLog() << "\n\n Time = " << application.GetSystem()->GetChTime();
 

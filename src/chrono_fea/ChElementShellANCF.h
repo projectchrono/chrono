@@ -66,6 +66,16 @@ class ChApiFea ChMaterialShellANCF {
 // ----------------------------------------------------------------------------
 /// ANCF laminated shell element with four nodes.
 /// This class implements composite material elastic force formulations.
+/// 
+/// The node numbering is in ccw fashion as in the following scheme:
+///         v
+///         ^
+/// D o-----+-----o C
+///   |     |     |
+/// --+-----+-----+-> u
+///   |     |     |
+/// A o-----+-----o B
+///
 class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellANCF();

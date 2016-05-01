@@ -167,11 +167,7 @@ double CreateParticles(ChSystem* system) {
     // Create a particle generator and a mixture entirely made out of spheres
     utils::Generator gen(system);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-#ifdef USE_DEM
-    m1->setDefaultMaterialDEM(mat_g);
-#else
-    m1->setDefaultMaterialDVI(mat_g);
-#endif
+    m1->setDefaultMaterial(mat_g);
     m1->setDefaultDensity(rho_g);
     m1->setDefaultSize(r_g);
 
