@@ -66,7 +66,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     virtual void SetMass(double mm) = 0;
 
     /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() { return 3; }
+    virtual int Get_ndof_x() override { return 3; }
 
 
 
@@ -75,36 +75,36 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 3; }
+    virtual int LoadableGet_ndof_x() override { return 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 3; }
+    virtual int LoadableGet_ndof_w() override { return 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteVector(this->pos, block_offset, 0);
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteVector(this->pos_dt, block_offset, 0);
     }
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() { return 3; }
+    virtual int Get_field_ncoords() override { return 3; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 1; }
+    virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return this->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override { 
         mvars.push_back(&this->Variables());
     };
 
@@ -120,7 +120,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is 3, it is Force x,y,z in absolute coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         //ChVector<> abs_pos(U,V,W); not needed, nodes has no torque. Assuming load is applied to node center
         ChVector<> absF=F.ClipVector(0,0);
         Qi.PasteVector(absF,0,0);
@@ -128,13 +128,13 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     }
 
     /// This is not needed because not used in quadrature.
-    virtual double GetDensity() { return 1; }
+    virtual double GetDensity() override { return 1; }
 
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 
     //

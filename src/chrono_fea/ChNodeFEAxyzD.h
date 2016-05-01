@@ -294,7 +294,8 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChNodeFEAxyz::ArchiveIN(marchive);
         // stream in all member data:

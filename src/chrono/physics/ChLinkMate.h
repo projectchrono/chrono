@@ -62,23 +62,26 @@ class ChApi ChLinkMate : public ChLink {
 
     ChLinkMate(){};
     virtual ~ChLinkMate(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMate* source){};
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATE; }
+    virtual int GetType() override { return LNK_MATE; }
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////
@@ -128,24 +131,27 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
                       bool mc_ry = true,
                       bool mc_rz = true);
     virtual ~ChLinkMateGeneric();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMateGeneric* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATEGENERIC; }
+    virtual int GetType() override { return LNK_MATEGENERIC; }
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master'
     /// body). This represents the 'main' reference of the link: reaction forces
     /// are expressed in this coordinate system.
     /// (It is the coordinate system of the contact plane relative to Body2)
-    virtual ChCoordsys<> GetLinkRelativeCoords() { return frame2.GetCoord(); };
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return frame2.GetCoord(); };
 
     /// Get the master coordinate system for the assets (this will return the
     /// absolute coordinate system of the 'master' marker2)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) { return (frame2 >> *this->GetBody2()); }
+    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return (frame2 >> *this->GetBody2()); }
 
     /// Access the coordinate system considered attached to body1.
     /// Its position is expressed in the coordinate system of body1.
@@ -195,70 +201,70 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     //
 
     /// Override _all_ time, jacobian etc. updating.
-    virtual void Update(double mtime, bool update_assets = true);
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     /// If some constraint is redundant, return to normal state
-    virtual int RestoreRedundant();  ///< \return number of changed states
+    virtual int RestoreRedundant() override;  ///< \return number of changed states
 
     /// Set the status of link validity
-    virtual void SetValid(bool mon) { valid = mon; }
+    virtual void SetValid(bool mon) override { valid = mon; }
 
     /// User can use this to enable/disable all the constraint of
     /// the link as desired.
-    virtual void SetDisabled(bool mdis);
+    virtual void SetDisabled(bool mdis) override;
 
     /// Ex:3rd party software can set the 'broken' status via this method
-    virtual void SetBroken(bool mon);
+    virtual void SetBroken(bool mon) override;
 
-    virtual int GetDOC() { return ndoc; }
-    virtual int GetDOC_c() { return ndoc_c; }
-    virtual int GetDOC_d() { return ndoc_d; }
+    virtual int GetDOC() override { return ndoc; }
+    virtual int GetDOC_c() override { return ndoc_c; }
+    virtual int GetDOC_d() override { return ndoc_d; }
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
     void SetupLinkMask();
@@ -291,14 +297,17 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
         separation = 0;
     };
     virtual ~ChLinkMatePlane(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMatePlane* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATEPLANE; }
+    virtual int GetType() override { return LNK_MATEPLANE; }
 
     /// Tell if the two normals must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
@@ -321,20 +330,20 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
         ChVector<> mpt2,        ///< point on master plane, for 2nd body (rel. or abs., see flag above)
         ChVector<> mnorm1,      ///< normal of slave plane, for 1st body (rel. or abs., see flag above)
         ChVector<> mnorm2       ///< normal of master plane, for 2nd body (rel. or abs., see flag above)
-        );
+        ) override;
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
-    virtual void Update(double mtime, bool update_assets = true);
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////
@@ -359,14 +368,17 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
 
     ChLinkMateCoaxial() : ChLinkMateGeneric(false, true, true, false, true, true) { flipped = false; };
     virtual ~ChLinkMateCoaxial(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMateCoaxial* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATECOAXIAL; }
+    virtual int GetType() override { return LNK_MATECOAXIAL; }
 
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
@@ -383,17 +395,17 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
         ChVector<> mpt2,        ///< point on master axis, for 2nd body (rel. or abs., see flag above)
         ChVector<> mdir1,       ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
         ChVector<> mdir2        ///< direction of master axis, for 2nd body (rel. or abs., see flag above)
-        );
+        ) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////
@@ -415,15 +427,20 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
 
     ChLinkMateSpherical() : ChLinkMateGeneric(true, true, true, false, false, false){};
     virtual ~ChLinkMateSpherical(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMateSpherical* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATESPHERICAL; }
+    virtual int GetType() override { return LNK_MATESPHERICAL; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Specialized initialization for coincident mate, given the two bodies to be connected,
     /// and two points (each expressed in body or abs. coordinates).
     /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
@@ -434,6 +451,7 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
         ChVector<> mpt1,        ///< point, slave, for 1st body (rel. or abs., see flag above)
         ChVector<> mpt2         ///< point, master, for 2nd body (rel. or abs., see flag above)
         );
+#pragma GCC diagnostic pop
 };
 
 //////////////////////////////////////////////////////
@@ -457,20 +475,25 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
 
     ChLinkMateXdistance() : ChLinkMateGeneric(true, false, false, false, false, false) { distance = 0; };
     virtual ~ChLinkMateXdistance(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMateXdistance* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATEXDISTANCE; }
+    virtual int GetType() override { return LNK_MATEXDISTANCE; }
 
     /// Set the distance on X of frame 2
     void SetDistance(double msep) { distance = msep; }
     /// Get the requested distance on X of frame 2
     double GetDistance() { return distance; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Specialized initialization for X distance mate, given the two bodies to be connected,
     /// and two points (each expressed in body or abs. coordinates).
     /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
@@ -482,19 +505,20 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
         ChVector<> mpt2,        ///< point, master, for 2nd body (rel. or abs., see flag above)
         ChVector<> mdir2        ///< direction of master axis, for 2nd body (rel. or abs., see flag above)
         );
+#pragma GCC diagnostic pop
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
-    virtual void Update(double mtime, bool update_assets = true);
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////
@@ -520,14 +544,17 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
 
     ChLinkMateParallel() : ChLinkMateGeneric(false, false, false, false, true, true) { flipped = false; };
     virtual ~ChLinkMateParallel(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMateParallel* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATEPARALLEL; }
+    virtual int GetType() override { return LNK_MATEPARALLEL; }
 
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
@@ -544,17 +571,17 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
         ChVector<> mpt2,        ///< point on master axis, for 2nd body (rel. or abs., see flag above)
         ChVector<> mdir1,       ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
         ChVector<> mdir2        ///< direction of master axis, for 2nd body (rel. or abs., see flag above
-        );
+        ) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////
@@ -584,14 +611,17 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
         reldir2 = VECT_Y;
     };
     virtual ~ChLinkMateOrthogonal(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMateOrthogonal* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_MATEORTHOGONAL; }
+    virtual int GetType() override { return LNK_MATEORTHOGONAL; }
 
     /// Specialized initialization for orthogonal mate, given the two bodies to be connected,
     /// two points and two directions (each expressed in body or abs. coordinates).
@@ -604,20 +634,20 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
         ChVector<> mpt2,        ///< point on master axis, for 2nd body (rel. or abs., see flag above)
         ChVector<> mdir1,       ///< direction of slave axis, for 1st body (rel. or abs., see flag above)
         ChVector<> mdir2        ///< direction of master axis, for 2nd body (rel. or abs., see flag above
-        );
+        ) override;
 
     /// Override _all_ time, jacobian etc. updating, inheriting parent but also adding the effect of separation
-    virtual void Update(double mtime, bool update_assets = true);
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

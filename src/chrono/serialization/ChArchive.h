@@ -17,8 +17,10 @@
 #include <sstream>
 #include <vector>
 #include <list>
+#include <type_traits>
 #include <typeinfo>
 #include <unordered_set>
+#include <utility>
 #include <memory>
 
 #include "chrono/core/ChApiCE.h"
@@ -168,6 +170,16 @@ public:
 
 
 
+/// So we can test if a ChNameValue is valid.
+template<class T>
+struct ChIsAssignable {
+    using BaseT = typename std::remove_all_extents<T>::type;
+    using LValueBaseT =  typename std::add_lvalue_reference<BaseT>::type;
+    static constexpr bool value =
+        std::is_assignable<LValueBaseT, BaseT>::value;
+};
+
+
 ///
 /// This is a base class for name-value pairs
 ///
@@ -175,16 +187,11 @@ public:
 template<class T>
 class  ChNameValue {
   public:
-        ChNameValue(const char* mname, const T& mvalue, char mflags = 0) : 
-            _name(mname), 
-            _value((T*)(& mvalue)),
+        ChNameValue(const char* mname, T& mvalue, char mflags = 0) :
+            _value(mvalue),
+            _name(mname),
             _flags((char)mflags) {}
 
-        ChNameValue(const ChNameValue<T>& other){
-            _name  = other._name;
-            _value = other._value;
-            _flags = other._flags;
-        }
         virtual ~ChNameValue() {};
 
         const char * name() const {
@@ -195,16 +202,19 @@ class  ChNameValue {
             return this->_flags;
         }
 
-        T & value() const {
-            return *(this->_value);
+        T& value() {
+            static_assert (
+                ChIsAssignable<T>::value,
+                "ChNameValue<T> involves an unassignable type T.");
+            return this->_value;
         }
 
-        const T & const_value() const {
-            return *(this->_value);
+        const T& const_value() const {
+            return this->_value;
         }
 
   protected:
-        T* _value;
+        T& _value;
         const char* _name;
         char _flags;
 };
@@ -214,17 +224,32 @@ class  ChNameValue {
 static const char NVP_TRACK_OBJECT = (1 << 0);
 
 
+/// Make a ChNameValue that captures an lvalue reference to the specified
+/// assignable value. The name for the value is the custom name if that is not
+/// null, or the auto name otherwise. Also @see CHNVP.
 template<class T>
-ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, const char * custom_name, char flags = 0){
-    const char* mname = auto_name;
-    if (custom_name)
-        mname = custom_name;
-    return ChNameValue< T >(mname, t, flags);
+ChNameValue< T > make_ChNameValue(
+    const char * auto_name,
+    T & value,
+    const char * custom_name,
+    char flags = 0)
+{
+    static_assert (
+        ChIsAssignable<T>::value,
+        "make_ChNameValue<T> involves an unassignable type T.");
+
+    return ChNameValue< T >(
+        (custom_name ? custom_name : auto_name), value, flags);
 }
+
+/// Three-argument version of make_ChNameValue. The custom_name is omitted.
 template<class T>
-ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, char flags = 0){
-    const char* mname = auto_name;
-    return ChNameValue< T >(mname, t, flags);
+ChNameValue< T > make_ChNameValue(
+    const char * auto_name,
+    T & t,
+    char flags = 0)
+{
+    return make_ChNameValue(auto_name, t, nullptr, flags);
 }
 
 
@@ -376,9 +401,9 @@ public:
 /// 
 
 #define CH_ENUM_MAPPER_BEGIN(__enum_type) \
-            class __enum_type##_mapper : public ChEnumMapper< __enum_type > { \
-            public: \
-                __enum_type##_mapper() { 
+        class __enum_type##_mapper : public ChEnumMapper< __enum_type > { \
+          public: \
+              __enum_type##_mapper() {
 
 #define CH_ENUM_VAL(...) \
         this->AddMapping("" STRINGIFY(FIRST(__VA_ARGS__)) "", FIRST(__VA_ARGS__) REST(__VA_ARGS__) );
@@ -389,7 +414,41 @@ public:
             ChEnumMapper< __enum_type > res(this->enummap); \
             res.value_ptr = &mval; \
             return res; \
-        } }; 
+        } };
+
+
+
+
+/// Special case of make_ChNameValue for a ChEnumMapper<T> as an rvalue
+/// reference.
+template<class T>
+ChNameValue< ChEnumMapper< T > > make_ChNameValue(
+    const char * auto_name,
+    ChEnumMapper<T> && value,
+    const char * custom_name,
+    char flags = 0)
+{
+    static_assert (
+        ChIsAssignable<T>::value,
+        "make_ChNameValue<ChNameValue<T>> involves an unassignable type T.");
+
+    // Note that the value is not forwarded here.
+    return make_ChNameValue(auto_name, value, custom_name, flags);
+}
+
+/// Three argument version of make_ChNameValue for a ChEnumMapper<T> as an
+/// rvalue reference.
+template<class T>
+ChNameValue< ChEnumMapper< T > > make_ChNameValue(
+    const char * auto_name,
+    ChEnumMapper<T> && value,
+    char flags = 0)
+{
+    // Note that the value *is* perfectly-forwarded here.
+    return make_ChNameValue(
+        auto_name, std::forward<ChEnumMapper<T>>(value), nullptr, flags);
+}
+
 
 
 ///

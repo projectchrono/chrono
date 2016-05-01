@@ -57,13 +57,16 @@ class ChApi ChRoundedBox : public ChGeometry {
 
     ChRoundedBox(ChRoundedBox& source) { Copy(&source); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChRoundedBox* source) {
         Pos = source->Pos;
         Size = source->Size;
         Rot.CopyFromMatrix(*source->GetRotm());
-    };
+    }
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() {
+    ChGeometry* Duplicate() override {
         ChGeometry* mgeo = new ChRoundedBox();
         mgeo->Copy(this);
         return mgeo;
@@ -73,7 +76,7 @@ class ChApi ChRoundedBox : public ChGeometry {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_ROUNDEDBOX; };
+    virtual int GetClassType() override { return CH_GEOCLASS_ROUNDEDBOX; };
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -81,19 +84,19 @@ class ChApi ChRoundedBox : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* bbRot = NULL);
+                                ChMatrix33<>* bbRot = NULL) override;
 
     /// Computes the baricenter of the box
-    virtual Vector Baricenter() { return Pos; };
+    virtual Vector Baricenter() override { return Pos; };
 
     /// Computes the covariance matrix for the box
-    virtual void CovarianceMatrix(ChMatrix33<>& C);
+    virtual void CovarianceMatrix(ChMatrix33<>& C) override;
 
     /// Evaluate position in cube volume
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.);
+    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) override;
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
+    virtual int GetManifoldDimension() override { return 3; }
 
     //
     // CUSTOM FUNCTIONS
@@ -136,7 +139,7 @@ class ChApi ChRoundedBox : public ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -151,10 +154,11 @@ class ChApi ChRoundedBox : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:

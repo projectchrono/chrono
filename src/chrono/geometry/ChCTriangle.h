@@ -64,13 +64,16 @@ class ChApi ChTriangle : public ChGeometry {
         return *this;
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChTriangle* source) {
         p1 = source->p1;
         p2 = source->p2;
         p3 = source->p3;
     };
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() {
+    ChGeometry* Duplicate() override {
         ChGeometry* mgeo = new ChTriangle();
         mgeo->Copy(this);
         return mgeo;
@@ -80,7 +83,7 @@ class ChApi ChTriangle : public ChGeometry {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_TRIANGLE; };
+    virtual int GetClassType() override { return CH_GEOCLASS_TRIANGLE; };
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -88,13 +91,13 @@ class ChApi ChTriangle : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL);
+                                ChMatrix33<>* Rot = NULL) override;
 
-    virtual ChVector<> Baricenter();
-    virtual void CovarianceMatrix(ChMatrix33<>& C);
+    virtual ChVector<> Baricenter() override;
+    virtual void CovarianceMatrix(ChMatrix33<>& C) override;
 
     /// This is a surface
-    virtual int GetManifoldDimension() { return 2; }
+    virtual int GetManifoldDimension() override { return 2; }
 
     //
     // CUSTOM FUNCTIONS
@@ -161,7 +164,7 @@ class ChApi ChTriangle : public ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -174,10 +177,11 @@ class ChApi ChTriangle : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:

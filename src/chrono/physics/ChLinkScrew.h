@@ -45,15 +45,18 @@ class ChApi ChLinkScrew : public ChLinkLock {
     // builders and destroyers
     ChLinkScrew();
     virtual ~ChLinkScrew();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkScrew* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     // UPDATING FUNCTIONS - "screw" custom implementations
 
     // Inherit the link-lock computations like it were a
     // normal "revolute" joint, but then modifies the Z-lock parts of C,
     // Cdt, Cdtdt, [Cq] etc., in order to have z = tau * alpha.
-    virtual void UpdateState();
+    virtual void UpdateState() override;
 
     // data get/set
     double Get_tau() { return tau; };
@@ -66,10 +69,10 @@ class ChApi ChLinkScrew : public ChLinkLock {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

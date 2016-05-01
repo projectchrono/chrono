@@ -77,7 +77,7 @@ class ChApi ChLcpIterativeSymmSOR : public ChLcpIterativeSolver {
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 
     /// Set the overrelaxation factor, as in SOR methods. This
     /// factor may accelerate convergence if greater than 1. Optimal

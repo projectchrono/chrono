@@ -51,15 +51,15 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
-    virtual void Clear(void);
+    virtual void Clear(void) override;
 
     /// Adds a collision model to the collision
     /// engine (custom data may be allocated).
-    virtual void Add(ChCollisionModel* model);
+    virtual void Add(ChCollisionModel* model) override;
 
     /// Removes a collision model from the collision
     /// engine (custom data may be deallocated).
-    virtual void Remove(ChCollisionModel* model);
+    virtual void Remove(ChCollisionModel* model) override;
 
     /// Removes all collision models from the collision
     /// engine (custom data may be deallocated).
@@ -67,7 +67,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
 
     /// Run the algorithm and finds all the contacts.
     /// (Contacts will be managed by the Bullet persistent contact cache).
-    virtual void Run();
+    virtual void Run() override;
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
@@ -76,7 +76,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// The basic behavior of the implementation is the following: collision system
     /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
     /// EndAddContact() of the contact container.
-    virtual void ReportContacts(ChContactContainerBase* mcontactcontainer);
+    virtual void ReportContacts(ChContactContainerBase* mcontactcontainer) override;
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'proximity container' (container of narrow phase pairs), that is
@@ -85,10 +85,10 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// The basic behavior of the implementation is  the following: collision system
     /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
     /// EndAddProximities() of the proximity container.
-    virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer);
+    virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer) override;
 
     /// Perform a raycast (ray-hit test with the collision models).
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult);
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) override;
 
     // For Bullet related stuff
     btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }

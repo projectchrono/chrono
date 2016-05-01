@@ -61,8 +61,11 @@ public:
 				/// Destructor
 	~ChLinkPointPoint ();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 				/// Copy from another ChLinkPointFrame. 
 	void Copy(ChLinkPointPoint* source);
+#pragma GCC diagnostic pop
 
 
 			//

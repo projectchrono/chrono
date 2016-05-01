@@ -65,7 +65,10 @@ class ChApi ChFseqNode {
         this->Copy(&other);
     }
     ~ChFseqNode();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChFseqNode* source);
+#pragma GCC diagnostic pop
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive)
@@ -88,10 +91,11 @@ class ChApi ChFseqNode {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive)
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // stream in all member data:
         marchive >> CHNVP(fx);
@@ -126,9 +130,9 @@ class ChApi ChFunction_Sequence : public ChFunction {
     ChFunction_Sequence();
     ~ChFunction_Sequence();
     void Copy(ChFunction_Sequence* source);
-    ChFunction* new_Duplicate();
+    ChFunction* new_Duplicate() override;
 
-    int Get_Type() { return (FUNCT_SEQUENCE); }
+    int Get_Type() override { return (FUNCT_SEQUENCE); }
 
     /// The sequence of functions starts at this x value.
     void Set_start(double m_start) { start = m_start; };
@@ -183,25 +187,25 @@ class ChApi ChFunction_Sequence : public ChFunction {
     /// If no function, returns 0.
     double GetNthDuration(int position);
 
-    double Get_y(double x);
-    double Get_y_dx(double x);
-    double Get_y_dxdx(double x);
+    double Get_y(double x) override;
+    double Get_y_dx(double x) override;
+    double Get_y_dxdx(double x) override;
 
-    double Get_weight(double x);
+    double Get_weight(double x) override;
 
-    void Estimate_x_range(double& xmin, double& xmax);
+    void Estimate_x_range(double& xmin, double& xmax) override;
 
-    int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
+    int MakeOptVariableTree(ChList<chjs_propdata>* mtree) override;
 
-    int HandleNumber();
-    int HandleAccess(int handle_id, double mx, double my, bool set_mode);
+    int HandleNumber() override;
+    int HandleAccess(int handle_id, double mx, double my, bool set_mode) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -213,10 +217,11 @@ class ChApi ChFunction_Sequence : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

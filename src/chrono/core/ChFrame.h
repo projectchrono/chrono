@@ -530,10 +530,11 @@ class ChFrame {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive)
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // stream in all member data
         marchive >> CHNVP(coord);
         Amatrix.Set_A_quaternion(coord.rot);

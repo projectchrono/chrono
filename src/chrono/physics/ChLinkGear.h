@@ -63,15 +63,18 @@ class ChApi ChLinkGear : public ChLinkLock {
     // builders and destroyers
     ChLinkGear();
     virtual ~ChLinkGear();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkGear* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
-    virtual int GetType() { return LNK_GEAR; }
+    virtual int GetType() override { return LNK_GEAR; }
 
     // UPDATING FUNCTIONS - "gear" custom implementations
 
     // Updates motion laws, marker positions, etc.
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
 
     // data get/set
 
@@ -161,10 +164,10 @@ class ChApi ChLinkGear : public ChLinkLock {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

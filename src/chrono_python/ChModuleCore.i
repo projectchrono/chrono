@@ -247,8 +247,8 @@ using namespace chrono::geometry;
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "ChConveyor.i"
-//%include "ChIndexedParticles.i"
-//%include "ChParticlesClones.i"
+// %include "ChIndexedParticles.i"
+// %include "ChParticlesClones.i"
 %include "ChAssembly.i"
 %include "ChSystem.i"
 %include "ChContactContainerBase.i"
@@ -320,8 +320,8 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBody)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChConveyor)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBodyAuxRef)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChIndexedParticles)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChParticlesClones)
+// %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChIndexedParticles)
+// %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChParticlesClones)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLink)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMarkers)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMasked)
@@ -353,7 +353,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
-*/
+
 /*
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaft)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsBody)

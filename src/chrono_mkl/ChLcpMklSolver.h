@@ -115,7 +115,8 @@ namespace chrono {
         void ArchiveIN(ChArchiveIn& marchive) override
         {
             // version number
-            int version = marchive.VersionRead();
+            // int version =
+            marchive.VersionRead();
             // deserialize parent class
             ChLcpSolver::ArchiveIN(marchive);
             // stream in all member data:

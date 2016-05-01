@@ -79,8 +79,11 @@ public:
 				/// Destructor
 	~ChLinkDirFrame ();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 				/// Copy from another ChLinkDirFrame. 
 	void Copy(ChLinkDirFrame* source);
+#pragma GCC diagnostic pop
 
 
 			//

@@ -120,7 +120,7 @@ class ChRunTimeType {
 #define CH_RTTI(classname, parentclassname)                                       \
                                                                                   \
   public:                                                                         \
-    virtual const chrono::ChRunTimeType* GetRTTI() const {                        \
+    virtual const chrono::ChRunTimeType* GetRTTI() const override {               \
         static ChRunTimeType m_RTTI(#classname, parentclassname::GetClassRTTI()); \
         return &m_RTTI;                                                           \
     }                                                                             \

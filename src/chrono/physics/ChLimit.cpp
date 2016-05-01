@@ -198,7 +198,8 @@ void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
 void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
 
     // class version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class too
 
     // stream in all member data

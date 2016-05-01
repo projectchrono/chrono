@@ -34,7 +34,8 @@ void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive)
 void ChContinuumMaterial::ArchiveIN(ChArchiveIn& marchive)
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class
     // stream in all member data:
     marchive >> CHNVP(density, "density");
@@ -120,7 +121,8 @@ void ChContinuumElastic::ArchiveOUT(ChArchiveOut& marchive)
 void ChContinuumElastic::ArchiveIN(ChArchiveIn& marchive)
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
     // stream in all member data:

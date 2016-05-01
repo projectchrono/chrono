@@ -59,8 +59,11 @@ class ChApi ChFunction_Sine : public ChFunction {
         amp = m_amp;
     };
     ~ChFunction_Sine(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Sine* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void Set_phase(double m_phase) { phase = m_phase; };
     void Set_freq(double m_freq) {
@@ -72,16 +75,16 @@ class ChApi ChFunction_Sine : public ChFunction {
         freq = w / (2 * CH_C_PI);
     };
     void Set_amp(double m_amp) { amp = m_amp; }
-    double Get_phase() { return phase; };
-    double Get_freq() { return freq; };
-    double Get_w() { return w; };
+    double Get_phase() { return phase; }
+    double Get_freq() { return freq; }
+    double Get_w() { return w; }
     double Get_amp() { return amp; }
 
-    double Get_y(double x) { return amp * (sin(phase + w * x)); };
-    double Get_y_dx(double x) { return amp * w * (cos(phase + w * x)); };
-    double Get_y_dxdx(double x) { return amp * -w * w * (sin(phase + w * x)); };
+    double Get_y(double x) override { return amp * (sin(phase + w * x)); }
+    double Get_y_dx(double x) override { return amp * w * (cos(phase + w * x)); }
+    double Get_y_dxdx(double x) override { return amp * -w * w * (sin(phase + w * x)); }
 
-    int Get_Type() { return (FUNCT_SINE); }
+    int Get_Type() override { return (FUNCT_SINE); }
 
     OPT_VARIABLES_START
     "amp", "phase", "freq", OPT_VARIABLES_END
@@ -91,7 +94,7 @@ class ChApi ChFunction_Sine : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -104,10 +107,11 @@ class ChApi ChFunction_Sine : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

@@ -348,7 +348,8 @@ void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChForce::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class too
     ChObj::ArchiveIN(marchive);
 

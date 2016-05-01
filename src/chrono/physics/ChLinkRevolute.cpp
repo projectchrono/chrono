@@ -483,7 +483,8 @@ void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

@@ -131,7 +131,8 @@ void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive)
 void ChBodyAuxRef::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChBody::ArchiveIN(marchive);

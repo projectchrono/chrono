@@ -94,19 +94,22 @@ class ChApi ChLinkWheel : public ChLinkLock {
     // builders and destroyers
     ChLinkWheel();
     virtual ~ChLinkWheel();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkWheel* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     // UPDATING FUNCTIONS - "wheel link" custom implementations
 
     // Updates the position of marker m2, moving it -tangentially- on the
     // surf/wheel contact point (m1 representing the center of wheel)
     // Updates motion laws depending on surface & wheel curvatures.
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
 
     // Apply tangential force/torque to terrain and wheel, depending on
     // relative slipping.  Also, all the INFO DATA datas are computed.
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
 
     // data get/set
     ChFunction* Get_wheel_rotation() { return wheel_rotation; };
@@ -176,10 +179,10 @@ class ChApi ChLinkWheel : public ChLinkLock {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

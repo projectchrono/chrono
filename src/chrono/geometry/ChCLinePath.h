@@ -57,25 +57,28 @@ class ChApi ChLinePath : public ChLine {
         durations = source.durations;
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChLinePath* source) {
         ChLine::Copy(source);
         lines = source->lines;
         end_times = source->end_times;
         durations = source->durations;
     }
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() { return new ChLinePath(*this); };
+    ChGeometry* Duplicate() override { return new ChLinePath(*this); };
 
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_LINEPATH; };
+    virtual int GetClassType() override { return CH_GEOCLASS_LINEPATH; };
 
-    virtual int Get_complexity() { return 2; };
+    virtual int Get_complexity() override { return 2; };
 
     /// Returns curve length. sampling does not matter
-    double Length(int sampling) {
+    double Length(int sampling) override {
         double tot = 0;
         for (int i = 0; i < lines.size(); ++i) {
             tot += lines[i]->Length(sampling);
@@ -84,7 +87,7 @@ class ChApi ChLinePath : public ChLine {
     }
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) {
+    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) override {
         if (lines.size() == 0)
             return;
 
@@ -95,7 +98,7 @@ class ChApi ChLinePath : public ChLine {
             u = fmod(parU, this->GetPathDuration());
 
         double uA = 0;
-        double uB = 0;
+        // double uB = 0; /* DGH: Deleted; unused. */
         // Search sub line covering the parU
         // (brute force search.. assuming a limited number of
         // added lines, it is ok anyway.)
@@ -106,7 +109,7 @@ class ChApi ChLinePath : public ChLine {
         }
         if (i == lines.size())  // beyond end
             i -= 1;
-        uB = end_times[i];
+        // uB = end_times[i]; 
         if (i > 0)
             uA = end_times[i - 1];
 
@@ -115,10 +118,10 @@ class ChApi ChLinePath : public ChLine {
     }
 
     /// Return the start point of the line.
-    virtual ChVector<> GetEndA() { return (lines.front())->GetEndA(); }
+    virtual ChVector<> GetEndA() override { return (lines.front())->GetEndA(); }
 
     /// Return the end point of the line.
-    virtual ChVector<> GetEndB() { return (lines.back())->GetEndB(); }
+    virtual ChVector<> GetEndB() override { return (lines.back())->GetEndB(); }
 
     //
     // CUSTOM FUNCTIONS
@@ -244,7 +247,7 @@ class ChApi ChLinePath : public ChLine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -257,10 +260,11 @@ class ChApi ChLinePath : public ChLine {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:

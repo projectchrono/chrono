@@ -43,19 +43,19 @@ class ChApi ChLineBezier : public ChLine {
 
     ~ChLineBezier();
 
-    virtual int GetClassType() { return CH_GEOCLASS_LINEBEZIER; }
+    virtual int GetClassType() override { return CH_GEOCLASS_LINEBEZIER; }
 
-    virtual void Set_closed(bool mc) {}
-    virtual void Set_complexity(int mc) {}
+    virtual void Set_closed(bool mc) override {}
+    virtual void Set_complexity(int mc) override {}
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.);
+    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) override;
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -67,10 +67,11 @@ class ChApi ChLineBezier : public ChLine {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:

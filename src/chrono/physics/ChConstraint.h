@@ -138,9 +138,12 @@ class ChApi ChConstraint_Chf : public ChConstraint {
     // if needed, for accessing the target funct.reference and change the tree-IDs, for new target..
     ChRefFunctionSegment* Get_target_reference() { return &target_function; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     // --Note: this may be overloaded by children-
     // (Child classes may need also to restore references in other encapsulated ChRef objects).
     virtual bool RestoreReferences(ChFunction* mroot);
+#pragma GCC diagnostic pop
 };
 
 ///

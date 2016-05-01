@@ -64,27 +64,30 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// Destructor
     ~ChShaftsTorqueConverter();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaftsTorqueConverter.
     void Copy(ChShaftsTorqueConverter* source);
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
     //
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 0; }
+    virtual int GetDOC_c() override { return 0; }
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
     // Override/implement LCP system functions of ChPhysicsItem
     // (to assembly/manage data for LCP system solver
 
-    virtual void VariablesFbLoadForces(double factor);
+    virtual void VariablesFbLoadForces(double factor) override;
 
     // Other functions
 
@@ -150,17 +153,17 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     //
 
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

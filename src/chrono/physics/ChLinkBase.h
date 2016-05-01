@@ -96,7 +96,10 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     //
     ChLinkBase();
     virtual ~ChLinkBase();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkBase* source);
+#pragma GCC diagnostic pop
 
   public:
     //
@@ -142,7 +145,7 @@ class ChApi ChLinkBase : public ChPhysicsItem {
 
     /// Get the master coordinate system for the assets, in absolute reference.
     /// (should be implemented by children classes)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) { return ChFrame<>(GetLinkAbsoluteCoords()); }
+    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return ChFrame<>(GetLinkAbsoluteCoords()); }
 
     /// To get reaction force, expressed in link coordinate system:
     virtual ChVector<> Get_react_force() { return VNULL; }
@@ -160,10 +163,10 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

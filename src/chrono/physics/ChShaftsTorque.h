@@ -52,8 +52,11 @@ class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
     /// Destructor
     ~ChShaftsTorque();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaftsTorsionSpring.
     void Copy(ChShaftsTorque* source);
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
@@ -68,17 +71,17 @@ class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
     // UPDATE FUNCTIONS
     //
     /// (does nothing, just eaves the last user defined this->torque)
-    virtual double ComputeTorque();
+    virtual double ComputeTorque() override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

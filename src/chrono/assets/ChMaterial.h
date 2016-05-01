@@ -39,7 +39,7 @@ struct material_option {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         marchive.VersionWrite(1);
         // serialize all member data:
@@ -49,9 +49,10 @@ struct material_option {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize all member data:
         marchive >> CHNVP(type);
         marchive >> CHNVP(parameter);
@@ -104,7 +105,7 @@ class ChApi ChMaterial {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -119,10 +120,11 @@ class ChApi ChMaterial {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // stream in all member data:
         marchive >> CHNVP(color);

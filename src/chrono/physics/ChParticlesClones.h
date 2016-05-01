@@ -55,7 +55,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     ChAparticle& operator=(const ChAparticle& other);  // Assignment operator
 
     // Access the 'LCP variables' of the node
-    virtual ChLcpVariables& Variables() { return variables; }
+    virtual ChLcpVariables& Variables() override { return variables; }
 
     // Get the container
     ChParticlesClones* GetContainer() const {return container;}
@@ -189,8 +189,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     //
     // DATA
@@ -263,8 +263,11 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// Destructor
     ~ChParticlesClones();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChParticlesClones.
     void Copy(ChParticlesClones* source);
+#pragma GCC diagnostic pop
 
     //
     // FLAGS
@@ -275,7 +278,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() { return do_collide; }
+    bool GetCollide() override { return do_collide; }
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
@@ -289,10 +292,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     //
 
     /// Get the number of particles
-    size_t GetNparticles() const { return particles.size(); }
+    size_t GetNparticles() const override { return particles.size(); }
 
     /// Access the N-th particle
-    ChParticleBase& GetParticle(unsigned int n) {
+    ChParticleBase& GetParticle(unsigned int n) override {
         assert(n < particles.size());
         return *particles[n];
     }
@@ -301,13 +304,13 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// previously created particles, if any.
     /// NOTE! Define the sample collision shape using GetCollisionModel()->...
     /// before adding particles!
-    void ResizeNparticles(int newsize);
+    void ResizeNparticles(int newsize) override;
 
     /// Add a new particle to the particle cluster, passing a
     /// coordinate system as initial state.
     /// NOTE! Define the sample collision shape using GetCollisionModel()->...
     /// before adding particles!
-    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM);
+    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
 
 
     /// Set the material surface for contacts
@@ -327,31 +330,31 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                   const ChStateDelta& Dv) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP FUNCTIONS
@@ -360,18 +363,18 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     // Override/implement LCP system functions of ChPhysicsItem
     // (to assembly/manage data for LCP system solver)
 
-    void VariablesFbReset();
-    void VariablesFbLoadForces(double factor = 1.);
-    void VariablesQbLoadSpeed();
-    void VariablesFbIncrementMq();
-    void VariablesQbSetSpeed(double step = 0.);
-    void VariablesQbIncrementPosition(double step);
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    void VariablesFbReset() override;
+    void VariablesFbLoadForces(double factor = 1.) override;
+    void VariablesQbLoadSpeed() override;
+    void VariablesFbIncrementMq() override;
+    void VariablesQbSetSpeed(double step = 0.) override;
+    void VariablesQbIncrementPosition(double step) override;
+    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override;
 
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Acess the collision model for the collision engine: this is the 'sample'
     /// collision model that is used by all particles.
@@ -379,9 +382,9 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     collision::ChCollisionModel* GetCollisionModel() { return particle_collision_model; }
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
+    virtual void SyncCollisionModels() override;
+    virtual void AddCollisionModelsToSystem() override;
+    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// After you added collision shapes to the sample coll.model (the one
     /// that you access with GetCollisionModel() ) you need to call this
@@ -446,14 +449,14 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     //
 
     /// Update all auxiliary data of the particles
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
     /// Update all auxiliary data of the particles
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

@@ -77,7 +77,10 @@ class ChApi ChLinkMarkers : public ChLink {
     //
     ChLinkMarkers();
     virtual ~ChLinkMarkers();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMarkers* source);
+#pragma GCC diagnostic pop
 
   public:
     //
@@ -85,7 +88,7 @@ class ChApi ChLinkMarkers : public ChLink {
     //
 
     /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
-    virtual int GetType() { return LNK_BASE; }
+    virtual int GetType() override { return LNK_BASE; }
 
     /// Return the 1st referenced marker (the 'slave' marker, owned by 1st body)
     ChMarker* GetMarker1() { return marker1; }
@@ -139,11 +142,11 @@ class ChApi ChLinkMarkers : public ChLink {
     /// body). This represents the 'main' reference of the link: reaction forces
     /// and torques are expressed in this coordinate system.
     /// (It is the coordinate system of the 'master' marker2 relative to Body2)
-    virtual ChCoordsys<> GetLinkRelativeCoords() { return marker2->GetCoord(); };
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return marker2->GetCoord(); };
 
     /// Get the master coordinate system for the assets (this will return the
     /// absolute coordinate system of the 'master' marker2)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) { return marker2->GetAbsFrame(); }
+    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return marker2->GetAbsFrame(); }
 
     //
     // UPDATING FUNCTIONS
@@ -167,7 +170,7 @@ class ChApi ChLinkMarkers : public ChLink {
     //          UpdateRelMarkerCoords;
     //			UpdateForces;
 
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
@@ -178,7 +181,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Adds force to residual R, as R*= F*c
     /// NOTE: here the off ofset in R is NOT used because add F at the TWO offsets of the two connected bodies,
     /// so it is assumed that offsets for Body1 and Body2 variables have been already set properly!
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
     //
     // LCP INTERFACE
@@ -192,7 +195,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Both C_force and C_torque these forces are considered expressed in the
     /// reference coordsystem of marker2 (the MAIN marker),
     /// and their application point is the origin of marker1 (the SLAVE marker).
-    virtual void ConstraintsFbLoadForces(double factor = 1.);
+    virtual void ConstraintsFbLoadForces(double factor = 1.) override;
 
     //
     // LINK COORDINATES and other functions:
@@ -237,10 +240,10 @@ class ChApi ChLinkMarkers : public ChLink {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

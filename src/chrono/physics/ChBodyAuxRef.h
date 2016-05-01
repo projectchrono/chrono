@@ -51,10 +51,13 @@ class ChApi ChBodyAuxRef : public ChBody {
     /// Destructor
     ~ChBodyAuxRef() {}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChBodyAuxRef.
     /// NOTE: all settings of the body are copied, but the
     /// child hierarchy of ChForces and ChMarkers (if any) are NOT copied.
     void Copy(ChBodyAuxRef* source);
+#pragma GCC diagnostic pop
 
     /// Get the location of the auxiliary reference respect to COG.
     /// Viceversa, if you need to know the COG respect to auxiliary
@@ -80,21 +83,21 @@ class ChApi ChBodyAuxRef : public ChBody {
     /// to the absolute system.
     /// In this ChBodyAuxRef class, differently form ChBody, this is
     /// not necessarily the same reference of GetFrame_COG_to_abs().
-    virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const { return auxref_to_abs; }
+    virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const override { return auxref_to_abs; }
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 };
 

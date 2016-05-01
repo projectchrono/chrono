@@ -72,6 +72,8 @@ class ChApi ChLineArc : public ChLine {
         counterclockwise = source.counterclockwise;
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChLineArc* source) {
         ChLine::Copy(source);
         origin = source->origin;
@@ -80,19 +82,20 @@ class ChApi ChLineArc : public ChLine {
         angle2 = source->angle2;
         counterclockwise = source->counterclockwise;
     }
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() { return new ChLineArc(*this); };
+    ChGeometry* Duplicate() override { return new ChLineArc(*this); };
 
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_LINEARC; };
+    virtual int GetClassType() override { return CH_GEOCLASS_LINEARC; };
 
-    virtual int Get_complexity() { return 2; };
+    virtual int Get_complexity() override { return 2; };
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) {
+    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) override {
         double ang1 = this->angle1;
         double ang2 = this->angle2;
         if (this->counterclockwise) {
@@ -109,7 +112,7 @@ class ChApi ChLineArc : public ChLine {
     }
 
     /// Returns curve length. sampling does not matter
-    double Length(int sampling) { return fabs(radius * (angle1 - angle2)); }
+    double Length(int sampling) override { return fabs(radius * (angle1 - angle2)); }
 
     //
     // CUSTOM FUNCTIONS
@@ -129,7 +132,7 @@ class ChApi ChLineArc : public ChLine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -144,10 +147,11 @@ class ChApi ChLineArc : public ChLine {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:

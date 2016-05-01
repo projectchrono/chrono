@@ -95,7 +95,10 @@ class ChApi ChSolver : public ChObj {
 
     ChSolver();
     virtual ~ChSolver();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChSolver* source);
+#pragma GCC diagnostic pop
 
     // Sets the optimization variables
     virtual void AddOptVar(ChOptVar* newvar);

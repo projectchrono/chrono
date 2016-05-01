@@ -46,7 +46,8 @@ void ChLinkMate::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);
@@ -646,7 +647,8 @@ void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMateGeneric::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMate::ArchiveIN(marchive);
@@ -744,7 +746,8 @@ void ChLinkMatePlane::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMatePlane::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -822,7 +825,8 @@ void ChLinkMateCoaxial::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMateCoaxial::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -917,7 +921,8 @@ void ChLinkMateXdistance::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMateXdistance::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -993,7 +998,8 @@ void ChLinkMateParallel::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMateParallel::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -1129,7 +1135,8 @@ void ChLinkMateOrthogonal::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMateOrthogonal::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);

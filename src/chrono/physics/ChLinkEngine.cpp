@@ -768,7 +768,8 @@ void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

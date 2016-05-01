@@ -83,7 +83,7 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 
     /// Same as Solve(), but this also supports the presence of
     /// ChLcpKblock blocks. If Solve() is called and stiffness is present,
@@ -114,7 +114,7 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -127,10 +127,11 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLcpIterativeSolver::ArchiveIN(marchive);
         // stream in all member data:

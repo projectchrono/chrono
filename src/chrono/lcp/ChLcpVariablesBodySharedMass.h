@@ -87,10 +87,11 @@ class ChApi ChSharedMassBody {
         marchive << CHNVP(inertia);
     }
 
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive)
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // stream in all member data:
         marchive >> CHNVP(mass);
@@ -146,28 +147,28 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     // IMPLEMENT PARENT CLASS METHODS
 
     /// Get the mass associated with translation of body
-    double GetBodyMass() { return sharedmass->GetBodyMass(); }
+    double GetBodyMass() override { return sharedmass->GetBodyMass(); }
 
     /// Access the 3x3 inertia matrix
-    ChMatrix33<>& GetBodyInertia() { return sharedmass->GetBodyInertia(); }
+    ChMatrix33<>& GetBodyInertia() override { return sharedmass->GetBodyInertia(); }
 
     /// Access the 3x3 inertia matrix inverted
-    ChMatrix33<>& GetBodyInvInertia() { return sharedmass->GetBodyInvInertia(); };
+    ChMatrix33<>& GetBodyInvInertia() override { return sharedmass->GetBodyInvInertia(); };
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and set in result: result = [invMb]*vect
-    void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const override;
+    void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and increment result: result += [invMb]*vect
-    void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const override;
+    void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the mass matrix by a
     /// vector, and set in result: result = [Mb]*vect
-    void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const override;
+    void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the
     /// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
@@ -175,25 +176,25 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect.
-    void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const;
+    void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const override;
 
     /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offset (that must be already updated) as index.
-    void DiagonalAdd(ChMatrix<double>& result, const double c_a) const;
+    void DiagonalAdd(ChMatrix<double>& result, const double c_a) const override;
 
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
-	void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a);
+	void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -204,10 +205,11 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLcpVariablesBody::ArchiveIN(marchive);
         // stream in all member data:

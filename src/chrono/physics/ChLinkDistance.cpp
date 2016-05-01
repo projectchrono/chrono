@@ -259,7 +259,8 @@ void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

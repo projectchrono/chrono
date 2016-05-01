@@ -956,7 +956,8 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive)
 void ChBody::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

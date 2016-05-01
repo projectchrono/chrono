@@ -85,14 +85,14 @@ class ChApi ChAssetLevel : public ChAsset {
     /// Updates all children assets, if any. Overrides default behaviour that does nothing.
     /// Note that when calls Update() on children assets, their 'coords' will be the result
     /// of concatenating this frame csys and 'coords'.
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;
 
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -104,10 +104,11 @@ class ChApi ChAssetLevel : public ChAsset {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:

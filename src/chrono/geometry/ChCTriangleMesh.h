@@ -82,7 +82,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_TRIANGLEMESH; };
+    virtual int GetClassType() override { return CH_GEOCLASS_TRIANGLEMESH; };
 
     /*
     virtual void GetBoundingBox(double& xmin, double& xmax,
@@ -94,13 +94,13 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual void CovarianceMatrix(ChMatrix33<>& C);//TODO
     */
     /// This is a surface
-    virtual int GetManifoldDimension() { return 2; }
+    virtual int GetManifoldDimension() override { return 2; }
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -110,10 +110,11 @@ class ChApi ChTriangleMesh : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:

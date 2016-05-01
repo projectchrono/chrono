@@ -54,15 +54,18 @@ class ChApi ChLinkClearance : public ChLinkLock {
     // builders and destroyers
     ChLinkClearance();
     virtual ~ChLinkClearance();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkClearance* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     // UPDATING FUNCTIONS - "lin.act. link" custom implementations
 
     // Updates marker positions, etc.
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
     // Updates forces
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
 
     // data get/set
     double Get_clearance() { return clearance; };
@@ -100,10 +103,10 @@ class ChApi ChLinkClearance : public ChLinkLock {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

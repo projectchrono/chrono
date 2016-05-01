@@ -206,7 +206,8 @@ void ChFunction::ArchiveOUT(ChArchiveOut& marchive)
 void ChFunction::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 }
 
 

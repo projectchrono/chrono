@@ -51,10 +51,10 @@ public:
         /// Direct access to the load vector, for iterating etc.
     std::vector< std::shared_ptr<ChLoadBase> >& GetLoadList() {return loadlist;}
 
-    virtual void Setup(){
+    virtual void Setup() override {
     }
 
-    virtual void Update(double mytime, bool update_assets = true) {
+    virtual void Update(double mytime, bool update_assets = true) override {
         for (size_t i=0; i<loadlist.size(); ++i)  {
             loadlist[i]->Update();
         }
@@ -66,7 +66,7 @@ public:
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
-                                   ){
+                                   ) override {
         for (size_t i=0; i<loadlist.size(); ++i)  { 
             loadlist[i]->LoadIntLoadResidual_F(R,c);
         }
@@ -75,7 +75,7 @@ public:
         /// Tell to a system descriptor that there are items of type
     /// ChLcpKblock in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor){
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override {
 
         for (size_t i=0; i<loadlist.size(); ++i) {
             loadlist[i]->InjectKRMmatrices(mdescriptor);
@@ -87,7 +87,7 @@ public:
     /// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling
     /// values Kfactor, Rfactor, Mfactor.
     /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor){
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override {
 
          for (size_t i=0; i<loadlist.size(); ++i) {
              loadlist[i]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
@@ -100,12 +100,12 @@ public:
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         //***TODO***
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         //***TODO***
     }
 

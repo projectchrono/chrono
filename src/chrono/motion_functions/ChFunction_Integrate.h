@@ -56,8 +56,11 @@ class ChApi ChFunction_Integrate : public ChFunction {
         if (array_x)
             delete array_x;
     };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Integrate* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void ComputeIntegral();
 
@@ -93,13 +96,13 @@ class ChApi ChFunction_Integrate : public ChFunction {
 
     std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
-    double Get_y(double x);
+    double Get_y(double x) override;
 
-    void Estimate_x_range(double& xmin, double& xmax);
+    void Estimate_x_range(double& xmin, double& xmax) override;
 
-    int Get_Type() { return (FUNCT_INTEGRATE); }
+    int Get_Type() override { return (FUNCT_INTEGRATE); }
 
-    int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
+    int MakeOptVariableTree(ChList<chjs_propdata>* mtree) override;
     OPT_VARIABLES_START
     "C_start", OPT_VARIABLES_END
 
@@ -108,7 +111,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -124,10 +127,11 @@ class ChApi ChFunction_Integrate : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

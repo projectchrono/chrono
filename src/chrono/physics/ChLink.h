@@ -55,7 +55,10 @@ class ChApi ChLink : public ChLinkBase {
     //
     ChLink();
     virtual ~ChLink();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLink* source);
+#pragma GCC diagnostic pop
     virtual ChLink* new_Duplicate() = 0;
 
   public:
@@ -64,12 +67,12 @@ class ChApi ChLink : public ChLinkBase {
     //
 
     /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
-    virtual int GetType() { return LNK_BASE; }
+    virtual int GetType() override { return LNK_BASE; }
 
     /// Get the number of free degrees of freedom left by this link, between two bodies.
     virtual int GetLeftDOF() { return 6 - GetDOC(); }
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() { return 12; }
+    virtual int GetNumCoords() override { return 12; }
 
     /// Get the constrained body '1', the 'slave' body.
     ChBodyFrame* GetBody1() { return Body1; }
@@ -86,12 +89,12 @@ class ChApi ChLink : public ChLinkBase {
     /// This represents the 'main' reference of the link: reaction forces
     /// and reaction torques are expressed in this coordinate system.
     /// Child classes should implement this.
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() { return GetLinkRelativeCoords() >> Body2->GetCoord(); }
+    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCoord(); }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() { return react_force; }
+    virtual ChVector<> Get_react_force() override { return react_force; }
     /// To get reaction torque,  expressed in link coordinate system:
-    virtual ChVector<> Get_react_torque() { return react_torque; }
+    virtual ChVector<> Get_react_torque() override { return react_torque; }
 
     /// If some constraint is redundant, return to normal state  //***OBSOLETE***
     virtual int RestoreRedundant() { return 0; };  ///< \return number of changed constraints
@@ -118,10 +121,10 @@ class ChApi ChLink : public ChLinkBase {
     /// implement specialized versions of this Update(time) function,
     /// because they might need to update inner states, forces, springs, etc.
     /// This base version, by default, simply updates the time.
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     /// As above, but with current time
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     /// Called from a foreign software (i.e. a plugin, a CAD appl.), if any, to report
     /// that time has changed. Most often you can leave this unimplemented.
@@ -132,10 +135,10 @@ class ChApi ChLink : public ChLinkBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

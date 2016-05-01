@@ -1491,7 +1491,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
         const char* numformat = "%.12g";
         char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        sprintf(cprefix, "solve_%04zu_%02d_", this->stepcount, this->solvecount);
         std::string sprefix(cprefix);
 
         this->LCP_descriptor->DumpLastMatrices(true,  sprefix.c_str());
@@ -1532,7 +1532,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
     if (this->dump_matrices) {
         const char* numformat = "%.12g";
         char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        sprintf(cprefix, "solve_%04zu_%02d_", this->stepcount, this->solvecount);
         std::string sprefix(cprefix);
 
         chrono::ChStreamOutAsciiFile file_Dv( (sprefix+"Dv.dat").c_str() );
@@ -1869,7 +1869,7 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
     this->solvecount = 0;
 
     int err = 0;
-    int reached_tolerance = FALSE;
+    // int reached_tolerance = FALSE;
 
     if ((ncoords > 0) && (ndof >= 0)) {
         for (int m_iter = 0; m_iter < nsteps; m_iter++) {
@@ -1972,10 +1972,10 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
     double left_time;
     int restore_oldstep = FALSE;
     int counter = 0;
-    double fixed_step_undo;
+    // double fixed_step_undo;
 
     frame_step = (m_endtime - ChTime);
-    fixed_step_undo = step;
+    // fixed_step_undo = step;
 
     while (ChTime < m_endtime) {
         restore_oldstep = FALSE;
@@ -2045,7 +2045,7 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
 
     frame_step = (m_endtime - ChTime);
 
-    double fixed_step_undo = step;
+    // double fixed_step_undo = step;
 
     while (ChTime < m_endtime) {
         restore_oldstep = FALSE;
@@ -2164,7 +2164,8 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
 void ChSystem::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChAssembly::ArchiveIN(marchive);

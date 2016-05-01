@@ -79,11 +79,14 @@ class ChApi ChRefFunction : public ChRef {
         valid = true;
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual bool RestoreReference(ChFunction* mrootf) {
         function = mrootf;
         valid = true;
         return true;
-    };
+    }
+#pragma GCC diagnostic pop
 
     /// Returns the referenced function
     /// ==========>>>>>>

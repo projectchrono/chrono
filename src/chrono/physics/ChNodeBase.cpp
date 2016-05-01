@@ -49,7 +49,8 @@ void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive)
 void ChNodeBase::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class:
     // deserialize all member data:
 }

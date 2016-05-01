@@ -39,7 +39,9 @@ class ChApi ChRecPoint {
     double y;
     double w;  // weight
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive){
+    virtual ~ChRecPoint() = default;
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         marchive << CHNVP(x);
         marchive << CHNVP(y);
         marchive << CHNVP(w);
@@ -69,8 +71,11 @@ class ChApi ChFunction_Recorder : public ChFunction {
   public:
     ChFunction_Recorder() { lastnode = NULL; };
     ~ChFunction_Recorder() { points.KillAll(); };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Recorder* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     int AddPoint(double mx, double my, double mw);
     int AddPoint(double mx, double my) { return AddPoint(mx, my, 1.0); };
@@ -82,20 +87,20 @@ class ChApi ChFunction_Recorder : public ChFunction {
 
     ChList<ChRecPoint>* GetPointList() { return &points; };
 
-    double Get_y(double x);
-    double Get_y_dx(double x);
-    double Get_y_dxdx(double x);
+    double Get_y(double x) override;
+    double Get_y_dx(double x) override;
+    double Get_y_dxdx(double x) override;
 
-    void Estimate_x_range(double& xmin, double& xmax);
+    void Estimate_x_range(double& xmin, double& xmax) override;
 
-    int Get_Type() { return (FUNCT_RECORDER); }
+    int Get_Type() override { return (FUNCT_RECORDER); }
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -115,10 +120,11 @@ class ChApi ChFunction_Recorder : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

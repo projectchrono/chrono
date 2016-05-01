@@ -53,8 +53,11 @@ class ChApi ChFunction_Repeat : public ChFunction {
         fa = std::make_shared<ChFunction_Const>(); // default
     }
     ~ChFunction_Repeat(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Repeat* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void Set_window_start(double m_v) { window_start = m_v; }
     double Get_window_start() { return window_start; }
@@ -64,12 +67,12 @@ class ChApi ChFunction_Repeat : public ChFunction {
     void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
     std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
-    double Get_y(double x);
+    double Get_y(double x) override;
 
-    void Estimate_x_range(double& xmin, double& xmax);
-    int Get_Type() { return (FUNCT_REPEAT); }
+    void Estimate_x_range(double& xmin, double& xmax) override;
+    int Get_Type() override { return (FUNCT_REPEAT); }
 
-    int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
+    int MakeOptVariableTree(ChList<chjs_propdata>* mtree) override;
     OPT_VARIABLES_START
     "window_start", "window_length", OPT_VARIABLES_END
 
@@ -78,7 +81,7 @@ class ChApi ChFunction_Repeat : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -91,10 +94,11 @@ class ChApi ChFunction_Repeat : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

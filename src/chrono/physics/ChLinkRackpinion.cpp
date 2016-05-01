@@ -181,7 +181,8 @@ void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);

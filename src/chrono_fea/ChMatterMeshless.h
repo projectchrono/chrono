@@ -243,8 +243,11 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     /// Destructor
     ~ChMatterMeshless();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChMatterMeshless.
     void Copy(ChMatterMeshless* source);
+#pragma GCC diagnostic pop
 
     //
     // FLAGS

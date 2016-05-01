@@ -17,7 +17,7 @@ namespace chrono {
 // persistence
 ChClassRegister<ChLinkSpringCB> a_registration_ChLinkSpringCB;
 
-ChLinkSpringCB::ChLinkSpringCB() : m_rest_length(0), m_force(0), m_force_fun(NULL) {
+ChLinkSpringCB::ChLinkSpringCB() : m_force_fun(NULL), m_rest_length(0), m_force(0) {
 }
 
 ChLinkSpringCB::~ChLinkSpringCB() {
@@ -93,7 +93,8 @@ void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

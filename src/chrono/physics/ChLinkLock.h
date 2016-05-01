@@ -99,27 +99,30 @@ class ChApi ChLinkLock : public ChLinkMasked {
     // builders and destroyers
     ChLinkLock();
     virtual ~ChLinkLock();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkLock* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     void BuildLinkType(int link_type);
 
     void ChangeLinkType(int new_link_type);
 
-    virtual int GetType() { return this->type; }
+    virtual int GetType() override { return this->type; }
 
     //
     // UPDATING FUNCTIONS
     //
     // Inherits, and also updates motion laws: deltaC, deltaC_dt, deltaC_dtdt
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
 
     // Updates coords relM, relM_dt, relM_dtdt;
     // dist, dist_dt et similia, just like in parent class, but
     // overrides parent implementation of ChLinkMarkers because it can save some
     // temporary vectors (q_4, q_8 etc.) which can be useful in UpdateState(),
     // for speed reasons.
-    virtual void UpdateRelMarkerCoords();
+    virtual void UpdateRelMarkerCoords() override;
 
     // Given current time and body state, computes
     // the constraint differentiation to get the
@@ -127,11 +130,11 @@ class ChApi ChLinkLock : public ChLinkMasked {
     // C, C_dt, C_dtd.   ie. the JACOBIAN matrices and friends.
     //  NOTE!! this function uses the fast analytical approach
     // of the "lock formulation".
-    virtual void UpdateState();
+    virtual void UpdateState() override;
 
     // Inherits, and also updates the local F,M forces adding penalties from
     // the contained link ChLinkLimit objects, if any.
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
 
     //
     // OTHER FUNCTIONS
@@ -223,60 +226,60 @@ class ChApi ChLinkLock : public ChLinkMasked {
     // STATE FUNCTIONS
     //
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() { return GetDOC_c() + GetDOC_d(); }
+    virtual int GetDOC() override { return GetDOC_c() + GetDOC_d(); }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
     // virtual int GetDOC_c  () {return 0;} // use parent ChLinkMasked ndof
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d();  // customized because there might be some active ChLinkLimit
+    virtual int GetDOC_d() override;  // customized because there might be some active ChLinkLimit
 
     /// Specialize the following respect to ChLinkMasked base ,in order to update intuitive react_torque and react_force
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
 
     /// Specialize the following respect to ChLinkMasked base because there might be some active ChLinkLimit
     // virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
 
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP SYSTEM FUNCTIONS   ( functions to assembly/manage data for system solver)
     //
     // expand parent constraint stuff from ChLinkMasked because here
     // it may also consider the	constraints caused by 'limits'..
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsBiLoad_Qc(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.) override;
+    virtual void ConstraintsBiLoad_Qc(double factor = 1.) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 

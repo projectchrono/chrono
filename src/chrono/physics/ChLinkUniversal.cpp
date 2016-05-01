@@ -440,7 +440,8 @@ void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkUniversal::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

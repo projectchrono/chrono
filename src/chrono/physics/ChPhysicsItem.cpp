@@ -75,7 +75,8 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive)
 void ChPhysicsItem::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);

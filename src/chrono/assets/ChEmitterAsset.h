@@ -56,14 +56,14 @@ class ChApi ChEmitterAsset : public ChAsset {
 
     /// Updates the embedded emitter. If a dt is passed, it creates the particles.
     /// No need to call this by the user, it is called automatically by the asset owner (ie. the body).
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;
 
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -74,10 +74,11 @@ class ChApi ChEmitterAsset : public ChAsset {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:

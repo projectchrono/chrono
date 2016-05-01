@@ -610,7 +610,8 @@ void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

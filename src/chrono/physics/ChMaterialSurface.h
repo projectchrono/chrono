@@ -89,7 +89,7 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
         complianceSpin = other.complianceSpin;
     }
 
-    virtual ContactMethod GetContactMethod() { return DVI; };
+    virtual ContactMethod GetContactMethod() override { return DVI; };
 
     //
     // FUNCTIONS
@@ -181,7 +181,7 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive){
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override{
         // version number
         marchive.VersionWrite(1);
 
@@ -203,9 +203,10 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive){
+    virtual void ArchiveIN(ChArchiveIn& marchive) override{
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // deserialize parent class
         ChMaterialSurfaceBase::ArchiveIN(marchive);

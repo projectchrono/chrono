@@ -85,7 +85,8 @@ void ChShaftsTorqueBase::ArchiveOUT(ChArchiveOut& marchive)
 void ChShaftsTorqueBase::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIN(marchive);

@@ -125,8 +125,8 @@ void ChLinkNumdiff::ComputeCq() {
 /////////
 
 void ChLinkNumdiff::UpdateState() {
-    double m_t = ChTime;
-    double m_tdt = ChTime + BDF_STEP_VERYLOW;
+    // double m_t = ChTime;
+    // double m_tdt = ChTime + BDF_STEP_VERYLOW;
 
     ChMatrixDynamic<> m_q(GetNumCoords(), 1);  // The coordinates q
     FetchCoords(&m_q);                         // current state coordinates = position of bodies 1&2
@@ -220,7 +220,8 @@ void ChLinkNumdiff::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkNumdiff::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMasked::ArchiveIN(marchive);

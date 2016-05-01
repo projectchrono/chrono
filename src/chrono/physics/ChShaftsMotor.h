@@ -77,8 +77,11 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     /// Destructor
     ~ChShaftsMotor();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaftsMotor.
     void Copy(ChShaftsMotor* source);
+#pragma GCC diagnostic pop
 
     //
     // FLAGS
@@ -89,7 +92,7 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     //
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() {
+    virtual int GetDOC_c() override {
         if (motor_mode == MOT_MODE_TORQUE)
             return 0;
         else
@@ -101,37 +104,37 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     // Override/implement LCP system functions of ChShaftsCouple
     // (to assembly/manage data for LCP system solver
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsFbLoadForces(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.) override;
+    virtual void ConstraintsFbLoadForces(double factor = 1.) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
 
     // Other functions
 
@@ -143,7 +146,7 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     /// Each shaft must belong to the same ChSystem.
     virtual bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (motor output shaft)
                             std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join (motor truss)
-                            );
+                            ) override;
 
     enum eCh_shaftsmotor_mode { MOT_MODE_ROTATION = 0, MOT_MODE_SPEED, MOT_MODE_TORQUE } motor_mode;
 
@@ -167,11 +170,11 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return (GetMotorTorque()); }
+    double GetTorqueReactionOn1() const override { return (GetMotorTorque()); }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return -(GetMotorTorque()); }
+    double GetTorqueReactionOn2() const override { return -(GetMotorTorque()); }
 
     /// Set the motor rotation phase between shaft2 and shaft1.
     /// If the rotation is not constant, you also must use SetMotorRot_dt()
@@ -200,17 +203,17 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     //
 
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

@@ -50,8 +50,11 @@ class ChApi ChLinkPointSpline : public ChLinkLock {
     // builders and destroyers
     ChLinkPointSpline();
     virtual ~ChLinkPointSpline();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkPointSpline* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     /// Get the address of the trajectory line
     std::shared_ptr<geometry::ChLine> Get_trajectory_line() { return trajectory_line; }
@@ -63,17 +66,17 @@ class ChApi ChLinkPointSpline : public ChLinkLock {
 
     // Overrides the parent class function. Here it moves the
     // constraint mmain marker tangent to the line.
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

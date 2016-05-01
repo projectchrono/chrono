@@ -64,37 +64,40 @@ class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
     /// Destructor
     ~ChShaftsTorqueBase();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaftsTorqueBase.
     void Copy(ChShaftsTorqueBase* source);
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
     //
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 0; }
+    virtual int GetDOC_c() override { return 0; }
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
     // Override/implement LCP system functions of ChShaftsCouple
     // (to assembly/manage data for LCP system solver
 
     // Adds the torsional torques in the 'fb' part: qf+=torques*factor
     // of both shafts
-    void VariablesFbLoadForces(double factor = 1.);
+    void VariablesFbLoadForces(double factor = 1.) override;
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    virtual double GetTorqueReactionOn1() const { return (this->torque); }
+    virtual double GetTorqueReactionOn1() const override { return (this->torque); }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    virtual double GetTorqueReactionOn2() const { return -(this->torque); }
+    virtual double GetTorqueReactionOn2() const override { return -(this->torque); }
 
     //
     // UPDATE FUNCTIONS
@@ -106,17 +109,17 @@ class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
     virtual double ComputeTorque() = 0;
 
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

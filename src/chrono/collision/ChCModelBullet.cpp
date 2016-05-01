@@ -857,7 +857,8 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 void ChModelBullet::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class
     ChCollisionModel::ArchiveIN(marchive);
 

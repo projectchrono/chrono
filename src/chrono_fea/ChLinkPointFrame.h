@@ -81,8 +81,11 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     /// Destructor
     ~ChLinkPointFrame();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChLinkPointFrame.
     void Copy(ChLinkPointFrame* source);
+#pragma GCC diagnostic pop
 
     //
     // FLAGS

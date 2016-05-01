@@ -57,8 +57,11 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
         end = 1.0;
     }
     ~ChFunction_Fillet3(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Fillet3* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void Set_end(double m_end) {
         if (m_end < 0)
@@ -92,22 +95,22 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
     double Get_dy1() { return dy1; }
     double Get_dy2() { return dy2; }
 
-    double Get_y(double x);
-    double Get_y_dx(double x);
-    double Get_y_dxdx(double x);
+    double Get_y(double x) override;
+    double Get_y_dx(double x) override;
+    double Get_y_dxdx(double x) override;
 
-    void Estimate_x_range(double& xmin, double& xmax) {
+    void Estimate_x_range(double& xmin, double& xmax) override {
         xmin = 0.0;
         xmax = end;
     };
-    int Get_Type() { return (FUNCT_FILLET3); }
+    int Get_Type() override { return (FUNCT_FILLET3); }
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -122,10 +125,11 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

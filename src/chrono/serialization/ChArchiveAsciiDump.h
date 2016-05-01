@@ -209,7 +209,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 /// For example:  GetLog() < mymatrix;
 
 template <class T>
-ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
+ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, T& obj) {
     std::vector<char> mvect;
     ChStreamOutAsciiVector mtempstream(&mvect);
     mtempstream.SetNumFormat(mstream.GetNumFormat());

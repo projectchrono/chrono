@@ -120,7 +120,10 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     ~ChMarker();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChMarker* source);
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
@@ -275,10 +278,10 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 };
 

@@ -100,7 +100,8 @@ class ChApi ChTimestepper {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // stream in all member data:
         marchive >> CHNVP(verbose);
         marchive >> CHNVP(Qc_do_clamp);
@@ -135,7 +136,7 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
     virtual ChStateDelta& get_dYdt() { return dYdt; }
 
     /// Set the integrable object
-    virtual void SetIntegrable(ChIntegrable* mintegrable) { 
+    virtual void SetIntegrable(ChIntegrable* mintegrable) override { 
             ChTimestepper::SetIntegrable(mintegrable);
             Y.Reset(1, mintegrable);
             dYdt.Reset(1, mintegrable);
@@ -174,6 +175,8 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
     /// Access the acceleration, at current time
     virtual ChStateDelta& get_A() { return A; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Set the integrable object
     virtual void SetIntegrable(ChIntegrableIIorder* mintegrable) { 
             ChTimestepper::SetIntegrable(mintegrable);
@@ -181,6 +184,7 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
             V.Reset(1, mintegrable);
             A.Reset(1, mintegrable);
     }
+#pragma GCC diagnostic pop
 };
 
 /// Base properties for implicit solvers (double inheritance)
@@ -250,7 +254,8 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // stream in all member data:
         marchive >> CHNVP(maxiters);
         marchive >> CHNVP(reltol);
@@ -272,7 +277,7 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Euler explicit timestepper customized for II order.
@@ -296,7 +301,7 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Euler semi-implicit timestepper
@@ -314,7 +319,7 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of a 4th order explicit Runge-Kutta
@@ -336,7 +341,7 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of a Heun explicit integrator. It is like
@@ -356,7 +361,7 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of a Leapfrog explicit integrator.
@@ -379,7 +384,7 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of Euler implicit for II order systems
@@ -402,7 +407,7 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of Euler implicit for II order systems
@@ -428,7 +433,7 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of Euler implicit for II order systems
@@ -454,7 +459,7 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of trapezoidal implicit for II order systems.
@@ -483,7 +488,7 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems
@@ -507,7 +512,7 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems
@@ -530,7 +535,7 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of HHT (generalized alpha) implicit for II order systems
@@ -650,12 +655,12 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
 
     /// Perform an integration timestep.
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class:
@@ -672,9 +677,10 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class:
         ChTimestepperIIorder::ArchiveIN(marchive);
         ChImplicitIterativeTimestepper::ArchiveIN(marchive);
@@ -747,12 +753,12 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 
         // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class:
@@ -764,9 +770,10 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class:
         ChTimestepperIIorder::ArchiveIN(marchive);
         ChImplicitIterativeTimestepper::ArchiveIN(marchive);

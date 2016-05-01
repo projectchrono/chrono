@@ -94,21 +94,24 @@ class ChApi ChLinkEngine : public ChLinkLock {
     // builders and destroyers
     ChLinkEngine();
     virtual ~ChLinkEngine();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkEngine* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     // UPDATING FUNCTIONS - "lin.act. link" custom implementations
 
     /// Updates motion laws, etc. for the impose rotation / impose speed modes
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
     /// Updates torque for the impose torque mode
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
     /// Updates the r3d time, so perform differentiation for computing speed in case of keyframed motion
 
-    virtual void UpdatedExternalTime(double prevtime, double time);
+    virtual void UpdatedExternalTime(double prevtime, double time) override;
 
     /// Sets up the markers associated with the engine link
-    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
+    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2) override;
 
     // data get/set
     std::shared_ptr<ChFunction> Get_rot_funct() const { return rot_funct; }
@@ -175,8 +178,8 @@ class ChApi ChLinkEngine : public ChLinkLock {
     //
     // STATE FUNCTIONS
     //
-    virtual int GetDOF();
-    virtual int GetDOC_c();
+    virtual int GetDOF() override;
+    virtual int GetDOC_c() override;
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     // (beyond the base link implementations, it also have to
@@ -185,43 +188,43 @@ class ChApi ChLinkEngine : public ChLinkLock {
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                   const ChStateDelta& Dv) override;
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP INTERFACE
@@ -230,29 +233,29 @@ class ChApi ChLinkEngine : public ChLinkLock {
     // Overload LCP system functions of ChPhysicsItem
     // (beyond the base link implementations, it also have to
     // add the constraint coming from the inner shaft etc.)
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
-    virtual void VariablesFbReset();
-    virtual void VariablesFbLoadForces(double factor = 1.);
-    virtual void VariablesQbLoadSpeed();
-    virtual void VariablesFbIncrementMq();
-    virtual void VariablesQbSetSpeed(double step = 0.);
-    virtual void VariablesQbIncrementPosition(double step);
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
+    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void VariablesFbReset() override;
+    virtual void VariablesFbLoadForces(double factor = 1.) override;
+    virtual void VariablesQbLoadSpeed() override;
+    virtual void VariablesFbIncrementMq() override;
+    virtual void VariablesQbSetSpeed(double step = 0.) override;
+    virtual void VariablesQbIncrementPosition(double step) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

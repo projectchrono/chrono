@@ -177,7 +177,7 @@ public:
                           ChVectorDynamic<>& F,       ///< Result F vector here, size must be = n.field coords.of loadable
                           ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
-                          ) {
+                          ) override {
         
         ChVector<> mnorm = this->loadable->ComputeNormal(U,V);
         F.PasteVector(mnorm * (-pressure), 0,0);
@@ -187,8 +187,8 @@ public:
     double GetPressure() {return pressure;}
 
     void SetIntegrationPoints(int val) { num_integration_points = val; }
-    virtual int GetIntegrationPointsU() { return num_integration_points; }
-    virtual int GetIntegrationPointsV() { return num_integration_points; }
+    virtual int GetIntegrationPointsU() override { return num_integration_points; }
+    virtual int GetIntegrationPointsV() override { return num_integration_points; }
 
     void SetStiff(bool val) { is_stiff = val; }
     virtual bool IsStiff() override { return is_stiff; }

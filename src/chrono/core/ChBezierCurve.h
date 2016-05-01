@@ -77,7 +77,7 @@ class ChApi ChBezierCurve {
     ChBezierCurve() {}
 
     /// Destructor for ChBezierCurve.
-    ~ChBezierCurve() {}
+    virtual ~ChBezierCurve() = default;
 
     /// Return the number of knot points.
     size_t getNumPoints() const { return m_points.size(); }
@@ -143,26 +143,39 @@ class ChApi ChBezierCurve {
         marchive << CHNVP(m_points);
         marchive << CHNVP(m_inCV);
         marchive << CHNVP(m_outCV);
-        marchive << CHNVP(m_maxNumIters);
-        marchive << CHNVP(m_sqrDistTol);
-        marchive << CHNVP(m_cosAngleTol);
-        marchive << CHNVP(m_paramTol);
+
+        // serialize static data:
+        size_t maxNumIters = maxNumIters;
+        double sqrDistTol = m_sqrDistTol;
+        double cosAngleTol = m_cosAngleTol;
+        double paramTol = m_cosAngleTol;
+        marchive << CHNVP(maxNumIters);
+        marchive << CHNVP(sqrDistTol);
+        marchive << CHNVP(cosAngleTol);
+        marchive << CHNVP(paramTol);
     }
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // stream in all member data:
         marchive >> CHNVP(m_points);
         marchive >> CHNVP(m_inCV);
         marchive >> CHNVP(m_outCV);
-        marchive >> CHNVP(m_maxNumIters);
-        marchive >> CHNVP(m_sqrDistTol);
-        marchive >> CHNVP(m_cosAngleTol);
-        marchive >> CHNVP(m_paramTol);
+
+        // bogus stream in static data:
+        size_t maxNumIters;
+        double sqrDistTol;
+        double cosAngleTol;
+        double paramTol;
+        marchive >> CHNVP(maxNumIters);
+        marchive >> CHNVP(sqrDistTol);
+        marchive >> CHNVP(cosAngleTol);
+        marchive >> CHNVP(paramTol);
     }
 
   private:

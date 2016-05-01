@@ -152,8 +152,8 @@ void ChLinkGear::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
 
     Vector vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
-    Vector Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
-    Vector Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
+    // Vector Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
+    // Vector Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
 
     double dist = Vlength(vbdist);
 
@@ -338,7 +338,8 @@ void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

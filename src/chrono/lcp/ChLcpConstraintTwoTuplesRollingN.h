@@ -82,7 +82,7 @@ class ChApi ChLcpConstraintTwoTuplesRollingN :
 
     virtual ~ChLcpConstraintTwoTuplesRollingN(){};
 
-    virtual ChLcpConstraintTwoTuplesRollingN* new_Duplicate() { return new ChLcpConstraintTwoTuplesRollingN(*this); };
+    virtual ChLcpConstraintTwoTuplesRollingN* new_Duplicate() override { return new ChLcpConstraintTwoTuplesRollingN(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTwoTuplesRollingN& operator=(const ChLcpConstraintTwoTuplesRollingN& other) {
@@ -133,7 +133,7 @@ class ChApi ChLcpConstraintTwoTuplesRollingN :
     /// This projection will also modify the l_i values of the two
     /// tangential friction constraints (projection onto the friction cone,
     /// as by Anitescu-Tasora theory).
-    virtual void Project(){
+    virtual void Project() override {
 
             if (!constraint_U)
                 return;

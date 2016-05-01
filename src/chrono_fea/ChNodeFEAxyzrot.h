@@ -292,7 +292,8 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChNodeFEAbase::ArchiveIN(marchive);
         // serialize parent class

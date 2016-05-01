@@ -738,7 +738,8 @@ class ChQuaternion {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // stream in all member data
         marchive >> CHNVP(e0);
         marchive >> CHNVP(e1);

@@ -43,7 +43,8 @@ class ChApi ChMaterialSurfaceBase {
     };
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number:
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class:
         // stream in all member data:
     };

@@ -176,7 +176,8 @@ class ChApi ChCollisionSystem {
     }
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
     }
 
   protected:

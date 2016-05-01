@@ -1173,7 +1173,7 @@ void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
     // parent (from ChConstraint objects to react vector)
     ChLinkMasked::IntStateGatherReactions(off_L, L);
 
-    int local_off = this->GetDOC_c();
+    // int local_off = this->GetDOC_c();
 
     // gather also the contribution from link limits
     // TODO not yet implemented
@@ -1979,7 +1979,8 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMasked::ArchiveIN(marchive);

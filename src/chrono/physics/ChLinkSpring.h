@@ -44,10 +44,13 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     // builders and destroyers
     ChLinkSpring();
     virtual ~ChLinkSpring();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkSpring* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
-    virtual int GetType() { return LNK_SPRING; }
+    virtual int GetType() override { return LNK_SPRING; }
 
     // data fetch/store
     double Get_SpringRestLength() const { return spr_restlength; }
@@ -76,6 +79,8 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     void Set_mod_k_speed(std::shared_ptr<ChFunction> mf) { mod_k_speed = mf; }
     void Set_mod_r_speed(std::shared_ptr<ChFunction> mf) { mod_r_speed = mf; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Specialized initialization for springs, given the two bodies to be connected,
     /// the positions of the two anchor endpoints of the spring (each expressed
     /// in body or abs. coordinates) and the imposed rest length of the spring.
@@ -90,6 +95,7 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
         bool auto_rest_length = true,  ///< if true, initializes the rest-length as the distance between mpos1 and mpos2
         double mrest_length = 0        ///< imposed rest_length (no need to define, if auto_rest_length=true.)
         );
+#pragma GCC diagnostic pop
 
     /// Get the 1st spring endpoint (expressed in Body1 coordinate system)
     ChVector<> GetEndPoint1Rel() { return marker1->GetPos(); }
@@ -115,7 +121,7 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
 
     /// Inherits, then also adds the spring custom forces to
     /// the C_force and C_torque.
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
 
     //
     // STATE FUNCTIONS
@@ -127,10 +133,10 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

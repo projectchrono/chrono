@@ -57,7 +57,7 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
 
     virtual ~ChLcpConstraintTwoTuples(){};
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoTuples(*this); }
+    virtual ChLcpConstraint* new_Duplicate() override { return new ChLcpConstraintTwoTuples(*this); }
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTwoTuples& operator=(const ChLcpConstraintTwoTuples& other) {
@@ -74,7 +74,7 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     /// Access tuple b
     type_constraint_tuple_b& Get_tuple_b() { return tuple_b; }
 
-    virtual void Update_auxiliary() {
+    virtual void Update_auxiliary() override {
         g_i = 0;
         tuple_a.Update_auxiliary(g_i);
         tuple_b.Update_auxiliary(g_i);
@@ -87,7 +87,7 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
     ///  This is used for some iterative LCP solvers.
-    virtual double Compute_Cq_q() {
+    virtual double Compute_Cq_q() override {
         double ret = 0;
         ret += tuple_a.Compute_Cq_q();
         ret += tuple_b.Compute_Cq_q();
@@ -99,7 +99,7 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative LCP solvers.
 
-    virtual void Increment_q(const double deltal) {
+    virtual void Increment_q(const double deltal) override {
         tuple_a.Increment_q(deltal);
         tuple_b.Increment_q(deltal);
     };
@@ -110,7 +110,7 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override {
         tuple_a.MultiplyAndAdd(result, vect);
         tuple_b.MultiplyAndAdd(result, vect);
     };
@@ -121,7 +121,7 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override {
         tuple_a.MultiplyTandAdd(result, l);
         tuple_b.MultiplyTandAdd(result, l);
     };
@@ -132,11 +132,11 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
     /// This is used only by the ChLcpSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override {
         tuple_a.Build_Cq(storage, insrow);
         tuple_b.Build_Cq(storage, insrow);
     }
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override {
         tuple_a.Build_CqT(storage, inscol);
         tuple_b.Build_CqT(storage, inscol);
     }

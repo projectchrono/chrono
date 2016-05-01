@@ -54,26 +54,29 @@ class ChApi ChFunction_Ramp : public ChFunction {
         ang = m_ang;
     };
     virtual ~ChFunction_Ramp(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChFunction_Ramp* source);
-    virtual ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    virtual ChFunction* new_Duplicate() override;
 
-    virtual int Get_Type() { return (FUNCT_RAMP); }
+    virtual int Get_Type() override { return (FUNCT_RAMP); }
 
     // Custom data
 
     /// The value for x=0;
-    void Set_y0(double m_y0) { y0 = m_y0; };
-    double Get_y0() { return y0; };
+    void Set_y0(double m_y0) { y0 = m_y0; }
+    double Get_y0() { return y0; }
 
     /// The angular coefficient.
-    void Set_ang(double m_ang) { ang = m_ang; };
-    double Get_ang() { return ang; };
+    void Set_ang(double m_ang) { ang = m_ang; }
+    double Get_ang() { return ang; }
 
     // Override the Get_y(), Get_y_dx etc. functions with analytical formulas.
 
-    virtual double Get_y(double x) { return (y0 + (x * ang)); };
-    virtual double Get_y_dx(double x) { return (ang); };
-    virtual double Get_y_dxdx(double x) { return 0; };
+    virtual double Get_y(double x) override { return (y0 + (x * ang)); }
+    virtual double Get_y_dx(double x) override { return (ang); }
+    virtual double Get_y_dxdx(double x) override { return 0; }
 
     // Expose the parameters which can be used for optimizations, as Javascript vars.
 
@@ -85,7 +88,7 @@ class ChApi ChFunction_Ramp : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -97,10 +100,11 @@ class ChApi ChFunction_Ramp : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

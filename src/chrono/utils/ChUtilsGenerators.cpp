@@ -34,14 +34,14 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_cumRatio(0),
       m_defMaterialDVI(new ChMaterialSurface),
       m_defMaterialDEM(new ChMaterialSurfaceDEM),
-      m_defDensity(1),
-      m_defSize(ChVector<>(1, 1, 1)),
       m_frictionDist(NULL),
       m_cohesionDist(NULL),
       m_youngDist(NULL),
       m_poissonDist(NULL),
       m_restitutionDist(NULL),
+      m_defDensity(1),
       m_densityDist(NULL),
+      m_defSize(ChVector<>(1, 1, 1)),
       m_sizeDist(NULL),
       callback_post_creation(NULL) {
 }
@@ -262,7 +262,7 @@ double MixtureIngredient::calcMinSeparation() {
 
 // Constructor: create a generator for the specified system.
 Generator::Generator(ChSystem* system)
-    : m_system(system), m_mixDist(0, 1), m_crtBodyId(0), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0) {
+    : m_system(system), m_mixDist(0, 1), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0), m_crtBodyId(0) {
 }
 
 // Destructor

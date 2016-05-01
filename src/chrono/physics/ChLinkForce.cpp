@@ -107,7 +107,8 @@ void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
 void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
 
     // class version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class too
 
     // stream in all member data

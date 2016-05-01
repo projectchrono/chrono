@@ -91,8 +91,11 @@ class ChApi ChShaft : public ChPhysicsItem {
     /// Destructor
     ~ChShaft();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaft.
     void Copy(ChShaft* source);
+#pragma GCC diagnostic pop
 
     //
     // FLAGS
@@ -142,7 +145,7 @@ class ChApi ChShaft : public ChPhysicsItem {
     unsigned int GetId() const { return id; }
 
     /// Number of coordinates of the shaft
-    virtual int GetDOF() { return 1; }
+    virtual int GetDOF() override { return 1; }
 
     /// Returns reference to the encapsulated ChLcpVariables,
     ChLcpVariablesShaft& Variables() { return variables; }
@@ -156,26 +159,26 @@ class ChApi ChShaft : public ChPhysicsItem {
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP FUNCTIONS
@@ -185,40 +188,40 @@ class ChApi ChShaft : public ChPhysicsItem {
     // (to assembly/manage data for LCP system solver)
 
     /// Sets the 'fb' part of the encapsulated ChLcpVariables to zero.
-    void VariablesFbReset();
+    void VariablesFbReset() override;
 
     /// Adds the current torques in the 'fb' part: qf+=torques*factor
-    void VariablesFbLoadForces(double factor = 1.);
+    void VariablesFbLoadForces(double factor = 1.) override;
 
     /// Initialize the 'qb' part of the ChLcpVariables with the
     /// current value of shaft speed. Note: since 'qb' is the unknown of the LCP, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
-    void VariablesQbLoadSpeed();
+    void VariablesQbLoadSpeed() override;
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-    void VariablesFbIncrementMq();
+    void VariablesFbIncrementMq() override;
 
     /// Fetches the shaft speed from the 'qb' part of the ChLcpVariables (does not
     /// updates the full shaft state) and sets it as the current shaft speed.
     /// If 'step' is not 0, also computes the approximate acceleration of
     /// the shaft using backward differences, that is  accel=(new_speed-old_speed)/step.
-    void VariablesQbSetSpeed(double step = 0.);
+    void VariablesQbSetSpeed(double step = 0.) override;
 
     /// Increment shaft position by the 'qb' part of the ChLcpVariables,
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
-    void VariablesQbIncrementPosition(double step);
+    void VariablesQbIncrementPosition(double step) override;
 
     /// Tell to a system descriptor that there are variables of type
     /// ChLcpVariables in this object (for further passing it to a LCP solver)
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override;
 
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Set the torque applied to the shaft
     void SetAppliedTorque(double mtorque) { this->torque = mtorque; }
@@ -275,17 +278,17 @@ class ChApi ChShaft : public ChPhysicsItem {
     //
 
     /// Update all auxiliary data of the shaft at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

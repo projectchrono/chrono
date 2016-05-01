@@ -345,7 +345,7 @@ public:
     mVerticesFloat  = 0;
   }
 
-  ~MyMeshIslandGeneration(void)
+  virtual ~MyMeshIslandGeneration(void)
   {
     reset();
   }
@@ -610,7 +610,7 @@ private:
   // this island needs to be merged
   void mergeTouching(Island *isl)
   {
-    Island *touching = 0;
+    // Island *touching = 0;
 
     IslandVector::Iterator i;
     for (i=mIslands.begin(); i!=mIslands.end(); ++i)
@@ -620,7 +620,7 @@ private:
       {
         if ( _i->isTouching(isl,mVerticesFloat,mVerticesDouble) )
         {
-          touching = _i;
+          // touching = _i;
         }
       }
     }
@@ -703,11 +703,11 @@ private:
           {
             Island *isl = (*i);
 
-            NxU32 color = 0x00FF00;
+            // NxU32 color = 0x00FF00;
 
             if ( isl->mCoplanar )
             {
-              color = 0xFFFF00;
+              // color = 0xFFFF00;
             }
 
             mergeTouching(isl);

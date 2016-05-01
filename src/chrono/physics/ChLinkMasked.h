@@ -96,8 +96,11 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     //
     ChLinkMasked();
     virtual ~ChLinkMasked();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMasked* source);
-    virtual ChLink* new_Duplicate();
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;
 
     //
     // FUNCTIONS
@@ -122,65 +125,65 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     void ChangedLinkMask();
 
     /// If some constraint is redundant, return to normal state
-    int RestoreRedundant();  ///< \return number of changed states
+    int RestoreRedundant() override;  ///< \return number of changed states
 
     /// Set the status of link validity
-    virtual void SetValid(bool mon) { valid = mon; }
+    virtual void SetValid(bool mon) override { valid = mon; }
 
     /// User can use this to enable/disable all the constraint of
     /// the link as desired.
-    virtual void SetDisabled(bool mdis);
+    virtual void SetDisabled(bool mdis) override;
 
     /// Ex:3rd party software can set the 'broken' status via this method
-    virtual void SetBroken(bool mon);
+    virtual void SetBroken(bool mon) override;
 
     /// Get the pointer to the link mask, ie. a ChLinkMask (sort of
     /// array containing a set of ChLcpConstraint items).
     ChLinkMask* GetMask() { return mask; }
 
     /// overwrites inherited implementation of this method
-    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
+    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2) override;
 
     //
     // STATE FUNCTIONS
     //
 
-    virtual int GetDOC() { return ndoc; }
-    virtual int GetDOC_c() { return ndoc_c; }
-    virtual int GetDOC_d() { return ndoc_d; }
+    virtual int GetDOC() override { return ndoc; }
+    virtual int GetDOC_c() override { return ndoc_c; }
+    virtual int GetDOC_d() override { return ndoc_d; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP INTERFACE  ( functions to assembly/manage data for system solver)
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsBiLoad_Qc(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.) override;
+    virtual void ConstraintsBiLoad_Qc(double factor = 1.) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
 
     //
     // UPDATING FUNCTIONS
@@ -202,7 +205,7 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     /// adding the effects of the contained ChLinkForce objects.
     /// (Default: inherits parent UpdateForces(), then C_force and C_torque are
     /// incremented with the Link::ChLinkForces objects)
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
 
     // -----------COMPLETE UPDATE.
     // sequence:
@@ -215,7 +218,7 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     /// This following "complete" update functions actually fill all the
     /// matrices of the link, and does all calculus, by
     /// calling all the previous Update functions in sequence.
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     // LINK VIOLATIONS
     //
@@ -316,10 +319,10 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
     // Internal use only - transforms a Nx7 jacobian matrix for a

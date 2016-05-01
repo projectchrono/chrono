@@ -237,7 +237,8 @@ void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

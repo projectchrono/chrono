@@ -224,7 +224,8 @@ void ChShaftsGearbox::ArchiveOUT(ChArchiveOut& marchive)
 void ChShaftsGearbox::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

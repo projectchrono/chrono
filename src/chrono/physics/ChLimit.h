@@ -67,8 +67,11 @@ class ChApi ChLinkLimit {
     ChLcpConstraintTwoBodies constr_lower;
 
     ChLinkLimit();
-    ~ChLinkLimit();
+    virtual ~ChLinkLimit();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChLinkLimit* source);
+#pragma GCC diagnostic pop
     ChLinkLimit* new_Duplicate();
 
     int Get_active() { return active; }

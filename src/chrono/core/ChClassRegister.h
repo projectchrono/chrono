@@ -222,7 +222,8 @@ class ChApi ChClassFactory {
     }
     ~ChClassFactory () {
         for(const auto & it : class_map ) {
-           GetLog() << "   registered: " << it.first << "\n";
+           std::string class_name = it.first;
+           GetLog() << "   registered: " << class_name << "\n";
         }
         GetLog() << "Delete ChClassFactory \n";
     }

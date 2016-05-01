@@ -124,7 +124,8 @@ void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
 void ChSystemDEM::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

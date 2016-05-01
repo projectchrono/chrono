@@ -136,10 +136,13 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Destructor
     ~ChBody();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChBody.
     /// NOTE: all settings of the body are copied, but the
     /// child hierarchy of ChForces and ChMarkers (if any) are NOT copied.
     void Copy(ChBody* source);
+#pragma GCC diagnostic pop
 
     //
     // FLAGS
@@ -175,7 +178,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// before anim starts, if you added an external object
     /// that implements onAddCollisionGeometries(), ex. in a plugin for a CAD)
     void SetCollide(bool mcoll);
-    bool GetCollide() { return BFlagGet(BF_COLLIDE); }
+    bool GetCollide() override { return BFlagGet(BF_COLLIDE); }
 
     /// Show collision mesh in 3D views.
     void SetShowCollisionMesh(bool mcoll) { BFlagSet(BF_SHOW_COLLMESH, mcoll); }
@@ -224,16 +227,16 @@ class ChApi ChBody :            public ChPhysicsItem,
     //
 
     /// Number of coordinates of body, x7 because with quaternions for rotation
-    virtual int GetDOF() { return 7; }
+    virtual int GetDOF() override { return 7; }
     /// Number of coordinates of body, x6 because derivatives es. angular vel.
-    virtual int GetDOF_w() { return 6; }
+    virtual int GetDOF_w() override { return 6; }
 
     /// Returns reference to the encapsulated ChLcpVariablesBody,
     /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
     /// and forces.
     /// The ChLcpVariablesBodyOwnMass is the interface to the LCP system solver.
-    ChLcpVariablesBodyOwnMass& VariablesBody() { return variables; }
-    ChLcpVariables& Variables() { return variables; }
+    ChLcpVariablesBodyOwnMass& VariablesBody() override { return variables; }
+    ChLcpVariables& Variables() override { return variables; }
 
     //
     // STATE FUNCTIONS
@@ -244,31 +247,31 @@ class ChApi ChBody :            public ChPhysicsItem,
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                   const ChStateDelta& Dv) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP FUNCTIONS
@@ -278,21 +281,21 @@ class ChApi ChBody :            public ChPhysicsItem,
     // (to assembly/manage data for LCP system solver)
 
     /// Sets the 'fb' part of the encapsulated ChLcpVariablesBodyOwnMass to zero.
-    void VariablesFbReset();
+    void VariablesFbReset() override;
 
     /// Adds the current forces applied to body (including gyroscopic torque) in
     /// encapsulated ChLcpVariablesBody, in the 'fb' part: qf+=forces*factor
-    void VariablesFbLoadForces(double factor = 1.);
+    void VariablesFbLoadForces(double factor = 1.) override;
 
     /// Initialize the 'qb' part of the ChLcpVariablesBody with the
     /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
-    void VariablesQbLoadSpeed();
+    void VariablesQbLoadSpeed() override;
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-    void VariablesFbIncrementMq();
+    void VariablesFbIncrementMq() override;
 
     /// Fetches the body speed (both linear and angular) from the
     /// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
@@ -300,7 +303,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// If 'step' is not 0, also computes the approximate acceleration of
     /// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
     /// Mostly used after the LCP provided the solution in ChLcpVariablesBody .
-    void VariablesQbSetSpeed(double step = 0.);
+    void VariablesQbSetSpeed(double step = 0.) override;
 
     /// Increment body position by the 'qb' part of the ChLcpVariablesBody,
     /// multiplied by a 'step' factor.
@@ -308,11 +311,11 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// If qb is a speed, this behaves like a single step of 1-st order
     /// numerical integration (Eulero integration).
     /// Does not automatically update markers & forces.
-    void VariablesQbIncrementPosition(double step);
+    void VariablesQbIncrementPosition(double step) override;
 
     /// Tell to a system descriptor that there are variables of type
     /// ChLcpVariables in this object (for further passing it to a LCP solver)
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override;
 
     /// Instantiate the collision model
     virtual collision::ChCollisionModel* InstanceCollisionModel();
@@ -320,7 +323,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Change the collision model.
     void ChangeCollisionModel(collision::ChCollisionModel* new_collision_model);
@@ -330,9 +333,9 @@ class ChApi ChBody :            public ChPhysicsItem,
     collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
 
     /// Synchronize coll.model coordinate and bounding box to the position of the body.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
+    virtual void SyncCollisionModels() override;
+    virtual void AddCollisionModelsToSystem() override;
+    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// Update the optimization structures (OOBB, ABB, etc.)
     /// of the collision model, from the associated geometry in some external object (es.CAD).
@@ -358,16 +361,16 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     /// Get the master coordinate system for the assets (this will return the
     /// main coordinate system of the rigid body)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) { return (GetFrame_REF_to_abs()); }
+    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return (GetFrame_REF_to_abs()); }
 
     /// Get the entire AABB axis-aligned bounding box of the object,
     /// as defined by the collision model (if any).
-    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax);
+    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) override;
 
     /// Method to deserialize only the state (position, speed)
-    virtual void StreamINstate(ChStreamInBinary& mstream);
+    virtual void StreamINstate(ChStreamInBinary& mstream) override;
     /// Method to serialize only the state (position, speed)
-    virtual void StreamOUTstate(ChStreamOutBinary& mstream);
+    virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
     /// Infer the contact method from the underlying material properties object.
     ChMaterialSurfaceBase::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
@@ -606,10 +609,10 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..), at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     //
     // INTERFACE TO ChContactable
@@ -734,37 +737,37 @@ class ChApi ChBody :            public ChPhysicsItem,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 7; }
+    virtual int LoadableGet_ndof_x() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 6; }
+    virtual int LoadableGet_ndof_w() override { return 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteCoordsys(this->GetCoord(), block_offset, 0);
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteVector(this->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->GetWvel_loc(), block_offset + 3, 0);
     }
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() { return 6; }
+    virtual int Get_field_ncoords() override { return 6; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 1; }
+    virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return this->GetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override { 
         mvars.push_back(&this->Variables());
     };
 
@@ -780,7 +783,7 @@ class ChApi ChBody :            public ChPhysicsItem,
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is 6, it is {Force,Torque} in absolute coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         ChVector<> abs_pos(U,V,W);
         ChVector<> absF=F.ClipVector(0,0);
         ChVector<> absT=F.ClipVector(3,0);
@@ -800,7 +803,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     }
 
     /// This is not needed because not used in quadrature.
-    virtual double GetDensity() { return 1; }
+    virtual double GetDensity() override { return 1; }
 
 
     //
@@ -808,10 +811,10 @@ class ChApi ChBody :            public ChPhysicsItem,
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 };
 

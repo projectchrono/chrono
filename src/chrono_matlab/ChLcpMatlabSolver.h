@@ -39,14 +39,14 @@ class ChApiMatlab ChLcpMatlabSolver : public ChLcpSolver {
     void SetEngine(ChMatlabEngine* me) {mengine = me;}
 
     /// Solve using the Matlab default direct solver (as in x=A\b)
-    virtual double Solve(ChLcpSystemDescriptor& sysd);  ///< system description with constraints and variables
+    virtual double Solve(ChLcpSystemDescriptor& sysd) override;  ///< system description with constraints and variables
 
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -57,10 +57,11 @@ class ChApiMatlab ChLcpMatlabSolver : public ChLcpSolver {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLcpSolver::ArchiveIN(marchive);
         // stream in all member data:

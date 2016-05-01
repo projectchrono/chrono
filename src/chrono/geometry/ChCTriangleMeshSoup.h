@@ -47,36 +47,36 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     //
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) {
+    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) override {
         ChTriangle tri(vertex0, vertex1, vertex2);
         m_triangles.push_back(tri);
     }
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
-    virtual void addTriangle(const ChTriangle& atriangle) { m_triangles.push_back(atriangle); }
+    virtual void addTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const { return (int)m_triangles.size(); }
+    virtual int getNumTriangles() const override { return (int)m_triangles.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const { return m_triangles[index]; }
+    virtual ChTriangle getTriangle(int index) const override { return m_triangles[index]; }
 
     /// Clear all data
-    virtual void Clear() { this->m_triangles.clear(); }
+    virtual void Clear() override { this->m_triangles.clear(); }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
 
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_TRIANGLEMESHSOUP; };
+    virtual int GetClassType() override { return CH_GEOCLASS_TRIANGLEMESHSOUP; };
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -87,10 +87,11 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChTriangleMesh::ArchiveIN(marchive);
         // stream in all member data:

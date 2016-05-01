@@ -434,6 +434,8 @@ class ChFrameMoving : public ChFrame<Real> {
             (coord_dt.rot % ChQuaternion<Real>(0, localspeed) % this->coord.rot.GetConjugate()).GetVector() * 4);
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// This function transforms a frame from 'this' local coordinate
     /// system to parent frame coordinate system, and also transforms the speed
     /// and acceleration of the frame.
@@ -483,6 +485,7 @@ class ChFrameMoving : public ChFrame<Real> {
             this->coord.rot.GetConjugate() %
             (parent.coord_dtdt.rot - coord_dtdt.rot % local.coord.rot - (coord_dt.rot % local.coord_dt.rot) * 2);
     }
+#pragma GCC diagnostic pop
 
     // OTHER FUNCTIONS
 
@@ -501,7 +504,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// The transformation (also for speeds, accelerations) is
     /// inverted in place.
     /// That is if w=A*v, then A.Invert();v=A*w;
-    virtual void Invert() {
+    virtual void Invert() override {
         ChFrameMoving<Real> tmp;
         ChFrameMoving<Real> unit;
         tmp = *this;
@@ -518,7 +521,7 @@ class ChFrameMoving : public ChFrame<Real> {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -532,10 +535,11 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // deserialize parent class
         ChFrame<Real>::ArchiveIN(marchive);

@@ -61,8 +61,11 @@ class ChApi ChLinkNumdiff : public ChLinkMasked {
     //
     ChLinkNumdiff();
     virtual ~ChLinkNumdiff();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkNumdiff* source);
-    virtual ChLink* new_Duplicate();
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;
 
     //
     // FUNCTIONS
@@ -117,17 +120,17 @@ class ChApi ChLinkNumdiff : public ChLinkMasked {
     // because this version will call ComputeCt, ComputeCq to get the
     // values of Cq1, Cq2, Qc, Ct. This will happen automatically if one
     // has provided a proper ComputeC() function in his inherited class.
-    virtual void UpdateState();
+    virtual void UpdateState() override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

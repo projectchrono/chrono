@@ -54,9 +54,12 @@ class ChApi ChLinePoly : public ChLine {
         Copy(&source);
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChLinePoly* source);
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() {
+    ChGeometry* Duplicate() override {
         ChGeometry* mgeo = new ChLinePoly(*this);
         return mgeo;
     };
@@ -65,22 +68,22 @@ class ChApi ChLinePoly : public ChLine {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_LINEPOLY; };
+    virtual int GetClassType() override { return CH_GEOCLASS_LINEPOLY; };
 
-    virtual bool Get_closed();
-    virtual void Set_closed(bool mc);
+    virtual bool Get_closed() override;
+    virtual void Set_closed(bool mc) override;
 
-    virtual int Get_complexity() { return (int)points.size(); };
-    virtual void Set_complexity(int mc){};
+    virtual int Get_complexity() override { return (int)points.size(); };
+    virtual void Set_complexity(int mc) override{};
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.);
+    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) override;
 
     /// Returns curve length. sampling does not matter
-    double Length(int sampling);
+    double Length(int sampling) override;
 
     /// Draw into the current graph viewport of a ChFile_ps file
-    int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
+    int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) override;
 
     //
     // CUSTOM FUNCTIONS
@@ -104,7 +107,7 @@ class ChApi ChLinePoly : public ChLine {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -116,10 +119,11 @@ class ChApi ChLinePoly : public ChLine {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:

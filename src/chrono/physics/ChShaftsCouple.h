@@ -64,11 +64,14 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Destructor
     ~ChShaftsCouple(){};
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaftsClutch.
     void Copy(ChShaftsCouple* source) {
         this->shaft1 = 0;
         this->shaft2 = 0;
     }
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
@@ -122,7 +125,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -136,10 +139,11 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     } 
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // deserialize parent class:
         ChPhysicsItem::ArchiveIN(marchive);

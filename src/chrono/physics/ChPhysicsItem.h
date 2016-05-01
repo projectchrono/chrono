@@ -80,7 +80,10 @@ class ChApi ChPhysicsItem : public ChObj {
         SetSystem(0); // this also might remove collision model from system
     };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChPhysicsItem* source);
+#pragma GCC diagnostic pop
 
   private:
     virtual void SetupInitial() {}
@@ -462,10 +465,10 @@ class ChApi ChPhysicsItem : public ChObj {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 };
 

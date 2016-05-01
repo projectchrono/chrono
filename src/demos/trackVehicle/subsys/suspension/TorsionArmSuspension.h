@@ -32,7 +32,7 @@ namespace chrono {
 /// Functor class for a custom rotaional spring constant modifier
 class ChFunction_CustomSpring : public ChFunction {
   public:
-    ChFunction* new_Duplicate() { return new ChFunction_CustomSpring; }
+    ChFunction* new_Duplicate() override { return new ChFunction_CustomSpring; }
 
     double Get_y(double x) {
         double spring_coef = 50;

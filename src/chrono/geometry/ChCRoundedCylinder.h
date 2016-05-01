@@ -49,14 +49,17 @@ class ChApi ChRoundedCylinder : public ChGeometry {
 
     ChRoundedCylinder(const ChRoundedCylinder& source) { Copy(&source); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChRoundedCylinder* source) {
         center = source->center;
         rad = source->rad;
         hlen = source->hlen;
         radsphere = source->radsphere;
     }
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() {
+    ChGeometry* Duplicate() override {
         ChGeometry* mgeo = new ChRoundedCylinder();
         mgeo->Copy(this);
         return mgeo;
@@ -66,7 +69,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_ROUNDEDCYLINDER; }
+    virtual int GetClassType() override { return CH_GEOCLASS_ROUNDEDCYLINDER; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -74,14 +77,14 @@ class ChApi ChRoundedCylinder : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL) {
+                                ChMatrix33<>* Rot = NULL) override {
         //***TO DO*** Implement Bounding Box
     }
 
-    virtual ChVector<> Baricenter() { return center; }
+    virtual ChVector<> Baricenter() override { return center; }
 
     //***TO DO***  obsolete/unused
-    virtual void CovarianceMatrix(ChMatrix33<>& C) {
+    virtual void CovarianceMatrix(ChMatrix33<>& C) override {
         C.Reset();
         C(0, 0) = center.x * center.x;
         C(1, 1) = center.y * center.y;
@@ -89,7 +92,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     }
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
+    virtual int GetManifoldDimension() override { return 3; }
 
     //
     // DATA
@@ -105,7 +108,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -119,10 +122,11 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:

@@ -66,14 +66,17 @@ class ChApi ChLinkDistance : public ChLink {
     ChLinkDistance();
 
     virtual ~ChLinkDistance();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkDistance* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     //
     // FUNCTIONS
     //
 
-    virtual int GetType() { return LNK_GEOMETRICDISTANCE; }
+    virtual int GetType() override { return LNK_GEOMETRICDISTANCE; }
 
     /// Initialize this constraint, given the two bodies to be connected, the
     /// positions of the two anchor endpoints of the distance (each expressed
@@ -89,13 +92,13 @@ class ChApi ChLinkDistance : public ChLink {
         );
 
     /// Get the number of (bilateral) constraints introduced by this link.
-    virtual int GetDOC_c() { return 1; }
+    virtual int GetDOC_c() override { return 1; }
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master'
     /// body). This represents the 'main' reference of the link: reaction forces
     /// are expressed in this coordinate system.
     /// (It is the coordinate system of the contact plane relative to Body2)
-    virtual ChCoordsys<> GetLinkRelativeCoords();
+    virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
     /// Get the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
     ChVector<> GetEndPoint1Rel() const { return pos1; }
@@ -134,51 +137,51 @@ class ChApi ChLinkDistance : public ChLink {
     /// Override _all_ time, jacobian etc. updating.
     /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures.
-    virtual void Update(double mtime, bool update_assets = true);
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

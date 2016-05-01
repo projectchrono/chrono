@@ -56,8 +56,11 @@ class ChApi ChFunction_Sigma : public ChFunction {
         amp = m_amp;
     };
     ~ChFunction_Sigma(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Sigma* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void Set_start(double m_start) { start = m_start; }
     void Set_end(double m_end) { end = m_end; }
@@ -66,16 +69,16 @@ class ChApi ChFunction_Sigma : public ChFunction {
     double Get_end() { return end; }
     double Get_amp() { return amp; }
 
-    double Get_y(double x);
-    double Get_y_dx(double x);
-    double Get_y_dxdx(double x);
+    double Get_y(double x) override;
+    double Get_y_dx(double x) override;
+    double Get_y_dxdx(double x) override;
 
-    double Get_Ca_pos() { return 6.0; };
-    double Get_Ca_neg() { return 6.0; };
-    double Get_Cv() { return 1.5; };
+    double Get_Ca_pos() override { return 6.0; }
+    double Get_Ca_neg() override { return 6.0; }
+    double Get_Cv() override { return 1.5; }
 
-    void Estimate_x_range(double& xmin, double& xmax);
-    int Get_Type() { return (FUNCT_SIGMA); }
+    void Estimate_x_range(double& xmin, double& xmax) override;
+    int Get_Type() override { return (FUNCT_SIGMA); }
 
     OPT_VARIABLES_START
     "start", "end", "amp", OPT_VARIABLES_END
@@ -85,7 +88,7 @@ class ChApi ChFunction_Sigma : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -98,10 +101,11 @@ class ChApi ChFunction_Sigma : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

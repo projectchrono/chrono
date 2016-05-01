@@ -36,7 +36,7 @@ namespace chrono {
 class ChFunction_CustomDamper : public ChFunction {
   public:
     ChFunction_CustomDamper(double R_const = 1.0, double R_nonlin = 0.5) : m_R(R_const), m_R_nonlin(R_nonlin) {}
-    ChFunction* new_Duplicate() { return new ChFunction_CustomDamper; }
+    ChFunction* new_Duplicate() override { return new ChFunction_CustomDamper; }
 
     double Get_y(double x) {
         // scale the nonlinear damping coefficient

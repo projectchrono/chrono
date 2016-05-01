@@ -167,7 +167,8 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive)
 void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChNodeXYZ::ArchiveIN(marchive);
@@ -214,7 +215,8 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive)
 void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
@@ -415,7 +417,7 @@ void ChMatterSPH::IntLoadResidual_F(
     std::shared_ptr<ChProximityContainerSPH> edges;
     std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
@@ -528,7 +530,7 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     std::shared_ptr<ChProximityContainerSPH> edges;
     std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics = this->GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != this->GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
@@ -726,7 +728,8 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive)
 void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChIndexedNodes::ArchiveIN(marchive);

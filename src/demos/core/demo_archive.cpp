@@ -113,7 +113,8 @@ class myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // stream in all member data
         marchive >> CHNVP(age);
         marchive >> CHNVP(wages);
@@ -151,7 +152,7 @@ class myEmployeeBoss : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override //##### for Chrono serialization
     {
         // suggested: use versioning
         marchive.VersionWrite(2);
@@ -162,7 +163,7 @@ class myEmployeeBoss : public myEmployee {
         marchive << CHNVP(is_dumb);
         marchive << CHNVP(slave);  // this added only from version >1
     }
-    virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
+    virtual void ArchiveIN(ChArchiveIn& marchive) override //##### for Chrono serialization
     {
         // suggested: use versioning
         int version = marchive.VersionRead();

@@ -52,12 +52,15 @@ class ChApi ChLine : public ChGeometry {
 
     ChLine(const ChLine& source) { Copy(&source); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChLine* source) {
         closed = source->closed;
         complexityU = source->complexityU;
     };
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() {
+    ChGeometry* Duplicate() override {
         ChGeometry* mgeo = new ChLine();
         mgeo->Copy(this);
         return mgeo;
@@ -69,7 +72,7 @@ class ChApi ChLine : public ChGeometry {
     /// Get the class type as unique numerical ID (faster
     /// than using ChronoRTTI mechanism).
     /// Each inherited class must return an unique ID.
-    virtual int GetClassType() { return CH_GEOCLASS_LINE; };
+    virtual int GetClassType() override { return CH_GEOCLASS_LINE; };
 
     /// Tell if the curve is closed
     virtual bool Get_closed() { return closed; };
@@ -80,7 +83,7 @@ class ChApi ChLine : public ChGeometry {
     virtual void Set_complexity(int mc) { complexityU = mc; };
 
     /// This is a line
-    virtual int GetManifoldDimension() { return 1; }
+    virtual int GetManifoldDimension() override { return 1; }
 
     //
     // CUSTOM FUNCTIONS
@@ -133,7 +136,7 @@ class ChApi ChLine : public ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override
     {
         // version number
         marchive.VersionWrite(1);
@@ -145,10 +148,11 @@ class ChApi ChLine : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:

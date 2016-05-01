@@ -182,7 +182,8 @@ void ChAparticle::ArchiveOUT(ChArchiveOut& marchive)
 void ChAparticle::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChParticleBase::ArchiveIN(marchive);
@@ -690,7 +691,8 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive)
 void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChIndexedParticles::ArchiveIN(marchive);

@@ -58,14 +58,17 @@ class ChApi ChLinkBrake : public ChLinkLock {
     // builders and destroyers
     ChLinkBrake();
     virtual ~ChLinkBrake();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkBrake* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     // UPDATING FUNCTION  -apply braking force-
-    virtual void UpdateTime(double time);
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateTime(double time) override;
+    virtual void UpdateForces(double mytime) override;
 
-    virtual void SetDisabled(bool mdis);
+    virtual void SetDisabled(bool mdis) override;
 
     // data get/set
     double Get_brake_torque() { return brake_torque; };
@@ -79,10 +82,10 @@ class ChApi ChLinkBrake : public ChLinkLock {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 //////////////////////////////////////////////////////

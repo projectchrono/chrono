@@ -62,13 +62,13 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual ~ChSystemDEM() {}
 
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
     virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurfaceBase::DEM); }
     virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM); }
 
-    virtual void SetLcpSolverType(eCh_lcpSolver mval);
+    virtual void SetLcpSolverType(eCh_lcpSolver mval) override;
     // virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
-    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer);
+    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) override;
 
     /// Enable/disable using physical contact material properties.
     /// If true, contact coefficients are estimated from physical material properties. Otherwise,
@@ -108,10 +108,10 @@ class ChApi ChSystemDEM : public ChSystem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
     bool m_use_mat_props;                 ///< flag indicating if contact parameters are based on physical mat. props.

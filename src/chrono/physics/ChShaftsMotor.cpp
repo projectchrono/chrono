@@ -257,7 +257,8 @@ void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive)
 void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIN(marchive);

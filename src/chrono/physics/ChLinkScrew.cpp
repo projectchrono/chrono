@@ -167,7 +167,8 @@ void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive)
 void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

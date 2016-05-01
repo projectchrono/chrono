@@ -289,7 +289,8 @@ class ChCoordsys {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // stream in all member data
         marchive >> CHNVP(pos);
         marchive >> CHNVP(rot);

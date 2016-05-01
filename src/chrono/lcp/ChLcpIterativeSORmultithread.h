@@ -68,7 +68,7 @@ class ChApi ChLcpIterativeSORmultithread : public ChLcpIterativeSolver {
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 
     /// Changes the number of threads which run in parallel (should be > 1 )
     void ChangeNumberOfThreads(int mthreads = 2);

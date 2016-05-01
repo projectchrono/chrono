@@ -57,8 +57,11 @@ class ChApi ChLinkTrajectory : public ChLinkLock {
     // builders and destroyers
     ChLinkTrajectory();
     virtual ~ChLinkTrajectory();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkTrajectory* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     /// Gets the address of the function s=s(t) telling
     /// how the curvilinear parameter of the trajectory changes in time.
@@ -77,6 +80,8 @@ class ChApi ChLinkTrajectory : public ChLinkLock {
     /// Sets the trajectory line (take ownership - does not copy line)
     void Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Use this function after link creation, to initialize the link from
     /// two joined rigid bodies.
     /// Both rigid bodies must belong to the same ChSystem.
@@ -89,22 +94,23 @@ class ChApi ChLinkTrajectory : public ChLinkLock {
         const ChVector<>& mpos1,     ///< position of the 'following point' on body1, relative to coordinate of body1.
         std::shared_ptr<geometry::ChLine> mline  ///< the line on mbody2 to be followed by point mpos1 of mbody1
         );
+#pragma GCC diagnostic pop
 
     // UPDATING FUNCTIONS - "lock formulation" custom implementations
 
     // Overrides the parent class function. Here it moves the
     // constraint mmain marker tangent to the line.
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

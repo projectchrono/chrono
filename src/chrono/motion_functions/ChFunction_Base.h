@@ -43,8 +43,11 @@ namespace chrono {
 
 #define CHF_FILE_HEADER_ID 1234.56
 
-#define OPT_VARIABLES_START                  \
+#define OPT_VARIABLES_START_BASE             \
     virtual const char** GetOptVariables() { \
+    static const char* mOptVars[] = {
+#define OPT_VARIABLES_START                  \
+    virtual const char** GetOptVariables() override { \
     static const char* mOptVars[] = {
 #define OPT_VARIABLES_END \
     0                     \
@@ -158,9 +161,9 @@ class ChApi ChFunction {
     static int VariableTreeToFullNameVar(ChList<chjs_propdata>* mtree, ChList<chjs_fullnamevar>* mlist);
     virtual int OptVariableCount();
 
-    OPT_VARIABLES_START    // here expose no vars ('C' var is added hard-wired in MakeOptVariableTree)
-        OPT_VARIABLES_END  // Inherited classes, at least implement this. If they enclose children funct. obj, also
-                           // implement the MakeOptVariableTree().
+    OPT_VARIABLES_START_BASE // here expose no vars ('C' var is added hard-wired in MakeOptVariableTree)
+        OPT_VARIABLES_END    // Inherited classes, at least implement this. If they enclose children funct. obj, also
+                             // implement the MakeOptVariableTree().
 
         /// If the function has some handles (mouse-sensible markers on screen),
         /// implement these functions:

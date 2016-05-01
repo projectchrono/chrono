@@ -33,18 +33,21 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     ChLinkRevoluteTranslational();
     ~ChLinkRevoluteTranslational();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkRevoluteTranslational* source);
-    virtual ChLink* new_Duplicate();
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;
 
     //
     // FUNCTIONS
     //
 
     /// Get the type of this joint.
-    virtual int GetType() { return LNK_REVOLUTETRANSLATIONAL; }
+    virtual int GetType() override { return LNK_REVOLUTETRANSLATIONAL; }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetDOC_c() { return 4; }
+    virtual int GetDOC_c() override { return 4; }
 
     /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
     const ChVector<>& GetPoint1Rel() const { return m_p1; }
@@ -80,7 +83,7 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// Get the link coordinate system, expressed relative to Body2 (translational side).
     /// This represents the 'main' reference of the link: reaction forces
     /// and reaction torques are reported in this coordinate system.
-    virtual ChCoordsys<> GetLinkRelativeCoords();
+    virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
     /// Get the joint violation (residuals of the constraint equations)
     ChMatrix<>* GetC() { return m_C; }
@@ -123,40 +126,40 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
 
     /// Perform the update of this joint at the specified time: compute jacobians,
     /// constraint violations, etc. and cache in internal structures
-    virtual void Update(double time, bool update_assets = true);
+    virtual void Update(double time, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
     //
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.) override
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& descriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChLcpSystemDescriptor& descriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
 
     //
     // EXTRA REACTION FORCE & TORQUE FUNCTIONS
@@ -172,10 +175,10 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
     ChVector<> m_p1;  // point on first frame (in local frame)

@@ -88,7 +88,7 @@ class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric {
 
     virtual ~ChLcpConstraintNodeContactN(){};
 
-    virtual ChLcpConstraintNodeContactN* new_Duplicate() { return new ChLcpConstraintNodeContactN(*this); };
+    virtual ChLcpConstraintNodeContactN* new_Duplicate() override { return new ChLcpConstraintNodeContactN(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintNodeContactN& operator=(const ChLcpConstraintNodeContactN& other) {
@@ -127,7 +127,7 @@ class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric {
     /// This projection will also modify the l_i values of the two
     /// tangential friction constraints (projection onto the friction cone,
     /// as by Anitescu-Tasora theory).
-    virtual void Project();
+    virtual void Project() override;
 
     //
     // STREAMING
@@ -135,11 +135,11 @@ class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // END_OF_NAMESPACE____

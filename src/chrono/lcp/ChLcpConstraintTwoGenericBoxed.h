@@ -82,7 +82,7 @@ class ChApi ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric {
 
     virtual ~ChLcpConstraintTwoGenericBoxed(){};
 
-    virtual ChLcpConstraintTwoGenericBoxed* new_Duplicate() { return new ChLcpConstraintTwoGenericBoxed(*this); };
+    virtual ChLcpConstraintTwoGenericBoxed* new_Duplicate() override { return new ChLcpConstraintTwoGenericBoxed(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTwoGenericBoxed& operator=(const ChLcpConstraintTwoGenericBoxed& other) {
@@ -116,7 +116,7 @@ class ChApi ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric {
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible orthant/set.
     /// This 'boxed implementation overrides the default do-nothing case.
-    virtual void Project() {
+    virtual void Project() override {
         if (l_i < l_min)
             l_i = l_min;
         if (l_i > l_max)
@@ -126,7 +126,7 @@ class ChApi ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric {
     /// Given the residual of the constraint computed as the
     /// linear map  mc_i =  [Cq]*q + b_i + cfm*l_i , returns the
     /// violation of the constraint, considering inequalities, etc.
-    virtual double Violation(double mc_i);
+    virtual double Violation(double mc_i) override;
 
     //
     // STREAMING
@@ -134,11 +134,11 @@ class ChApi ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // END_OF_NAMESPACE____

@@ -49,8 +49,11 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
     /// Destructor
     ~ChShaftsThermalEngine();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaftsThermalEngine.
     void Copy(ChShaftsThermalEngine* source);
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
@@ -81,17 +84,17 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
 
     /// This is the function that actually contains the
     /// formula for computing T=T(w,throttle)
-    virtual double ComputeTorque();
+    virtual double ComputeTorque() override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

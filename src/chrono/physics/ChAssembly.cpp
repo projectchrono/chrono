@@ -65,7 +65,7 @@ void ChAssembly::Copy(ChAssembly* source) {
     ChPhysicsItem::Copy(source);
 
     this->Clear();
-    /*
+#if 0
     //***TO DO*** deeper copy 
     for (unsigned int ip = 0; ip < source->Get_bodylist()->size(); ++ip)  // ITERATE on bodies
         this->Add(source->Get_bodylist()->at(ip)->Clone());
@@ -75,7 +75,7 @@ void ChAssembly::Copy(ChAssembly* source) {
 
     for (unsigned int ip = 0; ip < source->Get_otherphysicslist()->size(); ++ip)  // ITERATE on bodies
         this->Add(source->Get_otherphysicslist()->at(ip)->Clone());
-    */
+#endif
     nbodies = source->GetNbodies();
     nlinks = source->GetNlinks();
     nphysicsitems = source->GetNphysicsItems();
@@ -1317,7 +1317,8 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive)
 void ChAssembly::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

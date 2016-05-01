@@ -38,8 +38,11 @@ public:
     /// Destructor
     virtual ~ChAssembly();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChAssembly.
     void Copy(ChAssembly* source);
+#pragma GCC diagnostic pop
 
 
     //
@@ -273,9 +276,9 @@ public:
 
     /// Set the pointer to the parent ChSystem() and 
     /// also add to new collision system / remove from old coll.system
-    virtual void SetSystem(ChSystem* m_system);
+    virtual void SetSystem(ChSystem* m_system) override;
 
-    virtual void SyncCollisionModels();
+    virtual void SyncCollisionModels() override;
     //virtual void AddCollisionModelsToSystem(); // no, already done in SetSystem iterating on all sub objects
     //virtual void RemoveCollisionModelsFromSystem(); // no, already done in SetSystem iterating on all sub objects
 
@@ -283,95 +286,95 @@ public:
     /// Computes the offsets of object states in the global state.
     /// Assumes that this->offset_x this->offset_w this->offset_L are already set
     /// as starting point for offsetting all the contained sub objects.
-    virtual void Setup();
+    virtual void Setup() override;
 
     /// Updates all the auxiliary data and children of
     /// bodies, forces, links, given their current state.
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    virtual void SetNoSpeedNoAcceleration();
+    virtual void SetNoSpeedNoAcceleration() override;
 
 
     /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetDOF() { return GetNcoords(); }
-    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetDOF_w() { return GetNcoords_w(); }
+    virtual int GetDOF() override { return GetNcoords(); }
+    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector) override
+    virtual int GetDOF_w() override { return GetNcoords_w(); }
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() { return GetNdoc_w(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetDOC_c() { return GetNdoc_w_C(); };
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d() { return GetNdoc_w_D(); };
+    virtual int GetDOC() override { return GetNdoc_w(); }
+    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.) override
+    virtual int GetDOC_c() override { return GetNdoc_w_C(); };
+    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.) override
+    virtual int GetDOC_d() override { return GetNdoc_w_D(); };
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.) override
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                   const ChStateDelta& Dv) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
+                          const ChVectorDynamic<>& Qc) override;
     virtual void IntFromLCP(const unsigned int off_v, 
                             ChStateDelta& v, 
                             const unsigned int off_L, 
-                            ChVectorDynamic<>& L);
+                            ChVectorDynamic<>& L) override;
     
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override;
     
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-    virtual void ConstraintsLoadJacobians();
+    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsLoadJacobians() override;
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor);
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Old bookkeeping system - to be removed soon
-    virtual void VariablesFbReset();
-    virtual void VariablesFbLoadForces(double factor = 1.);
-    virtual void VariablesQbLoadSpeed();
-    virtual void VariablesFbIncrementMq();
-    virtual void VariablesQbSetSpeed(double step = 0.);
-    virtual void VariablesQbIncrementPosition(double step);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsBiLoad_Qc(double factor = 1.);
-    virtual void ConstraintsFbLoadForces(double factor = 1.);
+    virtual void VariablesFbReset() override;
+    virtual void VariablesFbLoadForces(double factor = 1.) override;
+    virtual void VariablesQbLoadSpeed() override;
+    virtual void VariablesFbIncrementMq() override;
+    virtual void VariablesQbSetSpeed(double step = 0.) override;
+    virtual void VariablesQbIncrementPosition(double step) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.) override;
+    virtual void ConstraintsBiLoad_Qc(double factor = 1.) override;
+    virtual void ConstraintsFbLoadForces(double factor = 1.) override;
     
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void ConstraintsFetch_react(double factor = 1.) override;
 
 
     //
@@ -385,10 +388,10 @@ public:
 
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 
 protected:

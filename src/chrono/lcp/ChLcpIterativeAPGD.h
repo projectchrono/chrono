@@ -72,7 +72,7 @@ class ChApi ChIterativeAPGD : public ChLcpIterativeSolver {
     //
 
     // Performs the solution of the LCP.
-    virtual double Solve(ChLcpSystemDescriptor& sysd);
+    virtual double Solve(ChLcpSystemDescriptor& sysd) override;
 
     void ShurBvectorCompute(ChLcpSystemDescriptor& sysd);
     double Res4(ChLcpSystemDescriptor& sysd);

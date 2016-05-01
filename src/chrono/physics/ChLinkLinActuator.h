@@ -46,13 +46,16 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     // builders and destroyers
     ChLinkLinActuator();
     virtual ~ChLinkLinActuator();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkLinActuator* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     // UPDATING FUNCTIONS - "lin.act. link" custom implementations
 
     // Updates motion laws, marker positions, etc.
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
 
     // data get/set
     std::shared_ptr<ChFunction> Get_dist_funct() { return dist_funct; }
@@ -88,10 +91,10 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____
