@@ -47,7 +47,7 @@ class ChApiFea ChMaterialShellEANS {
                         double beta = 0.1 ///< torque factor
                         );
 
-    /// Return the material density.
+    /// Return the thickness
     double Get_thickness() const { return m_thickness; }
 
     /// Return the material density.
@@ -126,7 +126,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
         /// Initial setup for this layer
         void SetupInitial();
 
-        ChElementShellEANS4* m_element;                    ///< containing ANCF shell element
+        ChElementShellEANS4* m_element;                   ///< containing shell element
         std::shared_ptr<ChMaterialShellEANS> m_material;  ///< layer material
         double m_thickness;                               ///< layer thickness
         double m_theta;                                   ///< fiber angle
@@ -225,6 +225,11 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
                                     const ChVector<>& pD, const ChQuaternion<>& rD);
 
   private:
+
+    //
+    // DATA
+    //
+
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > m_nodes;///< element nodes
     std::vector<Layer> m_layers;                           ///< element layers
     size_t m_numLayers;                                    ///< number of layers for this element
@@ -251,7 +256,11 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
 
     std::array<ChQuaternion<>, NUMGP> T_i0;                ///< initial rotations at gauss points
     std::array<ChQuaternion<>, NUMSP> T_S0;                ///< initial rotations at shear stitching points
-    double alpha_i[NUMGP];                                 ///< gauss points jacobians 
+    double alpha_i[NUMGP];                                 ///< determinant of jacobian at gauss points 
+    std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_i; ///< precomputed matrices at gauss points
+    std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_S; ///< precomputed matrices at shear stitching points
+
+    // static data - not instanced per each shell :
 
     static double xi_i[NUMGP][2]; // gauss points coords
 	static double  w_i[NUMGP];    // gauss points weights
@@ -259,7 +268,9 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     static double xi_S[NUMSP][2]; // shear stitching points coords
     static double xi_n[NUMNO][2]; // nodes coords
 
-private:
+
+  private:
+
     void ComputeNodeAndAverageRotations(
         const ChQuaternion<>& mrA, const ChQuaternion<>& mrB,
         const ChQuaternion<>& mrC, const ChQuaternion<>& mrD,

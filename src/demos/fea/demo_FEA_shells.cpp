@@ -29,8 +29,8 @@
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_mkl/ChLcpMklSolver.h"
-
 #include "chrono_irrlicht/ChIrrApp.h"
+#include <vector>
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -122,13 +122,13 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChNodeFEAxyzrot> node3;
     std::shared_ptr<ChNodeFEAxyzrot> node4;
 
-    if (true)
+    if (false)
     {
         double shell_thickness = 0.02;
         double shell_L = 1;
         double shell_W = 1;
 
-        // Create an orthotropic material 
+        // Create a material 
         double rho = 0.0;
         double E = 1e9;
         double nu = 0.4; 
@@ -136,8 +136,8 @@ int main(int argc, char* argv[]) {
                                                          rho, 
                                                          E, 
                                                          nu,
-                                                         1,
-                                                         10.01);
+                                                         1.00,
+                                                         0.01);
 
         // Create the nodes (each with position & normal to shell)
         
@@ -245,6 +245,87 @@ int main(int argc, char* argv[]) {
         
     }
 
+
+    //
+    // Add an EANS SHELL cantilever:
+    //
+    std::shared_ptr<ChNodeFEAxyzrot> nodeA;
+    std::shared_ptr<ChNodeFEAxyzrot> nodeB;
+
+    if (true)
+    {
+        double rect_thickness = 0.10;
+        double rect_L = 10.0;
+        double rect_W = 1.0;
+
+        // Create a material 
+        double rho = 0.0;
+        double E = 1.2e6;
+        double nu = 0.0; 
+        auto mat = std::make_shared<ChMaterialShellEANS>(rect_thickness,
+                                                         rho, 
+                                                         E, 
+                                                         nu,
+                                                         1.0,
+                                                         0.01);
+
+        // Create the nodes (each with position & normal to shell)
+        double node_density=0.01;
+        
+        int nels_L = 15;
+        int nels_W = 1;
+        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_L*nels_W);
+        std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_L+1)*(nels_W+1));
+        std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
+        std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
+
+        for (int il = 0; il<= nels_L; ++il) {
+            for (int iw = 0; iw<= nels_W; ++iw) {
+                // Make nodes
+                ChVector<> nodepos(rect_L*((double)il/(double)nels_L), 0,  rect_W*((double)iw/(double)nels_W));
+                ChQuaternion<> noderot(QUNIT);
+                ChFrame<> nodeframe(nodepos,noderot);
+
+                auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
+                my_mesh->AddNode(mnode);
+
+                double mn = node_density*(rect_L*rect_W*rect_thickness)/(nels_L*nels_W); // approx
+                mnode->GetInertia().FillDiag(1./12.*pow(((rect_L/nels_L)/2.),3)*mn); // approx
+                mnode->SetMass(mn);
+
+                nodearray[il*(nels_W+1) + iw] = mnode;
+
+                if (il==0)
+                    nodes_start[iw] = mnode;
+                if (il==nels_L)
+                    nodes_end[iw] = mnode;
+
+                // Make elements
+                if (il>0 && iw>0) {
+                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    my_mesh->AddElement(melement);
+                    melement->SetNodes(
+                        nodearray[(il-1)*(nels_W+1) + (iw-1)], 
+                        nodearray[(il  )*(nels_W+1) + (iw-1)],
+                        nodearray[(il  )*(nels_W+1) + (iw  )],
+                        nodearray[(il-1)*(nels_W+1) + (iw  )]);
+                    melement->AddLayer(rect_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    melement->SetAlphaDamp(0.02);   
+                    elarray[(il-1)*(nels_W) + (iw-1)] = melement;
+                }
+            }
+        }
+        for (auto mendnode : nodes_end) {
+            mendnode->SetForce(ChVector<>(0,4,0) * (1./ (double)nodes_end.size()) );
+            //mendnode->SetTorque(ChVector<>(0,0 , 50*CH_C_PI/3) * (1./ (double)nodes_end.size()) );
+        }
+        for (auto mstartnode : nodes_start) {
+            mstartnode->SetFixed(true);
+        }
+
+    }
+
+
     
 
     // ==Asset== attach a visualization of the FEM mesh.
@@ -321,7 +402,7 @@ int main(int argc, char* argv[]) {
         mystepper->SetAbsTolerances(1e-6);
     }
 */    
-    application.SetTimestep(0.005);
+    application.SetTimestep(0.01);
     application.SetPaused(true);
     my_system.Setup();
     my_system.Update();
@@ -331,6 +412,9 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
 
         application.DrawAll();
+
+        // .. draw also a grid
+        ChIrrTools::drawGrid(application.GetVideoDriver(), 1, 1);
 
         application.DoStep();
 
