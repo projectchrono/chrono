@@ -52,6 +52,34 @@ public:
 };
 
 
+
+template<typename T, bool isConst>
+struct ChArchiveOutMemberFunctionBase {
+    using type = void (T::*)(ChArchiveOut&) const;
+    static type constexpr pointer =
+        static_cast<void (T::*)(ChArchiveOut&) const>(&T::ArchiveOUT);
+};
+
+template<typename T>
+struct ChArchiveOutMemberFunctionBase<T, false> {
+    using type = void (T::*)(ChArchiveOut&);
+    static type constexpr pointer =
+        static_cast<void (T::*)(ChArchiveOut&)>(&T::ArchiveOUT);
+};
+
+template<typename T>
+struct ChArchiveOutMemberFunction :
+    ChArchiveOutMemberFunctionBase<T, std::is_const<T>::value>
+{};
+
+template<typename T>
+typename ChArchiveOutMemberFunction<T>::type
+getArchiveOUT()
+{
+    return ChArchiveOutMemberFunction<T>::pointer;
+}
+
+
 /// Functor to call the ArchiveOUT function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveOut
 /// easier and equippable with virtual functions.
@@ -66,13 +94,15 @@ template <class TClass>
 class ChFunctorArchiveOutSpecific : public ChFunctorArchiveOut
 {
 private:
-      void (TClass::*fpt)(ChArchiveOut&);   // pointer to member function
-      TClass* pt2Object;                    // pointer to object
+      using ArchiveOutMemberPtr =
+          typename ChArchiveOutMemberFunction<TClass>::type;
+      ArchiveOutMemberPtr fpt;         // pointer to member function
+      TClass* pt2Object;               // pointer to object
 
 public:
 
       // constructor - takes pointer to an object and pointer to a member
-      ChFunctorArchiveOutSpecific(TClass* _pt2Object, void(TClass::*_fpt)(ChArchiveOut&))
+      ChFunctorArchiveOutSpecific(TClass* _pt2Object, ArchiveOutMemberPtr _fpt)
          { pt2Object = _pt2Object;  fpt=_fpt; };
 
       virtual void CallArchiveOut(ChArchiveOut& marchive)
@@ -179,11 +209,62 @@ struct ChIsAssignable {
         std::is_assignable<LValueBaseT, BaseT>::value;
 };
 
+/// Check if a non-pointer object involves constness.
+template<class T>
+struct ChIsNonConst {
+    static constexpr bool value = ! std::is_const<T>::value;
+};
+
+/// Check if there's any constness involved in a pointer.
+/// int const****, int****const, int**const** all fail.
+template<class T>
+struct ChIsNonConst<T*> {
+    static constexpr bool value = ChIsNonConst<T>::value;
+};
+
+
+
+
+///
+/// Holds a value as an lvalue reference. See ChNameValue.
+///
+template<class T, bool isAssignable>
+class  ChValue {
+  public:
+        ChValue(T& mvalue) : _value(mvalue) {}
+        T& value() { return this->_value; }
+        const T& const_value() { return this->_value; }
+
+  private:
+        T& _value;
+};
+
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#elif defined(_MSC_VER)
+#define DEPRECATED(func) __declspec(deprecated) func
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED(func) func
+#endif
+
+/// Holds a value as a copy.
+/// Reading is okay, but writing gives a compiler warning.
+template<class T>
+class  ChValue<T, false> {
+  public:
+        using MutableT = typename std::remove_const<T>::type;
+        ChValue(T& mvalue) : _value(mvalue) {}
+        DEPRECATED(MutableT& value()) { return this->_value; }
+        const T& const_value() { return this->_value; }
+  private:
+        MutableT _value;
+};
+
 
 ///
 /// This is a base class for name-value pairs
 ///
-
 template<class T>
 class  ChNameValue {
   public:
@@ -192,53 +273,45 @@ class  ChNameValue {
             _name(mname),
             _flags((char)mflags) {}
 
-        virtual ~ChNameValue() {};
+        virtual ~ChNameValue() = default;
 
-        const char * name() const {
-            return this->_name;
-        }
+        const char * name() const { return this->_name; }
 
-        char& flags() {
-            return this->_flags;
-        }
+        char& flags() { return this->_flags; }
 
-        T& value() {
-            static_assert (
-                ChIsAssignable<T>::value,
-                "ChNameValue<T> involves an unassignable type T.");
-            return this->_value;
-        }
-
-        const T& const_value() const {
-            return this->_value;
-        }
+        T& value() { return this->_value.value(); }
+        const T& const_value() const { return this->_value.const_value(); }
 
   protected:
-        T& _value;
+        ChValue<T, ChIsNonConst<T>::value> _value;
         const char* _name;
         char _flags;
 };
+
 
 // Flag to mark a ChNameValue for a C++ object serialized by value but that
 // that can be later referenced by pointer too.
 static const char NVP_TRACK_OBJECT = (1 << 0);
 
 
+
 /// Make a ChNameValue that captures an lvalue reference to the specified
 /// assignable value. The name for the value is the custom name if that is not
 /// null, or the auto name otherwise. Also @see CHNVP.
 template<class T>
-ChNameValue< T > make_ChNameValue(
+ChNameValue<T> make_ChNameValue(
     const char * auto_name,
     T & value,
     const char * custom_name,
     char flags = 0)
 {
+#if 0
     static_assert (
         ChIsAssignable<T>::value,
         "make_ChNameValue<T> involves an unassignable type T.");
+#endif
 
-    return ChNameValue< T >(
+    return ChNameValue<T> (
         (custom_name ? custom_name : auto_name), value, flags);
 }
 
@@ -250,6 +323,38 @@ ChNameValue< T > make_ChNameValue(
     char flags = 0)
 {
     return make_ChNameValue(auto_name, t, nullptr, flags);
+}
+
+
+/// Special case of make_ChNameValue for a T pointer as an rvalue reference.
+template<class T>
+ChNameValue<T*> make_ChNameValue(
+    const char * auto_name,
+    T* && value,
+    const char * custom_name,
+    char flags = 0)
+{
+#if 0
+    static_assert (
+        ChIsAssignable<T>::value,
+        "make_ChNameValue<T*> involves an unassignable type T.");
+#endif
+
+    // Note that the value is not forwarded here.
+    return ChNameValue<T*> (
+        (custom_name ? custom_name : auto_name), value, flags);
+}
+
+/// Three argument version of make_ChNameValue for a T* rvalue reference.
+template<class T>
+ChNameValue<T*> make_ChNameValue(
+    const char * auto_name,
+    T* && value,
+    char flags = 0)
+{
+    // Note that the value *is* perfectly-forwarded here.
+    return make_ChNameValue(
+        auto_name, std::forward<T*>(value), nullptr, flags);
 }
 
 
@@ -419,27 +524,37 @@ public:
 
 
 
+
+/// Check if a ChEnumMapper is wrapped around a const.
+template<class T>
+struct ChIsNonConst<ChEnumMapper<T>> {
+    static constexpr bool value = ChIsNonConst<T>::value;
+};
+
 /// Special case of make_ChNameValue for a ChEnumMapper<T> as an rvalue
 /// reference.
 template<class T>
-ChNameValue< ChEnumMapper< T > > make_ChNameValue(
+ChNameValue<ChEnumMapper<T>> make_ChNameValue(
     const char * auto_name,
     ChEnumMapper<T> && value,
     const char * custom_name,
     char flags = 0)
 {
+#if 0
     static_assert (
         ChIsAssignable<T>::value,
         "make_ChNameValue<ChNameValue<T>> involves an unassignable type T.");
+#endif
 
     // Note that the value is not forwarded here.
-    return make_ChNameValue(auto_name, value, custom_name, flags);
+    return ChNameValue<ChEnumMapper<T>> (
+        (custom_name ? custom_name : auto_name), value, flags);
 }
 
 /// Three argument version of make_ChNameValue for a ChEnumMapper<T> as an
 /// rvalue reference.
 template<class T>
-ChNameValue< ChEnumMapper< T > > make_ChNameValue(
+ChNameValue<ChEnumMapper<T>> make_ChNameValue(
     const char * auto_name,
     ChEnumMapper<T> && value,
     char flags = 0)
@@ -634,8 +749,8 @@ class  ChArchiveOut : public ChArchive {
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           const char* class_name;
           if (bVal.value())
               class_name = bVal.value()->GetRTTI()->GetName();
@@ -658,8 +773,8 @@ class  ChArchiveOut : public ChArchive {
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
@@ -677,8 +792,8 @@ class  ChArchiveOut : public ChArchive {
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           const char* class_name;
           if (bVal.value())
               class_name = bVal.value()->GetRTTI()->GetName();
@@ -701,8 +816,8 @@ class  ChArchiveOut : public ChArchive {
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
@@ -719,12 +834,12 @@ class  ChArchiveOut : public ChArchive {
           {
               bool already_stored; 
               T* mptr = &bVal.value();
-              PutPointer(mptr, already_stored, pos);
+              PutPointer((void*) mptr, already_stored, pos);
               if (already_stored) 
                   {throw (ChExceptionArchive( "Cannot serialize tracked object '" + std::string(bVal.name()) + "' by value, AFTER already serialized by pointer."));}
               tracked = true;
           }
-          ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value(), &T::ArchiveOUT);
+          ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value(), getArchiveOUT<T>());
           this->out(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               typeid(T).name(),

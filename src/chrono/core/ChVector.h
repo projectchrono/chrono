@@ -394,6 +394,12 @@ class ChVector {
         marchive << CHNVP(z);
     }
 
+    /// Const version of ArchiveOUT.
+    void ArchiveOUT(ChArchiveOut& marchive) const
+    {
+        const_cast<ChVector*>(this)->ArchiveOUT(marchive);
+    }
+
     /// Method to allow de serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive) 
     {
