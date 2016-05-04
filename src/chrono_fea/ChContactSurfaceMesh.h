@@ -278,9 +278,9 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
     unsigned int GetNumVertices() const;
 
     // Functions to interface this with ChPhysicsItem container
-    virtual void SurfaceSyncCollisionModels();
-    virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys);
-    virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys);
+    virtual void SurfaceSyncCollisionModels() override;
+    virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys) override;
+    virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) override;
 
   private:
     std::vector<std::shared_ptr<ChContactTriangleXYZ> > vfaces;  //  faces that collide

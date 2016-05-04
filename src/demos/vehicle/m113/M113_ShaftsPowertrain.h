@@ -30,7 +30,7 @@ class M113_ShaftsPowertrain : public chrono::vehicle::ChShaftsPowertrain {
 
     ~M113_ShaftsPowertrain() {}
 
-    virtual void SetGearRatios(std::vector<double>& gear_ratios);
+    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }

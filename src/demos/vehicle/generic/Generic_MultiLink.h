@@ -59,8 +59,8 @@ class Generic_MultiLink : public chrono::vehicle::ChMultiLink {
     virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
   private:
-    virtual const chrono::ChVector<> getLocation(PointId which);
-    virtual const chrono::ChVector<> getDirection(DirectionId which);
+    virtual const chrono::ChVector<> getLocation(PointId which) override;
+    virtual const chrono::ChVector<> getDirection(DirectionId which) override;
 
     chrono::ChSpringForceCallback* m_springForceCB;
     chrono::ChSpringForceCallback* m_shockForceCB;

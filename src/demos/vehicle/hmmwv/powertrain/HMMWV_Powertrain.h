@@ -30,7 +30,7 @@ class HMMWV_Powertrain : public chrono::vehicle::ChShaftsPowertrain {
 
     ~HMMWV_Powertrain() {}
 
-    virtual void SetGearRatios(std::vector<double>& gear_ratios);
+    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }

@@ -78,12 +78,12 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 	void SetCollisionRadius(double mr);
 
     // Set the mass of the node
-    void SetMass(double mmass) { this->variables.SetNodeMass(mmass); }
+    void SetMass(double mmass) override { this->variables.SetNodeMass(mmass); }
     // Get the mass of the node
-    double GetMass() const { return variables.GetNodeMass(); }
+    double GetMass() const override { return variables.GetNodeMass(); }
 
     // Access the 'LCP variables' of the node
-    ChLcpVariablesNode& Variables() { return variables; }
+    ChLcpVariablesNode& Variables() override { return variables; }
 
     // Get the SPH container
     ChMatterMeshless* GetMatterContainer() const { return container; }
@@ -258,23 +258,23 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() { return do_collide; }
+    bool GetCollide() override { return do_collide; }
 
     // STATISTICS  - override these in child classes if needed
     //
 
     /// Get the number of scalar coordinates (variables), if any, in this item
-    virtual int GetDOF() { return 3 * this->GetNnodes(); }
+    virtual int GetDOF() override { return 3 * this->GetNnodes(); }
 
     //
     // FUNCTIONS
     //
 
     /// Get the number of nodes
-    unsigned int GetNnodes() { return (unsigned int)nodes.size(); }
+    unsigned int GetNnodes() override { return (unsigned int)nodes.size(); }
 
     /// Access the N-th node
-    std::shared_ptr<ChNodeBase> GetNode(unsigned int n) {
+    std::shared_ptr<ChNodeBase> GetNode(unsigned int n) override {
         assert(n < nodes.size());
         return nodes[n];
     }
@@ -302,26 +302,26 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP INTERFACE
@@ -330,29 +330,29 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // Override/implement LCP system functions of ChPhysicsItem
     // (to assembly/manage data for LCP system solver)
 
-    void VariablesFbReset();
+    void VariablesFbReset() override;
 
-    void VariablesFbLoadForces(double factor = 1.);
+    void VariablesFbLoadForces(double factor = 1.) override;
 
-    void VariablesQbLoadSpeed();
+    void VariablesQbLoadSpeed() override;
 
-    void VariablesFbIncrementMq();
+    void VariablesFbIncrementMq() override;
 
-    void VariablesQbSetSpeed(double step = 0.);
+    void VariablesQbSetSpeed(double step = 0.) override;
 
-    void VariablesQbIncrementPosition(double step);
+    void VariablesQbIncrementPosition(double step) override;
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override;
 
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
+    virtual void SyncCollisionModels() override;
+    virtual void AddCollisionModelsToSystem() override;
+    virtual void RemoveCollisionModelsFromSystem() override;
 
     void UpdateParticleCollisionModels();
 
@@ -386,9 +386,9 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     //
 
     /// Update all auxiliary data of the particles
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
     /// Update all auxiliary data of the particles
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     //
     // STREAMING

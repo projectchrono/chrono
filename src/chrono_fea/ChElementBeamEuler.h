@@ -78,7 +78,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual int GetNdofs() override { return 2 * 6; }
     virtual int GetNodeNdofs(int n) override { return 6; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
         assert(nodeA);
@@ -188,7 +188,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
         N(9) = dN_rb;
     };
 
-    virtual void Update() {
+    virtual void Update() override {
         // parent class update:
         ChElementGeneric::Update();
 
@@ -228,7 +228,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// For corotational elements, field is assumed in local reference!
     /// Give that this element includes rotations at nodes, this gives:
     ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override {
         mD.Reset(12, 1);
 
         ChVector<> delta_rot_dir;
@@ -450,7 +450,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override {
         assert((H.GetRows() == 12) && (H.GetColumns() == 12));
         assert(section);
 
@@ -693,7 +693,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// Computes the internal forces (ex. the actual position of
     /// nodes is not in relaxed reference position) and set values
     /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override {
         assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
         assert(section);
 
@@ -846,7 +846,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual void EvaluateSectionDisplacement(const double eta,
                                              const ChMatrix<>& displ,
                                              ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) {
+                                             ChVector<>& u_rotaz) override {
         ChMatrixNM<double, 1, 12> N;
 
         this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
@@ -890,7 +890,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual void EvaluateSectionFrame(const double eta,
                                       const ChMatrix<>& displ,
                                       ChVector<>& point,
-                                      ChQuaternion<>& rot) {
+                                      ChQuaternion<>& rot) override {
         ChVector<> u_displ;
         ChVector<> u_rotaz;
         double Nx1 = (1. / 2.) * (1 - eta);
@@ -920,7 +920,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual void EvaluateSectionForceTorque(const double eta,
                                             const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
-                                            ChVector<>& Mtorque) {
+                                            ChVector<>& Mtorque) override {
         assert(section);
 
         double Jpolar = section->J;
@@ -1027,7 +1027,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual void EvaluateSectionStrain(
         const double eta,
         const ChMatrix<>& displ,
-        ChVector<>& StrainV) { /* To be completed: Created to be consistent with base class implementation*/
+        ChVector<>& StrainV) override { /* To be completed: Created to be consistent with base class implementation*/
     }
     //
     // Functions for interfacing to the LCP solver
@@ -1038,13 +1038,13 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 2 * 7; }
+    virtual int LoadableGet_ndof_x() override { return 2 * 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 2 * 6; }
+    virtual int LoadableGet_ndof_w() override { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteQuaternion(this->nodes[0]->GetRot(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 7, 0);
@@ -1052,7 +1052,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[0]->GetWvel_loc(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 6, 0);
@@ -1061,19 +1061,19 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() { return 6; }
+    virtual int Get_field_ncoords() override { return 6; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 2; }
+    virtual int GetSubBlocks() override { return 2; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override {
         mvars.push_back(&this->nodes[0]->Variables());
         mvars.push_back(&this->nodes[1]->Variables());
     };
@@ -1088,7 +1088,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is =n. field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         ChMatrixNM<double, 1, 12> N;
         this->ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependant on state
 
@@ -1121,13 +1121,13 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
         detJ /= 4.0;  // because volume
     }
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() { return this->section->Area * this->section->density; }
+    virtual double GetDensity() override { return this->section->Area * this->section->density; }
 };
 
 /// @} fea_elements

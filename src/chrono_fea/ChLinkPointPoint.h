@@ -77,13 +77,13 @@ public:
 			//
 
 				/// Get the number of scalar variables affected by constraints in this link 
-	virtual int GetNumCoords() {return 3 + 3;}
+	virtual int GetNumCoords() override {return 3 + 3;}
 
 				/// Number of scalar constraints 
-	virtual int GetDOC_c  () {return 3;}
+	virtual int GetDOC_c  () override {return 3;}
 
 				/// To get reaction force, expressed in link coordinate system:
-	virtual ChVector<> Get_react_force() {return GetReactionOnNode();}
+	virtual ChVector<> Get_react_force() override {return GetReactionOnNode();}
 
     // Get constraint violations
     ChMatrixNM<double, 3, 1> GetC();
@@ -94,11 +94,11 @@ public:
 
 				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
 	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
-	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
-	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
-	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L) override;
+	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp) override;
+	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc) override;
+	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
 
 			// Override/implement LCP system functions of ChPhysicsItem
@@ -141,7 +141,7 @@ public:
 			//
 
 				/// Update all auxiliary data of the gear transmission at given time
-  virtual void Update(double mytime, bool update_assets = true);
+  virtual void Update(double mytime, bool update_assets = true) override;
 
 
 			//
