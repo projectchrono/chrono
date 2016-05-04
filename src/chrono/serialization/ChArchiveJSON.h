@@ -353,7 +353,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
 
       rapidjson::Value* GetValueFromNameOrArray(const char* mname)
       {
-          rapidjson::Value* mval;
+          rapidjson::Value* mval = 0;
           if (this->is_array.top() == true) {
               if (!level->IsArray()) {throw (ChExceptionArchive( "Cannot retrieve from ID num in non-array object."));}
               mval = &(*level)[this->array_index.top()];

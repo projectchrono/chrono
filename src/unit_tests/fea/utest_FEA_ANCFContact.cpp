@@ -172,7 +172,7 @@ class MyContactContainer : public ChContactContainerDEM {
     // Traverse the list contactlist_6_6
     bool isThereContacts(std::shared_ptr<ChElementBase> myShellANCF, bool print) {
         auto iter = contactlist_333_333.begin();
-        int num_contact;
+        int num_contact = 0;
         while (iter != contactlist_333_333.end()) {
             ChContactable* objA = (*iter)->GetObjA();
             ChContactable* objB = (*iter)->GetObjB();
