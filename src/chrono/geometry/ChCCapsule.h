@@ -58,13 +58,16 @@ class ChApi ChCapsule : public ChGeometry {
 
     ChCapsule(const ChCapsule& source) { Copy(&source); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChCapsule* source) {
         center = source->center;
         rad = source->rad;
         hlen = source->hlen;
     }
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() {
+    ChGeometry* Duplicate() override {
         ChGeometry* mgeo = new ChCapsule();
         mgeo->Copy(this);
         return mgeo;
@@ -74,7 +77,7 @@ class ChApi ChCapsule : public ChGeometry {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_CAPSULE; }
+    virtual int GetClassType() override { return CH_GEOCLASS_CAPSULE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -82,7 +85,7 @@ class ChApi ChCapsule : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL) {
+                                ChMatrix33<>* Rot = NULL) override {
         Vector trsfCenter = Rot ? Rot->MatrT_x_Vect(center) : center;
 
         xmin = trsfCenter.x - rad;
@@ -93,10 +96,10 @@ class ChApi ChCapsule : public ChGeometry {
         zmax = trsfCenter.z + rad;
     }
 
-    virtual ChVector<> Baricenter() { return center; }
+    virtual ChVector<> Baricenter() override { return center; }
 
     //***TO DO***  obsolete/unused
-    virtual void CovarianceMatrix(ChMatrix33<>& C) {
+    virtual void CovarianceMatrix(ChMatrix33<>& C) override {
         C.Reset();
         C(0, 0) = center.x * center.x;
         C(1, 1) = center.y * center.y;
@@ -104,7 +107,7 @@ class ChApi ChCapsule : public ChGeometry {
     }
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
+    virtual int GetManifoldDimension() override { return 3; }
 
     //
     // DATA
@@ -118,29 +121,30 @@ class ChApi ChCapsule : public ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-        marchive << CHNVP(hlen);
+        marchive << CHNVP_OUT(center);
+        marchive << CHNVP_OUT(rad);
+        marchive << CHNVP_OUT(hlen);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-        marchive >> CHNVP(hlen); 
+        marchive >> CHNVP_IN(center);
+        marchive >> CHNVP_IN(rad);
+        marchive >> CHNVP_IN(hlen); 
     }
 
 };

@@ -237,7 +237,7 @@ public:
     CH_ENUM_MAPPER_END(eCh_shaftsmotor_mode);
 };
 
-void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -247,27 +247,28 @@ void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
-    marchive << CHNVP(mmapper(motor_mode),"motor_mode");
-    marchive << CHNVP(motor_torque);
-    marchive << CHNVP(motor_set_rot);
-    marchive << CHNVP(motor_set_rot_dt);
+    marchive << CHNVP_OUT(mmapper.out(motor_mode),"motor_mode");
+    marchive << CHNVP_OUT(motor_torque);
+    marchive << CHNVP_OUT(motor_set_rot);
+    marchive << CHNVP_OUT(motor_set_rot_dt);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIN(marchive);
 
     // deserialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
-    marchive >> CHNVP(mmapper(motor_mode),"motor_mode");
-    marchive >> CHNVP(motor_torque);
-    marchive >> CHNVP(motor_set_rot);
-    marchive >> CHNVP(motor_set_rot_dt);
+    marchive >> CHNVP_IN(mmapper.in(motor_mode),"motor_mode");
+    marchive >> CHNVP_IN(motor_torque);
+    marchive >> CHNVP_IN(motor_set_rot);
+    marchive >> CHNVP_IN(motor_set_rot_dt);
 } 
 
 

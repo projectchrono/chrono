@@ -57,29 +57,32 @@ class ChApi ChLineSegment : public ChLine {
         pB = source.pB;
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(const ChLineSegment* source) {
         ChLine::Copy(source);
         pA = source->pA;
         pB = source->pB;
     }
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() { return new ChLineSegment(*this); };
+    ChGeometry* Duplicate() override { return new ChLineSegment(*this); };
 
     //
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_LINESEGMENT; };
+    virtual int GetClassType() override { return CH_GEOCLASS_LINESEGMENT; };
 
-    virtual int Get_complexity() { return 2; };
+    virtual int Get_complexity() override { return 2; };
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) {
+    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) override {
         pos = pA * (1 - parU) + pB * parU;
     }
 
     /// Returns curve length. sampling does not matter
-    double Length(int sampling) { return (pA - pB).Length(); }
+    double Length(int sampling) override { return (pA - pB).Length(); }
 
     //
     // CUSTOM FUNCTIONS
@@ -89,27 +92,28 @@ class ChApi ChLineSegment : public ChLine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(pA);
-        marchive << CHNVP(pB);
+        marchive << CHNVP_OUT(pA);
+        marchive << CHNVP_OUT(pB);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(pA);
-        marchive >> CHNVP(pB);
+        marchive >> CHNVP_IN(pA);
+        marchive >> CHNVP_IN(pB);
     }
 
 

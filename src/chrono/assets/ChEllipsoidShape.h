@@ -53,25 +53,26 @@ class ChApi ChEllipsoidShape : public ChVisualization {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(gellipsoid);
+        marchive << CHNVP_OUT(gellipsoid);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(gellipsoid);
+        marchive >> CHNVP_IN(gellipsoid);
     }
 };
 

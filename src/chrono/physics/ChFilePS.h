@@ -75,6 +75,7 @@ const ChFile_ps_color PS_COLOR_BLACK(0, 0, 0);
 
 #define PS_STRLEN_LABEL 100
 
+#if 0
 static char* ch_font_labels[] = {(char*)"/Times-Roman",
                                  (char*)"/Times-Italic",
                                  (char*)"/Times-Bold",
@@ -84,6 +85,7 @@ static char* ch_font_labels[] = {(char*)"/Times-Roman",
                                  (char*)"/Helvetica-Bold",
                                  (char*)"/Helvetica-BoldOblique",
                                  0};
+#endif
 
 /// Class for settings of an axis (x or y, or t) of a 2D
 /// plotting of a function on a EPS file.

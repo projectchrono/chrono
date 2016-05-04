@@ -87,7 +87,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates.
     /// This is disconnected - no vertex sharing is used even if it could be..
-    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) {
+    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) override {
         int base_v = (int)m_vertices.size();
         m_vertices.push_back(vertex0);
         m_vertices.push_back(vertex1);
@@ -95,7 +95,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         m_face_v_indices.push_back(ChVector<int>(base_v, base_v + 1, base_v + 2));
     }
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
-    virtual void addTriangle(const ChTriangle& atriangle) {
+    virtual void addTriangle(const ChTriangle& atriangle) override {
         int base_v = (int)m_vertices.size();
         m_vertices.push_back(atriangle.p1);
         m_vertices.push_back(atriangle.p2);
@@ -104,16 +104,18 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     }
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const { return (int)m_face_v_indices.size(); }
+    virtual int getNumTriangles() const override {
+        return (int)m_face_v_indices.size();
+    }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const {
+    virtual ChTriangle getTriangle(int index) const override {
         return ChTriangle(m_vertices[m_face_v_indices[index].x], m_vertices[m_face_v_indices[index].y],
                           m_vertices[m_face_v_indices[index].z]);
     }
 
     /// Clear all data
-    virtual void Clear() {
+    virtual void Clear() override {
         this->getCoordsVertices().clear();
         this->getCoordsNormals().clear();
         this->getCoordsUV().clear();
@@ -131,7 +133,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::string GetFileName() { return m_filename; }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
 
     /// Create a map of neighbouring triangles, vector of:
     /// [Ti TieA TieB TieC]
@@ -169,47 +171,48 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_TRIANGLEMESHCONNECTED; };
+    virtual int GetClassType() override { return CH_GEOCLASS_TRIANGLEMESHCONNECTED; };
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChTriangleMesh::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(m_vertices);
-        marchive << CHNVP(m_normals);
-        marchive << CHNVP(m_UV);
-        marchive << CHNVP(m_colors);
-        marchive << CHNVP(m_face_v_indices);
-        marchive << CHNVP(m_face_n_indices);
-        marchive << CHNVP(m_face_uv_indices);
-        marchive << CHNVP(m_face_col_indices);
-        marchive << CHNVP(m_filename);
+        marchive << CHNVP_OUT(m_vertices);
+        marchive << CHNVP_OUT(m_normals);
+        marchive << CHNVP_OUT(m_UV);
+        marchive << CHNVP_OUT(m_colors);
+        marchive << CHNVP_OUT(m_face_v_indices);
+        marchive << CHNVP_OUT(m_face_n_indices);
+        marchive << CHNVP_OUT(m_face_uv_indices);
+        marchive << CHNVP_OUT(m_face_col_indices);
+        marchive << CHNVP_OUT(m_filename);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChTriangleMesh::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(m_vertices);
-        marchive >> CHNVP(m_normals);
-        marchive >> CHNVP(m_UV);
-        marchive >> CHNVP(m_colors);
-        marchive >> CHNVP(m_face_v_indices);
-        marchive >> CHNVP(m_face_n_indices);
-        marchive >> CHNVP(m_face_uv_indices);
-        marchive >> CHNVP(m_face_col_indices);
-        marchive >> CHNVP(m_filename);
+        marchive >> CHNVP_IN(m_vertices);
+        marchive >> CHNVP_IN(m_normals);
+        marchive >> CHNVP_IN(m_UV);
+        marchive >> CHNVP_IN(m_colors);
+        marchive >> CHNVP_IN(m_face_v_indices);
+        marchive >> CHNVP_IN(m_face_n_indices);
+        marchive >> CHNVP_IN(m_face_uv_indices);
+        marchive >> CHNVP_IN(m_face_col_indices);
+        marchive >> CHNVP_IN(m_filename);
     }
 };
 

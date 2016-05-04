@@ -36,7 +36,7 @@ ChClassRegisterABSTRACT<ChControls> a_registration_ChControls;
 // FILE I/O
 //
 
-void ChControls::ArchiveOUT(ChArchiveOut& marchive)
+void ChControls::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -51,7 +51,8 @@ void ChControls::ArchiveOUT(ChArchiveOut& marchive)
 void ChControls::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);

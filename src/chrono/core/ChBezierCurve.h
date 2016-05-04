@@ -74,10 +74,10 @@ class ChApi ChBezierCurve {
     ChBezierCurve(const std::vector<ChVector<> >& points);
 
     /// Default constructor (required by serialization)
-    ChBezierCurve() {}
+    ChBezierCurve() = default;
 
     /// Destructor for ChBezierCurve.
-    ~ChBezierCurve() {}
+    virtual ~ChBezierCurve() = default;
 
     /// Return the number of knot points.
     size_t getNumPoints() const { return m_points.size(); }
@@ -134,35 +134,48 @@ class ChApi ChBezierCurve {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
 
         // serialize all member data:
-        marchive << CHNVP(m_points);
-        marchive << CHNVP(m_inCV);
-        marchive << CHNVP(m_outCV);
-        marchive << CHNVP(m_maxNumIters);
-        marchive << CHNVP(m_sqrDistTol);
-        marchive << CHNVP(m_cosAngleTol);
-        marchive << CHNVP(m_paramTol);
+        marchive << CHNVP_OUT(m_points);
+        marchive << CHNVP_OUT(m_inCV);
+        marchive << CHNVP_OUT(m_outCV);
+
+        // serialize static data:
+        size_t maxNumIters = maxNumIters;
+        double sqrDistTol = m_sqrDistTol;
+        double cosAngleTol = m_cosAngleTol;
+        double paramTol = m_cosAngleTol;
+        marchive << CHNVP_OUT(maxNumIters);
+        marchive << CHNVP_OUT(sqrDistTol);
+        marchive << CHNVP_OUT(cosAngleTol);
+        marchive << CHNVP_OUT(paramTol);
     }
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // stream in all member data:
-        marchive >> CHNVP(m_points);
-        marchive >> CHNVP(m_inCV);
-        marchive >> CHNVP(m_outCV);
-        marchive >> CHNVP(m_maxNumIters);
-        marchive >> CHNVP(m_sqrDistTol);
-        marchive >> CHNVP(m_cosAngleTol);
-        marchive >> CHNVP(m_paramTol);
+        marchive >> CHNVP_IN(m_points);
+        marchive >> CHNVP_IN(m_inCV);
+        marchive >> CHNVP_IN(m_outCV);
+
+        // bogus stream in static data:
+        size_t maxNumIters;
+        double sqrDistTol;
+        double cosAngleTol;
+        double paramTol;
+        marchive >> CHNVP_IN(maxNumIters);
+        marchive >> CHNVP_IN(sqrDistTol);
+        marchive >> CHNVP_IN(cosAngleTol);
+        marchive >> CHNVP_IN(paramTol);
     }
 
   private:

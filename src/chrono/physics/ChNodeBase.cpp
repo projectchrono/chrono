@@ -37,7 +37,7 @@ ChNodeBase& ChNodeBase::operator=(const ChNodeBase& other) {
     return *this;
 }
 
-void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive)
+void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -49,7 +49,8 @@ void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive)
 void ChNodeBase::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
     // deserialize parent class:
     // deserialize all member data:
 }

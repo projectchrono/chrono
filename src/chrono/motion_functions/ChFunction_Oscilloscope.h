@@ -62,8 +62,11 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
         end_x = 0;
     };
     ~ChFunction_Oscilloscope(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Oscilloscope* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     /// Add a point at the head (right side of point array).
     /// Note that it is user's responsability to add points
@@ -101,46 +104,47 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     /// Get the amount of recorded points
     double Get_amount() { return amount; }
 
-    double Get_y(double x);
-    // double Get_y_dx   (double x) ;
-    // double Get_y_dxdx (double x) ;
+    double Get_y(double x) override;
+    // double Get_y_dx   (double x) override;
+    // double Get_y_dxdx (double x) override;
 
-    void Estimate_x_range(double& xmin, double& xmax);
+    void Estimate_x_range(double& xmin, double& xmax) override;
 
-    int Get_Type() { return (FUNCT_OSCILLOSCOPE); }
+    int Get_Type() override { return (FUNCT_OSCILLOSCOPE); }
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(values);
-        marchive << CHNVP(end_x);
-        marchive << CHNVP(dx);
-        marchive << CHNVP(max_amount);
-        marchive << CHNVP(amount);
+        marchive << CHNVP_OUT(values);
+        marchive << CHNVP_OUT(end_x);
+        marchive << CHNVP_OUT(dx);
+        marchive << CHNVP_OUT(max_amount);
+        marchive << CHNVP_OUT(amount);
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(values);
-        marchive >> CHNVP(end_x);
-        marchive >> CHNVP(dx);
-        marchive >> CHNVP(max_amount);
-        marchive >> CHNVP(amount);
+        marchive >> CHNVP_IN(values);
+        marchive >> CHNVP_IN(end_x);
+        marchive >> CHNVP_IN(dx);
+        marchive >> CHNVP_IN(max_amount);
+        marchive >> CHNVP_IN(amount);
     }
 
 

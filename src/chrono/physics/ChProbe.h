@@ -45,7 +45,10 @@ class ChApi ChProbe : public ChObj {
     ChProbe();
     ~ChProbe();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChProbe* source);
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS

@@ -198,9 +198,9 @@ class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
     std::shared_ptr<ChContactNodeXYZsphere> GetNode(unsigned int n) { return vnodes[n]; };
 
     // Functions to interface this with ChPhysicsItem container
-    virtual void SurfaceSyncCollisionModels();
-    virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys);
-    virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys);
+    virtual void SurfaceSyncCollisionModels() override;
+    virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys) override;
+    virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) override;
 
   private:
     std::vector<std::shared_ptr<ChContactNodeXYZsphere> > vnodes;  //  nodes

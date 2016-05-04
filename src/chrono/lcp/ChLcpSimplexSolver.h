@@ -93,7 +93,7 @@ class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver {
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 
     /// Set truncation step (that is, the method stops anyway after
     /// this amount of pivots in simplex explorations, even if the

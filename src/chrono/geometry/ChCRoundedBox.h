@@ -57,13 +57,16 @@ class ChApi ChRoundedBox : public ChGeometry {
 
     ChRoundedBox(ChRoundedBox& source) { Copy(&source); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChRoundedBox* source) {
         Pos = source->Pos;
         Size = source->Size;
         Rot.CopyFromMatrix(*source->GetRotm());
-    };
+    }
+#pragma GCC diagnostic pop
 
-    ChGeometry* Duplicate() {
+    ChGeometry* Duplicate() override {
         ChGeometry* mgeo = new ChRoundedBox();
         mgeo->Copy(this);
         return mgeo;
@@ -73,7 +76,7 @@ class ChApi ChRoundedBox : public ChGeometry {
     // OVERRIDE BASE CLASS FUNCTIONS
     //
 
-    virtual int GetClassType() { return CH_GEOCLASS_ROUNDEDBOX; };
+    virtual int GetClassType() override { return CH_GEOCLASS_ROUNDEDBOX; };
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -81,19 +84,19 @@ class ChApi ChRoundedBox : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* bbRot = NULL);
+                                ChMatrix33<>* bbRot = NULL) override;
 
     /// Computes the baricenter of the box
-    virtual Vector Baricenter() { return Pos; };
+    virtual Vector Baricenter() override { return Pos; };
 
     /// Computes the covariance matrix for the box
-    virtual void CovarianceMatrix(ChMatrix33<>& C);
+    virtual void CovarianceMatrix(ChMatrix33<>& C) override;
 
     /// Evaluate position in cube volume
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.);
+    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) override;
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
+    virtual int GetManifoldDimension() override { return 3; }
 
     //
     // CUSTOM FUNCTIONS
@@ -105,65 +108,73 @@ class ChApi ChRoundedBox : public ChGeometry {
     /// Access the position of the barycenter of the box
     ChVector<>& GetPos() { return Pos; };
 
+    /// Access the position of the barycenter of the box
+    ChVector<> GetPos() const { return Pos; };
+
     /// Access the size of the box: a vector with the
     /// three hemi-lengths (lengths divided by two!)
     ChVector<>& GetSize() { return Size; };
 
+    /// Access the size of the box: a vector with the
+    /// three hemi-lengths (lengths divided by two!)
+    ChVector<> GetSize() const { return Size; };
+
     /// Get the x y z lengths of this box (that is, double
     /// the Size values)
-    ChVector<> GetLengths() { return 2.0 * Size; }
+    ChVector<> GetLengths() const { return 2.0 * Size; }
 
     /// Set the x y z lengths of this box (that is, double
     /// the Size values)
     void SetLengths(ChVector<>& mlen) { Size = 0.5 * mlen; }
 
     // Get the 8 corner points, translated and rotated
-    ChVector<> GetP1();
-    ChVector<> GetP2();
-    ChVector<> GetP3();
-    ChVector<> GetP4();
-    ChVector<> GetP5();
-    ChVector<> GetP6();
-    ChVector<> GetP7();
-    ChVector<> GetP8();
+    ChVector<> GetP1() const;
+    ChVector<> GetP2() const;
+    ChVector<> GetP3() const;
+    ChVector<> GetP4() const;
+    ChVector<> GetP5() const;
+    ChVector<> GetP6() const;
+    ChVector<> GetP7() const;
+    ChVector<> GetP8() const;
     /// Get the n-th corner point, with ipoint = 1...8
-    ChVector<> GetPn(int ipoint);
+    ChVector<> GetPn(int ipoint) const;
 
     /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() { return Size.x * Size.y * Size.z * 8.0; };
+    double GetVolume() const { return Size.x * Size.y * Size.z * 8.0; };
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(Pos);
-        marchive << CHNVP(Rot);
+        marchive << CHNVP_OUT(Pos);
+        marchive << CHNVP_OUT(Rot);
         ChVector<> Lengths = GetLengths();
-        marchive << CHNVP(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
-        marchive << CHNVP(radsphere);
+        marchive << CHNVP_OUT(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive << CHNVP_OUT(radsphere);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(Pos);
-        marchive >> CHNVP(Rot);
+        marchive >> CHNVP_IN(Pos);
+        marchive >> CHNVP_IN(Rot);
         ChVector<> Lengths;
-        marchive >> CHNVP(Lengths); 
+        marchive >> CHNVP_IN(Lengths); 
         SetLengths(Lengths);
-        marchive >> CHNVP(radsphere);
+        marchive >> CHNVP_IN(radsphere);
     }
 
 

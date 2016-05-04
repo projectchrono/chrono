@@ -152,8 +152,8 @@ void ChLinkGear::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
 
     Vector vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
-    Vector Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
-    Vector Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
+    // Vector Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
+    // Vector Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
 
     double dist = Vlength(vbdist);
 
@@ -311,7 +311,7 @@ void ChLinkGear::UpdateTime(double mytime) {
 }
 
 
-void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -320,42 +320,43 @@ void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(tau);
-    marchive << CHNVP(alpha);
-    marchive << CHNVP(beta);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(checkphase);
-    marchive << CHNVP(epicyclic);
-    marchive << CHNVP(a1);
-    marchive << CHNVP(a2);
-    marchive << CHNVP(r1);
-    marchive << CHNVP(r2);
-    marchive << CHNVP(local_shaft1);
-    marchive << CHNVP(local_shaft2);
+    marchive << CHNVP_OUT(tau);
+    marchive << CHNVP_OUT(alpha);
+    marchive << CHNVP_OUT(beta);
+    marchive << CHNVP_OUT(phase);
+    marchive << CHNVP_OUT(checkphase);
+    marchive << CHNVP_OUT(epicyclic);
+    marchive << CHNVP_OUT(a1);
+    marchive << CHNVP_OUT(a2);
+    marchive << CHNVP_OUT(r1);
+    marchive << CHNVP_OUT(r2);
+    marchive << CHNVP_OUT(local_shaft1);
+    marchive << CHNVP_OUT(local_shaft2);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(tau);
-    marchive >> CHNVP(alpha);
-    marchive >> CHNVP(beta);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(checkphase);
-    marchive >> CHNVP(epicyclic);
-    marchive >> CHNVP(a1);
-    marchive >> CHNVP(a2);
-    marchive >> CHNVP(r1);
-    marchive >> CHNVP(r2);
-    marchive >> CHNVP(local_shaft1);
-    marchive >> CHNVP(local_shaft2);
+    marchive >> CHNVP_IN(tau);
+    marchive >> CHNVP_IN(alpha);
+    marchive >> CHNVP_IN(beta);
+    marchive >> CHNVP_IN(phase);
+    marchive >> CHNVP_IN(checkphase);
+    marchive >> CHNVP_IN(epicyclic);
+    marchive >> CHNVP_IN(a1);
+    marchive >> CHNVP_IN(a2);
+    marchive >> CHNVP_IN(r1);
+    marchive >> CHNVP_IN(r2);
+    marchive >> CHNVP_IN(local_shaft1);
+    marchive >> CHNVP_IN(local_shaft2);
 }
 
 

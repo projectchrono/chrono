@@ -55,7 +55,10 @@ class ChApi ChGeometry {
 
     virtual ~ChGeometry();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChGeometry* source){};
+#pragma GCC diagnostic pop
 
     virtual ChGeometry* Duplicate() {
         ChGeometry* mgeo = new ChGeometry();
@@ -160,7 +163,7 @@ class ChApi ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
@@ -170,7 +173,8 @@ class ChApi ChGeometry {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
     }
 
 };

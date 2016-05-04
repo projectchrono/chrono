@@ -18,6 +18,8 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btDbvt.h"
 #include "LinearMath/btSerializer.h"
 
+#include <cstddef>
+
 btCompoundShape::btCompoundShape(bool enableDynamicAabbTree)
 : m_localAabbMin(btScalar(BT_LARGE_FLOAT),btScalar(BT_LARGE_FLOAT),btScalar(BT_LARGE_FLOAT)),
 m_localAabbMax(btScalar(-BT_LARGE_FLOAT),btScalar(-BT_LARGE_FLOAT),btScalar(-BT_LARGE_FLOAT)),
@@ -77,7 +79,7 @@ void	btCompoundShape::addChildShape(const btTransform& localTransform,btCollisio
 	if (m_dynamicAabbTree)
 	{
 		const btDbvtVolume	bounds=btDbvtVolume::FromMM(localAabbMin,localAabbMax);
-		int index = m_children.size();
+		std::size_t index = m_children.size();
 		child.m_node = m_dynamicAabbTree->insert(bounds,(void*)index);
 	}
 
@@ -298,7 +300,7 @@ void btCompoundShape::createAabbTreeFromChildren()
         m_dynamicAabbTree = new(mem) btDbvt();
         btAssert(mem==m_dynamicAabbTree);
 
-        for ( int index = 0; index < m_children.size(); index++ )
+        for ( std::size_t index = 0; index < m_children.size(); index++ )
         {
             btCompoundShapeChild &child = m_children[index];
 

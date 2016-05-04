@@ -4090,20 +4090,20 @@ bool fm_computeSplitPlane(NxU32 vcount,
   REAL dz = sides[2];
 
 
-	REAL laxis = dx;
+	// REAL laxis = dx;
 
 	NxU32 axis = 0;
 
 	if ( dy > dx )
 	{
 		axis = 1;
-		laxis = dy;
+		// laxis = dy;
 	}
 
 	if ( dz > dx && dz > dy )
 	{
 		axis = 2;
-		laxis = dz;
+		// laxis = dz;
 	}
 
   REAL p1[3];

@@ -51,7 +51,7 @@ class ChApi ChLcpConstraintTwoTuplesRollingT :
 
     virtual ~ChLcpConstraintTwoTuplesRollingT(){};
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoTuplesRollingT(*this); };
+    virtual ChLcpConstraint* new_Duplicate() override { return new ChLcpConstraintTwoTuplesRollingT(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTwoTuplesRollingT& operator=(const ChLcpConstraintTwoTuplesRollingT& other) {
@@ -70,10 +70,10 @@ class ChApi ChLcpConstraintTwoTuplesRollingT :
 
     /// Tells that this constraint is not linear, that is: it cannot
     /// be solved with a plain simplex solver.
-    virtual bool IsLinear() const { return false; }
+    virtual bool IsLinear() const override { return false; }
 
     /// The constraint is satisfied?
-    virtual double Violation(double mc_i) { return 0.0;}
+    virtual double Violation(double mc_i) override { return 0.0;}
 
 };
 

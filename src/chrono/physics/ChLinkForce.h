@@ -48,8 +48,11 @@ class ChApi ChLinkForce {
 
   public:
     ChLinkForce();
-    ~ChLinkForce();
+    virtual ~ChLinkForce();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChLinkForce* source);
+#pragma GCC diagnostic pop
     ChLinkForce* new_Duplicate();
 
     int Get_active() { return active; }
@@ -85,7 +88,7 @@ class ChApi ChLinkForce {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);

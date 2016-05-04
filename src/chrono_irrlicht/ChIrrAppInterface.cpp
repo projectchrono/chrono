@@ -76,13 +76,13 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 ChStreamOutAsciiFile mfileo("dump.json");
                 ChArchiveOutJSON marchiveout(mfileo);
                 marchiveout.SetUseVersions(false);
-                marchiveout << CHNVP(app->GetSystem(),"System");
+                marchiveout << CHNVP_OUT(app->GetSystem(),"System");
 
                 GetLog() << "Saving system in ASCII format to dump.txt file \n";
                 ChStreamOutAsciiFile mfileo2("dump.txt");
                 ChArchiveAsciiDump marchiveout2(mfileo2);
                 marchiveout2.SetUseVersions(false);
-                marchiveout2 << CHNVP(app->GetSystem(),"System");
+                marchiveout2 << CHNVP_OUT(app->GetSystem(),"System");
             }
         case irr::KEY_F6:
                 GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";

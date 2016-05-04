@@ -101,14 +101,14 @@ class ChApi ChLcpKblockGeneric : public ChLcpKblock {
     void SetVariables(std::vector<ChLcpVariables*> mvariables);
 
     /// Returns the number of referenced ChLcpVariables items
-    virtual size_t GetNvars() const { return variables.size(); }
+    virtual size_t GetNvars() const override { return variables.size(); }
 
     /// Access the m-th vector variable object
     virtual ChLcpVariables* GetVariableN(unsigned int m_var) const { return variables[m_var]; }
 
     /// Access the K stiffness matrix as a single block,
     /// referring only to the referenced ChVariable objects
-    virtual ChMatrix<double>* Get_K() { return K; }
+    virtual ChMatrix<double>* Get_K() override { return K; }
 
     /// Computes the product of the corresponding blocks in the
     /// system matrix (ie. the K matrix blocks) by 'vect', and add to 'result'.
@@ -116,19 +116,19 @@ class ChApi ChLcpKblockGeneric : public ChLcpKblock {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect.
-    virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Add the diagonal of the stiffness matrix block(s) as a column vector to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) as index.
-    virtual void DiagonalAdd(ChMatrix<double>& result);
+    virtual void DiagonalAdd(ChMatrix<double>& result) override;
 
     /// Writes the K matrix associated to these variables into
     /// a global 'storage' matrix, at the offsets of variables.
     /// Most solvers do not need this: the sparse 'storage' matrix is used for testing, for
     /// direct solvers, for dumping full matrix to Matlab for checks, etc.
-	void Build_K(ChSparseMatrix& storage, bool add);
+	void Build_K(ChSparseMatrix& storage, bool add) override;
 };
 
 }  // END_OF_NAMESPACE____

@@ -598,7 +598,7 @@ namespace CONVEX_DECOMPOSITION
 			T*					mData;
 			NxU32				mCapacity;
 			NxU32				mSize;
-			ArrayMetaData(): mSize(0), mCapacity(0), mData(0) {}
+			ArrayMetaData(): mData(0), mCapacity(0), mSize(0) {}
 		};
 
 		template <typename T>
@@ -1153,7 +1153,7 @@ namespace CONVEX_DECOMPOSITION
 		// from http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
 		NxU32 const w = v - ((v >> 1) & 0x55555555);
 		NxU32 const x = (w & 0x33333333) + ((w >> 2) & 0x33333333);
-		return ((x + (x >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
+		return (((x + (x >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
 	}
 
 	/*!
@@ -1171,7 +1171,7 @@ namespace CONVEX_DECOMPOSITION
 
 	NX_INLINE bool isPowerOfTwo(NxU32 x)
 	{
-		return x!=0 && (x & x-1) == 0;
+		return (x!=0) && ((x & (x-1)) == 0);
 	}
 
 	// "Next Largest Power of 2
@@ -1365,7 +1365,7 @@ namespace CONVEX_DECOMPOSITION
 	to choose from.  I only looked at a billion or so.
 	--------------------------------------------------------------------
 	*/
-	NX_INLINE NxU32 hashMix(NxU32 &a, NxU32 &b, NxU32 &c)
+	NX_INLINE void hashMix(NxU32 &a, NxU32 &b, NxU32 &c)
 	{
 		a -= b; a -= c; a ^= (c>>13);
 		b -= c; b -= a; b ^= (a<<8);
@@ -1464,17 +1464,17 @@ namespace CONVEX_DECOMPOSITION
 			typedef Entry EntryType;
 
 			HashBase(NxU32 initialTableSize = 64, float loadFactor = 0.75f):
-			mLoadFactor(loadFactor),
-				mFreeList((NxU32)EOL),
-				mTimestamp(0),
-				mSize(0),
+            EOL(0xffffffff),
 				mEntries(Allocator(NV_DEBUG_EXP("hashBaseEntries"))),
 				mNext(Allocator(NV_DEBUG_EXP("hashBaseNext"))),
-				mHash(Allocator(NV_DEBUG_EXP("hashBaseHash")))
+				mHash(Allocator(NV_DEBUG_EXP("hashBaseHash"))),
+			   mLoadFactor(loadFactor),
+				mFreeList((NxU32)EOL),
+				mTimestamp(0),
+				mSize(0)
 			{
 				if(initialTableSize)
 					reserveInternal(initialTableSize);
-				EOL= 0xffffffff;
 			}
 
 			~HashBase()
@@ -1714,7 +1714,7 @@ namespace CONVEX_DECOMPOSITION
 			class Iter
 			{
 			public:
-				NX_INLINE Iter(HashBase &b): mBase(b), mTimestamp(b.mTimestamp), mBucket(0), mEntry((NxU32)b.EOL)
+				NX_INLINE Iter(HashBase &b): mBucket(0), mEntry((NxU32)b.EOL), mTimestamp(b.mTimestamp), mBase(b)
 				{
 					if(mBase.mEntries.size()>0)
 					{

@@ -64,11 +64,14 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Destructor
     ~ChShaftsCouple(){};
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Copy from another ChShaftsClutch.
     void Copy(ChShaftsCouple* source) {
         this->shaft1 = 0;
         this->shaft2 = 0;
     }
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
@@ -122,7 +125,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
@@ -131,22 +134,23 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
         ChPhysicsItem::ArchiveOUT(marchive);
 
         // serialize all member data:
-        //marchive << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        //marchive << CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        //marchive << CHNVP_OUT(shaft1);  //***TODO*** serialize, with shared ptr
+        //marchive << CHNVP_OUT(shaft2);  //***TODO*** serialize, with shared ptr
     } 
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // deserialize parent class:
         ChPhysicsItem::ArchiveIN(marchive);
 
         // deserialize all member data:
-        //marchive >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        //marchive >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        //marchive >> CHNVP_IN(shaft1);  //***TODO*** serialize, with shared ptr
+        //marchive >> CHNVP_IN(shaft2);  //***TODO*** serialize, with shared ptr
     } 
 
 };

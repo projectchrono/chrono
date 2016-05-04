@@ -50,8 +50,11 @@ class ChApi ChFunction_Derive : public ChFunction {
   public:
     ChFunction_Derive() { order = 1; }
     ~ChFunction_Derive(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Derive* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void Set_order(int m_order) { order = m_order; }
     int Get_order() { return order; }
@@ -59,13 +62,13 @@ class ChApi ChFunction_Derive : public ChFunction {
     void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
     std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
-    double Get_y(double x);
+    double Get_y(double x) override;
 
-    void Estimate_x_range(double& xmin, double& xmax);
+    void Estimate_x_range(double& xmin, double& xmax) override;
 
-    int Get_Type() { return (FUNCT_DERIVE); }
+    int Get_Type() override { return (FUNCT_DERIVE); }
 
-    int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
+    int MakeOptVariableTree(ChList<chjs_propdata>* mtree) override;
 
 
     //
@@ -73,27 +76,28 @@ class ChApi ChFunction_Derive : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(fa);
-        marchive << CHNVP(order);
+        marchive << CHNVP_OUT(fa);
+        marchive << CHNVP_OUT(order);
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(fa);
-        marchive >> CHNVP(order);
+        marchive >> CHNVP_IN(fa);
+        marchive >> CHNVP_IN(order);
     }
 
 };

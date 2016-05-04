@@ -66,7 +66,10 @@ NvRemoveTjunctions.cpp : A code snippet to remove tjunctions from a triangle mes
 
 // this is only a hack! (should be removed). Was not available in certain GNU envs.
 //uint UINT_MAX=1000000;
+#include <limits.h>
+#ifndef UINT_MAX
 #define UINT_MAX      0xffffffff    /* maximum unsigned int value */
+#endif
 
 #pragma warning(disable:4189)
 
@@ -274,7 +277,7 @@ public:
     mVertices = 0;
     mEdgeCount = 0;
   }
-  ~MyRemoveTjunctions(void)
+  virtual ~MyRemoveTjunctions(void)
   {
     release();
   }
@@ -308,8 +311,8 @@ public:
 
     ret = desc.mTcountOut;
 
-    bool check = ret != desc.mTcount;
 #if 0
+    bool check = ret != desc.mTcount;
     while ( check )
     {
         NxU32 tcount = ret;

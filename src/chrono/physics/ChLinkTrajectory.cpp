@@ -138,7 +138,7 @@ void ChLinkTrajectory::Initialize(
     this->Set_trajectory_line(mline);
 }
 
-void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -147,24 +147,25 @@ void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(space_fx);
-    marchive << CHNVP(trajectory_line);
-    marchive << CHNVP(modulo_s);
+    marchive << CHNVP_OUT(space_fx);
+    marchive << CHNVP_OUT(trajectory_line);
+    marchive << CHNVP_OUT(modulo_s);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(space_fx);
-    marchive >> CHNVP(trajectory_line);
-    marchive >> CHNVP(modulo_s);
+    marchive >> CHNVP_IN(space_fx);
+    marchive >> CHNVP_IN(trajectory_line);
+    marchive >> CHNVP_IN(modulo_s);
 }
 
 

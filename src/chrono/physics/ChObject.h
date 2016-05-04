@@ -83,7 +83,10 @@ class ChApi ChObj {
     ChObj();
     virtual ~ChObj();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChObj* source);
+#pragma GCC diagnostic pop
 
     //
     // FUNCTIONS
@@ -125,25 +128,26 @@ class ChApi ChObj {
     //
 
             /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         marchive.VersionWrite(1);
 
         // stream out all member data
-        marchive << CHNVP(name);
-        marchive << CHNVP(identifier);
-        marchive << CHNVP(ChTime);
+        marchive << CHNVP_OUT(name);
+        marchive << CHNVP_OUT(identifier);
+        marchive << CHNVP_OUT(ChTime);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive)
     {
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // stream out all member data
-        marchive >> CHNVP(name);
-        marchive >> CHNVP(identifier);
-        marchive >> CHNVP(ChTime);
+        marchive >> CHNVP_IN(name);
+        marchive >> CHNVP_IN(identifier);
+        marchive >> CHNVP_IN(ChTime);
     }
 
 };

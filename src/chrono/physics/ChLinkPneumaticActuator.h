@@ -59,15 +59,18 @@ class ChApi ChLinkPneumaticActuator : public ChLinkLock {
     // builders and destroyers
     ChLinkPneumaticActuator();
     virtual ~ChLinkPneumaticActuator();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkPneumaticActuator* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
     // UPDATING FUNCTIONS - "lin. pneumatic actuator" custom implementations
 
     // Updates motion laws, marker positions, etc.
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
     // Updates forces etc.
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
 
     // DATA GET/ SET
     // for straight access to all internal pneumatic data

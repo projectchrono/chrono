@@ -50,7 +50,7 @@ double ChShaftsTorsionSpring::ComputeTorque() {
 
 //////// FILE I/O
 
-void ChShaftsTorsionSpring::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsTorsionSpring::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -59,22 +59,23 @@ void ChShaftsTorsionSpring::ArchiveOUT(ChArchiveOut& marchive)
     ChShaftsTorqueBase::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(stiffness);
-    marchive << CHNVP(damping);
+    marchive << CHNVP_OUT(stiffness);
+    marchive << CHNVP_OUT(damping);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsTorsionSpring::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChShaftsTorqueBase::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(stiffness);
-    marchive >> CHNVP(damping);
+    marchive >> CHNVP_IN(stiffness);
+    marchive >> CHNVP_IN(damping);
 } 
 
 

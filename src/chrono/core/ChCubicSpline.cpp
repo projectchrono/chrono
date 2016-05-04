@@ -26,8 +26,12 @@
 
 namespace chrono {
 
-ChCubicSpline::ChCubicSpline(const std::vector<double>& t, const std::vector<double>& y)
-    : m_t(t), m_y(y), m_left_bc_type(DEFAULT_BC), m_right_bc_type(DEFAULT_BC), m_process(true) {
+ChCubicSpline::ChCubicSpline(const std::vector<double>& t, const std::vector<double>& y) :
+      m_process(true),
+      m_left_bc_type(DEFAULT_BC),
+      m_right_bc_type(DEFAULT_BC),
+      m_t(t),
+      m_y(y) {
     int n = (int)t.size();
     assert(n >= 2);
     assert(n == y.size());

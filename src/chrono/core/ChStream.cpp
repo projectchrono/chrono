@@ -47,7 +47,7 @@ ChStreamOutAscii& ChStreamOutAscii::operator<<(char* str) {
     Output(str, strlen(str));
     return *this;
 }
-ChStreamOutAscii& ChStreamOutAscii::operator<<(std::string& str) {
+ChStreamOutAscii& ChStreamOutAscii::operator<<(const std::string& str) {
     Output(str.c_str(), strlen(str.c_str()));
     return *this;
 }
@@ -502,7 +502,7 @@ ChStreamOutBinary& ChStreamOutBinary::operator<<(char* str) {
     return *this;
 }
 
-ChStreamOutBinary& ChStreamOutBinary::operator<<(std::string& str) {
+ChStreamOutBinary& ChStreamOutBinary::operator<<(const std::string& str) {
     // save string length, including null termination
     int mlength = (int)strlen(str.c_str());
     *this << mlength;
@@ -751,7 +751,7 @@ void ChStreamVectorWrapper::Read(char* data, size_t n) {
         pos++;
     }
 }
-bool ChStreamVectorWrapper::End_of_stream() {
+bool ChStreamVectorWrapper::End_of_stream() const {
     if (pos >= vbuffer->size())
         return true;
     return false;

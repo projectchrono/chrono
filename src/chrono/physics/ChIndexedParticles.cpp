@@ -75,7 +75,7 @@ ChIndexedParticles::~ChIndexedParticles() {
 
 //////// FILE I/O
 
-void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
+void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) const {
 
     // class version number
     marchive.VersionWrite(1);
@@ -89,7 +89,8 @@ void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
 void ChIndexedParticles::ArchiveIN(ChArchiveIn& marchive) {
 
     // class version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class too
     ChPhysicsItem::ArchiveIN(marchive);

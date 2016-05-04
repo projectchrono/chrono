@@ -280,27 +280,28 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChNodeFEAxyz::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(D);
-        marchive << CHNVP(D_dt);
-        marchive << CHNVP(D_dtdt);
+        marchive << CHNVP_OUT(D);
+        marchive << CHNVP_OUT(D_dt);
+        marchive << CHNVP_OUT(D_dtdt);
     }
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChNodeFEAxyz::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(D);
-        marchive >> CHNVP(D_dt);
-        marchive >> CHNVP(D_dtdt);
+        marchive >> CHNVP_IN(D);
+        marchive >> CHNVP_IN(D_dt);
+        marchive >> CHNVP_IN(D_dtdt);
     }
 
   private:

@@ -71,7 +71,10 @@ class ChApi ChLinkMask {
     virtual ~ChLinkMask();
 
     ChLinkMask(ChLinkMask& source);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkMask* source);
+#pragma GCC diagnostic pop
     virtual ChLinkMask* NewDuplicate();
 
     //
@@ -157,8 +160,11 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     /// be used for the ChLinkLock link.
     ChLinkMaskLF();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChLinkMaskLF* source);
-    ChLinkMask* NewDuplicate();
+#pragma GCC diagnostic pop
+    ChLinkMask* NewDuplicate() override;
 
     /// set all mask data at once
     void SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
@@ -179,11 +185,11 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // END_OF_NAMESPACE____

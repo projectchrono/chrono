@@ -552,7 +552,7 @@ class ChLinearAlgebra {
     /// Also computes condition number (near 1= well cond, if ->infinite, A tend to simgularity)
     static int SVD(ChMatrix<>& mA, ChMatrix<>& U, ChMatrix<>& W, ChMatrix<>& V, double& cond_num) {
         const double MACHEP = 1.4e-17;  // measure of machine precision for SVD
-        const double MAXCN = 1.0e+12;
+        // const double MAXCN = 1.0e+12;
 
         ChMatrix<double>* A = &mA;
         int i, j, k, l, mn, its, n, m;

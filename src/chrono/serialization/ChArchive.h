@@ -13,13 +13,16 @@
 #ifndef CHARCHIVE_H
 #define CHARCHIVE_H
 
-#include <string>
-#include <sstream>
-#include <vector>
+#include <iostream>
 #include <list>
+#include <sstream>
+#include <string>
+#include <type_traits>
 #include <typeinfo>
 #include <unordered_set>
+#include <utility>
 #include <memory>
+#include <vector>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChStream.h"
@@ -33,6 +36,10 @@ namespace chrono {
 // forward reference
 class ChArchiveOut;
 class ChArchiveIn;
+
+/// Type after removing constness from a type.
+template <class T>
+using ChMutableT = typename std::remove_const<T>::type;
 
 
 /// Macro to create a  ChDetect_GetRTTI  detector that can be used in 
@@ -50,33 +57,51 @@ public:
 };
 
 
+
+template<typename T>
+struct ChArchiveOutMemberFunction {
+    using type = void (T::*)(ChArchiveOut&) const;
+    static constexpr type pointer = static_cast<type>(&T::ArchiveOUT);
+};
+
+template<typename T>
+typename ChArchiveOutMemberFunction<T>::type
+getArchiveOUT()
+{
+    return ChArchiveOutMemberFunction<T>::pointer;
+}
+
+
+
 /// Functor to call the ArchiveOUT function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveOut
 /// easier and equippable with virtual functions.
 
 class ChFunctorArchiveOut {
 public:
-    virtual void CallArchiveOut(ChArchiveOut& marchive)=0;   
-    virtual bool IsNull()=0;
+    virtual void CallArchiveOut(ChArchiveOut& marchive) const = 0;
+    virtual bool IsNull() const = 0;
 };
 
 template <class TClass> 
 class ChFunctorArchiveOutSpecific : public ChFunctorArchiveOut
 {
 private:
-      void (TClass::*fpt)(ChArchiveOut&);   // pointer to member function
-      TClass* pt2Object;                    // pointer to object
+      using ArchiveOutMemberPtr =
+          typename ChArchiveOutMemberFunction<TClass>::type;
+      ArchiveOutMemberPtr fpt;         // pointer to member function
+      TClass* pt2Object;               // pointer to object
 
 public:
 
       // constructor - takes pointer to an object and pointer to a member
-      ChFunctorArchiveOutSpecific(TClass* _pt2Object, void(TClass::*_fpt)(ChArchiveOut&))
+      ChFunctorArchiveOutSpecific(TClass* _pt2Object, ArchiveOutMemberPtr _fpt)
          { pt2Object = _pt2Object;  fpt=_fpt; };
 
-      virtual void CallArchiveOut(ChArchiveOut& marchive)
+      virtual void CallArchiveOut(ChArchiveOut& marchive) const
         { (*pt2Object.*fpt)(marchive);};             // execute member function
 
-      virtual bool IsNull()
+      virtual bool IsNull() const
         { return (pt2Object==0);};            
 
 };
@@ -168,63 +193,251 @@ public:
 
 
 
-///
-/// This is a base class for name-value pairs
-///
-
+/// So we can test if a ChNameValue is valid.
 template<class T>
-class  ChNameValue {
+struct ChIsAssignable {
+    using BaseT = typename std::remove_all_extents<T>::type;
+    using LValueBaseT =  typename std::add_lvalue_reference<BaseT>::type;
+    static constexpr bool value =
+        std::is_assignable<LValueBaseT, BaseT>::value;
+};
+
+/// Check if a non-pointer object involves constness.
+template<class T>
+struct ChIsNonConst {
+    static constexpr bool value = ! std::is_const<T>::value;
+};
+
+/// Check if there's any constness involved in a pointer.
+/// int const****, int****const, int**const** all fail.
+template<class T>
+struct ChIsNonConst<T*> {
+    static constexpr bool value = ChIsNonConst<T>::value;
+};
+
+
+#ifdef __GNUC__
+#define DEPRECATED(func) __attribute__ ((deprecated)) func
+#elif defined(_MSC_VER)
+#define DEPRECATED(func) __declspec(deprecated) func
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define DEPRECATED(func) func
+#endif
+
+///
+/// Holds a value as an lvalue reference. See ChNameValue.
+///
+template<class T, bool isAssignable>
+class  ChValue {
   public:
-        ChNameValue(const char* mname, const T& mvalue, char mflags = 0) : 
-            _name(mname), 
-            _value((T*)(& mvalue)),
+        ChValue(T& mvalue) : _value(mvalue) {}
+        T& value() { return this->_value; }
+  private:
+        T& _value;
+};
+
+/// Holds a value as a copy.
+/// Reading is okay, but writing gives a runtime warning.
+template<class T>
+class  ChValue<T, false> {
+  public:
+        using MutableT = ChMutableT<T>;
+        ChValue(T& mvalue) : _value(mvalue) {}
+        DEPRECATED(MutableT& value()) { return this->_value; }
+  private:
+        MutableT _value;
+};
+
+
+///
+/// Holds a value as an lvalue reference. See ChNameValue.
+///
+template<class T>
+class  ChValueOut {
+  public:
+        ChValueOut(T& mvalue) : _value(mvalue) {}
+        ChValueOut(const T& mvalue) : _value(mvalue) {}
+        const T& value() const { return this->_value; }
+
+  private:
+        const T& _value;
+};
+
+
+///
+/// Base class for outputting name-value pairs
+///
+template<class T>
+class ChNameValueOut {
+  public:
+        ChNameValueOut() = delete;
+
+        ChNameValueOut(const char* mname, const T& mvalue, char mflags = 0) :
+            _value(mvalue),
+            _name(mname),
             _flags((char)mflags) {}
 
-        ChNameValue(const ChNameValue<T>& other){
-            _name  = other._name;
-            _value = other._value;
-            _flags = other._flags;
-        }
-        virtual ~ChNameValue() {};
+        ChNameValueOut(const ChNameValueOut&) = default;
+        ChNameValueOut(ChNameValueOut&&) = default;
+        ChNameValueOut& operator=(const ChNameValueOut&) = default;
+        ChNameValueOut& operator=(ChNameValueOut&&) = default;
 
-        const char * name() const {
-            return this->_name;
-        }
+        virtual ~ChNameValueOut() = default;
 
-        char& flags() {
-            return this->_flags;
-        }
+        const char * name() const { return this->_name; }
 
-        T & value() const {
-            return *(this->_value);
-        }
+        char& flags() { return this->_flags; }
 
-        const T & const_value() const {
-            return *(this->_value);
-        }
+        const T& value() const { return this->_value; }
 
   protected:
-        T* _value;
+        const T& _value;
         const char* _name;
         char _flags;
 };
+
+///
+/// Base class for inputting name-value pairs
+///
+template<class T>
+class ChNameValueIn {
+  public:
+        ChNameValueIn() = delete;
+
+        ChNameValueIn(const char* mname, T& mvalue, char mflags = 0) :
+            _value(mvalue),
+            _name(mname),
+            _flags((char)mflags) {}
+
+        ChNameValueIn(const ChNameValueIn&) = default;
+        ChNameValueIn(ChNameValueIn&&) = default;
+        ChNameValueIn& operator=(const ChNameValueIn&) = default;
+        ChNameValueIn& operator=(ChNameValueIn&&) = default;
+
+        virtual ~ChNameValueIn() = default;
+
+        const char * name() const { return this->_name; }
+
+        char& flags() { return this->_flags; }
+
+        T& value() { return this->_value.value(); }
+
+  protected:
+        ChValue<T, ChIsNonConst<T>::value> _value;
+        const char* _name;
+        char _flags;
+};
+
 
 // Flag to mark a ChNameValue for a C++ object serialized by value but that
 // that can be later referenced by pointer too.
 static const char NVP_TRACK_OBJECT = (1 << 0);
 
 
+
+
+/// Make a ChNameValueOut that captures an lvalue reference to the specified
+/// assignable value. The name for the value is the custom name if that is not
+/// null, or the auto name otherwise. Also @see CHNVP.
 template<class T>
-ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, const char * custom_name, char flags = 0){
-    const char* mname = auto_name;
-    if (custom_name)
-        mname = custom_name;
-    return ChNameValue< T >(mname, t, flags);
+ChNameValueOut<T> make_ChNameValueOut(
+    const char * auto_name,
+    const T & value,
+    const char * custom_name,
+    char flags = 0)
+{
+    return ChNameValueOut<ChMutableT<T>> (
+        (custom_name ? custom_name : auto_name), value, flags);
 }
+
+/// Three-argument version of make_ChNameValue. The custom_name is omitted.
 template<class T>
-ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, char flags = 0){
-    const char* mname = auto_name;
-    return ChNameValue< T >(mname, t, flags);
+ChNameValueOut<T> make_ChNameValueOut(
+    const char * auto_name,
+    const T & value,
+    char flags = 0)
+{
+    return make_ChNameValueOut(auto_name, value, nullptr, flags);
+}
+
+
+/// Make a ChNameValueIn that captures an lvalue reference to the specified
+/// assignable value. The name for the value is the custom name if that is not
+/// null, or the auto name otherwise. Also @see CHNVP.
+template<class T>
+ChNameValueIn<T> make_ChNameValueIn(
+    const char * auto_name,
+    T & value,
+    const char * custom_name,
+    char flags = 0)
+{
+    return ChNameValueIn<T> (
+        (custom_name ? custom_name : auto_name), value, flags);
+}
+
+/// Three-argument version of make_ChNameValue. The custom_name is omitted.
+template<class T>
+ChNameValueIn<T> make_ChNameValueIn(
+    const char * auto_name,
+    T & value,
+    char flags = 0)
+{
+    return make_ChNameValueIn(auto_name, value, nullptr, flags);
+}
+
+
+/// Special case of make_ChNameValueOut for a const pointer
+/// as an rvalue reference.
+template<class T>
+ChNameValueOut<T*> make_ChNameValueOut(
+    const char * auto_name,
+    const T* && value,
+    const char * custom_name,
+    char flags = 0)
+{
+    // Note that the value is not forwarded here.
+    return ChNameValueOut<T*> (
+        (custom_name ? custom_name : auto_name), value, flags);
+}
+
+/// Three argument version of make_ChNameValueOut for a pointer rvalue
+/// reference.
+template<class T>
+ChNameValueOut<ChMutableT<T> *> make_ChNameValueOut(
+    const char * auto_name,
+    const T* && value,
+    char flags = 0)
+{
+    // Note that the value *is* perfectly-forwarded here.
+    return make_ChNameValueOut(
+        auto_name, std::forward<const T*>(value), nullptr, flags);
+}
+
+
+/// Special case of make_ChNameValueIn for a T pointer as an rvalue reference.
+template<class T>
+ChNameValueIn<T*> make_ChNameValueIn(
+    const char * auto_name,
+    T* && value,
+    const char * custom_name,
+    char flags = 0)
+{
+    // Note that the value is not forwarded here.
+    return ChNameValueIn<T*> (
+        (custom_name ? custom_name : auto_name), value, flags);
+}
+
+/// Three argument version of make_ChNameValue for a T* rvalue reference.
+template<class T>
+ChNameValueIn<T*> make_ChNameValueIn(
+    const char * auto_name,
+    const T* && value,
+    char flags = 0)
+{
+    // Note that the value *is* perfectly-forwarded here.
+    return make_ChNameValueIn(
+        auto_name, std::forward<T*>(value), nullptr, flags);
 }
 
 
@@ -251,8 +464,20 @@ ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, char flag
 /// or, not providing the mnemonic name, the name will be get from the C name of the variable:
 ///    myarchive << CHNVP (myvalue)
 
-#define CHNVP(...) \
-    make_ChNameValue("" STRINGIFY(FIRST(__VA_ARGS__)) "", FIRST(__VA_ARGS__) REST(__VA_ARGS__) )
+
+#define CHNVP_OUT(...) \
+    make_ChNameValueOut( \
+        "" STRINGIFY(FIRST(__VA_ARGS__)) "", \
+        FIRST(__VA_ARGS__) REST(__VA_ARGS__) )
+
+#if 1
+#define CHNVP_IN(...) \
+    make_ChNameValueIn( \
+        "" STRINGIFY(FIRST(__VA_ARGS__)) "", \
+        FIRST(__VA_ARGS__) REST(__VA_ARGS__) )
+#else
+#define CHNVP_IN(...) make_ChNameValueIn( "" STRINGIFY(FIRST(__VA_ARGS__)) "", FIRST(__VA_ARGS__), typeid(FIRST(__VA_ARGS__)).name(), 0)
+#endif
 
 
 
@@ -260,17 +485,26 @@ ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, char flag
 /// of the selected enum. This could be used when streaming from/to human readable formats
 /// such as JSON or XML or ascii dumps.
 
-class ChEnumMapperBase {
+class ChEnumMapperOutBase {
 public:
-    ChEnumMapperBase ()  {};
+    ChEnumMapperOutBase ()  {};
 
-    virtual int  GetValueAsInt() = 0;
-    virtual void SetValueAsInt(const int mval) = 0;
+    virtual int  GetValueAsInt() const = 0;
 
-    virtual std::string GetValueAsString() = 0;
+    virtual std::string GetValueAsString() const = 0;
+
+};
+
+class ChEnumMapperInBase {
+public:
+    ChEnumMapperInBase ()  {};
+
+    virtual void SetValueAsInt(int mval) = 0;
+
     virtual bool SetValueAsString(const std::string& mname) = 0;
 
 };
+
 
 template <class Te>
 class ChEnumNamePair {
@@ -281,17 +515,17 @@ public:
     Te enumid;
 };
 
-template <class Te>
-class ChEnumMapper : public ChEnumMapperBase {
-public:
-    ChEnumMapper () : 
-        value_ptr(0) {
-        enummap = std::shared_ptr< std::vector< ChEnumNamePair<Te> > >(new std::vector< ChEnumNamePair<Te> >);
-    };
 
-    ChEnumMapper (std::shared_ptr< std::vector< ChEnumNamePair<Te> > >  mmap) : 
-        value_ptr(0), 
-        enummap(mmap) {};
+template <class Te>
+class ChEnumMapper {
+public:
+    using MapType = std::shared_ptr<std::vector<ChEnumNamePair<Te>>>;
+
+    ChEnumMapper () : enummap() {}
+
+    ChEnumMapper (MapType mmap) : enummap(mmap) {}
+
+    ChEnumMapper (const ChEnumMapper<Te>&) = default;
 
     void AddMapping(const char* name, Te enumid) {
         ChEnumNamePair<Te> mpair (name, enumid);
@@ -305,55 +539,91 @@ public:
         enummap->push_back(mpair);
     }
 
-    Te& Value() {return *value_ptr;}
+    int enumToInt(Te mid) const {
+        return static_cast<int>(mid);
+    }
 
-    virtual int  GetValueAsInt() { 
-        return static_cast<int>(*value_ptr);
-    };
-    virtual void SetValueAsInt(const int mval) {
-        *value_ptr = static_cast<Te>(mval);
-    };
-
-    virtual std::string GetValueAsString() {
-        for (int i = 0; i < enummap->size(); ++i)
-        {
-            if(enummap->at(i).enumid == *value_ptr)
-                return enummap->at(i).name;
+    std::string enumToString(Te mid) const {
+        for (auto& elem : *enummap) {
+            if (elem.enumid == mid) {
+                return elem.name;
+            }
         }
         // not found, just string as number:
         char buffer [10];
-        sprintf(buffer, "%d", GetValueAsInt());
+        sprintf(buffer, "%d", enumToInt(mid));
         return std::string(buffer);
-    };
+    }
 
-    virtual bool SetValueAsString(const std::string& mname) {
-        for (int i = 0; i < enummap->size(); ++i)
-        {
-            if(enummap->at(i).name == mname) {
-                *value_ptr = enummap->at(i).enumid;
+    Te intToEnum(int mval) const {
+        return static_cast<Te>(mval);
+    }
+
+    bool stringToEnum(Te& mid, const std::string& mname) const {
+        for (auto& elem : *enummap) {
+            if (elem.name == mname) {
+                mid = elem.enumid;
                 return true;
             }
         }
-        // try to find from integer:
+        // not found, try to convert string to a number:
         int numb;
         std::istringstream mstream(mname);
         mstream >> numb;
-        if (mstream.fail()) 
+        if (mstream.fail())
             return false;
         else{
-            SetValueAsInt(numb);
+            mid = intToEnum(numb);
             return true;
         }
-        // neither found enum from string, nor from number...
-        return false; 
-    };
-
-    Te* value_ptr;
+    }
 
  protected:
-        
-    std::shared_ptr< std::vector< ChEnumNamePair<Te> > > enummap;
+
+    MapType enummap;
 };
+
+
+template <class Te>
+class ChEnumMapperOut : public ChEnumMapperOutBase {
+public:
+    ChEnumMapperOut(const ChEnumMapper<Te>& mmap, const Te& mval) :
+        map(mmap), value(mval)
+    {}
+
+    virtual int GetValueAsInt() const override {
+        return map.enumToInt(value);
+    }
+
+    virtual std::string GetValueAsString() const override {
+        return map.enumToString(value);
+    }
+
+protected:
+    const ChEnumMapper<Te>& map;
+    Te value;
+};
+
+template <class Te>
+class ChEnumMapperIn : public ChEnumMapperInBase {
+public:
+    ChEnumMapperIn(const ChEnumMapper<Te>& mmap, Te& mval) :
+        map(mmap), value(mval)
+    {}
+
+    virtual void SetValueAsInt(int mval) override {
+        value = map.intToEnum(mval);
+    }
+
+    virtual bool SetValueAsString(const std::string& mname) override {
+        return map.stringToEnum(value, mname);
+    }
+
+protected:
+    const ChEnumMapper<Te>& map;
+    Te& value;
+};
+
 
 /// Three macros to simplify the use of enum mapper.
 /// Use them always in sequence, with nothing else in between. 
@@ -375,21 +645,94 @@ public:
 ///  CH_ENUM_MAPPER_END(MyEnum);
 /// 
 
-#define CH_ENUM_MAPPER_BEGIN(__enum_type) \
-            class __enum_type##_mapper : public ChEnumMapper< __enum_type > { \
-            public: \
-                __enum_type##_mapper() { 
+#define CH_ENUM_MAPPER_BEGIN(EnumType) \
+  class EnumType##_mapper : public ChEnumMapper< EnumType > { \
+    public: \
+      EnumType##_mapper() {
 
 #define CH_ENUM_VAL(...) \
-        this->AddMapping("" STRINGIFY(FIRST(__VA_ARGS__)) "", FIRST(__VA_ARGS__) REST(__VA_ARGS__) );
+        this->AddMapping( \
+          "" STRINGIFY(FIRST(__VA_ARGS__)) "", \
+          FIRST(__VA_ARGS__) REST(__VA_ARGS__) );
 
-#define CH_ENUM_MAPPER_END(__enum_type) \
-            }; \
-        ChEnumMapper< __enum_type > operator() ( __enum_type & mval) { \
-            ChEnumMapper< __enum_type > res(this->enummap); \
-            res.value_ptr = &mval; \
-            return res; \
-        } }; 
+#define CH_ENUM_MAPPER_END(EnumType) \
+      }; \
+      ChEnumMapperOut< EnumType > out (EnumType mval) { \
+        return ChEnumMapperOut< EnumType > (*this, mval); \
+      } \
+      ChEnumMapperIn< EnumType > in (EnumType& mval) { \
+        return ChEnumMapperIn< EnumType > (*this, mval); \
+      } \
+    };
+
+
+
+/// Check if a ChEnumMapper is wrapped around a const.
+template<class T>
+struct ChIsNonConst<ChEnumMapper<T>> {
+    static constexpr bool value = ChIsNonConst<T>::value;
+};
+
+
+/// Special case of make_ChNameValueOut for a ChEnumMapperOut<T> as an rvalue
+/// reference.
+
+template<class T>
+ChNameValueOut<ChEnumMapperOut<T>>
+make_ChNameValueOut(
+    const char * auto_name,
+    ChEnumMapperOut<T> && value,
+    const char * custom_name,
+    char flags = 0)
+{
+    // Note that the value is not forwarded here.
+    return ChNameValueOut<ChEnumMapperOut<T>> (
+        (custom_name ? custom_name : auto_name), value, flags);
+}
+
+/// Three argument version of make_ChNameValue for a ChEnumMapper<T> as an
+/// rvalue reference.
+template<class T>
+ChNameValueOut<ChEnumMapperOut<T>> make_ChNameValueOut(
+    const char * auto_name,
+    ChEnumMapper<T> && value,
+    char flags = 0)
+{
+    // Note that the value *is* perfectly-forwarded here.
+    return make_ChNameValueOut(
+        auto_name, std::forward<ChEnumMapperOut<T>>(value), nullptr, flags);
+}
+
+
+/// Special case of make_ChNameValueIn for a ChEnumMapperIn<T> as an rvalue
+/// reference.
+
+template<class T>
+ChNameValueIn<ChEnumMapperIn<T>>
+make_ChNameValueIn(
+    const char * auto_name,
+    ChEnumMapperIn<T> && value,
+    const char * custom_name,
+    char flags = 0)
+{
+    // Note that the value is not forwarded here.
+    return ChNameValueIn<ChEnumMapperIn<T>> (
+        (custom_name ? custom_name : auto_name), value, flags);
+}
+
+/// Three argument version of make_ChNameValue for a ChEnumMapper<T> as an
+/// rvalue reference.
+template<class T>
+ChNameValueIn<ChEnumMapperIn<T>> make_ChNameValueIn(
+    const char * auto_name,
+    ChEnumMapper<T> && value,
+    char flags = 0)
+{
+    // Note that the value *is* perfectly-forwarded here.
+    return make_ChNameValueIn(
+        auto_name, std::forward<ChEnumMapperIn<T>>(value), nullptr, flags);
+}
+
 
 
 ///
@@ -481,25 +824,31 @@ class  ChArchiveOut : public ChArchive {
       //
 
         // for integral types:
-      virtual void out     (ChNameValue<bool> bVal) = 0;
-      virtual void out     (ChNameValue<int> bVal) = 0;
-      virtual void out     (ChNameValue<double> bVal) = 0;
-      virtual void out     (ChNameValue<float> bVal) = 0;
-      virtual void out     (ChNameValue<char> bVal) = 0;
-      virtual void out     (ChNameValue<unsigned int> bVal) =0;
-      virtual void out     (ChNameValue<std::string> bVal) = 0;
-      virtual void out     (ChNameValue<unsigned long> bVal) = 0;
-      virtual void out     (ChNameValue<unsigned long long> bVal) =0;
-      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) =0;
+      virtual void out     (ChNameValueOut<bool> bVal) = 0;
+      virtual void out     (ChNameValueOut<int> bVal) = 0;
+      virtual void out     (ChNameValueOut<double> bVal) = 0;
+      virtual void out     (ChNameValueOut<float> bVal) = 0;
+      virtual void out     (ChNameValueOut<char> bVal) = 0;
+      virtual void out     (ChNameValueOut<unsigned int> bVal) =0;
+      virtual void out     (ChNameValueOut<std::string> bVal) = 0;
+      virtual void out     (ChNameValueOut<unsigned long> bVal) = 0;
+      virtual void out     (ChNameValueOut<unsigned long long> bVal) =0;
+      virtual void out     (ChNameValueOut<ChEnumMapperOutBase> bVal) =0;
 
         // for custom C++ objects - see 'wrapping' trick below
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) = 0;
+      virtual void out (
+          ChNameValueOut<ChFunctorArchiveOut> bVal,
+          const char* classname, bool tracked, size_t position) = 0;
 
         // for pointed objects with abstract class system (i.e. supporting class factory)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
+      virtual void out_ref_abstract (
+          ChNameValueOut<ChFunctorArchiveOut> bVal,
+          bool already_inserted, size_t position, const char* classname) = 0;
       
         // for pointed objects without class abstraction
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
+      virtual void out_ref (
+          ChNameValueOut<ChFunctorArchiveOut> bVal,
+          bool already_inserted, size_t position, const char* classname) = 0;
 
         // for wrapping arrays and lists
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) = 0;
@@ -511,56 +860,75 @@ class  ChArchiveOut : public ChArchive {
 
            // trick to wrap enum mappers:
       template<class T>
-      void out     (ChNameValue< ChEnumMapper<T> > bVal) {
-          ChNameValue< ChEnumMapperBase > tmpnv(bVal.name(),bVal.value(),bVal.flags());
+      void out (ChNameValueOut< ChEnumMapperOut<T> > bVal)
+      {
+          ChNameValueOut< ChEnumMapperOutBase > tmpnv(bVal.name(),bVal.value(),bVal.flags());
           this->out(tmpnv);
       }
 
         // trick to wrap C++ fixed-size arrays:
       template<class T, size_t N>
-      void out     (ChNameValue<T[N]> bVal) {
+      void out     (ChNameValueOut<T[N]> bVal) {
           size_t arraysize = sizeof(bVal.value())/sizeof(T);
+          const auto& type_name =  typeid(bVal.value()).name();
+
           this->out_array_pre(bVal.name(), arraysize, typeid(T).name());
-          for (size_t i = 0; i<arraysize; ++i)
+
+          unsigned long idx = 0;
+          for (auto& elem : bVal.value())
           {
               char buffer[20];
-              sprintf(buffer, "el_%lu", (unsigned long)i);
-              ChNameValue< T > array_val(buffer, bVal.value()[i]);
+              sprintf(buffer, "el_%lu", idx);
+              ChNameValueOut< ChMutableT<T> > array_val(
+                  buffer, const_cast<ChMutableT<T>&>(elem));
               this->out (array_val);
-              this->out_array_between(arraysize, typeid(bVal.value()).name());
+              this->out_array_between(arraysize, type_name);
+              ++idx;
           }
           this->out_array_end(arraysize, typeid(bVal.value()).name());
       }
 
         // trick to wrap stl::vector container
       template<class T>
-      void out     (ChNameValue< std::vector<T> > bVal) {
-          this->out_array_pre(bVal.name(), bVal.value().size(), typeid(T).name());
-          for (size_t i = 0; i<bVal.value().size(); ++i)
+      void out     (ChNameValueOut< std::vector<T> > bVal) {
+          size_t arraysize = bVal.value().size();
+          const auto& type_name =  typeid(bVal.value()).name();
+
+          this->out_array_pre(bVal.name(), arraysize, typeid(T).name());
+
+          unsigned long idx = 0;
+          for (auto& elem : bVal.value())
           {
               char buffer[20];
-              sprintf(buffer, "el_%lu", (unsigned long)i);
-              ChNameValue< T > array_val(buffer, bVal.value()[i]);
+              sprintf(buffer, "el_%lu", idx);
+              ChNameValueOut< ChMutableT<T> > array_val(
+                  buffer, const_cast<ChMutableT<T>&>(elem));
               this->out (array_val);
-              this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
+              this->out_array_between(arraysize, type_name);
+              ++idx;
           }
-          this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
+          this->out_array_end(arraysize, type_name);
       }
         // trick to wrap stl::list container
       template<class T>
-      void out     (ChNameValue< std::list<T> > bVal) {
-          this->out_array_pre(bVal.name(), bVal.value().size(), typeid(T).name());
-          typename std::list<T>::iterator iter;
-          size_t i = 0;
-          for (iter = bVal.value().begin(); iter != bVal.value().end(); ++iter, ++i)
+      void out     (ChNameValueOut< std::list<T> > bVal) {
+          size_t arraysize = bVal.value().size();
+          const auto& type_name =  typeid(bVal.value()).name();
+
+          this->out_array_pre(bVal.name(), arraysize, typeid(T).name());
+
+          unsigned long idx = 0;
+          for (auto& elem : bVal.value())
           {
               char buffer[20];
-              sprintf(buffer, "el_%lu", (unsigned long)i);
-              ChNameValue< T > array_val(buffer, (*iter));
+              sprintf(buffer, "el_%lu", idx);
+              ChNameValueOut< ChMutableT<T> > array_val(
+                  buffer, const_cast<ChMutableT<T>&>(elem));
               this->out (array_val);
-              this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
+              this->out_array_between(arraysize, type_name);
+              ++idx;
           }
-          this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
+          this->out_array_end(arraysize, type_name);
       }
      
 
@@ -568,22 +936,22 @@ class  ChArchiveOut : public ChArchive {
         // trick to call out_ref on ChSharedPointer, with class abstraction:
       template<class T>
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
-      out     (ChNameValue< std::shared_ptr<T> > bVal) {
+      out     (ChNameValueOut< std::shared_ptr<T> > bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           const char* class_name;
           if (bVal.value())
               class_name = bVal.value()->GetRTTI()->GetName();
           else // null ptr
               class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
           this->out_ref_abstract(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
+              ChNameValueOut<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
               pos, 
               class_name );
@@ -592,17 +960,17 @@ class  ChArchiveOut : public ChArchive {
         // trick to call out_ref on ChSharedPointer, without class abstraction:
       template<class T>
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
-      out     (ChNameValue< std::shared_ptr<T> > bVal) {
+      out     (ChNameValueOut< std::shared_ptr<T> > bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           this->out_ref(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
+              ChNameValueOut<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
               pos, 
               typeid(T).name() ); // note, this class name is not platform independent
@@ -611,22 +979,22 @@ class  ChArchiveOut : public ChArchive {
         // trick to call out_ref on plain pointers, with class abstraction:
       template<class T>
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
-      out     (ChNameValue<T*> bVal) {
+      out     (ChNameValueOut<T*> bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           const char* class_name;
           if (bVal.value())
               class_name = bVal.value()->GetRTTI()->GetName();
           else // null ptr
               class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
           this->out_ref_abstract(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
+              ChNameValueOut<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
               pos, 
               class_name ); // this class name is platform independent
@@ -635,17 +1003,17 @@ class  ChArchiveOut : public ChArchive {
          // trick to call out_ref on plain pointers (no class abstraction):
       template<class T>
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type 
-      out     (ChNameValue<T*> bVal) {
+      out     (ChNameValueOut<T*> bVal) {
           bool already_stored; size_t pos;
           T* mptr = bVal.value();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          PutPointer((void*)mptr, already_stored, pos);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           this->out_ref(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
+              ChNameValueOut<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
               pos, 
               typeid(T).name() ); // note, this class name is not platform independent
@@ -653,21 +1021,21 @@ class  ChArchiveOut : public ChArchive {
 
         // trick to apply 'virtual out..' on remaining C++ object, that has a function "ArchiveOUT":
       template<class T>
-      void out     (ChNameValue<T> bVal) {
+      void out     (ChNameValueOut<T> bVal) {
           bool tracked = false;
           size_t pos =0;
+          T* mptr = const_cast<T*>(&bVal.value());
           if (bVal.flags() & NVP_TRACK_OBJECT)
           {
               bool already_stored; 
-              T* mptr = &bVal.value();
-              PutPointer(mptr, already_stored, pos);
+              PutPointer((void*) mptr, already_stored, pos);
               if (already_stored) 
                   {throw (ChExceptionArchive( "Cannot serialize tracked object '" + std::string(bVal.name()) + "' by value, AFTER already serialized by pointer."));}
               tracked = true;
           }
-          ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value(), &T::ArchiveOUT);
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, getArchiveOUT<T>());
           this->out(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
+              ChNameValueOut<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               typeid(T).name(),
               tracked, pos);
       }
@@ -675,14 +1043,14 @@ class  ChArchiveOut : public ChArchive {
         /// Operator to allow easy serialization as   myarchive >> mydata;
       
       template<class T>
-      ChArchiveOut& operator<<(ChNameValue<T> bVal) {
+      ChArchiveOut& operator<<(ChNameValueOut<T> bVal) {
           this->out(bVal);
           return (*this);
       }
       
       void VersionWrite(int mver) {
           if (use_versions)
-            this->out(ChNameValue<int>("version",mver));
+            this->out(ChNameValueOut<int>("version",mver));
       }
       
   protected:
@@ -704,23 +1072,23 @@ class  ChArchiveIn : public ChArchive {
       //
 
         // for integral types:
-      virtual void in     (ChNameValue<bool> bVal) = 0;
-      virtual void in     (ChNameValue<int> bVal) = 0;
-      virtual void in     (ChNameValue<double> bVal) = 0;
-      virtual void in     (ChNameValue<float> bVal) = 0;
-      virtual void in     (ChNameValue<char> bVal) = 0;
-      virtual void in     (ChNameValue<unsigned int> bVal) = 0;
-      virtual void in     (ChNameValue<std::string> bVal) = 0;
-      virtual void in     (ChNameValue<unsigned long> bVal) = 0;
-      virtual void in     (ChNameValue<unsigned long long> bVal) = 0;
-      virtual void in     (ChNameValue<ChEnumMapperBase> bVal) =0;
+      virtual void in     (ChNameValueIn<bool> bVal) = 0;
+      virtual void in     (ChNameValueIn<int> bVal) = 0;
+      virtual void in     (ChNameValueIn<double> bVal) = 0;
+      virtual void in     (ChNameValueIn<float> bVal) = 0;
+      virtual void in     (ChNameValueIn<char> bVal) = 0;
+      virtual void in     (ChNameValueIn<unsigned int> bVal) = 0;
+      virtual void in     (ChNameValueIn<std::string> bVal) = 0;
+      virtual void in     (ChNameValueIn<unsigned long> bVal) = 0;
+      virtual void in     (ChNameValueIn<unsigned long long> bVal) = 0;
+      virtual void in     (ChNameValueIn<ChEnumMapperInBase> bVal) =0;
 
         // for custom C++ objects - see 'wrapping' trick below
-      virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+      virtual void in     (ChNameValueIn<ChFunctorArchiveIn> bVal) = 0;
 
         // for pointed objects 
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+      virtual void in_ref_abstract (ChNameValueIn<ChFunctorArchiveIn> bVal) = 0;
+      virtual void in_ref          (ChNameValueIn<ChFunctorArchiveIn> bVal) = 0;
 
         // for wrapping arrays and lists
       virtual void in_array_pre (const char* name, size_t& msize) = 0;
@@ -731,14 +1099,14 @@ class  ChArchiveIn : public ChArchive {
 
            // trick to wrap enum mappers:
       template<class T>
-      void in     (ChNameValue< ChEnumMapper<T> > bVal) {
-          ChNameValue< ChEnumMapperBase > tmpnv(bVal.name(),bVal.value(),bVal.flags());
+      void in     (ChNameValueIn< ChEnumMapperIn<T> > bVal) {
+          ChNameValueIn< ChEnumMapperInBase > tmpnv(bVal.name(),bVal.value(),bVal.flags());
           this->in(tmpnv);
       }
 
              // trick to wrap C++ fixed-size arrays:
       template<class T, size_t N>
-      void in     (ChNameValue<T[N]> bVal) {
+      void in     (ChNameValueIn<T[N]> bVal) {
           size_t arraysize;
           this->in_array_pre(bVal.name(), arraysize);
           if (arraysize != sizeof(bVal.value())/sizeof(T) ) {throw (ChExceptionArchive( "Size of [] saved array does not match size of receiver array " + std::string(bVal.name()) + "."));}
@@ -747,7 +1115,7 @@ class  ChArchiveIn : public ChArchive {
               char idname[20];
               sprintf(idname, "el_%lu", (unsigned long)i);
               T element;
-              ChNameValue< T > array_val(idname, element);
+              ChNameValueIn< T > array_val(idname, element);
               this->in (array_val);
               bVal.value()[i]=element;
               this->in_array_between(bVal.name());
@@ -757,7 +1125,7 @@ class  ChArchiveIn : public ChArchive {
 
              // trick to wrap stl::vector container
       template<class T>
-      void in     (ChNameValue< std::vector<T> > bVal) {
+      void in     (ChNameValueIn< std::vector<T> > bVal) {
           bVal.value().clear();
           size_t arraysize;
           this->in_array_pre(bVal.name(), arraysize);
@@ -767,7 +1135,7 @@ class  ChArchiveIn : public ChArchive {
               char idname[20];
               sprintf(idname, "el_%lu", (unsigned long)i);
               T element;
-              ChNameValue< T > array_val(idname, element);
+              ChNameValueIn< T > array_val(idname, element);
               this->in (array_val);
               bVal.value()[i]=element;
               this->in_array_between(bVal.name());
@@ -776,7 +1144,7 @@ class  ChArchiveIn : public ChArchive {
       }
              // trick to wrap stl::list container
       template<class T>
-      void in     (ChNameValue< std::list<T> > bVal) {
+      void in     (ChNameValueIn< std::list<T> > bVal) {
           bVal.value().clear();
           size_t arraysize;
           this->in_array_pre(bVal.name(), arraysize);
@@ -785,7 +1153,7 @@ class  ChArchiveIn : public ChArchive {
               char idname[20];
               sprintf(idname, "el_%lu", (unsigned long)i);
               T element;
-              ChNameValue< T > array_val(idname, element);
+              ChNameValueIn< T > array_val(idname, element);
               this->in (array_val);
               bVal.value().push_back(element);
               this->in_array_between(bVal.name());
@@ -796,10 +1164,10 @@ class  ChArchiveIn : public ChArchive {
         // trick to call in_ref on ChSharedPointer, with class abstraction:
       template<class T>
       typename enable_if< ChDetect_GetRTTI<T>::value >::type 
-      in     (ChNameValue< std::shared_ptr<T> > bVal) {
+      in     (ChNameValueIn< std::shared_ptr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&mptr, &T::ArchiveIN);
-          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
+          ChNameValueIn<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
           this->in_ref_abstract(mtmp);
           bVal.value() = std::shared_ptr<T> ( mptr );
       }
@@ -807,10 +1175,10 @@ class  ChArchiveIn : public ChArchive {
          // trick to call in_ref on ChSharedPointer (no class abstraction):
       template<class T>
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type
-      in     (ChNameValue< std::shared_ptr<T> > bVal) {
+      in     (ChNameValueIn< std::shared_ptr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr, &T::ArchiveIN);
-          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
+          ChNameValueIn<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
           this->in_ref(mtmp);
           bVal.value() = std::shared_ptr<T> ( mptr );
       }
@@ -818,30 +1186,30 @@ class  ChArchiveIn : public ChArchive {
         // trick to call in_ref on plain pointers, with class abstraction:
       template<class T>
       typename enable_if< ChDetect_GetRTTI<T>::value >::type
-      in     (ChNameValue<T*> bVal) {
+      in     (ChNameValueIn<T*> bVal) {
           ChFunctorArchiveInSpecificPtrAbstract<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in_ref_abstract(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
+          this->in_ref_abstract(ChNameValueIn<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to call in_ref on plain pointers (no class abstraction):
       template<class T>
       typename enable_if< !ChDetect_GetRTTI<T>::value >::type
-      in     (ChNameValue<T*> bVal) {
+      in     (ChNameValueIn<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
+          this->in_ref(ChNameValueIn<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIN":
       template<class T>
-      void in     (ChNameValue<T> bVal) {
+      void in     (ChNameValueIn<T> bVal) {
           ChFunctorArchiveInSpecific<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
+          this->in(ChNameValueIn<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
       }
 
         /// Operator to allow easy serialization as   myarchive << mydata;
 
       template<class T>
-      ChArchiveIn& operator>>(ChNameValue<T> bVal) {
+      ChArchiveIn& operator>>(ChNameValueIn<T> bVal) {
           this->in(bVal);
           return (*this);
       }
@@ -849,7 +1217,7 @@ class  ChArchiveIn : public ChArchive {
       int VersionRead() {
           if (use_versions) {
               int mver;
-              this->in(ChNameValue<int>("version",mver));
+              this->in(ChNameValueIn<int>("version",mver));
               return mver;
           }
           return 99999;

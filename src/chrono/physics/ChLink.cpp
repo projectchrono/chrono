@@ -77,7 +77,7 @@ void ChLink::Update(bool update_assets) {
 /////////
 
 
-void ChLink::ArchiveOUT(ChArchiveOut& marchive)
+void ChLink::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -92,7 +92,8 @@ void ChLink::ArchiveOUT(ChArchiveOut& marchive)
 void ChLink::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkBase::ArchiveIN(marchive);

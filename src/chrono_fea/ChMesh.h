@@ -74,17 +74,17 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     void ClearElements();
 
     /// Access the N-th node
-    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) { return vnodes[n]; };
+    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) override { return vnodes[n]; }
     /// Access the N-th element
     virtual std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; };
 
-    unsigned int GetNnodes() { return (unsigned int)vnodes.size(); }
+    unsigned int GetNnodes() override { return (unsigned int)vnodes.size(); }
     unsigned int GetNelements() { return (unsigned int)velements.size(); }
-    virtual int GetDOF() { return n_dofs; }
-    virtual int GetDOF_w() { return n_dofs_w; }
+    virtual int GetDOF() override { return n_dofs; }
+    virtual int GetDOF_w() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem
-    virtual bool GetCollide() { return true; }
+    virtual bool GetCollide() override { return true; }
 
     /// Get number of calls to internal forces evaluation.
     int GetNumCallsInternalForces() { return ncalls_internal_forces; }
@@ -126,20 +126,20 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     void Relax();
 
     /// Set no speed and no accelerations in nodes (but does not change reference positions)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// This recomputes the number of DOFs, constraints,
     /// as well as state offsets of contained items
-    virtual void Setup();
+    virtual void Setup() override;
 
     /// Update time dependent data, for all elements.
     /// Updates all [A] coord.systems for all (corotational) elements.
-    virtual void Update(double m_time, bool update_assets = true);
+    virtual void Update(double m_time, bool update_assets = true) override;
 
     	// Functions to interface this with ChPhysicsItem container 
-	virtual void SyncCollisionModels();
-	virtual void AddCollisionModelsToSystem();
-	virtual void RemoveCollisionModelsFromSystem();
+	virtual void SyncCollisionModels() override;
+	virtual void AddCollisionModelsToSystem() override;
+	virtual void RemoveCollisionModelsFromSystem() override;
 
     /// If true, as by default, this mesh will add automatically a gravity load 
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
@@ -163,31 +163,31 @@ class ChApiFea ChMesh : public ChIndexedNodes {
                                     ChState& x,
                                     const unsigned int off_v,
                                     ChStateDelta& v,
-                                    double& T);
+                                    double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                   const ChStateDelta& Dv) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToLCP(const unsigned int off_v,
                           const ChStateDelta& v,
                           const ChVectorDynamic<>& R,
                           const unsigned int off_L,
                           const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+                          const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     //
     // LCP SYSTEM FUNCTIONS        for interfacing all elements with LCP solver
@@ -196,48 +196,48 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Tell to a system descriptor that there are items of type
     /// ChLcpKblock in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override;
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
     /// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling
     /// values Kfactor, Rfactor, Mfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
-    virtual void VariablesFbReset();
+    virtual void VariablesFbReset() override;
 
     /// Adds the current forces (applied to item) into the
     /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
-    virtual void VariablesFbLoadForces(double factor = 1.);
+    virtual void VariablesFbLoadForces(double factor = 1.) override;
 
     /// Initialize the 'qb' part of the ChLcpVariables with the
     /// current value of speeds. Note: since 'qb' is the unknown of the LCP, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
-    virtual void VariablesQbLoadSpeed();
+    virtual void VariablesQbLoadSpeed() override;
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-    virtual void VariablesFbIncrementMq();
+    virtual void VariablesFbIncrementMq() override;
 
     /// Fetches the item speed (ex. linear and angular vel.in rigid bodies) from the
     /// 'qb' part of the ChLcpVariables and sets it as the current item speed.
     /// If 'step' is not 0, also should compute the approximate acceleration of
     /// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
     /// Mostly used after the LCP provided the solution in ChLcpVariables.
-    virtual void VariablesQbSetSpeed(double step = 0.);
+    virtual void VariablesQbSetSpeed(double step = 0.) override;
 
     /// Increment item positions by the 'qb' part of the ChLcpVariables,
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
     /// numerical integration (Eulero integration).
-    virtual void VariablesQbIncrementPosition(double step);
+    virtual void VariablesQbIncrementPosition(double step) override;
 
     /// Tell to a system descriptor that there are variables of type
     /// ChLcpVariables in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override;
 
   private:
     /// Initial setup (before analysis).

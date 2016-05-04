@@ -91,7 +91,10 @@ class ChApi ChOptimizer : public ChObj {
 
     ChOptimizer();
     virtual ~ChOptimizer();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChOptimizer* source);
+#pragma GCC diagnostic pop
 
     /// Sets the objective function to maximize
     virtual void SetObjective(ChFx* mformula) { this->afunction = mformula; };
@@ -174,7 +177,10 @@ class ChApi ChOptimizerLocal : public ChOptimizer {
 
     ChOptimizerLocal();
     virtual ~ChOptimizerLocal();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChOptimizerLocal* source);
+#pragma GCC diagnostic pop
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
@@ -199,7 +205,10 @@ class ChApi ChGenotype {
 
     ChGenotype(int number_of_genes);
     ~ChGenotype();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChGenotype* source);
+#pragma GCC diagnostic pop
 };
 
 ///
@@ -258,7 +267,10 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
 
     ChOptimizerGenetic();
     virtual ~ChOptimizerGenetic();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChOptimizerGenetic* source);
+#pragma GCC diagnostic pop
 
     // The optimization procedure.
     // Performs the optimization of the PSystem pointed by "database"
@@ -349,7 +361,10 @@ class ChApi ChOptimizerGradient : public ChOptimizer {
 
     ChOptimizerGradient();
     virtual ~ChOptimizerGradient();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChOptimizerGradient* source);
+#pragma GCC diagnostic pop
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
@@ -387,7 +402,10 @@ class ChApi ChOptimizerHybrid : public ChOptimizer {
 
     ChOptimizerHybrid();
     virtual ~ChOptimizerHybrid();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChOptimizerHybrid* source);
+#pragma GCC diagnostic pop
 
     virtual void SetObjective(ChFx* mformula);
     virtual void SetObjectiveGrad(ChFx* mformula);

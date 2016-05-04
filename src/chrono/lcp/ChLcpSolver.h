@@ -106,23 +106,24 @@ class ChApi ChLcpSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         // serialize all member data:
-        marchive << CHNVP(verbose);
+        marchive << CHNVP_OUT(verbose);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive)
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         // stream in all member data:
-        marchive >> CHNVP(verbose);
+        marchive >> CHNVP_IN(verbose);
     }
 };
 

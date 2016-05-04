@@ -106,7 +106,7 @@ void ChLinkSpring::UpdateForces(double mytime) {
 }
 
 
-void ChLinkSpring::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkSpring::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -115,36 +115,37 @@ void ChLinkSpring::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkMarkers::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(spr_restlength);
-    marchive << CHNVP(spr_f);
-    marchive << CHNVP(spr_k);
-    marchive << CHNVP(spr_r);
-    marchive << CHNVP(mod_f_time);
-    marchive << CHNVP(mod_k_d);
-    marchive << CHNVP(mod_k_speed);
-    marchive << CHNVP(mod_r_d);
-    marchive << CHNVP(mod_r_speed);
+    marchive << CHNVP_OUT(spr_restlength);
+    marchive << CHNVP_OUT(spr_f);
+    marchive << CHNVP_OUT(spr_k);
+    marchive << CHNVP_OUT(spr_r);
+    marchive << CHNVP_OUT(mod_f_time);
+    marchive << CHNVP_OUT(mod_k_d);
+    marchive << CHNVP_OUT(mod_k_speed);
+    marchive << CHNVP_OUT(mod_r_d);
+    marchive << CHNVP_OUT(mod_r_speed);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChLinkSpring::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(spr_restlength);
-    marchive >> CHNVP(spr_f);
-    marchive >> CHNVP(spr_k);
-    marchive >> CHNVP(spr_r);
-    marchive >> CHNVP(mod_f_time);
-    marchive >> CHNVP(mod_k_d);
-    marchive >> CHNVP(mod_k_speed);
-    marchive >> CHNVP(mod_r_d);
-    marchive >> CHNVP(mod_r_speed);
+    marchive >> CHNVP_IN(spr_restlength);
+    marchive >> CHNVP_IN(spr_f);
+    marchive >> CHNVP_IN(spr_k);
+    marchive >> CHNVP_IN(spr_r);
+    marchive >> CHNVP_IN(mod_f_time);
+    marchive >> CHNVP_IN(mod_k_d);
+    marchive >> CHNVP_IN(mod_k_speed);
+    marchive >> CHNVP_IN(mod_r_d);
+    marchive >> CHNVP_IN(mod_r_speed);
 }
 
 

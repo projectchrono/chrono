@@ -66,7 +66,7 @@ class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric {
 
     virtual ~ChLcpConstraintNodeFrictionT(){};
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintNodeFrictionT(*this); };
+    virtual ChLcpConstraint* new_Duplicate() override { return new ChLcpConstraintNodeFrictionT(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintNodeFrictionT& operator=(const ChLcpConstraintNodeFrictionT& other) {
@@ -85,10 +85,10 @@ class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric {
 
     /// Tells that this constraint is not linear, that is: it cannot
     /// be solved with a plain simplex solver.
-    virtual bool IsLinear() const { return false; }
+    virtual bool IsLinear() const override { return false; }
 
     /// The constraint is satisfied?
-    virtual double Violation(double mc_i);
+    virtual double Violation(double mc_i) override;
 
     //
     // STREAMING
@@ -96,11 +96,11 @@ class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // END_OF_NAMESPACE____

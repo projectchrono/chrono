@@ -95,7 +95,7 @@ class ChApi ChLcpConstraintTwoTuplesContactN :
 
     virtual ~ChLcpConstraintTwoTuplesContactN(){};
 
-    virtual ChLcpConstraintTwoTuplesContactN* new_Duplicate() { return new ChLcpConstraintTwoTuplesContactN(*this); };
+    virtual ChLcpConstraintTwoTuplesContactN* new_Duplicate() override { return new ChLcpConstraintTwoTuplesContactN(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTwoTuplesContactN& operator=(const ChLcpConstraintTwoTuplesContactN& other) {
@@ -131,7 +131,7 @@ class ChApi ChLcpConstraintTwoTuplesContactN :
     /// This projection will also modify the l_i values of the two
     /// tangential friction constraints (projection onto the friction cone,
     /// as by Anitescu-Tasora theory).
-    virtual void Project(){
+    virtual void Project() override {
             if (!constraint_U)
                 return;
 

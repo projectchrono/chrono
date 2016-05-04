@@ -33,7 +33,7 @@ class HMMWV_FialaTire : public chrono::vehicle::ChFialaTire {
         return m_normalDamping * velocity;
     }
 
-    virtual void SetFialaParams();
+    virtual void SetFialaParams() override;
 
   private:
     static const double m_normalDamping;

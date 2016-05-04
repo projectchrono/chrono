@@ -99,31 +99,31 @@ class ChApiFea ChProximityContainerMeshless : public ChProximityContainerBase {
     //
 
     /// Tell the number of added contacts
-    virtual int GetNproximities() { return n_added; }
+    virtual int GetNproximities() override { return n_added; }
 
     /// Remove (delete) all contained contact data.
-    virtual void RemoveAllProximities();
+    virtual void RemoveAllProximities() override;
 
     /// The collision system will call BeginAddProximities() before adding
     /// all pairs (for example with AddProximity() or similar). Instead of
     /// simply deleting all list of the previous pairs, this optimized implementation
     /// rewinds the link iterator to begin and tries to reuse previous pairs objects
     /// until possible, to avoid too much allocation/deallocation.
-    virtual void BeginAddProximities();
+    virtual void BeginAddProximities() override;
 
     /// Add a proximity SPH data between two collision models, if possible.
     virtual void AddProximity(collision::ChCollisionModel* modA,  ///< get contact model 1
                               collision::ChCollisionModel* modB   ///< get contact model 2
-                              );
+                              ) override;
 
     /// The collision system will call BeginAddContact() after adding
     /// all contacts (for example with AddContact() or similar). This optimized version
     /// purges the end of the list of contacts that were not reused (if any).
-    virtual void EndAddProximities();
+    virtual void EndAddProximities() override;
 
     /// Scans all the proximity pairs of SPH type and for each pair executes the ReportProximityCallback()
     /// function of the user object inherited from ChReportProximityCallback.
-    virtual void ReportAllProximities(ChReportProximityCallback* mcallback);
+    virtual void ReportAllProximities(ChReportProximityCallback* mcallback) override;
 
     // Perform some SPH per-edge initializations and accumulations of values
     // into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )

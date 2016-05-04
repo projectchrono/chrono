@@ -384,25 +384,26 @@ class ChVector {
     //
 
     /// Method to allow serialization of transient data in archives.
-    void ArchiveOUT(ChArchiveOut& marchive)
+    void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // suggested: use versioning
         marchive.VersionWrite(1);
         // stream out all member data
-        marchive << CHNVP(x);
-        marchive << CHNVP(y);
-        marchive << CHNVP(z);
+        marchive << CHNVP_OUT(x);
+        marchive << CHNVP_OUT(y);
+        marchive << CHNVP_OUT(z);
     }
 
     /// Method to allow de serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // stream in all member data
-        marchive >> CHNVP(x);
-        marchive >> CHNVP(y);
-        marchive >> CHNVP(z);
+        marchive >> CHNVP_IN(x);
+        marchive >> CHNVP_IN(y);
+        marchive >> CHNVP_IN(z);
     }
 };
 

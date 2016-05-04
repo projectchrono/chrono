@@ -50,10 +50,13 @@ class ChApi ChFunction_Const : public ChFunction {
     ChFunction_Const() { C = 0; };
     ChFunction_Const(double y_constant) { C = y_constant; };
     virtual ~ChFunction_Const(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChFunction_Const* source);
-    virtual ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    virtual ChFunction* new_Duplicate() override;
 
-    virtual int Get_Type() { return (FUNCT_CONST); }
+    virtual int Get_Type() override { return (FUNCT_CONST); }
 
     /// Set the constant C for the function, y=C.
     void Set_yconst(double y_constant) { C = y_constant; };
@@ -62,9 +65,9 @@ class ChApi ChFunction_Const : public ChFunction {
 
     // Override the Get_y(), Get_y_dx etc. functions with analytical formulas.
 
-    virtual double Get_y(double x) { return C; };
-    virtual double Get_y_dx(double x) { return 0; };
-    virtual double Get_y_dxdx(double x) { return 0; };
+    virtual double Get_y(double x) override { return C; };
+    virtual double Get_y_dx(double x) override { return 0; };
+    virtual double Get_y_dxdx(double x) override { return 0; };
 
     // Expose the parameters which can be used for optimizations, ex. as Javascript vars.
 
@@ -76,25 +79,26 @@ class ChApi ChFunction_Const : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(C);
+        marchive << CHNVP_OUT(C);
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(C);
+        marchive >> CHNVP_IN(C);
     }
 
 };

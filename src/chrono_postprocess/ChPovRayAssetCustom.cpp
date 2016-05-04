@@ -24,6 +24,6 @@
 using namespace chrono;
 using namespace postprocess;
 
-void ChPovRayAssetCustom::SetCommands(char mcomm[]) {
+void ChPovRayAssetCustom::SetCommands(const char* mcomm) {
     this->custom_command = mcomm;
 }

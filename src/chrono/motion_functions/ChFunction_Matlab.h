@@ -47,44 +47,50 @@ class ChApi ChFunction_Matlab : public ChFunction {
   public:
     ChFunction_Matlab();
     ~ChFunction_Matlab(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Matlab* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void Set_Command(const char* m_command) { strcpy(mat_command, m_command); };
     char* Get_Command() { return mat_command; };
 
-    double Get_y(double x);
-    double Get_y_dx(double x) {
+    double Get_y(double x) override;
+    double Get_y_dx(double x) override {
         return ((Get_y(x + BDF_STEP_HIGH) - Get_y(x)) / BDF_STEP_HIGH);
     }  //((Get_y(x+BDF_STEP_VERYLOW) - Get_y(x)) / BDF_STEP_VERYLOW);};  // return 0;
-    double Get_y_dxdx(double x) { return ((Get_y_dx(x + BDF_STEP_HIGH) - Get_y_dx(x)) / BDF_STEP_HIGH); };  // return 0;
+    double Get_y_dxdx(double x) override {
+        return ((Get_y_dx(x + BDF_STEP_HIGH) - Get_y_dx(x)) / BDF_STEP_HIGH);
+    }  // return 0;
 
-    int Get_Type() { return (FUNCT_MATLAB); }
+    int Get_Type() override { return (FUNCT_MATLAB); }
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(mat_command);
+        marchive << CHNVP_OUT(mat_command);
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(mat_command);
+        marchive >> CHNVP_IN(mat_command);
     }
 
 };

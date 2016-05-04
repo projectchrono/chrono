@@ -42,7 +42,7 @@ double ChShaftsTorque::ComputeTorque() {
 
 //////// FILE I/O
 
-void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -58,7 +58,8 @@ void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive)
 void ChShaftsTorque::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class:
     ChShaftsTorqueBase::ArchiveIN(marchive);

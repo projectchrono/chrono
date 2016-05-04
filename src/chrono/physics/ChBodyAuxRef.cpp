@@ -114,7 +114,7 @@ void ChBodyAuxRef::Update(bool update_assets) {
 
 //////// FILE I/O
 
-void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive)
+void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -123,22 +123,23 @@ void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive)
     ChBody::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(auxref_to_cog);
-    marchive << CHNVP(auxref_to_abs);
+    marchive << CHNVP_OUT(auxref_to_cog);
+    marchive << CHNVP_OUT(auxref_to_abs);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChBodyAuxRef::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    // int version =
+    marchive.VersionRead();
 
     // deserialize parent class
     ChBody::ArchiveIN(marchive);
 
     // stream in all member data:
-    marchive >> CHNVP(auxref_to_cog);
-    marchive >> CHNVP(auxref_to_abs);
+    marchive >> CHNVP_IN(auxref_to_cog);
+    marchive >> CHNVP_IN(auxref_to_abs);
 }
 
 

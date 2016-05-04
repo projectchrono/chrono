@@ -512,7 +512,7 @@ void ChLinkedListMatrix::PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int
 void ChLinkedListMatrix::PasteMatrix(ChLinkedListMatrix* matra, int insrow, int inscol) {
     int i;
     int maxrows = matra->GetRows();
-    int maxcol = matra->GetColumns();
+    // int maxcol = matra->GetColumns();
     ChMelement* eguess;
     ChMelement* srowel;
     double val;
@@ -555,8 +555,8 @@ void ChLinkedListMatrix::PasteClippedMatrix(ChMatrix<>* matra,
                                         int inscol,
 										bool overwrite) {
     int i, j;
-    int maxrows = matra->GetRows();
-    int maxcol = matra->GetColumns();
+    // int maxrows = matra->GetRows();
+    // int maxcol = matra->GetColumns();
     ChMelement* eguess;
     double val;
 
@@ -579,8 +579,8 @@ void ChLinkedListMatrix::PasteSumClippedMatrix(ChMatrix<>* matra,
                                            int insrow,
                                            int inscol) {
     int i, j;
-    int maxrows = matra->GetRows();
-    int maxcol = matra->GetColumns();
+    // int maxrows = matra->GetRows();
+    // int maxcol = matra->GetColumns();
     ChMelement* eguess;
     ChMelement* eguessread;
     double val, aval, sum;
@@ -770,7 +770,7 @@ int ChLinkedListMatrix::Solve_LinSys(ChMatrix<>* B,
                 // while ((rowel->col<k) && (rowel->next))
                 //	 rowel = rowel->next;		// advance top row element till it has (col >= k)
 
-                for (NULL; rowel != NULL; rowel = rowel->next) {
+                for (; rowel != NULL; rowel = rowel->next) {
                     if (rowel->col >= k)  // skip
                     {
                         mval = rowel->val;
@@ -802,7 +802,7 @@ int ChLinkedListMatrix::Solve_LinSys(ChMatrix<>* B,
 
         rowel = GetElarrayMel(k);
 
-        for (NULL; rowel != NULL; rowel = rowel->next)  // for (j=(k+1); j< rows; j++)
+        for (; rowel != NULL; rowel = rowel->next)  // for (j=(k+1); j< rows; j++)
         {
             if (rowel->col >= k + 1)  // skip L part,
             {
@@ -880,7 +880,7 @@ int ChLinkedListMatrix::Decompose_LU(int* pivarray, double* det) {
                 // while ((rowel->col<k) && (rowel->next))
                 //	 rowel = rowel->next;		// advance top row element till it has (col >= k)
 
-                for (NULL; rowel != NULL; rowel = rowel->next)  // for (j=k; j < columns; j++)  where j = rowel->col
+                for (; rowel != NULL; rowel = rowel->next)  // for (j=k; j < columns; j++)  where j = rowel->col
                 {
                     if (rowel->col >= k)  // skip
                     {
@@ -921,7 +921,7 @@ int ChLinkedListMatrix::Solve_LU(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
 
         rowel = GetElarrayMel(k);  // L(k,0)
 
-        for (NULL; (rowel != NULL && rowel->col < k); rowel = rowel->next)  // (j=0; j<k; j++)
+        for (; (rowel != NULL && rowel->col < k); rowel = rowel->next)  // (j=0; j<k; j++)
         {
             sum += rowel->val * (X->GetElement(rowel->col, 0));  // sum += (GetElement(k,j))*(X->GetElement(j,0));
         }
@@ -939,7 +939,7 @@ int ChLinkedListMatrix::Solve_LU(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
 
         rowel = GetElarrayMel(k);
 
-        for (NULL; rowel != NULL; rowel = rowel->next)  // for (j=(k+1); j< rows; j++)
+        for (; rowel != NULL; rowel = rowel->next)  // for (j=(k+1); j< rows; j++)
         {
             if (rowel->col >= k + 1)  // skip L part,   U row starts from (k,k+1) or further
             {
@@ -1016,7 +1016,7 @@ int ChLinkedListMatrix::Decompose_LDL(int* pivarray, double* det, int from_eq) {
 
                 // advance top row element till it has (col >= k)
 
-                for (NULL; rowel != NULL; rowel = rowel->next)  // for (j=i; j < columns; j++)	// only upper right part
+                for (; rowel != NULL; rowel = rowel->next)  // for (j=i; j < columns; j++)	// only upper right part
                 {
                     if (rowel->col >= i)  // only upper right part is filled!
                     {
@@ -1076,7 +1076,7 @@ int ChLinkedListMatrix::Solve_LDL(ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
 
         rowel = GetElarrayMel(k);
 
-        for (NULL; rowel != NULL; rowel = rowel->next)  // for (j=(k+1); j< rows; j++)
+        for (; rowel != NULL; rowel = rowel->next)  // for (j=(k+1); j< rows; j++)
         {
             if (rowel->col >= k + 1)  // skip L part,
             {
@@ -1261,8 +1261,7 @@ int ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(ChLinkedListMatrix* Aorig,
 
                     // advance top row element till it has (col >= k)
 
-                    for (NULL; rowel != NULL;
-                         rowel = rowel->next)  // for (j=i; j < columns; j++)	// only upper right part
+                    for (; rowel != NULL; rowel = rowel->next)  // for (j=i; j < columns; j++)	// only upper right part
                     {
                         if (rowel->col >= i)  // only upper right part is filled!
                         {
@@ -1553,10 +1552,10 @@ int ChLinkedListMatrix::SolveLCP(ChMatrix<>* B,
     // compute final feasability
 
     LCP_compute_DL_residuals(this, B, X, &Dguess, &Lguess, i_D, i_C, n_unilaterals, constr_data);
-    double minD = Dguess.Min();  // test
-    double maxD = Dguess.Max();  // test
-    double minL = Lguess.Min();  // test
-    double maxL = Lguess.Max();  // test
+    // double minD = Dguess.Min();  // test
+    // double maxD = Dguess.Max();  // test
+    // double minL = Lguess.Min();  // test
+    // double maxL = Lguess.Max();  // test
     double feas_error = 0.;
     for (int mc = 0; mc < Dguess.GetRows(); mc++) {
         if (fabs(Dguess.GetElement(mc, 0) * Lguess.GetElement(mc, 0)) > feas_error)

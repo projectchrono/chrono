@@ -360,7 +360,8 @@ void ChLinkMaskLF::StreamOUT(ChStreamOutBinary& mstream) {
 
 void ChLinkMaskLF::StreamIN(ChStreamInBinary& mstream) {
     // class version number
-    int version = mstream.VersionRead();
+    // int version =
+    mstream.VersionRead();
     // deserialize parent class too
     ChLinkMask::StreamIN(mstream);
 

@@ -49,8 +49,11 @@ class ChApi ChFunction_Noise : public ChFunction {
   public:
     ChFunction_Noise();
     ~ChFunction_Noise(){};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChFunction_Noise* source);
-    ChFunction* new_Duplicate();
+#pragma GCC diagnostic pop
+    ChFunction* new_Duplicate() override;
 
     void Set_Amp(double mamp) { amp = mamp; }
     double Get_Amp() { return amp; };
@@ -61,40 +64,41 @@ class ChApi ChFunction_Noise : public ChFunction {
     void Set_Octaves(int mo) { octaves = mo; }
     int Get_Octaves() { return octaves; };
 
-    double Get_y(double x);
+    double Get_y(double x) override;
 
-    int Get_Type() { return (FUNCT_NOISE); }
+    int Get_Type() override { return (FUNCT_NOISE); }
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(amp);
-        marchive << CHNVP(freq);
-        marchive << CHNVP(amp_ratio);
-        marchive << CHNVP(octaves);
+        marchive << CHNVP_OUT(amp);
+        marchive << CHNVP_OUT(freq);
+        marchive << CHNVP_OUT(amp_ratio);
+        marchive << CHNVP_OUT(octaves);
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(amp);
-        marchive >> CHNVP(freq);
-        marchive >> CHNVP(amp_ratio);
-        marchive >> CHNVP(octaves);
+        marchive >> CHNVP_IN(amp);
+        marchive >> CHNVP_IN(freq);
+        marchive >> CHNVP_IN(amp_ratio);
+        marchive >> CHNVP_IN(octaves);
     }
 
 };

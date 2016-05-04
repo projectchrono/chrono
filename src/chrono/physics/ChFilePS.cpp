@@ -27,7 +27,19 @@
 ///////////////////////////////////////////////////
 
 #include <math.h>
+#include <string.h>
 #include "physics/ChFilePS.h"
+
+
+static char* ch_font_labels[] = {(char*)"/Times-Roman",
+                                 (char*)"/Times-Italic",
+                                 (char*)"/Times-Bold",
+                                 (char*)"/Times-BoldItalic",
+                                 (char*)"/Helvetica",
+                                 (char*)"/Helvetica-Oblique",
+                                 (char*)"/Helvetica-Bold",
+                                 (char*)"/Helvetica-BoldOblique",
+                                 0};
 
 namespace chrono {
 
@@ -478,14 +490,14 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     DrawLine(cp1, cp2, PS_SPACE_GRAPH);
 
     // draw xy labels
-    if (msetting->Xaxis.label) {
+    if (msetting->Xaxis.label[0] != '\0') {
         cp1.x = G_p.x + Gs_p.x - 0.4;
         cp1.y = G_p.y + 0.4;
         SetRGB(msetting->Xaxis.label_color);
         SetFont(ch_font_labels[msetting->Xaxis.label_fontname], msetting->Xaxis.label_fontsize);
         DrawText(cp1, msetting->Xaxis.label, PS_SPACE_PAGE, PS_RIGHT_JUSTIFIED);
     }
-    if (msetting->Yaxis.label) {
+    if (msetting->Yaxis.label[0] != '\0') {
         cp1.x = G_p.x + 0.7;
         cp1.y = G_p.y + Gs_p.y - 0.3;
         SetRGB(msetting->Yaxis.label_color);
@@ -501,14 +513,13 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     DrawRectangle(G_p, Gs_p, PS_SPACE_PAGE, 0);
 
     // draw title
-    if (msetting->title)
-        if (*msetting->title != 0) {
+    if (msetting->title[0] != '\0') {
             SetFont(ch_font_labels[msetting->title_fontname], msetting->title_fontsize);
             SetRGB(msetting->title_color);
             cpt.x = G_p.x + 0.0;
             cpt.y = G_p.y + Gs_p.y + 0.4;
             DrawText(cpt, msetting->title, PS_SPACE_PAGE);
-        }
+    }
 
     // return to original gfx mode
     GrRestore();

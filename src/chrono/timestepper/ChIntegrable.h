@@ -220,6 +220,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// This is a default implementation that works in almost all cases, as dim(a) = dim(v),
     virtual int GetNcoords_a() { return GetNcoords_v(); };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// This sets up the system state with separate II order components x, v, a
     /// for y = {x, v} and  dy/dt={v, a}
     virtual void StateSetup(ChState& x, ChStateDelta& v, ChStateDelta& a) {
@@ -227,6 +229,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
         v.Resize(GetNcoords_v());
         a.Resize(GetNcoords_a());
     };
+#pragma GCC diagnostic pop
 
     /// From system to state y={x,v}
     /// Optionally, they will copy system private state, if any, to y={x,v}

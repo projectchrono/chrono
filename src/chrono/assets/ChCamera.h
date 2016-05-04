@@ -109,37 +109,38 @@ class ChApi ChCamera : public ChAsset {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChAsset::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(position);
-        marchive << CHNVP(aimpoint);
-        marchive << CHNVP(upvector);
-        marchive << CHNVP(angle);
-        marchive << CHNVP(fov);
-        marchive << CHNVP(hvratio);
-        marchive << CHNVP(isometric);
+        marchive << CHNVP_OUT(position);
+        marchive << CHNVP_OUT(aimpoint);
+        marchive << CHNVP_OUT(upvector);
+        marchive << CHNVP_OUT(angle);
+        marchive << CHNVP_OUT(fov);
+        marchive << CHNVP_OUT(hvratio);
+        marchive << CHNVP_OUT(isometric);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(position);
-        marchive >> CHNVP(aimpoint);
-        marchive >> CHNVP(upvector);
-        marchive >> CHNVP(angle);
-        marchive >> CHNVP(fov);
-        marchive >> CHNVP(hvratio);
-        marchive >> CHNVP(isometric);
+        marchive >> CHNVP_IN(position);
+        marchive >> CHNVP_IN(aimpoint);
+        marchive >> CHNVP_IN(upvector);
+        marchive >> CHNVP_IN(angle);
+        marchive >> CHNVP_IN(fov);
+        marchive >> CHNVP_IN(hvratio);
+        marchive >> CHNVP_IN(isometric);
     }
 };
 

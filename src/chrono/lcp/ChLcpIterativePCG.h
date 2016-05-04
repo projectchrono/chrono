@@ -76,7 +76,7 @@ class ChApi ChLcpIterativePCG : public ChLcpIterativeSolver {
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 };
 
 }  // END_OF_NAMESPACE____

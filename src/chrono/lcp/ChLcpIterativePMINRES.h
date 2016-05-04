@@ -83,7 +83,7 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 
     /// Same as Solve(), but this also supports the presence of
     /// ChLcpKblock blocks. If Solve() is called and stiffness is present,
@@ -118,29 +118,30 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpSolver::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(grad_diffstep);
-        marchive << CHNVP(rel_tolerance);
-        marchive << CHNVP(diag_preconditioning);
+        marchive << CHNVP_OUT(grad_diffstep);
+        marchive << CHNVP_OUT(rel_tolerance);
+        marchive << CHNVP_OUT(diag_preconditioning);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLcpSolver::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(grad_diffstep);
-        marchive >> CHNVP(rel_tolerance);
-        marchive >> CHNVP(diag_preconditioning);
+        marchive >> CHNVP_IN(grad_diffstep);
+        marchive >> CHNVP_IN(rel_tolerance);
+        marchive >> CHNVP_IN(diag_preconditioning);
     }
 
 };

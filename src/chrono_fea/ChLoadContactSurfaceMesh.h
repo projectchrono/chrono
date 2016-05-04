@@ -152,26 +152,26 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
     // ChLoadBase interface
     //
 
-    virtual int LoadGet_ndof_x() {
+    virtual int LoadGet_ndof_x() override {
         int ndoftot = 0;
         for (int i = 0; i < forces.size(); ++i)
             ndoftot += forces[i]->LoadGet_ndof_x();
         return ndoftot;
     }
-    virtual int LoadGet_ndof_w() {
+    virtual int LoadGet_ndof_w() override {
         int ndoftot = 0;
         for (int i = 0; i < forces.size(); ++i)
             ndoftot += forces[i]->LoadGet_ndof_w();
         return ndoftot;
     }
-    virtual void LoadGetStateBlock_x(ChVectorDynamic<>& mD) {
+    virtual void LoadGetStateBlock_x(ChVectorDynamic<>& mD) override {
         int ndoftot = 0;
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->loader.GetLoadable()->LoadableGetStateBlock_x(ndoftot, mD);
             ndoftot += forces[i]->loader.GetLoadable()->LoadableGet_ndof_x();
         }
     }
-    virtual void LoadGetStateBlock_w(ChVectorDynamic<>& mD) {
+    virtual void LoadGetStateBlock_w(ChVectorDynamic<>& mD) override {
         int ndoftot = 0;
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->loader.GetLoadable()->LoadableGetStateBlock_w(ndoftot, mD);
@@ -180,12 +180,12 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
     }
 
     // simple.. field is x y z, hardcoded return val:
-    virtual int LoadGet_field_ncoords() { return 3; }
+    virtual int LoadGet_field_ncoords() override { return 3; }
 
     /// Compute Q, the generalized load.
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
-                          ) {
+                          ) override {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->ComputeQ(state_x, state_w);
         }
@@ -198,33 +198,34 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
                                  ChMatrix<>& mK,         ///< result dQ/dx
                                  ChMatrix<>& mR,         ///< result dQ/dv
                                  ChMatrix<>& mM)         ///< result dQ/da
+    override
     {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->ComputeJacobian(state_x, state_w, mK, mR, mM);
         }
     }
 
-    virtual bool IsStiff() { return false; }
+    virtual bool IsStiff() override { return false; }
 
-    virtual void CreateJacobianMatrices() {
+    virtual void CreateJacobianMatrices() override {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->CreateJacobianMatrices();
         }
     }
 
-    virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
+    virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->LoadIntLoadResidual_F(R, c);
         }
     }
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->InjectKRMmatrices(mdescriptor);
         }
     }
 
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
         }

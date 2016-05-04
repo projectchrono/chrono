@@ -85,7 +85,7 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 
     /// Same as Solve(), but this also supports the presence of
     /// ChLcpKblock blocks. If Solve() is called and stiffness is present,
@@ -110,31 +110,32 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpIterativeSolver::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(feas_tolerance);
-        marchive << CHNVP(max_fixedpoint_steps);
-        marchive << CHNVP(diag_preconditioning);
-        marchive << CHNVP(rel_tolerance);
+        marchive << CHNVP_OUT(feas_tolerance);
+        marchive << CHNVP_OUT(max_fixedpoint_steps);
+        marchive << CHNVP_OUT(diag_preconditioning);
+        marchive << CHNVP_OUT(rel_tolerance);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChLcpIterativeSolver::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(feas_tolerance);
-        marchive >> CHNVP(max_fixedpoint_steps);
-        marchive >> CHNVP(diag_preconditioning);
-        marchive >> CHNVP(rel_tolerance);
+        marchive >> CHNVP_IN(feas_tolerance);
+        marchive >> CHNVP_IN(max_fixedpoint_steps);
+        marchive >> CHNVP_IN(diag_preconditioning);
+        marchive >> CHNVP_IN(rel_tolerance);
     }
 
 };

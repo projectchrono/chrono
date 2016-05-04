@@ -104,7 +104,7 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
             delete Eq_b;
     };
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoGeneric(*this); };
+    virtual ChLcpConstraint* new_Duplicate() override { return new ChLcpConstraintTwoGeneric(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintTwoGeneric& operator=(const ChLcpConstraintTwoGeneric& other);
@@ -114,18 +114,18 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
     //
 
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_a() { return Cq_a; }
+    virtual ChMatrix<double>* Get_Cq_a() override { return Cq_a; }
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_b() { return Cq_b; }
+    virtual ChMatrix<double>* Get_Cq_b() override { return Cq_b; }
 
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_a() { return Eq_a; }
+    virtual ChMatrix<double>* Get_Eq_a() override { return Eq_a; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_b() { return Eq_b; }
+    virtual ChMatrix<double>* Get_Eq_b() override { return Eq_b; }
 
     /// Set references to the constrained objects, each of ChLcpVariables type,
     /// automatically creating/resizing jacobians if needed.
-    virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b);
+    virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) override;
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b matrices
@@ -133,13 +133,13 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
     /// This is often called by LCP solvers at the beginning
     /// of the solution process.
     /// Most often, inherited classes won't need to override this.
-    virtual void Update_auxiliary();
+    virtual void Update_auxiliary() override;
 
     ///  This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
     ///  This is used for some iterative LCP solvers.
-    virtual double Compute_Cq_q() {
+    virtual double Compute_Cq_q() override {
         double ret = 0;
 
         if (variables_a->IsActive())
@@ -158,7 +158,7 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative LCP solvers.
 
-    virtual void Increment_q(const double deltal) {
+    virtual void Increment_q(const double deltal) override {
         if (variables_a->IsActive())
             for (int i = 0; i < Eq_a->GetRows(); i++)
                 variables_a->Get_qb()(i) += Eq_a->ElementN(i) * deltal;
@@ -174,7 +174,7 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override {
         int off_a = variables_a->GetOffset();
         int off_b = variables_b->GetOffset();
 
@@ -193,7 +193,7 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override {
         int off_a = variables_a->GetOffset();
         int off_b = variables_b->GetOffset();
 
@@ -211,13 +211,13 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
     /// offset of the corresponding ChLcpVariable.
     /// This is used only by the ChLcpSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
+	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override {
         if (variables_a->IsActive())
             storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
             storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
     }
-	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
+	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override {
         if (variables_a->IsActive())
             storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
@@ -232,11 +232,11 @@ class ChApi ChLcpConstraintTwoGeneric : public ChLcpConstraintTwo {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // END_OF_NAMESPACE____

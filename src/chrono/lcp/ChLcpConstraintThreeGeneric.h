@@ -118,7 +118,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
             delete Eq_c;
     };
 
-    virtual ChLcpConstraintThreeGeneric* new_Duplicate() { return new ChLcpConstraintThreeGeneric(*this); };
+    virtual ChLcpConstraintThreeGeneric* new_Duplicate() override { return new ChLcpConstraintThreeGeneric(*this); };
 
     /// Assignment operator: copy from other object
     ChLcpConstraintThreeGeneric& operator=(const ChLcpConstraintThreeGeneric& other);
@@ -128,22 +128,22 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     //
 
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_a() { return Cq_a; }
+    virtual ChMatrix<float>* Get_Cq_a() override { return Cq_a; }
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_b() { return Cq_b; }
+    virtual ChMatrix<float>* Get_Cq_b() override { return Cq_b; }
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_c() { return Cq_c; }
+    virtual ChMatrix<float>* Get_Cq_c() override { return Cq_c; }
 
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_a() { return Eq_a; }
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_b() { return Eq_b; }
-    /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_c() { return Eq_c; }
+    virtual ChMatrix<float>* Get_Eq_a() override { return Eq_a; }
+    /// Access auxiliary matrix (ex: used by iterative solvers) override
+    virtual ChMatrix<float>* Get_Eq_b() override { return Eq_b; }
+    /// Access auxiliary matrix (ex: used by iterative solvers) override
+    virtual ChMatrix<float>* Get_Eq_c() override { return Eq_c; }
 
     /// Set references to the constrained objects, each of ChLcpVariables type,
     /// automatically creating/resizing jacobians if needed.
-    virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c);
+    virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c) override;
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b and Eq_c  matrices
@@ -151,13 +151,13 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     /// This is often called by LCP solvers at the beginning
     /// of the solution process.
     /// Most often, inherited classes won't need to override this.
-    virtual void Update_auxiliary();
+    virtual void Update_auxiliary() override;
 
     ///  This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
     ///  This is used for some iterative LCP solvers.
-    virtual double Compute_Cq_q() {
+    virtual double Compute_Cq_q() override {
         double ret = 0;
 
         if (variables_a->IsActive())
@@ -180,7 +180,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative LCP solvers.
 
-    virtual void Increment_q(const double deltal) {
+    virtual void Increment_q(const double deltal) override {
         if (variables_a->IsActive())
             for (int i = 0; i < Eq_a->GetRows(); i++)
                 variables_a->Get_qb()(i) += Eq_a->ElementN(i) * deltal;
@@ -200,7 +200,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override {
         if (variables_a->IsActive())
             for (int i = 0; i < Cq_a->GetRows(); i++)
                 result += vect(variables_a->GetOffset() + i) * Cq_a->ElementN(i);
@@ -220,7 +220,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override {
         if (variables_a->IsActive())
             for (int i = 0; i < Cq_a->GetRows(); i++)
                 result(variables_a->GetOffset() + i) += Cq_a->ElementN(i) * l;
@@ -239,7 +239,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     /// offset of the corresponding ChLcpVariable.
     /// This is used only by the ChLcpSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
+	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override {
         if (variables_a->IsActive())
             storage.PasteMatrixFloat(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
@@ -247,7 +247,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
         if (variables_c->IsActive())
             storage.PasteMatrixFloat(Cq_c, insrow, variables_c->GetOffset());
     }
-	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
+	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override {
         if (variables_a->IsActive())
             storage.PasteTranspMatrixFloat(Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
@@ -264,11 +264,11 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // END_OF_NAMESPACE____

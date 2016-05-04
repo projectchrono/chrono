@@ -35,7 +35,7 @@ class ChApi ChMaterialSurfaceBase {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const {
         // version number:
         marchive.VersionWrite(1);
         // serialize parent class:
@@ -43,7 +43,8 @@ class ChApi ChMaterialSurfaceBase {
     };
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number:
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class:
         // stream in all member data:
     };

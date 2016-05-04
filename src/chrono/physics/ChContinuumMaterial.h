@@ -57,7 +57,7 @@ class ChApi ChContinuumMaterial {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const;
 
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
@@ -168,9 +168,9 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
 
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 };
 
@@ -211,7 +211,7 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
@@ -221,10 +221,11 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChContinuumElastic::ArchiveIN(marchive);
         // stream in all member data:
@@ -273,48 +274,49 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
 
     /// Set the plastic flow rate. The lower the value, the slower
     /// the plastic flow during dynamic simulations.
-    void Set_flow_rate(double mflow_rate) { flow_rate = mflow_rate; };
+    void Set_flow_rate(double mflow_rate) override { flow_rate = mflow_rate; };
     /// Set the plastic flow rate.
-    double Get_flow_rate() { return flow_rate; }
+    double Get_flow_rate() override { return flow_rate; }
 
-    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const;
+    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const override;
 
     virtual void ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow,
                                       const ChStrainTensor<>& mincrementstrain,
                                       const ChStrainTensor<>& mlastelasticstrain,
-                                      const ChStrainTensor<>& mlastplasticstrain) const;
+                                      const ChStrainTensor<>& mlastplasticstrain) const override;
 
     /// Compute plastic strain flow (flow derivative dE_plast/dt) from strain,
     /// according to VonMises strain yeld theory.
-    void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const;
+    void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const override;
 
     //
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChContinuumElastoplastic::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(this->elastic_yeld);
-        marchive << CHNVP(this->plastic_yeld);
-        marchive << CHNVP(this->flow_rate);
+        marchive << CHNVP_OUT(this->elastic_yeld);
+        marchive << CHNVP_OUT(this->plastic_yeld);
+        marchive << CHNVP_OUT(this->flow_rate);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChContinuumElastoplastic::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(this->elastic_yeld);
-        marchive >> CHNVP(this->plastic_yeld);
-        marchive >> CHNVP(this->flow_rate);
+        marchive >> CHNVP_IN(this->elastic_yeld);
+        marchive >> CHNVP_IN(this->plastic_yeld);
+        marchive >> CHNVP_IN(this->flow_rate);
     }
 };
 
@@ -365,9 +367,9 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
 
     /// Set the plastic flow rate multiplier. The lower the value, the slower
     /// the plastic flow during dynamic simulations.
-    void Set_flow_rate(double mflow_rate) { flow_rate = mflow_rate; };
+    void Set_flow_rate(double mflow_rate) override { flow_rate = mflow_rate; };
     /// Get the flow rate multiplier.
-    double Get_flow_rate() { return flow_rate; }
+    double Get_flow_rate() override { return flow_rate; }
 
     /// Set the internal dilatancy coefficient (usually 0.. < int.friction)
     void Set_dilatancy(double mdilatancy) { dilatancy = mdilatancy; };
@@ -386,50 +388,51 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
     /// Get the hardening speed
     double Get_hardening_speed() { return hardening_speed; }
 
-    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const;
+    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const override;
 
     virtual void ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow,
                                       const ChStrainTensor<>& mincrementstrain,
                                       const ChStrainTensor<>& mlastelasticstrain,
-                                      const ChStrainTensor<>& mlastplasticstrain) const;
+                                      const ChStrainTensor<>& mlastplasticstrain) const override;
 
     /// Compute plastic strain flow direction from strain
     /// according to Drucker-Prager.
-    void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const;
+    void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const override;
 
     //
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChContinuumElastoplastic::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(this->elastic_yeld);
-        marchive << CHNVP(this->alpha);
-        marchive << CHNVP(this->dilatancy);
-        marchive << CHNVP(this->hardening_speed);
-        marchive << CHNVP(this->hardening_limit);
-        marchive << CHNVP(this->flow_rate);
+        marchive << CHNVP_OUT(this->elastic_yeld);
+        marchive << CHNVP_OUT(this->alpha);
+        marchive << CHNVP_OUT(this->dilatancy);
+        marchive << CHNVP_OUT(this->hardening_speed);
+        marchive << CHNVP_OUT(this->hardening_limit);
+        marchive << CHNVP_OUT(this->flow_rate);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive) override
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
         // deserialize parent class
         ChContinuumElastoplastic::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(this->elastic_yeld);
-        marchive >> CHNVP(this->alpha);
-        marchive >> CHNVP(this->dilatancy);
-        marchive >> CHNVP(this->hardening_speed);
-        marchive >> CHNVP(this->hardening_limit);
-        marchive >> CHNVP(this->flow_rate);
+        marchive >> CHNVP_IN(this->elastic_yeld);
+        marchive >> CHNVP_IN(this->alpha);
+        marchive >> CHNVP_IN(this->dilatancy);
+        marchive >> CHNVP_IN(this->hardening_speed);
+        marchive >> CHNVP_IN(this->hardening_limit);
+        marchive >> CHNVP_IN(this->flow_rate);
     }
 };
 

@@ -63,7 +63,7 @@ class ChApiIrr ChIrrNodeAsset : public ChAsset {
         }
     }
 
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override {
         // inherit parent
         ChAsset::Update(updater, coords);
 

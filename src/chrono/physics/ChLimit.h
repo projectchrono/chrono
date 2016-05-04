@@ -67,8 +67,11 @@ class ChApi ChLinkLimit {
     ChLcpConstraintTwoBodies constr_lower;
 
     ChLinkLimit();
-    ~ChLinkLimit();
+    virtual ~ChLinkLimit();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     void Copy(ChLinkLimit* source);
+#pragma GCC diagnostic pop
     ChLinkLimit* new_Duplicate();
 
     int Get_active() { return active; }
@@ -122,7 +125,7 @@ class ChApi ChLinkLimit {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);

@@ -136,7 +136,7 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
   public:
     /// Constructor
     ChStaticNonLinearAnalysis(ChIntegrableIIorder& mintegrable)
-        : ChStaticAnalysis(mintegrable), maxiters(20), incremental_steps(6), tolerance(1e-10){};
+        : ChStaticAnalysis(mintegrable), maxiters(20), tolerance(1e-10), incremental_steps(6) {};
 
     /// Destructor
     virtual ~ChStaticNonLinearAnalysis(){};

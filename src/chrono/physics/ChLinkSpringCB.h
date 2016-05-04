@@ -23,6 +23,7 @@ namespace chrono {
 
 class ChSpringForceCallback {
   public:
+    virtual ~ChSpringForceCallback() = default;
     virtual double operator()(double time,         ///< current time
                               double rest_length,  ///< undeformed length
                               double length,       ///< current length
@@ -51,10 +52,13 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     // builders and destroyers
     ChLinkSpringCB();
     virtual ~ChLinkSpringCB();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     virtual void Copy(ChLinkSpringCB* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+#pragma GCC diagnostic pop
+    virtual ChLink* new_Duplicate() override;  // always return base link class pointer
 
-    virtual int GetType() { return LNK_SPRING_CALLBACK; }
+    virtual int GetType() override { return LNK_SPRING_CALLBACK; }
 
     // data fetch/store
     double Get_SpringRestLength() const { return m_rest_length; }
@@ -66,6 +70,8 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     void Set_SpringRestLength(double len) { m_rest_length = len; }
     void Set_SpringCallback(ChSpringForceCallback* force) { m_force_fun = force; }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
     /// Specialized initialization for springs, given the two bodies to be connected,
     /// the positions of the two anchor endpoints of the spring (each expressed
     /// in body or abs. coordinates) and the imposed rest length of the spring.
@@ -80,6 +86,7 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
         bool auto_rest_length = true,  ///< if true, initializes the rest length as the distance between pos1 and pos2
         double rest_length = 0         ///< rest length (no need to define if auto_rest_length=true.)
         );
+#pragma GCC diagnostic pop
 
     /// Get the 1st spring endpoint (expressed in Body1 coordinate system)
     ChVector<> GetEndPoint1Rel() { return marker1->GetPos(); }
@@ -105,7 +112,7 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
 
     /// Inherits, then also adds the spring custom forces to
     /// the C_force and C_torque.
-    virtual void UpdateForces(double time);
+    virtual void UpdateForces(double time) override;
 
     //
     // STATE FUNCTIONS
@@ -117,10 +124,10 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // END_OF_NAMESPACE____

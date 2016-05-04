@@ -39,7 +39,7 @@ template <class coll_model_type>
 class ChIntervalEndpoint {
   public:
     /// Constructor
-    ChIntervalEndpoint(void) : m_type(0), m_model(0){};
+    ChIntervalEndpoint(void) : m_value(), m_model(0), m_type(0) {};
 
     /// Initialize
     void init(coll_model_type* model, const unsigned int& type) {

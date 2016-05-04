@@ -108,8 +108,14 @@ class ChList {
     /// Returns the head node
     ChNode<dt>* GetHead() { return head; }
 
+    /// Returns the head node
+    const ChNode<dt>* GetHead() const { return head; }
+
     /// Returns the tail node
     ChNode<dt>* GetTail() { return tail; }
+
+    /// Returns the tail node
+    const ChNode<dt>* GetTail() const { return tail; }
 
     /// Returns a node at given position in list. Returns null
     /// if num exceeds num of nodes. Note: num=1 gets first	element,

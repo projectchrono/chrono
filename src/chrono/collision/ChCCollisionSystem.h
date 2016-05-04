@@ -170,13 +170,14 @@ class ChApi ChCollisionSystem {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const {
         // version number
         marchive.VersionWrite(1);
     }
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
     }
 
   protected:

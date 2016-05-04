@@ -370,25 +370,26 @@ class ChApi ChCollisionModel {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
 
         // serialize all member data:
-        marchive << CHNVP(model_envelope);
-        marchive << CHNVP(model_safe_margin);
+        marchive << CHNVP_OUT(model_envelope);
+        marchive << CHNVP_OUT(model_safe_margin);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    virtual void ArchiveIN(ChArchiveIn& marchive)
     {
         // version number
-        int version = marchive.VersionRead();
+        // int version =
+        marchive.VersionRead();
 
         // stream in all member data:
-        marchive >> CHNVP(model_envelope);
-        marchive >> CHNVP(model_safe_margin);
+        marchive >> CHNVP_IN(model_envelope);
+        marchive >> CHNVP_IN(model_safe_margin);
     }
 
 
