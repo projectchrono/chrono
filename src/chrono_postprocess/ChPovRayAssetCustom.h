@@ -66,7 +66,7 @@ class ChApiPostProcess ChPovRayAssetCustom : public ChAsset {
     // by other assets of the body, then it will put the command block of this asset, as it is.
     // For example you can specify pigment{...} or texture{...} stuff here.
     // void SetCommands (const std::string& mcomm) {custom_command = mcomm;}
-    void SetCommands(char mcomm[]);
+    void SetCommands(const char* mcomm);
 };
 
 }  // end namespace
