@@ -700,6 +700,7 @@ public:
     /// Class to be inherited by user and to use in SetCustomComputeCollisionCallback()
     class ChApi ChCustomComputeCollisionCallback {
       public:
+        virtual ~ChCustomComputeCollisionCallback() = default;
         virtual void PerformCustomCollision(ChSystem* msys){};
     };
     /// Use this if you want that some specific callback function is executed at each

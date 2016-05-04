@@ -49,6 +49,7 @@ struct ChTrackContactInfo {
 class ChTrackContactManager : public chrono::ChReportContactCallback {
   public:
     ChTrackContactManager();
+    virtual ~ChTrackContactManager() = default;
 
     void MonitorContacts(int flags) { m_flags |= flags; }
     void SetContactCollection(bool val) { m_collect = val; }

@@ -95,6 +95,8 @@ class myEmployee {
         wages(m_wages),
         body(m_body){};
 
+    virtual ~myEmployee() = default;
+
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names
@@ -149,6 +151,8 @@ class myEmployeeBoss : public myEmployee {
         : myEmployee(m_age, m_wages), 
         is_dumb(m_is_dumb),
         slave(21, 300){};
+
+    virtual ~myEmployeeBoss() = default;
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 

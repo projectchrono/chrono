@@ -74,7 +74,7 @@ class ChApi ChBezierCurve {
     ChBezierCurve(const std::vector<ChVector<> >& points);
 
     /// Default constructor (required by serialization)
-    ChBezierCurve() {}
+    ChBezierCurve() = default;
 
     /// Destructor for ChBezierCurve.
     virtual ~ChBezierCurve() = default;
