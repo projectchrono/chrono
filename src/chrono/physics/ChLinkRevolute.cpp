@@ -466,7 +466,7 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
 }
 
 
-void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -475,8 +475,8 @@ void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive)
     ChLink::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(m_frame1);
-    marchive << CHNVP(m_frame2);
+    marchive << CHNVP_OUT(m_frame1);
+    marchive << CHNVP_OUT(m_frame2);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -490,8 +490,8 @@ void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive)
     ChLink::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_frame1);
-    marchive >> CHNVP(m_frame2);
+    marchive >> CHNVP_IN(m_frame1);
+    marchive >> CHNVP_IN(m_frame2);
 
 }
 

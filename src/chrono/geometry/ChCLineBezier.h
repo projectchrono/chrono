@@ -55,15 +55,15 @@ class ChApi ChLineBezier : public ChLine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(m_own_data);
-        marchive << CHNVP(m_path);
+        marchive << CHNVP_OUT(m_own_data);
+        marchive << CHNVP_OUT(m_path);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -75,8 +75,8 @@ class ChApi ChLineBezier : public ChLine {
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(m_own_data);
-        marchive >> CHNVP(m_path);
+        marchive >> CHNVP_IN(m_own_data);
+        marchive >> CHNVP_IN(m_path);
     }
 
   private:

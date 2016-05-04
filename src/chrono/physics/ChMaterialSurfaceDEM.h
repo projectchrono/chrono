@@ -118,7 +118,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override {
         // version number
         marchive.VersionWrite(1);
 
@@ -126,17 +126,17 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         ChMaterialSurfaceBase::ArchiveOUT(marchive);
 
         // serialize all member data:
-        marchive << CHNVP(young_modulus);
-        marchive << CHNVP(poisson_ratio);
-        marchive << CHNVP(static_friction);
-        marchive << CHNVP(sliding_friction);
-        marchive << CHNVP(restitution);
-        marchive << CHNVP(constant_adhesion);
-        marchive << CHNVP(adhesionMultDMT);
-        marchive << CHNVP(kn);
-        marchive << CHNVP(kt);
-        marchive << CHNVP(gn);
-        marchive << CHNVP(gt);
+        marchive << CHNVP_OUT(young_modulus);
+        marchive << CHNVP_OUT(poisson_ratio);
+        marchive << CHNVP_OUT(static_friction);
+        marchive << CHNVP_OUT(sliding_friction);
+        marchive << CHNVP_OUT(restitution);
+        marchive << CHNVP_OUT(constant_adhesion);
+        marchive << CHNVP_OUT(adhesionMultDMT);
+        marchive << CHNVP_OUT(kn);
+        marchive << CHNVP_OUT(kt);
+        marchive << CHNVP_OUT(gn);
+        marchive << CHNVP_OUT(gt);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -149,17 +149,17 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
         ChMaterialSurfaceBase::ArchiveIN(marchive);
 
         // stream in all member data:
-        marchive >> CHNVP(young_modulus);
-        marchive >> CHNVP(poisson_ratio);
-        marchive >> CHNVP(static_friction);
-        marchive >> CHNVP(sliding_friction);
-        marchive >> CHNVP(restitution);
-        marchive >> CHNVP(constant_adhesion);
-        marchive >> CHNVP(adhesionMultDMT);
-        marchive >> CHNVP(kn);
-        marchive >> CHNVP(kt);
-        marchive >> CHNVP(gn);
-        marchive >> CHNVP(gt);
+        marchive >> CHNVP_IN(young_modulus);
+        marchive >> CHNVP_IN(poisson_ratio);
+        marchive >> CHNVP_IN(static_friction);
+        marchive >> CHNVP_IN(sliding_friction);
+        marchive >> CHNVP_IN(restitution);
+        marchive >> CHNVP_IN(constant_adhesion);
+        marchive >> CHNVP_IN(adhesionMultDMT);
+        marchive >> CHNVP_IN(kn);
+        marchive >> CHNVP_IN(kt);
+        marchive >> CHNVP_IN(gn);
+        marchive >> CHNVP_IN(gt);
     }
 
 };

@@ -181,7 +181,7 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override{
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override{
         // version number
         marchive.VersionWrite(1);
 
@@ -189,17 +189,17 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
         ChMaterialSurfaceBase::ArchiveOUT(marchive);
 
         // serialize all member data:
-        marchive << CHNVP(static_friction);
-        marchive << CHNVP(sliding_friction);
-        marchive << CHNVP(rolling_friction);
-        marchive << CHNVP(spinning_friction);
-        marchive << CHNVP(restitution);
-        marchive << CHNVP(cohesion);
-        marchive << CHNVP(dampingf);
-        marchive << CHNVP(compliance);
-        marchive << CHNVP(complianceT);
-        marchive << CHNVP(complianceRoll);
-        marchive << CHNVP(complianceSpin); 
+        marchive << CHNVP_OUT(static_friction);
+        marchive << CHNVP_OUT(sliding_friction);
+        marchive << CHNVP_OUT(rolling_friction);
+        marchive << CHNVP_OUT(spinning_friction);
+        marchive << CHNVP_OUT(restitution);
+        marchive << CHNVP_OUT(cohesion);
+        marchive << CHNVP_OUT(dampingf);
+        marchive << CHNVP_OUT(compliance);
+        marchive << CHNVP_OUT(complianceT);
+        marchive << CHNVP_OUT(complianceRoll);
+        marchive << CHNVP_OUT(complianceSpin); 
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -212,17 +212,17 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
         ChMaterialSurfaceBase::ArchiveIN(marchive);
 
         // stream in all member data:
-        marchive >> CHNVP(static_friction);
-        marchive >> CHNVP(sliding_friction);
-        marchive >> CHNVP(rolling_friction);
-        marchive >> CHNVP(spinning_friction);
-        marchive >> CHNVP(restitution);
-        marchive >> CHNVP(cohesion);
-        marchive >> CHNVP(dampingf);
-        marchive >> CHNVP(compliance);
-        marchive >> CHNVP(complianceT);
-        marchive >> CHNVP(complianceRoll);
-        marchive >> CHNVP(complianceSpin);     
+        marchive >> CHNVP_IN(static_friction);
+        marchive >> CHNVP_IN(sliding_friction);
+        marchive >> CHNVP_IN(rolling_friction);
+        marchive >> CHNVP_IN(spinning_friction);
+        marchive >> CHNVP_IN(restitution);
+        marchive >> CHNVP_IN(cohesion);
+        marchive >> CHNVP_IN(dampingf);
+        marchive >> CHNVP_IN(compliance);
+        marchive >> CHNVP_IN(complianceT);
+        marchive >> CHNVP_IN(complianceRoll);
+        marchive >> CHNVP_IN(complianceSpin);     
     }
 
 };

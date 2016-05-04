@@ -92,19 +92,19 @@ class ChApi ChFunction_Mocap : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(array_y);
-        marchive << CHNVP(array_y_dt);
-        marchive << CHNVP(array_y_dtdt);
-        marchive << CHNVP(samp_freq);
-        marchive << CHNVP(samples);
-        marchive << CHNVP(timetot);
+        marchive << CHNVP_OUT(array_y);
+        marchive << CHNVP_OUT(array_y_dt);
+        marchive << CHNVP_OUT(array_y_dtdt);
+        marchive << CHNVP_OUT(samp_freq);
+        marchive << CHNVP_OUT(samples);
+        marchive << CHNVP_OUT(timetot);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -116,12 +116,12 @@ class ChApi ChFunction_Mocap : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(array_y);
-        marchive >> CHNVP(array_y_dt);
-        marchive >> CHNVP(array_y_dtdt);
-        marchive >> CHNVP(samp_freq);
-        marchive >> CHNVP(samples);
-        marchive >> CHNVP(timetot);
+        marchive >> CHNVP_IN(array_y);
+        marchive >> CHNVP_IN(array_y_dt);
+        marchive >> CHNVP_IN(array_y_dtdt);
+        marchive >> CHNVP_IN(samp_freq);
+        marchive >> CHNVP_IN(samples);
+        marchive >> CHNVP_IN(timetot);
     }
 
 };

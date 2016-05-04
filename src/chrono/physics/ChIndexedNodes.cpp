@@ -42,7 +42,7 @@ ChIndexedNodes::~ChIndexedNodes() {
 
 //////// FILE I/O
 
-void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) {
+void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) const {
 
     // class version number
     marchive.VersionWrite(1);

@@ -118,16 +118,16 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpSolver::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(grad_diffstep);
-        marchive << CHNVP(rel_tolerance);
-        marchive << CHNVP(diag_preconditioning);
+        marchive << CHNVP_OUT(grad_diffstep);
+        marchive << CHNVP_OUT(rel_tolerance);
+        marchive << CHNVP_OUT(diag_preconditioning);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -139,9 +139,9 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
         // deserialize parent class
         ChLcpSolver::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(grad_diffstep);
-        marchive >> CHNVP(rel_tolerance);
-        marchive >> CHNVP(diag_preconditioning);
+        marchive >> CHNVP_IN(grad_diffstep);
+        marchive >> CHNVP_IN(rel_tolerance);
+        marchive >> CHNVP_IN(diag_preconditioning);
     }
 
 };

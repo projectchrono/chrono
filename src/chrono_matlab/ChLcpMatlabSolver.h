@@ -46,14 +46,14 @@ class ChApiMatlab ChLcpMatlabSolver : public ChLcpSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpSolver::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(mengine);
+        marchive << CHNVP_OUT(mengine);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -65,7 +65,7 @@ class ChApiMatlab ChLcpMatlabSolver : public ChLcpSolver {
         // deserialize parent class
         ChLcpSolver::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(mengine);
+        marchive >> CHNVP_IN(mengine);
     }
 
 };

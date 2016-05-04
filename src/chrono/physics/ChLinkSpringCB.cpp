@@ -77,7 +77,7 @@ void ChLinkSpringCB::UpdateForces(double time) {
     C_force += m_force * relM.pos.GetNormalized();
 }
 
-void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -86,7 +86,7 @@ void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkMarkers::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(m_rest_length);
+    marchive << CHNVP_OUT(m_rest_length);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -100,7 +100,7 @@ void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive)
     ChLinkMarkers::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_rest_length);
+    marchive >> CHNVP_IN(m_rest_length);
 }
 
 

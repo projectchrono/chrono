@@ -77,7 +77,7 @@ void ChLink::Update(bool update_assets) {
 /////////
 
 
-void ChLink::ArchiveOUT(ChArchiveOut& marchive)
+void ChLink::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);

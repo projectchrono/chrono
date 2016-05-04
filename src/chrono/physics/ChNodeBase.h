@@ -125,7 +125,7 @@ class ChApi ChNodeBase {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const;
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 

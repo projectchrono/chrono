@@ -77,14 +77,14 @@ class ChApi ChSharedMassBody {
     double GetBodyMass() { return mass; }
 
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
 
         // serialize all member data:
-        marchive << CHNVP(mass);
-        marchive << CHNVP(inertia);
+        marchive << CHNVP_OUT(mass);
+        marchive << CHNVP_OUT(inertia);
     }
 
     virtual void ArchiveIN(ChArchiveIn& marchive)
@@ -94,8 +94,8 @@ class ChApi ChSharedMassBody {
         marchive.VersionRead();
 
         // stream in all member data:
-        marchive >> CHNVP(mass);
-        marchive >> CHNVP(inertia);
+        marchive >> CHNVP_IN(mass);
+        marchive >> CHNVP_IN(inertia);
         SetBodyMass(mass);
         SetBodyInertia(inertia);
     }
@@ -194,14 +194,14 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpVariablesBody::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(sharedmass);
+        marchive << CHNVP_OUT(sharedmass);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -213,7 +213,7 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
         // deserialize parent class
         ChLcpVariablesBody::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(sharedmass);
+        marchive >> CHNVP_IN(sharedmass);
     }
 };
 

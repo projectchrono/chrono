@@ -201,7 +201,7 @@ void ChShaftsGearboxAngled::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -210,12 +210,12 @@ void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive)
     ChPhysicsItem::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(t0);
-    marchive << CHNVP(shaft_dir1);
-    marchive << CHNVP(shaft_dir2);
-    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(body); //***TODO*** serialize with shared ptr
+    marchive << CHNVP_OUT(t0);
+    marchive << CHNVP_OUT(shaft_dir1);
+    marchive << CHNVP_OUT(shaft_dir2);
+    //marchive << CHNVP_OUT(shaft1); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP_OUT(shaft2); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP_OUT(body); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -229,12 +229,12 @@ void ChShaftsGearboxAngled::ArchiveIN(ChArchiveIn& marchive)
     ChPhysicsItem::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(t0);
-    marchive >> CHNVP(shaft_dir1);
-    marchive >> CHNVP(shaft_dir2);
-    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(body); //***TODO*** serialize with shared ptr
+    marchive >> CHNVP_IN(t0);
+    marchive >> CHNVP_IN(shaft_dir1);
+    marchive >> CHNVP_IN(shaft_dir2);
+    //marchive >> CHNVP_IN(shaft1); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP_IN(shaft2); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP_IN(body); //***TODO*** serialize with shared ptr
 } 
 
 

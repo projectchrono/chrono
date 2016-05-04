@@ -57,56 +57,56 @@ void ChBox::Evaluate(Vector& pos, const double parU, const double parV, const do
     pos = ChTransform<>::TransformLocalToParent(Pr, Pos, Rot);
 }
 
-Vector ChBox::GetP1() {
+Vector ChBox::GetP1() const {
     Vector P1r;
     P1r.x = +Size.x;
     P1r.y = +Size.y;
     P1r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P1r, Pos, Rot);
 }
-Vector ChBox::GetP2() {
+Vector ChBox::GetP2() const {
     Vector P2r;
     P2r.x = -Size.x;
     P2r.y = +Size.y;
     P2r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P2r, Pos, Rot);
 }
-Vector ChBox::GetP3() {
+Vector ChBox::GetP3() const {
     Vector P3r;
     P3r.x = -Size.x;
     P3r.y = -Size.y;
     P3r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P3r, Pos, Rot);
 }
-Vector ChBox::GetP4() {
+Vector ChBox::GetP4() const {
     Vector P4r;
     P4r.x = +Size.x;
     P4r.y = -Size.y;
     P4r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P4r, Pos, Rot);
 }
-Vector ChBox::GetP5() {
+Vector ChBox::GetP5() const {
     Vector P5r;
     P5r.x = +Size.x;
     P5r.y = +Size.y;
     P5r.z = -Size.z;
     return ChTransform<>::TransformLocalToParent(P5r, Pos, Rot);
 }
-Vector ChBox::GetP6() {
+Vector ChBox::GetP6() const {
     Vector P6r;
     P6r.x = -Size.x;
     P6r.y = +Size.y;
     P6r.z = -Size.z;
     return ChTransform<>::TransformLocalToParent(P6r, Pos, Rot);
 }
-Vector ChBox::GetP7() {
+Vector ChBox::GetP7() const {
     Vector P7r;
     P7r.x = -Size.x;
     P7r.y = -Size.y;
     P7r.z = -Size.z;
     return ChTransform<>::TransformLocalToParent(P7r, Pos, Rot);
 }
-Vector ChBox::GetP8() {
+Vector ChBox::GetP8() const {
     Vector P8r;
     P8r.x = +Size.x;
     P8r.y = -Size.y;
@@ -114,7 +114,7 @@ Vector ChBox::GetP8() {
     return ChTransform<>::TransformLocalToParent(P8r, Pos, Rot);
 }
 
-Vector ChBox::GetPn(int ipoint) {
+Vector ChBox::GetPn(int ipoint) const {
     switch (ipoint) {
         case 1:
             return GetP1();

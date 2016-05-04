@@ -58,16 +58,16 @@ class ChApi ChColor {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
 
         // serialize all member data:
-        marchive << CHNVP(R);
-        marchive << CHNVP(G);
-        marchive << CHNVP(B);
-        marchive << CHNVP(A);
+        marchive << CHNVP_OUT(R);
+        marchive << CHNVP_OUT(G);
+        marchive << CHNVP_OUT(B);
+        marchive << CHNVP_OUT(A);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -78,10 +78,10 @@ class ChApi ChColor {
         marchive.VersionRead();
 
         // stream in all member data:
-        marchive >> CHNVP(R);
-        marchive >> CHNVP(G);
-        marchive >> CHNVP(B);
-        marchive >> CHNVP(A);
+        marchive >> CHNVP_IN(R);
+        marchive >> CHNVP_IN(G);
+        marchive >> CHNVP_IN(B);
+        marchive >> CHNVP_IN(A);
     }
 
 

@@ -319,7 +319,7 @@ void ChForce::Update(double mytime) {
 
 
 
-void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
+void ChForce::ArchiveOUT(ChArchiveOut& marchive) const {
 
     // class version number
     marchive.VersionWrite(1);
@@ -328,22 +328,22 @@ void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
     ChObj::ArchiveOUT(marchive);
 
     // stream out all member data
-    marchive << CHNVP(mode);
-    marchive << CHNVP(frame);
-    marchive << CHNVP(align);
-    marchive << CHNVP(vrelpoint);
-    marchive << CHNVP(vpoint);
-    marchive << CHNVP(move_x);
-    marchive << CHNVP(move_y);
-    marchive << CHNVP(move_z);
-    marchive << CHNVP(restpos);
-    marchive << CHNVP(f_x);
-    marchive << CHNVP(f_y);
-    marchive << CHNVP(f_z);
-    marchive << CHNVP(mforce);
-    marchive << CHNVP(modula,"f_time");
-    marchive << CHNVP(vreldir);
-    marchive << CHNVP(vdir);
+    marchive << CHNVP_OUT(mode);
+    marchive << CHNVP_OUT(frame);
+    marchive << CHNVP_OUT(align);
+    marchive << CHNVP_OUT(vrelpoint);
+    marchive << CHNVP_OUT(vpoint);
+    marchive << CHNVP_OUT(move_x);
+    marchive << CHNVP_OUT(move_y);
+    marchive << CHNVP_OUT(move_z);
+    marchive << CHNVP_OUT(restpos);
+    marchive << CHNVP_OUT(f_x);
+    marchive << CHNVP_OUT(f_y);
+    marchive << CHNVP_OUT(f_z);
+    marchive << CHNVP_OUT(mforce);
+    marchive << CHNVP_OUT(modula,"f_time");
+    marchive << CHNVP_OUT(vreldir);
+    marchive << CHNVP_OUT(vdir);
 }
 
 void ChForce::ArchiveIN(ChArchiveIn& marchive) {
@@ -354,22 +354,22 @@ void ChForce::ArchiveIN(ChArchiveIn& marchive) {
     ChObj::ArchiveIN(marchive);
 
     // stream in all member data
-    marchive >> CHNVP(mode);
-    marchive >> CHNVP(frame);
-    marchive >> CHNVP(align);
-    marchive >> CHNVP(vrelpoint);
-    marchive >> CHNVP(vpoint);
-    marchive >> CHNVP(move_x);
-    marchive >> CHNVP(move_y);
-    marchive >> CHNVP(move_z);
-    marchive >> CHNVP(restpos);
-    marchive >> CHNVP(f_x);
-    marchive >> CHNVP(f_y);
-    marchive >> CHNVP(f_z);
-    marchive >> CHNVP(mforce);
-    marchive >> CHNVP(modula,"f_time");
-    marchive >> CHNVP(vreldir);
-    marchive >> CHNVP(vdir);
+    marchive >> CHNVP_IN(mode);
+    marchive >> CHNVP_IN(frame);
+    marchive >> CHNVP_IN(align);
+    marchive >> CHNVP_IN(vrelpoint);
+    marchive >> CHNVP_IN(vpoint);
+    marchive >> CHNVP_IN(move_x);
+    marchive >> CHNVP_IN(move_y);
+    marchive >> CHNVP_IN(move_z);
+    marchive >> CHNVP_IN(restpos);
+    marchive >> CHNVP_IN(f_x);
+    marchive >> CHNVP_IN(f_y);
+    marchive >> CHNVP_IN(f_z);
+    marchive >> CHNVP_IN(mforce);
+    marchive >> CHNVP_IN(modula,"f_time");
+    marchive >> CHNVP_IN(vreldir);
+    marchive >> CHNVP_IN(vdir);
 }
 
 

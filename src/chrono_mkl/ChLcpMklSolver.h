@@ -105,10 +105,10 @@ namespace chrono {
             // serialize parent class
             ChLcpSolver::ArchiveOUT(marchive);
             // serialize all member data:
-	        marchive << CHNVP(sparsity_pattern_lock);
-	        marchive << CHNVP(use_perm);
-	        marchive << CHNVP(use_rhs_sparsity);
-			marchive << CHNVP(manual_factorization);
+	        marchive << CHNVP_OUT(sparsity_pattern_lock);
+	        marchive << CHNVP_OUT(use_perm);
+	        marchive << CHNVP_OUT(use_rhs_sparsity);
+			marchive << CHNVP_OUT(manual_factorization);
         }
 
         /// Method to allow de serialization of transient data from archives.
@@ -120,10 +120,10 @@ namespace chrono {
             // deserialize parent class
             ChLcpSolver::ArchiveIN(marchive);
             // stream in all member data:
-	        marchive >> CHNVP(sparsity_pattern_lock);
-	        marchive >> CHNVP(use_perm);
-	        marchive >> CHNVP(use_rhs_sparsity);
-			marchive >> CHNVP(manual_factorization);
+	        marchive >> CHNVP_IN(sparsity_pattern_lock);
+	        marchive >> CHNVP_IN(use_perm);
+	        marchive >> CHNVP_IN(use_rhs_sparsity);
+			marchive >> CHNVP_IN(manual_factorization);
         }
 
 		

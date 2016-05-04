@@ -50,49 +50,49 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
               (*ostream) << "\t";
       }
 
-      virtual void out     (ChNameValue<bool> bVal) {
+      virtual void out     (ChNameValueOut<bool> bVal) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<int> bVal) {
+      virtual void out     (ChNameValueOut<int> bVal) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<double> bVal) {
+      virtual void out     (ChNameValueOut<double> bVal) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<float> bVal){
+      virtual void out     (ChNameValueOut<float> bVal){
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<char> bVal){
+      virtual void out     (ChNameValueOut<char> bVal){
             indent();
             (*ostream) << bVal.name();
             (*ostream) << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<unsigned int> bVal){
+      virtual void out     (ChNameValueOut<unsigned int> bVal){
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<std::string> bVal){
+      virtual void out     (ChNameValueOut<std::string> bVal){
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
@@ -100,21 +100,21 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             (*ostream) << bVal.value();
             (*ostream) << "\"\n";
       }
-      virtual void out     (ChNameValue<unsigned long> bVal){
+      virtual void out     (ChNameValueOut<unsigned long> bVal){
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<unsigned long long> bVal){
+      virtual void out     (ChNameValueOut<unsigned long long> bVal){
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
             (*ostream) << bVal.value();
             (*ostream) << "\n";
       }
-      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
+      virtual void out     (ChNameValueOut<ChEnumMapperOutBase> bVal) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "\t";
@@ -144,7 +144,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValueOut<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "  "; 
@@ -158,7 +158,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref_abstract (ChNameValueOut<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)
       {
           indent();
           if (!suppress_names) 
@@ -176,11 +176,11 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
           --tablevel;
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref          (ChNameValueOut<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname)
       {
           indent();
           if (!suppress_names) 
-                (*ostream) << bVal.name(); 
+                (*ostream) << bVal.name();
           (*ostream) << "->   [" << classname << "]   ID=" << position <<"\n";
           ++tablevel;
           if (!already_inserted) {
@@ -209,14 +209,14 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 /// For example:  GetLog() < mymatrix;
 
 template <class T>
-ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, T& obj) {
+ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     std::vector<char> mvect;
     ChStreamOutAsciiVector mtempstream(&mvect);
     mtempstream.SetNumFormat(mstream.GetNumFormat());
     ChArchiveAsciiDump marchive(mtempstream);
     // this avoids printing too much except the object:
     marchive.SetCutAllPointers(true);
-    marchive << CHNVP(obj,"");
+    marchive << CHNVP_OUT(obj,"");
     std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
     return mstream << mystring;
 }

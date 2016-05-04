@@ -100,15 +100,15 @@ class myEmployee {
     // at least implement these two functions, with the exact names
     // ArchiveIN() and ArchiveOUT():
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const //##### for Chrono serialization
     {
         // suggested: use versioning
         marchive.VersionWrite(1);
         // stream out all member data
-        marchive << CHNVP(age);
-        marchive << CHNVP(wages);
+        marchive << CHNVP_OUT(age);
+        marchive << CHNVP_OUT(wages);
         myEnum_mapper enum_map;
-        marchive << CHNVP(enum_map(body), "body"); // note: CHNVP macro can override names used when streaming to ascii..
+        marchive << CHNVP_OUT(enum_map.out(body), "body"); // note: CHNVP macro can override names used when streaming to ascii..
     }
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
@@ -116,10 +116,10 @@ class myEmployee {
         // int version =
         marchive.VersionRead();
         // stream in all member data
-        marchive >> CHNVP(age);
-        marchive >> CHNVP(wages);
+        marchive >> CHNVP_IN(age);
+        marchive >> CHNVP_IN(wages);
         myEnum_mapper enum_map;
-        marchive >> CHNVP(enum_map(body), "body");
+        marchive >> CHNVP_IN(enum_map.in(body), "body");
     }
 
 };
@@ -152,7 +152,7 @@ class myEmployeeBoss : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override //##### for Chrono serialization
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override //##### for Chrono serialization
     {
         // suggested: use versioning
         marchive.VersionWrite(2);
@@ -160,8 +160,8 @@ class myEmployeeBoss : public myEmployee {
         myEmployee::ArchiveOUT(marchive);
 
         // stream out member data
-        marchive << CHNVP(is_dumb);
-        marchive << CHNVP(slave);  // this added only from version >1
+        marchive << CHNVP_OUT(is_dumb);
+        marchive << CHNVP_OUT(slave);  // this added only from version >1
     }
     virtual void ArchiveIN(ChArchiveIn& marchive) override //##### for Chrono serialization
     {
@@ -171,9 +171,9 @@ class myEmployeeBoss : public myEmployee {
         myEmployee::ArchiveIN(marchive);
 
         // stream in member data
-        marchive >> CHNVP(is_dumb);
+        marchive >> CHNVP_IN(is_dumb);
         if (version > 1){
-            marchive >> CHNVP(slave);  // this added only from version >1
+            marchive >> CHNVP_IN(slave);  // this added only from version >1
         }
     }
 
@@ -210,23 +210,23 @@ void my_serialization_example(ChArchiveOut& marchive)
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);  
    
-        marchive << CHNVP(m_double,"custom double");  // store data n.1      
-        marchive << CHNVP(m_int);     // store data n.2 
-        marchive << CHNVP(m_array);   // store data n.3
-        marchive << CHNVP(m_text);    // store data n....
-        marchive << CHNVP(m_string);  
-        marchive << CHNVP(m_stlvector);
-        marchive << CHNVP(m_stllist);
-        marchive << CHNVP(m_matr);    
-        marchive << CHNVP(m_vect);
-        marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
+        marchive << CHNVP_OUT(m_double,"custom double");  // store data n.1      
+        marchive << CHNVP_OUT(m_int);     // store data n.2 
+        marchive << CHNVP_OUT(m_array);   // store data n.3
+        marchive << CHNVP_OUT(m_text);    // store data n....
+        marchive << CHNVP_OUT(m_string);  
+        marchive << CHNVP_OUT(m_stlvector);
+        marchive << CHNVP_OUT(m_stllist);
+        marchive << CHNVP_OUT(m_matr);    
+        marchive << CHNVP_OUT(m_vect);
+        marchive << CHNVP_OUT(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
         
         // Also store a c++ object 
         // In order to use this feature, the classes must implement 
         // ArchiveIN and ArchiveOUT functions.
         myEmployeeBoss m_boss(53, 12000.34, true);
         m_boss.body = FAT;
-        marchive << CHNVP(m_boss);    
+        marchive << CHNVP_OUT(m_boss);    
 
         // Also store a c++ objects referenced by pointer(s).
         // One could have multiple pointers to the same object: 
@@ -234,12 +234,12 @@ void my_serialization_example(ChArchiveOut& marchive)
         // In order to use this feature, the classes must implement 
         // ArchiveIN and ArchiveOUT functions.
         ChVector<>* a_vect = new ChVector<>(1,2,3); 
-        marchive << CHNVP(a_vect);
+        marchive << CHNVP_OUT(a_vect);
         delete a_vect;
 
         // Null pointers can be serialized. They will be deserialized as null.
         ChVector<>* a_null_ptr = 0; 
-        marchive << CHNVP(a_null_ptr);
+        marchive << CHNVP_OUT(a_null_ptr);
 
         // Also store c++ objects referenced by pointer, using the
         // class abstraction (class factory) mechanism, so that it
@@ -249,24 +249,24 @@ void my_serialization_example(ChArchiveOut& marchive)
         // CH_RTTI_ROOT or CH_RTTI functions and ArchiveIN and ArchiveOUT
         myEmployeeBoss* a_boss = new myEmployeeBoss(64, 22356, false);
         a_boss->slave.age = 24;
-        marchive << CHNVP(a_boss);  //  object was referenced by pointer.
+        marchive << CHNVP_OUT(a_boss);  //  object was referenced by pointer.
 
         // If another pointer shares the same object instance, you can serialize
         // it too without worrying, because the serialization system will save only
         // the first copy and following copies will just use references.
 
         myEmployeeBoss* a_boss2 = a_boss;
-        marchive << CHNVP(a_boss2);  //  object was referenced by pointer.
+        marchive << CHNVP_OUT(a_boss2);  //  object was referenced by pointer.
 
         // Also store c++ objects referenced by shared pointers.
         // If pointed objects objects have CH_RTTI, the class abstraction
         // vill be automatically used.
         auto s_boss = std::make_shared<myEmployeeBoss>();
-        marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
+        marchive << CHNVP_OUT(s_boss);  //  object was referenced by shared pointer.
 
         // Serialize null shared pointer
         std::shared_ptr<myEmployeeBoss> null_boss;
-        marchive << CHNVP(null_boss); 
+        marchive << CHNVP_OUT(null_boss); 
 
         delete a_boss;
 }
@@ -293,49 +293,49 @@ void my_deserialization_example(ChArchiveIn& marchive)
         ChVector<>* a_vect;
         ChVector<>* a_null_ptr;
 
-        marchive >> CHNVP(m_double,"custom double");  // deserialize data n.1
-        marchive >> CHNVP(m_int);     // deserialize data n.2
-        marchive >> CHNVP(m_array);   // deserialize data n.3
-        marchive >> CHNVP(m_text);    // deserialize data n....
-        marchive >> CHNVP(m_string);  
-        marchive >> CHNVP(m_stlvector);
-        marchive >> CHNVP(m_stllist);
-        marchive >> CHNVP(m_matr);
-        marchive >> CHNVP(m_vect);  
-        marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
+        marchive >> CHNVP_IN(m_double,"custom double");  // deserialize data n.1
+        marchive >> CHNVP_IN(m_int);     // deserialize data n.2
+        marchive >> CHNVP_IN(m_array);   // deserialize data n.3
+        marchive >> CHNVP_IN(m_text);    // deserialize data n....
+        marchive >> CHNVP_IN(m_string);  
+        marchive >> CHNVP_IN(m_stlvector);
+        marchive >> CHNVP_IN(m_stllist);
+        marchive >> CHNVP_IN(m_matr);
+        marchive >> CHNVP_IN(m_vect);  
+        marchive >> CHNVP_IN(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
 
         // Also deserialize the C++ object
-        marchive >> CHNVP(m_boss); 
+        marchive >> CHNVP_IN(m_boss); 
 
         // Also deserialize the C++ pointer: an object will be created!
-        marchive >> CHNVP(a_vect); 
+        marchive >> CHNVP_IN(a_vect); 
 
         // Also deserialize the null C++ pointer: no object is created, and pointer set as null.
-        marchive >> CHNVP(a_null_ptr);
+        marchive >> CHNVP_IN(a_null_ptr);
 
         // Also retrieve c++ objects, referenced by a base class pointer, using the
         // class abstraction (class factory) mechanism, so that it
         // can be loaded even if we do not know if it was an object of
         // the base class 'myEmployee' or the specialized 'myEmployeeBoss' class..
         myEmployee* a_boss = 0;
-        marchive >> CHNVP(a_boss);  // object will be created
+        marchive >> CHNVP_IN(a_boss);  // object will be created
 
         // Since the two pointers a_boss and a_boss2 were serialized when pointing to 
         // the same object instance, now the following will Not create another copy but will
         // automatically point to the same object of a_boss. 
         myEmployee* a_boss2 = 0;
-        marchive >> CHNVP(a_boss2); 
+        marchive >> CHNVP_IN(a_boss2); 
 
 
         // Also store c++ objects referenced by shared pointers.
         // If pointed objects objects have CH_RTTI, the class abstraction
         // will be automatically used.
         std::shared_ptr<myEmployeeBoss> s_boss(0);
-        marchive >> CHNVP(s_boss);
+        marchive >> CHNVP_IN(s_boss);
 
         // Deserialize a null shared pointer
         std::shared_ptr<myEmployeeBoss> null_boss(0);
-        marchive >> CHNVP(null_boss);
+        marchive >> CHNVP_IN(null_boss);
 
 
         // Just for safety, log some of the restored data:

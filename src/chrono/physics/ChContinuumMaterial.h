@@ -57,7 +57,7 @@ class ChApi ChContinuumMaterial {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const;
 
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
@@ -168,7 +168,7 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
 
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
@@ -211,7 +211,7 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
@@ -293,16 +293,16 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChContinuumElastoplastic::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(this->elastic_yeld);
-        marchive << CHNVP(this->plastic_yeld);
-        marchive << CHNVP(this->flow_rate);
+        marchive << CHNVP_OUT(this->elastic_yeld);
+        marchive << CHNVP_OUT(this->plastic_yeld);
+        marchive << CHNVP_OUT(this->flow_rate);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -314,9 +314,9 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
         // deserialize parent class
         ChContinuumElastoplastic::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(this->elastic_yeld);
-        marchive >> CHNVP(this->plastic_yeld);
-        marchive >> CHNVP(this->flow_rate);
+        marchive >> CHNVP_IN(this->elastic_yeld);
+        marchive >> CHNVP_IN(this->plastic_yeld);
+        marchive >> CHNVP_IN(this->flow_rate);
     }
 };
 
@@ -403,19 +403,19 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChContinuumElastoplastic::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(this->elastic_yeld);
-        marchive << CHNVP(this->alpha);
-        marchive << CHNVP(this->dilatancy);
-        marchive << CHNVP(this->hardening_speed);
-        marchive << CHNVP(this->hardening_limit);
-        marchive << CHNVP(this->flow_rate);
+        marchive << CHNVP_OUT(this->elastic_yeld);
+        marchive << CHNVP_OUT(this->alpha);
+        marchive << CHNVP_OUT(this->dilatancy);
+        marchive << CHNVP_OUT(this->hardening_speed);
+        marchive << CHNVP_OUT(this->hardening_limit);
+        marchive << CHNVP_OUT(this->flow_rate);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -427,12 +427,12 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
         // deserialize parent class
         ChContinuumElastoplastic::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(this->elastic_yeld);
-        marchive >> CHNVP(this->alpha);
-        marchive >> CHNVP(this->dilatancy);
-        marchive >> CHNVP(this->hardening_speed);
-        marchive >> CHNVP(this->hardening_limit);
-        marchive >> CHNVP(this->flow_rate);
+        marchive >> CHNVP_IN(this->elastic_yeld);
+        marchive >> CHNVP_IN(this->alpha);
+        marchive >> CHNVP_IN(this->dilatancy);
+        marchive >> CHNVP_IN(this->hardening_speed);
+        marchive >> CHNVP_IN(this->hardening_limit);
+        marchive >> CHNVP_IN(this->flow_rate);
     }
 };
 

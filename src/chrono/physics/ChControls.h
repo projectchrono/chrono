@@ -62,7 +62,7 @@ class ChApi ChControls : public ChObj {
     //
 
     /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;

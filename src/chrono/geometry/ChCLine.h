@@ -136,15 +136,15 @@ class ChApi ChLine : public ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(closed);
-        marchive << CHNVP(complexityU);
+        marchive << CHNVP_OUT(closed);
+        marchive << CHNVP_OUT(complexityU);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -156,8 +156,8 @@ class ChApi ChLine : public ChGeometry {
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(closed);
-        marchive >> CHNVP(complexityU);
+        marchive >> CHNVP_IN(closed);
+        marchive >> CHNVP_IN(complexityU);
     }
 
 

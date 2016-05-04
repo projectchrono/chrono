@@ -158,7 +158,7 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
 }
 
 
-void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -167,14 +167,14 @@ void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkMateGeneric::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(R);
-    marchive << CHNVP(alpha);
-    marchive << CHNVP(beta);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(checkphase);
-    marchive << CHNVP(a1);
-    marchive << CHNVP(local_pinion);
-    marchive << CHNVP(local_rack);
+    marchive << CHNVP_OUT(R);
+    marchive << CHNVP_OUT(alpha);
+    marchive << CHNVP_OUT(beta);
+    marchive << CHNVP_OUT(phase);
+    marchive << CHNVP_OUT(checkphase);
+    marchive << CHNVP_OUT(a1);
+    marchive << CHNVP_OUT(local_pinion);
+    marchive << CHNVP_OUT(local_rack);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -188,14 +188,14 @@ void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive)
     ChLinkMateGeneric::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(R);
-    marchive >> CHNVP(alpha);
-    marchive >> CHNVP(beta);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(checkphase);
-    marchive >> CHNVP(a1);
-    marchive >> CHNVP(local_pinion);
-    marchive >> CHNVP(local_rack);
+    marchive >> CHNVP_IN(R);
+    marchive >> CHNVP_IN(alpha);
+    marchive >> CHNVP_IN(beta);
+    marchive >> CHNVP_IN(phase);
+    marchive >> CHNVP_IN(checkphase);
+    marchive >> CHNVP_IN(a1);
+    marchive >> CHNVP_IN(local_pinion);
+    marchive >> CHNVP_IN(local_rack);
 }
 
 

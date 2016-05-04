@@ -37,7 +37,7 @@ ChNodeBase& ChNodeBase::operator=(const ChNodeBase& other) {
     return *this;
 }
 
-void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive)
+void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);

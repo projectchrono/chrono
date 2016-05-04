@@ -128,14 +128,14 @@ class ChApi ChObj {
     //
 
             /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         marchive.VersionWrite(1);
 
         // stream out all member data
-        marchive << CHNVP(name);
-        marchive << CHNVP(identifier);
-        marchive << CHNVP(ChTime);
+        marchive << CHNVP_OUT(name);
+        marchive << CHNVP_OUT(identifier);
+        marchive << CHNVP_OUT(ChTime);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -145,9 +145,9 @@ class ChApi ChObj {
         marchive.VersionRead();
 
         // stream out all member data
-        marchive >> CHNVP(name);
-        marchive >> CHNVP(identifier);
-        marchive >> CHNVP(ChTime);
+        marchive >> CHNVP_IN(name);
+        marchive >> CHNVP_IN(identifier);
+        marchive >> CHNVP_IN(ChTime);
     }
 
 };

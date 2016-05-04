@@ -53,15 +53,15 @@ class ChApi ChColorAsset : public ChAsset {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChAsset::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(color);
-        marchive << CHNVP(fading);
+        marchive << CHNVP_OUT(color);
+        marchive << CHNVP_OUT(fading);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -73,8 +73,8 @@ class ChApi ChColorAsset : public ChAsset {
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(color);
-        marchive >> CHNVP(fading);
+        marchive >> CHNVP_IN(color);
+        marchive >> CHNVP_IN(fading);
     }
 };
 

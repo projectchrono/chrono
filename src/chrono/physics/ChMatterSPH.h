@@ -171,7 +171,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     //
@@ -233,7 +233,7 @@ class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
@@ -439,7 +439,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 

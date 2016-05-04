@@ -204,7 +204,7 @@ void ChLinkNumdiff::FetchCoords_dt(ChMatrix<>* mc) {
 ///////// FILE I/O
 /////////
 
-void ChLinkNumdiff::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkNumdiff::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);

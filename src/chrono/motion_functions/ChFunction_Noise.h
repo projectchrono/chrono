@@ -73,17 +73,17 @@ class ChApi ChFunction_Noise : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(amp);
-        marchive << CHNVP(freq);
-        marchive << CHNVP(amp_ratio);
-        marchive << CHNVP(octaves);
+        marchive << CHNVP_OUT(amp);
+        marchive << CHNVP_OUT(freq);
+        marchive << CHNVP_OUT(amp_ratio);
+        marchive << CHNVP_OUT(octaves);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -95,10 +95,10 @@ class ChApi ChFunction_Noise : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(amp);
-        marchive >> CHNVP(freq);
-        marchive >> CHNVP(amp_ratio);
-        marchive >> CHNVP(octaves);
+        marchive >> CHNVP_IN(amp);
+        marchive >> CHNVP_IN(freq);
+        marchive >> CHNVP_IN(amp_ratio);
+        marchive >> CHNVP_IN(octaves);
     }
 
 };

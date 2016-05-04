@@ -247,16 +247,16 @@ class ChApi ChLinePath : public ChLine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(lines);
-        marchive << CHNVP(end_times);
-        marchive << CHNVP(durations);
+        marchive << CHNVP_OUT(lines);
+        marchive << CHNVP_OUT(end_times);
+        marchive << CHNVP_OUT(durations);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -268,9 +268,9 @@ class ChApi ChLinePath : public ChLine {
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(lines);
-        marchive >> CHNVP(end_times);
-        marchive >> CHNVP(durations);
+        marchive >> CHNVP_IN(lines);
+        marchive >> CHNVP_IN(end_times);
+        marchive >> CHNVP_IN(durations);
     }
 
 

@@ -77,18 +77,18 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(trimesh);
-        marchive << CHNVP(wireframe);
-        marchive << CHNVP(backface_cull);
-        marchive << CHNVP(name);
-        marchive << CHNVP(scale);
+        marchive << CHNVP_OUT(trimesh);
+        marchive << CHNVP_OUT(wireframe);
+        marchive << CHNVP_OUT(backface_cull);
+        marchive << CHNVP_OUT(name);
+        marchive << CHNVP_OUT(scale);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -100,11 +100,11 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(trimesh);
-        marchive >> CHNVP(wireframe);
-        marchive >> CHNVP(backface_cull);
-        marchive >> CHNVP(name);
-        marchive >> CHNVP(scale);
+        marchive >> CHNVP_IN(trimesh);
+        marchive >> CHNVP_IN(wireframe);
+        marchive >> CHNVP_IN(backface_cull);
+        marchive >> CHNVP_IN(name);
+        marchive >> CHNVP_IN(scale);
     }
 };
 

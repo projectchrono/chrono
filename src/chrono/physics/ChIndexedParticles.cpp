@@ -75,7 +75,7 @@ ChIndexedParticles::~ChIndexedParticles() {
 
 //////// FILE I/O
 
-void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
+void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) const {
 
     // class version number
     marchive.VersionWrite(1);

@@ -380,13 +380,13 @@ class ChMatrix {
     // STREAMING
     //
     /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const {
         // suggested: use versioning
         marchive.VersionWrite(1);
 
         // stream out all member data
-        marchive << make_ChNameValue("rows", rows);
-        marchive << make_ChNameValue("columns", columns);
+        marchive << CHNVP_OUT(rows);
+        marchive << CHNVP_OUT(columns);
 
         // custom output of matrix data as array
         if (ChArchiveAsciiDump* mascii = dynamic_cast<ChArchiveAsciiDump*>(&marchive)) {
@@ -406,7 +406,7 @@ class ChMatrix {
             int tot_elements = GetRows() * GetColumns();
             marchive.out_array_pre("data", tot_elements, typeid(Real).name());
             for (int i = 0; i < tot_elements; i++) {
-                marchive << CHNVP(ElementN(i), "");
+                marchive << CHNVP_OUT(ElementN(i), "");
                 marchive.out_array_between(tot_elements, typeid(Real).name());
             }
             marchive.out_array_end(tot_elements, typeid(Real).name());
@@ -421,8 +421,8 @@ class ChMatrix {
 
         // stream in all member data
         int m_row, m_col;
-        marchive >> make_ChNameValue("rows", m_row);
-        marchive >> make_ChNameValue("columns", m_col);
+        marchive >> CHNVP_IN(m_row, "rows");
+        marchive >> CHNVP_IN(m_col, "columns");
 
         Reset(m_row, m_col);
 
@@ -430,7 +430,7 @@ class ChMatrix {
         size_t tot_elements = GetRows() * GetColumns();
         marchive.in_array_pre("data", tot_elements);
         for (int i = 0; i < tot_elements; i++) {
-            marchive >> CHNVP(ElementN(i));
+            marchive >> CHNVP_IN(ElementN(i));
             marchive.in_array_between("data");
         }
         marchive.in_array_end("data");

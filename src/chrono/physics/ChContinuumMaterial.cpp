@@ -22,13 +22,13 @@ namespace fea {
 // dynamic creation and persistence
 ChClassRegister<ChContinuumMaterial> a_registration_ChContinuumMaterial;
 
-void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive)
+void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
     // serialize parent class
     // serialize all member data:
-    marchive << CHNVP(density, "density");
+    marchive << CHNVP_OUT(density, "density");
 }
 
 void ChContinuumMaterial::ArchiveIN(ChArchiveIn& marchive)
@@ -38,7 +38,7 @@ void ChContinuumMaterial::ArchiveIN(ChArchiveIn& marchive)
     marchive.VersionRead();
     // deserialize parent class
     // stream in all member data:
-    marchive >> CHNVP(density, "density");
+    marchive >> CHNVP_IN(density, "density");
 }
 
 
@@ -105,17 +105,17 @@ void ChContinuumElastic::ComputeStressStrainMatrix() {
 
 
 
-void ChContinuumElastic::ArchiveOUT(ChArchiveOut& marchive)
+void ChContinuumElastic::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
     // serialize parent class
     ChContinuumMaterial::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(this->E);
-    marchive << CHNVP(this->v);
-    marchive << CHNVP(this->damping_M);
-    marchive << CHNVP(this->damping_K);
+    marchive << CHNVP_OUT(this->E);
+    marchive << CHNVP_OUT(this->v);
+    marchive << CHNVP_OUT(this->damping_M);
+    marchive << CHNVP_OUT(this->damping_K);
 }
 
 void ChContinuumElastic::ArchiveIN(ChArchiveIn& marchive)
@@ -126,11 +126,11 @@ void ChContinuumElastic::ArchiveIN(ChArchiveIn& marchive)
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(this->E);
-    marchive >> CHNVP(this->v);
+    marchive >> CHNVP_IN(this->E);
+    marchive >> CHNVP_IN(this->v);
     this->Set_v(this->v); // G and l from v
-    marchive >> CHNVP(this->damping_M);
-    marchive >> CHNVP(this->damping_K);
+    marchive >> CHNVP_IN(this->damping_M);
+    marchive >> CHNVP_IN(this->damping_K);
 }
 
 

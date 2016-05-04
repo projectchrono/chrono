@@ -397,13 +397,13 @@ class ChApi ChLcpSystemDescriptor {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         // serialize all member data:
-        marchive << CHNVP(num_threads);
+        marchive << CHNVP_OUT(num_threads);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -414,7 +414,7 @@ class ChApi ChLcpSystemDescriptor {
         marchive.VersionRead();
         // deserialize parent class
         // stream in all member data:
-        marchive >> CHNVP(num_threads);
+        marchive >> CHNVP_IN(num_threads);
     }
 
 };

@@ -120,14 +120,14 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpVariables::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(mass);
+        marchive << CHNVP_OUT(mass);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -139,7 +139,7 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
         // deserialize parent class
         ChLcpVariables::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(mass);
+        marchive >> CHNVP_IN(mass);
         SetNodeMass(mass);
     }
 };

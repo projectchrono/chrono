@@ -42,7 +42,7 @@ void ChLinkBase::Copy(ChLinkBase* source) {
 
 
 
-void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -51,9 +51,9 @@ void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive)
     ChPhysicsItem::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(disabled);
-    marchive << CHNVP(valid);
-    marchive << CHNVP(broken);
+    marchive << CHNVP_OUT(disabled);
+    marchive << CHNVP_OUT(valid);
+    marchive << CHNVP_OUT(broken);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -67,9 +67,9 @@ void ChLinkBase::ArchiveIN(ChArchiveIn& marchive)
     ChPhysicsItem::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(disabled);
-    marchive >> CHNVP(valid);
-    marchive >> CHNVP(broken);
+    marchive >> CHNVP_IN(disabled);
+    marchive >> CHNVP_IN(valid);
+    marchive >> CHNVP_IN(broken);
 }
 
 

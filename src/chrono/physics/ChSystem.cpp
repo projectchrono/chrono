@@ -2107,7 +2107,7 @@ int ChSystem::DoFullAssembly() {
 ////////
 
 
-void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
+void ChSystem::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -2117,45 +2117,45 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
 
-    marchive << CHNVP(contact_container);
+    marchive << CHNVP_OUT(contact_container);
 
-    marchive << CHNVP(G_acc);
-    marchive << CHNVP(end_time);
-    marchive << CHNVP(step);   
-    marchive << CHNVP(step_min); 
-    marchive << CHNVP(step_max); 
-    marchive << CHNVP(stepcount);
-    marchive << CHNVP(dump_matrices);
+    marchive << CHNVP_OUT(G_acc);
+    marchive << CHNVP_OUT(end_time);
+    marchive << CHNVP_OUT(step);   
+    marchive << CHNVP_OUT(step_min); 
+    marchive << CHNVP_OUT(step_max); 
+    marchive << CHNVP_OUT(stepcount);
+    marchive << CHNVP_OUT(dump_matrices);
 
-    marchive << CHNVP(tol); 
-    marchive << CHNVP(tol_force); 
-    marchive << CHNVP(maxiter);
-    marchive << CHNVP(use_sleeping);
+    marchive << CHNVP_OUT(tol); 
+    marchive << CHNVP_OUT(tol_force); 
+    marchive << CHNVP_OUT(maxiter);
+    marchive << CHNVP_OUT(use_sleeping);
 
     eCh_lcpSolver_mapper msolmapper;
-    marchive << CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
-    marchive << CHNVP(LCP_descriptor); 
-    marchive << CHNVP(LCP_solver_speed); 
-    marchive << CHNVP(LCP_solver_stab);  
+    marchive << CHNVP_OUT(msolmapper.out(lcp_solver_type),"lcp_solver_type");
+    marchive << CHNVP_OUT(LCP_descriptor); 
+    marchive << CHNVP_OUT(LCP_solver_speed); 
+    marchive << CHNVP_OUT(LCP_solver_stab);  
 
-    marchive << CHNVP(iterLCPmaxIters);
-    marchive << CHNVP(iterLCPmaxItersStab);
-    marchive << CHNVP(simplexLCPmaxSteps); 
-    marchive << CHNVP(min_bounce_speed); 
-    marchive << CHNVP(max_penetration_recovery_speed);
-    marchive << CHNVP(parallel_thread_number); 
+    marchive << CHNVP_OUT(iterLCPmaxIters);
+    marchive << CHNVP_OUT(iterLCPmaxItersStab);
+    marchive << CHNVP_OUT(simplexLCPmaxSteps); 
+    marchive << CHNVP_OUT(min_bounce_speed); 
+    marchive << CHNVP_OUT(max_penetration_recovery_speed);
+    marchive << CHNVP_OUT(parallel_thread_number); 
 
-    marchive << CHNVP(collision_system);// ChCollisionSystem should implement class factory for abstract create
+    marchive << CHNVP_OUT(collision_system);// ChCollisionSystem should implement class factory for abstract create
 
-    //marchive << CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
-    marchive << CHNVP(scriptForStartFile);
-    marchive << CHNVP(scriptForUpdateFile);
-    marchive << CHNVP(scriptForStepFile);
-    marchive << CHNVP(scriptFor3DStepFile);
+    //marchive << CHNVP_OUT(scriptEngine); // ChScriptEngine should implement class factory for abstract create
+    marchive << CHNVP_OUT(scriptForStartFile);
+    marchive << CHNVP_OUT(scriptForUpdateFile);
+    marchive << CHNVP_OUT(scriptForStepFile);
+    marchive << CHNVP_OUT(scriptFor3DStepFile);
 
     eCh_integrationType_mapper mintmapper;
-    marchive << CHNVP(mintmapper(integration_type),"integration_type");
-    marchive << CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    marchive << CHNVP_OUT(mintmapper.out(integration_type),"integration_type");
+    marchive << CHNVP_OUT(timestepper); // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
 }
@@ -2172,53 +2172,53 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
 
     // stream in all member data:
 
-    marchive >> CHNVP(contact_container);
+    marchive >> CHNVP_IN(contact_container);
 
-    marchive >> CHNVP(G_acc);
-    marchive >> CHNVP(end_time);
-    marchive >> CHNVP(step);   
-    marchive >> CHNVP(step_min); 
-    marchive >> CHNVP(step_max); 
-    marchive >> CHNVP(stepcount);
-    marchive >> CHNVP(dump_matrices);
+    marchive >> CHNVP_IN(G_acc);
+    marchive >> CHNVP_IN(end_time);
+    marchive >> CHNVP_IN(step);   
+    marchive >> CHNVP_IN(step_min); 
+    marchive >> CHNVP_IN(step_max); 
+    marchive >> CHNVP_IN(stepcount);
+    marchive >> CHNVP_IN(dump_matrices);
 
-    marchive >> CHNVP(tol); 
-    marchive >> CHNVP(tol_force);
-    marchive >> CHNVP(maxiter);
-    marchive >> CHNVP(use_sleeping);
+    marchive >> CHNVP_IN(tol); 
+    marchive >> CHNVP_IN(tol_force);
+    marchive >> CHNVP_IN(maxiter);
+    marchive >> CHNVP_IN(use_sleeping);
 
     eCh_lcpSolver_mapper msolmapper;
-    marchive >> CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
+    marchive >> CHNVP_IN(msolmapper.in(lcp_solver_type),"lcp_solver_type");
 
     if (LCP_descriptor) delete LCP_descriptor;
-    marchive >> CHNVP(LCP_descriptor); 
+    marchive >> CHNVP_IN(LCP_descriptor); 
 
     if (LCP_solver_speed) delete LCP_solver_speed;
-    marchive >> CHNVP(LCP_solver_speed); 
+    marchive >> CHNVP_IN(LCP_solver_speed); 
     
     if (LCP_solver_stab) delete LCP_solver_stab;
-    marchive >> CHNVP(LCP_solver_stab);  
+    marchive >> CHNVP_IN(LCP_solver_stab);  
 
-    marchive >> CHNVP(iterLCPmaxIters);
-    marchive >> CHNVP(iterLCPmaxItersStab);
-    marchive >> CHNVP(simplexLCPmaxSteps); 
-    marchive >> CHNVP(min_bounce_speed); 
-    marchive >> CHNVP(max_penetration_recovery_speed);
-    marchive >> CHNVP(parallel_thread_number); 
+    marchive >> CHNVP_IN(iterLCPmaxIters);
+    marchive >> CHNVP_IN(iterLCPmaxItersStab);
+    marchive >> CHNVP_IN(simplexLCPmaxSteps); 
+    marchive >> CHNVP_IN(min_bounce_speed); 
+    marchive >> CHNVP_IN(max_penetration_recovery_speed);
+    marchive >> CHNVP_IN(parallel_thread_number); 
 
     if (collision_system) delete collision_system;
-    marchive >> CHNVP(collision_system);// ChCollisionSystem should implement class factory for abstract create
+    marchive >> CHNVP_IN(collision_system);// ChCollisionSystem should implement class factory for abstract create
 
-    //marchive >> CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
-    marchive >> CHNVP(scriptForStartFile);
-    marchive >> CHNVP(scriptForUpdateFile);
-    marchive >> CHNVP(scriptForStepFile);
-    marchive >> CHNVP(scriptFor3DStepFile);
+    //marchive >> CHNVP_IN(scriptEngine); // ChScriptEngine should implement class factory for abstract create
+    marchive >> CHNVP_IN(scriptForStartFile);
+    marchive >> CHNVP_IN(scriptForUpdateFile);
+    marchive >> CHNVP_IN(scriptForStepFile);
+    marchive >> CHNVP_IN(scriptFor3DStepFile);
 
     eCh_integrationType_mapper mintmapper;
-    marchive >> CHNVP(mintmapper(integration_type),"integration_type");
+    marchive >> CHNVP_IN(mintmapper.in(integration_type),"integration_type");
 
-    marchive >> CHNVP(timestepper); // ChTimestepper should implement class factory for abstract create
+    marchive >> CHNVP_IN(timestepper); // ChTimestepper should implement class factory for abstract create
     timestepper->SetIntegrable(this);
 
     //***TODO*** complete...

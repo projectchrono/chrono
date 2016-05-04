@@ -466,7 +466,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
 ///////// FILE I/O
 /////////
 
-void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -475,8 +475,8 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive)
     ChLink::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(markID1);
-    marchive << CHNVP(markID2);
+    marchive << CHNVP_OUT(markID1);
+    marchive << CHNVP_OUT(markID2);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -490,8 +490,8 @@ void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive)
     ChLink::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(markID1);
-    marchive >> CHNVP(markID2);
+    marchive >> CHNVP_IN(markID1);
+    marchive >> CHNVP_IN(markID2);
 }
 
 }  // END_OF_NAMESPACE____

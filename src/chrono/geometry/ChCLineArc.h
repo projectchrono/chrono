@@ -132,18 +132,18 @@ class ChApi ChLineArc : public ChLine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(origin);
-        marchive << CHNVP(radius);
-        marchive << CHNVP(angle1);
-        marchive << CHNVP(angle2);
-        marchive << CHNVP(counterclockwise);
+        marchive << CHNVP_OUT(origin);
+        marchive << CHNVP_OUT(radius);
+        marchive << CHNVP_OUT(angle1);
+        marchive << CHNVP_OUT(angle2);
+        marchive << CHNVP_OUT(counterclockwise);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -155,11 +155,11 @@ class ChApi ChLineArc : public ChLine {
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(origin);
-        marchive >> CHNVP(radius);
-        marchive >> CHNVP(angle1);
-        marchive >> CHNVP(angle2);
-        marchive >> CHNVP(counterclockwise);
+        marchive >> CHNVP_IN(origin);
+        marchive >> CHNVP_IN(radius);
+        marchive >> CHNVP_IN(angle1);
+        marchive >> CHNVP_IN(angle2);
+        marchive >> CHNVP_IN(counterclockwise);
     }
 
 

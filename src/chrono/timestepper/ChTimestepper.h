@@ -88,13 +88,13 @@ class ChApi ChTimestepper {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const {
         // version number
         marchive.VersionWrite(1);
         // serialize all member data:
-        marchive << CHNVP(verbose);
-        marchive << CHNVP(Qc_do_clamp);
-        marchive << CHNVP(Qc_clamping);
+        marchive << CHNVP_OUT(verbose);
+        marchive << CHNVP_OUT(Qc_do_clamp);
+        marchive << CHNVP_OUT(Qc_clamping);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -103,9 +103,9 @@ class ChApi ChTimestepper {
         // int version =
         marchive.VersionRead();
         // stream in all member data:
-        marchive >> CHNVP(verbose);
-        marchive >> CHNVP(Qc_do_clamp);
-        marchive >> CHNVP(Qc_clamping);
+        marchive >> CHNVP_IN(verbose);
+        marchive >> CHNVP_IN(Qc_do_clamp);
+        marchive >> CHNVP_IN(Qc_clamping);
     }
 
 };
@@ -241,14 +241,14 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const {
         // version number
         marchive.VersionWrite(1);
         // serialize all member data:
-        marchive << CHNVP(maxiters);
-        marchive << CHNVP(reltol);
-        marchive << CHNVP(abstolS);
-        marchive << CHNVP(abstolL);
+        marchive << CHNVP_OUT(maxiters);
+        marchive << CHNVP_OUT(reltol);
+        marchive << CHNVP_OUT(abstolS);
+        marchive << CHNVP_OUT(abstolL);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -257,10 +257,10 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
         // int version =
         marchive.VersionRead();
         // stream in all member data:
-        marchive >> CHNVP(maxiters);
-        marchive >> CHNVP(reltol);
-        marchive >> CHNVP(abstolS);
-        marchive >> CHNVP(abstolL);
+        marchive >> CHNVP_IN(maxiters);
+        marchive >> CHNVP_IN(reltol);
+        marchive >> CHNVP_IN(abstolS);
+        marchive >> CHNVP_IN(abstolL);
     }
 };
 
@@ -660,20 +660,20 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class:
         ChTimestepperIIorder::ArchiveOUT(marchive);
         ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(alpha);
-        marchive << CHNVP(beta);
-        marchive << CHNVP(gamma);
-        marchive << CHNVP(scaling);
-        marchive << CHNVP(num_it);
+        marchive << CHNVP_OUT(alpha);
+        marchive << CHNVP_OUT(beta);
+        marchive << CHNVP_OUT(gamma);
+        marchive << CHNVP_OUT(scaling);
+        marchive << CHNVP_OUT(num_it);
         HHT_Mode_mapper modemapper;
-        marchive << CHNVP(modemapper(mode),"mode");
+        marchive << CHNVP_OUT(modemapper.out(mode),"mode");
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -685,13 +685,13 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         ChTimestepperIIorder::ArchiveIN(marchive);
         ChImplicitIterativeTimestepper::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(alpha);
-        marchive >> CHNVP(beta);
-        marchive >> CHNVP(gamma);
-        marchive >> CHNVP(scaling);
-        marchive >> CHNVP(num_it);
+        marchive >> CHNVP_IN(alpha);
+        marchive >> CHNVP_IN(beta);
+        marchive >> CHNVP_IN(gamma);
+        marchive >> CHNVP_IN(scaling);
+        marchive >> CHNVP_IN(num_it);
         HHT_Mode_mapper modemapper;
-        marchive >> CHNVP(modemapper(mode),"mode");
+        marchive >> CHNVP_IN(modemapper.in(mode),"mode");
     }
 
   private:
@@ -758,15 +758,15 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
         // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class:
         ChTimestepperIIorder::ArchiveOUT(marchive);
         ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(beta);
-        marchive << CHNVP(gamma);
+        marchive << CHNVP_OUT(beta);
+        marchive << CHNVP_OUT(gamma);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -778,8 +778,8 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
         ChTimestepperIIorder::ArchiveIN(marchive);
         ChImplicitIterativeTimestepper::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(beta);
-        marchive >> CHNVP(gamma);
+        marchive >> CHNVP_IN(beta);
+        marchive >> CHNVP_IN(gamma);
     }
 };
 

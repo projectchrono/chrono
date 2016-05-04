@@ -94,16 +94,16 @@ class ChApi ChFunction_Sine : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(amp);
-        marchive << CHNVP(phase);
-        marchive << CHNVP(freq);
+        marchive << CHNVP_OUT(amp);
+        marchive << CHNVP_OUT(phase);
+        marchive << CHNVP_OUT(freq);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -115,9 +115,9 @@ class ChApi ChFunction_Sine : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(amp);
-        marchive >> CHNVP(phase);
-        marchive >> CHNVP(freq);
+        marchive >> CHNVP_IN(amp);
+        marchive >> CHNVP_IN(phase);
+        marchive >> CHNVP_IN(freq);
     }
 
 

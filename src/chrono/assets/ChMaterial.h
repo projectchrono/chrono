@@ -39,13 +39,13 @@ struct material_option {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         marchive.VersionWrite(1);
         // serialize all member data:
-        marchive << CHNVP(type);
-        marchive << CHNVP(parameter);
-        marchive << CHNVP(value);
+        marchive << CHNVP_OUT(type);
+        marchive << CHNVP_OUT(parameter);
+        marchive << CHNVP_OUT(value);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -54,9 +54,9 @@ struct material_option {
         // int version =
         marchive.VersionRead();
         // deserialize all member data:
-        marchive >> CHNVP(type);
-        marchive >> CHNVP(parameter);
-        marchive >> CHNVP(value);
+        marchive >> CHNVP_IN(type);
+        marchive >> CHNVP_IN(parameter);
+        marchive >> CHNVP_IN(value);
     }
 };
 
@@ -105,18 +105,18 @@ class ChApi ChMaterial {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
 
         // serialize all member data:
-        marchive << CHNVP(color);
-        marchive << CHNVP(fading);
+        marchive << CHNVP_OUT(color);
+        marchive << CHNVP_OUT(fading);
         ChMaterialType_mapper mmapper;
-        marchive << CHNVP(mmapper(material_type),"material_type");
-        marchive << CHNVP(options);
-        marchive << CHNVP(visible);
+        marchive << CHNVP_OUT(mmapper(material_type),"material_type");
+        marchive << CHNVP_OUT(options);
+        marchive << CHNVP_OUT(visible);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -127,12 +127,12 @@ class ChApi ChMaterial {
         marchive.VersionRead();
 
         // stream in all member data:
-        marchive >> CHNVP(color);
-        marchive >> CHNVP(fading);
+        marchive >> CHNVP_IN(color);
+        marchive >> CHNVP_IN(fading);
         ChMaterialType_mapper mmapper;
-        marchive >> CHNVP(mmapper(material_type),"material_type");
-        marchive >> CHNVP(options);
-        marchive >> CHNVP(visible);
+        marchive >> CHNVP_IN(mmapper(material_type),"material_type");
+        marchive >> CHNVP_IN(options);
+        marchive >> CHNVP_IN(visible);
     }
 
 };

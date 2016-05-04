@@ -100,7 +100,7 @@ public:
 };
 
 
-void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
+void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -109,14 +109,14 @@ void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
     ChSystem::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(m_use_mat_props); 
-    marchive << CHNVP(m_use_history); 
-    marchive << CHNVP(m_minSlipVelocity);
-    marchive << CHNVP(m_characteristicVelocity); 
+    marchive << CHNVP_OUT(m_use_mat_props); 
+    marchive << CHNVP_OUT(m_use_history); 
+    marchive << CHNVP_OUT(m_minSlipVelocity);
+    marchive << CHNVP_OUT(m_characteristicVelocity); 
     my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
-    marchive << CHNVP(mmodel_mapper(m_contact_model),"contact_model");
+    marchive << CHNVP_OUT(mmodel_mapper.out(m_contact_model),"contact_model");
     my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
-    marchive << CHNVP(madhesion_mapper(m_adhesion_model),"adhesion_model");
+    marchive << CHNVP_OUT(madhesion_mapper.out(m_adhesion_model),"adhesion_model");
     //***TODO*** complete...
 }
 
@@ -131,14 +131,14 @@ void ChSystemDEM::ArchiveIN(ChArchiveIn& marchive)
     ChSystem::ArchiveIN(marchive);
 
     // stream in all member data:
-    marchive >> CHNVP(m_use_mat_props); 
-    marchive >> CHNVP(m_use_history); 
-    marchive >> CHNVP(m_minSlipVelocity);
-    marchive >> CHNVP(m_characteristicVelocity); 
+    marchive >> CHNVP_IN(m_use_mat_props); 
+    marchive >> CHNVP_IN(m_use_history); 
+    marchive >> CHNVP_IN(m_minSlipVelocity);
+    marchive >> CHNVP_IN(m_characteristicVelocity); 
     my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
-    marchive >> CHNVP(mmodel_mapper(m_contact_model),"contact_model");
+    marchive >> CHNVP_IN(mmodel_mapper.in(m_contact_model),"contact_model");
     my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
-    marchive >> CHNVP(madhesion_mapper(m_adhesion_model),"adhesion_model");
+    marchive >> CHNVP_IN(madhesion_mapper.in(m_adhesion_model),"adhesion_model");
     //***TODO*** complete...
 
     // Recompute statistics, offsets, etc.

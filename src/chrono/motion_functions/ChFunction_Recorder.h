@@ -41,16 +41,16 @@ class ChApi ChRecPoint {
 
     virtual ~ChRecPoint() = default;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        marchive << CHNVP(x);
-        marchive << CHNVP(y);
-        marchive << CHNVP(w);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const {
+        marchive << CHNVP_OUT(x);
+        marchive << CHNVP_OUT(y);
+        marchive << CHNVP_OUT(w);
     }
 
     virtual void ArchiveIN(ChArchiveIn& marchive) {
-        marchive >> CHNVP(x);
-        marchive >> CHNVP(y);
-        marchive >> CHNVP(w);
+        marchive >> CHNVP_IN(x);
+        marchive >> CHNVP_IN(y);
+        marchive >> CHNVP_IN(w);
     }
 };
 
@@ -100,7 +100,7 @@ class ChApi ChFunction_Recorder : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
@@ -108,7 +108,7 @@ class ChApi ChFunction_Recorder : public ChFunction {
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
         std::vector< ChRecPoint > tmpvect; // promote to modern array
-        for (ChNode<ChRecPoint>* mnode = points.GetHead(); mnode != NULL; mnode = mnode->next)
+        for (const ChNode<ChRecPoint>* mnode = points.GetHead(); mnode != NULL; mnode = mnode->next)
         {
             ChRecPoint tmprec; 
             tmprec.x = mnode->data->x;
@@ -116,7 +116,7 @@ class ChApi ChFunction_Recorder : public ChFunction {
             tmprec.w = mnode->data->w;
             tmpvect.push_back( tmprec );
         }
-        marchive << CHNVP(tmpvect);
+        marchive << CHNVP_OUT(tmpvect);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -129,7 +129,7 @@ class ChApi ChFunction_Recorder : public ChFunction {
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
         std::vector< ChRecPoint > tmpvect; // load from modern array
-        marchive >> CHNVP(tmpvect);
+        marchive >> CHNVP_IN(tmpvect);
         points.KillAll();
         for (int i = 0; i < tmpvect.size(); i++) {
             ChRecPoint* mpt = new ChRecPoint;

@@ -67,7 +67,7 @@ double ChShaftsThermalEngine::ComputeTorque() {
 
 
 
-void ChShaftsThermalEngine::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsThermalEngine::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -76,8 +76,8 @@ void ChShaftsThermalEngine::ArchiveOUT(ChArchiveOut& marchive)
     ChShaftsTorqueBase::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(Tw);
-    marchive << CHNVP(throttle);
+    marchive << CHNVP_OUT(Tw);
+    marchive << CHNVP_OUT(throttle);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -91,8 +91,8 @@ void ChShaftsThermalEngine::ArchiveIN(ChArchiveIn& marchive)
     ChShaftsTorqueBase::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(Tw);
-    marchive >> CHNVP(throttle);
+    marchive >> CHNVP_IN(Tw);
+    marchive >> CHNVP_IN(throttle);
 } 
 
 

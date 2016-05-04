@@ -43,7 +43,7 @@ void ChBodyFrame::To_abs_torque(const ChVector<>& torque, int local, ChVector<>&
 
 
 
-void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive)
+void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);

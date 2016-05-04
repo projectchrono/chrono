@@ -167,32 +167,32 @@ void ChLinkLimit::SetPolar_Max(ChFunction* m_funct) {
 // file parsing / dumping
 
 
-void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) const {
 
     // class version number
     marchive.VersionWrite(1);
     // serialize parent class too
 
     // stream out all member data
-    marchive << CHNVP(active);
-    marchive << CHNVP(penalty_only);
-    marchive << CHNVP(polar);
-    marchive << CHNVP(rotation);
-    marchive << CHNVP(max);
-    marchive << CHNVP(min);
-    marchive << CHNVP(maxCushion);
-    marchive << CHNVP(minCushion);
-    marchive << CHNVP(Kmax);
-    marchive << CHNVP(Kmin);
-    marchive << CHNVP(Rmax);
-    marchive << CHNVP(Rmin);
-    marchive << CHNVP(maxElastic);
-    marchive << CHNVP(minElastic);
-    marchive << CHNVP(modul_Kmax);
-    marchive << CHNVP(modul_Kmin);
-    marchive << CHNVP(modul_Rmax);
-    marchive << CHNVP(modul_Rmin);
-    marchive << CHNVP(polar_Max);
+    marchive << CHNVP_OUT(active);
+    marchive << CHNVP_OUT(penalty_only);
+    marchive << CHNVP_OUT(polar);
+    marchive << CHNVP_OUT(rotation);
+    marchive << CHNVP_OUT(max);
+    marchive << CHNVP_OUT(min);
+    marchive << CHNVP_OUT(maxCushion);
+    marchive << CHNVP_OUT(minCushion);
+    marchive << CHNVP_OUT(Kmax);
+    marchive << CHNVP_OUT(Kmin);
+    marchive << CHNVP_OUT(Rmax);
+    marchive << CHNVP_OUT(Rmin);
+    marchive << CHNVP_OUT(maxElastic);
+    marchive << CHNVP_OUT(minElastic);
+    marchive << CHNVP_OUT(modul_Kmax);
+    marchive << CHNVP_OUT(modul_Kmin);
+    marchive << CHNVP_OUT(modul_Rmax);
+    marchive << CHNVP_OUT(modul_Rmin);
+    marchive << CHNVP_OUT(polar_Max);
 }
 
 void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
@@ -203,25 +203,25 @@ void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class too
 
     // stream in all member data
-    marchive >> CHNVP(active);
-    marchive >> CHNVP(penalty_only);
-    marchive >> CHNVP(polar);
-    marchive >> CHNVP(rotation);
-    marchive >> CHNVP(max);
-    marchive >> CHNVP(min);
-    marchive >> CHNVP(maxCushion);
-    marchive >> CHNVP(minCushion);
-    marchive >> CHNVP(Kmax);
-    marchive >> CHNVP(Kmin);
-    marchive >> CHNVP(Rmax);
-    marchive >> CHNVP(Rmin);
-    marchive >> CHNVP(maxElastic);
-    marchive >> CHNVP(minElastic);
-    marchive >> CHNVP(modul_Kmax);
-    marchive >> CHNVP(modul_Kmin);
-    marchive >> CHNVP(modul_Rmax);
-    marchive >> CHNVP(modul_Rmin);
-    marchive >> CHNVP(polar_Max);
+    marchive >> CHNVP_IN(active);
+    marchive >> CHNVP_IN(penalty_only);
+    marchive >> CHNVP_IN(polar);
+    marchive >> CHNVP_IN(rotation);
+    marchive >> CHNVP_IN(max);
+    marchive >> CHNVP_IN(min);
+    marchive >> CHNVP_IN(maxCushion);
+    marchive >> CHNVP_IN(minCushion);
+    marchive >> CHNVP_IN(Kmax);
+    marchive >> CHNVP_IN(Kmin);
+    marchive >> CHNVP_IN(Rmax);
+    marchive >> CHNVP_IN(Rmin);
+    marchive >> CHNVP_IN(maxElastic);
+    marchive >> CHNVP_IN(minElastic);
+    marchive >> CHNVP_IN(modul_Kmax);
+    marchive >> CHNVP_IN(modul_Kmin);
+    marchive >> CHNVP_IN(modul_Rmax);
+    marchive >> CHNVP_IN(modul_Rmin);
+    marchive >> CHNVP_IN(polar_Max);
 }
 
 

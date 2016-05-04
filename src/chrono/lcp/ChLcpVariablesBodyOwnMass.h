@@ -141,15 +141,15 @@ class ChApi ChLcpVariablesBodyOwnMass : public ChLcpVariablesBody {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpVariablesBody::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(mass);
-        marchive << CHNVP(inertia);
+        marchive << CHNVP_OUT(mass);
+        marchive << CHNVP_OUT(inertia);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -161,8 +161,8 @@ class ChApi ChLcpVariablesBodyOwnMass : public ChLcpVariablesBody {
         // deserialize parent class
         ChLcpVariablesBody::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(mass);
-        marchive >> CHNVP(inertia);
+        marchive >> CHNVP_IN(mass);
+        marchive >> CHNVP_IN(inertia);
         SetBodyMass(mass);
         SetBodyInertia(inertia);
     }

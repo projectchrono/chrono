@@ -53,14 +53,14 @@ class ChApi ChRoundedBoxShape : public ChVisualization {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(groundedbox);
+        marchive << CHNVP_OUT(groundedbox);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -72,7 +72,7 @@ class ChApi ChRoundedBoxShape : public ChVisualization {
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(groundedbox);
+        marchive >> CHNVP_IN(groundedbox);
     }
 };
 

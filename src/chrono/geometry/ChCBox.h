@@ -103,51 +103,61 @@ class ChApi ChBox : public ChGeometry {
     /// Access the rotation of the box
     ChMatrix33<>* GetRotm() { return &Rot; };
 
+    /// Access the rotation of the box
+    ChMatrix33<> GetRotm() const { return Rot; };
+
     /// Access the position of the barycenter of the box
     ChVector<>& GetPos() { return Pos; };
+
+    /// Access the position of the barycenter of the box
+    ChVector<> GetPos() const { return Pos; };
 
     /// Access the size of the box: a vector with the
     /// three hemi-lengths (lengths divided by two!)
     ChVector<>& GetSize() { return Size; };
 
+    /// Access the size of the box: a vector with the
+    /// three hemi-lengths (lengths divided by two!)
+    ChVector<> GetSize() const { return Size; };
+
     /// Get the x y z lengths of this box (that is, double
     /// the Size values)
-    ChVector<> GetLengths() { return 2.0 * Size; }
+    ChVector<> GetLengths() const { return 2.0 * Size; }
 
     /// Set the x y z lengths of this box (that is, double
     /// the Size values)
     void SetLengths(const ChVector<>& mlen) { Size = 0.5 * mlen; }
 
     // Get the 8 corner points, translated and rotated
-    ChVector<> GetP1();
-    ChVector<> GetP2();
-    ChVector<> GetP3();
-    ChVector<> GetP4();
-    ChVector<> GetP5();
-    ChVector<> GetP6();
-    ChVector<> GetP7();
-    ChVector<> GetP8();
+    ChVector<> GetP1() const;
+    ChVector<> GetP2() const;
+    ChVector<> GetP3() const;
+    ChVector<> GetP4() const;
+    ChVector<> GetP5() const;
+    ChVector<> GetP6() const;
+    ChVector<> GetP7() const;
+    ChVector<> GetP8() const;
     /// Get the n-th corner point, with ipoint = 1...8
-    ChVector<> GetPn(int ipoint);
+    ChVector<> GetPn(int ipoint) const;
 
     /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() { return Size.x * Size.y * Size.z * 8.0; };
+    double GetVolume() const { return Size.x * Size.y * Size.z * 8.0; };
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(Pos);
-        marchive << CHNVP(Rot);
+        marchive << CHNVP_OUT(Pos);
+        marchive << CHNVP_OUT(Rot);
         ChVector<> Lengths = GetLengths();
-        marchive << CHNVP(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive << CHNVP_OUT(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -159,10 +169,10 @@ class ChApi ChBox : public ChGeometry {
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(Pos);
-        marchive >> CHNVP(Rot);
+        marchive >> CHNVP_IN(Pos);
+        marchive >> CHNVP_IN(Rot);
         ChVector<> Lengths;
-        marchive >> CHNVP(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive >> CHNVP_IN(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
         SetLengths(Lengths);
     }
 

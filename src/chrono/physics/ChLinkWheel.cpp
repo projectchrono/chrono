@@ -598,7 +598,7 @@ void ChLinkWheel::Set_rad_k_def(ChFunction* m_funct) {
 // FILE I/O
 //
 
-void ChLinkWheel::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkWheel::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -607,24 +607,24 @@ void ChLinkWheel::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(speed_handled);
-    marchive << CHNVP(radius);
-    marchive << CHNVP(thickness);
-    marchive << CHNVP(friction);
-    marchive << CHNVP(allow_sticking);
-    marchive << CHNVP(slip_treshold);
-    marchive << CHNVP(static_friction);
-    marchive << CHNVP(unilateral);
-    marchive << CHNVP(pneus_krp);
-    marchive << CHNVP(rad_k);
-    marchive << CHNVP(rad_r);
-    marchive << CHNVP(rad_p);
-    marchive << CHNVP(pneus_h);
-    marchive << CHNVP(wheel_rotation);
-    marchive << CHNVP(fri_spe);
-    marchive << CHNVP(fri_norm);
-    marchive << CHNVP(rad_k_def);
-    marchive << CHNVP(wcollision);
+    marchive << CHNVP_OUT(speed_handled);
+    marchive << CHNVP_OUT(radius);
+    marchive << CHNVP_OUT(thickness);
+    marchive << CHNVP_OUT(friction);
+    marchive << CHNVP_OUT(allow_sticking);
+    marchive << CHNVP_OUT(slip_treshold);
+    marchive << CHNVP_OUT(static_friction);
+    marchive << CHNVP_OUT(unilateral);
+    marchive << CHNVP_OUT(pneus_krp);
+    marchive << CHNVP_OUT(rad_k);
+    marchive << CHNVP_OUT(rad_r);
+    marchive << CHNVP_OUT(rad_p);
+    marchive << CHNVP_OUT(pneus_h);
+    marchive << CHNVP_OUT(wheel_rotation);
+    marchive << CHNVP_OUT(fri_spe);
+    marchive << CHNVP_OUT(fri_norm);
+    marchive << CHNVP_OUT(rad_k_def);
+    marchive << CHNVP_OUT(wcollision);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -638,24 +638,24 @@ void ChLinkWheel::ArchiveIN(ChArchiveIn& marchive)
     ChLinkLock::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(speed_handled);
-    marchive >> CHNVP(radius);
-    marchive >> CHNVP(thickness);
-    marchive >> CHNVP(friction);
-    marchive >> CHNVP(allow_sticking);
-    marchive >> CHNVP(slip_treshold);
-    marchive >> CHNVP(static_friction);
-    marchive >> CHNVP(unilateral);
-    marchive >> CHNVP(pneus_krp);
-    marchive >> CHNVP(rad_k);
-    marchive >> CHNVP(rad_r);
-    marchive >> CHNVP(rad_p);
-    marchive >> CHNVP(pneus_h);
-    marchive >> CHNVP(wheel_rotation);
-    marchive >> CHNVP(fri_spe);
-    marchive >> CHNVP(fri_norm);
-    marchive >> CHNVP(rad_k_def);
-    marchive >> CHNVP(wcollision);
+    marchive >> CHNVP_IN(speed_handled);
+    marchive >> CHNVP_IN(radius);
+    marchive >> CHNVP_IN(thickness);
+    marchive >> CHNVP_IN(friction);
+    marchive >> CHNVP_IN(allow_sticking);
+    marchive >> CHNVP_IN(slip_treshold);
+    marchive >> CHNVP_IN(static_friction);
+    marchive >> CHNVP_IN(unilateral);
+    marchive >> CHNVP_IN(pneus_krp);
+    marchive >> CHNVP_IN(rad_k);
+    marchive >> CHNVP_IN(rad_r);
+    marchive >> CHNVP_IN(rad_p);
+    marchive >> CHNVP_IN(pneus_h);
+    marchive >> CHNVP_IN(wheel_rotation);
+    marchive >> CHNVP_IN(fri_spe);
+    marchive >> CHNVP_IN(fri_norm);
+    marchive >> CHNVP_IN(rad_k_def);
+    marchive >> CHNVP_IN(wcollision);
 }
 
 

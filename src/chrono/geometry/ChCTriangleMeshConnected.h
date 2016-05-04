@@ -177,22 +177,22 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChTriangleMesh::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(m_vertices);
-        marchive << CHNVP(m_normals);
-        marchive << CHNVP(m_UV);
-        marchive << CHNVP(m_colors);
-        marchive << CHNVP(m_face_v_indices);
-        marchive << CHNVP(m_face_n_indices);
-        marchive << CHNVP(m_face_uv_indices);
-        marchive << CHNVP(m_face_col_indices);
-        marchive << CHNVP(m_filename);
+        marchive << CHNVP_OUT(m_vertices);
+        marchive << CHNVP_OUT(m_normals);
+        marchive << CHNVP_OUT(m_UV);
+        marchive << CHNVP_OUT(m_colors);
+        marchive << CHNVP_OUT(m_face_v_indices);
+        marchive << CHNVP_OUT(m_face_n_indices);
+        marchive << CHNVP_OUT(m_face_uv_indices);
+        marchive << CHNVP_OUT(m_face_col_indices);
+        marchive << CHNVP_OUT(m_filename);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -204,15 +204,15 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         // deserialize parent class
         ChTriangleMesh::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(m_vertices);
-        marchive >> CHNVP(m_normals);
-        marchive >> CHNVP(m_UV);
-        marchive >> CHNVP(m_colors);
-        marchive >> CHNVP(m_face_v_indices);
-        marchive >> CHNVP(m_face_n_indices);
-        marchive >> CHNVP(m_face_uv_indices);
-        marchive >> CHNVP(m_face_col_indices);
-        marchive >> CHNVP(m_filename);
+        marchive >> CHNVP_IN(m_vertices);
+        marchive >> CHNVP_IN(m_normals);
+        marchive >> CHNVP_IN(m_UV);
+        marchive >> CHNVP_IN(m_colors);
+        marchive >> CHNVP_IN(m_face_v_indices);
+        marchive >> CHNVP_IN(m_face_n_indices);
+        marchive >> CHNVP_IN(m_face_uv_indices);
+        marchive >> CHNVP_IN(m_face_col_indices);
+        marchive >> CHNVP_IN(m_filename);
     }
 };
 

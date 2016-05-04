@@ -255,7 +255,7 @@ void ChShaft::Update(double mytime, bool update_assets) {
 
 //////// FILE I/O
 
-void ChShaft::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaft::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -264,20 +264,20 @@ void ChShaft::ArchiveOUT(ChArchiveOut& marchive)
     ChPhysicsItem::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(torque);
-    marchive << CHNVP(pos);
-    marchive << CHNVP(pos_dt);
-    marchive << CHNVP(pos_dtdt);
-    marchive << CHNVP(inertia);
-    marchive << CHNVP(fixed);
-    marchive << CHNVP(limitspeed);
-    marchive << CHNVP(max_speed);
-    marchive << CHNVP(sleep_time);
-    marchive << CHNVP(sleep_starttime);
-    marchive << CHNVP(sleep_minspeed);
-    marchive << CHNVP(sleep_minwvel);
-    marchive << CHNVP(sleeping);
-    marchive << CHNVP(use_sleeping);
+    marchive << CHNVP_OUT(torque);
+    marchive << CHNVP_OUT(pos);
+    marchive << CHNVP_OUT(pos_dt);
+    marchive << CHNVP_OUT(pos_dtdt);
+    marchive << CHNVP_OUT(inertia);
+    marchive << CHNVP_OUT(fixed);
+    marchive << CHNVP_OUT(limitspeed);
+    marchive << CHNVP_OUT(max_speed);
+    marchive << CHNVP_OUT(sleep_time);
+    marchive << CHNVP_OUT(sleep_starttime);
+    marchive << CHNVP_OUT(sleep_minspeed);
+    marchive << CHNVP_OUT(sleep_minwvel);
+    marchive << CHNVP_OUT(sleeping);
+    marchive << CHNVP_OUT(use_sleeping);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -291,20 +291,20 @@ void ChShaft::ArchiveIN(ChArchiveIn& marchive)
     ChPhysicsItem::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(torque);
-    marchive >> CHNVP(pos);
-    marchive >> CHNVP(pos_dt);
-    marchive >> CHNVP(pos_dtdt);
-    marchive >> CHNVP(inertia);
-    marchive >> CHNVP(fixed);
-    marchive >> CHNVP(limitspeed);
-    marchive >> CHNVP(max_speed);
-    marchive >> CHNVP(sleep_time);
-    marchive >> CHNVP(sleep_starttime);
-    marchive >> CHNVP(sleep_minspeed);
-    marchive >> CHNVP(sleep_minwvel);
-    marchive >> CHNVP(sleeping);
-    marchive >> CHNVP(use_sleeping);
+    marchive >> CHNVP_IN(torque);
+    marchive >> CHNVP_IN(pos);
+    marchive >> CHNVP_IN(pos_dt);
+    marchive >> CHNVP_IN(pos_dtdt);
+    marchive >> CHNVP_IN(inertia);
+    marchive >> CHNVP_IN(fixed);
+    marchive >> CHNVP_IN(limitspeed);
+    marchive >> CHNVP_IN(max_speed);
+    marchive >> CHNVP_IN(sleep_time);
+    marchive >> CHNVP_IN(sleep_starttime);
+    marchive >> CHNVP_IN(sleep_minspeed);
+    marchive >> CHNVP_IN(sleep_minwvel);
+    marchive >> CHNVP_IN(sleeping);
+    marchive >> CHNVP_IN(use_sleeping);
 }
 
 }  // END_OF_NAMESPACE____

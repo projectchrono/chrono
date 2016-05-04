@@ -134,25 +134,25 @@ class ChApi ChBezierCurve {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
 
         // serialize all member data:
-        marchive << CHNVP(m_points);
-        marchive << CHNVP(m_inCV);
-        marchive << CHNVP(m_outCV);
+        marchive << CHNVP_OUT(m_points);
+        marchive << CHNVP_OUT(m_inCV);
+        marchive << CHNVP_OUT(m_outCV);
 
         // serialize static data:
         size_t maxNumIters = maxNumIters;
         double sqrDistTol = m_sqrDistTol;
         double cosAngleTol = m_cosAngleTol;
         double paramTol = m_cosAngleTol;
-        marchive << CHNVP(maxNumIters);
-        marchive << CHNVP(sqrDistTol);
-        marchive << CHNVP(cosAngleTol);
-        marchive << CHNVP(paramTol);
+        marchive << CHNVP_OUT(maxNumIters);
+        marchive << CHNVP_OUT(sqrDistTol);
+        marchive << CHNVP_OUT(cosAngleTol);
+        marchive << CHNVP_OUT(paramTol);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -163,19 +163,19 @@ class ChApi ChBezierCurve {
         marchive.VersionRead();
 
         // stream in all member data:
-        marchive >> CHNVP(m_points);
-        marchive >> CHNVP(m_inCV);
-        marchive >> CHNVP(m_outCV);
+        marchive >> CHNVP_IN(m_points);
+        marchive >> CHNVP_IN(m_inCV);
+        marchive >> CHNVP_IN(m_outCV);
 
         // bogus stream in static data:
         size_t maxNumIters;
         double sqrDistTol;
         double cosAngleTol;
         double paramTol;
-        marchive >> CHNVP(maxNumIters);
-        marchive >> CHNVP(sqrDistTol);
-        marchive >> CHNVP(cosAngleTol);
-        marchive >> CHNVP(paramTol);
+        marchive >> CHNVP_IN(maxNumIters);
+        marchive >> CHNVP_IN(sqrDistTol);
+        marchive >> CHNVP_IN(cosAngleTol);
+        marchive >> CHNVP_IN(paramTol);
     }
 
   private:

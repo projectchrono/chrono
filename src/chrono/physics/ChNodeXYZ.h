@@ -133,7 +133,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 

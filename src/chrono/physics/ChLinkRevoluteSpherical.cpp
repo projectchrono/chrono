@@ -432,7 +432,7 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2() {
 }
 
 
-void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -441,10 +441,10 @@ void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive)
     ChLink::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(m_pos1);
-    marchive << CHNVP(m_pos2);
-    marchive << CHNVP(m_dir1);
-    marchive << CHNVP(m_dist);
+    marchive << CHNVP_OUT(m_pos1);
+    marchive << CHNVP_OUT(m_pos2);
+    marchive << CHNVP_OUT(m_dir1);
+    marchive << CHNVP_OUT(m_dist);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -458,10 +458,10 @@ void ChLinkRevoluteSpherical::ArchiveIN(ChArchiveIn& marchive)
     ChLink::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_pos1);
-    marchive >> CHNVP(m_pos2);
-    marchive >> CHNVP(m_dir1);
-    marchive >> CHNVP(m_dist);
+    marchive >> CHNVP_IN(m_pos1);
+    marchive >> CHNVP_IN(m_pos2);
+    marchive >> CHNVP_IN(m_dir1);
+    marchive >> CHNVP_IN(m_dist);
 }
 
 

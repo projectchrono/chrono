@@ -128,7 +128,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     ChVector<> GetContactableTorque(ChContactable* contactable);
 
     /// Method for serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
 
     /// Method for de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;

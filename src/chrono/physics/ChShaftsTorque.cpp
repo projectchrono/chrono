@@ -42,7 +42,7 @@ double ChShaftsTorque::ComputeTorque() {
 
 //////// FILE I/O
 
-void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);

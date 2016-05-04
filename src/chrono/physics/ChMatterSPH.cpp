@@ -144,7 +144,7 @@ ChPhysicsItem* ChNodeSPH::GetPhysicsItem() {
     return container;
 }
 
-void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive)
+void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -153,14 +153,14 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive)
     ChNodeXYZ::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //marchive << CHNVP(container);
-    marchive << CHNVP(collision_model);
-    marchive << CHNVP(UserForce);
-    marchive << CHNVP(volume);
-    marchive << CHNVP(density);
-    marchive << CHNVP(h_rad);
-    marchive << CHNVP(coll_rad);
-    marchive << CHNVP(pressure);
+    //marchive << CHNVP_OUT(container);
+    marchive << CHNVP_OUT(collision_model);
+    marchive << CHNVP_OUT(UserForce);
+    marchive << CHNVP_OUT(volume);
+    marchive << CHNVP_OUT(density);
+    marchive << CHNVP_OUT(h_rad);
+    marchive << CHNVP_OUT(coll_rad);
+    marchive << CHNVP_OUT(pressure);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -174,14 +174,14 @@ void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive)
     ChNodeXYZ::ArchiveIN(marchive);
 
     // deserialize all member data:
-    //marchive >> CHNVP(container);
-    marchive >> CHNVP(collision_model);
-    marchive >> CHNVP(UserForce);
-    marchive >> CHNVP(volume);
-    marchive >> CHNVP(density);
-    marchive >> CHNVP(h_rad);
-    marchive >> CHNVP(coll_rad);
-    marchive >> CHNVP(pressure);
+    //marchive >> CHNVP_IN(container);
+    marchive >> CHNVP_IN(collision_model);
+    marchive >> CHNVP_IN(UserForce);
+    marchive >> CHNVP_IN(volume);
+    marchive >> CHNVP_IN(density);
+    marchive >> CHNVP_IN(h_rad);
+    marchive >> CHNVP_IN(coll_rad);
+    marchive >> CHNVP_IN(pressure);
 }
 
 
@@ -197,7 +197,7 @@ void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive)
 // dynamic creation and persistence
 ChClassRegister<ChContinuumSPH> a_registration_ChContinuumSPH;
 
-void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive)
+void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -206,9 +206,9 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive)
     ChContinuumMaterial::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(viscosity);
-    marchive << CHNVP(surface_tension);
-    marchive << CHNVP(pressure_stiffness);
+    marchive << CHNVP_OUT(viscosity);
+    marchive << CHNVP_OUT(surface_tension);
+    marchive << CHNVP_OUT(pressure_stiffness);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -222,9 +222,9 @@ void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive)
     ChContinuumMaterial::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(viscosity);
-    marchive >> CHNVP(surface_tension);
-    marchive >> CHNVP(pressure_stiffness);
+    marchive >> CHNVP_IN(viscosity);
+    marchive >> CHNVP_IN(surface_tension);
+    marchive >> CHNVP_IN(pressure_stiffness);
 }
 
 
@@ -709,7 +709,7 @@ void ChMatterSPH::UpdateParticleCollisionModels() {
 
 //////// FILE I/O
 
-void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive)
+void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -718,10 +718,10 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive)
     ChIndexedNodes::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(material);
-    marchive << CHNVP(matsurface);
-    marchive << CHNVP(do_collide);
-    marchive << CHNVP(nodes);
+    marchive << CHNVP_OUT(material);
+    marchive << CHNVP_OUT(matsurface);
+    marchive << CHNVP_OUT(do_collide);
+    marchive << CHNVP_OUT(nodes);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -737,10 +737,10 @@ void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive)
     // deserialize all member data:
     RemoveCollisionModelsFromSystem();
 
-    marchive >> CHNVP(material);
-    marchive >> CHNVP(matsurface);
-    marchive >> CHNVP(do_collide);
-    marchive >> CHNVP(nodes);
+    marchive >> CHNVP_IN(material);
+    marchive >> CHNVP_IN(matsurface);
+    marchive >> CHNVP_IN(do_collide);
+    marchive >> CHNVP_IN(nodes);
 
     for (unsigned int j = 0; j < nodes.size(); j++) {
         this->nodes[j]->SetContainer(this);

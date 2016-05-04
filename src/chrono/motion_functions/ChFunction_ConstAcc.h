@@ -126,17 +126,17 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(h);
-        marchive << CHNVP(end);
-        marchive << CHNVP(aw);
-        marchive << CHNVP(av);
+        marchive << CHNVP_OUT(h);
+        marchive << CHNVP_OUT(end);
+        marchive << CHNVP_OUT(aw);
+        marchive << CHNVP_OUT(av);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -148,10 +148,10 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(h);
-        marchive >> CHNVP(end);
-        marchive >> CHNVP(aw);
-        marchive >> CHNVP(av);
+        marchive >> CHNVP_IN(h);
+        marchive >> CHNVP_IN(end);
+        marchive >> CHNVP_IN(aw);
+        marchive >> CHNVP_IN(av);
     }
 
 };

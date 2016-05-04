@@ -107,15 +107,15 @@ class ChApi ChLinePoly : public ChLine {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(points);
-        marchive << CHNVP(degree);
+        marchive << CHNVP_OUT(points);
+        marchive << CHNVP_OUT(degree);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -127,8 +127,8 @@ class ChApi ChLinePoly : public ChLine {
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(points);
-        marchive >> CHNVP(degree);
+        marchive >> CHNVP_IN(points);
+        marchive >> CHNVP_IN(degree);
     }
 
 

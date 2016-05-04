@@ -78,15 +78,15 @@ class ChApi ChFunction_Mirror : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(fa);
-        marchive << CHNVP(mirror_axis);
+        marchive << CHNVP_OUT(fa);
+        marchive << CHNVP_OUT(mirror_axis);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -98,8 +98,8 @@ class ChApi ChFunction_Mirror : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(fa);
-        marchive >> CHNVP(mirror_axis);
+        marchive >> CHNVP_IN(fa);
+        marchive >> CHNVP_IN(mirror_axis);
     }
 
 };

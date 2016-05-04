@@ -76,14 +76,14 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChTriangleMesh::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(m_triangles);
+        marchive << CHNVP_OUT(m_triangles);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -95,7 +95,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
         // deserialize parent class
         ChTriangleMesh::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(m_triangles);
+        marchive >> CHNVP_IN(m_triangles);
     }
 };
 

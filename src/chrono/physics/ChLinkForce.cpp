@@ -88,20 +88,20 @@ void ChLinkForce::Set_modul_R(ChFunction* m_funct) {
 }
 
 
-void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) const {
 
     // class version number
     marchive.VersionWrite(1);
     // serialize parent class too
 
     // stream out all member data
-    marchive << CHNVP(active);
-    marchive << CHNVP(iforce);
-    marchive << CHNVP(modul_iforce);
-    marchive << CHNVP(K);
-    marchive << CHNVP(modul_K);
-    marchive << CHNVP(R);
-    marchive << CHNVP(modul_R);
+    marchive << CHNVP_OUT(active);
+    marchive << CHNVP_OUT(iforce);
+    marchive << CHNVP_OUT(modul_iforce);
+    marchive << CHNVP_OUT(K);
+    marchive << CHNVP_OUT(modul_K);
+    marchive << CHNVP_OUT(R);
+    marchive << CHNVP_OUT(modul_R);
 }
 
 void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
@@ -112,13 +112,13 @@ void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class too
 
     // stream in all member data
-    marchive >> CHNVP(active);
-    marchive >> CHNVP(iforce);
-    marchive >> CHNVP(modul_iforce);
-    marchive >> CHNVP(K);
-    marchive >> CHNVP(modul_K);
-    marchive >> CHNVP(R);
-    marchive >> CHNVP(modul_R);
+    marchive >> CHNVP_IN(active);
+    marchive >> CHNVP_IN(iforce);
+    marchive >> CHNVP_IN(modul_iforce);
+    marchive >> CHNVP_IN(K);
+    marchive >> CHNVP_IN(modul_K);
+    marchive >> CHNVP_IN(R);
+    marchive >> CHNVP_IN(modul_R);
 }
 
 

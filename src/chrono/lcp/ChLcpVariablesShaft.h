@@ -108,14 +108,14 @@ class ChApi ChLcpVariablesShaft : public ChLcpVariables {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpVariables::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(m_inertia);
+        marchive << CHNVP_OUT(m_inertia);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -127,7 +127,7 @@ class ChApi ChLcpVariablesShaft : public ChLcpVariables {
         // deserialize parent class
         ChLcpVariables::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(m_inertia);
+        marchive >> CHNVP_IN(m_inertia);
         SetInertia(m_inertia);
     }
 };

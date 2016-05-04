@@ -71,7 +71,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           (*ostream) << "\n";
       }
 
-      virtual void out     (ChNameValue<bool> bVal) {
+      virtual void out     (ChNameValueOut<bool> bVal) {
             comma_cr();
             indent();
             if (is_array.top()==false) 
@@ -82,7 +82,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
                 (*ostream) << "false";
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<int> bVal) {
+      virtual void out     (ChNameValueOut<int> bVal) {
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -91,7 +91,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<double> bVal) {
+      virtual void out     (ChNameValueOut<double> bVal) {
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -99,7 +99,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<float> bVal){
+      virtual void out     (ChNameValueOut<float> bVal){
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -107,7 +107,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<char> bVal){
+      virtual void out     (ChNameValueOut<char> bVal){
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -115,7 +115,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << (int)bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<unsigned int> bVal){
+      virtual void out     (ChNameValueOut<unsigned int> bVal){
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -123,7 +123,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<const char*> bVal){
+      virtual void out     (ChNameValueOut<const char*> bVal){
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -131,7 +131,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << "\"" << bVal.value() << "\"";
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<std::string> bVal){
+      virtual void out     (ChNameValueOut<std::string> bVal){
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -139,7 +139,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << "\"" << bVal.value() << "\"";
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<unsigned long> bVal){
+      virtual void out     (ChNameValueOut<unsigned long> bVal){
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -147,7 +147,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<unsigned long long> bVal){
+      virtual void out     (ChNameValueOut<unsigned long long> bVal){
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -155,7 +155,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             (*ostream) << bVal.value();
             ++nitems.top();
       }
-      virtual void out     (ChNameValue<ChEnumMapperBase> bVal) {
+      virtual void out     (ChNameValueOut<ChEnumMapperOutBase> bVal) {
             comma_cr();
             indent();
             if (is_array.top()==false)
@@ -195,7 +195,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValueOut<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
             comma_cr();
             if (is_array.top()==false)
             {
@@ -229,7 +229,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
+      virtual void out_ref_abstract (ChNameValueOut<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -270,7 +270,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           ++nitems.top();
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname)  {
+      virtual void out_ref          (ChNameValueOut<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -365,52 +365,52 @@ class  ChArchiveInJSON : public ChArchiveIn {
           return mval;
       }
 
-      virtual void in     (ChNameValue<bool> bVal) {
+      virtual void in     (ChNameValueIn<bool> bVal) {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
 		    if (!mval->IsBool()) {throw (ChExceptionArchive( "Invalid true/false flag after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = mval->GetBool();
       }
-      virtual void in     (ChNameValue<int> bVal) {
+      virtual void in     (ChNameValueIn<int> bVal) {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
 			if (!mval->IsInt()) {throw (ChExceptionArchive( "Invalid integer number after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = mval->GetInt();
       }
-      virtual void in     (ChNameValue<double> bVal) {
+      virtual void in     (ChNameValueIn<double> bVal) {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
 		    if (!mval->IsNumber()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = mval->GetDouble();
       }
-      virtual void in     (ChNameValue<float> bVal){
+      virtual void in     (ChNameValueIn<float> bVal){
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
 			if (!mval->IsNumber()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = (float)mval->GetDouble();
       }
-      virtual void in     (ChNameValue<char> bVal){
+      virtual void in     (ChNameValueIn<char> bVal){
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
 			if (!mval->IsInt()) {throw (ChExceptionArchive( "Invalid char code after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = (char)mval->GetInt();
       }
-      virtual void in     (ChNameValue<unsigned int> bVal){
+      virtual void in     (ChNameValueIn<unsigned int> bVal){
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
 			if (!mval->IsUint()) {throw (ChExceptionArchive( "Invalid unsigned integer number after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = mval->GetUint();
       }
-      virtual void in     (ChNameValue<std::string> bVal){
+      virtual void in     (ChNameValueIn<std::string> bVal){
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = mval->GetString();
       }
-      virtual void in     (ChNameValue<unsigned long> bVal){
+      virtual void in     (ChNameValueIn<unsigned long> bVal){
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsUint64()) {throw (ChExceptionArchive( "Invalid unsigned long number after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = (unsigned long)mval->GetUint64();
       }
-      virtual void in     (ChNameValue<unsigned long long> bVal){
+      virtual void in     (ChNameValueIn<unsigned long long> bVal){
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsUint64()) {throw (ChExceptionArchive( "Invalid unsigned long long number after '"+std::string(bVal.name())+"'"));}
 			bVal.value() = mval->GetUint64();
       }
-      virtual void in     (ChNameValue<ChEnumMapperBase> bVal) {
+      virtual void in     (ChNameValueIn<ChEnumMapperInBase> bVal) {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
 			std::string mstr = mval->GetString();
@@ -438,7 +438,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
       }
 
         //  for custom c++ objects:
-      virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
+      virtual void in     (ChNameValueIn<ChFunctorArchiveIn> bVal) {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
 
@@ -458,7 +458,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) 
+      virtual void in_ref_abstract (ChNameValueIn<ChFunctorArchiveIn> bVal) 
       {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
@@ -500,7 +500,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->is_array.pop();
       }
 
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
+      virtual void in_ref          (ChNameValueIn<ChFunctorArchiveIn> bVal)
       {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}

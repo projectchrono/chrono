@@ -202,7 +202,7 @@ void ChShaftsGearbox::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsGearbox::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsGearbox::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -211,13 +211,13 @@ void ChShaftsGearbox::ArchiveOUT(ChArchiveOut& marchive)
     ChPhysicsItem::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(r1);
-    marchive << CHNVP(r2);
-    marchive << CHNVP(r3);
-    marchive << CHNVP(shaft_dir);
-    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(body); //***TODO*** serialize with shared ptr
+    marchive << CHNVP_OUT(r1);
+    marchive << CHNVP_OUT(r2);
+    marchive << CHNVP_OUT(r3);
+    marchive << CHNVP_OUT(shaft_dir);
+    //marchive << CHNVP_OUT(shaft1); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP_OUT(shaft2); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP_OUT(body); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -231,13 +231,13 @@ void ChShaftsGearbox::ArchiveIN(ChArchiveIn& marchive)
     ChPhysicsItem::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(r1);
-    marchive >> CHNVP(r2);
-    marchive >> CHNVP(r3);
-    marchive >> CHNVP(shaft_dir);
-    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(body); //***TODO*** serialize with shared ptr
+    marchive >> CHNVP_IN(r1);
+    marchive >> CHNVP_IN(r2);
+    marchive >> CHNVP_IN(r3);
+    marchive >> CHNVP_IN(shaft_dir);
+    //marchive >> CHNVP_IN(shaft1); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP_IN(shaft2); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP_IN(body); //***TODO*** serialize with shared ptr
 } 
 
 

@@ -740,7 +740,7 @@ public:
     CH_ENUM_MAPPER_END(eCh_shaft_mode);
 };
 
-void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -749,19 +749,19 @@ void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(rot_funct);
-    marchive << CHNVP(spe_funct);
-    marchive << CHNVP(tor_funct);
-    marchive << CHNVP(torque_w);
-    marchive << CHNVP(learn);
-    marchive << CHNVP(impose_reducer);
-    marchive << CHNVP(mot_tau);
-    marchive << CHNVP(mot_eta);
-    marchive << CHNVP(mot_inertia);
+    marchive << CHNVP_OUT(rot_funct);
+    marchive << CHNVP_OUT(spe_funct);
+    marchive << CHNVP_OUT(tor_funct);
+    marchive << CHNVP_OUT(torque_w);
+    marchive << CHNVP_OUT(learn);
+    marchive << CHNVP_OUT(impose_reducer);
+    marchive << CHNVP_OUT(mot_tau);
+    marchive << CHNVP_OUT(mot_eta);
+    marchive << CHNVP_OUT(mot_inertia);
     my_enum_mappers::eCh_eng_mode_mapper mengmapper;
-    marchive << CHNVP(mengmapper(eng_mode),"engine_mode");
+    marchive << CHNVP_OUT(mengmapper.out(eng_mode),"engine_mode");
     my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
-    marchive << CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
+    marchive << CHNVP_OUT(mshaftmapper.out(shaft_mode),"shaft_mode");
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -775,19 +775,19 @@ void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive)
     ChLinkLock::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(rot_funct);
-    marchive >> CHNVP(spe_funct);
-    marchive >> CHNVP(tor_funct);
-    marchive >> CHNVP(torque_w);
-    marchive >> CHNVP(learn);
-    marchive >> CHNVP(impose_reducer);
-    marchive >> CHNVP(mot_tau);
-    marchive >> CHNVP(mot_eta);
-    marchive >> CHNVP(mot_inertia);
+    marchive >> CHNVP_IN(rot_funct);
+    marchive >> CHNVP_IN(spe_funct);
+    marchive >> CHNVP_IN(tor_funct);
+    marchive >> CHNVP_IN(torque_w);
+    marchive >> CHNVP_IN(learn);
+    marchive >> CHNVP_IN(impose_reducer);
+    marchive >> CHNVP_IN(mot_tau);
+    marchive >> CHNVP_IN(mot_eta);
+    marchive >> CHNVP_IN(mot_inertia);
     my_enum_mappers::eCh_eng_mode_mapper mengmapper;
-    marchive >> CHNVP(mengmapper(eng_mode),"engine_mode");
+    marchive >> CHNVP_IN(mengmapper.in(eng_mode),"engine_mode");
     my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
-    marchive >> CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
+    marchive >> CHNVP_IN(mshaftmapper.in(shaft_mode),"shaft_mode");
 }
 
 

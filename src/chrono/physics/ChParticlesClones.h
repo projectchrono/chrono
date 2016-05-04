@@ -189,7 +189,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     //
@@ -455,7 +455,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 

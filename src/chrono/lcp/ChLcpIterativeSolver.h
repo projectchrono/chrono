@@ -181,19 +181,19 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChLcpSolver::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(max_iterations);
-        marchive << CHNVP(tot_iterations); 
-        marchive << CHNVP(warm_start);
-        marchive << CHNVP(tolerance);
-        marchive << CHNVP(omega);
-        marchive << CHNVP(shlambda);
+        marchive << CHNVP_OUT(max_iterations);
+        marchive << CHNVP_OUT(tot_iterations); 
+        marchive << CHNVP_OUT(warm_start);
+        marchive << CHNVP_OUT(tolerance);
+        marchive << CHNVP_OUT(omega);
+        marchive << CHNVP_OUT(shlambda);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -205,12 +205,12 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
         // deserialize parent class
         ChLcpSolver::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(max_iterations);
-        marchive >> CHNVP(tot_iterations); 
-        marchive >> CHNVP(warm_start);
-        marchive >> CHNVP(tolerance);
-        marchive >> CHNVP(omega);
-        marchive >> CHNVP(shlambda);
+        marchive >> CHNVP_IN(max_iterations);
+        marchive >> CHNVP_IN(tot_iterations); 
+        marchive >> CHNVP_IN(warm_start);
+        marchive >> CHNVP_IN(tolerance);
+        marchive >> CHNVP_IN(omega);
+        marchive >> CHNVP_IN(shlambda);
     }
 
 };

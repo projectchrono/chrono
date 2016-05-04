@@ -33,7 +33,7 @@ ChVector<> ChContactContainerBase::GetContactableTorque(ChContactable* contactab
     return ChVector<>(0);
 }
 
-void ChContactContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContactContainerBase::ArchiveOUT(ChArchiveOut& marchive) const {
     // version number
     marchive.VersionWrite(1);
     // serialize parent class

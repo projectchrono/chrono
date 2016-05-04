@@ -198,7 +198,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -206,8 +206,8 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
         // serialize parent class
         ChNodeXYZ::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(X0);
-        marchive << CHNVP(Force);
+        marchive << CHNVP_OUT(X0);
+        marchive << CHNVP_OUT(Force);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -220,8 +220,8 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
         // serialize parent class
         ChNodeXYZ::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(X0);
-        marchive >> CHNVP(Force);
+        marchive >> CHNVP_IN(X0);
+        marchive >> CHNVP_IN(Force);
     }
 
   protected:

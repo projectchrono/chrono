@@ -823,7 +823,7 @@ bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
     return true;
 }
 
-void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
+void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -851,7 +851,7 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
         delete serializer;
     }
 
-    marchive << CHNVP(serialized, "bullet_serialized_bytes");
+    marchive << CHNVP_OUT(serialized, "bullet_serialized_bytes");
 }
 
 void ChModelBullet::ArchiveIN(ChArchiveIn& marchive) 
@@ -868,7 +868,7 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
 
     std::vector<char> serialized;
 
-    marchive >> CHNVP(serialized, "bullet_serialized_bytes");
+    marchive >> CHNVP_IN(serialized, "bullet_serialized_bytes");
 
     if(serialized.size()) {
         // convert to char array (maybe just cast from std::vector data ptr might be sufficient)

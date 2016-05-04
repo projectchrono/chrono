@@ -163,7 +163,7 @@ ChPhysicsItem* ChAparticle::GetPhysicsItem()
     return container;
 }
 
-void ChAparticle::ArchiveOUT(ChArchiveOut& marchive)
+void ChAparticle::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -172,10 +172,10 @@ void ChAparticle::ArchiveOUT(ChArchiveOut& marchive)
     ChParticleBase::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //marchive << CHNVP(container);
-    marchive << CHNVP(collision_model);
-    marchive << CHNVP(UserForce);
-    marchive << CHNVP(UserTorque);
+    //marchive << CHNVP_OUT(container);
+    marchive << CHNVP_OUT(collision_model);
+    marchive << CHNVP_OUT(UserForce);
+    marchive << CHNVP_OUT(UserTorque);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -189,9 +189,9 @@ void ChAparticle::ArchiveIN(ChArchiveIn& marchive)
     ChParticleBase::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(collision_model);
-    marchive >> CHNVP(UserForce);
-    marchive >> CHNVP(UserTorque);
+    marchive >> CHNVP_IN(collision_model);
+    marchive >> CHNVP_IN(UserForce);
+    marchive >> CHNVP_IN(UserTorque);
 }
 
 
@@ -664,7 +664,7 @@ void ChParticlesClones::UpdateParticleCollisionModels() {
 
 //////// FILE I/O
 
-void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive)
+void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -673,19 +673,19 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive)
     ChIndexedParticles::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(particles);
-    //marchive << CHNVP(particle_mass); //***TODO***
-    marchive << CHNVP(particle_collision_model);
-    marchive << CHNVP(matsurface);
-    marchive << CHNVP(do_collide);
-    marchive << CHNVP(do_limit_speed);
-    marchive << CHNVP(do_sleep);
-    marchive << CHNVP(max_speed);
-    marchive << CHNVP(max_wvel);
-    marchive << CHNVP(sleep_time);
-    marchive << CHNVP(sleep_minspeed);
-    marchive << CHNVP(sleep_minwvel);
-    marchive << CHNVP(sleep_starttime);
+    marchive << CHNVP_OUT(particles);
+    //marchive << CHNVP_OUT(particle_mass); //***TODO***
+    marchive << CHNVP_OUT(particle_collision_model);
+    marchive << CHNVP_OUT(matsurface);
+    marchive << CHNVP_OUT(do_collide);
+    marchive << CHNVP_OUT(do_limit_speed);
+    marchive << CHNVP_OUT(do_sleep);
+    marchive << CHNVP_OUT(max_speed);
+    marchive << CHNVP_OUT(max_wvel);
+    marchive << CHNVP_OUT(sleep_time);
+    marchive << CHNVP_OUT(sleep_minspeed);
+    marchive << CHNVP_OUT(sleep_minwvel);
+    marchive << CHNVP_OUT(sleep_starttime);
 }
 
 void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) 
@@ -701,19 +701,19 @@ void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive)
 
     RemoveCollisionModelsFromSystem();
 
-    marchive >> CHNVP(particles);
-    //marchive >> CHNVP(particle_mass); //***TODO***
-    marchive >> CHNVP(particle_collision_model);
-    marchive >> CHNVP(matsurface);
-    marchive >> CHNVP(do_collide);
-    marchive >> CHNVP(do_limit_speed);
-    marchive >> CHNVP(do_sleep);
-    marchive >> CHNVP(max_speed);
-    marchive >> CHNVP(max_wvel);
-    marchive >> CHNVP(sleep_time);
-    marchive >> CHNVP(sleep_minspeed);
-    marchive >> CHNVP(sleep_minwvel);
-    marchive >> CHNVP(sleep_starttime);
+    marchive >> CHNVP_IN(particles);
+    //marchive >> CHNVP_IN(particle_mass); //***TODO***
+    marchive >> CHNVP_IN(particle_collision_model);
+    marchive >> CHNVP_IN(matsurface);
+    marchive >> CHNVP_IN(do_collide);
+    marchive >> CHNVP_IN(do_limit_speed);
+    marchive >> CHNVP_IN(do_sleep);
+    marchive >> CHNVP_IN(max_speed);
+    marchive >> CHNVP_IN(max_wvel);
+    marchive >> CHNVP_IN(sleep_time);
+    marchive >> CHNVP_IN(sleep_minspeed);
+    marchive >> CHNVP_IN(sleep_minwvel);
+    marchive >> CHNVP_IN(sleep_starttime);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         this->particles[j]->SetContainer(this);

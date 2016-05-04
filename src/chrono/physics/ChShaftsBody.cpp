@@ -185,7 +185,7 @@ void ChShaftsBody::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -194,9 +194,9 @@ void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive)
     ChPhysicsItem::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(shaft_dir);
-    //marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    //marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    marchive << CHNVP_OUT(shaft_dir);
+    //marchive << CHNVP_OUT(shaft);  //***TODO*** serialize, with shared ptr
+    //marchive << CHNVP_OUT(body); //***TODO*** serialize, with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -210,9 +210,9 @@ void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive)
     ChPhysicsItem::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(shaft_dir);
-    //marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    //marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    marchive >> CHNVP_IN(shaft_dir);
+    //marchive >> CHNVP_IN(shaft);  //***TODO*** serialize, with shared ptr
+    //marchive >> CHNVP_IN(body); //***TODO*** serialize, with shared ptr
 }
 
 

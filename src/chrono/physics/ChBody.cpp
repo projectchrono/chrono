@@ -885,7 +885,7 @@ ChVector<> ChBody::GetContactTorque() {
 
 //////// FILE I/O
 
-void ChBody::ArchiveOUT(ChArchiveOut& marchive)
+void ChBody::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -898,58 +898,58 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive)
     // serialize all member data:
     
 
-    marchive << CHNVP(bflag);
+    marchive << CHNVP_OUT(bflag);
     bool mflag; // more readable flag output in case of ASCII in/out
     mflag = BFlagGet(BF_FIXED);
-    marchive << CHNVP(mflag,"is_fixed");
+    marchive << CHNVP_OUT(mflag,"is_fixed");
     mflag = BFlagGet(BF_COLLIDE);
-    marchive << CHNVP(mflag,"collide");
+    marchive << CHNVP_OUT(mflag,"collide");
     mflag = BFlagGet(BF_LIMITSPEED);
-    marchive << CHNVP(mflag,"limit_speed");
+    marchive << CHNVP_OUT(mflag,"limit_speed");
     mflag = BFlagGet(BF_NOGYROTORQUE);
-    marchive << CHNVP(mflag,"no_gyro_torque");
+    marchive << CHNVP_OUT(mflag,"no_gyro_torque");
     mflag = BFlagGet(BF_USESLEEPING);
-    marchive << CHNVP(mflag,"use_sleeping");
+    marchive << CHNVP_OUT(mflag,"use_sleeping");
     mflag = BFlagGet(BF_SLEEPING);
-    marchive << CHNVP(mflag,"is_sleeping");
+    marchive << CHNVP_OUT(mflag,"is_sleeping");
 
-    //marchive << CHNVP(marklist);
+    //marchive << CHNVP_OUT(marklist);
     // do rather a custom array save:
     marchive.out_array_pre("markers", marklist.size(), "ChMarker");
     for (int i = 0; i < marklist.size(); i++) {
-        marchive << CHNVP(marklist[i],"");
+        marchive << CHNVP_OUT(marklist[i],"");
         marchive.out_array_between(marklist.size(), "markers");
     }
     marchive.out_array_end(marklist.size(), "markers");
 
-    //marchive << CHNVP(forcelist);
+    //marchive << CHNVP_OUT(forcelist);
     // do rather a custom array save:
     marchive.out_array_pre("forces", forcelist.size(), "ChForce");
     for (int i = 0; i < forcelist.size(); i++) {
-        marchive << CHNVP(forcelist[i],"");
+        marchive << CHNVP_OUT(forcelist[i],"");
         marchive.out_array_between(forcelist.size(), "forces");
     }
     marchive.out_array_end(forcelist.size(), "forces");
 
-    marchive << CHNVP(body_id);
-    marchive << CHNVP(collision_model);
-    marchive << CHNVP(gyro);
-    marchive << CHNVP(Xforce);
-    marchive << CHNVP(Xtorque);
-    //marchive << CHNVP(Force_acc); // not useful in serialization
-    //marchive << CHNVP(Torque_acc);// not useful in serialization
-    //marchive << CHNVP(Scr_force); // not useful in serialization
-    //marchive << CHNVP(Scr_torque);// not useful in serialization
-    marchive << CHNVP(matsurface);
-    //marchive << CHNVP(last_coll_pos);// not useful in serialization
-    marchive << CHNVP(density);
-    marchive << CHNVP(variables);
-    marchive << CHNVP(max_speed);
-    marchive << CHNVP(max_wvel);
-    marchive << CHNVP(sleep_time);
-    marchive << CHNVP(sleep_minspeed);
-    marchive << CHNVP(sleep_minwvel);
-    marchive << CHNVP(sleep_starttime);
+    marchive << CHNVP_OUT(body_id);
+    marchive << CHNVP_OUT(collision_model);
+    marchive << CHNVP_OUT(gyro);
+    marchive << CHNVP_OUT(Xforce);
+    marchive << CHNVP_OUT(Xtorque);
+    //marchive << CHNVP_OUT(Force_acc); // not useful in serialization
+    //marchive << CHNVP_OUT(Torque_acc);// not useful in serialization
+    //marchive << CHNVP_OUT(Scr_force); // not useful in serialization
+    //marchive << CHNVP_OUT(Scr_torque);// not useful in serialization
+    marchive << CHNVP_OUT(matsurface);
+    //marchive << CHNVP_OUT(last_coll_pos);// not useful in serialization
+    marchive << CHNVP_OUT(density);
+    marchive << CHNVP_OUT(variables);
+    marchive << CHNVP_OUT(max_speed);
+    marchive << CHNVP_OUT(max_wvel);
+    marchive << CHNVP_OUT(sleep_time);
+    marchive << CHNVP_OUT(sleep_minspeed);
+    marchive << CHNVP_OUT(sleep_minwvel);
+    marchive << CHNVP_OUT(sleep_starttime);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -966,67 +966,67 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
 
     // stream in all member data:
 
-    marchive >> CHNVP(bflag);
+    marchive >> CHNVP_IN(bflag);
     bool mflag; // more readable flag output in case of ASCII in/out
-    marchive >> CHNVP(mflag,"is_fixed");
+    marchive >> CHNVP_IN(mflag,"is_fixed");
     BFlagSet(BF_FIXED,mflag);
-    marchive >> CHNVP(mflag,"collide");
+    marchive >> CHNVP_IN(mflag,"collide");
     BFlagSet(BF_COLLIDE,mflag);
-    marchive >> CHNVP(mflag,"limit_speed");
+    marchive >> CHNVP_IN(mflag,"limit_speed");
     BFlagSet(BF_LIMITSPEED,mflag);
-    marchive >> CHNVP(mflag,"no_gyro_torque");
+    marchive >> CHNVP_IN(mflag,"no_gyro_torque");
     BFlagSet(BF_NOGYROTORQUE,mflag);
-    marchive >> CHNVP(mflag,"use_sleeping");
+    marchive >> CHNVP_IN(mflag,"use_sleeping");
     BFlagSet(BF_USESLEEPING,mflag);
-    marchive >> CHNVP(mflag,"is_sleeping");
+    marchive >> CHNVP_IN(mflag,"is_sleeping");
     BFlagSet(BF_SLEEPING,mflag);
 
-    //marchive >> CHNVP(marklist);
+    //marchive >> CHNVP_IN(marklist);
     // do rather a custom array load:
     this->RemoveAllMarkers();
     size_t nummarkers;
     marchive.in_array_pre("markers", nummarkers);
     for (int i = 0; i < nummarkers; i++) {
         std::shared_ptr<ChMarker> a_marker;
-        marchive >> CHNVP(a_marker,"");
+        marchive >> CHNVP_IN(a_marker,"");
         this->AddMarker(a_marker);
         marchive.in_array_between("markers");
     }
     marchive.in_array_end("markers");
 
-    //marchive >> CHNVP(forcelist);
+    //marchive >> CHNVP_IN(forcelist);
     // do rather a custom array load:
     this->RemoveAllForces();
     size_t numforces;
     marchive.in_array_pre("forces", numforces);
     for (int i = 0; i < numforces; i++) {
         std::shared_ptr<ChForce> a_force;
-        marchive >> CHNVP(a_force,"");
+        marchive >> CHNVP_IN(a_force,"");
         this->AddForce(a_force);
         marchive.in_array_between("forces");
     }
     marchive.in_array_end("forces");
 
-    marchive >> CHNVP(body_id);
-    marchive >> CHNVP(collision_model);
+    marchive >> CHNVP_IN(body_id);
+    marchive >> CHNVP_IN(collision_model);
      collision_model->SetContactable(this);
-    marchive >> CHNVP(gyro);
-    marchive >> CHNVP(Xforce);
-    marchive >> CHNVP(Xtorque);
-    //marchive << CHNVP(Force_acc); // not useful in serialization
-    //marchive << CHNVP(Torque_acc);// not useful in serialization
-    //marchive << CHNVP(Scr_force); // not useful in serialization
-    //marchive << CHNVP(Scr_torque);// not useful in serialization
-    marchive >> CHNVP(matsurface);
-    //marchive << CHNVP(last_coll_pos);// not useful in serialization
-    marchive >> CHNVP(density);
-    marchive >> CHNVP(variables);
-    marchive >> CHNVP(max_speed);
-    marchive >> CHNVP(max_wvel);
-    marchive >> CHNVP(sleep_time);
-    marchive >> CHNVP(sleep_minspeed);
-    marchive >> CHNVP(sleep_minwvel);
-    marchive >> CHNVP(sleep_starttime);
+    marchive >> CHNVP_IN(gyro);
+    marchive >> CHNVP_IN(Xforce);
+    marchive >> CHNVP_IN(Xtorque);
+    //marchive << CHNVP_OUT(Force_acc); // not useful in serialization
+    //marchive << CHNVP_OUT(Torque_acc);// not useful in serialization
+    //marchive << CHNVP_OUT(Scr_force); // not useful in serialization
+    //marchive << CHNVP_OUT(Scr_torque);// not useful in serialization
+    marchive >> CHNVP_IN(matsurface);
+    //marchive << CHNVP_OUT(last_coll_pos);// not useful in serialization
+    marchive >> CHNVP_IN(density);
+    marchive >> CHNVP_IN(variables);
+    marchive >> CHNVP_IN(max_speed);
+    marchive >> CHNVP_IN(max_wvel);
+    marchive >> CHNVP_IN(sleep_time);
+    marchive >> CHNVP_IN(sleep_minspeed);
+    marchive >> CHNVP_IN(sleep_minwvel);
+    marchive >> CHNVP_IN(sleep_starttime);
 }
 
 

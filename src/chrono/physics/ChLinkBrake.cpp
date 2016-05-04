@@ -158,7 +158,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
 // FILE I/O
 
 
-void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -167,9 +167,9 @@ void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(brake_torque);
-    marchive << CHNVP(stick_ratio);
-    marchive << CHNVP(brake_mode);
+    marchive << CHNVP_OUT(brake_torque);
+    marchive << CHNVP_OUT(stick_ratio);
+    marchive << CHNVP_OUT(brake_mode);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -183,9 +183,9 @@ void ChLinkBrake::ArchiveIN(ChArchiveIn& marchive)
     ChLinkLock::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(brake_torque);
-    marchive >> CHNVP(stick_ratio);
-    marchive >> CHNVP(brake_mode);
+    marchive >> CHNVP_IN(brake_torque);
+    marchive >> CHNVP_IN(stick_ratio);
+    marchive >> CHNVP_IN(brake_mode);
 }
 
 ///////////////////////////////////////////////////////////////

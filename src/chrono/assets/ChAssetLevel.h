@@ -92,15 +92,15 @@ class ChApi ChAssetLevel : public ChAsset {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChAsset::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(levelframe);
-        marchive << CHNVP(assets);
+        marchive << CHNVP_OUT(levelframe);
+        marchive << CHNVP_OUT(assets);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -112,8 +112,8 @@ class ChApi ChAssetLevel : public ChAsset {
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(levelframe);
-        marchive >> CHNVP(assets);
+        marchive >> CHNVP_IN(levelframe);
+        marchive >> CHNVP_IN(assets);
     }
 };
 

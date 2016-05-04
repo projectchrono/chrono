@@ -118,21 +118,21 @@ class ChApi ChGlyphs : public ChVisualization {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(points);
-        marchive << CHNVP(colors);
-        marchive << CHNVP(vectors);
-        marchive << CHNVP(rotations);
+        marchive << CHNVP_OUT(points);
+        marchive << CHNVP_OUT(colors);
+        marchive << CHNVP_OUT(vectors);
+        marchive << CHNVP_OUT(rotations);
         eCh_GlyphType_mapper mmapper;
-        marchive << CHNVP(mmapper(draw_mode),"draw_mode");
-        marchive << CHNVP(size);
-        marchive << CHNVP(zbuffer_hide);
+        marchive << CHNVP_OUT(mmapper.out(draw_mode),"draw_mode");
+        marchive << CHNVP_OUT(size);
+        marchive << CHNVP_OUT(zbuffer_hide);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -144,14 +144,14 @@ class ChApi ChGlyphs : public ChVisualization {
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(points);
-        marchive >> CHNVP(colors);
-        marchive >> CHNVP(vectors);
-        marchive >> CHNVP(rotations);
+        marchive >> CHNVP_IN(points);
+        marchive >> CHNVP_IN(colors);
+        marchive >> CHNVP_IN(vectors);
+        marchive >> CHNVP_IN(rotations);
         eCh_GlyphType_mapper mmapper;
-        marchive >> CHNVP(mmapper(draw_mode),"draw_mode");
-        marchive >> CHNVP(size);
-        marchive >> CHNVP(zbuffer_hide);
+        marchive >> CHNVP_IN(mmapper.in(draw_mode),"draw_mode");
+        marchive >> CHNVP_IN(size);
+        marchive >> CHNVP_IN(zbuffer_hide);
     }
 };
 

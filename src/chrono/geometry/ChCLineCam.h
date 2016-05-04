@@ -197,7 +197,7 @@ class ChApi ChLineCam : public ChLine {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
@@ -206,19 +206,19 @@ class ChApi ChLineCam : public ChLine {
         // serialize all member data:
 
         eChCamType_mapper mmapper;
-        marchive << CHNVP(mmapper(type),"type");
-        marchive << CHNVP(law);
-        marchive << CHNVP(phase);
-        marchive << CHNVP(Rb);
-        marchive << CHNVP(Rr);
-        marchive << CHNVP(p);
-        marchive << CHNVP(d);
-        marchive << CHNVP(b0);
-        marchive << CHNVP(e);
-        marchive << CHNVP(s);
-        marchive << CHNVP(negative);
-        marchive << CHNVP(internal);
-        marchive << CHNVP(center);
+        marchive << CHNVP_OUT(mmapper.out(type),"type");
+        marchive << CHNVP_OUT(law);
+        marchive << CHNVP_OUT(phase);
+        marchive << CHNVP_OUT(Rb);
+        marchive << CHNVP_OUT(Rr);
+        marchive << CHNVP_OUT(p);
+        marchive << CHNVP_OUT(d);
+        marchive << CHNVP_OUT(b0);
+        marchive << CHNVP_OUT(e);
+        marchive << CHNVP_OUT(s);
+        marchive << CHNVP_OUT(negative);
+        marchive << CHNVP_OUT(internal);
+        marchive << CHNVP_OUT(center);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -231,19 +231,19 @@ class ChApi ChLineCam : public ChLine {
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
         eChCamType_mapper mmapper;
-        marchive >> CHNVP(mmapper(type),"type");
-        marchive >> CHNVP(law);
-        marchive >> CHNVP(phase);
-        marchive >> CHNVP(Rb);
-        marchive >> CHNVP(Rr);
-        marchive >> CHNVP(p);
-        marchive >> CHNVP(d);
-        marchive >> CHNVP(b0);
-        marchive >> CHNVP(e);
-        marchive >> CHNVP(s);
-        marchive >> CHNVP(negative);
-        marchive >> CHNVP(internal);
-        marchive >> CHNVP(center);
+        marchive >> CHNVP_IN(mmapper.in(type),"type");
+        marchive >> CHNVP_IN(law);
+        marchive >> CHNVP_IN(phase);
+        marchive >> CHNVP_IN(Rb);
+        marchive >> CHNVP_IN(Rr);
+        marchive >> CHNVP_IN(p);
+        marchive >> CHNVP_IN(d);
+        marchive >> CHNVP_IN(b0);
+        marchive >> CHNVP_IN(e);
+        marchive >> CHNVP_IN(s);
+        marchive >> CHNVP_IN(negative);
+        marchive >> CHNVP_IN(internal);
+        marchive >> CHNVP_IN(center);
     }
 
 };

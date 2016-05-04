@@ -168,7 +168,7 @@ void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
 //////// FILE I/O
 
 
-void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive)
+void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -177,11 +177,11 @@ void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive)
     ChPhysicsItem::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(K);
-    marchive << CHNVP(T);
-    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+    marchive << CHNVP_OUT(K);
+    marchive << CHNVP_OUT(T);
+    //marchive << CHNVP_OUT(shaft1); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP_OUT(shaft2); //***TODO*** serialize with shared ptr
+    //marchive << CHNVP_OUT(shaft_stator); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -195,11 +195,11 @@ void ChShaftsTorqueConverter::ArchiveIN(ChArchiveIn& marchive)
     ChPhysicsItem::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(K);
-    marchive >> CHNVP(T);
-    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+    marchive >> CHNVP_IN(K);
+    marchive >> CHNVP_IN(T);
+    //marchive >> CHNVP_IN(shaft1); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP_IN(shaft2); //***TODO*** serialize with shared ptr
+    //marchive >> CHNVP_IN(shaft_stator); //***TODO*** serialize with shared ptr
 } 
 
 

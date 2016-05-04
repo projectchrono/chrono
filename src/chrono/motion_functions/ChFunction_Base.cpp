@@ -196,7 +196,7 @@ int ChFunction::OptVariableCount() {
 
 ////////////
 
-void ChFunction::ArchiveOUT(ChArchiveOut& marchive)
+void ChFunction::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);

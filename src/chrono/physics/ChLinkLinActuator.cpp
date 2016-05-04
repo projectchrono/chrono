@@ -200,7 +200,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 }
 
 
-void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -209,15 +209,15 @@ void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(learn);
-    marchive << CHNVP(learn_torque_rotation);
-    marchive << CHNVP(offset);
-    marchive << CHNVP(dist_funct);
-    marchive << CHNVP(mot_tau);
-    marchive << CHNVP(mot_eta);
-    marchive << CHNVP(mot_inertia);
-    marchive << CHNVP(mot_rot);
-    marchive << CHNVP(mot_torque);
+    marchive << CHNVP_OUT(learn);
+    marchive << CHNVP_OUT(learn_torque_rotation);
+    marchive << CHNVP_OUT(offset);
+    marchive << CHNVP_OUT(dist_funct);
+    marchive << CHNVP_OUT(mot_tau);
+    marchive << CHNVP_OUT(mot_eta);
+    marchive << CHNVP_OUT(mot_inertia);
+    marchive << CHNVP_OUT(mot_rot);
+    marchive << CHNVP_OUT(mot_torque);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -231,15 +231,15 @@ void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive)
     ChLinkLock::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(learn);
-    marchive >> CHNVP(learn_torque_rotation);
-    marchive >> CHNVP(offset);
-    marchive >> CHNVP(dist_funct);
-    marchive >> CHNVP(mot_tau);
-    marchive >> CHNVP(mot_eta);
-    marchive >> CHNVP(mot_inertia);
-    marchive >> CHNVP(mot_rot);
-    marchive >> CHNVP(mot_torque);
+    marchive >> CHNVP_IN(learn);
+    marchive >> CHNVP_IN(learn_torque_rotation);
+    marchive >> CHNVP_IN(offset);
+    marchive >> CHNVP_IN(dist_funct);
+    marchive >> CHNVP_IN(mot_tau);
+    marchive >> CHNVP_IN(mot_eta);
+    marchive >> CHNVP_IN(mot_inertia);
+    marchive >> CHNVP_IN(mot_rot);
+    marchive >> CHNVP_IN(mot_torque);
 }
 
 

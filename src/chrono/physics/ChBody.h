@@ -151,27 +151,27 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Sets the 'fixed' state of the body. If true, it does not move
     /// respect to the absolute world, despite constraints, forces, etc.
     void SetBodyFixed(bool mev);
-    bool GetBodyFixed() { return BFlagGet(BF_FIXED); }
+    bool GetBodyFixed() const { return BFlagGet(BF_FIXED); }
 
     /// If true, the normal restitution coefficient is evaluated
     /// from painted material channel.
     void SetEvalContactCn(bool mev) { BFlagSet(BF_EVAL_CONTACT_CN, mev); }
-    bool GetEvalContactCn() { return BFlagGet(BF_EVAL_CONTACT_CN); }
+    bool GetEvalContactCn() const { return BFlagGet(BF_EVAL_CONTACT_CN); }
 
     /// If true, the tangential restitution coefficient is evaluated
     /// from painted material channel.
     void SetEvalContactCt(bool mev) { BFlagSet(BF_EVAL_CONTACT_CT, mev); }
-    bool GetEvalContactCt() { return BFlagGet(BF_EVAL_CONTACT_CT); }
+    bool GetEvalContactCt() const { return BFlagGet(BF_EVAL_CONTACT_CT); }
 
     /// If true, the kinetic friction coefficient is evaluated
     /// from painted material channel.
     void SetEvalContactKf(bool mev) { BFlagSet(BF_EVAL_CONTACT_KF, mev); }
-    bool GetEvalContactKf() { return BFlagGet(BF_EVAL_CONTACT_KF); }
+    bool GetEvalContactKf() const { return BFlagGet(BF_EVAL_CONTACT_KF); }
 
     /// If true, the static friction coefficient is evaluated
     /// from painted material channel.
     void SetEvalContactSf(bool mev) { BFlagSet(BF_EVAL_CONTACT_SF, mev); }
-    bool GetEvalContactSf() { return BFlagGet(BF_EVAL_CONTACT_SF); }
+    bool GetEvalContactSf() const { return BFlagGet(BF_EVAL_CONTACT_SF); }
 
     /// Enable/disable the collision for this rigid body.
     /// (After setting ON, you may need RecomputeCollisionModel()
@@ -182,14 +182,14 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     /// Show collision mesh in 3D views.
     void SetShowCollisionMesh(bool mcoll) { BFlagSet(BF_SHOW_COLLMESH, mcoll); }
-    bool GetShowCollisionMesh() { return BFlagGet(BF_SHOW_COLLMESH); }
+    bool GetShowCollisionMesh() const { return BFlagGet(BF_SHOW_COLLMESH); }
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// The realism is limited, but the simulation is more stable.
     void SetLimitSpeed(bool mlimit) { BFlagSet(BF_LIMITSPEED, mlimit); }
-    bool GetLimitSpeed() { return BFlagGet(BF_LIMITSPEED); }
+    bool GetLimitSpeed() const { return BFlagGet(BF_LIMITSPEED); }
 
     /// Trick. Deactivate the gyroscopic torque (quadratic term).
     /// This is useful in virtual reality and real-time
@@ -197,18 +197,18 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// tensors (ex thin cylinders) might cause the integration to diverge quickly.
     /// The realism is limited, but the simulation is more stable.
     void SetNoGyroTorque(bool mnogyro) { BFlagSet(BF_NOGYROTORQUE, mnogyro); }
-    bool GetNoGyroTorque() { return BFlagGet(BF_NOGYROTORQUE); }
+    bool GetNoGyroTorque() const { return BFlagGet(BF_NOGYROTORQUE); }
 
     /// Trick. If use sleeping= true, bodies which stay in same place
     /// for too long time will be deactivated, for optimization.
     /// The realism is limited, but the simulation is faster.
     void SetUseSleeping(bool ms) { BFlagSet(BF_USESLEEPING, ms); }
-    bool GetUseSleeping() { return BFlagGet(BF_USESLEEPING); }
+    bool GetUseSleeping() const { return BFlagGet(BF_USESLEEPING); }
 
     /// Force the body in sleeping mode or not (usually this state change is not
     /// handled by users, anyway, because it is mostly automatic).
     void SetSleeping(bool ms) { BFlagSet(BF_SLEEPING, ms); }
-    bool GetSleeping() { return BFlagGet(BF_SLEEPING); }
+    bool GetSleeping() const { return BFlagGet(BF_SLEEPING); }
 
     /// Test if a body could go in sleeping state if requirements are satisfied.
     /// Return true if state could be changed from no sleep to sleep. 
@@ -216,11 +216,11 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     /// Tell if the body is active, i.e. it is neither fixed to ground nor
     /// it is in sleep mode.
-    bool IsActive() { return !BFlagGet(BF_SLEEPING | BF_FIXED); }
+    bool IsActive() const { return !BFlagGet(BF_SLEEPING | BF_FIXED); }
     /// Set the body identifier - HM
     void SetId(int identifier) { body_id = identifier; }
     /// Set the body identifier - HM
-    unsigned int GetId() { return body_id; }
+    unsigned int GetId() const { return body_id; }
 
     //
     // FUNCTIONS
@@ -581,7 +581,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     }
     void BFlagSetON(int mask) { bflag |= mask; }
     void BFlagSetOFF(int mask) { bflag &= ~mask; }
-    bool BFlagGet(int mask) { return (bflag & mask) != 0; };
+    bool BFlagGet(int mask) const { return (bflag & mask) != 0; };
     void BFlagSet(int mask, bool state) {
         if (state)
             bflag |= mask;
@@ -811,7 +811,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;

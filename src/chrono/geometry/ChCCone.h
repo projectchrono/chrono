@@ -97,15 +97,15 @@ class ChApi ChCone : public ChGeometry {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
+        marchive << CHNVP_OUT(center);
+        marchive << CHNVP_OUT(rad);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -117,8 +117,8 @@ class ChApi ChCone : public ChGeometry {
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
+        marchive >> CHNVP_IN(center);
+        marchive >> CHNVP_IN(rad);
     }
 };
 

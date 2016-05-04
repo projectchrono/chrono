@@ -117,18 +117,18 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(values);
-        marchive << CHNVP(end_x);
-        marchive << CHNVP(dx);
-        marchive << CHNVP(max_amount);
-        marchive << CHNVP(amount);
+        marchive << CHNVP_OUT(values);
+        marchive << CHNVP_OUT(end_x);
+        marchive << CHNVP_OUT(dx);
+        marchive << CHNVP_OUT(max_amount);
+        marchive << CHNVP_OUT(amount);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -140,11 +140,11 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(values);
-        marchive >> CHNVP(end_x);
-        marchive >> CHNVP(dx);
-        marchive >> CHNVP(max_amount);
-        marchive >> CHNVP(amount);
+        marchive >> CHNVP_IN(values);
+        marchive >> CHNVP_IN(end_x);
+        marchive >> CHNVP_IN(dx);
+        marchive >> CHNVP_IN(max_amount);
+        marchive >> CHNVP_IN(amount);
     }
 
 

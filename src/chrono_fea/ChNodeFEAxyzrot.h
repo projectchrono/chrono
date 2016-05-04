@@ -276,7 +276,7 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -284,9 +284,9 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
         // serialize parent class
         ChBodyFrame::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(X0);
-        marchive << CHNVP(Force);
-        marchive << CHNVP(Torque);
+        marchive << CHNVP_OUT(X0);
+        marchive << CHNVP_OUT(Force);
+        marchive << CHNVP_OUT(Torque);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -299,9 +299,9 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
         // serialize parent class
         ChBodyFrame::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(X0);
-        marchive >> CHNVP(Force);
-        marchive >> CHNVP(Torque);
+        marchive >> CHNVP_IN(X0);
+        marchive >> CHNVP_IN(Force);
+        marchive >> CHNVP_IN(Torque);
     }
 
   private:

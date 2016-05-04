@@ -111,19 +111,19 @@ class ChApi ChFunction_Integrate : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(fa);
-        marchive << CHNVP(order);
-        marchive << CHNVP(C_start);
-        marchive << CHNVP(x_start);
-        marchive << CHNVP(x_end);
-        marchive << CHNVP(num_samples);
+        marchive << CHNVP_OUT(fa);
+        marchive << CHNVP_OUT(order);
+        marchive << CHNVP_OUT(C_start);
+        marchive << CHNVP_OUT(x_start);
+        marchive << CHNVP_OUT(x_end);
+        marchive << CHNVP_OUT(num_samples);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -135,12 +135,12 @@ class ChApi ChFunction_Integrate : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(fa);
-        marchive >> CHNVP(order);
-        marchive >> CHNVP(C_start);
-        marchive >> CHNVP(x_start);
-        marchive >> CHNVP(x_end);
-        marchive >> CHNVP(num_samples);
+        marchive >> CHNVP_IN(fa);
+        marchive >> CHNVP_IN(order);
+        marchive >> CHNVP_IN(C_start);
+        marchive >> CHNVP_IN(x_start);
+        marchive >> CHNVP_IN(x_end);
+        marchive >> CHNVP_IN(num_samples);
         array_x->Reset(num_samples, 1);
         ComputeIntegral();
     }

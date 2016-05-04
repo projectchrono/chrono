@@ -276,13 +276,13 @@ class ChCoordsys {
     //
 
     /// Method to allow serialization of transient data in archives.
-    void ArchiveOUT(ChArchiveOut& marchive)
+    void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // suggested: use versioning
         marchive.VersionWrite(1);
         // stream out all member data
-        marchive << CHNVP(pos);
-        marchive << CHNVP(rot);
+        marchive << CHNVP_OUT(pos);
+        marchive << CHNVP_OUT(rot);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -292,8 +292,8 @@ class ChCoordsys {
         // int version =
         marchive.VersionRead();
         // stream in all member data
-        marchive >> CHNVP(pos);
-        marchive >> CHNVP(rot);
+        marchive >> CHNVP_IN(pos);
+        marchive >> CHNVP_IN(rot);
     }
 
 };

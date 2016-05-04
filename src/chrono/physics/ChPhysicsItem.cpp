@@ -55,7 +55,7 @@ void ChPhysicsItem::GetCenter(ChVector<>& mcenter) {
 ///////// FILE I/O
 /////////
 
-void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive)
+void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -64,11 +64,11 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive)
     ChObj::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //marchive << CHNVP(system); ***TODO***
-    marchive << CHNVP(assets);
-    //marchive << CHNVP(offset_x);
-    //marchive << CHNVP(offset_w);
-    //marchive << CHNVP(offset_L);
+    //marchive << CHNVP_OUT(system); ***TODO***
+    marchive << CHNVP_OUT(assets);
+    //marchive << CHNVP_OUT(offset_x);
+    //marchive << CHNVP_OUT(offset_w);
+    //marchive << CHNVP_OUT(offset_L);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -82,11 +82,11 @@ void ChPhysicsItem::ArchiveIN(ChArchiveIn& marchive)
     ChObj::ArchiveIN(marchive);
 
     // stream in all member data:
-    //marchive >> CHNVP(system); ***TODO***
-    marchive >> CHNVP(assets);
-    //marchive >> CHNVP(offset_x);
-    //marchive >> CHNVP(offset_w);
-    //marchive >> CHNVP(offset_L);
+    //marchive >> CHNVP_IN(system); ***TODO***
+    marchive >> CHNVP_IN(assets);
+    //marchive >> CHNVP_IN(offset_x);
+    //marchive >> CHNVP_IN(offset_w);
+    //marchive >> CHNVP_IN(offset_L);
 }
 
 

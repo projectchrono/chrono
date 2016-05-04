@@ -71,23 +71,23 @@ class ChApi ChFseqNode {
 #pragma GCC diagnostic pop
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const
     {
         // version number
         marchive.VersionWrite(1);
 
         // serialize all member data:
-        marchive << CHNVP(fx);
-        marchive << CHNVP(duration);
-        marchive << CHNVP(weight);
-        marchive << CHNVP(t_start);
-        marchive << CHNVP(t_end);
-        marchive << CHNVP(Iy);
-        marchive << CHNVP(Iydt);
-        marchive << CHNVP(Iydtdt);
-        marchive << CHNVP(y_cont);
-        marchive << CHNVP(ydt_cont);
-        marchive << CHNVP(ydtdt_cont);
+        marchive << CHNVP_OUT(fx);
+        marchive << CHNVP_OUT(duration);
+        marchive << CHNVP_OUT(weight);
+        marchive << CHNVP_OUT(t_start);
+        marchive << CHNVP_OUT(t_end);
+        marchive << CHNVP_OUT(Iy);
+        marchive << CHNVP_OUT(Iydt);
+        marchive << CHNVP_OUT(Iydtdt);
+        marchive << CHNVP_OUT(y_cont);
+        marchive << CHNVP_OUT(ydt_cont);
+        marchive << CHNVP_OUT(ydtdt_cont);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -98,17 +98,17 @@ class ChApi ChFseqNode {
         marchive.VersionRead();
 
         // stream in all member data:
-        marchive >> CHNVP(fx);
-        marchive >> CHNVP(duration);
-        marchive >> CHNVP(weight);
-        marchive >> CHNVP(t_start);
-        marchive >> CHNVP(t_end);
-        marchive >> CHNVP(Iy);
-        marchive >> CHNVP(Iydt);
-        marchive >> CHNVP(Iydtdt);
-        marchive >> CHNVP(y_cont);
-        marchive >> CHNVP(ydt_cont);
-        marchive >> CHNVP(ydtdt_cont);
+        marchive >> CHNVP_IN(fx);
+        marchive >> CHNVP_IN(duration);
+        marchive >> CHNVP_IN(weight);
+        marchive >> CHNVP_IN(t_start);
+        marchive >> CHNVP_IN(t_end);
+        marchive >> CHNVP_IN(Iy);
+        marchive >> CHNVP_IN(Iydt);
+        marchive >> CHNVP_IN(Iydtdt);
+        marchive >> CHNVP_IN(y_cont);
+        marchive >> CHNVP_IN(ydt_cont);
+        marchive >> CHNVP_IN(ydtdt_cont);
     }
 
 };
@@ -205,15 +205,15 @@ class ChApi ChFunction_Sequence : public ChFunction {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
+    virtual void ArchiveOUT(ChArchiveOut& marchive) const override
     {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(start);
-        marchive << CHNVP(functions);
+        marchive << CHNVP_OUT(start);
+        marchive << CHNVP_OUT(functions);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -225,8 +225,8 @@ class ChApi ChFunction_Sequence : public ChFunction {
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(start);
-        marchive >> CHNVP(functions);
+        marchive >> CHNVP_IN(start);
+        marchive >> CHNVP_IN(functions);
     }
 
 };

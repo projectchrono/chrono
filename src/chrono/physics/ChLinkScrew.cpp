@@ -151,7 +151,7 @@ void ChLinkScrew::UpdateState() {
 }
 
 
-void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -160,7 +160,7 @@ void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(tau);
+    marchive << CHNVP_OUT(tau);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -174,7 +174,7 @@ void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive)
     ChLinkLock::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(tau);
+    marchive >> CHNVP_IN(tau);
 }
 
 

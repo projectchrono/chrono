@@ -1947,7 +1947,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 /////////
 
 
-void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -1956,23 +1956,23 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkMasked::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(type);
-    marchive << CHNVP(motion_X);
-    marchive << CHNVP(motion_Y);
-    marchive << CHNVP(motion_Z);
-    marchive << CHNVP(motion_ang);
-    marchive << CHNVP(motion_ang2);
-    marchive << CHNVP(motion_ang3);
-    marchive << CHNVP(motion_axis);
-    marchive << CHNVP(angleset);
-    marchive << CHNVP(limit_X);
-    marchive << CHNVP(limit_Y);
-    marchive << CHNVP(limit_Z);
-    marchive << CHNVP(limit_Rx);
-    marchive << CHNVP(limit_Ry);
-    marchive << CHNVP(limit_Rz);
-    marchive << CHNVP(limit_Rp);
-    marchive << CHNVP(limit_D);
+    marchive << CHNVP_OUT(type);
+    marchive << CHNVP_OUT(motion_X);
+    marchive << CHNVP_OUT(motion_Y);
+    marchive << CHNVP_OUT(motion_Z);
+    marchive << CHNVP_OUT(motion_ang);
+    marchive << CHNVP_OUT(motion_ang2);
+    marchive << CHNVP_OUT(motion_ang3);
+    marchive << CHNVP_OUT(motion_axis);
+    marchive << CHNVP_OUT(angleset);
+    marchive << CHNVP_OUT(limit_X);
+    marchive << CHNVP_OUT(limit_Y);
+    marchive << CHNVP_OUT(limit_Z);
+    marchive << CHNVP_OUT(limit_Rx);
+    marchive << CHNVP_OUT(limit_Ry);
+    marchive << CHNVP_OUT(limit_Rz);
+    marchive << CHNVP_OUT(limit_Rp);
+    marchive << CHNVP_OUT(limit_D);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -1987,24 +1987,24 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive)
 
     // deserialize all member data:
     int ifoo;
-    marchive >> CHNVP(ifoo);
+    marchive >> CHNVP_IN(ifoo);
     ChangeLinkType(ifoo); // this also setup mask flags and lot of stuff, simplifying the serialization
-    marchive >> CHNVP(motion_X);
-    marchive >> CHNVP(motion_Y);
-    marchive >> CHNVP(motion_Z);
-    marchive >> CHNVP(motion_ang);
-    marchive >> CHNVP(motion_ang2);
-    marchive >> CHNVP(motion_ang3);
-    marchive >> CHNVP(motion_axis);
-    marchive >> CHNVP(angleset);
-    marchive >> CHNVP(limit_X);
-    marchive >> CHNVP(limit_Y);
-    marchive >> CHNVP(limit_Z);
-    marchive >> CHNVP(limit_Rx);
-    marchive >> CHNVP(limit_Ry);
-    marchive >> CHNVP(limit_Rz);
-    marchive >> CHNVP(limit_Rp);
-    marchive >> CHNVP(limit_D);
+    marchive >> CHNVP_IN(motion_X);
+    marchive >> CHNVP_IN(motion_Y);
+    marchive >> CHNVP_IN(motion_Z);
+    marchive >> CHNVP_IN(motion_ang);
+    marchive >> CHNVP_IN(motion_ang2);
+    marchive >> CHNVP_IN(motion_ang3);
+    marchive >> CHNVP_IN(motion_axis);
+    marchive >> CHNVP_IN(angleset);
+    marchive >> CHNVP_IN(limit_X);
+    marchive >> CHNVP_IN(limit_Y);
+    marchive >> CHNVP_IN(limit_Z);
+    marchive >> CHNVP_IN(limit_Rx);
+    marchive >> CHNVP_IN(limit_Ry);
+    marchive >> CHNVP_IN(limit_Rz);
+    marchive >> CHNVP_IN(limit_Rp);
+    marchive >> CHNVP_IN(limit_D);
 }
 
 

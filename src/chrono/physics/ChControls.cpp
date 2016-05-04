@@ -36,7 +36,7 @@ ChClassRegisterABSTRACT<ChControls> a_registration_ChControls;
 // FILE I/O
 //
 
-void ChControls::ArchiveOUT(ChArchiveOut& marchive)
+void ChControls::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);

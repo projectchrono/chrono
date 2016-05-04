@@ -585,7 +585,7 @@ void ChLinkMasked::Update(double time, bool update_assets) {
 
 
 
-void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive)
+void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -594,16 +594,16 @@ void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkMarkers::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //marchive << CHNVP(mask); // to do? needed?
-    marchive << CHNVP(d_restlength);
-    marchive << CHNVP(force_D);
-    marchive << CHNVP(force_R);
-    marchive << CHNVP(force_X);
-    marchive << CHNVP(force_Y);
-    marchive << CHNVP(force_Z);
-    marchive << CHNVP(force_Rx);
-    marchive << CHNVP(force_Ry);
-    marchive << CHNVP(force_Rz);
+    //marchive << CHNVP_OUT(mask); // to do? needed?
+    marchive << CHNVP_OUT(d_restlength);
+    marchive << CHNVP_OUT(force_D);
+    marchive << CHNVP_OUT(force_R);
+    marchive << CHNVP_OUT(force_X);
+    marchive << CHNVP_OUT(force_Y);
+    marchive << CHNVP_OUT(force_Z);
+    marchive << CHNVP_OUT(force_Rx);
+    marchive << CHNVP_OUT(force_Ry);
+    marchive << CHNVP_OUT(force_Rz);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -617,16 +617,16 @@ void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive)
     ChLinkMarkers::ArchiveIN(marchive);
 
     // deserialize all member data:
-    // if (mask) delete (mask); marchive >> CHNVP(mask); // to do? needed?
-    marchive >> CHNVP(d_restlength);
-    marchive >> CHNVP(force_D);
-    marchive >> CHNVP(force_R);
-    marchive >> CHNVP(force_X);
-    marchive >> CHNVP(force_Y);
-    marchive >> CHNVP(force_Z);
-    marchive >> CHNVP(force_Rx);
-    marchive >> CHNVP(force_Ry);
-    marchive >> CHNVP(force_Rz);
+    // if (mask) delete (mask); marchive >> CHNVP_IN(mask); // to do? needed?
+    marchive >> CHNVP_IN(d_restlength);
+    marchive >> CHNVP_IN(force_D);
+    marchive >> CHNVP_IN(force_R);
+    marchive >> CHNVP_IN(force_X);
+    marchive >> CHNVP_IN(force_Y);
+    marchive >> CHNVP_IN(force_Z);
+    marchive >> CHNVP_IN(force_Rx);
+    marchive >> CHNVP_IN(force_Ry);
+    marchive >> CHNVP_IN(force_Rz);
 }
 
 

@@ -350,7 +350,7 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
 ////////////////  FILE I/O
 
-void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
+void ChMarker::ArchiveOUT(ChArchiveOut& marchive) const
 {
     // version number
     marchive.VersionWrite(1);
@@ -362,12 +362,12 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive << CHNVP(mmapper(motion_type),"motion_type");
-    marchive << CHNVP(motion_X);
-    marchive << CHNVP(motion_Y);
-    marchive << CHNVP(motion_Z);
-    marchive << CHNVP(motion_ang);
-    marchive << CHNVP(motion_axis);
+    marchive << CHNVP_OUT(mmapper.out(motion_type),"motion_type");
+    marchive << CHNVP_OUT(motion_X);
+    marchive << CHNVP_OUT(motion_Y);
+    marchive << CHNVP_OUT(motion_Z);
+    marchive << CHNVP_OUT(motion_ang);
+    marchive << CHNVP_OUT(motion_axis);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -384,12 +384,12 @@ void ChMarker::ArchiveIN(ChArchiveIn& marchive)
 
     // stream in all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive >> CHNVP(mmapper(motion_type),"motion_type");
-    marchive >> CHNVP(motion_X);
-    marchive >> CHNVP(motion_Y);
-    marchive >> CHNVP(motion_Z);
-    marchive >> CHNVP(motion_ang);
-    marchive >> CHNVP(motion_axis);
+    marchive >> CHNVP_IN(mmapper.in(motion_type),"motion_type");
+    marchive >> CHNVP_IN(motion_X);
+    marchive >> CHNVP_IN(motion_Y);
+    marchive >> CHNVP_IN(motion_Z);
+    marchive >> CHNVP_IN(motion_ang);
+    marchive >> CHNVP_IN(motion_axis);
 }
 
 
