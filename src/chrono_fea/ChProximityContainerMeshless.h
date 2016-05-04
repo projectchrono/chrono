@@ -109,7 +109,7 @@ class ChApiFea ChProximityContainerMeshless : public ChProximityContainerBase {
     /// simply deleting all list of the previous pairs, this optimized implementation
     /// rewinds the link iterator to begin and tries to reuse previous pairs objects
     /// until possible, to avoid too much allocation/deallocation.
-    virtual void BeginAddProximities();
+    virtual void BeginAddProximities() override;
 
     /// Add a proximity SPH data between two collision models, if possible.
     virtual void AddProximity(collision::ChCollisionModel* modA,  ///< get contact model 1

@@ -93,7 +93,7 @@ public:
 			//
 
 				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
+	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L) override;
 	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L) override;
 	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
 	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp) override;
@@ -104,17 +104,17 @@ public:
 			// Override/implement LCP system functions of ChPhysicsItem
 			// (to assembly/manage data for LCP system solver
 
-	virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
-	virtual void ConstraintsBiReset();
-	virtual void ConstraintsBiLoad_C(double factor=1., double recovery_clamp=0.1, bool do_clamp=false);
-	virtual void ConstraintsBiLoad_Ct(double factor=1.);
-	virtual void ConstraintsLoadJacobians();
-	virtual void ConstraintsFetch_react(double factor=1.);
+	virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) override;
+	virtual void ConstraintsBiReset() override;
+	virtual void ConstraintsBiLoad_C(double factor=1., double recovery_clamp=0.1, bool do_clamp=false) override;
+	virtual void ConstraintsBiLoad_Ct(double factor=1.) override;
+	virtual void ConstraintsLoadJacobians() override;
+	virtual void ConstraintsFetch_react(double factor=1.) override;
 
 
 			   // Other functions
 	
-	virtual ChCoordsys<> GetLinkAbsoluteCoords();
+	virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
 
 
 				/// Use this function after object creation, to initialize it, given  

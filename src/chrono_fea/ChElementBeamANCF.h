@@ -995,7 +995,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     }
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() { return this->section->Area * this->section->density; }
+    virtual double GetDensity() override { return this->section->Area * this->section->density; }
 };
 
 /// @} fea_elements

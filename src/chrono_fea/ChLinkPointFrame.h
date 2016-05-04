@@ -99,7 +99,7 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 7; }
 
     /// Number of scalar costraints
-    virtual int GetDOC_c() { return 3; }
+    virtual int GetDOC_c() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }

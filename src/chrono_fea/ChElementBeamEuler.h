@@ -198,7 +198,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     /// Compute large rotation of element for corotational approach
     /// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
-    virtual void UpdateRotation() {
+    virtual void UpdateRotation() override {
         ChMatrix33<> A0(this->q_element_ref_rot);
 
         ChMatrix33<> Aabs;
