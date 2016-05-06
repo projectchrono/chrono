@@ -21,6 +21,9 @@
 #include "chrono_fea/ChUtilsFEA.h"
 #include <cmath>
 
+//#define CHSIMPLIFY_GAMMAS 
+
+
 namespace chrono {
 namespace fea {
 
@@ -74,6 +77,10 @@ void ChMaterialShellEANS::ComputeStress(ChVector<>& n_u,
 
 
 //////////////////////////////
+
+
+
+
 
 double ChElementShellEANS4::xi_i[ChElementShellEANS4::NUMGP][2] = {
 	{-1. / std::sqrt(3.), -1. / std::sqrt(3.)},
@@ -191,18 +198,31 @@ void ChElementShellEANS4::ComputeNodeAndAverageRotations(
     mTd = mrD * iTa[3];
     
     // Tavg = exp(log(1/4(Ta+Tb+Tc+Td))  : rather as:
-    mTavg.Q_from_Rotv( (mTa.Q_to_Rotv() + mTb.Q_to_Rotv() + mTc.Q_to_Rotv() + mTd.Q_to_Rotv())*0.25 );
-    // alternatively : mTavg =(mTa + mTb + mTc + mTd ).GetNormalized();
+    //mTavg.Q_from_Rotv( (mTa.Q_to_Rotv() + mTb.Q_to_Rotv() + mTc.Q_to_Rotv() + mTd.Q_to_Rotv())*0.25 );
 
+    // NO! better do this:
+    // average four rotations with quaternion averaging:
+    ChQuaternion<> qTa = mTa;
+    ChQuaternion<> qTb = mTb;
+    if ( (qTa ^ qTb) < 0) 
+        qTb *= -1;
+    ChQuaternion<> qTc = mTc;
+    if ( (qTa ^ qTc) < 0) 
+        qTc *= -1;
+    ChQuaternion<> qTd = mTd;
+    if ( (qTa ^ qTd) < 0) 
+        qTd *= -1;
+    mTavg =(qTa + qTb + qTc + qTd ).GetNormalized();
+    
     // Tavg' 
     ChQuaternion<> mTavgT = mTavg.GetConjugate();
 
     // R_rel_n = Tavg'* T_n
     // F_rel_n = log(R_rel_n)    i.e. to rot vector
-    mF_relA = (mTavgT * mTa).Q_to_Rotv();
-    mF_relB = (mTavgT * mTb).Q_to_Rotv();
-    mF_relC = (mTavgT * mTc).Q_to_Rotv();
-    mF_relD = (mTavgT * mTd).Q_to_Rotv();
+    mF_relA = (mTavgT * qTa).Q_to_Rotv();
+    mF_relB = (mTavgT * qTb).Q_to_Rotv();
+    mF_relC = (mTavgT * qTc).Q_to_Rotv();
+    mF_relD = (mTavgT * qTd).Q_to_Rotv();
 }
 
 
@@ -585,6 +605,10 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         ChMatrix33<> Hi;
         ComputeGammaMatrix(Hi,F_rel_i);
 
+        #ifdef CHSIMPLIFY_GAMMAS
+            Hi = ChMatrix33<>(1);
+        #endif
+
         // kur_u = Tavg * gammatilde * F_u_tilde 
         // kur_v = Tavg * gammatilde * F_v_tilde
         ChVector<> kur_u = Tavg.Rotate( Hi * F_u_tilde);
@@ -614,11 +638,14 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         ChMatrix33<> PhiD = mTavg * Hi * Hdi * mTavgT * GetNodeD()->GetA();
         // note: respect to Masarati paper, added the ....* m_element->GetNodeA()->GetA() part because 
         // incremental rotations in C::E are considered in body coords, not in abs.coords 
-//***TEST
-PhiA = GetNodeA()->GetA();
-PhiB = GetNodeB()->GetA();
-PhiC = GetNodeC()->GetA();
-PhiD = GetNodeD()->GetA();
+
+        #ifdef CHSIMPLIFY_GAMMAS
+            PhiA = GetNodeA()->GetA();
+            PhiB = GetNodeB()->GetA();
+            PhiC = GetNodeC()->GetA();
+            PhiD = GetNodeD()->GetA();
+        #endif
+
         // Build the B matrix:
         ChMatrixNM<double, 12,24> B;
     
@@ -717,11 +744,11 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 
     m_JacobianMatrix.Reset();
 
-    bool use_numerical_differentiation = true;
+    bool use_numerical_differentiation = false;
     
     if (use_numerical_differentiation) {
 
-        double diff = 1e-4;
+        double diff = 1e-6;
         ChMatrixNM<double,24,1> Kcolumn;
         ChMatrixDynamic<> F0(24, 1);
         ChMatrixDynamic<> F1(24, 1);
@@ -859,6 +886,10 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             ChMatrix33<> Hi;
             ComputeGammaMatrix(Hi,F_rel_i);
 
+            #ifdef CHSIMPLIFY_GAMMAS
+                Hi = ChMatrix33<>(1);
+            #endif
+
             // kur_u = Tavg * gammatilde * F_u_tilde 
             // kur_v = Tavg * gammatilde * F_v_tilde
             ChVector<> kur_u = Tavg.Rotate( Hi * F_u_tilde);
@@ -887,6 +918,13 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             ChMatrix33<> PhiD = mTavg * Hi * Hdi * mTavgT * GetNodeD()->GetA();
             // note: respect to Masarati paper, added the ....* m_element->GetNodeA()->GetA() part because 
             // incremental rotations in C::E are considered in body coords, not in abs.coords 
+
+            #ifdef CHSIMPLIFY_GAMMAS
+                PhiA = GetNodeA()->GetA();
+                PhiB = GetNodeB()->GetA();
+                PhiC = GetNodeC()->GetA();
+                PhiD = GetNodeD()->GetA();
+            #endif
 
             // Build the B matrix:
             ChMatrixNM<double, 12,24> B;
@@ -1083,6 +1121,10 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
         ChMatrix33<> Hi;
         ComputeGammaMatrix(Hi,F_rel_i);
 
+        #ifdef CHSIMPLIFY_GAMMAS
+            Hi = ChMatrix33<>(1);
+        #endif
+
         // some complication: compute the Phi matrices:
         ChMatrix33<> Hai;
         ComputeGammaMatrixInverse(Hai,F_relA);
@@ -1099,11 +1141,13 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
         ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * this->GetNodeB()->GetA();
         ChMatrix33<> PhiC = mTavg * Hi * Hci * mTavgT * this->GetNodeC()->GetA();
         ChMatrix33<> PhiD = mTavg * Hi * Hdi * mTavgT * this->GetNodeD()->GetA();
-//***TEST
-PhiA = GetNodeA()->GetA();
-PhiB = GetNodeB()->GetA();
-PhiC = GetNodeC()->GetA();
-PhiD = GetNodeD()->GetA();
+
+        #ifdef CHSIMPLIFY_GAMMAS
+            PhiA = GetNodeA()->GetA();
+            PhiB = GetNodeB()->GetA();
+            PhiC = GetNodeC()->GetA();
+            PhiD = GetNodeD()->GetA();
+        #endif
 
         ChMatrix33<> mT_i_t(T_i.GetConjugate());
         ChMatrix33<> myi_u_X; myi_u_X.Set_X_matrix(yi_u);
