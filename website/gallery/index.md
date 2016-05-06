@@ -4,7 +4,7 @@ title: Gallery
 permalink: /gallery/
 ---
 
-In this page you can see some demo animations showing the main features of Chrono::Engine. 
+Demo animations showing the main features of Chrono. 
 
 {% for link in site.data.gallery.main %}
 <div class="media">
