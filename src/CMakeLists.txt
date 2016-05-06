@@ -213,6 +213,9 @@ add_subdirectory(chrono_opengl)
 #add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 
+# Add directories for model libraries
+add_subdirectory(models)
+
 # Add directories for demo programs, unit test programs, and additional test programs.
 if(BUILD_DEMOS)
   add_subdirectory(demos)
