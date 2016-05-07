@@ -154,7 +154,7 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
 
     /// Get the number of degrees of freedom.
     virtual int Get_ndof_x() override { return 9; }
-
+        
     /// Get the number of degrees of freedom, derivative.
     virtual int Get_ndof_w() override { return 9; }
 
@@ -219,7 +219,7 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
                                         const ChVectorDynamic<>& w,
                                         const double c) override {
         for (int i = 0; i < 9; i++) {
-            R(off + i) = c * GetMassDiagonal()(i) * w(off + i);
+            R(off + i) += c * GetMassDiagonal()(i)* w(off + i);
         }
     }
 
@@ -261,7 +261,7 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
 
         m_rxx_dt = m_variables->Get_qb().ClipVector(0, 0);
         m_ryy_dt = m_variables->Get_qb().ClipVector(3, 0);
-        m_ryy_dt = m_variables->Get_qb().ClipVector(6, 0);
+        m_rzz_dt = m_variables->Get_qb().ClipVector(6, 0);
 
         if (step) {
             m_rxx_dtdt = (m_rxx_dt - old_rxx_dt) / step;
