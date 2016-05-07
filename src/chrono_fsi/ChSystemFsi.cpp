@@ -40,7 +40,7 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 
 	bceWorker = new ChBce(&(fsiData->fsiGeneralData), paramsH, numObjectsH);
 	fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH);
-	fsiInterface = new ChFsiInterface(&(fsiData->fsiBodiesH), &(fsiData->chronoRigidBackup),
+	fsiInterface = new ChFsiInterface(&(fsiData->fsiBodiesH),
 		mphysicalSystem, &fsiBodeisPtr,
 		&(fsiData->fsiGeneralData.rigid_FSI_ForcesD),
 		&(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
@@ -50,9 +50,13 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::Finalize() {
+	printf("** 21\n");
 	FinalizeData();
+	printf("** 22\n");
 	bceWorker->Finalize();
+	printf("** 23\n");
 	fluidDynamics->Finalize();
+	printf("** 24\n");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -169,12 +173,18 @@ void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mV
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
+	printf("** 210\n");
 	fsiData->ResizeDataManager();
+	printf("** 211\n");
 	// Arman: very important: you cannot change the order of (1-3). Fix the issue later
 	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1)); //(1)
+	printf("** 212\n");
 	fsiData->CopyFsiBodiesDataH2D();	// (2)
+	printf("** 213\n");
 	bceWorker->Populate_RigidSPH_MeshPos_LRF(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); // (3)
+	printf("** 214\n");
 	bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); //(4)
+	printf("** 215\n");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::InitializeChronoGraphics(chrono::ChVector<> CameraLocation, chrono::ChVector<> CameraLookAt) {

@@ -50,6 +50,10 @@ namespace fsi {
 	typedef thrust::tuple<r3IterH, r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleRigidH;
 	typedef thrust::zip_iterator<iterTupleRigidH> zipIterRigidH;
 
+	// typedef device iterators for shorthand chrono bodies operations
+	typedef thrust::tuple<r3IterH, r3IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleChronoBodiesH;
+	typedef thrust::zip_iterator<iterTupleChronoBodiesH> zipIterChronoBodiesH;
+
 
 	/**
 	 * @brief Number of fluid markers, solid bodies, solid markers, boundary markers
@@ -140,12 +144,19 @@ namespace fsi {
 
 	class ChronoBodiesDataH {
 	public:
+		ChronoBodiesDataH(){}
+		ChronoBodiesDataH(int s);
 		thrust::host_vector<Real3> pos_ChSystemH;
 		thrust::host_vector<Real3> vel_ChSystemH;
 		thrust::host_vector<Real3> acc_ChSystemH;
 		thrust::host_vector<Real4> quat_ChSystemH;
 		thrust::host_vector<Real3> omegaVelGRF_ChSystemH;
 		thrust::host_vector<Real3> omegaAccGRF_ChSystemH;
+
+		zipIterChronoBodiesH iterator();
+
+		// resize
+		void resize(int s);
 	private:
 	};
 
@@ -194,7 +205,6 @@ public:
 	FsiBodiesDataD fsiBodiesD1;
 	FsiBodiesDataD fsiBodiesD2;
 	FsiBodiesDataH fsiBodiesH;
-	ChronoBodiesDataH chronoRigidBackup;
 
 	FsiGeneralData fsiGeneralData;
 

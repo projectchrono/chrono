@@ -29,7 +29,6 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 	public:
 		ChFsiInterface(
 			FsiBodiesDataH * other_fsiBodiesH,
-			ChronoBodiesDataH * other_chronoRigidBackup,
 			chrono::ChSystemParallelDVI * other_mphysicalSystem,
 			std::vector<chrono::ChSharedPtr<chrono::ChBody> > * other_fsiBodeisPtr,
 			thrust::device_vector<Real3> * other_rigid_FSI_ForcesD,

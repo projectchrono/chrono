@@ -23,18 +23,19 @@ namespace fsi {
 //------------------------------------------------------------------------------------
 ChFsiInterface::ChFsiInterface(
 		FsiBodiesDataH * other_fsiBodiesH,
-		ChronoBodiesDataH * other_chronoRigidBackup,
 		chrono::ChSystemParallelDVI * other_mphysicalSystem,
 		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * other_fsiBodeisPtr,
 		thrust::device_vector<Real3> * other_rigid_FSI_ForcesD,
 		thrust::device_vector<Real3> * other_rigid_FSI_TorquesD) :
 fsiBodiesH(other_fsiBodiesH),
-chronoRigidBackup(other_chronoRigidBackup),
 mphysicalSystem(other_mphysicalSystem),
 fsiBodeisPtr(other_fsiBodeisPtr),
 rigid_FSI_ForcesD(other_rigid_FSI_ForcesD),
 rigid_FSI_TorquesD(other_rigid_FSI_TorquesD)
-{}
+{
+	int numBodies = mphysicalSystem->Get_bodylist()->size();
+	chronoRigidBackup = new ChronoBodiesDataH(numBodies);
+}
 //------------------------------------------------------------------------------------
 ChFsiInterface::~ChFsiInterface(){
 	// TODO
@@ -127,13 +128,9 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Copy_ChSystem_to_External() {
+//	// Arman, assume no change in chrono num bodies. the resize is done in initializaiton.
 	int numBodies = mphysicalSystem->Get_bodylist()->size();
-	chronoRigidBackup->pos_ChSystemH.resize(numBodies);
-	chronoRigidBackup->vel_ChSystemH.resize(numBodies);
-	chronoRigidBackup->acc_ChSystemH.resize(numBodies);
-	chronoRigidBackup->quat_ChSystemH.resize(numBodies);
-	chronoRigidBackup->omegaVelGRF_ChSystemH.resize(numBodies);
-	chronoRigidBackup->omegaAccGRF_ChSystemH.resize(numBodies);
+//	chronoRigidBackup->resize(numBodies);
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numBodies; i++) {
 		auto mBody = mphysicalSystem->Get_bodylist()->at(i);
@@ -149,14 +146,8 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
 //------------------------------------------------------------------------------------
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body in ChSystem
 void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsiBodiesD) {
-	int num_fsiBodies_Rigids = fsiBodeisPtr->size();
-	if (fsiBodiesD->posRigid_fsiBodies_D.size() != num_fsiBodies_Rigids
-			|| fsiBodiesH->posRigid_fsiBodies_H.size() != num_fsiBodies_Rigids) {
-		printf("number of fsi bodies that are tracked (%d) does not match the array sizes (D: %d, H: %d)!\n",
-				num_fsiBodies_Rigids, fsiBodiesD->posRigid_fsiBodies_D.size(), fsiBodiesH->posRigid_fsiBodies_H.size());
-		throw std::runtime_error ("number of fsi bodies that are tracked does not match the array sizes !\n");
-	}
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
+	int num_fsiBodies_Rigids = fsiBodeisPtr->size();
 	for (int i = 0; i < num_fsiBodies_Rigids; i++) {
 		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisPtr)[i];
 		fsiBodiesH->posRigid_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetPos());
@@ -167,19 +158,6 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsi
 		fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
 		fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
 	}
-
-	thrust::copy(fsiBodiesH->posRigid_fsiBodies_H.begin(), fsiBodiesH->posRigid_fsiBodies_H.end(),
-			fsiBodiesD->posRigid_fsiBodies_D.begin());
-	thrust::copy(fsiBodiesH->velMassRigid_fsiBodies_H.begin(),
-				fsiBodiesH->velMassRigid_fsiBodies_H.end(), fsiBodiesD->velMassRigid_fsiBodies_D.begin());
-	thrust::copy(fsiBodiesH->accRigid_fsiBodies_H.begin(),
-				fsiBodiesH->accRigid_fsiBodies_H.end(), fsiBodiesD->accRigid_fsiBodies_D.begin());
-	thrust::copy(fsiBodiesH->q_fsiBodies_H.begin(), fsiBodiesH->q_fsiBodies_H.end(),
-			fsiBodiesD->q_fsiBodies_D.begin());
-	thrust::copy(fsiBodiesH->omegaVelLRF_fsiBodies_H.begin(),
-			fsiBodiesH->omegaVelLRF_fsiBodies_H.end(), fsiBodiesD->omegaVelLRF_fsiBodies_D.begin());
-	thrust::copy(fsiBodiesH->omegaAccLRF_fsiBodies_H.begin(),
-			fsiBodiesH->omegaAccLRF_fsiBodies_H.end(), fsiBodiesD->omegaAccLRF_fsiBodies_D.begin());
 }
 
 } // end namespace fsi

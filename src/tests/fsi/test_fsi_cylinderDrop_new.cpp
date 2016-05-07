@@ -283,11 +283,8 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	thrust::host_vector<chrono::fsi::Real4> & rhoPresMuH = myFsiSystem.GetDataManager()->sphMarkersH.rhoPresMuH;
 	thrust::host_vector<int4> & referenceArray = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray;
 
-	printf("** 11\n");
-
 #if haveFluid
 
-	printf("** 12\n");
 		// beginning third
 		chrono::fsi::utils::AddBoxBce(
 				myFsiSystem.GetDataManager(),
@@ -296,7 +293,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 				ChQuaternion<>(1, 0, 0, 0),
 				ChVector<>(-midSecDim - hdimSide, 0, -hthick));
 
-		printf("** 13\n");
 		// end third
 
 		chrono::fsi::utils::AddBoxBce(
@@ -333,7 +329,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 
 	ground->GetCollisionModel()->BuildModel();
 
-	printf("** 14\n");
 	mphysicalSystem.AddBody(ground);
 
 	// version 0, create one cylinder // note: rigid body initialization should come after boundary initialization
@@ -567,7 +562,6 @@ int main(int argc, char* argv[]) {
 
 	// ***************************** Create Rigid ********************************************
 	InitializeMbdPhysicalSystem(mphysicalSystem, paramsH, argc, argv);
-	printf("** 1\n");
 
 	// This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
 

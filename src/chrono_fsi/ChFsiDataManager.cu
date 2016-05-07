@@ -22,9 +22,15 @@
 namespace chrono {
 namespace fsi {
 
-struct sphTypeComp {
+struct sphTypeCompLess {
  	__host__ __device__ bool operator()(const Real4& o1, const Real4& o2) {
-    	return o1.w < o2.w;
+    	return o1.w <= o2.w;
+  	}
+};
+
+struct sphTypeCompEqual {
+ 	__host__ __device__ bool operator()(const Real4& o1, const Real4& o2) {
+    	return o1.w == o2.w;
   	}
 };
 
@@ -91,6 +97,28 @@ void FsiBodiesDataH::resize(int s) {
 
 //---------------------------------------------------------------------------------------
 
+ChronoBodiesDataH::ChronoBodiesDataH(int s) {
+	this->resize(s);
+
+}
+
+zipIterChronoBodiesH ChronoBodiesDataH::iterator() {
+	return thrust::make_zip_iterator(thrust::make_tuple(pos_ChSystemH.begin(), vel_ChSystemH.begin(), acc_ChSystemH.begin(),
+			quat_ChSystemH.begin(), omegaVelGRF_ChSystemH.begin(), omegaAccGRF_ChSystemH.begin()));
+}
+
+// resize
+void ChronoBodiesDataH::resize(int s) {
+	pos_ChSystemH.resize(s);
+	vel_ChSystemH.resize(s);
+	acc_ChSystemH.resize(s);
+	quat_ChSystemH.resize(s);
+	omegaVelGRF_ChSystemH.resize(s);
+	omegaAccGRF_ChSystemH.resize(s);
+}
+
+//---------------------------------------------------------------------------------------
+
 
 
 //---------------------------------------------------------------------------------------
@@ -112,7 +140,7 @@ void ChFsiDataManager::ArrangeDataManager() {
 	thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkersH.rhoPresMuH;
 
 	// arrange data based on type: fluid, boundary, bce1, bce2, ....
-	thrust::sort_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), sphMarkersH.iterator(), sphTypeComp());
+	thrust::sort_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), sphMarkersH.iterator(), sphTypeCompLess());
 	dummyRhoPresMuH.clear();
 }
 
@@ -193,16 +221,15 @@ void ChFsiDataManager::ConstructReferenceArray() {
 
 	// determine the number of each component
 	if (numObjects.numAllMarkers != sphMarkersH.rhoPresMuH.size()) {
-		printf("Error! numObjects wrong! thrown from ConstructReferenceArray");
+		throw std::runtime_error ("Error! numObjects wrong! thrown from ConstructReferenceArray !\n");
 	}
 	thrust::host_vector<int> numComponentMarkers(numObjects.numAllMarkers);
 	thrust::fill(numComponentMarkers.begin(), numComponentMarkers.end(), 1);
 	thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkersH.rhoPresMuH;
 	thrust::copy(sphMarkersH.rhoPresMuH.begin(), sphMarkersH.rhoPresMuH.end(), dummyRhoPresMuH.begin());
 	int numberOfComponents = (thrust::reduce_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), numComponentMarkers.begin(), 
-			dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeComp())).second 
-			- numComponentMarkers.begin();
-
+			dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeCompEqual())).first
+			- dummyRhoPresMuH.begin();
 	// if (numberOfComponents == 0) {
 	// 	std::cout << "Error! no marker found! Thrown from ConstructReferenceArray\n";
 	// 	return;
@@ -211,7 +238,7 @@ void ChFsiDataManager::ConstructReferenceArray() {
 	dummyRhoPresMuH.resize(numberOfComponents);
 	numComponentMarkers.resize(numberOfComponents);
 	int savedNumber = 0;
-	for (int i = 0; i < numberOfComponents; numberOfComponents++) {
+	for (int i = 0; i < numberOfComponents; i++) {
 		int compType = std::floor(dummyRhoPresMuH[i].w + .1);
 		int phaseType = -1;
 		if (compType < 0) {
@@ -222,19 +249,28 @@ void ChFsiDataManager::ConstructReferenceArray() {
 			phaseType = 1;
 		}
 		fsiGeneralData.referenceArray[i] = mI4(savedNumber, savedNumber + numComponentMarkers[i], phaseType, compType);
+		savedNumber += numComponentMarkers[i];
 	}
 	dummyRhoPresMuH.clear();	
 	numComponentMarkers.clear();
+
+	printf("reference array \n");
+	for (int i = 0; i < fsiGeneralData.referenceArray.size(); i ++ ) {
+		int4 num = fsiGeneralData.referenceArray[i];
+		printf(" %d %d %d %d \n", num.x, num.y, num.z, num.w);
+	}
 }
 
 ////--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiDataManager::ResizeDataManager() {
 	ConstructReferenceArray();
 		if (numObjects.numAllMarkers != sphMarkersH.rhoPresMuH.size()) {
-			printf("Error! numObjects wrong! thrown from FinalizeDataManager");
+			throw std::runtime_error ("Error! numObjects wrong! thrown from FinalizeDataManager !\n");
 		}
 		sphMarkersD1.resize(numObjects.numAllMarkers);
 		sphMarkersD2.resize(numObjects.numAllMarkers);
+		sortedSphMarkersD.resize(numObjects.numAllMarkers);
+		sphMarkersH.resize(numObjects.numAllMarkers);
 		fsiGeneralData.derivVelRhoD.resize(numObjects.numAllMarkers);
 		fsiGeneralData.vel_XSPH_D.resize(numObjects.numAllMarkers);
 
@@ -249,6 +285,7 @@ void ChFsiDataManager::ResizeDataManager() {
 		// copy rigids
 		fsiBodiesD1.resize(numObjects.numRigidBodies);
 		fsiBodiesD2.resize(numObjects.numRigidBodies);
+		fsiBodiesH.resize(numObjects.numRigidBodies);
 		fsiGeneralData.rigid_FSI_ForcesD.resize(numObjects.numRigidBodies);
 		fsiGeneralData.rigid_FSI_TorquesD.resize(numObjects.numRigidBodies);
 		fsiGeneralData.rigidIdentifierD.resize(numObjects.numRigid_SphMarkers);
@@ -258,7 +295,6 @@ void ChFsiDataManager::ResizeDataManager() {
 ////--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiDataManager::CopyFsiBodiesDataH2D() {
-
 	// Arman: do it with zip iterator
 	thrust::copy(fsiBodiesH.posRigid_fsiBodies_H.begin(), fsiBodiesH.posRigid_fsiBodies_H.end(), fsiBodiesD1.posRigid_fsiBodies_D.begin());
 	thrust::copy(fsiBodiesH.velMassRigid_fsiBodies_H.begin(), fsiBodiesH.velMassRigid_fsiBodies_H.end(), fsiBodiesD1.velMassRigid_fsiBodies_D.begin());
