@@ -1,6 +1,6 @@
 \mainpage Project Chrono API/SDK documentation
 
-![](carousel_chronoengine.jpg)
+[//]: # ![](carousel_chronoengine.jpg)
 
 @subpage introduction_root
 
