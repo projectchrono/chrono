@@ -105,21 +105,21 @@ Support of the previous version Python 2.7 is discontinued.
 
 <div class="ce-warning">
 Important! if you installed Python for 32 bit, you must compile 
-Chrono::Engine in 32 bit mode; viceversa if you installed 
+Chrono::Engine in 32 bit mode; vice-versa if you installed 
 Python for 64bit, you must compile Chrono::Engine in 64 bit mode. 
-(this is because a 32 bit program cannot call functions in a 64 bit dll, and viceversa).
+(this is because a 32 bit program cannot call functions in a 64 bit dll, and vice-versa).
 </div>
 
 
 <div class="ce-warning">
-In some distributions of Python, the debug library '''python33_d.lib''' (the debug version of the python33.lib library) is not included by default. If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h to force the use of python33.lib anyway, doing this way:
+In some distributions of Python, the debug library 'python33_d.lib' (the debug version of the python33.lib library) is not included by default. If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h to force the use of python33.lib anyway, doing this way:
 <br>
-1. comment out the line:
+1. Comment out the line:
 	<br>
     <tt>
 	//#define Py_DEBUG
 	</tt>
-2. modify 
+2. Modify 
 	<tt>
 	#if defined(_DEBUG)
 	  #pragma comment(lib,"python33_d.lib")
@@ -131,12 +131,12 @@ In some distributions of Python, the debug library '''python33_d.lib''' (the deb
 	#if defined(_DEBUG)
 	  #pragma comment(lib,"python33.lib")
 	</tt>
-3. press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link '''python33.lib''' instead than '''python33_d.lib'''.
+3. Press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link 'python33.lib' instead than 'python33_d.lib'.
 </div>
 
+---
 
 ## How to use it
-
 - C++ functions (as Python parser)
 
 	- Look at the [API section](group__python__module.html) of this module for documentation about C++ functions.

@@ -1,11 +1,8 @@
 Chrono core tutorials      {#tutorial_table_of_content_chrono}
 ==========================
 
-The following links describe a set of basic Chrono tutorials. 
-
-These tutorials teach how to setup physical systems in Chrono::Engine. 
-Here we do not use any graphical user interface: see 
-the [Irrlicht tutorials](@ref tutorial_table_of_content_chrono_irrlicht) 
+The tutorials below focus on how to set up physical systems in Chrono. 
+No graphical user interface is used. See the [Irrlicht tutorials](@ref tutorial_table_of_content_chrono_irrlicht) 
 for demos with a 3D graphical output. 
 
 -   @subpage tutorial_demo_buildsystem

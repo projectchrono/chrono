@@ -42,10 +42,10 @@ main:
       url: '/about/'
       sub:
        -
-         title: What is ProjectChrono
+         title: Quick facts
          url: '/about/'
        -
-         title: Users
+         title: Current/Past users
          url: '/testimonials/'
     - title: Old Website
       url: 'http://old.projectchrono.org'

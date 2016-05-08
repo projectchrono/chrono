@@ -2,7 +2,7 @@ Validation Studies {#validation_studies_root}
 ==========================
 
 #### Core Chrono
-- Validation of basic modeling elements against ADAMS&copy; [pdf](http://sbel.wisc.edu/documents/TR-2015-05.pdf)
+- Validation of basic modeling elements against ADAMS&copy; [(pdf)](http://sbel.wisc.edu/documents/TR-2015-05.pdf)
 <br><br>
 
 
@@ -20,7 +20,7 @@ Validation Studies {#validation_studies_root}
 
 
 #### Chrono::FSI
-- Validation of flow in suspension [doc]()[model]()
+- Validation of suspension flows [pdf](http://www.sciencedirect.com/science/article/pii/S0045793014004575)
 <br><br>
 
 

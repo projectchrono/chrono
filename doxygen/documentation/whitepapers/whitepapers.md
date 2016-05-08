@@ -1,8 +1,6 @@
 White Papers {#whitepaper_root}
 ==========================
 
-Here is a short list of papers that describe the mathematical / algorithmical background of Chrono::Engine.
-
 ## Technical documentation and theory
 
 - **Rotations in Chrono::Engine**

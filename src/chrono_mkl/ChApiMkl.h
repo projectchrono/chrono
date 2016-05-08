@@ -36,10 +36,8 @@
     @defgroup mkl_module MKL module
     @brief Module for the Intel MKL library direct solver
 
-    This module provides access to the MKL Intel library.
-    The MKL library is a reliable and fast library for linear algebra.
-    In this case, we use it for exploiting the fast parallel direct solver 
-    (Pardiso) that is featured in MKL.
+    Module provides access to the Intel MKL library. This library is
+    currently used in Chrono for its parallel direct solver (Pardiso).
 
     For additional information, see:
     - the [installation guide](@ref module_mkl_installation)

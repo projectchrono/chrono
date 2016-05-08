@@ -1,4 +1,4 @@
-Chrono: Brief Intro {#introduction_chrono}
+Brief Intro {#introduction_chrono}
 ==========================
 
 
