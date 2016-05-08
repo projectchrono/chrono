@@ -13,7 +13,7 @@
 // =============================================================================
 // Unit tests for 9-node, large deformation brick element
 // This unit test checks for internal, inertia, and gravity force correctness
-// using  1) BendingQuasiStatic (static); 2) Dynamic swinging shell under gravity
+// using  1) BendingQuasiStatic; 2) Dynamic swinging shell under gravity
 // =============================================================================
 
 #include "chrono/lcp/ChLcpIterativeMINRES.h"
@@ -23,14 +23,18 @@
 using namespace chrono;
 using namespace chrono::fea;
 
-bool BendingQuasiStatic();
+bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat);
 bool SwingingShell(ChMatrixDynamic<> FileInputMat);
 
 int main(int argc, char* argv[]) {
     // Open file for reference data (Swinging shell)
 
     ChMatrixDynamic<> FileInputMat(41, 4);
+    ChMatrixDynamic<> FileInputBend(1900, 4);
+
     std::string ShellBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_SwingingShellBrick9.txt";
+    std::string BendingBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_QuasiBendingBrick9.txt"; 
+
     std::ifstream fileMid(ShellBrick9_Val_File);
     if (!fileMid.is_open()) {
         fileMid.open(ShellBrick9_Val_File);
@@ -44,7 +48,21 @@ int main(int argc, char* argv[]) {
     }
     fileMid.close();
 
-    bool passBending = BendingQuasiStatic();
+    std::ifstream fileBending(BendingBrick9_Val_File);
+    if (!fileBending.is_open()) {
+        fileBending.open(BendingBrick9_Val_File);
+    }
+    if (!fileBending) {
+        std::cout << "Cannot open file.\n";
+        exit(1);
+    }
+    for (int x = 0; x < 1900; x++) {
+        fileBending >> FileInputBend[x][0] >> FileInputBend[x][1] >> FileInputBend[x][2] >> FileInputBend[x][3];
+    }
+    fileBending.close();
+
+
+    bool passBending = BendingQuasiStatic(FileInputBend);
     bool passSwinging = SwingingShell(FileInputMat);
     if (passBending && passSwinging) {
         return 0;
@@ -53,10 +71,13 @@ int main(int argc, char* argv[]) {
 }
 
 // QuasiStatic
-bool BendingQuasiStatic() {
+bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
     ChSystem my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    double time_step = 1e-3;
+    bool genRefFile = false;
+    double precision = 1e-3;  // Precision for unit test
 
     GetLog() << "-----------------------------------------------------------\n";
     GetLog() << "-----------------------------------------------------------\n";
@@ -162,10 +183,10 @@ bool BendingQuasiStatic() {
         element->SetMaterial(material);
 
         // Set other element properties
-        element->SetAlphaDamp(0.0);    // Structural damping for this element
+        element->SetAlphaDamp(0.1);    // Structural damping for this element
         element->SetGravityOn(false);  // Turn internal gravitational force calculation off
 
-        element->SetHenckyStrain(false);
+        element->SetHenckyStrain(true);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -184,34 +205,71 @@ bool BendingQuasiStatic() {
     my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
     chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(300);
+    my_system.SetIterLCPmaxItersSpeed(900);
     my_system.SetTolForce(1e-13);
 
+    // Set the time integrator parameters
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    mystepper->SetAlpha(-0.2);
+    mystepper->SetMaxiters(20);
+    mystepper->SetAbsTolerances(1e-6, 1e-1);
+    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetVerbose(false);
+    mystepper->SetScaling(true);
     my_system.Setup();
     my_system.Update();
 
     double force1 = -50;
     nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
 
-    my_system.DoStaticNonlinear(1500);
-    GetLog() << "Final value: " << nodetip->GetPos().z << "\n";
+    if (genRefFile) {
+        outputfile = fopen("UT_QuasiBendingBrick9.txt", "w");
+        fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+        fprintf(outputfile, "\n  ");
+    }
+    unsigned int it = 0;
+    double RelVal, RelVal1, RelVal2, RelVal3;
 
-    // Reference vertical position
-    // double refZTip = -0.437682; // For GL strain
+    while (my_system.GetChTime() < 0.02) {
 
-    double refZTip = -0.43771;
-    bool pass = false;
-    if (abs(refZTip - nodetip->GetPos().z) < abs(refZTip) / 100)
-        pass = true;
+        if (my_system.GetChTime() <= 1.0)
+            nodetip->SetForce(ChVector<>(0.0, 0.0, force1 * my_system.GetChTime()));
+        else
+            nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
 
-    return pass;
+        my_system.DoStepDynamics(time_step);
+        it++;
+
+        if (genRefFile) {
+            fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+            fprintf(outputfile, "\n  ");
+        } else {
+            RelVal1 = std::abs(nodetip->pos.x - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
+            RelVal2 = std::abs(nodetip->pos.y - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
+            RelVal3 = std::abs(nodetip->pos.z - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal = RelVal1 + RelVal2 + RelVal3;
+            // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
+            if (RelVal > precision) {
+                std::cout << "Unit test check failed \n";
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 // Swinging (Bricked) Shell
 bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
     double precision = 1e-3;  // Precision for test
-
     bool genRefFile = false;
     ChSystem my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
@@ -384,7 +442,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     unsigned int it = 0;
     double RelVal, RelVal1, RelVal2, RelVal3;
 
-    while (my_system.GetChTime() < 0.05) {
+    while (my_system.GetChTime() < 0.03) {
         my_system.DoStepDynamics(timestep);
         it++;
 
