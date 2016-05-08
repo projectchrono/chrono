@@ -46,9 +46,9 @@ int main(int argc, char* argv[]) {
 
     bool passBending = BendingQuasiStatic();
     bool passSwinging = SwingingShell(FileInputMat);
-    if (passBending && passSwinging)
+    if (passBending && passSwinging) {
         return 0;
-    else
+    } else
         return 1;
 }
 
@@ -185,7 +185,7 @@ bool BendingQuasiStatic() {
     chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPmaxItersSpeed(300);
-    my_system.SetTolForce(1e-09);
+    my_system.SetTolForce(1e-13);
 
     my_system.Setup();
     my_system.Update();
@@ -193,13 +193,13 @@ bool BendingQuasiStatic() {
     double force1 = -50;
     nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
 
-    my_system.DoStaticNonlinear(1000);
+    my_system.DoStaticNonlinear(1500);
     GetLog() << "Final value: " << nodetip->GetPos().z << "\n";
 
     // Reference vertical position
     // double refZTip = -0.437682; // For GL strain
 
-    double refZTip = -0.4375;
+    double refZTip = -0.43771;
     bool pass = false;
     if (abs(refZTip - nodetip->GetPos().z) < abs(refZTip) / 100)
         pass = true;
