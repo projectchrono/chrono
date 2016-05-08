@@ -202,6 +202,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     /// Get the total thickness of the shell element.
     double GetThickness() { return m_thickness; }
 
+    ChQuaternion<> GetAvgRot() {return Tavg;}
 
     // Shape functions
     // ---------------
@@ -253,12 +254,16 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     ChMatrixNM<double, 4,  24> m_B6_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
 
     std::array<ChQuaternion<>, NUMNO> iTa;                 ///< inverse of reference rotations at nodes
+    std::array<ChQuaternion<>, NUMGP> iTa_i;               ///< inverse of reference rotations at gauss points
+    std::array<ChQuaternion<>, NUMSP> iTa_S;               ///< inverse of reference rotations at shear points
 
     std::array<ChQuaternion<>, NUMGP> T_i0;                ///< initial rotations at gauss points
     std::array<ChQuaternion<>, NUMSP> T_S0;                ///< initial rotations at shear stitching points
     double alpha_i[NUMGP];                                 ///< determinant of jacobian at gauss points 
     std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_i; ///< precomputed matrices at gauss points
     std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_S; ///< precomputed matrices at shear stitching points
+
+    ChQuaternion<> Tavg;                                  ///< average rot 
 
     // static data - not instanced per each shell :
 
@@ -268,13 +273,12 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     static double xi_S[NUMSP][2]; // shear stitching points coords
     static double xi_n[NUMNO][2]; // nodes coords
 
-
+    
   private:
 
     void ComputeNodeAndAverageRotations(
         const ChQuaternion<>& mrA, const ChQuaternion<>& mrB,
         const ChQuaternion<>& mrC, const ChQuaternion<>& mrD,
-        ChQuaternion<>& mTavg, 
         ChQuaternion<>& mTa, ChQuaternion<>& mTb, 
         ChQuaternion<>& mTc, ChQuaternion<>& mTd,
         ChVector<>& mF_relA, ChVector<>& mF_relB,

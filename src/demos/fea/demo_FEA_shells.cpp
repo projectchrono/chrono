@@ -20,6 +20,7 @@
 #include "chrono/lcp/ChLcpIterativePMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono_fea/ChElementShellANCF.h"
@@ -152,6 +153,9 @@ int main(int argc, char* argv[]) {
         
     }
 
+    double l0;
+    ChFunction_Recorder ref_X;
+    ChFunction_Recorder ref_Y;
 
     //
     // Add an EANS SHELL cantilever:
@@ -188,7 +192,8 @@ int main(int argc, char* argv[]) {
             for (int iw = 0; iw<= nels_W; ++iw) {
                 // Make nodes
                 ChVector<> nodepos(rect_L*((double)il/(double)nels_L),   rect_W*((double)iw/(double)nels_W),  0);
-                ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
+                //ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
+                ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos,noderot);
 
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
@@ -213,7 +218,8 @@ int main(int argc, char* argv[]) {
                         nodearray[(il-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(il  )*(nels_W+1) + (iw-1)],
                         nodearray[(il  )*(nels_W+1) + (iw  )],
-                        nodearray[(il-1)*(nels_W+1) + (iw  )]);
+                        nodearray[(il-1)*(nels_W+1) + (iw  )]
+                        );
                     melement->AddLayer(rect_thickness, 0 * CH_C_DEG_TO_RAD, mat);
                     melement->SetAlphaDamp(0.001);   
                     elarray[(il-1)*(nels_W) + (iw-1)] = melement;
@@ -227,7 +233,28 @@ int main(int argc, char* argv[]) {
         for (auto mstartnode : nodes_start) {
             mstartnode->SetFixed(true);
         }
-
+        /*
+        // applied shear
+        l0 = 4;
+        ref_Y.AddPoint(0.10,1.309); ref_X.AddPoint(0.40,0.103);
+        ref_Y.AddPoint(0.20,2.493); ref_X.AddPoint(0.80,0.381);
+        ref_Y.AddPoint(0.30,3.488); ref_X.AddPoint(1.20,0.763);
+        ref_Y.AddPoint(0.40,4.292); ref_X.AddPoint(1.60,1.184);
+        ref_Y.AddPoint(0.50,4.933); ref_X.AddPoint(2.00,1.604);
+        ref_Y.AddPoint(0.60,5.444); ref_X.AddPoint(2.40,2.002);
+        ref_Y.AddPoint(0.70,5.855); ref_X.AddPoint(2.80,2.370);
+        ref_Y.AddPoint(0.80,6.190); ref_X.AddPoint(3.20,2.705);
+        ref_Y.AddPoint(0.90,6.467); ref_X.AddPoint(3.60,3.010);
+        ref_Y.AddPoint(1.00,6.698); ref_X.AddPoint(4.00,3.286);
+        */
+        
+        // applied torque
+        l0 = 50*CH_C_PI/3;
+        for (double t= 0.05; t<=1; t+=0.05) {
+            ref_X.AddPoint(t, -12* ( (1./(CH_C_2PI*t))*(sin(CH_C_2PI*t)) -1) ); 
+            ref_Y.AddPoint(t, 12* (1./(CH_C_2PI*t))*(1.-cos(CH_C_2PI*t)) );
+        }
+        
     }
 
     //
@@ -249,62 +276,76 @@ int main(int argc, char* argv[]) {
                                                          E, 
                                                          nu,
                                                          1.0,
-                                                         0.01);
+                                                         0.001);
 
         // Create the nodes (each with position & normal to shell)
         double node_density=0.0001;
         
-        int nels_L = 30;
-        int nels_W = 12;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_L*nels_W);
-        std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_L+1)*(nels_W+1));
+        int nels_U = 30;
+        int nels_W = 6;
+        double arc = CH_C_2PI;// *0.1;
+        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
+        std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
 
-        for (int il = 0; il<= nels_L; ++il) {
+        for (int iu= 0; iu<= nels_U; ++iu) {
             for (int iw = 0; iw<= nels_W; ++iw) {
                 // Make nodes
-                double u = ((double)il/(double)nels_L);
+                double u = ((double)iu/(double)nels_U);
                 double w = ((double)iw/(double)nels_W);
                 ChVector<> nodepos(
-                    (plate_Ri+(plate_Ro-plate_Ri)*w) * cos(u*CH_C_2PI), 
+                    (plate_Ri+(plate_Ro-plate_Ri)*w) * cos(u*arc), 
                     0,  
-                    (plate_Ri+(plate_Ro-plate_Ri)*w) * sin(u*CH_C_2PI));
+                    (plate_Ri+(plate_Ro-plate_Ri)*w) * sin(u*arc));
                 //ChMatrix33<> nr;
                 //nr.Set_A_Xdir (ChVector<>(cos(u*CH_C_2PI), 0, sin(u*CH_C_2PI)),VECT_Y);
                 //ChQuaternion<> noderot(nr.Get_A_quaternion());
-                ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
-                ChFrame<> nodeframe(nodepos,noderot);
+                //ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
+                ChQuaternion<> noderot(QUNIT);
+                ChFrame<> nodeframe(nodepos, noderot);
 
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                double mn = node_density*(plate_Ro*CH_C_2PI*(plate_Ro-plate_Ri)*plate_thickness)/(nels_L*nels_W); // approx
+                double mn = node_density*(plate_Ro*CH_C_2PI*(plate_Ro-plate_Ri)*plate_thickness)/(nels_U*nels_W); // approx
                 mnode->GetInertia().FillDiag(0); //mnode->GetInertia().FillDiag(1./12.*pow((((plate_Ro-plate_Ri)/nels_W)/2.),3)*mn); // approx
                 mnode->SetMass(0.000); //mn);
 
-                nodearray[il*(nels_W+1) + iw] = mnode;
+                nodearray[iu*(nels_W+1) + iw] = mnode;
 
-                if (il==0)
+                if (iu==0)
                     nodes_start[iw] = mnode;
-                if (il==nels_L)
+                if (iu==nels_U)
                     nodes_end[iw] = mnode;
 
                 // Make elements
-                if (il>0 && iw>0) {
+                if (iu>0 && iw>0) {
                     auto melement = std::make_shared<ChElementShellEANS4>();
                     my_mesh->AddElement(melement);
+                    
                     melement->SetNodes(
-                        nodearray[(il-1)*(nels_W+1) + (iw-1)], 
-                        nodearray[(il  )*(nels_W+1) + (iw-1)],
-                        nodearray[(il  )*(nels_W+1) + (iw  )],
-                        nodearray[(il-1)*(nels_W+1) + (iw  )]);
+                        nodearray[(iu  )*(nels_W+1) + (iw  )],
+                        nodearray[(iu-1)*(nels_W+1) + (iw  )],
+                        nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
+                        nodearray[(iu  )*(nels_W+1) + (iw-1)]
+                        );
+                      
+                    /*    
+                    melement->SetNodes( // not working well..
+                        nodearray[(iu  )*(nels_W+1) + (iw-1)],
+                        nodearray[(iu  )*(nels_W+1) + (iw  )],
+                        nodearray[(iu-1)*(nels_W+1) + (iw  )],
+                        nodearray[(iu-1)*(nels_W+1) + (iw-1)] 
+                        );
+                    */  
                     melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
-                    melement->SetAlphaDamp(0.001);   
-                    elarray[(il-1)*(nels_W) + (iw-1)] = melement;
+                    melement->SetAlphaDamp(0.0);   
+                    elarray[(iu-1)*(nels_W) + (iw-1)] = melement;
                 }
             }
         }
+
         nodesLoad = nodes_end;
         nodePlotA = nodes_end.front();
         nodePlotB = nodes_end.back();
@@ -312,7 +353,29 @@ int main(int argc, char* argv[]) {
         for (auto mstartnode : nodes_start) {
             mstartnode->SetFixed(true);
         }
+        /*
+        auto mtruss = std::make_shared<ChBody>();
+        mtruss->SetBodyFixed(true);
+        my_system.Add(mtruss);
+        for (auto mendnode : nodes_end) {
+            auto mlink = std::make_shared<ChLinkMateGeneric>(false,false,true, false,false,false);
+            mlink->Initialize(mendnode, mtruss, false, mtruss->GetFrame_REF_to_abs(), mtruss->GetFrame_COG_to_abs());
+            my_system.Add(mlink);
+        }
+        */
 
+        l0= 0.8*4;
+        ref_X.AddPoint(0.025,1.305);  ref_Y.AddPoint(0.025,1.789);
+        ref_X.AddPoint(0.10,4.277);   ref_Y.AddPoint(0.10,5.876);
+        ref_X.AddPoint(0.20,6.725);   ref_Y.AddPoint(0.20,9.160);
+        ref_X.AddPoint(0.30,8.340);   ref_Y.AddPoint(0.30,11.213);
+        ref_X.AddPoint(0.40,9.529);   ref_Y.AddPoint(0.40,12.661);
+        ref_X.AddPoint(0.50,10.468);  ref_Y.AddPoint(0.50,13.768);
+        ref_X.AddPoint(0.60,11.257);  ref_Y.AddPoint(0.60,14.674);
+        ref_X.AddPoint(0.70,11.970);  ref_Y.AddPoint(0.70,15.469);
+        ref_X.AddPoint(0.80,12.642);  ref_Y.AddPoint(0.80,16.202);
+        ref_X.AddPoint(0.9,13.282);  ref_Y.AddPoint(0.90,16.886);
+        ref_X.AddPoint(1.00,13.891);  ref_Y.AddPoint(1.00,17.528);
     }
     
 
@@ -335,13 +398,14 @@ int main(int argc, char* argv[]) {
     mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.01);
     my_mesh->AddAsset(mvisualizeshellB);
-
+/*
     auto mvisualizeshellC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeshellC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizeshellC->SetSymbolsThickness(0.05);
     mvisualizeshellC->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizeshellC);
+*/
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -390,47 +454,7 @@ int main(int argc, char* argv[]) {
     
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
-    ChFunction_Recorder ref_X;
-    ChFunction_Recorder ref_Y;
     
-    /*
-    // cantilever
-    double l0 = 4;
-    ref_Y.AddPoint(0.40,1.309); ref_X.AddPoint(0.40,0.103);
-    ref_Y.AddPoint(0.80,2.493); ref_X.AddPoint(0.80,0.381);
-    ref_Y.AddPoint(1.20,3.488); ref_X.AddPoint(1.20,0.763);
-    ref_Y.AddPoint(1.60,4.292); ref_X.AddPoint(1.60,1.184);
-    ref_Y.AddPoint(2.00,4.933); ref_X.AddPoint(2.00,1.604);
-    ref_Y.AddPoint(2.40,5.444); ref_X.AddPoint(2.40,2.002);
-    ref_Y.AddPoint(2.80,5.855); ref_X.AddPoint(2.80,2.370);
-    ref_Y.AddPoint(3.20,6.190); ref_X.AddPoint(3.20,2.705);
-    ref_Y.AddPoint(3.60,6.467); ref_X.AddPoint(3.60,3.010);
-    ref_Y.AddPoint(4.00,6.698); ref_X.AddPoint(4.00,3.286);
-    */
-    /*
-    // applied torque
-    double l0 = 50*CH_C_PI/3;
-    for (double t= 0.05; t<=1; t+=0.05) {
-        ref_X.AddPoint(t, -12* ( (1./(CH_C_2PI*t))*(sin(CH_C_2PI*t)) -1) ); 
-        ref_Y.AddPoint(t, 12* (1./(CH_C_2PI*t))*(1.-cos(CH_C_2PI*t)) );
-    }
-    */
-    
-    // annular slit
-    double l0=0.8;
-    ref_X.AddPoint(0.025*l0,1.305);  ref_Y.AddPoint(0.025*l0,1.789);
-    ref_X.AddPoint(0.10*l0,4.277);   ref_Y.AddPoint(0.10*l0,5.876);
-    ref_X.AddPoint(0.20*l0,6.725);   ref_Y.AddPoint(0.20*l0,9.160);
-    ref_X.AddPoint(0.30*l0,8.340);   ref_Y.AddPoint(0.30*l0,11.213);
-    ref_X.AddPoint(0.40*l0,9.529);   ref_Y.AddPoint(0.40*l0,12.661);
-    ref_X.AddPoint(0.50*l0,10.468);  ref_Y.AddPoint(0.50*l0,13.768);
-    ref_X.AddPoint(0.60*l0,11.257);  ref_Y.AddPoint(0.60*l0,14.674);
-    ref_X.AddPoint(0.70*l0,11.970);  ref_Y.AddPoint(0.70*l0,15.469);
-    ref_X.AddPoint(0.80*l0,12.642);  ref_Y.AddPoint(0.80*l0,16.202);
-    ref_X.AddPoint(0.9*l0,13.282);  ref_Y.AddPoint(0.90*l0,16.886);
-    ref_X.AddPoint(1.00*l0,13.891);  ref_Y.AddPoint(1.00*l0,17.528);
-
-   
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
@@ -442,8 +466,7 @@ int main(int argc, char* argv[]) {
 
         // ...update load at end nodes, as simple lumped nodal forces
         double load_scale = my_system.GetChTime()*0.1;
-        double loadF = l0 * 4* load_scale;
-        //double loadF = l0 * load_scale;
+        double loadF = l0 * load_scale;
         for (auto mendnode : nodesLoad) {
             mendnode->SetForce(ChVector<>(0, loadF, 0) * (1./ (double)nodesLoad.size()) );
             //mendnode->SetTorque(ChVector<>(0, loadF, 0) * (1./ (double)nodesLoad.size()) );
