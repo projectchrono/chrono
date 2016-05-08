@@ -46,8 +46,10 @@ int main(int argc, char* argv[]) {
 
     bool passBending = BendingQuasiStatic();
     bool passSwinging = SwingingShell(FileInputMat);
-
-    return !(passBending && passSwinging);
+    if (passBending && passSwinging)
+        return 0;
+    else
+        return 1;
 }
 
 // QuasiStatic
@@ -163,7 +165,7 @@ bool BendingQuasiStatic() {
         element->SetAlphaDamp(0.0);    // Structural damping for this element
         element->SetGravityOn(false);  // Turn internal gravitational force calculation off
 
-        element->SetHenckyStrain(true);
+        element->SetHenckyStrain(false);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -192,8 +194,11 @@ bool BendingQuasiStatic() {
     nodetip->SetForce(ChVector<>(0.0, 0.0, force1));
 
     my_system.DoStaticNonlinear(1000);
+    GetLog() << "Final value: " << nodetip->GetPos().z << "\n";
 
     // Reference vertical position
+    // double refZTip = -0.437682; // For GL strain
+
     double refZTip = -0.4375;
     bool pass = false;
     if (abs(refZTip - nodetip->GetPos().z) < abs(refZTip) / 100)
@@ -379,7 +384,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     unsigned int it = 0;
     double RelVal, RelVal1, RelVal2, RelVal3;
 
-    while (my_system.GetChTime() < 0.1) {
+    while (my_system.GetChTime() < 0.05) {
         my_system.DoStepDynamics(timestep);
         it++;
 
