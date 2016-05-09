@@ -3,10 +3,10 @@ Install the PYTHON module {#module_python_installation}
 
 [TOC]
 
-This is an optional module that adds Python support in Chrono::Engine.
+This is an optional module that adds Python support in Chrono.
  
 Read [the introduction to modules](@ref modules) for a technical background 
-on the modularity of the Chrono::Engine project.
+on the modularity of the Chrono project.
 
 
 ##Features
@@ -20,8 +20,8 @@ This modules, in particular, is used to build the [Chrono::PyEngine](@ref introd
 This module consists of *two* main sets of build targets:
 
 - The Python modules for [Chrono::PyEngine](@ref introduction_chrono_pyengine). 
-  Currently, the PyChrono::Engine Python modules that are built are:
-	- *ChronoEngine_PYTHON_core*, that wraps all the core Chrono::Engine,
+  Currently, the PyChrono Python modules that are built are:
+	- *ChronoEngine_PYTHON_core*, that wraps all the core Chrono,
 	- *ChronoEngine_PYTHON_postprocess*, that wraps the POSTPROCESS module.
 	- *ChronoEngine_PYTHON_irrlicht*, that wraps the IRRLICHT module.
 	- *ChronoEngine_PYTHON_fea*, that wraps the FEA module.
@@ -65,7 +65,7 @@ Read the notes below for details and troubleshooting related to compilation of t
 
 After the successful compilation, the [Chrono::PyEngine](@ref introduction_chrono_pyengine) modules 
 are built and installed in your Python environment, so you will be able to open a 
-Python editor and to type Python commands that call Chrono::Engine functions.
+Python editor and to type Python commands that call Chrono functions.
 
 See the [introduction to Python scripting](@ref chrono_pyengine_reference) 
 to see how to use [Chrono::PyEngine](@ref introduction_chrono_pyengine).
@@ -94,7 +94,7 @@ internally consists of these automatic steps:
 Note that the SWIG tool requires few minutes to process the source 
 and to generate the .cxx wrapper file; 
 this means that when you start the compilation of the entire 
-Chrono::Engine project, the process might look 'frozen' 
+Chrono project, the process might look 'frozen' 
 for one or two minutes when SWIG does its job; just have patience and wait. 
 </div>
 
@@ -104,9 +104,9 @@ Support of the previous version Python 2.7 is discontinued.
 </div>
 
 <div class="ce-warning">
-Important! if you installed Python for 32 bit, you must compile 
-Chrono::Engine in 32 bit mode; vice-versa if you installed 
-Python for 64bit, you must compile Chrono::Engine in 64 bit mode. 
+If you installed Python for 32 bit, you must compile 
+Chrono in 32 bit mode; vice-versa if you installed 
+Python for 64bit, you must compile Chrono in 64 bit mode. 
 (this is because a 32 bit program cannot call functions in a 64 bit dll, and vice-versa).
 </div>
 
