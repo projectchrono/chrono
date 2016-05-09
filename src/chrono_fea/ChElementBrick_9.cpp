@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Bryan Peterson, Antonio Recuero
 // =============================================================================
 // Brick element with 9 nodes (central node for curvature)
 // =============================================================================
@@ -323,6 +323,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                   Ny_d(0, 2) * Nz_d(0, 1) * Nx_d(0, 0) - Nz_d(0, 2) * Nx_d(0, 1) * Ny_d(0, 0);
 
     ChMatrixNM<double, 3, 3> j0;
+
     // Calculates inverse of rd0 (j0) (position vector gradient: Initial Configuration)
     j0(0, 0) = Ny_d0(0, 1) * Nz_d0(0, 2) - Nz_d0(0, 1) * Ny_d0(0, 2);
     j0(0, 1) = Ny_d0(0, 2) * Nz_d0(0, 0) - Ny_d0(0, 0) * Nz_d0(0, 2);
@@ -335,6 +336,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
     j0(2, 2) = Nx_d0(0, 0) * Ny_d0(0, 1) - Ny_d0(0, 0) * Nx_d0(0, 1);
     j0.MatrDivScale(detJ0);
 
+    // Do we need to account for deformed initial configuration in DefF?
     ChMatrixNM<double, 3, 3> DefF;
     DefF(0, 0) = Nx_d(0, 0);
     DefF(1, 0) = Nx_d(0, 1);
@@ -366,8 +368,8 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
     E_eps(4, 4) = C2;
     E_eps(5, 5) = C2;
 
-    // if (m_element->m_strain_form == GreenLagrange)
     if (!m_element->m_Hencky) {
+        // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
         ChMatrixNM<double, 11, 1> ddNx;
         ChMatrixNM<double, 11, 1> ddNy;
         ChMatrixNM<double, 11, 1> ddNz;
@@ -375,6 +377,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         ddNy.MatrMultiplyT(m_element->m_ddT, Ny);
         ddNz.MatrMultiplyT(m_element->m_ddT, Nz);
 
+        // d0d0Nx = e0^{T}*Nx^{T}*Nx, d0d0Ny = e0^{T}*Ny^{T}*Ny, d0d0Nz = e0^{T}*Nz^{T}*Nz
         ChMatrixNM<double, 11, 1> d0d0Nx;
         ChMatrixNM<double, 11, 1> d0d0Ny;
         ChMatrixNM<double, 11, 1> d0d0Nz;
@@ -382,7 +385,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
         d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
 
-        // Strain component
+        // Green-Lagrange strain components
         ChMatrixNM<double, 6, 1> strain;
         strain(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
         strain(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
@@ -391,8 +394,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         strain(4, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);
         strain(5, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
 
-        ChMatrixNM<double, 6, 33> strainD;
-        ChMatrixNM<double, 3, 3> Dm;
+        // Reorganize variable part of the deformation gradient (DefF)
         ChMatrixNM<double, 6, 9> DepsDDm;
 
         DepsDDm(0, 0) = DefF(0, 0);
@@ -427,7 +429,9 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         DepsDDm(5, 7) = DefF(1, 1);
         DepsDDm(5, 8) = DefF(2, 1);
 
+        // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33 coordinates)
         ChMatrixNM<double, 9, 33> Gd;
+
         for (int ii = 0; ii < 11; ii++) {
             Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
             Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -441,9 +445,10 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
             Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
         }
-
+        // Jacobian of Green-Lagrange strains with respect to the coordinates
+        ChMatrixNM<double, 6, 33> strainD;
         strainD.MatrMultiply(DepsDDm, Gd);
-
+        // Add damping strains
         ChMatrixNM<double, 6, 1> DEPS;
         DEPS.Reset();
         for (int ii = 0; ii < 33; ii++) {
@@ -461,27 +466,28 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         // Internal force calculation
         ChMatrixNM<double, 33, 6> tempC;
         tempC.MatrTMultiply(strainD, E_eps);
-        ChMatrixNM<double, 33, 1> Fint;
-        Fint.MatrMultiply(tempC, strain);
-        Fint.MatrScale(detJ0 * m_element->m_GaussScaling);
-        result = Fint;
+        result.MatrMultiply(tempC, strain);
+        result.MatrScale(detJ0 * m_element->m_GaussScaling);
     }
-    // else if (m_element->m_strain_form == Hencky)
+   // If Hencky strain (large deformation) is selected
+   // Hencky strain may be combined with a plasticity formulation
+
     else if (m_element->m_Hencky) {
-        ChMatrixNM<double, 3, 3> Temp33;
-        ChMatrixNM<double, 3, 3> CCPinv;
-        ChMatrix33<double> BETRI;
-        double BETRI_eig[3] = {0.0};
-        ChMatrix33<double> BETRI_eigv;
-        ChMatrixNM<double, 3, 1> e1;
-        ChMatrixNM<double, 3, 1> e2;
-        ChMatrixNM<double, 3, 1> e3;
-        ChMatrixNM<double, 3, 3> MM1;
-        ChMatrixNM<double, 3, 3> MM2;
-        ChMatrixNM<double, 3, 3> MM3;
-        CCPinv(0, 0) = 1.0;
-        CCPinv(1, 1) = 1.0;
-        CCPinv(2, 2) = 1.0;
+
+        ChMatrixNM<double, 3, 3> Temp33; ///< Temporary matrix
+        ChMatrixNM<double, 3, 3> CCPinv; ///< Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
+        // gradient stemming from multiplicative decomposition
+        ChMatrix33<double> BETRI;      ///< Left Cauchy-Green tensor for elastic deformation
+        double BETRI_eig[3] = {0.0};   ///< Eigenvalues of spatial stretch tensor
+        ChMatrix33<double> BETRI_eigv; ///< Eigenvectors of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e1;   ///< First principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e2;   ///< Second principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e3;   ///< Third principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 3> MM1;  ///< Matrix from outer product of e1
+        ChMatrixNM<double, 3, 3> MM2;  ///< Matrix from outer product of e2
+        ChMatrixNM<double, 3, 3> MM3;  ///< Matrix from outer product of e3
+
+        // Obtain inverse of F^{pT}*F^{p} for plastic formulation
         if (m_element->m_Plasticity) {
             CCPinv(0, 0) = m_element->m_CCPinv_Plast(0, m_element->m_InteCounter);
             CCPinv(0, 1) = m_element->m_CCPinv_Plast(1, m_element->m_InteCounter);
@@ -492,54 +498,38 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             CCPinv(2, 0) = m_element->m_CCPinv_Plast(6, m_element->m_InteCounter);
             CCPinv(2, 1) = m_element->m_CCPinv_Plast(7, m_element->m_InteCounter);
             CCPinv(2, 2) = m_element->m_CCPinv_Plast(8, m_element->m_InteCounter);
+        } else {
+            CCPinv(0, 0) = 1.0;
+            CCPinv(1, 1) = 1.0;
+            CCPinv(2, 2) = 1.0;
         }
 
-        Temp33.MatrMultiply(DefF, CCPinv);
-        BETRI.MatrMultiplyT(Temp33, DefF);
+        Temp33.MatrMultiply(DefF, CCPinv); // Obtain elastic deformation gradient (remove plastic part)
+        BETRI.MatrMultiplyT(Temp33, DefF); // Are we sure?
         BETRI.FastEigen(BETRI_eigv, BETRI_eig);
         for (int i = 0; i < 3; i++) {
             e3(i, 0) = BETRI_eigv(i, 0);
             e1(i, 0) = BETRI_eigv(i, 1);
-            e2(i, 0) = BETRI_eigv(i, 2);
+            e2(i, 0) = BETRI_eigv(i, 2); // ? Why change in order
         }
         MM1.MatrMultiplyT(e1, e1);
         MM2.MatrMultiplyT(e2, e2);
         MM3.MatrMultiplyT(e3, e3);
-        // ChMatrix33<double> test;
-        // double test_eig[3] = { 0.0 };
-        // ChMatrix33<double> test_eigv;
-        // ChVector<double> e11;
-        // ChVector<double> e21;
-        // ChVector<double> e31;
-        // test(0, 0) = 1.3; test(0, 1) = -3.3; test(0, 2) = 1.4;
-        // test(1, 0) = -3.3; test(1, 1) = 1.11; test(1, 2) = 2.1;
-        // test(2, 0) = 1.4; test(2, 1) = 2.1; test(2, 2) = 1.7;
-
-        // test.FastEigen(test_eigv, test_eig);
-
-        // for (int i = 0; i < 3; i++)
-        //{
-        //	e3(i) = test_eigv(i, 0);
-        //	e1(i) = test_eigv(i, 1);
-        //	e2(i) = test_eigv(i, 2);
-        //}
-        //
-        // double testorth;
-        // testorth = (e11.x*e21.x + e11.y*e21.y + e11.z*e21.z);
-        // testorth = (e31.x*e21.x + e31.y*e21.y + e31.z*e21.z);
-        // testorth = (e11.x*e31.x + e11.y*e31.y + e11.z*e31.z);
 
         ChMatrixNM<double, 3, 1> LogStrain;
         LogStrain(0, 0) = 0.5 * log(BETRI_eig[1]);
         LogStrain(1, 0) = 0.5 * log(BETRI_eig[2]);
         LogStrain(2, 0) = 0.5 * log(BETRI_eig[0]);
 
-        ChMatrixNM<double, 3, 3> FI;
-        ChMatrixNM<double, 6, 33> strainD;
+        ChMatrixNM<double, 3, 3> FI; ///< Inverse of total deformation gradient
+        ChMatrixNM<double, 6, 33> strainD; // Jacobian of strains w.r.t. coordinates
         FI = DefF;
         FI.MatrInverse();
-        m_element->EPSP_Euerian_SolidANCF33(strainD, Nx, Ny, Nz, FI, j0);
 
+        // Obtain Jacobian of strains w.r.t. element coordinates
+        m_element->EPSP_Euerian_SolidANCF33(strainD, Nx, Ny, Nz, FI, j0); // ?
+
+        // Obtain eigenvalues of Kirchhoff stress tensor
         ChMatrixNM<double, 3, 1> StressK_eig;
         StressK_eig(0, 0) =
             E_eps(0, 0) * LogStrain(0, 0) + E_eps(0, 1) * LogStrain(1, 0) + E_eps(0, 3) * LogStrain(2, 0);
@@ -548,67 +538,94 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         StressK_eig(2, 0) =
             E_eps(3, 0) * LogStrain(0, 0) + E_eps(3, 1) * LogStrain(1, 0) + E_eps(3, 3) * LogStrain(2, 0);
 
+        // For plasticity, apply return mapping
         if (m_element->m_Plasticity) {
             double G = E / (2.0 * (1 + nu));
             double K = E / (3.0 * (1 - 2.0 * nu));
 
+            // Volumetric Hencky strain
             double EEVD3 = (LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0)) / 3.0;
+
+            // Deviatoric  Hencky strain
             ChVector<double> EETD;
             EETD.x = LogStrain(0, 0) - EEVD3;
             EETD.y = LogStrain(1, 0) - EEVD3;
             EETD.z = LogStrain(2, 0) - EEVD3;
-            double ETDNorm = sqrt(EETD.x * EETD.x + EETD.y * EETD.y + EETD.z * EETD.z);
+            double ETDNorm = std::sqrt(EETD.x * EETD.x + EETD.y * EETD.y + EETD.z * EETD.z);
 
+            // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
             double hydroP = (StressK_eig(0, 0) + StressK_eig(1, 0) + StressK_eig(2, 0)) / 3.0;
+
+            // Deviatoric stress
             ChVector<double> devStress;
             devStress.x = StressK_eig(0, 0) - hydroP;
             devStress.y = StressK_eig(1, 0) - hydroP;
             devStress.z = StressK_eig(2, 0) - hydroP;
             double NormSn = sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
 
+            // Second invariant of the stress tensor (J2)
             double J2Rt = NormSn / sqrt(2.0);
+
+            // Trial stress for yield function
             double qtrial = sqrt(3.0) * J2Rt;
 
+            // Evaluation of J2 yield function
             double YieldFunc =
                 qtrial - (m_element->m_YieldStress +
                           m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+
+            // Set Yield flag to zero (within elastic range)
             int YieldFlag = 0;
+
+            // If yield function reveals plasticity, apply return mapping algorithm
             if (YieldFunc > 0.0) {
                 YieldFlag = 1;
 
+                // Step variation of the plastic flow (rate)
                 double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
                 ChVector<double> devStressUp;
+
+                // Perform return mapping on deviatoric stress tensor (Up for Update)
                 if (qtrial != 0.0) {
                     devStressUp = (1.0 - G * DeltaGamma * 3.0 / qtrial) * devStress;
                 } else {
                     devStressUp = devStress;
                 }
 
+                // Update stress tensor
                 StressK_eig(0, 0) = devStressUp.x + hydroP;
                 StressK_eig(1, 0) = devStressUp.y + hydroP;
                 StressK_eig(2, 0) = devStressUp.z + hydroP;
 
+                // Update logarithmic strains
                 LogStrain(0, 0) = devStressUp.x / (2.0 * G) + EEVD3;
                 LogStrain(1, 0) = devStressUp.y / (2.0 * G) + EEVD3;
                 LogStrain(2, 0) = devStressUp.z / (2.0 * G) + EEVD3;
 
+                // Obtain eigenvalues current logarithmic strains
                 ChVector<double> lambda;
                 lambda.x = exp(2.0 * LogStrain(0, 0));
                 lambda.y = exp(2.0 * LogStrain(1, 0));
                 lambda.z = exp(2.0 * LogStrain(2, 0));
-                ChMatrixNM<double, 3, 3> BEUP;
+
+                ChMatrixNM<double, 3, 3> BEUP; ///< Updated elastic left Cauchy strain tensor
                 MM1.MatrScale(lambda.x);
                 MM2.MatrScale(lambda.y);
                 MM3.MatrScale(lambda.z);
                 BEUP = MM1 + MM2 + MM3;
+
+                // MM1, MM2, and MM3 are outputs of the return mapping alg. so must be re-updated
                 MM1.MatrScale(1 / lambda.x);
                 MM2.MatrScale(1 / lambda.y);
                 MM3.MatrScale(1 / lambda.z);
+
+                // Keep track of plastic variable alpha for each integration point
                 m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
                     m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + DeltaGamma;
                 Temp33.MatrMultiply(FI, BEUP);
                 CCPinv.MatrMultiplyT(Temp33, FI);
-                // Store CPPinv
+
+                // Store plastic deformation tensor for each iteration
                 m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
                 m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
                 m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
@@ -621,14 +638,15 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             }
         }
 
+        // Obtain stress tensor from MMX matrices - either elastic or plastic
         ChMatrixNM<double, 3, 3> StressK;
         MM1.MatrScale(StressK_eig(0, 0));
         MM2.MatrScale(StressK_eig(1, 0));
         MM3.MatrScale(StressK_eig(2, 0));
         StressK = MM1 + MM2 + MM3;
 
+        // Influence of damping
         ChMatrixNM<double, 6, 1> DEPS;
-        DEPS.Reset();
         for (int ii = 0; ii < 33; ii++) {
             DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
             DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -638,11 +656,13 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * m_element->m_d_dt(ii, 0);
         }
 
+        // Obtain stress from damping forces 
         ChMatrixNM<double, 6, 1> Stress_damp;
         // Add structural damping
         Stress_damp.MatrMultiply(E_eps, DEPS);
         Stress_damp.MatrScale(m_element->m_Alpha);
 
+        // Final six stress components
         ChMatrixNM<double, 6, 1> Stress;
         Stress(0, 0) = StressK(0, 0) + Stress_damp(0, 0);
         Stress(1, 0) = StressK(1, 1) + Stress_damp(1, 0);
@@ -651,10 +671,9 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         Stress(4, 0) = 0.5 * (StressK(2, 0) + StressK(0, 2)) + Stress_damp(4, 0);
         Stress(5, 0) = 0.5 * (StressK(2, 1) + StressK(1, 2)) + Stress_damp(5, 0);
 
-        ChMatrixNM<double, 33, 1> Fint;
-        Fint.MatrTMultiply(strainD, Stress);
-        Fint.MatrScale(detJ0 * m_element->m_GaussScaling);
-        result = Fint;
+        // Obtain generalized elato-(plastic) forces
+        result.MatrTMultiply(strainD, Stress);
+        result.MatrScale(detJ0 * m_element->m_GaussScaling);
         m_element->m_InteCounter++;
     }
 }
@@ -666,10 +685,11 @@ void ChElementBrick_9::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     m_ddT.MatrMultiplyT(m_d, m_d);
 
     Fi.Reset();
+    // Set plastic counter to zero. This runs for each integration point
     m_InteCounter = 0;
     ChMatrixNM<double, 33, 1> result;
     MyForceBrick9 formula(this);
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 1>>(result,   // result of integration
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 1> >(result,   // result of integration
                                                          formula,  // integrand formula
                                                          -1, 1,    // x limits
                                                          -1, 1,    // y limits
@@ -740,6 +760,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
     j0(2, 1) = Ny_d0(0, 0) * Nx_d0(0, 2) - Nx_d0(0, 0) * Ny_d0(0, 2);
     j0(2, 2) = Nx_d0(0, 0) * Ny_d0(0, 1) - Ny_d0(0, 0) * Nx_d0(0, 1);
     j0.MatrDivScale(detJ0);
+
     // Current deformation gradient matrix
     ChMatrixNM<double, 3, 3> DefF; 
 
@@ -774,7 +795,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
     E_eps(5, 5) = C2;
 
     if (!m_element->m_Hencky) {
-
+        // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
         ChMatrixNM<double, 11, 1> ddNx;
         ChMatrixNM<double, 11, 1> ddNy;
         ChMatrixNM<double, 11, 1> ddNz;
@@ -782,6 +803,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         ddNy.MatrMultiplyT(m_element->m_ddT, Ny);
         ddNz.MatrMultiplyT(m_element->m_ddT, Nz);
 
+        // d0d0Nx = e0^{T}*Nx^{T}*Nx, d0d0Ny = e0^{T}*Ny^{T}*Ny, d0d0Nz = e0^{T}*Nz^{T}*Nz
         ChMatrixNM<double, 11, 1> d0d0Nx;
         ChMatrixNM<double, 11, 1> d0d0Ny;
         ChMatrixNM<double, 11, 1> d0d0Nz;
@@ -789,19 +811,16 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
         d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
 
-        // Strain component
-        ChMatrixNM<double, 6, 1> strain_til;
-        strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
-        strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
-        strain_til(2, 0) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);
-        strain_til(3, 0) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));
-        strain_til(4, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);
-        strain_til(5, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
-
+        // Green-Lagrange strain components
         ChMatrixNM<double, 6, 1> strain;
-        strain = strain_til;
+        strain(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
+        strain(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
+        strain(2, 0) = (Nx * ddNy)(0, 0) - (Nx * d0d0Ny)(0, 0);
+        strain(3, 0) = 0.5 * ((Nz * ddNz)(0, 0) - (Nz * d0d0Nz)(0, 0));
+        strain(4, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);
+        strain(5, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
 
-        ChMatrixNM<double, 6, 33> strainD; // Derivative of strain vector w.r.t. element coordinates
+        // Reorganize variable part of the deformation gradient (DefF)
         ChMatrixNM<double, 6, 9> DepsDDm; // Derivative of strain vector w.r.t. deformation gradient elements
 
         // (d)eps_xx/(d)DefF(i)
@@ -838,7 +857,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         DepsDDm(5, 7) = DefF(1, 1);
         DepsDDm(5, 8) = DefF(2, 1);
 
-        // Derivative of J=F*F^{-1}_{0} w.t.r. the element coordinates: (d)J/(d)e
+        // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33 coordinates)
         ChMatrixNM<double, 9, 33> Gd;
         for (int ii = 0; ii < 11; ii++) {
             Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -853,9 +872,11 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
             Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
         }
-
+        // Jacobian of Green-Lagrange strains with respect to the coordinates
+        ChMatrixNM<double, 6, 33> strainD; // Derivative of strain vector w.r.t. element coordinates
         strainD.MatrMultiply(DepsDDm, Gd);
 
+        // Add damping strains
         ChMatrixNM<double, 6, 1> DEPS;
         for (int ii = 0; ii < 33; ii++) {
             DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
@@ -911,37 +932,31 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         Sigm(7, 7) = stress(3, 0);
         Sigm(8, 8) = stress(3, 0);
 
-        // Jacobian of internal forces (excluding the EAS contribution).
+        // Jacobian of internal forces
         ChMatrixNM<double, 33, 6> temp336;
         ChMatrixNM<double, 33, 9> temp339;
+        // Term from differentiation of strain w.r.t. coordinates
         temp336.MatrTMultiply(strainD, E_eps);
+        // Term from  differentiation of Jacobian of strain w.r.t. coordinates w.r.t. coordinates (that is, twice)
         temp339.MatrTMultiply(Gd, Sigm);
-        ChMatrixNM<double, 33, 33> KTE;
-
-        /*temp36.MatrMultiply(E_eps, strainD);
-        ChMatrixNM<double, 33, 33> KT1;
-        KT1 = temp336*strainD* (m_Kfactor + m_Rfactor * m_element->m_Alpha);*/
-
-        KTE = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) +(temp339 * Gd) * m_Kfactor;
-        KTE.MatrScale(detJ0 * m_element->m_GaussScaling);
-        result = KTE;
+        // Sum contributions to the final Jacobian of internal forces
+        result = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
+        result.MatrScale(detJ0 * m_element->m_GaussScaling);
     }
     // else if (m_element->m_strain_form == Hencky)
     else if (m_element->m_Hencky) {
-        ChMatrixNM<double, 3, 3> Temp33;
-        ChMatrixNM<double, 3, 3> CCPinv;
-        ChMatrix33<double> BETRI;
-        double BETRI_eig[3] = {0.0};
-        ChMatrix33<double> BETRI_eigv;
-        ChMatrixNM<double, 3, 1> e1;
-        ChMatrixNM<double, 3, 1> e2;
-        ChMatrixNM<double, 3, 1> e3;
-        ChMatrixNM<double, 3, 3> MM1;
-        ChMatrixNM<double, 3, 3> MM2;
-        ChMatrixNM<double, 3, 3> MM3;
-        CCPinv(0, 0) = 1.0;
-        CCPinv(1, 1) = 1.0;
-        CCPinv(2, 2) = 1.0;
+        ChMatrixNM<double, 3, 3> Temp33;  ///< Temporary matrix
+        ChMatrixNM<double, 3, 3> CCPinv;  ///< Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
+        ChMatrix33<double> BETRI;         ///< Left Cauchy-Green tensor for elastic deformation
+        double BETRI_eig[3] = {0.0};      ///< Eigenvalues of spatial stretch tensor
+        ChMatrix33<double> BETRI_eigv;    ///< Eigenvectors of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e1;      ///< First principal direction of spatial stretch tensor 
+        ChMatrixNM<double, 3, 1> e2;      ///< Second principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e3;      ///< Third principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 3> MM1;     ///< Matrix from outer product of e1
+        ChMatrixNM<double, 3, 3> MM2;     ///< Matrix from outer product of e2
+        ChMatrixNM<double, 3, 3> MM3;     ///< Matrix from outer product of e3
+
         if (m_element->m_Plasticity) {
             CCPinv(0, 0) = m_element->m_CCPinv_Plast(0, m_element->m_InteCounter);
             CCPinv(0, 1) = m_element->m_CCPinv_Plast(1, m_element->m_InteCounter);
@@ -953,8 +968,14 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             CCPinv(2, 1) = m_element->m_CCPinv_Plast(7, m_element->m_InteCounter);
             CCPinv(2, 2) = m_element->m_CCPinv_Plast(8, m_element->m_InteCounter);
         }
-        Temp33.MatrMultiply(DefF, CCPinv);
-        BETRI.MatrMultiplyT(Temp33, DefF);
+        else
+        {
+            CCPinv(0, 0) = 1.0;
+            CCPinv(1, 1) = 1.0;
+            CCPinv(2, 2) = 1.0;
+        }
+        Temp33.MatrMultiply(DefF, CCPinv); // Obtain elastic deformation gradient (remove plastic part)
+        BETRI.MatrMultiplyT(Temp33, DefF); // Obtain left Cauchy-Green tensor // ?
         BETRI.FastEigen(BETRI_eigv, BETRI_eig);
         for (int i = 0; i < 3; i++) {
             e3(i, 0) = BETRI_eigv(i, 0);
@@ -970,12 +991,14 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         LogStrain(1, 0) = 0.5 * log(BETRI_eig[2]);
         LogStrain(2, 0) = 0.5 * log(BETRI_eig[0]);
 
-        ChMatrixNM<double, 3, 3> FI;
-        ChMatrixNM<double, 6, 33> strainD;
+        ChMatrixNM<double, 3, 3> FI;       ///< Inverse of total deformation gradient
+        ChMatrixNM<double, 6, 33> strainD; ///< Jacobian of strains w.r.t. coordinates
         FI = DefF;
         FI.MatrInverse();
+        // Obtain Jacobian of strains w.r.t. element coordinates
         m_element->EPSP_Euerian_SolidANCF33(strainD, Nx, Ny, Nz, FI, j0);
 
+        // Obtain eigenvalues of Kirchhoff stress tensor
         ChMatrixNM<double, 3, 1> StressK_eig;
         StressK_eig(0, 0) =
             E_eps(0, 0) * LogStrain(0, 0) + E_eps(0, 1) * LogStrain(1, 0) + E_eps(0, 3) * LogStrain(2, 0);
@@ -983,68 +1006,91 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             E_eps(1, 0) * LogStrain(0, 0) + E_eps(1, 1) * LogStrain(1, 0) + E_eps(1, 3) * LogStrain(2, 0);
         StressK_eig(2, 0) =
             E_eps(3, 0) * LogStrain(0, 0) + E_eps(3, 1) * LogStrain(1, 0) + E_eps(3, 3) * LogStrain(2, 0);
+
+        // Set Yield flag to zero (within elastic range)
         int YieldFlag = 0;
+
         ChMatrixNM<double, 6, 6> Dep;
+
+        // For plasticity, apply return mapping
         if (m_element->m_Plasticity) {
             double G = E / (2.0 * (1 + nu));
             double K = E / (3.0 * (1 - 2.0 * nu));
 
+            // Volumetric Hencky strain
             double EEVD3 = (LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0)) / 3.0;
+
+            // Deviatoric  Hencky strain
             ChVector<double> EETD;
             EETD.x = LogStrain(0, 0) - EEVD3;
             EETD.y = LogStrain(1, 0) - EEVD3;
             EETD.z = LogStrain(2, 0) - EEVD3;
             double ETDNorm = sqrt(EETD.x * EETD.x + EETD.y * EETD.y + EETD.z * EETD.z);
 
+            // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
             double hydroP = (StressK_eig(0, 0) + StressK_eig(1, 0) + StressK_eig(2, 0)) / 3.0;
+
+            // Deviatoric stress
             ChVector<double> devStress;
             devStress.x = StressK_eig(0, 0) - hydroP;
             devStress.y = StressK_eig(1, 0) - hydroP;
             devStress.z = StressK_eig(2, 0) - hydroP;
             double NormSn = sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
 
+            // Second invariant of the stress tensor (J2)
             double J2Rt = NormSn / sqrt(2.0);
+            // Trial stress for yield function
             double qtrial = sqrt(3.0) * J2Rt;
 
+            // Evaluation of J2 yield function
             double YieldFunc =
                 qtrial - (m_element->m_YieldStress +
                           m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+
             if (YieldFunc > 0.0) {
+                // If yield function reveals plasticity, apply return mapping algorithm
                 YieldFlag = 1;
 
+                // Step variation of the plastic flow (rate)
                 double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
+                // Perform return mapping on deviatoric stress tensor (Up for Update)
                 ChVector<double> devStressUp;
                 if (qtrial != 0.0) {
                     devStressUp = (1.0 - G * DeltaGamma * 3.0 / qtrial) * devStress;
                 } else {
                     devStressUp = devStress;
                 }
-
+                // Update stress tensor
                 StressK_eig(0, 0) = devStressUp.x + hydroP;
                 StressK_eig(1, 0) = devStressUp.y + hydroP;
                 StressK_eig(2, 0) = devStressUp.z + hydroP;
-
+                // Update logarithmic strains
                 LogStrain(0, 0) = devStressUp.x / (2.0 * G) + EEVD3;
                 LogStrain(1, 0) = devStressUp.y / (2.0 * G) + EEVD3;
                 LogStrain(2, 0) = devStressUp.z / (2.0 * G) + EEVD3;
 
+                // Obtain eigenvalues of current (map-returned) logarithmic strains
                 ChVector<double> lambda;
                 lambda.x = exp(2.0 * LogStrain(0, 0));
                 lambda.y = exp(2.0 * LogStrain(1, 0));
                 lambda.z = exp(2.0 * LogStrain(2, 0));
-                ChMatrixNM<double, 3, 3> BEUP;
+
+                ChMatrixNM<double, 3, 3> BEUP; ///< Updated elastic left Cauchy strain tensor
                 MM1.MatrScale(lambda.x);
                 MM2.MatrScale(lambda.y);
                 MM3.MatrScale(lambda.z);
                 BEUP = MM1 + MM2 + MM3;
+                // MM1, MM2, and MM3 are outputs of the return mapping alg. so must be re-updated
                 MM1.MatrScale(1 / lambda.x);
                 MM2.MatrScale(1 / lambda.y);
                 MM3.MatrScale(1 / lambda.z);
+                // Keep track of plastic variable alpha for each integration point
                 m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
                     m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + DeltaGamma;
                 Temp33.MatrMultiply(FI, BEUP);
                 CCPinv.MatrMultiplyT(Temp33, FI);
-                // Store CPPinv
+
+                // Store plastic deformation tensor for each iteration
                 m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
                 m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
                 m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
@@ -1055,7 +1101,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
                 m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
 
-                //// ONLY FOR JACOBIAN!!!!!
+                // Obtain some terms necessary for plastic Jacobian of internal forces
                 qtrial = sqrt(3.0 / 2.0) * NormSn + 3.0 * G * DeltaGamma;
                 double AFACT = 2.0 * G * (1.0 - 3.0 * G * DeltaGamma / qtrial);
                 double BFACT = 6.0 * G * G * (DeltaGamma / qtrial - 1.0 / (3.0 * G + m_element->m_HardeningSlope)) /
@@ -1065,7 +1111,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 devStressVec(0, 0) = devStress.x;
                 devStressVec(1, 0) = devStress.y;
                 devStressVec(3, 0) = devStress.z;
-
+                // TODO, commenting this part of code
                 ChMatrixNM<double, 6, 6> FOID;
                 ChMatrixNM<double, 6, 1> SOID;
 
@@ -1097,13 +1143,14 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 }
             }
         }
-
+        // Obtain stress tensor from MMX matrices - either elastic or plastic
         ChMatrixNM<double, 3, 3> StressK;
         MM1.MatrScale(StressK_eig(0, 0));
         MM2.MatrScale(StressK_eig(1, 0));
         MM3.MatrScale(StressK_eig(2, 0));
         StressK = MM1 + MM2 + MM3;
 
+        // Influence of damping
         ChMatrixNM<double, 6, 1> DEPS;
         DEPS.Reset();
         for (int ii = 0; ii < 33; ii++) {
@@ -1114,12 +1161,12 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             DEPS(4, 0) = DEPS(4, 0) + strainD(4, ii) * m_element->m_d_dt(ii, 0);
             DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * m_element->m_d_dt(ii, 0);
         }
-
+        // Obtain stress from structural damping
         ChMatrixNM<double, 6, 1> Stress_damp;
-        // Add structural damping
         Stress_damp.MatrMultiply(E_eps, DEPS);
         Stress_damp.MatrScale(m_element->m_Alpha);
 
+        // Final six stress components
         ChMatrixNM<double, 6, 1> Stress;
         Stress(0, 0) = StressK(0, 0) + Stress_damp(0, 0);
         Stress(1, 0) = StressK(1, 1) + Stress_damp(1, 0);
@@ -1185,17 +1232,15 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         ChMatrixNM<double, 33, 6> temp336;
         ChMatrixNM<double, 33, 9> temp339;
         if (m_element->m_Plasticity && YieldFlag == 1) {
-            temp336.MatrTMultiply(strainD, Dep);
+            temp336.MatrTMultiply(strainD, Dep); // Plastic contribution to the Jacobian of internal forces
         } else {
-            temp336.MatrTMultiply(strainD, E_eps);
+            temp336.MatrTMultiply(strainD, E_eps); // Elastic contribution to the Jacobian of internal forces
         }
 
-        temp339.MatrTMultiply(Gd, Sigm);
-        ChMatrixNM<double, 33, 33> KTE;
+        temp339.MatrTMultiply(Gd, Sigm); // Stress contribution to the Jacobian of internal forces
 
-        KTE = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
-        KTE.MatrScale(detJ0 * m_element->m_GaussScaling);
-        result = KTE;
+        result = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
+        result.MatrScale(detJ0 * m_element->m_GaussScaling);
         m_element->m_InteCounter++;
     }
 }
