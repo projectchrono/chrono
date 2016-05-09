@@ -227,7 +227,7 @@ void ChElementBrick_9::ComputeMassMatrix() {
                                                           -1, 1,         // limits in x direction
                                                           -1, 1,         // limits in y direction
                                                           -1, 1,         // limits in z direction
-                                                          2              // order of integration
+                                                          3              // order of integration
                                                           );
 
     m_MassMatrix *= m_material->Get_density();

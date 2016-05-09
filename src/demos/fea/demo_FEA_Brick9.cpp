@@ -40,7 +40,7 @@ void BendingQuasiStatic();
 void SwingingShell();
 int main(int argc, char* argv[]) {
     // AxialDynamics();
-    // BendingQuasiStatic();
+     // BendingQuasiStatic();
     SwingingShell();
     return 0;
 }
@@ -269,7 +269,7 @@ void AxialDynamics() {
         application.DrawAll();
         application.DoStep();
 
-        force = 300 * std::sin(my_system.GetChTime() * timestep * CH_C_PI) / 4;
+        force = 300 * std::sin(my_system.GetChTime() * CH_C_PI) / 4;
         nodetip1->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector<>(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector<>(force, 0.0, 0.0));
