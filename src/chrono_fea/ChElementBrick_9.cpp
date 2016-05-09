@@ -469,23 +469,22 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         result.MatrMultiply(tempC, strain);
         result.MatrScale(detJ0 * m_element->m_GaussScaling);
     }
-   // If Hencky strain (large deformation) is selected
-   // Hencky strain may be combined with a plasticity formulation
+    // If Hencky strain (large deformation) is selected
+    // Hencky strain may be combined with a plasticity formulation
 
     else if (m_element->m_Hencky) {
-
-        ChMatrixNM<double, 3, 3> Temp33; ///< Temporary matrix
-        ChMatrixNM<double, 3, 3> CCPinv; ///< Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
+        ChMatrixNM<double, 3, 3> Temp33;  ///< Temporary matrix
+        ChMatrixNM<double, 3, 3> CCPinv;  ///< Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
         // gradient stemming from multiplicative decomposition
-        ChMatrix33<double> BETRI;      ///< Left Cauchy-Green tensor for elastic deformation
-        double BETRI_eig[3] = {0.0};   ///< Eigenvalues of spatial stretch tensor
-        ChMatrix33<double> BETRI_eigv; ///< Eigenvectors of spatial stretch tensor
-        ChMatrixNM<double, 3, 1> e1;   ///< First principal direction of spatial stretch tensor
-        ChMatrixNM<double, 3, 1> e2;   ///< Second principal direction of spatial stretch tensor
-        ChMatrixNM<double, 3, 1> e3;   ///< Third principal direction of spatial stretch tensor
-        ChMatrixNM<double, 3, 3> MM1;  ///< Matrix from outer product of e1
-        ChMatrixNM<double, 3, 3> MM2;  ///< Matrix from outer product of e2
-        ChMatrixNM<double, 3, 3> MM3;  ///< Matrix from outer product of e3
+        ChMatrix33<double> BETRI;       ///< Left Cauchy-Green tensor for elastic deformation
+        double BETRI_eig[3] = {0.0};    ///< Eigenvalues of spatial stretch tensor
+        ChMatrix33<double> BETRI_eigv;  ///< Eigenvectors of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e1;    ///< First principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e2;    ///< Second principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 1> e3;    ///< Third principal direction of spatial stretch tensor
+        ChMatrixNM<double, 3, 3> MM1;   ///< Matrix from outer product of e1
+        ChMatrixNM<double, 3, 3> MM2;   ///< Matrix from outer product of e2
+        ChMatrixNM<double, 3, 3> MM3;   ///< Matrix from outer product of e3
 
         // Obtain inverse of F^{pT}*F^{p} for plastic formulation
         if (m_element->m_Plasticity) {
@@ -504,13 +503,13 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             CCPinv(2, 2) = 1.0;
         }
 
-        Temp33.MatrMultiply(DefF, CCPinv); // Obtain elastic deformation gradient (remove plastic part)
-        BETRI.MatrMultiplyT(Temp33, DefF); // Are we sure?
+        Temp33.MatrMultiply(DefF, CCPinv);  // Obtain elastic deformation gradient (remove plastic part)
+        BETRI.MatrMultiplyT(Temp33, DefF);  // Are we sure?
         BETRI.FastEigen(BETRI_eigv, BETRI_eig);
         for (int i = 0; i < 3; i++) {
             e3(i, 0) = BETRI_eigv(i, 0);
             e1(i, 0) = BETRI_eigv(i, 1);
-            e2(i, 0) = BETRI_eigv(i, 2); // ? Why change in order
+            e2(i, 0) = BETRI_eigv(i, 2);  // ? Why change in order
         }
         MM1.MatrMultiplyT(e1, e1);
         MM2.MatrMultiplyT(e2, e2);
@@ -521,13 +520,13 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
         LogStrain(1, 0) = 0.5 * log(BETRI_eig[2]);
         LogStrain(2, 0) = 0.5 * log(BETRI_eig[0]);
 
-        ChMatrixNM<double, 3, 3> FI; ///< Inverse of total deformation gradient
-        ChMatrixNM<double, 6, 33> strainD; // Jacobian of strains w.r.t. coordinates
+        ChMatrixNM<double, 3, 3> FI;        ///< Inverse of total deformation gradient
+        ChMatrixNM<double, 6, 33> strainD;  // Jacobian of strains w.r.t. coordinates
         FI = DefF;
         FI.MatrInverse();
 
         // Obtain Jacobian of strains w.r.t. element coordinates
-        m_element->EPSP_Euerian_SolidANCF33(strainD, Nx, Ny, Nz, FI, j0); // ?
+        m_element->EPSP_Euerian_SolidANCF33(strainD, Nx, Ny, Nz, FI, j0);  // ?
 
         // Obtain eigenvalues of Kirchhoff stress tensor
         ChMatrixNM<double, 3, 1> StressK_eig;
@@ -608,7 +607,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                 lambda.y = exp(2.0 * LogStrain(1, 0));
                 lambda.z = exp(2.0 * LogStrain(2, 0));
 
-                ChMatrixNM<double, 3, 3> BEUP; ///< Updated elastic left Cauchy strain tensor
+                ChMatrixNM<double, 3, 3> BEUP;  ///< Updated elastic left Cauchy strain tensor
                 MM1.MatrScale(lambda.x);
                 MM2.MatrScale(lambda.y);
                 MM3.MatrScale(lambda.z);
@@ -656,7 +655,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             DEPS(5, 0) = DEPS(5, 0) + strainD(5, ii) * m_element->m_d_dt(ii, 0);
         }
 
-        // Obtain stress from damping forces 
+        // Obtain stress from damping forces
         ChMatrixNM<double, 6, 1> Stress_damp;
         // Add structural damping
         Stress_damp.MatrMultiply(E_eps, DEPS);
@@ -689,7 +688,7 @@ void ChElementBrick_9::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     m_InteCounter = 0;
     ChMatrixNM<double, 33, 1> result;
     MyForceBrick9 formula(this);
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 1> >(result,   // result of integration
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 1>>(result,   // result of integration
                                                          formula,  // integrand formula
                                                          -1, 1,    // x limits
                                                          -1, 1,    // y limits
@@ -762,7 +761,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
     j0.MatrDivScale(detJ0);
 
     // Current deformation gradient matrix
-    ChMatrixNM<double, 3, 3> DefF; 
+    ChMatrixNM<double, 3, 3> DefF;
 
     DefF(0, 0) = Nx_d(0, 0);
     DefF(1, 0) = Nx_d(0, 1);
@@ -821,7 +820,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         strain(5, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
 
         // Reorganize variable part of the deformation gradient (DefF)
-        ChMatrixNM<double, 6, 9> DepsDDm; // Derivative of strain vector w.r.t. deformation gradient elements
+        ChMatrixNM<double, 6, 9> DepsDDm;  // Derivative of strain vector w.r.t. deformation gradient elements
 
         // (d)eps_xx/(d)DefF(i)
         DepsDDm(0, 0) = DefF(0, 0);
@@ -873,7 +872,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
         }
         // Jacobian of Green-Lagrange strains with respect to the coordinates
-        ChMatrixNM<double, 6, 33> strainD; // Derivative of strain vector w.r.t. element coordinates
+        ChMatrixNM<double, 6, 33> strainD;  // Derivative of strain vector w.r.t. element coordinates
         strainD.MatrMultiply(DepsDDm, Gd);
 
         // Add damping strains
@@ -950,7 +949,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         ChMatrix33<double> BETRI;         ///< Left Cauchy-Green tensor for elastic deformation
         double BETRI_eig[3] = {0.0};      ///< Eigenvalues of spatial stretch tensor
         ChMatrix33<double> BETRI_eigv;    ///< Eigenvectors of spatial stretch tensor
-        ChMatrixNM<double, 3, 1> e1;      ///< First principal direction of spatial stretch tensor 
+        ChMatrixNM<double, 3, 1> e1;      ///< First principal direction of spatial stretch tensor
         ChMatrixNM<double, 3, 1> e2;      ///< Second principal direction of spatial stretch tensor
         ChMatrixNM<double, 3, 1> e3;      ///< Third principal direction of spatial stretch tensor
         ChMatrixNM<double, 3, 3> MM1;     ///< Matrix from outer product of e1
@@ -967,15 +966,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             CCPinv(2, 0) = m_element->m_CCPinv_Plast(6, m_element->m_InteCounter);
             CCPinv(2, 1) = m_element->m_CCPinv_Plast(7, m_element->m_InteCounter);
             CCPinv(2, 2) = m_element->m_CCPinv_Plast(8, m_element->m_InteCounter);
-        }
-        else
-        {
+        } else {
             CCPinv(0, 0) = 1.0;
             CCPinv(1, 1) = 1.0;
             CCPinv(2, 2) = 1.0;
         }
-        Temp33.MatrMultiply(DefF, CCPinv); // Obtain elastic deformation gradient (remove plastic part)
-        BETRI.MatrMultiplyT(Temp33, DefF); // Obtain left Cauchy-Green tensor // ?
+        Temp33.MatrMultiply(DefF, CCPinv);  // Obtain elastic deformation gradient (remove plastic part)
+        BETRI.MatrMultiplyT(Temp33, DefF);  // Obtain left Cauchy-Green tensor // ?
         BETRI.FastEigen(BETRI_eigv, BETRI_eig);
         for (int i = 0; i < 3; i++) {
             e3(i, 0) = BETRI_eigv(i, 0);
@@ -991,8 +988,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         LogStrain(1, 0) = 0.5 * log(BETRI_eig[2]);
         LogStrain(2, 0) = 0.5 * log(BETRI_eig[0]);
 
-        ChMatrixNM<double, 3, 3> FI;       ///< Inverse of total deformation gradient
-        ChMatrixNM<double, 6, 33> strainD; ///< Jacobian of strains w.r.t. coordinates
+        ChMatrixNM<double, 3, 3> FI;        ///< Inverse of total deformation gradient
+        ChMatrixNM<double, 6, 33> strainD;  ///< Jacobian of strains w.r.t. coordinates
         FI = DefF;
         FI.MatrInverse();
         // Obtain Jacobian of strains w.r.t. element coordinates
@@ -1075,7 +1072,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 lambda.y = exp(2.0 * LogStrain(1, 0));
                 lambda.z = exp(2.0 * LogStrain(2, 0));
 
-                ChMatrixNM<double, 3, 3> BEUP; ///< Updated elastic left Cauchy strain tensor
+                ChMatrixNM<double, 3, 3> BEUP;  ///< Updated elastic left Cauchy strain tensor
                 MM1.MatrScale(lambda.x);
                 MM2.MatrScale(lambda.y);
                 MM3.MatrScale(lambda.z);
@@ -1232,12 +1229,12 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         ChMatrixNM<double, 33, 6> temp336;
         ChMatrixNM<double, 33, 9> temp339;
         if (m_element->m_Plasticity && YieldFlag == 1) {
-            temp336.MatrTMultiply(strainD, Dep); // Plastic contribution to the Jacobian of internal forces
+            temp336.MatrTMultiply(strainD, Dep);  // Plastic contribution to the Jacobian of internal forces
         } else {
-            temp336.MatrTMultiply(strainD, E_eps); // Elastic contribution to the Jacobian of internal forces
+            temp336.MatrTMultiply(strainD, E_eps);  // Elastic contribution to the Jacobian of internal forces
         }
 
-        temp339.MatrTMultiply(Gd, Sigm); // Stress contribution to the Jacobian of internal forces
+        temp339.MatrTMultiply(Gd, Sigm);  // Stress contribution to the Jacobian of internal forces
 
         result = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
         result.MatrScale(detJ0 * m_element->m_GaussScaling);
