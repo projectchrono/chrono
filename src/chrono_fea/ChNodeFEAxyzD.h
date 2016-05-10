@@ -13,7 +13,7 @@
 #ifndef CHNODEFEAXYZD_H
 #define CHNODEFEAXYZD_H
 
-#include "chrono/lcp/ChLcpVariablesGenericDiagonalMass.h"
+#include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 
 namespace chrono {

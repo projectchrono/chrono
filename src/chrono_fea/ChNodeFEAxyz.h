@@ -13,7 +13,7 @@
 #ifndef CHNODEFEAXYZ_H
 #define CHNODEFEAXYZ_H
 
-#include "chrono/lcp/ChLcpVariablesNode.h"
+#include "chrono/solver/ChVariablesNode.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 

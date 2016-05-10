@@ -14,7 +14,7 @@
 #define CHNODEFEAXYZROT_H
 
 #include "chrono/core/ChFrameMoving.h"
-#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 

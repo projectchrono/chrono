@@ -13,7 +13,7 @@
 #ifndef CHLINKPOINTPOINT_H
 #define CHLINKPOINTPOINT_H
 
-#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 
@@ -158,8 +158,7 @@ public:
 
 /// @} fea_constraints
 
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
-
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

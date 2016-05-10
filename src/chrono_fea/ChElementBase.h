@@ -16,7 +16,7 @@
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
 namespace chrono {
@@ -131,7 +131,7 @@ class ChApiFea ChElementBase {
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

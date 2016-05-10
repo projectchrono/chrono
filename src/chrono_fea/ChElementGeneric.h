@@ -13,8 +13,8 @@
 #ifndef CHELEMENTGENERIC_H
 #define CHELEMENTGENERIC_H
 
-#include "chrono/lcp/ChLcpKblockGeneric.h"
-#include "chrono/lcp/ChLcpVariablesNode.h"
+#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChVariablesNode.h"
 #include "chrono_fea/ChElementBase.h"
 
 namespace chrono {
@@ -93,7 +93,7 @@ class ChApiFea ChElementGeneric : public ChElementBase {
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

@@ -13,31 +13,13 @@
 #ifndef CHMATTERMESHLESS_H
 #define CHMATTERMESHLESS_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatterMeshless.h
-//
-//   Class for clusters of nodes that can 
-//   simulate a visco-elasto-plastic deformable solid 
-//   using the approach in Mueller ("Point based.." paper)
-//   that is with a 'meshless' FEA approach.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-
 #include <math.h>
 
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/lcp/ChLcpVariablesNode.h"
+#include "chrono/solver/ChVariablesNode.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 
 namespace chrono {
@@ -400,8 +382,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     void StreamOUT(ChStreamOutBinary& mstream);
 };
 
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
-
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

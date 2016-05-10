@@ -13,25 +13,7 @@
 #ifndef CHLINKPOINTFRAME_H
 #define CHLINKPOINTFRAME_H
 
-//////////////////////////////////////////////////
-//
-//   ChLinkPointFrame.h
-//
-//   Class for creating a constraint between a node point
-//   and a ChBody object (that is, it fixes a 3-DOF point
-//   to a 6-DOF body). 
-//   Nodes are 3-DOF points that are used in point-based 
-//   primitives, such as ChMatterSPH or finite elements.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
@@ -202,8 +184,7 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
 
 /// @} fea_constraints
 
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
-
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

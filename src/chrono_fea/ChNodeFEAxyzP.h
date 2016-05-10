@@ -13,7 +13,7 @@
 #ifndef CHNODEFEAXYZP_H
 #define CHNODEFEAXYZP_H
 
-#include "chrono/lcp/ChLcpVariablesGeneric.h"
+#include "chrono/solver/ChVariablesGeneric.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
 namespace chrono {
