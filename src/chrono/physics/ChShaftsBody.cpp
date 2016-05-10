@@ -136,7 +136,7 @@ void ChShaftsBody::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChShaftsBody::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsBody::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

@@ -67,7 +67,7 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
     /// Performs the solution of the LCP.
     /// \return  the maximum constraint violation after termination.
 
-    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          );
 
     /// Same as Solve(), but this also supports the presence of
@@ -76,7 +76,7 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
     /// It does not solve the Schur complement N*l-r=0 as Solve does, here the
     /// entire system KKT matrix with duals l and primals q is used.
     virtual double Solve_SupportingStiffness(
-        ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+        ChSystemDescriptor& sysd  ///< system description with constraints and variables
         );
 
     /// For the case where inequalities are introduced, the

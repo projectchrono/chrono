@@ -18,7 +18,7 @@ namespace chrono {
 ChClassRegister<ChLcpSolverDEM> a_registration_ChLcpSolverDEM;
 
 
-double ChLcpSolverDEM::Solve(ChLcpSystemDescriptor& sysd) {
+double ChLcpSolverDEM::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 

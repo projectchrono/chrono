@@ -144,7 +144,7 @@ void ChShaftsGearboxAngled::IntStateScatterReactions(const unsigned int off_L, c
     this->torque_react = L(off_L);
 }
 
-void ChShaftsGearboxAngled::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsGearboxAngled::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

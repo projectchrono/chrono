@@ -61,7 +61,7 @@ class ChApi ChLcpIterativeSymmSOR : public ChLcpIterativeSolver {
     /// Performs the solution of the LCP.
     /// \return  the maximum constraint violation after termination.
 
-    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          );
 
     /// Set the overrelaxation factor, as in SOR methods. This

@@ -173,7 +173,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     // Override/implement LCP system functions of ChPhysicsItem
     // (to assembly/manage data for LCP system solver)
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
     virtual void VariablesFbReset();
     virtual void VariablesFbLoadForces(double factor = 1.);
     virtual void VariablesQbLoadSpeed();
@@ -181,7 +181,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     virtual void VariablesQbSetSpeed(double step = 0.);
     virtual void VariablesQbIncrementPosition(double step);
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);

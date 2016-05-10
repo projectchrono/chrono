@@ -17,7 +17,7 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegister<ChLcpIterativeJacobi> a_registration_ChLcpIterativeJacobi;
 
-double ChLcpIterativeJacobi::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+double ChLcpIterativeJacobi::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                                    ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();

@@ -445,7 +445,7 @@ void ChLinkRevoluteTranslational::IntFromLCP(const unsigned int off_v,  ///< off
 // -----------------------------------------------------------------------------
 // Implementation of solver interface functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
+void ChLinkRevoluteTranslational::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 

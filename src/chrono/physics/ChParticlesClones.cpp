@@ -441,7 +441,7 @@ void ChParticlesClones::IntFromLCP(const unsigned int off_v,  ///< offset in v
 }
 
 ////
-void ChParticlesClones::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChParticlesClones::InjectVariables(ChSystemDescriptor& mdescriptor) {
     // this->variables.SetDisabled(!this->IsActive());
     for (unsigned int j = 0; j < particles.size(); j++) {
         mdescriptor.InsertVariables(&(this->particles[j]->variables));

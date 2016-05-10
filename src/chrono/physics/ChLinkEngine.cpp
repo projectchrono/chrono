@@ -589,7 +589,7 @@ void ChLinkEngine::IntFromLCP(const unsigned int off_v,
 //  LCP functions
 //
 
-void ChLinkEngine::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkEngine::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // First, inherit to parent class
     ChLinkLock::InjectConstraints(mdescriptor);
 
@@ -648,7 +648,7 @@ void ChLinkEngine::ConstraintsFetch_react(double factor) {
     }
 }
 
-void ChLinkEngine::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkEngine::InjectVariables(ChSystemDescriptor& mdescriptor) {
     // First, inherit to parent class
     ChLinkLock::InjectVariables(mdescriptor);
 

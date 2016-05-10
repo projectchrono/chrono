@@ -173,10 +173,10 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override {
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
         ChNodeFEAxyz::InjectVariables(mdescriptor);
         mdescriptor.InsertVariables(this->variables_D);
     }

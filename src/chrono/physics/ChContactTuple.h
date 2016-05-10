@@ -158,7 +158,7 @@ class ChContactTuple {
 
     virtual void ContIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {}
 
-    virtual void ContInjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void ContInjectKRMmatrices(ChSystemDescriptor& mdescriptor) {}
 
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) {}
 
@@ -171,7 +171,7 @@ class ChContactTuple {
                                 ChVectorDynamic<>& L       ///<
                                 ) {}
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
 
     virtual void ConstraintsBiReset() {}
 

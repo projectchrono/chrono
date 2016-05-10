@@ -376,7 +376,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     /// Tell to a system descriptor that there are variables of type
     /// ChVariables in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     // Other functions
 

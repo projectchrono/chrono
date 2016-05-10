@@ -346,7 +346,7 @@ void ChLinkMasked::IntFromLCP(const unsigned int off_v,  ///< offset in v
 ///
 ///    LCP SYSTEM FUNCTIONS
 
-void ChLinkMasked::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkMasked::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 

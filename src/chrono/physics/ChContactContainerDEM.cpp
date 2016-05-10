@@ -331,7 +331,7 @@ void ChContactContainerDEM::KRMmatricesLoad(double Kfactor, double Rfactor, doub
 }
 
 template <class Tcont>
-void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChLcpSystemDescriptor& mdescriptor) {
+void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChSystemDescriptor& mdescriptor) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContInjectKRMmatrices(mdescriptor);
@@ -339,7 +339,7 @@ void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChLcpSystemDescriptor& md
     }
 }
 
-void ChContactContainerDEM::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+void ChContactContainerDEM::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
     _InjectKRMmatrices(contactlist_6_6, mdescriptor);
     _InjectKRMmatrices(contactlist_6_3, mdescriptor);
     _InjectKRMmatrices(contactlist_3_3, mdescriptor);

@@ -67,16 +67,16 @@ class ChApi ChLcpSolver {
     //   by specialized child classes:
 
     /// Performs the solution of the LCP.
-    /// You must provide a system description using ChLcpSystemDescriptor.
+    /// You must provide a system description using ChSystemDescriptor.
     /// This function MUST be implemented in children classes, with specialized
     /// methods such as iterative schemes, simplex schemes, fixed point algorithms, etc.
     /// \return  the maximum constraint violation after termination.
 
-    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) = 0;
 
 	/// This method is implemented in direct solvers such as MKL
-	virtual double Factorize(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+	virtual double Factorize(ChSystemDescriptor& sysd  ///< system description with constraints and variables
 		) {	return 0.0f; }; 
 
     //

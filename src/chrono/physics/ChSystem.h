@@ -50,7 +50,7 @@ namespace chrono {
 // forward references & shortcuts..
 
 class ChLcpSolver;
-class ChLcpSystemDescriptor;
+class ChSystemDescriptor;
 class ChContactContainerBase;
 
 
@@ -338,14 +338,14 @@ class ChApi ChSystem : public ChAssembly,
     /// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
     virtual ChLcpSolver* GetLcpSolverSpeed();
 
-    /// Instead of using the default LCP 'system descriptor', you can create your own
-    /// custom descriptor (suffice it is inherited from ChLcpSystemDescriptor) and plug
+    /// Instead of using the default 'system descriptor', you can create your own
+    /// custom descriptor (suffice it is inherited from ChSystemDescriptor) and plug
     /// it into the system using this function. The replaced descriptor is automatically deleted.
     /// When the system is deleted, the custom descriptor that you plugged will be automatically deleted.
-    void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
+    void ChangeLcpSystemDescriptor(ChSystemDescriptor* newdescriptor);
 
     /// Access directly the LCP 'system descriptor'. Use mostly for diagnostics.
-    ChLcpSystemDescriptor* GetLcpSystemDescriptor() { return this->LCP_descriptor; };
+    ChSystemDescriptor* GetLcpSystemDescriptor() { return this->LCP_descriptor; };
 
     /// Changes the number of parallel threads (by default is n.of cores).
     /// Note that not all solvers use parallel computation.
@@ -455,7 +455,7 @@ class ChApi ChSystem : public ChAssembly,
 
     /// Pushes back all ChConstraints and ChVariables contained in links,bodies,etc.
     /// into the LCP descriptor.
-    virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
+    virtual void LCPprepare_inject(ChSystemDescriptor& mdescriptor);
 
 public:
     //
@@ -521,12 +521,12 @@ public:
                             const unsigned int off_L, 
                             ChVectorDynamic<>& L);
     
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
     
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsLoadJacobians();
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
 
     // Old bookkeeping system - to be removed soon
@@ -926,7 +926,7 @@ public:
 
     eCh_integrationType integration_type;  // integration scheme
 
-    ChLcpSystemDescriptor* LCP_descriptor;  // the LCP system descriptor
+    ChSystemDescriptor* LCP_descriptor;  // the LCP system descriptor
     ChLcpSolver* LCP_solver_speed;          // the LCP solver for speed problem
     ChLcpSolver* LCP_solver_stab;           // the LCP solver for position (stabilization) problem, if any
     eCh_lcpSolver lcp_solver_type;  // Type of LCP solver (iterative= fastest, but may fail satisfying constraints)

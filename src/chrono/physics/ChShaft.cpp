@@ -159,7 +159,7 @@ void ChShaft::IntFromLCP(const unsigned int off_v,  ///< offset in v
 }
 
 ////
-void ChShaft::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaft::InjectVariables(ChSystemDescriptor& mdescriptor) {
     this->variables.SetDisabled(!this->IsActive());
 
     mdescriptor.InsertVariables(&this->variables);

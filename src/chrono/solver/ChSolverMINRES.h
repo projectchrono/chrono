@@ -69,14 +69,14 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
     /// Performs the solution of the LCP.
     /// \return  the maximum constraint violation after termination.
 
-    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          );
 
     /// Same as Solve(), but this also supports the presence of
     /// ChKblock blocks. If Solve() is called and stiffness is present,
     /// Solve() automatically falls back to this function.
     virtual double Solve_SupportingStiffness(
-        ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+        ChSystemDescriptor& sysd  ///< system description with constraints and variables
         );
 
     void SetFeasTolerance(double mf) { this->feas_tolerance = mf; }

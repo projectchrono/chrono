@@ -159,9 +159,9 @@ void ChLinkPointPoint::IntFromLCP(const unsigned int off_v,  ///< offset in v
 	L(off_L+2)=constraint3.Get_l_i();
 }
 
-////////// LCP INTERFACES ////
+////////// SOLVER INTERFACES ////
 
-void ChLinkPointPoint::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkPointPoint::InjectConstraints(ChSystemDescriptor& mdescriptor) {
 	//if (!this->IsActive())
 	//	return;
 

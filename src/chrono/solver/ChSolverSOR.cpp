@@ -18,7 +18,7 @@ namespace chrono {
 ChClassRegister<ChLcpIterativeSOR> a_registration_ChLcpIterativeSOR;
 
 
-double ChLcpIterativeSOR::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+double ChLcpIterativeSOR::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                                 ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();

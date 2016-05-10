@@ -329,7 +329,7 @@ void ChLinkRevoluteSpherical::IntFromLCP(const unsigned int off_v,  ///< offset 
 // -----------------------------------------------------------------------------
 // Implementation of solver interface functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
+void ChLinkRevoluteSpherical::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 

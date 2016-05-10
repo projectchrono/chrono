@@ -74,7 +74,7 @@ class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver {
     /// reallocating the sparse matrix each time.
     /// \return  the maximum constraint violation after termination.
 
-    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          );
 
     /// Set truncation step (that is, the method stops anyway after

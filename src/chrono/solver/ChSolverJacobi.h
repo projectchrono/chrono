@@ -61,11 +61,10 @@ class ChApi ChLcpIterativeJacobi : public ChLcpIterativeSolver {
     // FUNCTIONS
     //
 
-    /// Performs the solution of the LCP.
-    /// You must provide a ChLcpSystemDescriptor.
+    /// Performs the solution of the problem.
+    /// You must provide a ChSystemDescriptor.
     /// \return  the maximum constraint violation after termination.
-
-    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          );
 };
 

@@ -396,9 +396,9 @@ void ChMesh::IntFromLCP(
 
 
 
-//// LCP SOLVER
+//// SOLVER FUNCTIONS
 
-void ChMesh::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) 
+void ChMesh::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) 
 {
   for (unsigned int ie = 0; ie < this->velements.size(); ie++)
     this->velements[ie]->InjectKRMmatrices(mdescriptor);
@@ -459,7 +459,7 @@ void ChMesh::VariablesQbIncrementPosition(double step)
     this->vnodes[ie]->VariablesQbIncrementPosition(step);
 }
 
-void ChMesh::InjectVariables(ChLcpSystemDescriptor& mdescriptor)
+void ChMesh::InjectVariables(ChSystemDescriptor& mdescriptor)
 {
   for (unsigned int ie = 0; ie < this->vnodes.size(); ie++)
     this->vnodes[ie]->InjectVariables(mdescriptor);

@@ -277,7 +277,7 @@ ChLcpIterativeSORmultithread::~ChLcpIterativeSORmultithread() {
 // solution is done.
 
 double ChLcpIterativeSORmultithread::Solve(
-    ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();

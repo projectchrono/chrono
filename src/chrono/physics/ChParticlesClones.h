@@ -350,7 +350,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void VariablesFbIncrementMq();
     void VariablesQbSetSpeed(double step = 0.);
     void VariablesQbIncrementPosition(double step);
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     // Other functions
 

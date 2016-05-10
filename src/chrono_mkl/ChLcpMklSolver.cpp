@@ -10,8 +10,7 @@ ChClassRegister<ChLcpMklSolver> a_registration_ChLcpMklSolver;
 *	On the first call the routine resets the matrix and vectors involved to the size of the current problem.
 *	Every time the system stored in \c sysd is converted in a CSR3 standard matrix that will be later used by Pardiso.
 *	If the sparsity pattern lock is turned on then the matrix will try, as long as possible, to preserve not only the
-*arrays dimensions,
-*	but it also keeps column and row indexes through different calls.
+*   arrays dimensions, but it also keeps column and row indexes through different calls.
 */
 
 ChLcpMklSolver::ChLcpMklSolver()
@@ -24,7 +23,7 @@ ChLcpMklSolver::ChLcpMklSolver()
       use_rhs_sparsity(false),
       manual_factorization(false) {}
 
-double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) {
+double ChLcpMklSolver::Solve(ChSystemDescriptor& sysd) {
     int pardiso_message_phase12 = 0;
     if (!manual_factorization)
         pardiso_message_phase12 = static_cast<int>(Factorize(sysd));
@@ -49,13 +48,13 @@ double ChLcpMklSolver::Solve(ChLcpSystemDescriptor& sysd) {
         GetLog() << "Pardiso call " << solver_call << "  |residual| = " << res_norm << "\n";
     }
 
-    // Replicate the changes to vvariables and vconstraint into LcpSystemDescriptor
+    // Replicate the changes to vvariables and vconstraint into SystemDescriptor
     sysd.FromVectorToUnknowns(sol);
 
     return 0.0f;
 }
 
-double ChLcpMklSolver::Factorize(ChLcpSystemDescriptor& sysd) {
+double ChLcpMklSolver::Factorize(ChSystemDescriptor& sysd) {
     // Initial resizing;
     if (solver_call == 0) {
         // not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE

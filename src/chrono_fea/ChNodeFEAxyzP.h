@@ -155,10 +155,10 @@ class ChApiFea ChNodeFEAxyzP : public ChNodeFEAbase {
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override {
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
         mdescriptor.InsertVariables(&this->variables);
     }
 

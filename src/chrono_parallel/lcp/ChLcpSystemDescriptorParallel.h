@@ -10,7 +10,7 @@
 
 namespace chrono {
 
-class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescriptor {
+class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChSystemDescriptor {
  public:
   ChLcpSystemDescriptorParallel(ChParallelDataManager* dc) : data_manager(dc) {}
   ~ChLcpSystemDescriptorParallel() {}

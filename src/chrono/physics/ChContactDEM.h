@@ -437,7 +437,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     /// Inject Jacobian blocks into the system descriptor.
     /// Tell to a system descriptor that there are item(s) of type ChKblock in this object
     /// (for further passing it to a LCP solver)
-    virtual void ContInjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override {
+    virtual void ContInjectKRMmatrices(ChSystemDescriptor& mdescriptor) override {
         if (m_Jac)
             mdescriptor.InsertKblock(&m_Jac->m_KRM);
     }

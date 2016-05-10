@@ -479,7 +479,7 @@ void ChMatterMeshless::IntFromLCP(const unsigned int off_v,  ///< offset in v
 }
 
 ////
-void ChMatterMeshless::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChMatterMeshless::InjectVariables(ChSystemDescriptor& mdescriptor) {
     // this->variables.SetDisabled(!this->IsActive());
     for (unsigned int j = 0; j < nodes.size(); j++) {
         mdescriptor.InsertVariables(&(this->nodes[j]->variables));

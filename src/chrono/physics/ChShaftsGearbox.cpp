@@ -145,7 +145,7 @@ void ChShaftsGearbox::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChShaftsGearbox::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsGearbox::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

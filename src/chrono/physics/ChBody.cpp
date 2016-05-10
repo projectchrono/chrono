@@ -298,7 +298,7 @@ void ChBody::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////
 
-void ChBody::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChBody::InjectVariables(ChSystemDescriptor& mdescriptor) {
     this->variables.SetDisabled(!this->IsActive());
 
     mdescriptor.InsertVariables(&this->variables);

@@ -134,7 +134,7 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     // LCP INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();

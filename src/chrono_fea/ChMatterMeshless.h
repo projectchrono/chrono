@@ -321,7 +321,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
 
     void VariablesQbIncrementPosition(double step);
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     // Other functions
 

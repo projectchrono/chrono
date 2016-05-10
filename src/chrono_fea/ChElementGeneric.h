@@ -67,8 +67,8 @@ class ChApiFea ChElementGeneric : public ChElementBase {
     //
 
     /// Tell to a system descriptor that there are item(s) of type
-    /// ChKblock in this object (for further passing it to a LCP solver)
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override { mdescriptor.InsertKblock(&Kmatr); }
+    /// ChKblock in this object (for further passing it to a solver)
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override { mdescriptor.InsertKblock(&Kmatr); }
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
     /// ChKblock item(s), if any. The K, R, M matrices are load with scaling

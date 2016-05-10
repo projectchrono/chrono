@@ -166,7 +166,7 @@ void ChShaftsMotor::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChShaftsMotor::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsMotor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
     if (motor_mode != MOT_MODE_TORQUE)

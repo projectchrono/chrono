@@ -403,7 +403,7 @@ void ChContactContainerDVI::IntFromLCP(const unsigned int off_v,  ///< offset in
 ////////// LCP INTERFACES ////
 
 template <class Tcont>
-void _InjectConstraints(std::list<Tcont*>& contactlist, ChLcpSystemDescriptor& mdescriptor) {
+void _InjectConstraints(std::list<Tcont*>& contactlist, ChSystemDescriptor& mdescriptor) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->InjectConstraints(mdescriptor);
@@ -411,7 +411,7 @@ void _InjectConstraints(std::list<Tcont*>& contactlist, ChLcpSystemDescriptor& m
     }
 }
 
-void ChContactContainerDVI::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChContactContainerDVI::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     _InjectConstraints(contactlist_6_6, mdescriptor);
     _InjectConstraints(contactlist_6_3, mdescriptor);
     _InjectConstraints(contactlist_3_3, mdescriptor);

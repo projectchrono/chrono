@@ -238,7 +238,7 @@ class ChContactDVIrolling :
         L(off_L + 5) = Rv.Get_l_i();
     }
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor)  {
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor)  {
         // base behaviour too
         ChContactDVI< Ta, Tb >::InjectConstraints(mdescriptor);
 

@@ -206,7 +206,7 @@ void ChLinkDistance::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChLinkDistance::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkDistance::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 

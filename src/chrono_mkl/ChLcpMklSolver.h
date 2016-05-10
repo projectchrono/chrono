@@ -57,18 +57,18 @@ class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
     void UsePermutationVector(bool on_off) { use_perm = on_off; }
     void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; }
     void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); }
-    /// If \a on_off is set to \c true then ::Solve(ChLcpSystemDescriptor&) call
-    /// must be preceded by a ::Factorize(ChLcpSystemDescriptor&) call.
+    /// If \a on_off is set to \c true then ::Solve(ChSystemDescriptor&) call
+    /// must be preceded by a ::Factorize(ChSystemDescriptor&) call.
     void SetManualFactorization(bool on_off) { manual_factorization = on_off; }
 
     /// Solve using the MKL Pardiso sparse direct solver.
     /// If ::manual_factorization is turned off (i.e. set to \c false) then
-    /// it automatically calls ::Factorize(ChLcpSystemDescriptor&) in order to perform analysis,
+    /// it automatically calls ::Factorize(ChSystemDescriptor&) in order to perform analysis,
     /// reordering and factorization (MKL Pardiso phase 12).
     /// In any case a call to this function will end with a solve and refinement phase (Pardiso phase 33)
-    double Solve(ChLcpSystemDescriptor& sysd) override;
+    double Solve(ChSystemDescriptor& sysd) override;
     /// Performs a factorization of the system matrix.
-    double Factorize(ChLcpSystemDescriptor& sysd) override;
+    double Factorize(ChSystemDescriptor& sysd) override;
 
     //
     // SERIALIZATION

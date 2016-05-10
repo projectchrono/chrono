@@ -44,7 +44,7 @@ class ChApi ChLcpSolverDEM : public ChLcpIterativeSolver {
 
     /// Performs the solution of the LCP.
     /// \return  the maximum constraint violation after termination.
-    virtual double Solve(ChLcpSystemDescriptor& sysd);
+    virtual double Solve(ChSystemDescriptor& sysd);
 };
 
 }  // end namespace chrono

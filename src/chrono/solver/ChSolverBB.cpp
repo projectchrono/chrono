@@ -18,7 +18,7 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegister<ChLcpIterativeBB> a_registration_ChLcpIterativeBB;
 
-double ChLcpIterativeBB::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+double ChLcpIterativeBB::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                                ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
@@ -97,7 +97,7 @@ double ChLcpIterativeBB::Solve(ChLcpSystemDescriptor& sysd  ///< system descript
             ++d_i;
         }
 
-    // ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
+    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
 
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
     // with
@@ -367,7 +367,7 @@ double ChLcpIterativeBB::Solve(ChLcpSystemDescriptor& sysd  ///< system descript
 //////////////////////////////////////////////////////////////////////////////
 
 double ChLcpIterativeBB::Solve_SupportingStiffness(
-    ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();

@@ -58,10 +58,10 @@ class ChApi ChIterativeAPGD : public ChLcpIterativeSolver {
     //
 
     // Performs the solution of the LCP.
-    virtual double Solve(ChLcpSystemDescriptor& sysd);
+    virtual double Solve(ChSystemDescriptor& sysd);
 
-    void ShurBvectorCompute(ChLcpSystemDescriptor& sysd);
-    double Res4(ChLcpSystemDescriptor& sysd);
+    void ShurBvectorCompute(ChSystemDescriptor& sysd);
+    double Res4(ChSystemDescriptor& sysd);
 
     double GetResidual() { return residual; }
 

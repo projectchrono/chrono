@@ -262,7 +262,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         L(off_L + 2) = Tv.Get_l_i();
     }
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {
         mdescriptor.InsertConstraint(&Nx);
         mdescriptor.InsertConstraint(&Tu);
         mdescriptor.InsertConstraint(&Tv);

@@ -18,7 +18,7 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegister<ChLcpIterativePCG> a_registration_ChLcpIterativePCG;
 
-double ChLcpIterativePCG::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+double ChLcpIterativePCG::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                                 ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
@@ -48,7 +48,7 @@ double ChLcpIterativePCG::Solve(ChLcpSystemDescriptor& sysd  ///< system descrip
 
     double graddiff = 0.00001;  // explorative search step for gradient
 
-    // ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
+    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
 
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
     // with

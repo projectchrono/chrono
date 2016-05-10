@@ -195,7 +195,7 @@ class ChApi ChShaft : public ChPhysicsItem {
 
     /// Tell to a system descriptor that there are variables of type
     /// ChVariables in this object (for further passing it to a solver)
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     // Other functions
 

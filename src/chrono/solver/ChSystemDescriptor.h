@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPSYSTEMDESCRIPTOR_H
-#define CHLCPSYSTEMDESCRIPTOR_H
+#ifndef CHSYSTEMDESCRIPTOR_H
+#define CHSYSTEMDESCRIPTOR_H
 
 #include <vector>
 
@@ -49,9 +49,9 @@ namespace chrono {
 /// supporting parallel GPU solvers) could store constraints
 /// and variables structures with more efficient data schemes.
 
-class ChApi ChLcpSystemDescriptor {
+class ChApi ChSystemDescriptor {
     // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChLcpSystemDescriptor);
+    CH_RTTI_ROOT(ChSystemDescriptor);
 
   protected:
     //
@@ -74,27 +74,25 @@ class ChApi ChLcpSystemDescriptor {
 
 
   public:
-	  
-	  
     //
     // CONSTRUCTORS
     //
-    ChLcpSystemDescriptor();
+    ChSystemDescriptor();
 
-    virtual ~ChLcpSystemDescriptor();
+    virtual ~ChSystemDescriptor();
 
     //
     // DATA MANAGEMENT FUNCTIONS
     //
 
     /// Access the vector of constraints
-    std::vector<ChConstraint*>& GetConstraintsList() { return vconstraints; };
+    std::vector<ChConstraint*>& GetConstraintsList() { return vconstraints; }
 
     /// Access the vector of variables
-    std::vector<ChVariables*>& GetVariablesList() { return vvariables; };
+    std::vector<ChVariables*>& GetVariablesList() { return vvariables; }
 
     /// Access the vector of stiffness matrix blocks
-    std::vector<ChKblock*>& GetKblocksList() { return vstiffness; };
+    std::vector<ChKblock*>& GetKblocksList() { return vstiffness; }
 
     /// Begin insertion of items
     virtual void BeginInsertion() {
@@ -324,7 +322,7 @@ class ChApi ChLcpSystemDescriptor {
     /// mass matrix of the variational problem in matrix form, by assembling all
     /// the jacobians of all the constraints/contacts, all the mass matrices, all vectors,
     /// as they are _currently_ stored in the sparse data of all ChConstraint and ChVariables
-    /// contained in this ChLcpSystemDescriptor.
+    /// contained in this ChSystemDescriptor.
     /// The matrices define the VI variational inequality:
     ///
     ///  | M -Cq'|*|q|- | f|= |0| , l \in Y (es friction cone), c \in normal cone to Y

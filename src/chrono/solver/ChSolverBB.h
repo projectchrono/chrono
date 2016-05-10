@@ -67,7 +67,7 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
     /// Performs the solution of the LCP.
     /// \return  the maximum constraint violation after termination.
 
-    virtual double Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          );
 
     /// Same as Solve(), but this also supports the presence of
@@ -77,7 +77,7 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
     /// entire system KKT matrix with duals l and primals q is used.
     /// ***NOT WORKING***
     virtual double Solve_SupportingStiffness(
-        ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+        ChSystemDescriptor& sysd  ///< system description with constraints and variables
         );
 
     /// Number of max tolerated steps in non-monotone Armijo

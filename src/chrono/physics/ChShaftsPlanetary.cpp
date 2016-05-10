@@ -153,7 +153,7 @@ void ChShaftsPlanetary::IntStateScatterReactions(const unsigned int off_L, const
     this->torque_react = L(off_L);
 }
 
-void ChShaftsPlanetary::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

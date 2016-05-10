@@ -312,7 +312,7 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     /// Tell to a system descriptor that there are variables of type
     /// ChVariables in this object (for further passing it to a LCP solver)
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     /// Instantiate the collision model
     virtual collision::ChCollisionModel* InstanceCollisionModel();

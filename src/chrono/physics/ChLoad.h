@@ -152,7 +152,7 @@ public:
         /// Tell to a system descriptor that there are item(s) of type
         /// ChKblock in this object (for further passing it to a LCP solver)
         /// Basically does nothing, but inherited classes must specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)  {
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor)  {
         if (this->jacobians) {
             mdescriptor.InsertKblock(&this->jacobians->KRM);
         }

@@ -392,12 +392,12 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Tell to a system descriptor that there are variables of type
     /// ChVariables in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
 
     /// Tell to a system descriptor that there are contraints of type
     /// ChConstraint in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
 
     /// Sets to zero the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiReset() {}
@@ -431,7 +431,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Tell to a system descriptor that there are items of type
     /// ChKblock in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {}
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
     /// ChKblock item(s), if any. The K, R, M matrices are added with scaling

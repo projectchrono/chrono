@@ -350,12 +350,12 @@ public:
                             const unsigned int off_L, 
                             ChVectorDynamic<>& L);
     
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
     
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsLoadJacobians();
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
 
     // Old bookkeeping system - to be removed soon

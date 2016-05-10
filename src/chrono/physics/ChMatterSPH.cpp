@@ -506,7 +506,7 @@ void ChMatterSPH::IntFromLCP(const unsigned int off_v,  ///< offset in v
 }
 
 ////
-void ChMatterSPH::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChMatterSPH::InjectVariables(ChSystemDescriptor& mdescriptor) {
     // this->variables.SetDisabled(!this->IsActive());
     for (unsigned int j = 0; j < nodes.size(); j++) {
         mdescriptor.InsertVariables(&(this->nodes[j]->variables));

@@ -10,21 +10,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   Demos code about
-//
-//     - LCP solvers
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 // Include some headers used by this tutorial...
 
 #include "chrono/solver/ChVariablesGeneric.h"
@@ -95,7 +80,7 @@ void test_1() {
     // Important: create a 'system descriptor' object that
     // contains variables and constraints:
 
-    ChLcpSystemDescriptor mdescriptor;
+    ChSystemDescriptor mdescriptor;
 
     // Now let's add variables and constraints, as sparse data:
 
@@ -231,9 +216,9 @@ void test_1() {
 
 void test_2() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: 1D vertical pendulum - ChLcpIterativePMINRES \n\n";
+    GetLog() << "TEST: 1D vertical pendulum - ChSolverPMINRES \n\n";
 
-    ChLcpSystemDescriptor mdescriptor;
+    ChSystemDescriptor mdescriptor;
 
     mdescriptor.BeginInsertion();  // ----- system description starts here
 
@@ -330,7 +315,7 @@ void test_2() {
 // Create three variables, with some mass, and also add a
 // ChLcpStiffness item that connects two of these variables
 // with random stiffness.
-// Also use the ChLcpSystemDescriptor functions FromUnknownsToVector
+// Also use the ChSystemDescriptor functions FromUnknownsToVector
 // and FromVectorToUnknowns for doing checks.
 //
 //  | M+K   K       . Cq' | |q_a |   |f_a|   |  0|
@@ -346,7 +331,7 @@ void test_3() {
     // Important: create a 'system descriptor' object that
     // contains variables and constraints:
 
-    ChLcpSystemDescriptor mdescriptor;
+    ChSystemDescriptor mdescriptor;
 
     // Now let's add variables, constraints and stiffness, as sparse data:
 

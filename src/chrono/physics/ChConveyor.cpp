@@ -194,7 +194,7 @@ void ChConveyor::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>&
 
 //// LCP INTERFACE
 
-void ChConveyor::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChConveyor::InjectVariables(ChSystemDescriptor& mdescriptor) {
     this->conveyor_truss->InjectVariables(mdescriptor);
     this->conveyor_plate->InjectVariables(mdescriptor);
 }
@@ -229,7 +229,7 @@ void ChConveyor::VariablesQbIncrementPosition(double dt_step) {
     this->conveyor_plate->VariablesQbIncrementPosition(dt_step);
 }
 
-void ChConveyor::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChConveyor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     this->internal_link->InjectConstraints(mdescriptor);
 }
 

@@ -347,7 +347,7 @@ void ChLinkUniversal::IntFromLCP(const unsigned int off_v,  ///< offset in v
 // -----------------------------------------------------------------------------
 // Implementation of solver interface functions
 // -----------------------------------------------------------------------------
-void ChLinkUniversal::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
+void ChLinkUniversal::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 

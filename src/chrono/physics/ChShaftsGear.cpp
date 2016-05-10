@@ -132,7 +132,7 @@ void ChShaftsGear::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChShaftsGear::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsGear::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

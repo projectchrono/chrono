@@ -18,7 +18,7 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegister<ChLcpIterativePMINRES> a_registration_ChLcpIterativePMINRES;
 
-double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+double ChLcpIterativePMINRES::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                                     ) {
     bool do_preconditioning = this->diag_preconditioning;
 
@@ -83,7 +83,7 @@ double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system des
             ++d_i;
         }
 
-    // ***TO DO*** move the following thirty lines in a short function ChLcpSystemDescriptor::ShurBvectorCompute() ?
+    // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
 
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
     // with
@@ -285,7 +285,7 @@ double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system des
 //////////////////////////////////////////////////////////////////////////////
 
 double ChLcpIterativePMINRES::Solve_SupportingStiffness(
-    ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
     bool do_preconditioning = this->diag_preconditioning;
 

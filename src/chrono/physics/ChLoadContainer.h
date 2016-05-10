@@ -75,7 +75,7 @@ public:
         /// Tell to a system descriptor that there are items of type
     /// ChKblock in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor){
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor){
 
         for (size_t i=0; i<loadlist.size(); ++i) {
             loadlist[i]->InjectKRMmatrices(mdescriptor);

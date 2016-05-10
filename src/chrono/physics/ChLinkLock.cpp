@@ -1493,7 +1493,7 @@ void ChLinkLock::IntFromLCP(const unsigned int off_v,  ///< offset in v
     }
 }
 
-void ChLinkLock::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // parent
     ChLinkMasked::InjectConstraints(mdescriptor);
 

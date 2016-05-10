@@ -995,7 +995,7 @@ void ChAssembly::IntFromLCP(const unsigned int off_v,  ///< offset in v
 }
 
 ////
-void ChAssembly::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectVariables(ChSystemDescriptor& mdescriptor) {
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->InjectVariables(mdescriptor);
     }
@@ -1079,7 +1079,7 @@ void ChAssembly::VariablesQbIncrementPosition(double dt_step) {
     }
 }
 
-void ChAssembly::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->InjectConstraints(mdescriptor);
     }
@@ -1175,7 +1175,7 @@ void ChAssembly::ConstraintsFetch_react(double factor) {
     }
 }
 
-void ChAssembly::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->InjectKRMmatrices(mdescriptor);
     }

@@ -399,7 +399,7 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
         delete LCP_descriptor;
     LCP_descriptor = 0;
 
-    LCP_descriptor = new ChLcpSystemDescriptor;
+    LCP_descriptor = new ChSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
     contact_container = std::make_shared<ChContactContainerDVI>();
@@ -541,7 +541,7 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
 
 // Plug-in components configuration
 
-void ChSystem::ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor) {
+void ChSystem::ChangeLcpSystemDescriptor(ChSystemDescriptor* newdescriptor) {
     assert(newdescriptor);
     if (this->LCP_descriptor)
         delete (this->LCP_descriptor);
@@ -963,7 +963,7 @@ bool ChSystem::ManageSleepingBodies() {
 /////////
 
 
-void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor) {
+void ChSystem::LCPprepare_inject(ChSystemDescriptor& mdescriptor) {
 
     mdescriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
 
@@ -1265,7 +1265,7 @@ void ChSystem::IntFromLCP(const unsigned int off_v,  ///< offset in v
 }
 
 ////
-void ChSystem::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChSystem::InjectVariables(ChSystemDescriptor& mdescriptor) {
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::InjectVariables(mdescriptor);
     // Use also on contact container:
@@ -1314,7 +1314,7 @@ void ChSystem::VariablesQbIncrementPosition(double dt_step) {
     contact_container->VariablesQbIncrementPosition(dt_step);
 }
 
-void ChSystem::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChSystem::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::InjectConstraints(mdescriptor);
     // Use also on contact container:
@@ -1370,7 +1370,7 @@ void ChSystem::ConstraintsFetch_react(double factor) {
     contact_container->ConstraintsFetch_react(factor);
 }
 
-void ChSystem::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+void ChSystem::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::InjectKRMmatrices(mdescriptor);
     // Use also on contact container:

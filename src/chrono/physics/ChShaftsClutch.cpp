@@ -153,7 +153,7 @@ void ChShaftsClutch::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChShaftsClutch::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsClutch::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

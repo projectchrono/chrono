@@ -206,9 +206,8 @@ class CH_PARALLEL_API ChParallelDataManager {
     // from when the code supported the GPU (host vs device)
     host_container host_data;
 
-    // This pointer is used by the bilarerals for computing the jacobian and other
-    // terms
-    ChLcpSystemDescriptor* lcp_system_descriptor;
+    // This pointer is used by the bilarerals for computing the jacobian and other terms
+    ChSystemDescriptor* lcp_system_descriptor;
 
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure

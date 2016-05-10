@@ -19,7 +19,7 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegister<ChLcpIterativeMINRES> a_registration_ChLcpIterativeMINRES;
 
-double ChLcpIterativeMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+double ChLcpIterativeMINRES::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                                    ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
@@ -347,7 +347,7 @@ double ChLcpIterativeMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system desc
 //////////////////////////////////////////////////////////////////////////////
 
 double ChLcpIterativeMINRES::Solve_SupportingStiffness(
-    ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
+    ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
     bool do_preconditioning = this->diag_preconditioning;
 

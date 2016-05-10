@@ -218,10 +218,10 @@ void ChLinkDirFrame::IntFromLCP(
 }
 
 
-////////// LCP INTERFACES ////
+////////// SOLVER INTERFACES ////
 
 
-void ChLinkDirFrame::InjectConstraints(ChLcpSystemDescriptor& mdescriptor)
+void ChLinkDirFrame::InjectConstraints(ChSystemDescriptor& mdescriptor)
 {
 	//if (!this->IsActive())
 	//	return;

@@ -382,7 +382,7 @@ void ChLinkRevolute::IntFromLCP(const unsigned int off_v,  ///< offset in v
 // -----------------------------------------------------------------------------
 // Implementation of solver interface functions
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
+void ChLinkRevolute::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 

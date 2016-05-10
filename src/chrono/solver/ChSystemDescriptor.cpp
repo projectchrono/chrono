@@ -19,13 +19,11 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpSystemDescriptor> a_registration_ChLcpSystemDescriptor;
-
+ChClassRegister<ChSystemDescriptor> a_registration_ChSystemDescriptor;
 
 #define CH_SPINLOCK_HASHSIZE 203
 
-
-ChLcpSystemDescriptor::ChLcpSystemDescriptor() {
+ChSystemDescriptor::ChSystemDescriptor() {
     vconstraints.clear();
     vvariables.clear();
     vstiffness.clear();
@@ -41,7 +39,7 @@ ChLcpSystemDescriptor::ChLcpSystemDescriptor() {
     spinlocktable = new ChSpinlock[CH_SPINLOCK_HASHSIZE];
 }
 
-ChLcpSystemDescriptor::~ChLcpSystemDescriptor() {
+ChSystemDescriptor::~ChSystemDescriptor() {
     vconstraints.clear();
     vvariables.clear();
     vstiffness.clear();
@@ -51,7 +49,7 @@ ChLcpSystemDescriptor::~ChLcpSystemDescriptor() {
     spinlocktable = 0;
 }
 
-void ChLcpSystemDescriptor::ComputeFeasabilityViolation(
+void ChSystemDescriptor::ComputeFeasabilityViolation(
     double& resulting_maxviolation,   ///< gets the max constraint violation (either bi- and unilateral.)
     double& resulting_lcpfeasability  ///< gets the max feasability as max |l*c| , for unilateral only
     ) {
@@ -75,7 +73,7 @@ void ChLcpSystemDescriptor::ComputeFeasabilityViolation(
     }
 }
 
-int ChLcpSystemDescriptor::CountActiveVariables() {
+int ChSystemDescriptor::CountActiveVariables() {
     if (this->freeze_count)  // optimization, avoid list count all times
         return n_q;
 
@@ -89,7 +87,7 @@ int ChLcpSystemDescriptor::CountActiveVariables() {
     return n_q;
 }
 
-int ChLcpSystemDescriptor::CountActiveConstraints() {
+int ChSystemDescriptor::CountActiveConstraints() {
     if (this->freeze_count)  // optimization, avoid list count all times
         return n_c;
 
@@ -103,21 +101,21 @@ int ChLcpSystemDescriptor::CountActiveConstraints() {
     return n_c;
 }
 
-void ChLcpSystemDescriptor::UpdateCountsAndOffsets() {
+void ChSystemDescriptor::UpdateCountsAndOffsets() {
     freeze_count = false;
     CountActiveVariables();
     CountActiveConstraints();
     freeze_count = true;
 }
 
-void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
-                                                ChSparseMatrix* M,
-												ChSparseMatrix* E,
-                                                ChMatrix<>* Fvector,
-                                                ChMatrix<>* Bvector,
-                                                ChMatrix<>* Frict,
-                                                bool only_bilaterals,
-                                                bool skip_contacts_uv) {
+void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
+                                             ChSparseMatrix* M,
+                                             ChSparseMatrix* E,
+                                             ChMatrix<>* Fvector,
+                                             ChMatrix<>* Bvector,
+                                             ChMatrix<>* Frict,
+                                             bool only_bilaterals,
+                                             bool skip_contacts_uv) {
     std::vector<ChConstraint*>& mconstraints = this->GetConstraintsList();
     std::vector<ChVariables*>& mvariables = this->GetVariablesList();
 
@@ -201,7 +199,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     }
 }
 
-void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs) {
+void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs) {
 
     std::vector<ChConstraint*>& mconstraints = this->GetConstraintsList();
     std::vector<ChVariables*>& mvariables = this->GetVariablesList();
@@ -283,18 +281,18 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* r
 
 }
 
-void ChLcpSystemDescriptor::BuildMatrices(ChSparseMatrix* Cq,
-                                          ChSparseMatrix* M,
-                                          bool only_bilaterals,
-                                          bool skip_contacts_uv) {
+void ChSystemDescriptor::BuildMatrices(ChSparseMatrix* Cq,
+                                       ChSparseMatrix* M,
+                                       bool only_bilaterals,
+                                       bool skip_contacts_uv) {
     this->ConvertToMatrixForm(Cq, M, 0, 0, 0, 0, only_bilaterals, skip_contacts_uv);
 }
 
-void ChLcpSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only_bilaterals, bool skip_contacts_uv) {
+void ChSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only_bilaterals, bool skip_contacts_uv) {
     this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
 }
 
-void ChLcpSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
+void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
     char filename[300];
     try {
         const char* numformat = "%.12g";
@@ -357,7 +355,7 @@ void ChLcpSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
     }
 }
 
-int ChLcpSystemDescriptor::BuildFbVector(ChMatrix<>& Fvector  ///< matrix which will contain the entire vector of 'f'
+int ChSystemDescriptor::BuildFbVector(ChMatrix<>& Fvector  ///< matrix which will contain the entire vector of 'f'
                                          ) {
     n_q = CountActiveVariables();
     Fvector.Reset(n_q, 1);  // fast! Reset() method does not realloc if size doesn't change
@@ -371,7 +369,7 @@ int ChLcpSystemDescriptor::BuildFbVector(ChMatrix<>& Fvector  ///< matrix which 
     return this->n_q;
 }
 
-int ChLcpSystemDescriptor::BuildBiVector(ChMatrix<>& Bvector  ///< matrix which will contain the entire vector of 'b'
+int ChSystemDescriptor::BuildBiVector(ChMatrix<>& Bvector  ///< matrix which will contain the entire vector of 'b'
                                          ) {
     n_c = CountActiveConstraints();
     Bvector.Resize(n_c, 1);
@@ -386,7 +384,7 @@ int ChLcpSystemDescriptor::BuildBiVector(ChMatrix<>& Bvector  ///< matrix which 
     return n_c;
 }
 
-int ChLcpSystemDescriptor::BuildDiVector(ChMatrix<>& Dvector) {
+int ChSystemDescriptor::BuildDiVector(ChMatrix<>& Dvector) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
@@ -408,7 +406,7 @@ int ChLcpSystemDescriptor::BuildDiVector(ChMatrix<>& Dvector) {
     return n_q + n_c;
 }
 
-int ChLcpSystemDescriptor::BuildDiagonalVector(
+int ChSystemDescriptor::BuildDiagonalVector(
     ChMatrix<>& Diagonal_vect  ///< matrix which will contain the entire vector of terms on M and E diagonal
     ) {
     n_q = CountActiveVariables();
@@ -438,7 +436,7 @@ int ChLcpSystemDescriptor::BuildDiagonalVector(
     return n_q + n_c;
 }
 
-int ChLcpSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resize_vector) {
+int ChSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resize_vector) {
     // Count active variables and resize vector if necessary
     if (resize_vector) {
         n_q = CountActiveVariables();
@@ -455,7 +453,7 @@ int ChLcpSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resiz
     return n_q;
 }
 
-int ChLcpSystemDescriptor::FromVectorToVariables(ChMatrix<>& mvector) {
+int ChSystemDescriptor::FromVectorToVariables(ChMatrix<>& mvector) {
     assert(CountActiveVariables() == mvector.GetRows());
     assert(mvector.GetColumns() == 1);
 
@@ -470,7 +468,7 @@ int ChLcpSystemDescriptor::FromVectorToVariables(ChMatrix<>& mvector) {
     return n_q;
 }
 
-int ChLcpSystemDescriptor::FromConstraintsToVector(ChMatrix<>& mvector, bool resize_vector) {
+int ChSystemDescriptor::FromConstraintsToVector(ChMatrix<>& mvector, bool resize_vector) {
     // Count active constraints and resize vector if necessary
     if (resize_vector) {
         n_c = CountActiveConstraints();
@@ -487,7 +485,7 @@ int ChLcpSystemDescriptor::FromConstraintsToVector(ChMatrix<>& mvector, bool res
     return n_c;
 }
 
-int ChLcpSystemDescriptor::FromVectorToConstraints(ChMatrix<>& mvector) {
+int ChSystemDescriptor::FromVectorToConstraints(ChMatrix<>& mvector) {
     n_c = CountActiveConstraints();
 
     assert(n_c == mvector.GetRows());
@@ -503,7 +501,7 @@ int ChLcpSystemDescriptor::FromVectorToConstraints(ChMatrix<>& mvector) {
     return n_c;
 }
 
-int ChLcpSystemDescriptor::FromUnknownsToVector(ChMatrix<>& mvector, bool resize_vector) {
+int ChSystemDescriptor::FromUnknownsToVector(ChMatrix<>& mvector, bool resize_vector) {
     // Count active variables & constraints and resize vector if necessary
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
@@ -528,7 +526,7 @@ int ChLcpSystemDescriptor::FromUnknownsToVector(ChMatrix<>& mvector, bool resize
     return n_q + n_c;
 }
 
-int ChLcpSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
+int ChSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
@@ -552,7 +550,7 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
     return n_q + n_c;
 }
 
-void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>* lvector, std::vector<bool>* enabled) {
+void ChSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>* lvector, std::vector<bool>* enabled) {
     assert(this->vstiffness.size() == 0); // currently, the case with ChKblock items is not supported (only diagonal M is supported, no K)
     assert(lvector->GetRows() == CountActiveConstraints());
     assert(lvector->GetColumns() == 1);
@@ -620,7 +618,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>
     }
 }
 
-void ChLcpSystemDescriptor::SystemProduct(
+void ChSystemDescriptor::SystemProduct(
     ChMatrix<>& result,  ///< matrix which contains the result of matrix by x
     ChMatrix<>* x        ///< optional matrix with the vector to be multiplied (if null, use current l_i and q)
     // std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable,
@@ -680,7 +678,7 @@ void ChLcpSystemDescriptor::SystemProduct(
         delete x_ql;
 }
 
-void ChLcpSystemDescriptor::ConstraintsProject(
+void ChSystemDescriptor::ConstraintsProject(
     ChMatrix<>& multipliers  ///< matrix which contains the entire vector of 'l_i' multipliers to be projected
     ) {
     this->FromVectorToConstraints(multipliers);
@@ -693,7 +691,7 @@ void ChLcpSystemDescriptor::ConstraintsProject(
     this->FromConstraintsToVector(multipliers, false);
 }
 
-void ChLcpSystemDescriptor::UnknownsProject(
+void ChSystemDescriptor::UnknownsProject(
     ChMatrix<>& mx  ///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
     ) {
     n_q = this->CountActiveVariables();
@@ -721,7 +719,7 @@ void ChLcpSystemDescriptor::UnknownsProject(
     }
 }
 
-void ChLcpSystemDescriptor::SetNumThreads(int nthreads) {
+void ChSystemDescriptor::SetNumThreads(int nthreads) {
     if (nthreads == this->num_threads)
         return;
 

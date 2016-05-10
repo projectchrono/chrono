@@ -465,7 +465,7 @@ void ChLinkMateGeneric::IntFromLCP(const unsigned int off_v,  ///< offset in v
 
 ////////// LCP INTERFACES ////
 
-void ChLinkMateGeneric::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 
