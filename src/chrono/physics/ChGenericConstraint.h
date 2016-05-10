@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHCONSTRAINT_H
-#define CHCONSTRAINT_H
+#ifndef CHGENERICCONSTRAINT_H
+#define CHGENERICCONSTRAINT_H
 
 #include <math.h>
 
