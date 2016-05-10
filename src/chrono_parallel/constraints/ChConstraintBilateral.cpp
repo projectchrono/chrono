@@ -5,11 +5,11 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
-#include "lcp/ChLcpConstraintTwoBodies.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
-#include "lcp/ChLcpConstraintThreeGeneric.h"
-#include "physics/ChBody.h"
-#include "physics/ChShaft.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
+#include "chrono/solver/ChConstraintThreeGeneric.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChShaft.h"
 
 using namespace chrono;
 

@@ -2,7 +2,7 @@
 
 #include <thrust/count.h>
 
-#include "lcp/ChLcpSystemDescriptor.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/lcp/ChLcpSolverParallel.h"

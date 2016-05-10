@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "lcp/ChLcpIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -28,6 +28,7 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChSolverAPGD.h"
+
 namespace chrono {
 
 class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {

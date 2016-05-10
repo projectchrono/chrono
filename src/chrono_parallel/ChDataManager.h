@@ -21,9 +21,9 @@
 #pragma once
 
 // Chrono Includes
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "physics/ChBody.h"
-#include "physics/ChLinksAll.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChLinksAll.h"
 
 // Chrono Parallel Includes
 #include "chrono_parallel/ChTimerParallel.h"
