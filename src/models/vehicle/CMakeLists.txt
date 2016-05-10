@@ -97,6 +97,7 @@ if(ENABLE_MODULE_FEA)
 endif()
 
 add_library(ChronoModels_vehicle SHARED
+    ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
     ${CVM_M113_FILES}
  )

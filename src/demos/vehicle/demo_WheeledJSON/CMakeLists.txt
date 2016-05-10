@@ -1,45 +1,20 @@
 #=============================================================================
-# CMake configuration file for the GENERIC_VEHICLE demo.
+# CMake configuration file for the VEHICLE demo - an example program for using
+# a wheeled vehicle model specified entirely through JSON specification files.
 # This example program works with and without Irrlicht run-time visualization
 #=============================================================================
 
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(MODEL_FILES
-    ../generic/Generic_Wheel.h
-    ../generic/Generic_FuncDriver.h
-    ../generic/Generic_Vehicle.h
-    ../generic/Generic_Vehicle.cpp
-    ../generic/Generic_SolidAxle.h
-    ../generic/Generic_SolidAxle.cpp
-    ../generic/Generic_MultiLink.h
-    ../generic/Generic_MultiLink.cpp
-    ../generic/Generic_RackPinion.h
-    ../generic/Generic_Driveline2WD.h
-    ../generic/Generic_SimplePowertrain.h
-    ../generic/Generic_BrakeSimple.h
-    ../generic/Generic_RigidTire.h
-    ../generic/Generic_DoubleWishbone.h
-    ../generic/Generic_DoubleWishbone.cpp
-    ../generic/Generic_HendricksonPRIMAXX.h
-    ../generic/Generic_HendricksonPRIMAXX.cpp
-    ../generic/Generic_MacPhersonStrut.h
-    ../generic/Generic_MacPhersonStrut.cpp
-    ../generic/Generic_AntirollBarRSD.h
-)
-
 SET(DEMO
-    demo_VEH_GenericVehicle
+    demo_VEH_WheeledJSON
 )
 
-SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
 SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
-
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
 
 IF(ENABLE_MODULE_IRRLICHT)
   INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
@@ -71,9 +46,10 @@ else()
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
 endif()
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
 SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${MY_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
 TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES} ${LIBRARIES_IRR})
 INSTALL(TARGETS ${DEMO} DESTINATION bin)
+
