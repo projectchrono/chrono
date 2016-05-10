@@ -14,9 +14,9 @@
 //
 //     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
 
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "FEAcables.h"

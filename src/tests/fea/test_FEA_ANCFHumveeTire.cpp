@@ -16,19 +16,20 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono/core/ChMathematics.h"
-#include "physics/ChLoadContainer.h"
+
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono/core/ChRealtimeStep.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChLcpMklSolver.h"

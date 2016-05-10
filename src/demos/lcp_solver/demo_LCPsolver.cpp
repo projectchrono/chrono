@@ -27,16 +27,16 @@
 
 // Include some headers used by this tutorial...
 
-#include "chrono/lcp/ChLcpVariablesGeneric.h"
-#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
-#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
-#include "chrono/lcp/ChLcpConstraintTwoBodies.h"
-#include "chrono/lcp/ChLcpKblockGeneric.h"
-#include "chrono/lcp/ChLcpSystemDescriptor.h"
-#include "chrono/lcp/ChLcpIterativeSOR.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeBB.h"
-#include "chrono/lcp/ChLcpSimplexSolver.h"
+#include "chrono/solver/ChVariablesGeneric.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
+#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/solver/ChSolverSOR.h"
+#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/solver/ChSolverBB.h"
+#include "chrono/solver/ChSolverSimplex.h"
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/core/ChLinkedListMatrix.h"
 

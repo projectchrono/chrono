@@ -11,7 +11,7 @@
 
 #include <cmath>
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 

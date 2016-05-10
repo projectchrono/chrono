@@ -16,7 +16,7 @@
 //
 //// Include some headers used by this tutorial...
 #include "chrono/physics/ChSystem.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementSpring.h"
 #include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementBar.h"

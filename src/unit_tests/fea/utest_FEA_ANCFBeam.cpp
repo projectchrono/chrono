@@ -27,20 +27,20 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono_fea/ChLoadsBeam.h"
-#include "physics/ChLoadContainer.h"
 #include "chrono_fea/ChElementBeamANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono/core/ChVector.h"
-#include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChLoadsBeam.h"
+#include "chrono_fea/ChMesh.h"
 
 using namespace chrono;
 using namespace chrono::fea;

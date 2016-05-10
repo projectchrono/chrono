@@ -16,11 +16,13 @@
 
 // Include some headers used by this tutorial...
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
+#include <vector>
+
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono_fea/ChElementShellANCF.h"
@@ -29,10 +31,9 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_mkl/ChLcpMklSolver.h"
 #include "chrono_postprocess/ChGnuPlot.h"
-#include <vector>
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...

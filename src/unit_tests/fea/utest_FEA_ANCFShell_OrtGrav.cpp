@@ -30,18 +30,17 @@
 // and numerical integration implementations.
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono/core/ChMathematics.h"
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChMesh.h"
 
 using namespace chrono;
 using namespace fea;

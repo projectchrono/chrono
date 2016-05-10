@@ -20,7 +20,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadBodyMesh.h"
 #include "chrono/geometry/ChCTriangleMeshConnected.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"

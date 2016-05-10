@@ -15,28 +15,31 @@
 // This unit test creats 2 ANCF shell elements and place them in different positions
 // in order to validate the collision detection in Chrono.
 // =============================================================================
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactDEM.h"
+
+#include <math.h>
+
+#include <algorithm>
+#include <functional>
+
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChContactDEM.h"
 #include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
-#include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChContactable.h"
+#include "chrono/physics/ChMaterialSurfaceDEM.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/solver/ChSolverMINRES.h"
+
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include <math.h>
-
-#include <algorithm>
-#include <functional>
 
 using namespace chrono;
 using namespace chrono::fea;

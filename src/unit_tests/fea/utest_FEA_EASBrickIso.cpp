@@ -26,13 +26,14 @@
 // =============================================================================
 #include "chrono/core/ChFileutils.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono_fea/ChElementSpring.h"
-#include "chrono_fea/ChElementBrick.h"
+
 #include "chrono_fea/ChElementBar.h"
-#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChElementBrick.h"
+#include "chrono_fea/ChElementSpring.h"
 #include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
 using namespace chrono;

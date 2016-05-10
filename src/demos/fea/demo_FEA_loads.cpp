@@ -16,24 +16,24 @@
 
 // Include some headers used by this tutorial...
 
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
-#include "physics/ChLinkMate.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementBar.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChElementTetra_10.h"
-#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementHexa_20.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLoadsBeam.h"
-#include "physics/ChLoadContainer.h"
+#include "chrono_fea/ChMesh.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...

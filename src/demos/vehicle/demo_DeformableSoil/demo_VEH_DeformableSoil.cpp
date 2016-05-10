@@ -18,7 +18,7 @@
 //       that is perform a cosimulation.
 
 #include "chrono/geometry/ChCTriangleMeshConnected.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"

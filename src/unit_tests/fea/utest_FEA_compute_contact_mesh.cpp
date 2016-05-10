@@ -25,15 +25,15 @@
 #include <vector>
 
 #include "chrono/ChConfig.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono/lcp/ChLcpSolverDEM.h"
 #include "chrono/physics/ChContactContainerDEM.h"
 #include "chrono/physics/ChSystemDEM.h"
+#include "chrono/solver/ChSolverDEM.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChMesh.h"
 
 using namespace chrono;
 using namespace chrono::fea;
