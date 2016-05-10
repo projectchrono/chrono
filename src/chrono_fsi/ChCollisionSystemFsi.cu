@@ -184,7 +184,9 @@ ChCollisionSystemFsi::~ChCollisionSystemFsi() {
 void ChCollisionSystemFsi::calcHash() {
 	if (!(markersProximityD->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
 		markersProximityD->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
-		throw std::runtime_error ("Error! size error, calcHash!\n");
+		printf("mError! calcHash!, gridMarkerHashD.size() %d gridMarkerIndexD.size() %d numObjectsH->numAllMarkers %d \n",
+				markersProximityD->gridMarkerHashD.size(), markersProximityD->gridMarkerIndexD.size(), numObjectsH->numAllMarkers);
+		throw std::runtime_error ("Error! size error, calcHash!");
 	}
 
 	bool *isErrorH, *isErrorD;
@@ -211,6 +213,11 @@ void ChCollisionSystemFsi::calcHash() {
 	}
 	cudaFree(isErrorD);
 	free(isErrorH);
+}
+
+void ChCollisionSystemFsi::ResetCellSize(int s) {
+	markersProximityD->cellStartD.resize(s);
+	markersProximityD->cellEndD.resize(s);
 }
 
 void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
@@ -246,6 +253,9 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
 
 void ChCollisionSystemFsi::ArrangeData(SphMarkerDataD * otherSphMarkersD) {
 	sphMarkersD = otherSphMarkersD;
+	int3 cellsDim = paramsH->gridSize;
+	int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
+	ResetCellSize(numCells);
 	calcHash();
 	thrust::sort_by_key(markersProximityD->gridMarkerHashD.begin(), markersProximityD->gridMarkerHashD.end(),
 			markersProximityD->gridMarkerIndexD.begin());

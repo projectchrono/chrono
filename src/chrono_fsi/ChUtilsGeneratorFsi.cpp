@@ -232,7 +232,6 @@ void AddBoxBce(
 	chrono::ChQuaternion<> relRot,
 	const chrono::ChVector<>& size) {
 
-	chrono::utils::AddBoxGeometry(body.get_ptr(), size, relPos, relRot, true);
 	thrust::host_vector<Real3> posRadBCE;
 
 	CreateBCE_On_Box(posRadBCE, ChFsiTypeConvert::ChVectorToReal3(size), 12, paramsH);

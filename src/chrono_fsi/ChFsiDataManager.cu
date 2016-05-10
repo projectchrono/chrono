@@ -96,9 +96,16 @@ void FsiBodiesDataH::resize(int s) {
 }
 
 //---------------------------------------------------------------------------------------
+void ProximityDataD::resize(int numAllMarkers) {
+	gridMarkerHashD.resize(numAllMarkers);
+	gridMarkerIndexD.resize(numAllMarkers);
+	mapOriginalToSorted.resize(numAllMarkers);
+}
+
+//---------------------------------------------------------------------------------------
 
 ChronoBodiesDataH::ChronoBodiesDataH(int s) {
-	this->resize(s);
+	resize(s);
 
 }
 
@@ -157,7 +164,6 @@ void ChFsiDataManager::InitNumObjects() {
 }
 
 void ChFsiDataManager::CalcNumObjects() {
-	printf("*** calcnumobjects\n");
 	InitNumObjects();
 	int rSize = fsiGeneralData.referenceArray.size();
 	bool flagRigid = false;
@@ -271,9 +277,12 @@ void ChFsiDataManager::ResizeDataManager() {
 		sphMarkersD2.resize(numObjects.numAllMarkers);
 		sortedSphMarkersD.resize(numObjects.numAllMarkers);
 		sphMarkersH.resize(numObjects.numAllMarkers);
+		markersProximityD.resize(numObjects.numAllMarkers);
+
 		fsiGeneralData.derivVelRhoD.resize(numObjects.numAllMarkers);
 		fsiGeneralData.vel_XSPH_D.resize(numObjects.numAllMarkers);
 
+		// Arman: implement this in one shot function in class
 		thrust::copy(sphMarkersH.posRadH.begin(), sphMarkersH.posRadH.end(), sphMarkersD1.posRadD.begin());
 		thrust::copy(sphMarkersH.velMasH.begin(), sphMarkersH.velMasH.end(), sphMarkersD1.velMasD.begin());
 		thrust::copy(sphMarkersH.rhoPresMuH.begin(), sphMarkersH.rhoPresMuH.end(), sphMarkersD1.rhoPresMuD.begin());

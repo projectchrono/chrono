@@ -39,6 +39,7 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 		void Copy_External_To_ChSystem();
 		void Copy_ChSystem_to_External();
 		void Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsiBodiesD);
+		void ResizeChronoBodiesData();
 	private:
 		FsiBodiesDataH * fsiBodiesH;
 		ChronoBodiesDataH * chronoRigidBackup;

@@ -139,6 +139,9 @@ namespace fsi {
 		thrust::device_vector<uint> cellStartD;//(m_numGridCells); // Index of start cell in sorted list
 		thrust::device_vector<uint> cellEndD;//(m_numGridCells); // Index of end cell in sorted list
 		thrust::device_vector<uint> mapOriginalToSorted;
+
+		// resize
+		void resize(int numAllMarkers);
 	private:
 	};
 

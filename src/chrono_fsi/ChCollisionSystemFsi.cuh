@@ -49,6 +49,8 @@ class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 
 		SimParams* paramsH;
 		NumberOfObjects* numObjectsH;
+
+		void ResetCellSize(int s);
 				/**
  * @brief calcHash - calcHashD
  *

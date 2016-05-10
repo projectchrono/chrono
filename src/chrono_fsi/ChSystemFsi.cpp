@@ -18,13 +18,6 @@
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh" 
 
-
-#ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
-chrono::opengl::ChOpenGLWindow& gl_window =
-		chrono::opengl::ChOpenGLWindow::getInstance();
-#endif
-
 namespace chrono {
 namespace fsi {
 
@@ -32,10 +25,9 @@ namespace fsi {
 // Arman: have a function to set mphysical system
 //--------------------------------------------------------------------------------------------------------------------------------
 
-ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysicalSystem(other_physicalSystem), mTime(0), haveVehicle(false), mVehicle(NULL) {
+ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem, bool other_haveFluid) : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0), haveVehicle(false), mVehicle(NULL) {
 	fsiData = new ChFsiDataManager();
 	fsiBodeisPtr.resize(0);
-	paramsH = new SimParams; // Arman: define a function to set paramsH default values
 	numObjectsH = &(fsiData->numObjects);
 
 	bceWorker = new ChBce(&(fsiData->fsiGeneralData), paramsH, numObjectsH);
@@ -50,13 +42,11 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem) : mphysical
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::Finalize() {
-	printf("** 21\n");
 	FinalizeData();
-	printf("** 22\n");
-	bceWorker->Finalize();
-	printf("** 23\n");
-	fluidDynamics->Finalize();
-	printf("** 24\n");
+	if (haveFluid) {
+		bceWorker->Finalize();
+		fluidDynamics->Finalize();
+	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -93,9 +83,9 @@ int ChSystemFsi::DoStepChronoSystem(Real dT,
 	}
 
 #ifdef CHRONO_OPENGL
-	if (gl_window.Active()) {
-		gl_window.DoStepDynamics(dT);
-		gl_window.Render();
+	if (gl_window->Active()) {
+		gl_window->DoStepDynamics(dT);
+		gl_window->Render();
 	}
 #else
 	mphysicalSystem->DoStepDynamics(dT);
@@ -120,21 +110,35 @@ void ChSystemFsi::DoStepDynamics_FSI(){
 	fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
 	mTime += 0.5 * paramsH->dT;
 
+	printf("&? a1\n");
 
 	// TODO
 		DoStepChronoSystem(0.5 * paramsH->dT, mTime); // Keep only this if you are just interested in the rigid sys
 	//
 		
+		printf("&? a2\n");
+
 	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD2));
 	bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
+
+	printf("&? a3\n");
 
 	fluidDynamics->IntegrateSPH(
 		&(fsiData->sphMarkersD1),
 		&(fsiData->sphMarkersD2),
 		&(fsiData->fsiBodiesD2),
 		paramsH->dT);
+
+	printf("&? a4\n");
+
 	bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
+
+	printf("&? a5\n");
+
 	fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
+
+	printf("&? a6\n");
+
 	mTime -= 0.5 * paramsH->dT;
 	fsiInterface->Copy_External_To_ChSystem();
 	mTime += paramsH->dT;
@@ -173,26 +177,22 @@ void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mV
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
-	printf("** 210\n");
 	fsiData->ResizeDataManager();
-	printf("** 211\n");
 	// Arman: very important: you cannot change the order of (1-3). Fix the issue later
+	fsiInterface->ResizeChronoBodiesData();
 	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1)); //(1)
-	printf("** 212\n");
 	fsiData->CopyFsiBodiesDataH2D();	// (2)
-	printf("** 213\n");
 	bceWorker->Populate_RigidSPH_MeshPos_LRF(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); // (3)
-	printf("** 214\n");
 	bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1)); //(4)
-	printf("** 215\n");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::InitializeChronoGraphics(chrono::ChVector<> CameraLocation, chrono::ChVector<> CameraLookAt) {
 #ifdef CHRONO_OPENGL
-	gl_window.Initialize(1280, 720, "FSI_Problem", mphysicalSystem);
-	gl_window.SetCamera(CameraLocation, CameraLookAt,
+	gl_window = &(chrono::opengl::ChOpenGLWindow::getInstance());
+	gl_window->Initialize(1280, 720, "FSI_Problem", mphysicalSystem);
+	gl_window->SetCamera(CameraLocation, CameraLookAt,
 			chrono::ChVector<>(0, 0, 1));
-	gl_window.SetRenderMode(chrono::opengl::WIREFRAME);
+	gl_window->SetRenderMode(chrono::opengl::WIREFRAME);
 #endif
 }
 

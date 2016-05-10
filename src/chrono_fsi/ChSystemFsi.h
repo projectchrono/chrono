@@ -26,6 +26,10 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
 
+#ifdef CHRONO_OPENGL
+#include "chrono_opengl/ChOpenGLWindow.h"
+#endif
+
 
 namespace chrono {
 namespace fsi {
@@ -33,7 +37,7 @@ namespace fsi {
 class CH_FSI_API ChSystemFsi : public ChFsiGeneral{
 
 public:
-	ChSystemFsi(ChSystemParallelDVI * other_physicalSystem);
+	ChSystemFsi(ChSystemParallelDVI * other_physicalSystem, bool other_haveFluid);
 	~ChSystemFsi();
 
 	void DoStepDynamics_FSI();
@@ -43,6 +47,7 @@ public:
 	void FinalizeData();
 	ChFsiDataManager* GetDataManager() {return fsiData;}
 	SimParams* GetSimParams() {return paramsH;}
+	void SetSimParams(SimParams* other_paramsH) {paramsH = other_paramsH;}
 	std::vector<ChSharedPtr<ChBody> > * GetFsiBodiesPtr() {return & fsiBodeisPtr;}
 	void InitializeChronoGraphics(
 		chrono::ChVector<> CameraLocation = chrono::ChVector<>(1, 0, 0), 
@@ -68,7 +73,13 @@ private:
 	NumberOfObjects* numObjectsH;
 
 	double mTime;
+	bool haveFluid;
 	bool haveVehicle;
+
+#ifdef CHRONO_OPENGL
+	chrono::opengl::ChOpenGLWindow* gl_window;
+#endif
+
 };
 } // end namespace fsi
 } // end namespace chrono

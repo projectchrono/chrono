@@ -63,7 +63,7 @@
 // FSI Interface Includes
 #include "params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
 
-#define haveFluid true
+#define haveFluid false
 
 // Chrono namespaces
 using namespace chrono;
@@ -72,27 +72,6 @@ using namespace chrono::collision;
 using std::cout;
 using std::endl;
 std::ofstream simParams;
-// =============================================================================
-
-// Define Graphics
-#define irrlichtVisualization false
-
-#if irrlichtVisualization
-
-// Irrlicht Include
-#include "unit_IRRLICHT/ChIrrApp.h"
-
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
-
-std::shared_ptr<ChIrrApp> application;
-#endif
-
 // =============================================================================
 
 
@@ -156,7 +135,7 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads,
 }
 // =============================================================================
 
-void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int argc,
+void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<> gravity, int argc,
 		char* argv[]) {
 	// Desired number of OpenMP threads (will be clamped to maximum available)
 	int threads = 1;
@@ -209,9 +188,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, chrono::f
 
 	double tolerance = 0.1;  // 1e-3;  // Arman, move it to paramsH
 	// double collisionEnvelop = 0.04 * paramsH->HSML;
-	mphysicalSystem.Set_G_acc(
-			ChVector<>(paramsH->gravity.x, paramsH->gravity.y,
-					paramsH->gravity.z));
+	mphysicalSystem.Set_G_acc(gravity);
 
 	mphysicalSystem.GetSettings()->solver.solver_mode = SLIDING; // NORMAL, SPINNING
 	mphysicalSystem.GetSettings()->solver.max_iteration_normal =
@@ -277,59 +254,78 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	double x2I = midSecDim - inclinedWidth * cos(phi) + hthick * sin(phi)
 			+ smallBuffer;
 
-	chrono::fsi::NumberOfObjects& numObjects = myFsiSystem.GetDataManager()->numObjects;
-	thrust::host_vector<chrono::fsi::Real3> & posRadH = myFsiSystem.GetDataManager()->sphMarkersH.posRadH;
-	thrust::host_vector<chrono::fsi::Real3> & velMasH = myFsiSystem.GetDataManager()->sphMarkersH.velMasH;
-	thrust::host_vector<chrono::fsi::Real4> & rhoPresMuH = myFsiSystem.GetDataManager()->sphMarkersH.rhoPresMuH;
-	thrust::host_vector<int4> & referenceArray = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray;
-
-#if haveFluid
 
 		// beginning third
-		chrono::fsi::utils::AddBoxBce(
-				myFsiSystem.GetDataManager(),
-				paramsH, ground,
-				ChVector<>(hdimSide, hdimY, hthick),
-				ChQuaternion<>(1, 0, 0, 0),
-				ChVector<>(-midSecDim - hdimSide, 0, -hthick));
+	ChVector<> size1(hdimSide, hdimY, hthick);
+	ChQuaternion<> rot1 = chrono::QUNIT;
+	ChVector<> pos1(-midSecDim - hdimSide, 0, -hthick);
+	chrono::utils::AddBoxGeometry(ground.get_ptr(), size1, pos1, rot1, true);
 
 		// end third
-
-		chrono::fsi::utils::AddBoxBce(
-				myFsiSystem.GetDataManager(),
-				paramsH, ground,
-				ChVector<>(hdimSide, hdimY, hthick),
-				ChQuaternion<>(1, 0, 0, 0),
-				ChVector<>(midSecDim + hdimSide, 0, -hthick));
+	ChVector<> size2(hdimSide, hdimY, hthick);
+	ChQuaternion<> rot2 = chrono::QUNIT;
+	ChVector<> pos2(midSecDim + hdimSide, 0, -hthick);
+	chrono::utils::AddBoxGeometry(ground.get_ptr(), size2, pos2, rot2, true);
 
 		// basin
-		chrono::fsi::utils::AddBoxBce(
-				myFsiSystem.GetDataManager(),
-				paramsH, ground,
-				ChVector<>(bottomWidth + bottomBuffer, hdimY, hthick),
-				ChQuaternion<>(1, 0, 0, 0),
-				ChVector<>(0, 0, -basinDepth - hthick));
+	ChVector<> size3(bottomWidth + bottomBuffer, hdimY, hthick);
+	ChQuaternion<> rot3 = chrono::QUNIT;
+	ChVector<> pos3(0, 0, -basinDepth - hthick);
+	chrono::utils::AddBoxGeometry(ground.get_ptr(), size3, pos3, rot3, true);
+
 		// slope 1
-		chrono::fsi::utils::AddBoxBce(
-				myFsiSystem.GetDataManager(),
-				paramsH, ground,
-				ChVector<>(inclinedWidth, hdimY, hthick),
-				Q_from_AngAxis(phi, ChVector<>(0, 1, 0)),
-				ChVector<>(x1I, 0, zI));
+	ChVector<> size4(inclinedWidth, hdimY, hthick);
+	ChQuaternion<> rot4 = Q_from_AngAxis(phi, ChVector<>(0, 1, 0));
+	ChVector<> pos4(x1I, 0, zI);
+	chrono::utils::AddBoxGeometry(ground.get_ptr(), size4, pos4, rot4, true);
 
 		// slope 2
-		chrono::fsi::utils::AddBoxBce(
-				myFsiSystem.GetDataManager(),
-				paramsH, ground,
-				ChVector<>(inclinedWidth, hdimY, hthick),
-				Q_from_AngAxis(-phi, ChVector<>(0, 1, 0)),
-				ChVector<>(x2I, 0, zI));
-
-#endif
-
+	ChVector<> size5(inclinedWidth, hdimY, hthick);
+	ChQuaternion<> rot5 = Q_from_AngAxis(-phi, ChVector<>(0, 1, 0));
+	ChVector<> pos5(x2I, 0, zI);
+	chrono::utils::AddBoxGeometry(ground.get_ptr(), size5, pos5, rot5, true);
 	ground->GetCollisionModel()->BuildModel();
 
 	mphysicalSystem.AddBody(ground);
+
+#if haveFluid
+
+	// Add ground
+	// ---------------------
+
+		// beginning third
+	chrono::fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(),
+				paramsH, ground, pos1, rot1, size1);
+
+		// end third
+	chrono::fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(),
+				paramsH, ground, pos2, rot2, size2);
+
+		// basin
+	chrono::fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(),
+				paramsH, ground, pos3, rot3, size3);
+
+		// slope 1
+	chrono::fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(),
+				paramsH, ground, pos4, rot4, size4);
+
+		// slope 2
+	chrono::fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(),
+				paramsH, ground, pos5, rot5, size5);
+
+
+	// Add floating cylinder
+	// ---------------------
+	double cyl_length = 3.5;
+	double cyl_radius = .55;
+	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
+	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
+
+	std::vector<ChSharedPtr<ChBody> > * FSI_Bodies = myFsiSystem.GetFsiBodiesPtr();
+	chrono::fsi::utils::CreateCylinderFSI(myFsiSystem.GetDataManager(),
+			mphysicalSystem, FSI_Bodies, paramsH, mat_g, paramsH->rho0, cyl_pos, cyl_rot, cyl_radius, cyl_length);
+
+#endif
 
 	// version 0, create one cylinder // note: rigid body initialization should come after boundary initialization
 
@@ -383,16 +379,6 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 
 	int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
 	mphysicalSystem.AddBody(body);
-	//
-
-	double cyl_length = 3.5;
-	double cyl_radius = .55;
-	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
-	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
-
-	std::vector<ChSharedPtr<ChBody> > * FSI_Bodies = myFsiSystem.GetFsiBodiesPtr();
-	chrono::fsi::utils::CreateCylinderFSI(myFsiSystem.GetDataManager(),
-			mphysicalSystem, FSI_Bodies, paramsH, mat_g, paramsH->rho0, cyl_pos, cyl_rot, cyl_radius, cyl_length);
 
 	// extra objects
 	// -----------------------------------------
@@ -526,16 +512,23 @@ int main(int argc, char* argv[]) {
 	simParams << " Job was submitted at date/time: " << asctime(timeinfo)
 			<< endl;
 	simParams.close();
+	//****************************************************************************************
+	bool mHaveFluid = false;
+#if haveFluid
+	mHaveFluid = true;
+#endif
 	// ***************************** Create Fluid ********************************************
 	ChSystemParallelDVI mphysicalSystem;
-	fsi::ChSystemFsi myFsiSystem(&mphysicalSystem);
+	fsi::ChSystemFsi myFsiSystem(&mphysicalSystem, mHaveFluid);
 	chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
 	chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
 
-#if haveFluid
-	chrono::fsi::SimParams* paramsH = myFsiSystem.GetSimParams();
+	chrono::fsi::SimParams* paramsH = new chrono::fsi::SimParams;
+
 		SetupParamsH(paramsH, hdimX, hdimY, hthick, basinDepth, fluidInitDimX, fluidHeight);
 		printSimulationParameters(paramsH);
+		myFsiSystem.SetSimParams(paramsH);
+#if haveFluid
 		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 		utils::GridSampler<> sampler(initSpace0);
 		chrono::fsi::Real3 boxCenter = 0.5 * (paramsH->cMax + paramsH->cMin);
@@ -543,7 +536,6 @@ int main(int argc, char* argv[]) {
 		utils::Generator::PointVector points = sampler.SampleBox(fsi::ChFsiTypeConvert::Real3ToChVector(boxCenter), fsi::ChFsiTypeConvert::Real3ToChVector(boxHalfDim));
 		int numPart = points.size();
 		for (int i = 0; i < numPart; i++) {
-
 			myFsiSystem.GetDataManager()->AddSphMarker(chrono::fsi::mR3(points[i].x, points[i].y, points[i].z),
 					chrono::fsi::mR3(0), chrono::fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
 		}
@@ -561,15 +553,15 @@ int main(int argc, char* argv[]) {
 
 
 	// ***************************** Create Rigid ********************************************
-	InitializeMbdPhysicalSystem(mphysicalSystem, paramsH, argc, argv);
+
+	ChVector<> gravity = ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
+	InitializeMbdPhysicalSystem(mphysicalSystem, gravity, argc, argv);
 
 	// This needs to be called after fluid initialization because I am using "numObjects.numBoundaryMarkers" inside it
 
 	CreateMbdPhysicalSystemObjects(mphysicalSystem, myFsiSystem, paramsH);
-	printf("** 2\n");
 
 	myFsiSystem.Finalize();
-	printf("** 3\n");
 
 	// ***************************** Create Interface ********************************************
 

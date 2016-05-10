@@ -35,6 +35,8 @@ rigid_FSI_TorquesD(other_rigid_FSI_TorquesD)
 {
 	int numBodies = mphysicalSystem->Get_bodylist()->size();
 	chronoRigidBackup = new ChronoBodiesDataH(numBodies);
+
+	printf("** size chronoRigidBackup %d \n ", chronoRigidBackup->pos_ChSystemH.size());
 }
 //------------------------------------------------------------------------------------
 ChFsiInterface::~ChFsiInterface(){
@@ -111,7 +113,7 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 void ChFsiInterface::Copy_External_To_ChSystem() {
 	int numBodies = mphysicalSystem->Get_bodylist()->size();
 	if (chronoRigidBackup->pos_ChSystemH.size() != numBodies) {
-		throw std::runtime_error ("Size of the external data does not match the ChSystem !\n");
+		throw std::runtime_error ("Size of the external data does not match the ChSystem; thrown from Copy_External_To_ChSystem !\n");
 	}
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numBodies; i++) {
@@ -130,6 +132,9 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
 void ChFsiInterface::Copy_ChSystem_to_External() {
 //	// Arman, assume no change in chrono num bodies. the resize is done in initializaiton.
 	int numBodies = mphysicalSystem->Get_bodylist()->size();
+	if (chronoRigidBackup->pos_ChSystemH.size() != numBodies) {
+		throw std::runtime_error ("Size of the external data does not match the ChSystem; thrown from Copy_ChSystem_to_External !\n");
+	}
 //	chronoRigidBackup->resize(numBodies);
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numBodies; i++) {
@@ -158,6 +163,11 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsi
 		fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
 		fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
 	}
+}
+//------------------------------------------------------------------------------------
+void ChFsiInterface::ResizeChronoBodiesData() {
+	int numBodies = mphysicalSystem->Get_bodylist()->size();
+	chronoRigidBackup->resize(numBodies);
 }
 
 } // end namespace fsi
