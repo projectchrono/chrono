@@ -10,7 +10,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "chrono/lcp/ChLcpIterativeSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
@@ -770,8 +770,8 @@ void  ChIrrTools::drawColorbar(double vmin, double vmax,
         core::rect<s32> mrect(mx,    my+(s32)(i*ystep),  mx+sx, my+(s32)((i+1)*ystep) );
         ChColor c_up = ChColor::ComputeFalseColor(mv_up, vmin, vmax, false);
         ChColor c_dw = ChColor::ComputeFalseColor(mv_dw, vmin, vmax, false);
-        video::SColor col_up (255, 255*c_up.R, 255*c_up.G, 255*c_up.B);
-        video::SColor col_dw (255, 255*c_dw.R, 255*c_dw.G, 255*c_dw.B);
+        video::SColor col_up (255, u32(255*c_up.R), u32(255*c_up.G), u32(255*c_up.B));
+        video::SColor col_dw (255, u32(255*c_dw.R), u32(255*c_dw.G), u32(255*c_dw.B));
         driver->draw2DRectangle(mrect, col_up,col_up, col_dw, col_dw);
 
         if (font) {
