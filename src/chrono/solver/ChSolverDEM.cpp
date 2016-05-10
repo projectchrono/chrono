@@ -19,7 +19,7 @@ ChClassRegister<ChLcpSolverDEM> a_registration_ChLcpSolverDEM;
 
 
 double ChLcpSolverDEM::Solve(ChLcpSystemDescriptor& sysd) {
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
 
     // 1)  Update auxiliary data in all constraints before starting,

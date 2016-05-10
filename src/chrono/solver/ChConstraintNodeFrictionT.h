@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTNODEFRICTIONT_H
-#define CHLCPCONSTRAINTNODEFRICTIONT_H
+#ifndef CHCONSTRAINTNODEFRICTIONT_H
+#define CHCONSTRAINTNODEFRICTIONT_H
 
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/solver/ChVariablesBody.h"
@@ -22,8 +22,8 @@ namespace chrono {
 /// Class used to represent friction constraint
 /// between a 3DOF node and a 6DOF body.
 
-class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric {
-    CH_RTTI(ChLcpConstraintNodeFrictionT, ChLcpConstraintTwoGeneric)
+class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
+    CH_RTTI(ChConstraintNodeFrictionT, ChConstraintTwoGeneric)
 
     //
     // DATA
@@ -35,31 +35,31 @@ class ChApi ChLcpConstraintNodeFrictionT : public ChLcpConstraintTwoGeneric {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintNodeFrictionT() { mode = CONSTRAINT_FRIC; };
+    ChConstraintNodeFrictionT() { mode = CONSTRAINT_FRIC; }
 
     /// Construct and immediately set references to variables,
     /// also setting the  and the normal constraint
     /// other tangential constraint (the latter is mandatory only
     /// for the second of the two tangential constraints)
-    ChLcpConstraintNodeFrictionT(ChLcpVariablesBody* mvariables_a, ChLcpVariablesNode* mvariables_b)
-        : ChLcpConstraintTwoGeneric(mvariables_a, mvariables_b) {
+    ChConstraintNodeFrictionT(ChLcpVariablesBody* mvariables_a, ChLcpVariablesNode* mvariables_b)
+        : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
         mode = CONSTRAINT_FRIC;
-    };
+    }
 
     /// Copy constructor
-    ChLcpConstraintNodeFrictionT(const ChLcpConstraintNodeFrictionT& other) : ChLcpConstraintTwoGeneric(other) {}
+    ChConstraintNodeFrictionT(const ChConstraintNodeFrictionT& other) : ChConstraintTwoGeneric(other) {}
 
-    virtual ~ChLcpConstraintNodeFrictionT(){};
+    virtual ~ChConstraintNodeFrictionT() {}
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintNodeFrictionT(*this); };
+    virtual ChConstraint* new_Duplicate() { return new ChConstraintNodeFrictionT(*this); };
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintNodeFrictionT& operator=(const ChLcpConstraintNodeFrictionT& other) {
+    ChConstraintNodeFrictionT& operator=(const ChConstraintNodeFrictionT& other) {
         if (&other == this)
             return *this;
 
         // copy parent class data
-        ChLcpConstraintTwoGeneric::operator=(other);
+        ChConstraintTwoGeneric::operator=(other);
 
         return *this;
     }

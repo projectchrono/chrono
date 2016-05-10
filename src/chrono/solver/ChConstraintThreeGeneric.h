@@ -10,27 +10,27 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTHREEGENERIC_H
-#define CHLCPCONSTRAINTTHREEGENERIC_H
+#ifndef CHCONSTRAINTTHREEGENERIC_H
+#define CHCONSTRAINTTHREEGENERIC_H
 
 #include "chrono/solver/ChConstraintThree.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
-///  This class is inherited by the base ChLcpConstraintThree(),
+/// This class is inherited by the base ChConstraintThree(),
 /// which is a base for triple constraints. So here this class implements
 /// the functionality for a constraint between a TRHEE
-/// objects of type ChLcpVariables(), with generic number of scalar
-/// variables each (ex.ChLcpVariablesGeneric() or ChLcpVariablesBody() )
+/// objects of type ChVariables(), with generic number of scalar
+/// variables each (ex.ChVariablesGeneric() or ChVariablesBody() )
 /// and defines three jacobian matrices, whose column number automatically
 /// matches the number of elements in variables vectors.
-///  Before starting the LCP solver one must provide the proper
+///  Before starting the solver one must provide the proper
 /// values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
-class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
-    CH_RTTI(ChLcpConstraintThreeGeneric, ChLcpConstraintThree)
+class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
+    CH_RTTI(ChConstraintThreeGeneric, ChConstraintThree)
 
     //
     // DATA
@@ -58,18 +58,16 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintThreeGeneric() { Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL; };
+    ChConstraintThreeGeneric() { Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL; }
 
     /// Construct and immediately set references to variables
-    ChLcpConstraintThreeGeneric(ChLcpVariables* mvariables_a,
-                                ChLcpVariables* mvariables_b,
-                                ChLcpVariables* mvariables_c) {
+    ChConstraintThreeGeneric(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c) {
         Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL;
         SetVariables(mvariables_a, mvariables_b, mvariables_c);
-    };
+    }
 
     /// Copy constructor
-    ChLcpConstraintThreeGeneric(const ChLcpConstraintThreeGeneric& other) : ChLcpConstraintThree(other) {
+    ChConstraintThreeGeneric(const ChConstraintThreeGeneric& other) : ChConstraintThree(other) {
         Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL;
         if (other.Cq_a)
             Cq_a = new ChMatrixDynamic<float>(*other.Cq_a);
@@ -85,7 +83,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
             Eq_c = new ChMatrixDynamic<float>(*other.Eq_c);
     }
 
-    virtual ~ChLcpConstraintThreeGeneric() {
+    virtual ~ChConstraintThreeGeneric() {
         if (Cq_a)
             delete Cq_a;
         if (Cq_b)
@@ -98,12 +96,12 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
             delete Eq_b;
         if (Eq_c)
             delete Eq_c;
-    };
+    }
 
-    virtual ChLcpConstraintThreeGeneric* new_Duplicate() { return new ChLcpConstraintThreeGeneric(*this); };
+    virtual ChConstraintThreeGeneric* new_Duplicate() { return new ChConstraintThreeGeneric(*this); }
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintThreeGeneric& operator=(const ChLcpConstraintThreeGeneric& other);
+    ChConstraintThreeGeneric& operator=(const ChConstraintThreeGeneric& other);
 
     //
     // FUNCTIONS
@@ -123,14 +121,14 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     /// Access auxiliary matrix (ex: used by iterative solvers)
     virtual ChMatrix<float>* Get_Eq_c() { return Eq_c; }
 
-    /// Set references to the constrained objects, each of ChLcpVariables type,
+    /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
     virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c);
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b and Eq_c  matrices
     ///  - the g_i product
-    /// This is often called by LCP solvers at the beginning
+    /// This is often called by solvers at the beginning
     /// of the solution process.
     /// Most often, inherited classes won't need to override this.
     virtual void Update_auxiliary();
@@ -138,7 +136,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     ///  This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
     virtual double Compute_Cq_q() {
         double ret = 0;
 
@@ -160,7 +158,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
     ///  This function must increment the vector of variables
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
 
     virtual void Increment_q(const double deltal) {
         if (variables_a->IsActive())
@@ -174,7 +172,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
         if (variables_c->IsActive())
             for (int i = 0; i < Eq_c->GetRows(); i++)
                 variables_c->Get_qb()(i) += Eq_c->ElementN(i) * deltal;
-    };
+    }
 
     /// Computes the product of the corresponding block in the
     /// system matrix by 'vect', and add to 'result'.
@@ -194,7 +192,7 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
         if (variables_c->IsActive())
             for (int i = 0; i < Cq_c->GetRows(); i++)
                 result += vect(variables_c->GetOffset() + i) * Cq_c->ElementN(i);
-    };
+    }
 
     /// Computes the product of the corresponding transposed blocks in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -214,12 +212,12 @@ class ChApi ChLcpConstraintThreeGeneric : public ChLcpConstraintThree {
         if (variables_c->IsActive())
             for (int i = 0; i < Cq_c->GetRows(); i++)
                 result(variables_c->GetOffset() + i) += Cq_c->ElementN(i) * l;
-    };
+    }
 
     /// Puts the three jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
-    /// offset of the corresponding ChLcpVariable.
-    /// This is used only by the ChLcpSimplex solver (iterative solvers
+    /// offset of the corresponding ChVariable.
+    /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
 	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())

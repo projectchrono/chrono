@@ -22,7 +22,7 @@ double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system des
                                     ) {
     bool do_preconditioning = this->diag_preconditioning;
 
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
 
     // If stiffness blocks are used, the Schur complement cannot be esily
@@ -260,7 +260,7 @@ double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system des
     }
 
     // Resulting DUAL variables:
-    // store ml temporary vector into ChLcpConstraint 'l_i' multipliers
+    // store ml temporary vector into ChConstraint 'l_i' multipliers
     sysd.FromVectorToConstraints(ml);
 
     // Resulting PRIMAL variables:
@@ -289,7 +289,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
     ) {
     bool do_preconditioning = this->diag_preconditioning;
 
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChLcpKblock*>& mstiffness = sysd.GetKblocksList();
 
@@ -510,7 +510,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
     }
 
     // After having solved for unknowns x={q;-l}, now copy those values from x vector to
-    // the q values in ChLcpVariable items and to l values in ChLcpConstraint items
+    // the q values in ChVariable items and to l values in ChConstraint items
     sysd.FromVectorToUnknowns(mx);
 
     if (verbose)

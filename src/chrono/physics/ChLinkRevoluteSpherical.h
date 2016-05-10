@@ -175,8 +175,8 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     double m_cur_dot;   // actual value of dot constraint
 
     // The constraint objects
-    ChLcpConstraintTwoBodies m_cnstr_dist;  // ||pos2_abs - pos1_abs|| - dist = 0
-    ChLcpConstraintTwoBodies m_cnstr_dot;   // dot(dir1_abs, pos2_abs - pos1_abs) = 0
+    ChConstraintTwoBodies m_cnstr_dist;  // ||pos2_abs - pos1_abs|| - dist = 0
+    ChConstraintTwoBodies m_cnstr_dot;   // dot(dir1_abs, pos2_abs - pos1_abs) = 0
 
     // Current constraint violations
     ChMatrix<>* m_C;

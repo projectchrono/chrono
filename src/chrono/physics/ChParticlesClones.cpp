@@ -111,9 +111,9 @@ void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector
 void ChAparticle::ComputeJacobianForContactPart(
     const ChVector<>& abs_point,
     ChMatrix33<>& contact_plane,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
     ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
     ChMatrix33<> Jx1, Jr1;
@@ -140,9 +140,9 @@ void ChAparticle::ComputeJacobianForContactPart(
 void ChAparticle::ComputeJacobianForRollingContactPart(
     const ChVector<>& abs_point,
     ChMatrix33<>& contact_plane,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
     ChMatrix33<> Jx1, Jr1;
 

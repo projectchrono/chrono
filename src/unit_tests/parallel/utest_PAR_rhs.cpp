@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 
   system_gpu->AssembleSystem();
 
-  std::vector<ChLcpConstraint*>& mconstraints = system_gpu->GetLcpSystemDescriptor()->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = system_gpu->GetLcpSystemDescriptor()->GetConstraintsList();
   std::vector<ChLcpVariables*>& mvariables = system_gpu->GetLcpSystemDescriptor()->GetVariablesList();
 
   std::vector<real> bi_a(mconstraints.size());
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
     bi_a[ic] = mb_tmp(ic, 0);
-    J_a[ic] = ((ChLcpConstraintTwoBodies*)mconstraints[ic])->Get_Cq_a()->ElementN(ic);
+    J_a[ic] = ((ChConstraintTwoBodies*)mconstraints[ic])->Get_Cq_a()->ElementN(ic);
   }
   {
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)

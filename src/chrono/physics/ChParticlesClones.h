@@ -150,9 +150,9 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ComputeJacobianForContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
         bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
@@ -160,9 +160,9 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
         bool second) override;
 
     /// used by some DEM code

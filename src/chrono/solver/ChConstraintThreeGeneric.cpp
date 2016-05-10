@@ -16,14 +16,14 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpConstraintThreeGeneric> a_registration_ChLcpConstraintThreeGeneric;
+ChClassRegister<ChConstraintThreeGeneric> a_registration_ChConstraintThreeGeneric;
 
-ChLcpConstraintThreeGeneric& ChLcpConstraintThreeGeneric::operator=(const ChLcpConstraintThreeGeneric& other) {
+ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraintThreeGeneric& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    ChLcpConstraintThree::operator=(other);
+    ChConstraintThree::operator=(other);
 
     if (other.Cq_a) {
         if (Cq_a == NULL)
@@ -88,9 +88,9 @@ ChLcpConstraintThreeGeneric& ChLcpConstraintThreeGeneric::operator=(const ChLcpC
     return *this;
 }
 
-void ChLcpConstraintThreeGeneric::SetVariables(ChLcpVariables* mvariables_a,
-                                               ChLcpVariables* mvariables_b,
-                                               ChLcpVariables* mvariables_c) {
+void ChConstraintThreeGeneric::SetVariables(ChLcpVariables* mvariables_a,
+                                            ChLcpVariables* mvariables_b,
+                                            ChLcpVariables* mvariables_c) {
     if (!mvariables_a || !mvariables_b || !mvariables_c) {
         SetValid(false);
         return;
@@ -159,7 +159,7 @@ void ChLcpConstraintThreeGeneric::SetVariables(ChLcpVariables* mvariables_a,
     }
 }
 
-void ChLcpConstraintThreeGeneric::Update_auxiliary() {
+void ChConstraintThreeGeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive())
@@ -205,12 +205,12 @@ void ChLcpConstraintThreeGeneric::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-void ChLcpConstraintThreeGeneric::StreamOUT(ChStreamOutBinary& mstream) {
+void ChConstraintThreeGeneric::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
     // serialize parent class too
-    ChLcpConstraintThree::StreamOUT(mstream);
+    ChConstraintThree::StreamOUT(mstream);
 
     // stream out all member data
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -220,12 +220,12 @@ void ChLcpConstraintThreeGeneric::StreamOUT(ChStreamOutBinary& mstream) {
     // mstream << Cq_b;
 }
 
-void ChLcpConstraintThreeGeneric::StreamIN(ChStreamInBinary& mstream) {
+void ChConstraintThreeGeneric::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 
     // deserialize parent class too
-    ChLcpConstraintThree::StreamIN(mstream);
+    ChConstraintThree::StreamIN(mstream);
 
     // stream in all member data
     // NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so

@@ -33,7 +33,7 @@ ChLinkMask::ChLinkMask() {
     nconstr = 1;
 
     constraints.resize(1);
-    constraints[0] = new ChLcpConstraintTwoBodies;
+    constraints[0] = new ChConstraintTwoBodies;
 }
 
 ChLinkMask::ChLinkMask(int mnconstr) {
@@ -41,7 +41,7 @@ ChLinkMask::ChLinkMask(int mnconstr) {
 
     constraints.resize(nconstr);
     for (int i = 0; i < nconstr; i++)
-        constraints[i] = new ChLcpConstraintTwoBodies;
+        constraints[i] = new ChConstraintTwoBodies;
 }
 
 ChLinkMask::~ChLinkMask() {
@@ -57,7 +57,7 @@ ChLinkMask::ChLinkMask(ChLinkMask& source) {
     nconstr = source.nconstr;
     constraints.resize(source.nconstr);
     for (int i = 0; i < nconstr; i++)
-        constraints[i] = (ChLcpConstraintTwoBodies*)source.Constr_N(i).new_Duplicate();
+        constraints[i] = (ChConstraintTwoBodies*)source.Constr_N(i).new_Duplicate();
 }
 
 void ChLinkMask::ResetNconstr(int newnconstr) {
@@ -72,11 +72,11 @@ void ChLinkMask::ResetNconstr(int newnconstr) {
         constraints.resize(nconstr);
 
         for (i = 0; i < nconstr; i++)
-            constraints[i] = new ChLcpConstraintTwoBodies;
+            constraints[i] = new ChConstraintTwoBodies;
     }
 }
 
-void ChLinkMask::AddConstraint(ChLcpConstraintTwoBodies* aconstr) {
+void ChLinkMask::AddConstraint(ChConstraintTwoBodies* aconstr) {
     nconstr++;
     constraints.push_back(aconstr);
 }
@@ -92,7 +92,7 @@ void ChLinkMask::Copy(ChLinkMask* source) {
     constraints.resize(nconstr);
 
     for (i = 0; i < nconstr; i++)
-        constraints[i] = (ChLcpConstraintTwoBodies*)source->constraints[i]->new_Duplicate();
+        constraints[i] = (ChConstraintTwoBodies*)source->constraints[i]->new_Duplicate();
 }
 
 ChLinkMask* ChLinkMask::NewDuplicate() {
@@ -145,7 +145,7 @@ int ChLinkMask::GetMaskDoc_c() {
     return (GetMaskDoc() - GetMaskDoc_d());
 }
 
-ChLcpConstraintTwoBodies* ChLinkMask::GetActiveConstrByNum(int mnum) {
+ChConstraintTwoBodies* ChLinkMask::GetActiveConstrByNum(int mnum) {
     int cnt = 0;
     for (int i = 0; i < nconstr; i++) {
         if (Constr_N(i).IsActive()) {
@@ -268,12 +268,12 @@ void ChLinkMask::StreamIN(ChStreamInBinary& mstream) {
         for (i = 0; i < this->nconstr; i++) {
             std::string cls_name;
             mstream >> cls_name;
-            if (cls_name == "ChLcpConstraintTwo")
+            if (cls_name == "ChConstraintTwo")
                 constraints[i] =
-                    new ChLcpConstraintTwoBodies();  // because in v3 ChLcpConstraintTwo is pure virtual class
+                    new ChConstraintTwoBodies();  // because in v3 ChConstraintTwo is pure virtual class
             else
                 GetLog() << "  ERROR unknown object in v2 mask:" << cls_name.c_str() << "\n";
-            constraints[i]->ChLcpConstraintTwo::StreamIN(mstream);
+            constraints[i]->ChConstraintTwo::StreamIN(mstream);
         }
     }
 

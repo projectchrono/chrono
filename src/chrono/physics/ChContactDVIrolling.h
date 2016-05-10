@@ -41,9 +41,9 @@ class ChContactDVIrolling :
  
     // The three scalar constraints, to be feed into the
     // system solver. They contain jacobians data and special functions.
-    ChLcpConstraintTwoTuplesRollingN < typecarr_a,  typecarr_b> Rx;
-    ChLcpConstraintTwoTuplesRollingT < typecarr_a,  typecarr_b> Ru;
-    ChLcpConstraintTwoTuplesRollingT < typecarr_a,  typecarr_b> Rv;
+    ChConstraintTwoTuplesRollingN < typecarr_a,  typecarr_b> Rx;
+    ChConstraintTwoTuplesRollingT < typecarr_a,  typecarr_b> Ru;
+    ChConstraintTwoTuplesRollingT < typecarr_a,  typecarr_b> Rv;
 
     ChVector<> react_torque;
 

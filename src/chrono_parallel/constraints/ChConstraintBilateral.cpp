@@ -17,12 +17,12 @@ using blaze::DenseSubvector;
 using blaze::subvector;
 
 void ChConstraintBilateral::Build_b() {
-  std::vector<ChLcpConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
 
 #pragma omp parallel for
   for (int index = 0; index < data_manager->num_bilaterals; index++) {
     int cntr = data_manager->host_data.bilateral_mapping[index];
-    ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+    ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
     data_manager->host_data.b[index + data_manager->num_unilaterals] = mbilateral->Get_b_i();
   }
 }
@@ -38,7 +38,7 @@ void ChConstraintBilateral::Build_D() {
   LOG(INFO) << "ChConstraintBilateral::Build_D";
   // Grab the list of all bilateral constraints present in the system
   // (note that this includes possibly inactive constraints)
-  std::vector<ChLcpConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
 
   // Loop over the active constraints and fill in the rows of the Jacobian,
   // taking into account the type of each constraint.
@@ -56,7 +56,7 @@ void ChConstraintBilateral::Build_D() {
 
     switch (type) {
       case BODY_BODY: {
-        ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+        ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
 
         int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
         int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
@@ -81,7 +81,7 @@ void ChConstraintBilateral::Build_D() {
       } break;
 
       case SHAFT_SHAFT: {
-        ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
+        ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
@@ -93,7 +93,7 @@ void ChConstraintBilateral::Build_D() {
       } break;
 
       case SHAFT_BODY: {
-        ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
+        ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
@@ -112,7 +112,7 @@ void ChConstraintBilateral::Build_D() {
       } break;
 
       case SHAFT_SHAFT_SHAFT: {
-        ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+        ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
         int idC = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
@@ -126,7 +126,7 @@ void ChConstraintBilateral::Build_D() {
       } break;
 
       case SHAFT_SHAFT_BODY: {
-        ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+        ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
         int idC = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();
@@ -158,7 +158,7 @@ void ChConstraintBilateral::GenerateSparsity() {
   LOG(INFO) << "ChConstraintBilateral::GenerateSparsity";
   // Grab the list of all bilateral constraints present in the system
   // (note that this includes possibly inactive constraints)
-  std::vector<ChLcpConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = data_manager->lcp_system_descriptor->GetConstraintsList();
 
   // Loop over the active constraints and fill in the sparsity pattern of the
   // Jacobian, taking into account the type of each constraint.
@@ -177,7 +177,7 @@ void ChConstraintBilateral::GenerateSparsity() {
 
     switch (type) {
       case BODY_BODY: {
-        ChLcpConstraintTwoBodies* mbilateral = (ChLcpConstraintTwoBodies*)(mconstraints[cntr]);
+        ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
 
         int idA = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
         int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
@@ -205,7 +205,7 @@ void ChConstraintBilateral::GenerateSparsity() {
       } break;
 
       case SHAFT_SHAFT: {
-        ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
+        ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
@@ -222,7 +222,7 @@ void ChConstraintBilateral::GenerateSparsity() {
       } break;
 
       case SHAFT_BODY: {
-        ChLcpConstraintTwoGeneric* mbilateral = (ChLcpConstraintTwoGeneric*)(mconstraints[cntr]);
+        ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
@@ -240,7 +240,7 @@ void ChConstraintBilateral::GenerateSparsity() {
       } break;
 
       case SHAFT_SHAFT_SHAFT: {
-        ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+        ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
         std::vector<int> ids(3);
         ids[0] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         ids[1] = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
@@ -256,7 +256,7 @@ void ChConstraintBilateral::GenerateSparsity() {
       } break;
 
       case SHAFT_SHAFT_BODY: {
-        ChLcpConstraintThreeGeneric* mbilateral = (ChLcpConstraintThreeGeneric*)(mconstraints[cntr]);
+        ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
         int idA = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
         int idB = ((ChLcpVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
         int idC = ((ChBody*)((ChLcpVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();

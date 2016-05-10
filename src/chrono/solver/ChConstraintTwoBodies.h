@@ -10,20 +10,20 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTWOBODIES_H
-#define CHLCPCONSTRAINTTWOBODIES_H
+#ifndef CHCONSTRAINTTWOBODIES_H
+#define CHCONSTRAINTTWOBODIES_H
 
 #include "chrono/solver/ChConstraintTwo.h"
 #include "chrono/solver/ChVariablesBody.h"
 
 namespace chrono {
 
-/// This class inherits from the base ChLcpConstraintTwo(),
+/// This class inherits from the base ChConstraintTwo(),
 /// that implements the functionality for a constraint between
-/// a couple of two objects of type ChLcpVariablesBody().
+/// a couple of two objects of type ChVariablesBody().
 
-class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
-    CH_RTTI(ChLcpConstraintTwoBodies, ChLcpConstraintTwo)
+class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
+    CH_RTTI(ChConstraintTwoBodies, ChConstraintTwo)
 
     //
     // DATA
@@ -47,27 +47,27 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintTwoBodies(){};
+    ChConstraintTwoBodies() {}
 
     /// Construct and immediately set references to variables
-    ChLcpConstraintTwoBodies(ChLcpVariablesBody* mvariables_a, ChLcpVariablesBody* mvariables_b) {
+    ChConstraintTwoBodies(ChLcpVariablesBody* mvariables_a, ChLcpVariablesBody* mvariables_b) {
         SetVariables(mvariables_a, mvariables_b);
-    };
+    }
 
     /// Copy constructor
-    ChLcpConstraintTwoBodies(const ChLcpConstraintTwoBodies& other) : ChLcpConstraintTwo(other) {
+    ChConstraintTwoBodies(const ChConstraintTwoBodies& other) : ChConstraintTwo(other) {
         Cq_a = other.Cq_a;
         Cq_b = other.Cq_b;
         Eq_a = other.Eq_a;
         Eq_b = other.Eq_b;
     }
 
-    virtual ~ChLcpConstraintTwoBodies(){};
+    virtual ~ChConstraintTwoBodies() {}
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoBodies(*this); };
+    virtual ChConstraint* new_Duplicate() { return new ChConstraintTwoBodies(*this); }
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTwoBodies& operator=(const ChLcpConstraintTwoBodies& other);
+    ChConstraintTwoBodies& operator=(const ChConstraintTwoBodies& other);
 
     //
     // FUNCTIONS
@@ -83,15 +83,15 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
     /// Access auxiliary matrix (ex: used by iterative solvers)
     virtual ChMatrix<double>* Get_Eq_b() { return &Eq_b; }
 
-    /// Set references to the constrained objects, each of ChLcpVariablesBody type,
+    /// Set references to the constrained objects, each of ChVariablesBody type,
     /// automatically creating/resizing jacobians if needed.
-    /// If variables aren't from ChLcpVariablesBody class, an assert failure happens.
+    /// If variables aren't from ChVariablesBody class, an assert failure happens.
     void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b);
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b matrices
     ///  - the g_i product
-    /// This is often called by LCP solvers at the beginning
+    /// This is often called by solvers at the beginning
     /// of the solution process.
     /// Most often, inherited classes won't need to override this.
     virtual void Update_auxiliary();
@@ -99,7 +99,7 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
     ///  This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
     virtual double Compute_Cq_q() {
         double ret = 0;
 
@@ -117,7 +117,7 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
     ///  This function must increment the vector of variables
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
 
     virtual void Increment_q(const double deltal) {
         if (variables_a->IsActive())
@@ -127,7 +127,7 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
         if (variables_b->IsActive())
             for (int i = 0; i < 6; i++)
                 variables_b->Get_qb()(i) += Eq_b.ElementN(i) * deltal;
-    };
+    }
 
     /// Computes the product of the corresponding block in the
     /// system matrix by 'vect', and add to 'result'.
@@ -146,7 +146,7 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
         if (variables_b->IsActive())
             for (int i = 0; i < 6; i++)
                 result += vect(off_b + i) * Cq_b.ElementN(i);
-    };
+    }
 
     /// Computes the product of the corresponding transposed blocks in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -165,13 +165,13 @@ class ChApi ChLcpConstraintTwoBodies : public ChLcpConstraintTwo {
         if (variables_b->IsActive())
             for (int i = 0; i < 6; i++)
                 result(off_b + i) += Cq_b.ElementN(i) * l;
-    };
+    }
 
     /// Puts the two jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
-    /// offset of the corresponding ChLcpVariable.The same is done
+    /// offset of the corresponding ChVariable.The same is done
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
-    /// This is used only by the ChLcpSimplex solver (iterative solvers
+    /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
 	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())

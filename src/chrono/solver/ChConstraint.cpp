@@ -16,9 +16,9 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-// ChClassRegister<ChLcpConstraint> a_registration_ChLcpConstraint;
+// ChClassRegister<ChConstraint> a_registration_ChConstraint;
 
-ChLcpConstraint& ChLcpConstraint::operator=(const ChLcpConstraint& other) {
+ChConstraint& ChConstraint::operator=(const ChConstraint& other) {
     if (&other == this)
         return *this;
 
@@ -37,19 +37,19 @@ ChLcpConstraint& ChLcpConstraint::operator=(const ChLcpConstraint& other) {
     return *this;
 }
 
-bool ChLcpConstraint::operator==(const ChLcpConstraint& other) const {
+bool ChConstraint::operator==(const ChConstraint& other) const {
     return other.cfm_i == cfm_i && other.valid == valid && other._active == _active && other.disabled == disabled &&
            other.redundant == redundant && other.broken == broken && other.mode == mode;
 }
 
-void ChLcpConstraint::Project() {
+void ChConstraint::Project() {
     if (mode == CONSTRAINT_UNILATERAL) {
         if (l_i < 0.)
             l_i = 0.;
     }
 }
 
-double ChLcpConstraint::Violation(double mc_i) {
+double ChConstraint::Violation(double mc_i) {
     if (mode == CONSTRAINT_UNILATERAL) {
         if (mc_i > 0.)
             return 0.;
@@ -58,7 +58,7 @@ double ChLcpConstraint::Violation(double mc_i) {
     return mc_i;
 }
 
-void ChLcpConstraint::StreamOUT(ChStreamOutBinary& mstream) {
+void ChConstraint::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
@@ -71,7 +71,7 @@ void ChLcpConstraint::StreamOUT(ChStreamOutBinary& mstream) {
     mstream << (int)mode;
 }
 
-void ChLcpConstraint::StreamIN(ChStreamInBinary& mstream) {
+void ChConstraint::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 

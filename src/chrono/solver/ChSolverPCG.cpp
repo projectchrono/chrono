@@ -20,7 +20,7 @@ ChClassRegister<ChLcpIterativePCG> a_registration_ChLcpIterativePCG;
 
 double ChLcpIterativePCG::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                 ) {
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
 
     tot_iterations = 0;
@@ -166,7 +166,7 @@ double ChLcpIterativePCG::Solve(ChLcpSystemDescriptor& sysd  ///< system descrip
     }
 
     // Resulting DUAL variables:
-    // store ml temporary vector into ChLcpConstraint 'l_i' multipliers
+    // store ml temporary vector into ChConstraint 'l_i' multipliers
     sysd.FromVectorToConstraints(ml);
 
     // Resulting PRIMAL variables:

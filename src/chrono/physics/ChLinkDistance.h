@@ -39,7 +39,7 @@ class ChApi ChLinkDistance : public ChLink {
     ChVector<> pos1;
     ChVector<> pos2;
     // the constraint object
-    ChLcpConstraintTwoBodies Cx;
+    ChConstraintTwoBodies Cx;
 
     double curr_dist;  // used for internal optimizations
 

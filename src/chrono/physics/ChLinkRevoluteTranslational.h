@@ -191,10 +191,10 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     double m_cur_dist;  // actual distance between pos1 and pos2
 
     // The constraint objects
-    ChLcpConstraintTwoBodies m_cnstr_par1;  // z1 perpendicualr to x2
-    ChLcpConstraintTwoBodies m_cnstr_par2;  // z1 perpendicular to y2
-    ChLcpConstraintTwoBodies m_cnstr_dot;   // d12 perpendicular to z1
-    ChLcpConstraintTwoBodies m_cnstr_dist;  // distance between axes
+    ChConstraintTwoBodies m_cnstr_par1;  // z1 perpendicualr to x2
+    ChConstraintTwoBodies m_cnstr_par2;  // z1 perpendicular to y2
+    ChConstraintTwoBodies m_cnstr_dot;   // d12 perpendicular to z1
+    ChConstraintTwoBodies m_cnstr_dist;  // distance between axes
 
     // Current constraint violations
     ChMatrix<>* m_C;

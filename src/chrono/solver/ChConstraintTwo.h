@@ -10,26 +10,26 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTWO_H
-#define CHLCPCONSTRAINTTWO_H
+#ifndef CHCONSTRAINTTWO_H
+#define CHCONSTRAINTTWO_H
 
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
-///  This class is inherited by the base ChLcpConstraint(),
+/// This class is inherited by the base ChConstraint(),
 /// which does almost nothing. So here this class implements
 /// the functionality for a constrint between a COUPLE of TWO
-/// objects of type ChLcpVariables(), and defines two constraint
+/// objects of type ChVariables(), and defines two constraint
 /// matrices, whose column number automatically matches the number
 /// of elements in variables vectors.
-///  Before starting the LCP solver one must provide the proper
+///  Before starting the solver one must provide the proper
 /// values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
-class ChApi ChLcpConstraintTwo : public ChLcpConstraint {
-    CH_RTTI(ChLcpConstraintTwo, ChLcpConstraint)
+class ChApi ChConstraintTwo : public ChConstraint {
+    CH_RTTI(ChConstraintTwo, ChConstraint)
 
     //
     // DATA
@@ -46,18 +46,18 @@ class ChApi ChLcpConstraintTwo : public ChLcpConstraint {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintTwo() { variables_a = variables_b = NULL; };
+    ChConstraintTwo() { variables_a = variables_b = NULL; }
 
     /// Copy constructor
-    ChLcpConstraintTwo(const ChLcpConstraintTwo& other) : ChLcpConstraint(other) {
+    ChConstraintTwo(const ChConstraintTwo& other) : ChConstraint(other) {
         variables_a = other.variables_a;
         variables_b = other.variables_b;
     }
 
-    virtual ~ChLcpConstraintTwo(){};
+    virtual ~ChConstraintTwo(){};
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTwo& operator=(const ChLcpConstraintTwo& other);
+    ChConstraintTwo& operator=(const ChConstraintTwo& other);
 
     //
     // FUNCTIONS
@@ -78,7 +78,7 @@ class ChApi ChLcpConstraintTwo : public ChLcpConstraint {
     /// Access the second variable object
     ChLcpVariables* GetVariables_b() { return variables_b; }
 
-    /// Set references to the constrained objects, each of ChLcpVariables type,
+    /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
     virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) = 0;
 

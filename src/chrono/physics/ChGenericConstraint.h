@@ -21,7 +21,7 @@ namespace chrono {
 
 /// Class for basic algebraic constraints (not to be confused with
 /// ChLink objects, which are complex kinematical constraints between rigid
-/// bodies in 3D, containing ChLcpConstraint objects)
+/// bodies in 3D, containing ChConstraint objects)
 ///
 /// This is the base data for algebraic constraints.
 /// The base implemetation is basically _useless_ unless it has some

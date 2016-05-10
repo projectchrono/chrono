@@ -37,9 +37,9 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
     /// The three scalar constraints, to be fed into the system solver.
     /// They contain jacobians data and special functions.
-    ChLcpConstraintTwoTuplesContactN<typecarr_a, typecarr_b> Nx;
-    ChLcpConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tu;
-    ChLcpConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tv;
+    ChConstraintTwoTuplesContactN<typecarr_a, typecarr_b> Nx;
+    ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tu;
+    ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tv;
 
     ChVector<> react_force;
 

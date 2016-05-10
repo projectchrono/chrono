@@ -23,8 +23,8 @@
 
 namespace chrono {
 
-/// Base class for collecting objects inherited from ChLcpConstraint ,
-/// ChLcpVariables and, optionally ChLcpKblock. These objects
+/// Base class for collecting objects inherited from ChConstraint ,
+/// ChVariables and, optionally ChKblock. These objects
 /// can be used to define a sparse representation of the system.
 ///  The problem is described by a variational inequality VI(Z*x-d,K):
 ///
@@ -36,14 +36,14 @@ namespace chrono {
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
-/// Optionally, also objects inherited from ChLcpKblock can be added
-/// too, hence M becomes M+K (but not all solvers handle ChLcpKblock!)
-/// All LCP solvers require that the description of
-/// the system is passed by means of a ChLcpSystemDescriptor,
+/// Optionally, also objects inherited from ChKblock can be added
+/// too, hence M becomes M+K (but not all solvers handle ChKblock!)
+/// All solvers require that the description of
+/// the system is passed by means of a ChSystemDescriptor,
 /// where all constraints, variables, masses, known terms
 ///	(ex.forces) are represented as sparse data that
-/// are objects inherited from ChLcpConstraint or ChLcpVariables.
-/// Within this default implementation, the ChLcpSystemDescriptor
+/// are objects inherited from ChConstraint or ChVariables.
+/// Within this default implementation, the ChSystemDescriptor
 /// simply contains vectors with pointers to the variables
 /// and constraints, but more advanced implementation (ex. for
 /// supporting parallel GPU solvers) could store constraints
@@ -57,7 +57,7 @@ class ChApi ChLcpSystemDescriptor {
     //
     // DATA
     //
-    std::vector<ChLcpConstraint*> vconstraints;
+    std::vector<ChConstraint*> vconstraints;
     std::vector<ChLcpVariables*> vvariables;
     std::vector<ChLcpKblock*> vstiffness;
 
@@ -88,7 +88,7 @@ class ChApi ChLcpSystemDescriptor {
     //
 
     /// Access the vector of constraints
-    std::vector<ChLcpConstraint*>& GetConstraintsList() { return vconstraints; };
+    std::vector<ChConstraint*>& GetConstraintsList() { return vconstraints; };
 
     /// Access the vector of variables
     std::vector<ChLcpVariables*>& GetVariablesList() { return vvariables; };
@@ -103,13 +103,13 @@ class ChApi ChLcpSystemDescriptor {
         vstiffness.clear();
     }
 
-    /// Insert reference to a ChLcpConstraint object
-    virtual void InsertConstraint(ChLcpConstraint* mc) { vconstraints.push_back(mc); }
+    /// Insert reference to a ChConstraint object
+    virtual void InsertConstraint(ChConstraint* mc) { vconstraints.push_back(mc); }
 
-    /// Insert reference to a ChLcpVariables object
+    /// Insert reference to a ChVariables object
     virtual void InsertVariables(ChLcpVariables* mv) { vvariables.push_back(mv); }
 
-    /// Insert reference to a ChLcpKblock object (a piece of matrix)
+    /// Insert reference to a ChKblock object (a piece of matrix)
     virtual void InsertKblock(ChLcpKblock* mk) { vstiffness.push_back(mk); }
 
     /// End insertion of items
@@ -122,10 +122,10 @@ class ChApi ChLcpSystemDescriptor {
     /// in 'q' global vector (see GetOffset() in ChLcpVariables).
     virtual int CountActiveVariables();
 
-    /// Count & returns the scalar constraints in the system (excluding ChLcpConstraint objects
+    /// Count & returns the scalar constraints in the system (excluding ChConstraint objects
     /// that have  IsActive() as false).
     /// Note: this function also updates the offsets of all constraints
-    /// in 'l' global vector (see GetOffset() in ChLcpConstraint).
+    /// in 'l' global vector (see GetOffset() in ChConstraint).
     virtual int CountActiveConstraints();
 
     /// Updates counts of scalar variables and scalar constraints,

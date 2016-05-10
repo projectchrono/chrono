@@ -45,7 +45,7 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     double torque_react;
 
     // used as an interface to the LCP solver.
-    ChLcpConstraintTwoGeneric constraint;
+    ChConstraintTwoGeneric constraint;
 
     ChShaft* shaft;
     ChBodyFrame* body;

@@ -10,26 +10,26 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTWOGENERICBOXED_H
-#define CHLCPCONSTRAINTTWOGENERICBOXED_H
+#ifndef CHCONSTRAINTTWOGENERICBOXED_H
+#define CHCONSTRAINTTWOGENERICBOXED_H
 
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 
-///  This class is inherited by the base ChLcpConstraintTwoGeneric(),
+/// This class is inherited from the base ChConstraintTwoGeneric,
 /// which can be used for most pairwise constraints, and adds the
 /// feature that the multiplier must be
 ///        l_min < l < l_max
 /// that is, the multiplier is 'boxed'.
 /// Note that, if l_min = 0 and l_max = infinite, this can work
 /// also as an unilateral constraint..
-///  Before starting the LCP solver one must provide the proper
+///  Before starting the solver one must provide the proper
 /// values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
-class ChApi ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric {
-    CH_RTTI(ChLcpConstraintTwoGenericBoxed, ChLcpConstraintTwoGeneric)
+class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
+    CH_RTTI(ChConstraintTwoGenericBoxed, ChConstraintTwoGeneric)
 
     //
     // DATA
@@ -44,35 +44,35 @@ class ChApi ChLcpConstraintTwoGenericBoxed : public ChLcpConstraintTwoGeneric {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintTwoGenericBoxed() {
+    ChConstraintTwoGenericBoxed() {
         l_min = -1.;
         l_max = 1.;
-    };
+    }
 
     /// Construct and immediately set references to variables
-    ChLcpConstraintTwoGenericBoxed(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b)
-        : ChLcpConstraintTwoGeneric(mvariables_a, mvariables_b) {
+    ChConstraintTwoGenericBoxed(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b)
+        : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
         l_min = -1.;
         l_max = 1.;
-    };
+    }
 
     /// Copy constructor
-    ChLcpConstraintTwoGenericBoxed(const ChLcpConstraintTwoGenericBoxed& other) : ChLcpConstraintTwoGeneric(other) {
+    ChConstraintTwoGenericBoxed(const ChConstraintTwoGenericBoxed& other) : ChConstraintTwoGeneric(other) {
         l_min = other.l_min;
         l_max = other.l_max;
     }
 
-    virtual ~ChLcpConstraintTwoGenericBoxed(){};
+    virtual ~ChConstraintTwoGenericBoxed(){};
 
-    virtual ChLcpConstraintTwoGenericBoxed* new_Duplicate() { return new ChLcpConstraintTwoGenericBoxed(*this); };
+    virtual ChConstraintTwoGenericBoxed* new_Duplicate() { return new ChConstraintTwoGenericBoxed(*this); }
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTwoGenericBoxed& operator=(const ChLcpConstraintTwoGenericBoxed& other) {
+    ChConstraintTwoGenericBoxed& operator=(const ChConstraintTwoGenericBoxed& other) {
         if (&other == this)
             return *this;
 
         // copy parent class data
-        ChLcpConstraintTwoGeneric::operator=(other);
+        ChConstraintTwoGeneric::operator=(other);
 
         l_min = other.l_min;
         l_max = other.l_max;

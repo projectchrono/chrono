@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTHREEBBSHAFT_H
-#define CHLCPCONSTRAINTTHREEBBSHAFT_H
+#ifndef CHCONSTRAINTTHREEBBSHAFT_H
+#define CHCONSTRAINTTHREEBBSHAFT_H
 
 #include "chrono/solver/ChConstraintThree.h"
 #include "chrono/solver/ChVariablesBody.h"
@@ -21,8 +21,8 @@ namespace chrono {
 /// A class for representing a constraint between
 /// two bodies (2x6dof in space) and a 1D dof (a shaft)
 
-class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
-    CH_RTTI(ChLcpConstraintThreeBBShaft, ChLcpConstraintThree)
+class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
+    CH_RTTI(ChConstraintThreeBBShaft, ChConstraintThree)
 
     //
     // DATA
@@ -50,18 +50,18 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintThreeBBShaft(){};
+    ChConstraintThreeBBShaft() {}
 
     /// Construct and immediately set references to variables
-    ChLcpConstraintThreeBBShaft(ChLcpVariablesBody* mvariables_a,
-                                ChLcpVariablesBody* mvariables_b,
-                                ChLcpVariables* mvariables_c) {
+    ChConstraintThreeBBShaft(ChLcpVariablesBody* mvariables_a,
+                             ChLcpVariablesBody* mvariables_b,
+                             ChLcpVariables* mvariables_c) {
         assert(mvariables_c->Get_ndof() == 1);
         SetVariables(mvariables_a, mvariables_b, mvariables_c);
-    };
+    }
 
     /// Copy constructor
-    ChLcpConstraintThreeBBShaft(const ChLcpConstraintThreeBBShaft& other) : ChLcpConstraintThree(other) {
+    ChConstraintThreeBBShaft(const ChConstraintThreeBBShaft& other) : ChConstraintThree(other) {
         Cq_a = other.Cq_a;
         Cq_b = other.Cq_b;
         Cq_c = other.Cq_c;
@@ -70,12 +70,12 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
         Eq_c = other.Eq_c;
     }
 
-    virtual ~ChLcpConstraintThreeBBShaft(){};
+    virtual ~ChConstraintThreeBBShaft() {}
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintThreeBBShaft(*this); };
+    virtual ChConstraint* new_Duplicate() { return new ChConstraintThreeBBShaft(*this); }
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintThreeBBShaft& operator=(const ChLcpConstraintThreeBBShaft& other);
+    ChConstraintThreeBBShaft& operator=(const ChConstraintThreeBBShaft& other);
 
     //
     // FUNCTIONS
@@ -96,13 +96,13 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
     virtual ChMatrix<float>* Get_Eq_c() { return &Eq_c; }
 
     /// Set references to the constrained objects,
-    /// If first two variables aren't from ChLcpVariablesBody class, an assert failure happens.
+    /// If first two variables aren't from ChVariablesBody class, an assert failure happens.
     void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c);
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b and Eq_c matrices
     ///  - the g_i product
-    /// This is often called by LCP solvers at the beginning
+    /// This is often called by solvers at the beginning
     /// of the solution process.
     /// Most often, inherited classes won't need to override this.
     virtual void Update_auxiliary();
@@ -110,7 +110,7 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
     ///  This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
     virtual double Compute_Cq_q() {
         double ret = 0;
 
@@ -131,7 +131,7 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
     ///  This function must increment the vector of variables
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
 
     virtual void Increment_q(const double deltal) {
         if (variables_a->IsActive())
@@ -144,7 +144,7 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
 
         if (variables_c->IsActive())
             variables_c->Get_qb()(0) += Eq_c.ElementN(0) * deltal;
-    };
+    }
 
     /// Computes the product of the corresponding block in the
     /// system matrix by 'vect', and add to 'result'.
@@ -163,7 +163,7 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
 
         if (variables_c->IsActive())
             result += vect(variables_c->GetOffset()) * Cq_c.ElementN(0);
-    };
+    }
 
     /// Computes the product of the corresponding transposed blocks in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -182,12 +182,12 @@ class ChApi ChLcpConstraintThreeBBShaft : public ChLcpConstraintThree {
 
         if (variables_c->IsActive())
             result(variables_c->GetOffset()) += Cq_c.ElementN(0) * l;
-    };
+    }
 
     /// Puts the jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
-    /// offset of the corresponding ChLcpVariable.
-    /// This is used only by the ChLcpSimplex solver (iterative solvers
+    /// offset of the corresponding ChVariable.
+    /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
 	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())

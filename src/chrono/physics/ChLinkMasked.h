@@ -135,7 +135,7 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     virtual void SetBroken(bool mon);
 
     /// Get the pointer to the link mask, ie. a ChLinkMask (sort of
-    /// array containing a set of ChLcpConstraint items).
+    /// array containing a set of ChConstraint items).
     ChLinkMask* GetMask() { return mask; }
 
     /// overwrites inherited implementation of this method

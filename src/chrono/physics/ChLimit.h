@@ -63,8 +63,8 @@ class ChApi ChLinkLimit {
     ChFunction* polar_Max;
 
   public:
-    ChLcpConstraintTwoBodies constr_upper;
-    ChLcpConstraintTwoBodies constr_lower;
+    ChConstraintTwoBodies constr_upper;
+    ChConstraintTwoBodies constr_lower;
 
     ChLinkLimit();
     ~ChLinkLimit();

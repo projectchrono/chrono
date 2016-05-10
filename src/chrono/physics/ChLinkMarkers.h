@@ -187,7 +187,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Overrides the empty behaviour of the parent ChLink implementation, which
     /// does not consider any user-imposed force between the two bodies.
     /// It adds the current link-forces, if any, (caused by springs, etc.) to the 'fb' vectors
-    /// of the ChLcpVariables referenced by encapsulated ChLcpConstraints.
+    /// of the ChVariables referenced by encapsulated ChConstraints.
     /// In details, it adds the effect caused by C_force and C_torque.
     /// Both C_force and C_torque these forces are considered expressed in the
     /// reference coordsystem of marker2 (the MAIN marker),

@@ -43,9 +43,9 @@ private:
 
 	ChVector<> react;					
 	
-						// used as an interface to the LCP solver.
-	ChLcpConstraintTwoGeneric constraint1;
-	ChLcpConstraintTwoGeneric constraint2;
+						// used as an interface to the solver.
+	ChConstraintTwoGeneric constraint1;
+	ChConstraintTwoGeneric constraint2;
 
     std::shared_ptr<fea::ChNodeFEAxyzD> mnode;
     std::shared_ptr<ChBodyFrame>  body;

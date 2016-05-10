@@ -16,14 +16,14 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpConstraintTwoBodies> a_registration_ChLcpConstraintTwoBodies;
+ChClassRegister<ChConstraintTwoBodies> a_registration_ChConstraintTwoBodies;
 
-ChLcpConstraintTwoBodies& ChLcpConstraintTwoBodies::operator=(const ChLcpConstraintTwoBodies& other) {
+ChConstraintTwoBodies& ChConstraintTwoBodies::operator=(const ChConstraintTwoBodies& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    ChLcpConstraintTwo::operator=(other);
+    ChConstraintTwo::operator=(other);
 
     Cq_a = other.Cq_a;
     Cq_b = other.Cq_b;
@@ -36,7 +36,7 @@ ChLcpConstraintTwoBodies& ChLcpConstraintTwoBodies::operator=(const ChLcpConstra
     return *this;
 }
 
-void ChLcpConstraintTwoBodies::SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) {
+void ChConstraintTwoBodies::SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) {
     assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_a));
     assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_b));
 
@@ -50,7 +50,7 @@ void ChLcpConstraintTwoBodies::SetVariables(ChLcpVariables* mvariables_a, ChLcpV
     variables_b = mvariables_b;
 }
 
-void ChLcpConstraintTwoBodies::Update_auxiliary() {
+void ChConstraintTwoBodies::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive()) {
@@ -81,12 +81,12 @@ void ChLcpConstraintTwoBodies::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-void ChLcpConstraintTwoBodies::StreamOUT(ChStreamOutBinary& mstream) {
+void ChConstraintTwoBodies::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
     // serialize parent class too
-    ChLcpConstraintTwo::StreamOUT(mstream);
+    ChConstraintTwo::StreamOUT(mstream);
 
     // stream out all member data
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -96,12 +96,12 @@ void ChLcpConstraintTwoBodies::StreamOUT(ChStreamOutBinary& mstream) {
     // mstream << Cq_b;
 }
 
-void ChLcpConstraintTwoBodies::StreamIN(ChStreamInBinary& mstream) {
+void ChConstraintTwoBodies::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 
     // deserialize parent class too
-    ChLcpConstraintTwo::StreamIN(mstream);
+    ChConstraintTwo::StreamIN(mstream);
 
     // stream in all member data
     // NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so

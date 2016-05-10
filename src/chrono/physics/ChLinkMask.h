@@ -33,7 +33,7 @@ class ChApi ChLinkMask {
 
   protected:
     // Array of pointers to 'n' scalar constraint states (own by this object)
-    std::vector<ChLcpConstraintTwoBodies*> constraints;
+    std::vector<ChConstraintTwoBodies*> constraints;
 
   public:
     int nconstr;  // Number of scalar eq.of constraint.
@@ -44,11 +44,11 @@ class ChApi ChLinkMask {
     //
 
     /// Build a link mask with a single constraint
-    /// of class ChLcpConstraintTwoBodies().
+    /// of class ChConstraintTwoBodies().
     ChLinkMask();
 
     /// Build a link mask with a default array of mnconstr constraints
-    /// of class ChLcpConstraintTwoBodies().
+    /// of class ChConstraintTwoBodies().
     ChLinkMask(int mnconstr);
 
     virtual ~ChLinkMask();
@@ -67,7 +67,7 @@ class ChApi ChLinkMask {
 
     /// Obtain the reference to the i-th scalar constraint data
     /// in the collection link mask.
-    ChLcpConstraintTwoBodies& Constr_N(int i) {
+    ChConstraintTwoBodies& Constr_N(int i) {
         assert((i >= 0) && (i < nconstr));
         return *constraints[i];
     }
@@ -77,9 +77,9 @@ class ChApi ChLinkMask {
     /// No action if newnconstr == nconstr
     void ResetNconstr(int newnconstr);
 
-    /// Add a ChLcpConstraintTwoBodies to mask (NOTE: later, the constraint will
+    /// Add a ChConstraintTwoBodies to mask (NOTE: later, the constraint will
     /// be automatically deleted when the mask will be deleted)
-    void AddConstraint(ChLcpConstraintTwoBodies* aconstr);
+    void AddConstraint(ChConstraintTwoBodies* aconstr);
 
     /// To compare two masks, return TRUE if equal
     int IsEqual(ChLinkMask& mask2);
@@ -97,7 +97,7 @@ class ChApi ChLinkMask {
     int GetMaskDoc_d();
 
     /// Get the i-th active scalar costraint (not active constr. won't be considered)
-    ChLcpConstraintTwoBodies* GetActiveConstrByNum(int mnum);
+    ChConstraintTwoBodies* GetActiveConstrByNum(int mnum);
 
     /// Sets some active constraints as redundant.
     int SetActiveRedundantByArray(int* mvector, int mcount);
@@ -136,7 +136,7 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
 
   public:
     /// Create a ChLinkMaskLF which has 7 scalar constraints of
-    /// class ChLcpConstraintTwoBodies(). This is useful in case it must
+    /// class ChConstraintTwoBodies(). This is useful in case it must
     /// be used for the ChLinkLock link.
     ChLinkMaskLF();
 
@@ -148,13 +148,13 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
 
     /// Obtain the reference to specific scalar constraint data
     /// in the collection of this link mask.
-    ChLcpConstraintTwoBodies& Constr_X() { return *constraints[0]; }
-    ChLcpConstraintTwoBodies& Constr_Y() { return *constraints[1]; }
-    ChLcpConstraintTwoBodies& Constr_Z() { return *constraints[2]; }
-    ChLcpConstraintTwoBodies& Constr_E0() { return *constraints[3]; }
-    ChLcpConstraintTwoBodies& Constr_E1() { return *constraints[4]; }
-    ChLcpConstraintTwoBodies& Constr_E2() { return *constraints[5]; }
-    ChLcpConstraintTwoBodies& Constr_E3() { return *constraints[6]; }
+    ChConstraintTwoBodies& Constr_X() { return *constraints[0]; }
+    ChConstraintTwoBodies& Constr_Y() { return *constraints[1]; }
+    ChConstraintTwoBodies& Constr_Z() { return *constraints[2]; }
+    ChConstraintTwoBodies& Constr_E0() { return *constraints[3]; }
+    ChConstraintTwoBodies& Constr_E1() { return *constraints[4]; }
+    ChConstraintTwoBodies& Constr_E2() { return *constraints[5]; }
+    ChConstraintTwoBodies& Constr_E3() { return *constraints[6]; }
 
     //
     // STREAMING

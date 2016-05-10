@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTWOTUPLESFRICTIONT_H
-#define CHLCPCONSTRAINTTWOTUPLESFRICTIONT_H
+#ifndef CHCONSTRAINTTWOTUPLESFRICTIONT_H
+#define CHCONSTRAINTTWOTUPLESFRICTIONT_H
 
 
 #include "chrono/solver/ChConstraintTwoTuples.h"
@@ -19,20 +19,18 @@
 namespace chrono {
 
 /// This is enough to use dynamic_casting<> to detect all template types
-/// from ChLcpConstraintTwoTuplesFrictionT
-class ChApi ChLcpConstraintTwoTuplesFrictionTall {
+/// from ChConstraintTwoTuplesFrictionT
+class ChApi ChConstraintTwoTuplesFrictionTall {
 };
 
 /// Base class for friction constraints between two objects,
 /// each represented by a tuple of ChVariables objects.
 /// This constraint cannot be used alone. It must be used together with 
-/// a ChLcpConstraintTwoTuplesContactN
+/// a ChConstraintTwoTuplesContactN
 
-template <class Ta, class Tb >
-class ChApi ChLcpConstraintTwoTuplesFrictionT : 
-                public ChLcpConstraintTwoTuples< Ta, Tb >, 
-                public ChLcpConstraintTwoTuplesFrictionTall {
-
+template <class Ta, class Tb>
+class ChApi ChConstraintTwoTuplesFrictionT : public ChConstraintTwoTuples<Ta, Tb>,
+                                             public ChConstraintTwoTuplesFrictionTall {
     //
     // DATA
     //
@@ -43,23 +41,23 @@ class ChApi ChLcpConstraintTwoTuplesFrictionT :
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintTwoTuplesFrictionT() { this->mode = CONSTRAINT_FRIC; };
+    ChConstraintTwoTuplesFrictionT() { this->mode = CONSTRAINT_FRIC; }
 
 
     /// Copy constructor
-    ChLcpConstraintTwoTuplesFrictionT(const ChLcpConstraintTwoTuplesFrictionT& other) : ChLcpConstraintTwoTuples< Ta, Tb >(other) {}
+    ChConstraintTwoTuplesFrictionT(const ChConstraintTwoTuplesFrictionT& other) : ChConstraintTwoTuples< Ta, Tb >(other) {}
 
-    virtual ~ChLcpConstraintTwoTuplesFrictionT(){};
+    virtual ~ChConstraintTwoTuplesFrictionT() {}
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoTuplesFrictionT(*this); };
+    virtual ChConstraint* new_Duplicate() { return new ChConstraintTwoTuplesFrictionT(*this); };
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTwoTuplesFrictionT& operator=(const ChLcpConstraintTwoTuplesFrictionT& other) {
+    ChConstraintTwoTuplesFrictionT& operator=(const ChConstraintTwoTuplesFrictionT& other) {
         if (&other == this)
             return *this;
 
         // copy parent class data
-        ChLcpConstraintTwoTuples< Ta, Tb >::operator=(other);
+        ChConstraintTwoTuples< Ta, Tb >::operator=(other);
 
         return *this;
     }

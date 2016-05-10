@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTUPLE_H
-#define CHLCPCONSTRAINTTUPLE_H
+#ifndef CHCONSTRAINTTUPLE_H
+#define CHCONSTRAINTTUPLE_H
 
 #include "chrono/core/ChMatrixNM.h"
 #include "chrono/solver/ChConstraint.h"
@@ -24,11 +24,11 @@ namespace chrono {
 /// happen because you want a constraint between an edge (i.e. two xyz variables, each
 /// per end nodes) and a triangle face (i.e. three xyz variables, each per corner), so
 /// the jacobian row matrix is split in 2 + 3 chunks, here as two tuples.
-/// The complete constraint, ChLcpConstraintTwoTuples, will use two of these classes.
-/// Template T is a class of ChLcpVariableTupleCarrier_Nvars type
+/// The complete constraint, ChConstraintTwoTuples, will use two of these classes.
+/// Template T is a class of ChVariableTupleCarrier_Nvars type
 
 template <class T>
-class ChLcpConstraintTuple_1vars {
+class ChConstraintTuple_1vars {
 
   protected:
     /// The first  constrained object
@@ -40,21 +40,20 @@ class ChLcpConstraintTuple_1vars {
     ChMatrixNM<double, T::nvars1, 1> Eq;
 
   public:
-
     /// Default constructor
-    ChLcpConstraintTuple_1vars() : variables(0) {}
+    ChConstraintTuple_1vars() : variables(0) {}
 
     /// Copy constructor
-    ChLcpConstraintTuple_1vars(const ChLcpConstraintTuple_1vars& other) {
+    ChConstraintTuple_1vars(const ChConstraintTuple_1vars& other) {
         variables = other.variables;
         Cq = other.Cq;
         Eq = other.Eq;
     }
 
-    ~ChLcpConstraintTuple_1vars() {}
+    ~ChConstraintTuple_1vars() {}
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTuple_1vars& operator=(const ChLcpConstraintTuple_1vars& other) {
+    ChConstraintTuple_1vars& operator=(const ChConstraintTuple_1vars& other) {
         variables = other.variables;
         Cq = other.Cq;
         Eq = other.Eq;
@@ -137,11 +136,11 @@ class ChLcpConstraintTuple_1vars {
 };
 
 
-///// Case of tuple with reference to 2 ChLcpVariable objects:
+///// Case of tuple with reference to 2 ChVariable objects:
 
 
 template <class T>
-class ChLcpConstraintTuple_2vars { 
+class ChConstraintTuple_2vars { 
 
   protected:
     ChLcpVariables* variables_1;
@@ -156,15 +155,11 @@ class ChLcpConstraintTuple_2vars {
     ChMatrixNM<double, T::nvars2, 1> Eq_2;
 
   public:
-
     /// Default constructor
-    ChLcpConstraintTuple_2vars() : 
-        variables_1(0), 
-        variables_2(0)
-        {}
+    ChConstraintTuple_2vars() : variables_1(0), variables_2(0) {}
 
     /// Copy constructor
-    ChLcpConstraintTuple_2vars(const ChLcpConstraintTuple_2vars& other)  {
+    ChConstraintTuple_2vars(const ChConstraintTuple_2vars& other) {
         variables_1 = other.variables_1;
         variables_2 = other.variables_2;
         Cq_1 = other.Cq_1;
@@ -173,10 +168,10 @@ class ChLcpConstraintTuple_2vars {
         Eq_2 = other.Eq_2;
     }
 
-    ~ChLcpConstraintTuple_2vars() {}
+    ~ChConstraintTuple_2vars() {}
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTuple_2vars& operator=(const ChLcpConstraintTuple_2vars& other) {
+    ChConstraintTuple_2vars& operator=(const ChConstraintTuple_2vars& other) {
         variables_1 = other.variables_1;
         variables_2 = other.variables_2;
         Cq_1 = other.Cq_1;
@@ -297,14 +292,10 @@ class ChLcpConstraintTuple_2vars {
 };
 
 
-///// Case of tuple with reference to 3 ChLcpVariable objects:
-
-
-
+///// Case of tuple with reference to 3 ChVariable objects:
 
 template <class T>
-class ChLcpConstraintTuple_3vars { 
-
+class ChConstraintTuple_3vars {
   protected:
     ChLcpVariables* variables_1;
     ChLcpVariables* variables_2;
@@ -321,16 +312,11 @@ class ChLcpConstraintTuple_3vars {
     ChMatrixNM<double, T::nvars3, 1> Eq_3;
 
   public:
-
     /// Default constructor
-    ChLcpConstraintTuple_3vars() : 
-        variables_1(0), 
-        variables_2(0),
-        variables_3(0)
-        {}
+    ChConstraintTuple_3vars() : variables_1(0), variables_2(0), variables_3(0) {}
 
     /// Copy constructor
-    ChLcpConstraintTuple_3vars(const ChLcpConstraintTuple_3vars& other) {
+    ChConstraintTuple_3vars(const ChConstraintTuple_3vars& other) {
         variables_1 = other.variables_1;
         variables_2 = other.variables_2;
         variables_3 = other.variables_3;
@@ -342,10 +328,10 @@ class ChLcpConstraintTuple_3vars {
         Eq_3 = other.Eq_3;
     }
 
-    ~ChLcpConstraintTuple_3vars() {}
+    ~ChConstraintTuple_3vars() {}
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTuple_3vars& operator=(const ChLcpConstraintTuple_3vars& other) {
+    ChConstraintTuple_3vars& operator=(const ChConstraintTuple_3vars& other) {
         variables_1 = other.variables_1;
         variables_2 = other.variables_2;
         variables_3 = other.variables_3;
@@ -509,17 +495,17 @@ class ChLcpConstraintTuple_3vars {
 /// structure of the tuple constraints.
 
 template <int N1>
-class ChLcpVariableTupleCarrier_1vars {
+class ChVariableTupleCarrier_1vars {
   public:
-    typedef ChLcpConstraintTuple_1vars<ChLcpVariableTupleCarrier_1vars<N1> > type_constraint_tuple;
+    typedef ChConstraintTuple_1vars<ChVariableTupleCarrier_1vars<N1> > type_constraint_tuple;
     static const int nvars1 = N1;
     virtual ChLcpVariables* GetVariables1() = 0;
 };
 
 template <int N1, int N2>
-class ChLcpVariableTupleCarrier_2vars {
+class ChVariableTupleCarrier_2vars {
 public:
-    typedef ChLcpConstraintTuple_3vars< ChLcpVariableTupleCarrier_2vars< N1, N2> > type_constraint_tuple;
+    typedef ChConstraintTuple_3vars< ChVariableTupleCarrier_2vars< N1, N2> > type_constraint_tuple;
     static int  const nvars1 = N1;
     static int  const nvars2 = N2;
     virtual ChLcpVariables* GetVariables1() = 0;
@@ -527,9 +513,9 @@ public:
 };
 
 template <int N1, int N2, int N3>
-class ChLcpVariableTupleCarrier_3vars {
+class ChVariableTupleCarrier_3vars {
 public:
-    typedef ChLcpConstraintTuple_3vars< ChLcpVariableTupleCarrier_3vars< N1, N2, N3 > > type_constraint_tuple;
+    typedef ChConstraintTuple_3vars< ChVariableTupleCarrier_3vars< N1, N2, N3 > > type_constraint_tuple;
     static int  const nvars1 = N1;
     static int  const nvars2 = N2;
     static int  const nvars3 = N3;

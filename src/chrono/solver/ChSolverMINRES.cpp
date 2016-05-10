@@ -21,7 +21,7 @@ ChClassRegister<ChLcpIterativeMINRES> a_registration_ChLcpIterativeMINRES;
 
 double ChLcpIterativeMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                    ) {
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
 
     // If stiffness blocks are used, the Schur complement cannot be esily
@@ -186,7 +186,7 @@ double ChLcpIterativeMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system desc
                             violation = fabs(ChMin(0.0, violation));
 
                         // ??? trouble with Tang. constraints, for the moment just disable norms
-                        if (!dynamic_cast<ChLcpConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) {
+                        if (!dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) {
                             norm_corr += pow(new_lp - new_l, 2);
                             norm_jump += pow(new_l - old_l, 2);
                             norm_dlam += pow(new_lp - old_l, 2);
@@ -325,7 +325,7 @@ double ChLcpIterativeMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system desc
         GetLog() << "-----\n";
 
     // Resulting DUAL variables:
-    // store ml temporary vector into ChLcpConstraint 'l_i' multipliers
+    // store ml temporary vector into ChConstraint 'l_i' multipliers
     sysd.FromVectorToConstraints(ml);
 
     // Resulting PRIMAL variables:
@@ -351,7 +351,7 @@ double ChLcpIterativeMINRES::Solve_SupportingStiffness(
     ) {
     bool do_preconditioning = this->diag_preconditioning;
 
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChLcpKblock*>& mstiffness = sysd.GetKblocksList();
 
@@ -512,7 +512,7 @@ double ChLcpIterativeMINRES::Solve_SupportingStiffness(
     }
 
     // After having solved for unknowns x={q;-l}, now copy those values from x vector to
-    // the q values in ChLcpVariable items and to l values in ChLcpConstraint items
+    // the q values in ChVariable items and to l values in ChConstraint items
     sysd.FromVectorToUnknowns(x);
 
     if (verbose)

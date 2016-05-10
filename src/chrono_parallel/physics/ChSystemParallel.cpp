@@ -86,7 +86,7 @@ int ChSystemParallel::Integrate_Y() {
 
   // Iterate over the active bilateral constraints and store their Lagrange
   // multiplier.
-  std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
   for (int index = 0; index < data_manager->num_bilaterals; index++) {
     int cntr = data_manager->host_data.bilateral_mapping[index];
     mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
@@ -457,7 +457,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
 //
 void ChSystemParallel::UpdateBilaterals() {
   data_manager->nnz_bilaterals = 0;
-  std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
 
   for (uint ic = 0; ic < mconstraints.size(); ic++) {
     if (mconstraints[ic]->IsActive()) {
@@ -613,7 +613,7 @@ void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
 // the provided vector. Return the maximum constraint violation.
 //
 double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec) {
-  std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
   cvec.resize(data_manager->num_bilaterals);
   double max_c = 0;
 

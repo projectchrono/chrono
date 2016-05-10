@@ -10,26 +10,26 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTHREE_H
-#define CHLCPCONSTRAINTTHREE_H
+#ifndef CHCONSTRAINTTHREE_H
+#define CHCONSTRAINTTHREE_H
 
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
-///  This class is inherited by the base ChLcpConstraint(),
+/// This class is inherited by the base ChConstraint(),
 /// which does almost nothing. So here this class implements
 /// the functionality for a constrint between a THREE
-/// objects of type ChLcpVariables(), and defines three constraint
+/// objects of type ChVariables(), and defines three constraint
 /// matrices, whose column number automatically matches the number
 /// of elements in variables vectors.
-///  Before starting the LCP solver one must provide the proper
+///  Before starting the solver one must provide the proper
 /// values in constraints (and update them if necessary), i.e.
 /// must set at least the c_i and b_i values, and jacobians.
 
-class ChApi ChLcpConstraintThree : public ChLcpConstraint {
-    CH_RTTI(ChLcpConstraintThree, ChLcpConstraint)
+class ChApi ChConstraintThree : public ChConstraint {
+    CH_RTTI(ChConstraintThree, ChConstraint)
 
     //
     // DATA
@@ -48,19 +48,19 @@ class ChApi ChLcpConstraintThree : public ChLcpConstraint {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintThree() { variables_a = variables_b = variables_c = NULL; };
+    ChConstraintThree() { variables_a = variables_b = variables_c = NULL; }
 
     /// Copy constructor
-    ChLcpConstraintThree(const ChLcpConstraintThree& other) : ChLcpConstraint(other) {
+    ChConstraintThree(const ChConstraintThree& other) : ChConstraint(other) {
         variables_a = other.variables_a;
         variables_b = other.variables_b;
         variables_c = other.variables_c;
     }
 
-    virtual ~ChLcpConstraintThree(){};
+    virtual ~ChConstraintThree() {}
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintThree& operator=(const ChLcpConstraintThree& other);
+    ChConstraintThree& operator=(const ChConstraintThree& other);
 
     //
     // FUNCTIONS
@@ -87,7 +87,7 @@ class ChApi ChLcpConstraintThree : public ChLcpConstraint {
     /// Access the second variable object
     ChLcpVariables* GetVariables_c() { return variables_c; }
 
-    /// Set references to the constrained objects, each of ChLcpVariables type,
+    /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
     virtual void SetVariables(ChLcpVariables* mvariables_a,
                               ChLcpVariables* mvariables_b,

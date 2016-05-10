@@ -16,14 +16,14 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpConstraintThreeBBShaft> a_registration_ChLcpConstraintThreeBBShaft;
+ChClassRegister<ChConstraintThreeBBShaft> a_registration_ChConstraintThreeBBShaft;
 
-ChLcpConstraintThreeBBShaft& ChLcpConstraintThreeBBShaft::operator=(const ChLcpConstraintThreeBBShaft& other) {
+ChConstraintThreeBBShaft& ChConstraintThreeBBShaft::operator=(const ChConstraintThreeBBShaft& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    ChLcpConstraintThree::operator=(other);
+    ChConstraintThree::operator=(other);
 
     Cq_a = other.Cq_a;
     Cq_b = other.Cq_b;
@@ -39,9 +39,9 @@ ChLcpConstraintThreeBBShaft& ChLcpConstraintThreeBBShaft::operator=(const ChLcpC
     return *this;
 }
 
-void ChLcpConstraintThreeBBShaft::SetVariables(ChLcpVariables* mvariables_a,
-                                               ChLcpVariables* mvariables_b,
-                                               ChLcpVariables* mvariables_c) {
+void ChConstraintThreeBBShaft::SetVariables(ChLcpVariables* mvariables_a,
+                                            ChLcpVariables* mvariables_b,
+                                            ChLcpVariables* mvariables_c) {
     assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_a));
     assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_b));
     assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_c));
@@ -57,7 +57,7 @@ void ChLcpConstraintThreeBBShaft::SetVariables(ChLcpVariables* mvariables_a,
     variables_c = mvariables_c;
 }
 
-void ChLcpConstraintThreeBBShaft::Update_auxiliary() {
+void ChConstraintThreeBBShaft::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]'  etc
     if (variables_a->IsActive()) {
@@ -97,12 +97,12 @@ void ChLcpConstraintThreeBBShaft::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-void ChLcpConstraintThreeBBShaft::StreamOUT(ChStreamOutBinary& mstream) {
+void ChConstraintThreeBBShaft::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
     // serialize parent class too
-    ChLcpConstraintThree::StreamOUT(mstream);
+    ChConstraintThree::StreamOUT(mstream);
 
     // stream out all member data
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -112,12 +112,12 @@ void ChLcpConstraintThreeBBShaft::StreamOUT(ChStreamOutBinary& mstream) {
     // mstream << Cq_b;
 }
 
-void ChLcpConstraintThreeBBShaft::StreamIN(ChStreamInBinary& mstream) {
+void ChConstraintThreeBBShaft::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 
     // deserialize parent class too
-    ChLcpConstraintThree::StreamIN(mstream);
+    ChConstraintThree::StreamIN(mstream);
 
     // stream in all member data
     // NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so

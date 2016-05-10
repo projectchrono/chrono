@@ -21,7 +21,7 @@ class CH_PARALLEL_API ChLcpSystemDescriptorParallel : public ChLcpSystemDescript
                            ChMatrix<>* Fvector,
                            ChMatrix<>* Bvector,
                            ChMatrix<>* Frict) {
-    std::vector<ChLcpConstraint*>& mconstraints = this->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = this->GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = this->GetVariablesList();
 
     int n_c = data_manager->num_rigid_contacts * 3 + data_manager->num_bilaterals;

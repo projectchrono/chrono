@@ -10,19 +10,19 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTNODECONTACTN_H
-#define CHLCPCONSTRAINTNODECONTACTN_H
+#ifndef CHCONSTRAINTNODECONTACTN_H
+#define CHCONSTRAINTNODECONTACTN_H
 
 #include "chrono/solver/ChConstraintNodeFrictionT.h"
 
 namespace chrono {
 
 /// It is used to represent the normal reaction between a 3DOF node
-/// and a 6 DOF body, only when also two ChLcpConstraintNodeFrictionT
+/// and a 6 DOF body, only when also two ChConstraintNodeFrictionT
 /// objects are used to represent friction.
 
-class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric {
-    CH_RTTI(ChLcpConstraintNodeContactN, ChLcpConstraintTwoGeneric)
+class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
+    CH_RTTI(ChConstraintNodeContactN, ChConstraintTwoGeneric)
 
     //
     // DATA
@@ -33,51 +33,51 @@ class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric {
     float friction;
 
     /// the pointer to U tangential component
-    ChLcpConstraintNodeFrictionT* constraint_U;
+    ChConstraintNodeFrictionT* constraint_U;
     /// the pointer to V tangential component
-    ChLcpConstraintNodeFrictionT* constraint_V;
+    ChConstraintNodeFrictionT* constraint_V;
 
   public:
     //
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintNodeContactN() {
+      ChConstraintNodeContactN() {
         mode = CONSTRAINT_FRIC;
         friction = 0.0;
         constraint_U = constraint_V = 0;
-    };
+    }
 
     /// Construct and immediately set references to variables,
     /// also setting the U and V tangential friction constraints
-    ChLcpConstraintNodeContactN(ChLcpVariablesBody* mvariables_a,
-                                ChLcpVariablesNode* mvariables_b,
-                                ChLcpConstraintNodeFrictionT* aU = 0,
-                                ChLcpConstraintNodeFrictionT* aV = 0)
-        : ChLcpConstraintTwoGeneric(mvariables_a, mvariables_b) {
+    ChConstraintNodeContactN(ChLcpVariablesBody* mvariables_a,
+                             ChLcpVariablesNode* mvariables_b,
+                             ChConstraintNodeFrictionT* aU = 0,
+                             ChConstraintNodeFrictionT* aV = 0)
+        : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
         mode = CONSTRAINT_FRIC;
         friction = 0.0;
         constraint_U = aU;
         constraint_V = aV;
-    };
+    }
 
     /// Copy constructor
-    ChLcpConstraintNodeContactN(const ChLcpConstraintNodeContactN& other) : ChLcpConstraintTwoGeneric(other) {
+    ChConstraintNodeContactN(const ChConstraintNodeContactN& other) : ChConstraintTwoGeneric(other) {
         friction = other.friction;
         constraint_U = other.constraint_U;
         constraint_V = other.constraint_V;
     }
 
-    virtual ~ChLcpConstraintNodeContactN(){};
+    virtual ~ChConstraintNodeContactN(){};
 
-    virtual ChLcpConstraintNodeContactN* new_Duplicate() { return new ChLcpConstraintNodeContactN(*this); };
+    virtual ChConstraintNodeContactN* new_Duplicate() { return new ChConstraintNodeContactN(*this); };
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintNodeContactN& operator=(const ChLcpConstraintNodeContactN& other) {
+    ChConstraintNodeContactN& operator=(const ChConstraintNodeContactN& other) {
         if (&other == this)
             return *this;
         // copy parent class data
-        ChLcpConstraintTwoGeneric::operator=(other);
+        ChConstraintTwoGeneric::operator=(other);
 
         friction = other.friction;
         constraint_U = other.constraint_U;
@@ -95,14 +95,14 @@ class ChApi ChLcpConstraintNodeContactN : public ChLcpConstraintTwoGeneric {
     void SetFrictionCoefficient(float mcoeff) { friction = mcoeff; }
 
     /// Get pointer to U tangential component
-    ChLcpConstraintNodeFrictionT* GetTangentialConstraintU() { return constraint_U; }
+    ChConstraintNodeFrictionT* GetTangentialConstraintU() { return constraint_U; }
     /// Get pointer to V tangential component
-    ChLcpConstraintNodeFrictionT* GetTangentialConstraintV() { return constraint_V; }
+    ChConstraintNodeFrictionT* GetTangentialConstraintV() { return constraint_V; }
 
     /// Set pointer to U tangential component
-    void SetTangentialConstraintU(ChLcpConstraintNodeFrictionT* mconstr) { constraint_U = mconstr; }
+    void SetTangentialConstraintU(ChConstraintNodeFrictionT* mconstr) { constraint_U = mconstr; }
     /// Set pointer to V tangential component
-    void SetTangentialConstraintV(ChLcpConstraintNodeFrictionT* mconstr) { constraint_V = mconstr; }
+    void SetTangentialConstraintV(ChConstraintNodeFrictionT* mconstr) { constraint_V = mconstr; }
 
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible set.

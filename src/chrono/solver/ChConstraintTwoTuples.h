@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINTTWOTUPLES_H
-#define CHLCPCONSTRAINTTWOTUPLES_H
+#ifndef CHCONSTRAINTTWOTUPLES_H
+#define CHCONSTRAINTTWOTUPLES_H
 
 #include "chrono/solver/ChConstraintTuple.h"
 
@@ -23,12 +23,11 @@ namespace chrono {
 /// happen because you want a constraint between an edge (i.e. two xyz variables, each
 /// per end nodes) and a triangle face (i.e. three xyz variables, each per corner), so
 /// the jacobian row matrix is split in 2 + 3 chunks, here as two tuples.
-/// Templates Ta and Tb are of ChLcpVariableTupleCarrier_Nvars classes
+/// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
 
 template <class Ta, class Tb>
-class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
-
-    //CH_RTTI(ChLcpConstraintTwoTuples, ChLcpConstraint)
+class ChApi ChConstraintTwoTuples : public ChConstraint {
+    // CH_RTTI(ChConstraintTwoTuples, ChConstraint)
 
     typedef typename Ta::type_constraint_tuple type_constraint_tuple_a;
     typedef typename Tb::type_constraint_tuple type_constraint_tuple_b;
@@ -46,19 +45,19 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     // CONSTRUCTORS
     //
     /// Default constructor
-    ChLcpConstraintTwoTuples(){};
+    ChConstraintTwoTuples() {}
 
     /// Copy constructor
-    ChLcpConstraintTwoTuples(const ChLcpConstraintTwoTuples& other) : 
+    ChConstraintTwoTuples(const ChConstraintTwoTuples& other) :
         tuple_a(other.tuple_a),
         tuple_b(other.tuple_b) {}
 
-    virtual ~ChLcpConstraintTwoTuples(){};
+    virtual ~ChConstraintTwoTuples(){};
 
-    virtual ChLcpConstraint* new_Duplicate() { return new ChLcpConstraintTwoTuples(*this); }
+    virtual ChConstraint* new_Duplicate() { return new ChConstraintTwoTuples(*this); }
 
     /// Assignment operator: copy from other object
-    ChLcpConstraintTwoTuples& operator=(const ChLcpConstraintTwoTuples& other) {
+    ChConstraintTwoTuples& operator=(const ChConstraintTwoTuples& other) {
         tuple_a = other.tuple_a;
         tuple_b = other.tuple_b;
     }
@@ -81,10 +80,10 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
             g_i += cfm_i;
     }
 
-    ///  This function must computes the product between
+    /// This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
-    ///  This is used for some iterative LCP solvers.
+    /// This is used for some iterative solvers.
     virtual double Compute_Cq_q() {
         double ret = 0;
         ret += tuple_a.Compute_Cq_q();
@@ -94,13 +93,13 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
 
     ///  This function must increment the vector of variables
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
-    ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
-    ///  This is used for some iterative LCP solvers.
+    ///  v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
+    ///  This is used for some iterative solvers.
 
     virtual void Increment_q(const double deltal) {
         tuple_a.Increment_q(deltal);
         tuple_b.Increment_q(deltal);
-    };
+    }
 
     /// Computes the product of the corresponding block in the
     /// system matrix by 'vect', and add to 'result'.
@@ -111,7 +110,7 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
         tuple_a.MultiplyAndAdd(result, vect);
         tuple_b.MultiplyAndAdd(result, vect);
-    };
+    }
 
     /// Computes the product of the corresponding transposed blocks in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -122,13 +121,13 @@ class ChApi ChLcpConstraintTwoTuples : public ChLcpConstraint {
     virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
         tuple_a.MultiplyTandAdd(result, l);
         tuple_b.MultiplyTandAdd(result, l);
-    };
+    }
 
     /// Puts the two jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
-    /// offset of the corresponding ChLcpVariable.The same is done
+    /// offset of the corresponding ChVariable.The same is done
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
-    /// This is used only by the ChLcpSimplex solver (iterative solvers
+    /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         tuple_a.Build_Cq(storage, insrow);

@@ -26,7 +26,7 @@ namespace chrono {
 class ChSystem;
 
 /// Base class for items that can contain objects
-/// of ChLcpVariables or ChLcpConstraints, such as
+/// of ChVariables or ChConstraints, such as
 /// rigid bodies, mechanical joints, etc.
 
 class ChApi ChPhysicsItem : public ChObj {
@@ -353,7 +353,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     // LCP SYSTEM FUNCTIONS
     //
-    // These are the functions that are used to manage ChLcpConstraint and/or ChLcpVariable
+    // These are the functions that are used to manage ChConstraint and/or ChVariable
     // objects that are sent to the system solver.
     // The children classes, inherited from ChPhysicsItem, can implement them (by default,
     // the base ChPhysicsItem does not introduce any variable nor any constraint).
@@ -395,35 +395,35 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) {}
 
     /// Tell to a system descriptor that there are contraints of type
-    /// ChLcpConstraint in this object (for further passing it to a LCP solver)
+    /// ChConstraint in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {}
 
-    /// Sets to zero the known term (b_i) of encapsulated ChLcpConstraints
+    /// Sets to zero the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiReset() {}
 
     /// Adds the current C (constraint violation) to the known term (b_i) of
-    /// encapsulated ChLcpConstraints
+    /// encapsulated ChConstraints
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) {}
 
     /// Adds the current Ct (partial t-derivative, as in C_dt=0-> [Cq]*q_dt=-Ct)
-    /// to the known term (b_i) of encapsulated ChLcpConstraints
+    /// to the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiLoad_Ct(double factor = 1.) {}
 
     /// Adds the current Qc (the vector of C_dtdt=0 -> [Cq]*q_dtdt=Qc )
-    /// to the known term (b_i) of encapsulated ChLcpConstraints
+    /// to the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiLoad_Qc(double factor = 1.) {}
 
     /// Adds the current link-forces, if any, (caused by springs, etc.) to the 'fb' vectors
-    /// of the ChLcpVariables referenced by encapsulated ChLcpConstraints
+    /// of the ChLcpVariables referenced by encapsulated ChConstraints
     virtual void ConstraintsFbLoadForces(double factor = 1.) {}
 
-    /// Adds the current jacobians in encapsulated ChLcpConstraints
+    /// Adds the current jacobians in encapsulated ChConstraints
     virtual void ConstraintsLoadJacobians() {}
 
     /// Fetches the reactions from the lagrangian multiplier (l_i)
-    /// of encapsulated ChLcpConstraints.
-    /// Mostly used after the LCP provided the solution in ChLcpConstraints.
+    /// of encapsulated ChConstraints.
+    /// Mostly used after the solver provided the solution in ChConstraints.
     /// Also, should convert the reactions obtained from dynamical simulation,
     /// from link space to intuitive react_force and react_torque.
     virtual void ConstraintsFetch_react(double factor = 1.) {}

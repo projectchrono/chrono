@@ -45,8 +45,8 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     double torque_react1;
     double torque_react2;
 
-    // used as an interface to the LCP solver.
-    ChLcpConstraintTwoGeneric constraint;
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric constraint;
 
   public:
     //

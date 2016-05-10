@@ -74,7 +74,7 @@ double ChIterativeAPGD::Res4(ChLcpSystemDescriptor& sysd) {
 
 double ChIterativeAPGD::Solve(ChLcpSystemDescriptor& sysd) {
     bool verbose = false;
-    const std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     const std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
     if (verbose)
         std::cout << "Number of constraints: " << mconstraints.size()

@@ -15,14 +15,14 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLcpConstraintTwo> a_registration_ChLcpConstraintTwo;
+ChClassRegisterABSTRACT<ChConstraintTwo> a_registration_ChConstraintTwo;
 
-ChLcpConstraintTwo& ChLcpConstraintTwo::operator=(const ChLcpConstraintTwo& other) {
+ChConstraintTwo& ChConstraintTwo::operator=(const ChConstraintTwo& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    ChLcpConstraint::operator=(other);
+    ChConstraint::operator=(other);
 
     this->variables_a = other.variables_a;
     this->variables_b = other.variables_b;
@@ -30,23 +30,23 @@ ChLcpConstraintTwo& ChLcpConstraintTwo::operator=(const ChLcpConstraintTwo& othe
     return *this;
 }
 
-void ChLcpConstraintTwo::StreamOUT(ChStreamOutBinary& mstream) {
+void ChConstraintTwo::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
     // serialize parent class too
-    ChLcpConstraint::StreamOUT(mstream);
+    ChConstraint::StreamOUT(mstream);
 
     // stream out all member data
     // NOTHING INTERESTING TO SERIALIZE (pointers to variables must be rebound in run-time.)
 }
 
-void ChLcpConstraintTwo::StreamIN(ChStreamInBinary& mstream) {
+void ChConstraintTwo::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 
     // deserialize parent class too
-    ChLcpConstraint::StreamIN(mstream);
+    ChConstraint::StreamIN(mstream);
 
     // stream in all member data
     // NOTHING INTERESTING TO DESERIALIZE (pointers to variables must be rebound in run-time.)

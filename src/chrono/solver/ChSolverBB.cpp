@@ -20,7 +20,7 @@ ChClassRegister<ChLcpIterativeBB> a_registration_ChLcpIterativeBB;
 
 double ChLcpIterativeBB::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                ) {
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
 
     // If stiffness blocks are used, the Schur complement cannot be esily
@@ -342,7 +342,7 @@ double ChLcpIterativeBB::Solve(ChLcpSystemDescriptor& sysd  ///< system descript
     ml.CopyFromMatrix(ml_candidate);
 
     // Resulting DUAL variables:
-    // store ml temporary vector into ChLcpConstraint 'l_i' multipliers
+    // store ml temporary vector into ChConstraint 'l_i' multipliers
     sysd.FromVectorToConstraints(ml);
 
     // Resulting PRIMAL variables:
@@ -369,7 +369,7 @@ double ChLcpIterativeBB::Solve(ChLcpSystemDescriptor& sysd  ///< system descript
 double ChLcpIterativeBB::Solve_SupportingStiffness(
     ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
-    std::vector<ChLcpConstraint*>& mconstraints = sysd.GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChLcpKblock*>& mstiffness = sysd.GetKblocksList();
 
@@ -656,7 +656,7 @@ double ChLcpIterativeBB::Solve_SupportingStiffness(
     }
 
     // After having solved for unknowns x={q;-l}, now copy those values from x vector to
-    // the q values in ChLcpVariable items and to l values in ChLcpConstraint items
+    // the q values in ChVariable items and to l values in ChConstraint items
     sysd.FromVectorToUnknowns(mx_candidate);  // was FromVectorToUnknowns(mx), but mx is not monotone, mx_candidate is.
 
     if (verbose)

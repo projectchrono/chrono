@@ -64,7 +64,7 @@ using namespace chrono;
 // so it offers optimizations for the case where the M matrix
 // is diagonal or block-diagonal: each block refers to a
 // ChLcpVariables object, and each line of jacobian Cq belongs
-// to a ChLcpConstraint object.
+// to a ChConstraint object.
 //
 // NOTE: the frictional contact problem is a special type of nonlinear
 // complementarity, called Cone Complementarty (CCP) and this is
@@ -120,7 +120,7 @@ void test_1() {
 
     // create C++ objects representing 'constraints' between variables:
 
-    ChLcpConstraintTwoGeneric mca(&mvarA, &mvarB);
+    ChConstraintTwoGeneric mca(&mvarA, &mvarB);
     mca.Set_b_i(-5);
     mca.Get_Cq_a()->ElementN(0) = 1;
     mca.Get_Cq_a()->ElementN(1) = 2;
@@ -129,7 +129,7 @@ void test_1() {
     mca.Get_Cq_b()->ElementN(1) = -2;
     mca.Get_Cq_b()->ElementN(2) = 0;
 
-    ChLcpConstraintTwoGeneric mcb(&mvarA, &mvarB);
+    ChConstraintTwoGeneric mcb(&mvarA, &mvarB);
     mcb.Set_b_i(1);
     mcb.Get_Cq_a()->ElementN(0) = 0;
     mcb.Get_Cq_a()->ElementN(1) = 1;
@@ -240,7 +240,7 @@ void test_2() {
     int n_masses = 11;
 
     std::vector<ChLcpVariablesGeneric*> vars;
-    std::vector<ChLcpConstraintTwoGeneric*> constraints;
+    std::vector<ChConstraintTwoGeneric*> constraints;
 
     for (int im = 0; im < n_masses; im++) {
         vars.push_back(new ChLcpVariablesGeneric(1));
@@ -250,7 +250,7 @@ void test_2() {
         // if (im==5) vars[im]->Get_fb()(0)= 50;
         mdescriptor.InsertVariables(vars[im]);
         if (im > 0) {
-            constraints.push_back(new ChLcpConstraintTwoGeneric(vars[im], vars[im - 1]));
+            constraints.push_back(new ChConstraintTwoGeneric(vars[im], vars[im - 1]));
             constraints[im - 1]->Set_b_i(0);
             constraints[im - 1]->Get_Cq_a()->ElementN(0) = 1;
             constraints[im - 1]->Get_Cq_b()->ElementN(0) = -1;
@@ -381,13 +381,13 @@ void test_3() {
     // and set the jacobian to random values;
     // Also set cfm term (E diagonal = -cfm)
 
-    ChLcpConstraintTwoBodies mca(&mvarA, &mvarB);
+    ChConstraintTwoBodies mca(&mvarA, &mvarB);
     mca.Set_b_i(3);
     mca.Get_Cq_a()->FillRandom(-1, 1);
     mca.Get_Cq_b()->FillRandom(-1, 1);
     mca.Set_cfm_i(0.2);
 
-    ChLcpConstraintTwoBodies mcb(&mvarA, &mvarB);
+    ChConstraintTwoBodies mcb(&mvarA, &mvarB);
     mcb.Set_b_i(5);
     mcb.Get_Cq_a()->FillRandom(-1, 1);
     mcb.Get_Cq_b()->FillRandom(-1, 1);

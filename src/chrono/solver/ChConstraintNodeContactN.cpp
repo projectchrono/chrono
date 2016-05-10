@@ -15,9 +15,9 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpConstraintNodeContactN> a_registration_ChLcpConstraintNodeContactN;
+ChClassRegister<ChConstraintNodeContactN> a_registration_ChConstraintNodeContactN;
 
-void ChLcpConstraintNodeContactN::Project() {
+void ChConstraintNodeContactN::Project() {
     if (!constraint_U)
         return;
 
@@ -72,23 +72,23 @@ void ChLcpConstraintNodeContactN::Project() {
     constraint_V->Set_l_i(f_v_proj);
 }
 
-void ChLcpConstraintNodeContactN::StreamOUT(ChStreamOutBinary& mstream) {
+void ChConstraintNodeContactN::StreamOUT(ChStreamOutBinary& mstream) {
     // class version number
     mstream.VersionWrite(1);
 
     // serialize parent class too
-    ChLcpConstraintTwoGeneric::StreamOUT(mstream);
+    ChConstraintTwoGeneric::StreamOUT(mstream);
 
     // stream out all member data..
     mstream << friction;
 }
 
-void ChLcpConstraintNodeContactN::StreamIN(ChStreamInBinary& mstream) {
+void ChConstraintNodeContactN::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
 
     // deserialize parent class too
-    ChLcpConstraintTwoGeneric::StreamIN(mstream);
+    ChConstraintTwoGeneric::StreamIN(mstream);
 
     // stream in all member data..
     mstream >> friction;

@@ -44,9 +44,9 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     ChVector<> react;
 
     // used as an interface to the LCP solver.
-    ChLcpConstraintTwoGeneric constraint1;
-    ChLcpConstraintTwoGeneric constraint2;
-    ChLcpConstraintTwoGeneric constraint3;
+    ChConstraintTwoGeneric constraint1;
+    ChConstraintTwoGeneric constraint2;
+    ChConstraintTwoGeneric constraint3;
 
     std::shared_ptr<fea::ChNodeFEAxyz> mnode;
     std::shared_ptr<ChBodyFrame> body;

@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPCONSTRAINT_H
-#define CHLCPCONSTRAINT_H
+#ifndef CHCONSTRAINT_H
+#define CHCONSTRAINT_H
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
@@ -31,7 +31,7 @@ enum eChConstraintMode {
     CONSTRAINT_FRIC = 3,        ///< the constraint is one of three reactions in friction (cone complementarity problem)
 };
 
-///  Base class for representing constraints to be used
+/// Base class for representing constraints to be used
 /// with variational inequality solvers, used with Linear/CCP/LCP
 /// problems including inequalities, equalities, nonlinearities, etc.
 /// The matrices define the variational inequality VI(Z*x-d,K):
@@ -57,8 +57,8 @@ enum eChConstraintMode {
 /// called by the solver. It is up to the derived classes
 /// to implement these methods, and to add further features..
 
-class ChApi ChLcpConstraint {
-    CH_RTTI_ROOT(ChLcpConstraint)
+class ChApi ChConstraint {
+    CH_RTTI_ROOT(ChConstraint)
 
   protected:
     //
@@ -106,7 +106,7 @@ class ChApi ChLcpConstraint {
     //
     // CONSTRUCTORS
     //
-    ChLcpConstraint() {
+    ChConstraint() {
         c_i = 0;
         g_i = 0;
         b_i = 0;
@@ -118,10 +118,10 @@ class ChApi ChLcpConstraint {
         broken = false;
         _active = true;
         mode = CONSTRAINT_LOCK;
-    };
+    }
 
     /// Copy constructor
-    ChLcpConstraint(const ChLcpConstraint& other) {
+    ChConstraint(const ChConstraint& other) {
         c_i = other.c_i;
         g_i = other.g_i;
         b_i = other.b_i;
@@ -134,15 +134,15 @@ class ChApi ChLcpConstraint {
         mode = other.mode;
     }
 
-    virtual ~ChLcpConstraint(){};
+    virtual ~ChConstraint() {}
 
-    virtual ChLcpConstraint* new_Duplicate() = 0;
+    virtual ChConstraint* new_Duplicate() = 0;
 
     /// Assignment operator: copy from other object
-    ChLcpConstraint& operator=(const ChLcpConstraint& other);
+    ChConstraint& operator=(const ChConstraint& other);
 
     /// Comparison (compares anly flags, not the jacobians etc.)
-    bool operator==(const ChLcpConstraint& other) const;
+    bool operator==(const ChConstraint& other) const;
 
     //
     // FUNCTIONS
@@ -252,7 +252,7 @@ class ChApi ChLcpConstraint {
 
     ///  This function must update jacobians and auxiliary
     /// data such as the 'g_i' product. This function is
-    /// often called by LCP solvers at the beginning of the
+    /// often called by solvers at the beginning of the
     /// solution process.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes, which have some jacobians!
@@ -268,7 +268,7 @@ class ChApi ChLcpConstraint {
     ///  This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'q', that is, Cq_q=[Cq_i]*q.
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes! (since it will be called frequently,
     /// when iterative solvers are used, the implementation of
@@ -279,7 +279,7 @@ class ChApi ChLcpConstraint {
     ///  This function must increment the vector of variables
     /// 'q' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///   q+=[invM]*[Cq_i]'*deltal
-    ///  This is used for some iterative LCP solvers.
+    ///  This is used for some iterative solvers.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
     virtual void Increment_q(const double deltal) = 0;
@@ -319,8 +319,8 @@ class ChApi ChLcpConstraint {
 
     /// Puts the jacobian portions into the 'insrow' row of a sparse matrix,
     /// where each portion of jacobian is shifted in order to match the
-    /// offset of the corresponding ChLcpVariable.
-    /// This is used only by the ChLcpSimplex solver (iterative solvers
+    /// offset of the corresponding ChVariable.
+    /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
@@ -331,7 +331,7 @@ class ChApi ChLcpConstraint {
     /// inherited classes!
 	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
 
-    /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
+    /// Set offset in global q vector (set automatically by ChSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }
 
     /// Get offset in global q vector
