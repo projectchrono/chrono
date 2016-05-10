@@ -624,90 +624,90 @@ source_group(parallel FILES
     ${ChronoEngine_parallel_SOURCES}
     ${ChronoEngine_parallel_HEADERS})
 
-# LCP group
+# Solver group
 
-set(ChronoEngine_lcp_SOURCES
-    lcp/ChLcpSystemDescriptor.cpp
-    lcp/ChLcpSolver.cpp
-    lcp/ChLcpIterativeSOR.cpp
-    lcp/ChLcpIterativeSORmultithread.cpp
-    lcp/ChLcpIterativeJacobi.cpp
-    lcp/ChLcpIterativeSymmSOR.cpp
-    lcp/ChLcpIterativeMINRES.cpp
-    lcp/ChLcpIterativePMINRES.cpp
-    lcp/ChLcpIterativeBB.cpp
-    lcp/ChLcpIterativePCG.cpp
-    lcp/ChLcpIterativeAPGD.cpp
-    lcp/ChLcpSimplexSolver.cpp
-    lcp/ChLcpConstraint.cpp
-    lcp/ChLcpConstraintTwo.cpp
-    lcp/ChLcpConstraintTwoGeneric.cpp
-    lcp/ChLcpConstraintTwoGenericBoxed.cpp
-    lcp/ChLcpConstraintTwoBodies.cpp
-    lcp/ChLcpConstraintNodeFrictionT.cpp
-    lcp/ChLcpConstraintNodeContactN.cpp
-    lcp/ChLcpConstraintThree.cpp
-    lcp/ChLcpConstraintThreeGeneric.cpp
-    lcp/ChLcpConstraintThreeBBShaft.cpp
-    lcp/ChLcpVariables.cpp
-    lcp/ChLcpVariablesGeneric.cpp
-    lcp/ChLcpVariablesGenericDiagonalMass.cpp
-    lcp/ChLcpVariablesBody.cpp
-    lcp/ChLcpVariablesBodySharedMass.cpp
-    lcp/ChLcpVariablesBodyOwnMass.cpp
-    lcp/ChLcpVariablesShaft.cpp
-    lcp/ChLcpVariablesNode.cpp
-    lcp/ChLcpKblockGeneric.cpp
-    lcp/ChLcpSolverDEM.cpp
+set(ChronoEngine_solver_SOURCES
+    solver/ChLcpSystemDescriptor.cpp
+    solver/ChLcpSolver.cpp
+    solver/ChLcpIterativeSOR.cpp
+    solver/ChLcpIterativeSORmultithread.cpp
+    solver/ChLcpIterativeJacobi.cpp
+    solver/ChLcpIterativeSymmSOR.cpp
+    solver/ChLcpIterativeMINRES.cpp
+    solver/ChLcpIterativePMINRES.cpp
+    solver/ChLcpIterativeBB.cpp
+    solver/ChLcpIterativePCG.cpp
+    solver/ChLcpIterativeAPGD.cpp
+    solver/ChLcpSimplexSolver.cpp
+    solver/ChLcpConstraint.cpp
+    solver/ChLcpConstraintTwo.cpp
+    solver/ChLcpConstraintTwoGeneric.cpp
+    solver/ChLcpConstraintTwoGenericBoxed.cpp
+    solver/ChLcpConstraintTwoBodies.cpp
+    solver/ChLcpConstraintNodeFrictionT.cpp
+    solver/ChLcpConstraintNodeContactN.cpp
+    solver/ChLcpConstraintThree.cpp
+    solver/ChLcpConstraintThreeGeneric.cpp
+    solver/ChLcpConstraintThreeBBShaft.cpp
+    solver/ChLcpVariables.cpp
+    solver/ChLcpVariablesGeneric.cpp
+    solver/ChLcpVariablesGenericDiagonalMass.cpp
+    solver/ChLcpVariablesBody.cpp
+    solver/ChLcpVariablesBodySharedMass.cpp
+    solver/ChLcpVariablesBodyOwnMass.cpp
+    solver/ChLcpVariablesShaft.cpp
+    solver/ChLcpVariablesNode.cpp
+    solver/ChLcpKblockGeneric.cpp
+    solver/ChLcpSolverDEM.cpp
     )
 
-set(ChronoEngine_lcp_HEADERS
-    lcp/ChLcpConstraint.h
-    lcp/ChLcpConstraintNodeContactN.h
-    lcp/ChLcpConstraintNodeFrictionT.h
-    lcp/ChLcpConstraintThree.h
-    lcp/ChLcpConstraintThreeBBShaft.h
-    lcp/ChLcpConstraintThreeGeneric.h
-    lcp/ChLcpConstraintTwo.h
-    lcp/ChLcpConstraintTwoBodies.h
-    lcp/ChLcpConstraintTwoGeneric.h
-    lcp/ChLcpConstraintTwoGenericBoxed.h
-    lcp/ChLcpConstraintTuple.h
-    lcp/ChLcpConstraintTwoTuples.h
-    lcp/ChLcpConstraintTwoTuplesContactN.h
-    lcp/ChLcpConstraintTwoTuplesFrictionT.h
-    lcp/ChLcpConstraintTwoTuplesRollingN.h
-    lcp/ChLcpConstraintTwoTuplesRollingT.h
-    lcp/ChLcpDirectSolver.h
-    lcp/ChLcpIterativeJacobi.h
-    lcp/ChLcpIterativeMINRES.h
-    lcp/ChLcpIterativePMINRES.h
-    lcp/ChLcpIterativeBB.h
-    lcp/ChLcpIterativePCG.h
-    lcp/ChLcpIterativeAPGD.h
-    lcp/ChLcpIterativeSolver.h
-    lcp/ChLcpIterativeSOR.h
-    lcp/ChLcpIterativeSORmultithread.h
-    lcp/ChLcpIterativeSymmSOR.h
-    lcp/ChLcpSimplexSolver.h
-    lcp/ChLcpSolver.h
-    lcp/ChLcpSystemDescriptor.h
-    lcp/ChLcpVariables.h
-    lcp/ChLcpVariablesBody.h
-    lcp/ChLcpVariablesBodyOwnMass.h
-    lcp/ChLcpVariablesBodySharedMass.h
-    lcp/ChLcpVariablesShaft.h
-    lcp/ChLcpVariablesGeneric.h
-    lcp/ChLcpVariablesGenericDiagonalMass.h
-    lcp/ChLcpVariablesNode.h
-    lcp/ChLcpKblock.h
-    lcp/ChLcpKblockGeneric.h
-    lcp/ChLcpSolverDEM.h
+set(ChronoEngine_solver_HEADERS
+    solver/ChLcpConstraint.h
+    solver/ChLcpConstraintNodeContactN.h
+    solver/ChLcpConstraintNodeFrictionT.h
+    solver/ChLcpConstraintThree.h
+    solver/ChLcpConstraintThreeBBShaft.h
+    solver/ChLcpConstraintThreeGeneric.h
+    solver/ChLcpConstraintTwo.h
+    solver/ChLcpConstraintTwoBodies.h
+    solver/ChLcpConstraintTwoGeneric.h
+    solver/ChLcpConstraintTwoGenericBoxed.h
+    solver/ChLcpConstraintTuple.h
+    solver/ChLcpConstraintTwoTuples.h
+    solver/ChLcpConstraintTwoTuplesContactN.h
+    solver/ChLcpConstraintTwoTuplesFrictionT.h
+    solver/ChLcpConstraintTwoTuplesRollingN.h
+    solver/ChLcpConstraintTwoTuplesRollingT.h
+    solver/ChLcpDirectSolver.h
+    solver/ChLcpIterativeJacobi.h
+    solver/ChLcpIterativeMINRES.h
+    solver/ChLcpIterativePMINRES.h
+    solver/ChLcpIterativeBB.h
+    solver/ChLcpIterativePCG.h
+    solver/ChLcpIterativeAPGD.h
+    solver/ChLcpIterativeSolver.h
+    solver/ChLcpIterativeSOR.h
+    solver/ChLcpIterativeSORmultithread.h
+    solver/ChLcpIterativeSymmSOR.h
+    solver/ChLcpSimplexSolver.h
+    solver/ChLcpSolver.h
+    solver/ChLcpSystemDescriptor.h
+    solver/ChLcpVariables.h
+    solver/ChLcpVariablesBody.h
+    solver/ChLcpVariablesBodyOwnMass.h
+    solver/ChLcpVariablesBodySharedMass.h
+    solver/ChLcpVariablesShaft.h
+    solver/ChLcpVariablesGeneric.h
+    solver/ChLcpVariablesGenericDiagonalMass.h
+    solver/ChLcpVariablesNode.h
+    solver/ChLcpKblock.h
+    solver/ChLcpKblockGeneric.h
+    solver/ChLcpSolverDEM.h
     )
 
-source_group(lcp FILES
-    ${ChronoEngine_lcp_SOURCES}
-    ${ChronoEngine_lcp_HEADERS})
+source_group(solver FILES
+    ${ChronoEngine_solver_SOURCES}
+    ${ChronoEngine_solver_HEADERS})
 
 # Bullet collision group
 
@@ -949,8 +949,8 @@ set(ChronoEngine_FILES
     ${ChronoEngine_serialization_HEADERS}
     ${ChronoEngine_physics_SOURCES}
     ${ChronoEngine_physics_HEADERS}
-    ${ChronoEngine_lcp_SOURCES}
-    ${ChronoEngine_lcp_HEADERS}
+    ${ChronoEngine_solver_SOURCES}
+    ${ChronoEngine_solver_HEADERS}
     ${ChronoEngine_collision_SOURCES}
     ${ChronoEngine_collision_HEADERS}
     ${ChronoEngine_geometry_SOURCES}
