@@ -119,7 +119,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
                                                 bool only_bilaterals,
                                                 bool skip_contacts_uv) {
     std::vector<ChConstraint*>& mconstraints = this->GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = this->GetVariablesList();
+    std::vector<ChVariables*>& mvariables = this->GetVariablesList();
 
     // Count bilateral and other constraints.. (if wanted, bilaterals only)
 
@@ -204,7 +204,7 @@ void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
 void ChLcpSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs) {
 
     std::vector<ChConstraint*>& mconstraints = this->GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = this->GetVariablesList();
+    std::vector<ChVariables*>& mvariables = this->GetVariablesList();
 
     // Count constraints.
     int mn_c = 0;
@@ -422,7 +422,7 @@ int ChLcpSystemDescriptor::BuildDiagonalVector(
         vstiffness[is]->DiagonalAdd(Diagonal_vect);
     }
 
-    // Get the 'M' diagonal terms given by ChLcpVariables objects
+    // Get the 'M' diagonal terms given by ChVariables objects
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->DiagonalAdd(Diagonal_vect, this->c_a);
@@ -562,7 +562,7 @@ void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>
 // Performs the sparse product    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] *l
 // in different phases:
 
-// 1 - set the qb vector (aka speeds, in each ChLcpVariable sparse data) as zero
+// 1 - set the qb vector (aka speeds, in each ChVariable sparse data) as zero
 
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive())

@@ -13,13 +13,12 @@
 
 namespace chrono {
 
-ChLcpVariablesGenericDiagonalMass& ChLcpVariablesGenericDiagonalMass::operator=(
-    const ChLcpVariablesGenericDiagonalMass& other) {
+ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const ChVariablesGenericDiagonalMass& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    ChLcpVariables::operator=(other);
+    ChVariables::operator=(other);
 
     // copy class data
 
@@ -36,25 +35,25 @@ ChLcpVariablesGenericDiagonalMass& ChLcpVariablesGenericDiagonalMass::operator=(
     return *this;
 }
 
-/// Computes the product of the inverse mass matrix by a
-/// vector, and add to result: result = [invMb]*vect
-void ChLcpVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
+// Computes the product of the inverse mass matrix by a
+// vector, and add to result: result = [invMb]*vect
+void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     for (int i = 0; i < vect.GetRows(); ++i)
         result(i) = vect(i) / (*MmassDiag)(i);
 }
 
-void ChLcpVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     for (int i = 0; i < vect.GetRows(); ++i)
         result(i) = vect(i) / (*MmassDiag)(i);
 }
 
-/// Computes the product of the inverse mass matrix by a
-/// vector, and increment result: result += [invMb]*vect
-void ChLcpVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<float>& result,
+// Computes the product of the inverse mass matrix by a
+// vector, and increment result: result += [invMb]*vect
+void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<float>& result,
                                                             const ChMatrix<float>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
@@ -62,7 +61,7 @@ void ChLcpVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<float>& res
         result(i) += vect(i) / (*MmassDiag)(i);
 }
 
-void ChLcpVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& result,
+void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& result,
                                                             const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
@@ -70,29 +69,29 @@ void ChLcpVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& re
         result(i) += vect(i) / (*MmassDiag)(i);
 }
 
-/// Computes the product of the mass matrix by a
-/// vector, and set in result: result = [Mb]*vect
-void ChLcpVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
+// Computes the product of the mass matrix by a
+// vector, and set in result: result = [Mb]*vect
+void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     for (int i = 0; i < vect.GetRows(); ++i)
         result(i) += vect(i) * (*MmassDiag)(i);
 }
 
-void ChLcpVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     for (int i = 0; i < vect.GetRows(); ++i)
         result(i) += vect(i) * (*MmassDiag)(i);
 }
 
-/// Computes the product of the corresponding block in the
-/// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-/// NOTE: the 'vect' and 'result' vectors must already have
-/// the size of the total variables&constraints in the system; the procedure
-/// will use the ChVariable offsets (that must be already updated) to know the
-/// indexes in result and vect.
-void ChLcpVariablesGenericDiagonalMass::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
+// Computes the product of the corresponding block in the
+// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
+// NOTE: the 'vect' and 'result' vectors must already have
+// the size of the total variables&constraints in the system; the procedure
+// will use the ChVariable offsets (that must be already updated) to know the
+// indexes in result and vect.
+void ChVariablesGenericDiagonalMass::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
 
     for (int i = 0; i < MmassDiag->GetRows(); i++) {
@@ -100,11 +99,11 @@ void ChLcpVariablesGenericDiagonalMass::MultiplyAndAdd(ChMatrix<double>& result,
     }
 }
 
-/// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-/// NOTE: the 'result' vector must already have the size of system unknowns, ie
-/// the size of the total variables&constraints in the system; the procedure
-/// will use the ChVariable offset (that must be already updated) as index.
-void ChLcpVariablesGenericDiagonalMass::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
+// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
+// NOTE: the 'result' vector must already have the size of system unknowns, ie
+// the size of the total variables&constraints in the system; the procedure
+// will use the ChVariable offset (that must be already updated) as index.
+void ChVariablesGenericDiagonalMass::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
     assert(result.GetColumns() == 1);
     for (int i = 0; i < MmassDiag->GetRows(); i++) {
         result(this->offset + i) += c_a * (*MmassDiag)(i);
@@ -113,6 +112,6 @@ void ChLcpVariablesGenericDiagonalMass::DiagonalAdd(ChMatrix<double>& result, co
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpVariablesGenericDiagonalMass> a_registration_ChLcpVariablesGenericDiagonalMass;
+ChClassRegister<ChVariablesGenericDiagonalMass> a_registration_ChVariablesGenericDiagonalMass;
 
 }  // end namespace chrono

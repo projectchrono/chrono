@@ -50,7 +50,7 @@ class ChApiFea ChElementBar : public ChElementGeneric {
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
         Kmatr.SetVariables(mvars);

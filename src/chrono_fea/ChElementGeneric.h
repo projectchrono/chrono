@@ -78,7 +78,7 @@ class ChApiFea ChElementGeneric : public ChElementBase {
     }
 
     /// Adds the internal forces, expressed as nodal forces, into the
-    /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
     /// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid
     /// implementing this VariablesFbLoadInternalForces function, unless you need faster code)
     virtual void VariablesFbLoadInternalForces(double factor = 1.) override;

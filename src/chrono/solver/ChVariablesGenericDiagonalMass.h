@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLESGENERICDIAGONALMASS_H
-#define CHLCPVARIABLESGENERICDIAGONALMASS_H
+#ifndef CHVARIABLESGENERICDIAGONALMASS_H
+#define CHVARIABLESGENERICDIAGONALMASS_H
 
 #include "chrono/solver/ChVariables.h"
 #include "chrono/core/ChVectorDynamic.h"
@@ -19,17 +19,14 @@
 namespace chrono {
 
 /// Specialized class for representing a N-DOF item for a
-/// LCP system, that is an item with a diagonal mass matrix and
+/// system, that is an item with a diagonal mass matrix and
 /// associate variables.
 
-class ChApi ChLcpVariablesGenericDiagonalMass : public ChLcpVariables {
-    CH_RTTI(ChLcpVariablesGenericDiagonalMass, ChLcpVariables)
+class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
+    CH_RTTI(ChVariablesGenericDiagonalMass, ChVariables)
 
   private:
-    //
-    // DATA
-    //
-    /// the data (qb, variables and fb, forces, already defined in base class)
+    // the data (qb, variables and fb, forces, already defined in base class)
 
     ChVectorDynamic<>* MmassDiag;
     int ndof;
@@ -38,20 +35,20 @@ class ChApi ChLcpVariablesGenericDiagonalMass : public ChLcpVariables {
     //
     // CONSTRUCTORS
     //
-    ChLcpVariablesGenericDiagonalMass(int m_ndof = 1) : ChLcpVariables(m_ndof) {
+    ChVariablesGenericDiagonalMass(int m_ndof = 1) : ChVariables(m_ndof) {
         ndof = m_ndof;
         MmassDiag = new ChVectorDynamic<>(ndof);
         MmassDiag->FillElem(1.0);
     }
 
-    virtual ~ChLcpVariablesGenericDiagonalMass() {
+    virtual ~ChVariablesGenericDiagonalMass() {
         if (MmassDiag)
             delete MmassDiag;
         MmassDiag = NULL;
     }
 
     /// Assignment operator: copy from other object
-    ChLcpVariablesGenericDiagonalMass& operator=(const ChLcpVariablesGenericDiagonalMass& other);
+    ChVariablesGenericDiagonalMass& operator=(const ChVariablesGenericDiagonalMass& other);
 
     //
     // FUNCTIONS

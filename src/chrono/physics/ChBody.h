@@ -110,7 +110,7 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     // used to store mass matrix and coordinates, as
     // an interface to the LCP solver.
-    ChLcpVariablesBodyOwnMass variables;
+    ChVariablesBodyOwnMass variables;
 
     float max_speed;  // limit on linear speed (useful for VR & videagames)
     float max_wvel;   // limit on angular vel. (useful for VR & videagames)
@@ -228,12 +228,12 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Number of coordinates of body, x6 because derivatives es. angular vel.
     virtual int GetDOF_w() { return 6; }
 
-    /// Returns reference to the encapsulated ChLcpVariablesBody,
+    /// Returns reference to the encapsulated ChVariablesBody,
     /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
     /// and forces.
-    /// The ChLcpVariablesBodyOwnMass is the interface to the LCP system solver.
-    ChLcpVariablesBodyOwnMass& VariablesBody() { return variables; }
-    ChLcpVariables& Variables() { return variables; }
+    /// The ChVariablesBodyOwnMass is the interface to the system solver.
+    ChVariablesBodyOwnMass& VariablesBody() { return variables; }
+    ChVariables& Variables() { return variables; }
 
     //
     // STATE FUNCTIONS
@@ -277,14 +277,14 @@ class ChApi ChBody :            public ChPhysicsItem,
     // Override/implement LCP system functions of ChPhysicsItem
     // (to assembly/manage data for LCP system solver)
 
-    /// Sets the 'fb' part of the encapsulated ChLcpVariablesBodyOwnMass to zero.
+    /// Sets the 'fb' part of the encapsulated ChVariablesBodyOwnMass to zero.
     void VariablesFbReset();
 
     /// Adds the current forces applied to body (including gyroscopic torque) in
-    /// encapsulated ChLcpVariablesBody, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariablesBody, in the 'fb' part: qf+=forces*factor
     void VariablesFbLoadForces(double factor = 1.);
 
-    /// Initialize the 'qb' part of the ChLcpVariablesBody with the
+    /// Initialize the 'qb' part of the ChVariablesBody with the
     /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
     void VariablesQbLoadSpeed();
@@ -295,14 +295,14 @@ class ChApi ChBody :            public ChPhysicsItem,
     void VariablesFbIncrementMq();
 
     /// Fetches the body speed (both linear and angular) from the
-    /// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
+    /// 'qb' part of the ChVariablesBody (does not updates the full body&markers state)
     /// and sets it as the current body speed.
     /// If 'step' is not 0, also computes the approximate acceleration of
     /// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
-    /// Mostly used after the LCP provided the solution in ChLcpVariablesBody .
+    /// Mostly used after the solver provided the solution in ChVariablesBody .
     void VariablesQbSetSpeed(double step = 0.);
 
-    /// Increment body position by the 'qb' part of the ChLcpVariablesBody,
+    /// Increment body position by the 'qb' part of the ChVariablesBody,
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
@@ -311,7 +311,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     void VariablesQbIncrementPosition(double step);
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChLcpVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a LCP solver)
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
 
     /// Instantiate the collision model
@@ -615,7 +615,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     // INTERFACE TO ChContactable
     //
 
-    virtual ChLcpVariables* GetVariables1() override {return &this->variables; }
+    virtual ChVariables* GetVariables1() override {return &this->variables; }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return this->IsActive(); }
@@ -763,8 +763,8 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
         mvars.push_back(&this->Variables());
     };
 

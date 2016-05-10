@@ -21,7 +21,7 @@ ChClassRegister<ChLcpIterativeSOR> a_registration_ChLcpIterativeSOR;
 double ChLcpIterativeSOR::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                 ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     tot_iterations = 0;
     double maxviolation = 0.;

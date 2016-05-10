@@ -54,7 +54,7 @@ void ChElementBrick::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     m_nodes[5] = nodeF;
     m_nodes[6] = nodeG;
     m_nodes[7] = nodeH;
-    std::vector<ChLcpVariables*> mvars;
+    std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
     mvars.push_back(&m_nodes[1]->Variables());
     mvars.push_back(&m_nodes[2]->Variables());

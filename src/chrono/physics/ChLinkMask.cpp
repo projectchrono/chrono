@@ -101,7 +101,7 @@ ChLinkMask* ChLinkMask::NewDuplicate() {
     return mm;
 }
 
-void ChLinkMask::SetTwoBodiesVariables(ChLcpVariables* var1, ChLcpVariables* var2) {
+void ChLinkMask::SetTwoBodiesVariables(ChVariables* var1, ChVariables* var2) {
     for (int i = 0; i < nconstr; i++)
         constraints[i]->SetVariables(var1, var2);
 }

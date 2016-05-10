@@ -13,12 +13,12 @@
 
 namespace chrono {
 
-ChLcpVariablesBody& ChLcpVariablesBody::operator=(const ChLcpVariablesBody& other) {
+    ChVariablesBody& ChVariablesBody::operator=(const ChVariablesBody& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    ChLcpVariables::operator=(other);
+    ChVariables::operator=(other);
 
     // copy class data
     user_data = other.user_data;
@@ -28,6 +28,6 @@ ChLcpVariablesBody& ChLcpVariablesBody::operator=(const ChLcpVariablesBody& othe
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLcpVariablesBody> a_registration_ChLcpVariablesBody;
+ChClassRegisterABSTRACT<ChVariablesBody> a_registration_ChVariablesBody;
 
 }  // end namespace chrono

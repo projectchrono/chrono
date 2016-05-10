@@ -32,7 +32,7 @@ class ChConstraintTuple_1vars {
 
   protected:
     /// The first  constrained object
-    ChLcpVariables* variables;
+    ChVariables* variables;
 
     /// The [Cq] jacobian of the constraint 
     ChMatrixNM<double, 1, T::nvars1> Cq;
@@ -63,7 +63,7 @@ class ChConstraintTuple_1vars {
 
     ChMatrix<double>* Get_Eq() { return &Eq; }
 
-    ChLcpVariables* GetVariables() { return variables; }
+    ChVariables* GetVariables() { return variables; }
 
     void SetVariables(T& m_tuple_carrier) {
 
@@ -143,8 +143,8 @@ template <class T>
 class ChConstraintTuple_2vars { 
 
   protected:
-    ChLcpVariables* variables_1;
-    ChLcpVariables* variables_2;
+    ChVariables* variables_1;
+    ChVariables* variables_2;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
     ChMatrixNM<double, 1, T::nvars1> Cq_1;
@@ -186,8 +186,8 @@ class ChConstraintTuple_2vars {
     ChMatrix<double>* Get_Eq_1() { return &Eq_1; }
     ChMatrix<double>* Get_Eq_2() { return &Eq_2; }
 
-    ChLcpVariables* GetVariables_1() { return variables_1; }
-    ChLcpVariables* GetVariables_2() { return variables_2; }
+    ChVariables* GetVariables_1() { return variables_1; }
+    ChVariables* GetVariables_2() { return variables_2; }
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2()) {
@@ -297,9 +297,9 @@ class ChConstraintTuple_2vars {
 template <class T>
 class ChConstraintTuple_3vars {
   protected:
-    ChLcpVariables* variables_1;
-    ChLcpVariables* variables_2;
-    ChLcpVariables* variables_3;
+    ChVariables* variables_1;
+    ChVariables* variables_2;
+    ChVariables* variables_3;
 
     /// The [Cq] jacobian of the constraint, split in horizontal chunks
     ChMatrixNM<double, 1, T::nvars1> Cq_1;
@@ -351,9 +351,9 @@ class ChConstraintTuple_3vars {
     ChMatrix<double>* Get_Eq_2() { return &Eq_2; }
     ChMatrix<double>* Get_Eq_3() { return &Eq_3; }
 
-    ChLcpVariables* GetVariables_1() { return variables_1; }
-    ChLcpVariables* GetVariables_2() { return variables_2; }
-    ChLcpVariables* GetVariables_3() { return variables_3; }
+    ChVariables* GetVariables_1() { return variables_1; }
+    ChVariables* GetVariables_2() { return variables_2; }
+    ChVariables* GetVariables_3() { return variables_3; }
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3()) {
@@ -499,7 +499,7 @@ class ChVariableTupleCarrier_1vars {
   public:
     typedef ChConstraintTuple_1vars<ChVariableTupleCarrier_1vars<N1> > type_constraint_tuple;
     static const int nvars1 = N1;
-    virtual ChLcpVariables* GetVariables1() = 0;
+    virtual ChVariables* GetVariables1() = 0;
 };
 
 template <int N1, int N2>
@@ -508,8 +508,8 @@ public:
     typedef ChConstraintTuple_3vars< ChVariableTupleCarrier_2vars< N1, N2> > type_constraint_tuple;
     static int  const nvars1 = N1;
     static int  const nvars2 = N2;
-    virtual ChLcpVariables* GetVariables1() = 0;
-    virtual ChLcpVariables* GetVariables2() = 0;
+    virtual ChVariables* GetVariables1() = 0;
+    virtual ChVariables* GetVariables2() = 0;
 };
 
 template <int N1, int N2, int N3>
@@ -519,9 +519,9 @@ public:
     static int  const nvars1 = N1;
     static int  const nvars2 = N2;
     static int  const nvars3 = N3;
-    virtual ChLcpVariables* GetVariables1() = 0;
-    virtual ChLcpVariables* GetVariables2() = 0;
-    virtual ChLcpVariables* GetVariables3() = 0;
+    virtual ChVariables* GetVariables1() = 0;
+    virtual ChVariables* GetVariables2() = 0;
+    virtual ChVariables* GetVariables3() = 0;
 };
 
 }  // end namespace chrono

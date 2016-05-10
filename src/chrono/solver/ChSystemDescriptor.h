@@ -58,7 +58,7 @@ class ChApi ChLcpSystemDescriptor {
     // DATA
     //
     std::vector<ChConstraint*> vconstraints;
-    std::vector<ChLcpVariables*> vvariables;
+    std::vector<ChVariables*> vvariables;
     std::vector<ChKblock*> vstiffness;
 
     int num_threads;
@@ -91,7 +91,7 @@ class ChApi ChLcpSystemDescriptor {
     std::vector<ChConstraint*>& GetConstraintsList() { return vconstraints; };
 
     /// Access the vector of variables
-    std::vector<ChLcpVariables*>& GetVariablesList() { return vvariables; };
+    std::vector<ChVariables*>& GetVariablesList() { return vvariables; };
 
     /// Access the vector of stiffness matrix blocks
     std::vector<ChKblock*>& GetKblocksList() { return vstiffness; };
@@ -107,7 +107,7 @@ class ChApi ChLcpSystemDescriptor {
     virtual void InsertConstraint(ChConstraint* mc) { vconstraints.push_back(mc); }
 
     /// Insert reference to a ChVariables object
-    virtual void InsertVariables(ChLcpVariables* mv) { vvariables.push_back(mv); }
+    virtual void InsertVariables(ChVariables* mv) { vvariables.push_back(mv); }
 
     /// Insert reference to a ChKblock object (a piece of matrix)
     virtual void InsertKblock(ChKblock* mk) { vstiffness.push_back(mk); }
@@ -115,11 +115,11 @@ class ChApi ChLcpSystemDescriptor {
     /// End insertion of items
     virtual void EndInsertion() { UpdateCountsAndOffsets(); }
 
-    /// Count & returns the scalar variables in the system (excluding ChLcpVariable objects
+    /// Count & returns the scalar variables in the system (excluding ChVariable objects
     /// that have  IsActive() as false). Note: the number of scalar variables is not necessarily
-    /// the number of inserted ChLcpVariable objects, some could be inactive.
+    /// the number of inserted ChVariable objects, some could be inactive.
     /// Note: this function also updates the offsets of all variables
-    /// in 'q' global vector (see GetOffset() in ChLcpVariables).
+    /// in 'q' global vector (see GetOffset() in ChVariables).
     virtual int CountActiveVariables();
 
     /// Count & returns the scalar constraints in the system (excluding ChConstraint objects

@@ -50,7 +50,7 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     ChConstraintTwoBodies() {}
 
     /// Construct and immediately set references to variables
-    ChConstraintTwoBodies(ChLcpVariablesBody* mvariables_a, ChLcpVariablesBody* mvariables_b) {
+    ChConstraintTwoBodies(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b) {
         SetVariables(mvariables_a, mvariables_b);
     }
 
@@ -86,7 +86,7 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     /// Set references to the constrained objects, each of ChVariablesBody type,
     /// automatically creating/resizing jacobians if needed.
     /// If variables aren't from ChVariablesBody class, an assert failure happens.
-    void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b);
+    void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b);
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b matrices

@@ -13,7 +13,7 @@
 
 namespace chrono {
 
-ChLcpVariables& ChLcpVariables::operator=(const ChLcpVariables& other) {
+    ChVariables& ChVariables::operator=(const ChVariables& other) {
     if (&other == this)
         return *this;
 
@@ -45,6 +45,6 @@ ChLcpVariables& ChLcpVariables::operator=(const ChLcpVariables& other) {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-// ChClassRegister<ChLcpVariables> a_registration_ChLcpVariables;
+// ChClassRegister<ChVariables> a_registration_ChVariables;
 
 }  // end namespace chrono

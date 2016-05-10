@@ -68,7 +68,7 @@ ChConstraintTwoGeneric& ChConstraintTwoGeneric::operator=(const ChConstraintTwoG
     return *this;
 }
 
-void ChConstraintTwoGeneric::SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) {
+void ChConstraintTwoGeneric::SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) {
     if (!mvariables_a || !mvariables_b) {
         SetValid(false);
         return;

@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
   system_gpu->AssembleSystem();
 
   std::vector<ChConstraint*>& mconstraints = system_gpu->GetLcpSystemDescriptor()->GetConstraintsList();
-  std::vector<ChLcpVariables*>& mvariables = system_gpu->GetLcpSystemDescriptor()->GetVariablesList();
+  std::vector<ChVariables*>& mvariables = system_gpu->GetLcpSystemDescriptor()->GetVariablesList();
 
   std::vector<real> bi_a(mconstraints.size());
   std::vector<real> bi_b(mconstraints.size());

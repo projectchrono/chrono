@@ -57,7 +57,7 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
     ChConstraintTwoGeneric() { Cq_a = Cq_b = Eq_a = Eq_b = NULL; }
 
     /// Construct and immediately set references to variables
-    ChConstraintTwoGeneric(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) {
+    ChConstraintTwoGeneric(ChVariables* mvariables_a, ChVariables* mvariables_b) {
         Cq_a = Cq_b = Eq_a = Eq_b = NULL;
         SetVariables(mvariables_a, mvariables_b);
     }
@@ -107,7 +107,7 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
-    virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b);
+    virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b);
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b matrices

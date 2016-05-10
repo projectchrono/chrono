@@ -10,35 +10,32 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLESGENERIC_H
-#define CHLCPVARIABLESGENERIC_H
+#ifndef CHVARIABLESGENERIC_H
+#define CHVARIABLESGENERIC_H
 
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
-///    Specialized class for representing a N-DOF item for a
-///   LCP system, that is an item with mass matrix and
-///   associate variables.
-///    The main difference from the base class ChLcpVariables
-///   is that the base class does not create any mass matrix,
-///   while this minimal specialization at least creates a
-///   NxN mass matrix. Of course a generic (uncompressed) NxN
-///   matrix is used. This means that, for example, this
-///   class could  be used for 3D rigid bodies if N=6, however
-///   it would be better to implement a more optimized class
-///   which does not create a full 6x6 matrix (since only few
-///   elements on the diagonal would be different from 0 in case
-///   of rigid bodies), so use the ChLcpVariablesBody in this case..
+/// Specialized class for representing a N-DOF item for a
+/// system, that is an item with mass matrix and
+/// associate variables.
+/// The main difference from the base class ChVariables
+/// is that the base class does not create any mass matrix,
+/// while this minimal specialization at least creates a
+/// NxN mass matrix. Of course a generic (uncompressed) NxN
+/// matrix is used. This means that, for example, this
+/// class could  be used for 3D rigid bodies if N=6, however
+/// it would be better to implement a more optimized class
+/// which does not create a full 6x6 matrix (since only few
+/// elements on the diagonal would be different from 0 in case
+/// of rigid bodies), so use the ChVariablesBody in this case..
 
-class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
-    CH_RTTI(ChLcpVariablesGeneric, ChLcpVariables)
+class ChApi ChVariablesGeneric : public ChVariables {
+    CH_RTTI(ChVariablesGeneric, ChVariables)
 
   private:
-    //
-    // DATA
-    //
-    /// the data (qb, variables and fb, forces, already defined in base class)
+    // the data (qb, variables and fb, forces, already defined in base class)
 
     ChMatrixDynamic<>* Mmass;
     ChMatrixDynamic<>* inv_Mmass;
@@ -48,25 +45,25 @@ class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
     //
     // CONSTRUCTORS
     //
-    ChLcpVariablesGeneric(int m_ndof = 1) : ChLcpVariables(m_ndof) {
+    ChVariablesGeneric(int m_ndof = 1) : ChVariables(m_ndof) {
         ndof = m_ndof;
         Mmass = new ChMatrixDynamic<>(ndof, ndof);
         Mmass->SetIdentity();
         inv_Mmass = new ChMatrixDynamic<>(ndof, ndof);
         inv_Mmass->SetIdentity();
-    };
+    }
 
-    virtual ~ChLcpVariablesGeneric() {
+    virtual ~ChVariablesGeneric() {
         if (Mmass)
             delete Mmass;
         Mmass = NULL;
         if (inv_Mmass)
             delete inv_Mmass;
         inv_Mmass = NULL;
-    };
+    }
 
     /// Assignment operator: copy from other object
-    ChLcpVariablesGeneric& operator=(const ChLcpVariablesGeneric& other);
+    ChVariablesGeneric& operator=(const ChVariablesGeneric& other);
 
     //
     // FUNCTIONS
@@ -82,7 +79,7 @@ class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
 
     /// The number of scalar variables in the vector qb
     /// (dof=degrees of freedom)
-    int Get_ndof() const { return this->ndof; };
+    int Get_ndof() const { return this->ndof; }
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and add to result: result = [invMb]*vect
@@ -116,12 +113,11 @@ class ChApi ChLcpVariablesGeneric : public ChLcpVariables {
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
-	void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a)
-	{
+    void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
         for (int row = 0; row < Mmass->GetRows(); ++row)
             for (int col = 0; col < Mmass->GetColumns(); ++col)
-                storage.SetElement(insrow + row, inscol + col,  c_a * Mmass->GetElement(row, col) );
-	};
+                storage.SetElement(insrow + row, inscol + col, c_a * Mmass->GetElement(row, col));
+    }
 };
 
 }  // end namespace chrono

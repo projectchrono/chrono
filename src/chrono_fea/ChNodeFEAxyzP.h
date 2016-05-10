@@ -57,7 +57,7 @@ class ChApiFea ChNodeFEAxyzP : public ChNodeFEAbase {
         return *this;
     }
 
-    virtual ChLcpVariables& Variables() { return this->variables; }
+    virtual ChVariables& Variables() { return this->variables; }
 
     virtual void Relax() override {
         // no special effect here, just resets scalar field.
@@ -228,7 +228,7 @@ class ChApiFea ChNodeFEAxyzP : public ChNodeFEAbase {
     }
 
   private:
-    ChLcpVariablesGeneric variables;  /// solver proxy: variable with scalar field P
+    ChVariablesGeneric variables;  /// solver proxy: variable with scalar field P
 
     double P;     ///< field
     double P_dt;  ///< field derivative, if needed

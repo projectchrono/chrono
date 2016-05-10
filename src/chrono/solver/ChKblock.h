@@ -51,7 +51,7 @@ class ChApi ChKblock {
     //
     // FUNCTIONS
     //
-    /// Returns the number of referenced ChLcpVariables items
+    /// Returns the number of referenced ChVariables items
     virtual size_t GetNvars() const = 0;
 
     /// Access the K stiffness matrix as a single block,

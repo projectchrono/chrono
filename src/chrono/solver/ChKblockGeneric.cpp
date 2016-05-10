@@ -39,7 +39,7 @@ ChKblockGeneric& ChKblockGeneric::operator=(const ChKblockGeneric& other) {
     return *this;
 }
 
-void ChKblockGeneric::SetVariables(std::vector<ChLcpVariables*> mvariables) {
+void ChKblockGeneric::SetVariables(std::vector<ChVariables*> mvariables) {
     assert(mvariables.size() > 0);
 
     variables = mvariables;

@@ -37,9 +37,9 @@ class ChApi ChConstraintTwo : public ChConstraint {
 
   protected:
     /// The first  constrained object
-    ChLcpVariables* variables_a;
+    ChVariables* variables_a;
     /// The second constrained object
-    ChLcpVariables* variables_b;
+    ChVariables* variables_b;
 
   public:
     //
@@ -74,13 +74,13 @@ class ChApi ChConstraintTwo : public ChConstraint {
     virtual ChMatrix<double>* Get_Eq_b() = 0;
 
     /// Access the first variable object
-    ChLcpVariables* GetVariables_a() { return variables_a; }
+    ChVariables* GetVariables_a() { return variables_a; }
     /// Access the second variable object
-    ChLcpVariables* GetVariables_b() { return variables_b; }
+    ChVariables* GetVariables_b() { return variables_b; }
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
-    virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) = 0;
+    virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) = 0;
 
     //
     // STREAMING

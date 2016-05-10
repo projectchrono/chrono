@@ -63,7 +63,7 @@ using namespace chrono;
 // at solving multibody problems in Chrono::Engine
 // so it offers optimizations for the case where the M matrix
 // is diagonal or block-diagonal: each block refers to a
-// ChLcpVariables object, and each line of jacobian Cq belongs
+// ChVariables object, and each line of jacobian Cq belongs
 // to a ChConstraint object.
 //
 // NOTE: the frictional contact problem is a special type of nonlinear
@@ -103,14 +103,14 @@ void test_1() {
 
     // create C++ objects representing 'variables':
 
-    ChLcpVariablesGeneric mvarA(3);
+    ChVariablesGeneric mvarA(3);
     mvarA.GetMass().SetIdentity();
     mvarA.GetMass() *= 10;
     ChLinearAlgebra::Invert(mvarA.GetInvMass(), &mvarA.GetMass());
     mvarA.Get_fb()(0) = 1;
     mvarA.Get_fb()(1) = 2;
 
-    ChLcpVariablesGeneric mvarB(3);
+    ChVariablesGeneric mvarB(3);
     mvarB.GetMass().SetIdentity();
     mvarB.GetMass() *= 20;
     ChLinearAlgebra::Invert(mvarB.GetInvMass(), &mvarB.GetMass());
@@ -239,11 +239,11 @@ void test_2() {
 
     int n_masses = 11;
 
-    std::vector<ChLcpVariablesGeneric*> vars;
+    std::vector<ChVariablesGeneric*> vars;
     std::vector<ChConstraintTwoGeneric*> constraints;
 
     for (int im = 0; im < n_masses; im++) {
-        vars.push_back(new ChLcpVariablesGeneric(1));
+        vars.push_back(new ChVariablesGeneric(1));
         vars[im]->GetMass()(0) = 10;
         vars[im]->GetInvMass()(0) = 1. / vars[im]->GetMass()(0);
         vars[im]->Get_fb()(0) = -9.8 * vars[im]->GetMass()(0) * 0.01;
@@ -358,17 +358,17 @@ void test_3() {
     ChMatrix33<> minertia;
     minertia.FillDiag(6);
 
-    ChLcpVariablesBodyOwnMass mvarA;
+    ChVariablesBodyOwnMass mvarA;
     mvarA.SetBodyMass(5);
     mvarA.SetBodyInertia(minertia);
     mvarA.Get_fb().FillRandom(-3, 5);
 
-    ChLcpVariablesBodyOwnMass mvarB;
+    ChVariablesBodyOwnMass mvarB;
     mvarB.SetBodyMass(4);
     mvarB.SetBodyInertia(minertia);
     mvarB.Get_fb().FillRandom(1, 3);
 
-    ChLcpVariablesBodyOwnMass mvarC;
+    ChVariablesBodyOwnMass mvarC;
     mvarC.SetBodyMass(5.5);
     mvarC.SetBodyInertia(minertia);
     mvarC.Get_fb().FillRandom(-8, 3);
@@ -400,7 +400,7 @@ void test_3() {
 
     ChKblockGeneric mKa;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
-    std::vector<ChLcpVariables*> mvarsa;
+    std::vector<ChVariables*> mvarsa;
     mvarsa.push_back(&mvarA);
     mvarsa.push_back(&mvarB);
     mKa.SetVariables(mvarsa);
@@ -416,7 +416,7 @@ void test_3() {
 
     ChKblockGeneric mKb;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
-    std::vector<ChLcpVariables*> mvarsb;
+    std::vector<ChVariables*> mvarsb;
     mvarsb.push_back(&mvarB);
     mvarsb.push_back(&mvarC);
     mKb.SetVariables(mvarsb);

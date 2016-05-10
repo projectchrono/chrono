@@ -118,7 +118,7 @@ class ChApiFea ChElementBase {
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) = 0;
 
     /// Adds the internal forces, expressed as nodal forces, into the
-    /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
     /// WILL BE DEPRECATED - see EleIntLoadResidual_F
     virtual void VariablesFbLoadInternalForces(double factor = 1.) {}
 

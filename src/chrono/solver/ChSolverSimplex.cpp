@@ -45,7 +45,7 @@ ChLcpSimplexSolver::~ChLcpSimplexSolver() {
 double ChLcpSimplexSolver::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                  ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();
 
     double maxviolation = 0.;

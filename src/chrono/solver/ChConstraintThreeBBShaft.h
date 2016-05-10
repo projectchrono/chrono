@@ -53,9 +53,9 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     ChConstraintThreeBBShaft() {}
 
     /// Construct and immediately set references to variables
-    ChConstraintThreeBBShaft(ChLcpVariablesBody* mvariables_a,
-                             ChLcpVariablesBody* mvariables_b,
-                             ChLcpVariables* mvariables_c) {
+    ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a,
+                             ChVariablesBody* mvariables_b,
+                             ChVariables* mvariables_c) {
         assert(mvariables_c->Get_ndof() == 1);
         SetVariables(mvariables_a, mvariables_b, mvariables_c);
     }
@@ -97,7 +97,7 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
 
     /// Set references to the constrained objects,
     /// If first two variables aren't from ChVariablesBody class, an assert failure happens.
-    void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c);
+    void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b, ChVariables* mvariables_c);
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b and Eq_c matrices

@@ -21,7 +21,7 @@ ChClassRegister<ChLcpIterativeSymmSOR> a_registration_ChLcpIterativeSymmSOR;
 double ChLcpIterativeSymmSOR::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                     ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     double maxviolation = 0.;
     double maxdeltalambda = 0.;

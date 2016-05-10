@@ -34,9 +34,9 @@ class ChLoadJacobians {
     ChMatrixDynamic<double> R;  // dQ/dv
     ChMatrixDynamic<double> M;  // dQ/da
 
-    /// Set references to the constrained objects, each of ChLcpVariables type,
+    /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing K matrix if needed.
-    void SetVariables(std::vector<ChLcpVariables*> mvariables) {
+    void SetVariables(std::vector<ChVariables*> mvariables) {
         KRM.SetVariables(mvariables);
         int nscalar_coords = KRM.Get_K()->GetColumns();
         K.Reset(nscalar_coords,nscalar_coords);
@@ -108,7 +108,7 @@ public:
     ChLoadJacobians* GetJacobians() {return this->jacobians;}
 
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() =0;
 
         /// Update: this is called at least at each time step. 
@@ -268,13 +268,13 @@ public:
         return loader.IsStiff();
     }
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() {
         if (!this->jacobians) {
             // create jacobian structure
             this->jacobians = new ChLoadJacobians;
             // set variables forsparse KRM block
-            std::vector<ChLcpVariables*> mvars;
+            std::vector<ChVariables*> mvars;
             loader.GetLoadable()->LoadableGetVariables(mvars);
             this->jacobians->SetVariables(mvars);
         }
@@ -379,13 +379,13 @@ public:
     virtual bool IsStiff() = 0;
 
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() {
         if (!this->jacobians) {
             // create jacobian structure
             this->jacobians = new ChLoadJacobians;
             // set variables forsparse KRM block
-            std::vector<ChLcpVariables*> mvars;
+            std::vector<ChVariables*> mvars;
             loadable->LoadableGetVariables(mvars);
             this->jacobians->SetVariables(mvars);
         }
@@ -540,13 +540,13 @@ public:
     virtual bool IsStiff() = 0;
 
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() {
         if (!this->jacobians) {
             // create jacobian structure
             this->jacobians = new ChLoadJacobians;
             // set variables for sparse KRM block appending them to mvars list
-            std::vector<ChLcpVariables*> mvars;
+            std::vector<ChVariables*> mvars;
             for (int i= 0; i<loadables.size(); ++i)
                 loadables[i]->LoadableGetVariables(mvars);
             this->jacobians->SetVariables(mvars);

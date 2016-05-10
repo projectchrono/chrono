@@ -13,12 +13,12 @@
 
 namespace chrono {
 
-ChLcpVariablesGeneric& ChLcpVariablesGeneric::operator=(const ChLcpVariablesGeneric& other) {
+ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    ChLcpVariables::operator=(other);
+    ChVariables::operator=(other);
 
     // copy class data
 
@@ -45,55 +45,55 @@ ChLcpVariablesGeneric& ChLcpVariablesGeneric::operator=(const ChLcpVariablesGene
     return *this;
 }
 
-/// Computes the product of the inverse mass matrix by a
-/// vector, and add to result: result = [invMb]*vect
-void ChLcpVariablesGeneric::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
+// Computes the product of the inverse mass matrix by a
+// vector, and add to result: result = [invMb]*vect
+void ChVariablesGeneric::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result = (*inv_Mmass) * vect;
 }
 
-void ChLcpVariablesGeneric::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChVariablesGeneric::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result = (*inv_Mmass) * vect;
 }
 
-/// Computes the product of the inverse mass matrix by a
-/// vector, and increment result: result += [invMb]*vect
-void ChLcpVariablesGeneric::Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
+// Computes the product of the inverse mass matrix by a
+// vector, and increment result: result += [invMb]*vect
+void ChVariablesGeneric::Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result += (*inv_Mmass) * vect;
 }
 
-void ChLcpVariablesGeneric::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChVariablesGeneric::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result += (*inv_Mmass) * vect;
 }
 
-/// Computes the product of the mass matrix by a
-/// vector, and set in result: result = [Mb]*vect
-void ChLcpVariablesGeneric::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
+// Computes the product of the mass matrix by a
+// vector, and set in result: result = [Mb]*vect
+void ChVariablesGeneric::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result += (*Mmass) * vect;
 }
 
-void ChLcpVariablesGeneric::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChVariablesGeneric::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result += (*Mmass) * vect;
 }
 
-/// Computes the product of the corresponding block in the
-/// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-/// NOTE: the 'vect' and 'result' vectors must already have
-/// the size of the total variables&constraints in the system; the procedure
-/// will use the ChVariable offsets (that must be already updated) to know the
-/// indexes in result and vect.
-void ChLcpVariablesGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
+// Computes the product of the corresponding block in the
+// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
+// NOTE: the 'vect' and 'result' vectors must already have
+// the size of the total variables&constraints in the system; the procedure
+// will use the ChVariable offsets (that must be already updated) to know the
+// indexes in result and vect.
+void ChVariablesGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
 
     for (int i = 0; i < Mmass->GetRows(); i++) {
@@ -105,11 +105,11 @@ void ChLcpVariablesGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMat
     }
 }
 
-/// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-/// NOTE: the 'result' vector must already have the size of system unknowns, ie
-/// the size of the total variables&constraints in the system; the procedure
-/// will use the ChVariable offset (that must be already updated) as index.
-void ChLcpVariablesGeneric::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
+// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
+// NOTE: the 'result' vector must already have the size of system unknowns, ie
+// the size of the total variables&constraints in the system; the procedure
+// will use the ChVariable offset (that must be already updated) as index.
+void ChVariablesGeneric::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
     assert(result.GetColumns() == 1);
     for (int i = 0; i < Mmass->GetRows(); i++) {
         result(this->offset + i) += c_a * (*Mmass)(i, i);
@@ -118,6 +118,6 @@ void ChLcpVariablesGeneric::DiagonalAdd(ChMatrix<double>& result, const double c
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpVariablesGeneric> a_registration_ChLcpVariablesGeneric;
+ChClassRegister<ChVariablesGeneric> a_registration_ChVariablesGeneric;
 
 }  // end namespace chrono

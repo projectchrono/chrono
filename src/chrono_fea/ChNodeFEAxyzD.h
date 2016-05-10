@@ -27,7 +27,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
         D = initial_dir;
         D_dt = VNULL;
         D_dtdt = VNULL;
-        variables_D = new ChLcpVariablesGenericDiagonalMass(3);
+        variables_D = new ChVariablesGenericDiagonalMass(3);
         // default: no atomic mass associated to fea node, the fea element will add mass matrix
         variables_D->GetMassDiagonal().FillElem(0.0);
     }
@@ -35,7 +35,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     ~ChNodeFEAxyzD() { delete variables_D; }
 
     ChNodeFEAxyzD(const ChNodeFEAxyzD& other) : ChNodeFEAxyz(other) {
-        variables_D = new ChLcpVariablesGenericDiagonalMass(3);
+        variables_D = new ChVariablesGenericDiagonalMass(3);
         (*this->variables_D) = (*other.variables_D);
 		this->D = other.D;
 		this->D_dt = other.D_dt;
@@ -70,7 +70,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get the direction acceleration
     virtual ChVector<> GetD_dtdt() { return D_dtdt; }
 
-    virtual ChLcpVariables& Variables_D() { return *this->variables_D; }
+    virtual ChVariables& Variables_D() { return *this->variables_D; }
 
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override {
@@ -249,8 +249,8 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override {
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         mvars.push_back(&this->Variables());
         mvars.push_back(&this->Variables_D());
     }
@@ -305,7 +305,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
 
   private:
     /// 3D node variable - the direction part: Dx,Dy,Dz (the position part is in parent class)
-    ChLcpVariablesGenericDiagonalMass* variables_D;
+    ChVariablesGenericDiagonalMass* variables_D;
 
   public:
     ChVector<> D;

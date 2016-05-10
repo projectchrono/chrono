@@ -64,8 +64,8 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     // Get the mass of the node
     double GetMass() const { return variables.GetNodeMass(); }
 
-    // Access the 'LCP variables' of the node
-    ChLcpVariablesNode& Variables() { return variables; }
+    // Access the variables of the node
+    virtual ChVariablesNode& Variables() override { return variables; }
 
     // Get the SPH container
     ChMatterMeshless* GetMatterContainer() const { return container; }
@@ -77,7 +77,7 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     //
 
     /// Access variables
-    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
+    virtual ChVariables* GetVariables1() override { return &Variables(); }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return true; }
@@ -176,7 +176,7 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 	ChStrainTensor<> e_strain; // elastic strain
 	ChStressTensor<> e_stress; // stress
 
-	ChLcpVariablesNode	variables;
+	ChVariablesNode	variables;
 	collision::ChCollisionModel*	collision_model;
 
 	ChVector<> UserForce;		

@@ -21,7 +21,7 @@ ChClassRegister<ChLcpIterativePCG> a_registration_ChLcpIterativePCG;
 double ChLcpIterativePCG::Solve(ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
                                 ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     tot_iterations = 0;
     double maxviolation = 0.;
@@ -175,7 +175,7 @@ double ChLcpIterativePCG::Solve(ChLcpSystemDescriptor& sysd  ///< system descrip
     // v = (M^-1)*k  ...    (by rewinding to the backup vector computed ad the beginning)
     sysd.FromVectorToVariables(mq);
 
-    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChLcpVariable items)
+    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
             mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());

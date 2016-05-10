@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLES_H
-#define CHLCPVARIABLES_H
+#ifndef CHVARIABLES_H
+#define CHVARIABLES_H
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrixDynamic.h"
@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-///  Base class for representing LCP items which introduce
+///  Base class for representing items which introduce
 /// 'variables', that is variables 'v' (and associated masses M)
 /// for a sparse representation of the problem.
 ///
@@ -46,8 +46,8 @@ namespace chrono {
 /// classes too may implement all three methods without needing to
 /// store entire mass submatrices, if possible, in sake of efficiency.
 
-class ChApi ChLcpVariables {
-    CH_RTTI_ROOT(ChLcpVariables)
+class ChApi ChVariables {
+    CH_RTTI_ROOT(ChVariables)
 public:
 
   private:
@@ -71,14 +71,14 @@ public:
     //
     // CONSTRUCTORS
     //
-    ChLcpVariables() {
+    ChVariables() {
         disabled = false;
         ndof = 0;
         qb = fb = NULL;
         offset = 0;
     }
 
-    ChLcpVariables(int m_ndof) {
+    ChVariables(int m_ndof) {
         disabled = false;
         ndof = m_ndof;
         if (Get_ndof() > 0) {
@@ -88,37 +88,37 @@ public:
             qb = fb = NULL;
         }
         offset = 0;
-    };
+    }
 
-    virtual ~ChLcpVariables() {
+    virtual ~ChVariables() {
         delete qb;
         delete fb;
-    };
+    }
 
     /// Assignment operator: copy from other object
-    ChLcpVariables& operator=(const ChLcpVariables& other);
+    ChVariables& operator=(const ChVariables& other);
 
     //
     // FUNCTIONS
     //
 
     /// Deactivates/freezes the variable (these 'frozen',
-    /// variables won't be modified by the LCP system solver).
+    /// variables won't be modified by the system solver).
     void SetDisabled(bool mdis) { disabled = mdis; }
 
     /// Tells if the variables have been deactivated (these 'frozen',
-    /// variables won't be modified by the LCP system solver).
+    /// variables won't be modified by the system solver).
     bool IsDisabled() const { return disabled; }
 
     /// Tells if these variables are currently active, in general,
-    /// that is tells if they must be included into the LCP system solver or not.
+    /// that is tells if they must be included into the system solver or not.
     bool IsActive() const { return !disabled; }
 
     /// The number of scalar variables in the vector qb
     /// (dof=degrees of freedom)
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes.
-    virtual int Get_ndof() const { return ndof; };
+    virtual int Get_ndof() const { return ndof; }
 
     /// Returns reference to qb, body-relative part of degrees
     /// of freedom q in system:
@@ -133,15 +133,15 @@ public:
     /// this may be fb=dt*Forces+[M]*previous_v ).
     ///  Another option is to set values into fb vectors, accessing
     /// them by Get_fb() from an external procedure, for each body,
-    /// before starting the LCP solver.
-    virtual void Compute_fb(){/* do nothing */};
+    /// before starting the solver.
+    virtual void Compute_fb() {}
 
     /// Returns reference to fb, body-relative part of known
     /// vector f in system.
     ///    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
     ///    | Cq  0 | |l|  |-b|  |c|
     /// This function can be used to set values of fb vector
-    /// before starting the LCP solver.
+    /// before starting the solver.
     ChMatrix<>& Get_fb() { return *fb; }
 
     /// Computes the product of the inverse mass matrix by a
@@ -188,7 +188,7 @@ public:
 
 
 
-    /// Set offset in global q vector (set automatically by ChLcpSystemDescriptor)
+    /// Set offset in global q vector (set automatically by ChSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }
     /// Get offset in global q vector
     int GetOffset() const { return offset; }

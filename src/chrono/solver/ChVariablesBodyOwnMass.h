@@ -10,28 +10,25 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLESBODYOWNMASS_H
-#define CHLCPVARIABLESBODYOWNMASS_H
+#ifndef CHVARIABLESBODYOWNMASS_H
+#define CHVARIABLESBODYOWNMASS_H
 
 #include "chrono/solver/ChVariablesBody.h"
 
 namespace chrono {
 
-///    Specialized class for representing a 6-DOF item for a
-///   LCP system, that is a 3D rigid body, with mass matrix and
-///   associate variables (a 6 element vector, ex.speed)
-///    Differently from the 'naive' implementation ChLcpVariablesGeneric,
-///   here a full 6x6 mass matrix is not built, since only the 3x3
-///   inertia matrix and the mass value are enough.
+/// Specialized class for representing a 6-DOF item for a
+/// system, that is a 3D rigid body, with mass matrix and
+/// associate variables (a 6 element vector, ex.speed)
+/// Differently from the 'naive' implementation ChVariablesGeneric,
+/// here a full 6x6 mass matrix is not built, since only the 3x3
+/// inertia matrix and the mass value are enough.
 
-class ChApi ChLcpVariablesBodyOwnMass : public ChLcpVariablesBody {
-    CH_RTTI(ChLcpVariablesBodyOwnMass, ChLcpVariablesBody)
+class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
+    CH_RTTI(ChVariablesBodyOwnMass, ChVariablesBody)
 
   private:
-    //
-    // DATA
-    //
-    /// the data (qb, variables and fb, forces, already defined in base class)
+    // the data (qb, variables and fb, forces, already defined in base class)
 
     ChMatrix33<double> inertia;  // 3x3 inertia matrix
     double mass;                 // mass value
@@ -44,17 +41,17 @@ class ChApi ChLcpVariablesBodyOwnMass : public ChLcpVariablesBody {
     // CONSTRUCTORS
     //
 
-    ChLcpVariablesBodyOwnMass() {
+    ChVariablesBodyOwnMass() {
         inertia.Set33Identity();
         inv_inertia.Set33Identity();
         mass = 1.;
         inv_mass = 1.;
-    };
+    }
 
-    virtual ~ChLcpVariablesBodyOwnMass(){};
+    virtual ~ChVariablesBodyOwnMass() {}
 
     /// Assignment operator: copy from other object
-    ChLcpVariablesBodyOwnMass& operator=(const ChLcpVariablesBodyOwnMass& other);
+    ChVariablesBodyOwnMass& operator=(const ChVariablesBodyOwnMass& other);
 
     //
     // FUNCTIONS
@@ -131,7 +128,7 @@ class ChApi ChLcpVariablesBodyOwnMass : public ChLcpVariablesBody {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpVariablesBody::ArchiveOUT(marchive);
+        ChVariablesBody::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(mass);
         marchive << CHNVP(inertia);
@@ -143,7 +140,7 @@ class ChApi ChLcpVariablesBodyOwnMass : public ChLcpVariablesBody {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpVariablesBody::ArchiveIN(marchive);
+        ChVariablesBody::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(mass);
         marchive >> CHNVP(inertia);

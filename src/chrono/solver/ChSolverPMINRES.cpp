@@ -23,7 +23,7 @@ double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system des
     bool do_preconditioning = this->diag_preconditioning;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     // If stiffness blocks are used, the Schur complement cannot be esily
     // used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
@@ -269,7 +269,7 @@ double ChLcpIterativePMINRES::Solve(ChLcpSystemDescriptor& sysd  ///< system des
     // v = (M^-1)*k  ...    (by rewinding to the backup vector computed ad the beginning)
     sysd.FromVectorToVariables(mq);
 
-    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChLcpVariable items)
+    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
             mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
@@ -290,7 +290,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
     bool do_preconditioning = this->diag_preconditioning;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();
 
     this->tot_iterations = 0;

@@ -50,7 +50,7 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     }
 
     /// Construct and immediately set references to variables
-    ChConstraintTwoGenericBoxed(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b)
+    ChConstraintTwoGenericBoxed(ChVariables* mvariables_a, ChVariables* mvariables_b)
         : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
         l_min = -1.;
         l_max = 1.;

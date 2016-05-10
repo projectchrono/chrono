@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLESSHAFT_H
-#define CHLCPVARIABLESSHAFT_H
+#ifndef CHVARIABLESSHAFT_H
+#define CHVARIABLESSHAFT_H
 
 #include "chrono/solver/ChVariables.h"
 
@@ -18,11 +18,11 @@ namespace chrono {
 
 class ChShaft;
 
-///  Specialized class for representing a 1-DOF item for an LCP system, that is
-///  a shaft, with inertia and associated variable (rotational speed)
+/// Specialized class for representing a 1-DOF item for a system, that is
+/// a shaft, with inertia and associated variable (rotational speed)
 
-class ChApi ChLcpVariablesShaft : public ChLcpVariables {
-    CH_RTTI(ChLcpVariablesShaft, ChLcpVariables)
+class ChApi ChVariablesShaft : public ChVariables {
+    CH_RTTI(ChVariablesShaft, ChVariables)
 
   private:
     ChShaft* m_shaft;
@@ -35,16 +35,16 @@ class ChApi ChLcpVariablesShaft : public ChLcpVariables {
     // CONSTRUCTORS
     //
 
-    ChLcpVariablesShaft() : ChLcpVariables(1) {
+    ChVariablesShaft() : ChVariables(1) {
         m_shaft = 0;
         m_inertia = 1.0;
         m_inv_inertia = 1.0;
     }
 
-    virtual ~ChLcpVariablesShaft() {}
+    virtual ~ChVariablesShaft() {}
 
     /// Assignment operator: copy from other object
-    ChLcpVariablesShaft& operator=(const ChLcpVariablesShaft& other);
+    ChVariablesShaft& operator=(const ChVariablesShaft& other);
 
     //
     // FUNCTIONS
@@ -113,7 +113,7 @@ class ChApi ChLcpVariablesShaft : public ChLcpVariables {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpVariables::ArchiveOUT(marchive);
+        ChVariables::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(m_inertia);
     }
@@ -124,7 +124,7 @@ class ChApi ChLcpVariablesShaft : public ChLcpVariables {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpVariables::ArchiveIN(marchive);
+        ChVariables::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(m_inertia);
         SetInertia(m_inertia);

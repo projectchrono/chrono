@@ -43,7 +43,7 @@ struct thread_data {
     unsigned int var_to;
 
     std::vector<ChConstraint*>* mconstraints;
-    std::vector<ChLcpVariables*>* mvariables;
+    std::vector<ChVariables*>* mvariables;
 };
 
 // Don't create local store memory, just return 0
@@ -64,7 +64,7 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
     thread_data* tdata = (thread_data*)userPtr;
 
     std::vector<ChConstraint*>* mconstraints = tdata->mconstraints;
-    std::vector<ChLcpVariables*>* mvariables = tdata->mvariables;
+    std::vector<ChVariables*>* mvariables = tdata->mvariables;
 
     switch (tdata->stage) {
         case thread_data::STAGE1_PREPARE: {
@@ -280,7 +280,7 @@ double ChLcpIterativeSORmultithread::Solve(
     ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     double maxviolation = 0.;
     double maxdeltalambda = 0.;

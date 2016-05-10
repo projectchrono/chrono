@@ -38,8 +38,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     ChAparticle(const ChAparticle& other);             // Copy constructor
     ChAparticle& operator=(const ChAparticle& other);  // Assignment operator
 
-    // Access the 'LCP variables' of the node
-    virtual ChLcpVariables& Variables() { return variables; }
+    // Access the variables of the node
+    virtual ChVariables& Variables() override { return variables; }
 
     // Get the container
     ChParticlesClones* GetContainer() const {return container;}
@@ -51,7 +51,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     //
 
     /// Access variables.
-    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
+    virtual ChVariables* GetVariables1() override { return &Variables(); }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -181,7 +181,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     //
 
     ChParticlesClones* container;
-    ChLcpVariablesBodySharedMass variables;
+    ChVariablesBodySharedMass variables;
     collision::ChCollisionModel* collision_model;
     ChVector<> UserForce;
     ChVector<> UserTorque;

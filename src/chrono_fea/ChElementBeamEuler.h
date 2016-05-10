@@ -86,7 +86,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
         nodes[0] = nodeA;
         nodes[1] = nodeB;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
         Kmatr.SetVariables(mvars);
@@ -1072,8 +1072,8 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
         mvars.push_back(&this->nodes[0]->Variables());
         mvars.push_back(&this->nodes[1]->Variables());
     };

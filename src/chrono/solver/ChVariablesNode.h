@@ -10,24 +10,21 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLESNODE_H
-#define CHLCPVARIABLESNODE_H
+#ifndef CHVARIABLESNODE_H
+#define CHVARIABLESNODE_H
 
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
-///    Specialized class for representing a 3-DOF item for a
-///   LCP system, that is a 3D point node, with mass matrix and
-///   associate variables (a 3 element vector, ex.speed)
+/// Specialized class for representing a 3-DOF item for a
+/// system, that is a 3D point node, with mass matrix and
+/// associate variables (a 3 element vector, ex.speed)
 
-class ChApi ChLcpVariablesNode : public ChLcpVariables {
-    CH_RTTI(ChLcpVariablesNode, ChLcpVariables)
+class ChApi ChVariablesNode : public ChVariables {
+    CH_RTTI(ChVariablesNode, ChVariables)
 
   private:
-    //
-    // DATA		//
-
     void* user_data;
 
     double mass;  // mass value
@@ -37,15 +34,15 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
     // CONSTRUCTORS
     //
 
-    ChLcpVariablesNode() : ChLcpVariables(3) {
+    ChVariablesNode() : ChVariables(3) {
         user_data = 0;
         mass = 1.0;
-    };
+    }
 
-    virtual ~ChLcpVariablesNode(){};
+    virtual ~ChVariablesNode() {}
 
     /// Assignment operator: copy from other object
-    ChLcpVariablesNode& operator=(const ChLcpVariablesNode& other);
+    ChVariablesNode& operator=(const ChVariablesNode& other);
 
     //
     // FUNCTIONS
@@ -61,7 +58,7 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
 
     /// The number of scalar variables in the vector qb
     /// (dof=degrees of freedom)
-    virtual int Get_ndof() const { return 3; };
+    virtual int Get_ndof() const { return 3; }
 
     virtual void* GetUserData() { return this->user_data; }
     virtual void SetUserData(void* mdata) { this->user_data = mdata; }
@@ -110,7 +107,7 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpVariables::ArchiveOUT(marchive);
+        ChVariables::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(mass);
     }
@@ -121,7 +118,7 @@ class ChApi ChLcpVariablesNode : public ChLcpVariables {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpVariables::ArchiveIN(marchive);
+        ChVariables::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(mass);
         SetNodeMass(mass);

@@ -322,7 +322,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // NOTE: currently, only contactable objects derived from ChContactable_1vars<6>,
         //       ChContactable_1vars<3>, and ChContactable_3vars<3,3,3> are supported.
         int ndof_w = 0;
-        std::vector<ChLcpVariables*> vars;
+        std::vector<ChVariables*> vars;
 
         vars.push_back(this->objA->GetVariables1());
         if (auto objA_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objA)) {

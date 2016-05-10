@@ -46,8 +46,8 @@ class ChApi ChShaft : public ChPhysicsItem {
 
     double inertia;  // the J moment of inertia (or mass, if used as linear DOF)
 
-    // used as an interface to the LCP solver.
-    ChLcpVariablesShaft variables;
+    // used as an interface to the solver.
+    ChVariablesShaft variables;
 
     float max_speed;  // limit on linear speed (useful for VR & videagames)
 
@@ -126,8 +126,8 @@ class ChApi ChShaft : public ChPhysicsItem {
     /// Number of coordinates of the shaft
     virtual int GetDOF() { return 1; }
 
-    /// Returns reference to the encapsulated ChLcpVariables,
-    ChLcpVariablesShaft& Variables() { return variables; }
+    /// Returns reference to the encapsulated ChVariables,
+    ChVariablesShaft& Variables() { return variables; }
 
     //
     // STATE FUNCTIONS
@@ -166,13 +166,13 @@ class ChApi ChShaft : public ChPhysicsItem {
     // Override/implement LCP system functions of ChPhysicsItem
     // (to assembly/manage data for LCP system solver)
 
-    /// Sets the 'fb' part of the encapsulated ChLcpVariables to zero.
+    /// Sets the 'fb' part of the encapsulated ChVariables to zero.
     void VariablesFbReset();
 
     /// Adds the current torques in the 'fb' part: qf+=torques*factor
     void VariablesFbLoadForces(double factor = 1.);
 
-    /// Initialize the 'qb' part of the ChLcpVariables with the
+    /// Initialize the 'qb' part of the ChVariables with the
     /// current value of shaft speed. Note: since 'qb' is the unknown of the LCP, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
     void VariablesQbLoadSpeed();
@@ -182,19 +182,19 @@ class ChApi ChShaft : public ChPhysicsItem {
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     void VariablesFbIncrementMq();
 
-    /// Fetches the shaft speed from the 'qb' part of the ChLcpVariables (does not
+    /// Fetches the shaft speed from the 'qb' part of the ChVariables (does not
     /// updates the full shaft state) and sets it as the current shaft speed.
     /// If 'step' is not 0, also computes the approximate acceleration of
     /// the shaft using backward differences, that is  accel=(new_speed-old_speed)/step.
     void VariablesQbSetSpeed(double step = 0.);
 
-    /// Increment shaft position by the 'qb' part of the ChLcpVariables,
+    /// Increment shaft position by the 'qb' part of the ChVariables,
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     void VariablesQbIncrementPosition(double step);
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChLcpVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a solver)
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
 
     // Other functions

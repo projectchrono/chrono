@@ -65,9 +65,9 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
         return *this;
     }
 
-    virtual ChLcpVariables& Variables() override { return this->variables; }
+    virtual ChVariables& Variables() override { return this->variables; }
 
-    virtual ChLcpVariablesBodyOwnMass& VariablesBody() override { return this->variables; }
+    virtual ChVariablesBodyOwnMass& VariablesBody() override { return this->variables; }
 
     /// Set the rest position as the actual position.
     virtual void Relax() override {
@@ -304,7 +304,7 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
     }
 
   private:
-    ChLcpVariablesBodyOwnMass variables;  /// 3D node variables, with x,y,z displ. and 3D rot.
+    ChVariablesBodyOwnMass variables;  /// 3D node variables, with x,y,z displ. and 3D rot.
 
     // ChFrameMoving<> frame;	///< frame
 

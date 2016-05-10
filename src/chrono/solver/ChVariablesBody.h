@@ -10,43 +10,24 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLESBODY_H
-#define CHLCPVARIABLESBODY_H
-
-//////////////////////////////////////////////////
-//
-//   ChLcpVariablesBody.h
-//
-//    Specialized class for representing a mass matrix
-//   and associate variables (6 element vector, ex.speed)
-//   for a 3D rigid body.
-//
-//
-//   HEADER file for CHRONO HYPEROCTANT LCP solver
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#ifndef CHVARIABLESBODY_H
+#define CHVARIABLESBODY_H
 
 #include "chrono/solver/ChVariables.h"
 #include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
 
-///    Specialized class for representing a 6-DOF item for a
-///   LCP system, that is a 3D rigid body, with mass matrix and
-///   associate variables (a 6 element vector, ex.speed)
-///    This is an abstract class, specialized for example in
-///   ChLcpVariablesBodyOwnMass and ChLcpVariablesBodySharedMass.
+/// Specialized class for representing a 6-DOF item for a
+/// system, that is a 3D rigid body, with mass matrix and
+/// associate variables (a 6 element vector, ex.speed)
+/// This is an abstract class, specialized for example in
+/// ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
 
-class ChApi ChLcpVariablesBody : public ChLcpVariables {
-    CH_RTTI(ChLcpVariablesBody, ChLcpVariables)
+class ChApi ChVariablesBody : public ChVariables {
+    CH_RTTI(ChVariablesBody, ChVariables)
 
   private:
-    //
-    // DATA		//
-
     void* user_data;
 
   public:
@@ -54,12 +35,12 @@ class ChApi ChLcpVariablesBody : public ChLcpVariables {
     // CONSTRUCTORS
     //
 
-    ChLcpVariablesBody() : ChLcpVariables(6) { user_data = 0; };
+    ChVariablesBody() : ChVariables(6) { user_data = 0; }
 
-    virtual ~ChLcpVariablesBody(){};
+    virtual ~ChVariablesBody() {}
 
     /// Assignment operator: copy from other object
-    ChLcpVariablesBody& operator=(const ChLcpVariablesBody& other);
+    ChVariablesBody& operator=(const ChVariablesBody& other);
 
     //
     // FUNCTIONS

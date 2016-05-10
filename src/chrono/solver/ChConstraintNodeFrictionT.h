@@ -41,7 +41,7 @@ class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
     /// also setting the  and the normal constraint
     /// other tangential constraint (the latter is mandatory only
     /// for the second of the two tangential constraints)
-    ChConstraintNodeFrictionT(ChLcpVariablesBody* mvariables_a, ChLcpVariablesNode* mvariables_b)
+    ChConstraintNodeFrictionT(ChVariablesBody* mvariables_a, ChVariablesNode* mvariables_b)
         : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
         mode = CONSTRAINT_FRIC;
     }

@@ -83,7 +83,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
         nodes[17] = nodeR;
         nodes[18] = nodeS;
         nodes[19] = nodeT;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
         mvars.push_back(&nodes[2]->Variables());
@@ -865,8 +865,8 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
 
-        /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         for (int i=0; i<nodes.size(); ++i)
             mvars.push_back(&this->nodes[i]->Variables());
     };

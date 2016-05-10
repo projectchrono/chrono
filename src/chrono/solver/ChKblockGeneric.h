@@ -39,7 +39,7 @@ class ChApi ChKblockGeneric : public ChKblock {
 
   private:
     ChMatrixDynamic<double>* K;
-    std::vector<ChLcpVariables*> variables;
+    std::vector<ChVariables*> variables;
 
   public:
     //
@@ -48,14 +48,14 @@ class ChApi ChKblockGeneric : public ChKblock {
 
     ChKblockGeneric() { K = 0; }
 
-    ChKblockGeneric(std::vector<ChLcpVariables*> mvariables) {
+    ChKblockGeneric(std::vector<ChVariables*> mvariables) {
         K = 0;
         this->SetVariables(mvariables);
     }
 
-    ChKblockGeneric(ChLcpVariables* mvariableA, ChLcpVariables* mvariableB) {
+    ChKblockGeneric(ChVariables* mvariableA, ChVariables* mvariableB) {
         K = 0;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(mvariableA);
         mvars.push_back(mvariableB);
         this->SetVariables(mvars);
@@ -74,15 +74,15 @@ class ChApi ChKblockGeneric : public ChKblock {
     // FUNCTIONS
     //
 
-    /// Set references to the constrained objects, each of ChLcpVariables type,
+    /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing K matrix if needed.
-    void SetVariables(std::vector<ChLcpVariables*> mvariables);
+    void SetVariables(std::vector<ChVariables*> mvariables);
 
-    /// Returns the number of referenced ChLcpVariables items
+    /// Returns the number of referenced ChVariables items
     virtual size_t GetNvars() const { return variables.size(); }
 
     /// Access the m-th vector variable object
-    virtual ChLcpVariables* GetVariableN(unsigned int m_var) const { return variables[m_var]; }
+    virtual ChVariables* GetVariableN(unsigned int m_var) const { return variables[m_var]; }
 
     /// Access the K stiffness matrix as a single block,
     /// referring only to the referenced ChVariable objects

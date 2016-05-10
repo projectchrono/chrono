@@ -89,17 +89,17 @@ class ChApi ChNodeBase {
 			//
 
 	            /// Tell to a system descriptor that there are variables of type
-                /// ChLcpVariables in this object (for further passing it to a LCP solver)
+                /// ChVariables in this object (for further passing it to a LCP solver)
 	virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) {};
 
-				/// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
+				/// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.
 	virtual void VariablesFbReset() {}
 
 				/// Adds the current forces (applied to node) into the
-				/// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+				/// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
 	virtual void VariablesFbLoadForces(double factor=1.) {};
 
-				/// Initialize the 'qb' part of the ChLcpVariables with the 
+				/// Initialize the 'qb' part of the ChVariables with the 
 				/// current value of speeds. 
 	virtual void VariablesQbLoadSpeed() {};
 
@@ -109,13 +109,13 @@ class ChApi ChNodeBase {
 	virtual void VariablesFbIncrementMq() {};
 
 				/// Fetches the item speed (ex. linear velocity, in xyz nodes) from the
-				/// 'qb' part of the ChLcpVariables and sets it as the current item speed.
+				/// 'qb' part of the ChVariables and sets it as the current item speed.
 				/// If 'step' is not 0, also should compute the approximate acceleration of
 				/// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
-				/// Mostly used after the LCP provided the solution in ChLcpVariables.
+				/// Mostly used after the solver provided the solution in ChVariables.
 	virtual void VariablesQbSetSpeed(double step=0.) {};
 
-				/// Increment node positions by the 'qb' part of the ChLcpVariables,
+				/// Increment node positions by the 'qb' part of the ChVariables,
 				/// multiplied by a 'step' factor.
 				///     pos+=qb*step
 				/// If qb is a speed, this behaves like a single step of 1-st order

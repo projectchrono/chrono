@@ -39,12 +39,12 @@ ChConstraintThreeBBShaft& ChConstraintThreeBBShaft::operator=(const ChConstraint
     return *this;
 }
 
-void ChConstraintThreeBBShaft::SetVariables(ChLcpVariables* mvariables_a,
-                                            ChLcpVariables* mvariables_b,
-                                            ChLcpVariables* mvariables_c) {
-    assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_a));
-    assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_b));
-    assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_c));
+void ChConstraintThreeBBShaft::SetVariables(ChVariables* mvariables_a,
+                                            ChVariables* mvariables_b,
+                                            ChVariables* mvariables_c) {
+    assert(dynamic_cast<ChVariablesBody*>(mvariables_a));
+    assert(dynamic_cast<ChVariablesBody*>(mvariables_b));
+    assert(dynamic_cast<ChVariablesBody*>(mvariables_c));
 
     if (!mvariables_a || !mvariables_b || !mvariables_c) {
         SetValid(false);

@@ -10,14 +10,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPVARIABLESBODYSHAREDMASS_H
-#define CHLCPVARIABLESBODYSHAREDMASS_H
+#ifndef CHVARIABLESBODYSHAREDMASS_H
+#define CHVARIABLESBODYSHAREDMASS_H
 
 #include "chrono/solver/ChVariablesBody.h"
 
 namespace chrono {
 
-///  Used by ChLcpVariablesBodySharedMass objects to
+/// Used by ChVariablesBodySharedMass objects to
 /// reference a single mass propery.
 
 class ChApi ChSharedMassBody {
@@ -81,23 +81,20 @@ class ChApi ChSharedMassBody {
     }
 };
 
-///    Specialized class for representing a 6-DOF item for a
-///   LCP system, that is a 3D rigid body, with mass matrix and
-///   associate variables (a 6 element vector, ex.speed)
-///    Differently from the 'naive' implementation ChLcpVariablesGeneric,
-///   here a full 6x6 mass matrix is not built, since only the 3x3
-///   inertia matrix and the mass value are enough.
-///    This is very similar to ChLcpVariablesBodyOwnMass, but the
-///   mass and inertia values are shared, that can be useful for
-///   problems with thousands of equally-shaped objects.
+///  Specialized class for representing a 6-DOF item for a
+///  system, that is a 3D rigid body, with mass matrix and
+///  associate variables (a 6 element vector, ex.speed)
+///  Differently from the 'naive' implementation ChVariablesGeneric,
+///  here a full 6x6 mass matrix is not built, since only the 3x3
+///  inertia matrix and the mass value are enough.
+///  This is very similar to ChVariablesBodyOwnMass, but the
+///  mass and inertia values are shared, that can be useful for
+///  problems with thousands of equally-shaped objects.
 
-class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
-    CH_RTTI(ChLcpVariablesBodySharedMass, ChLcpVariablesBody)
+class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
+    CH_RTTI(ChVariablesBodySharedMass, ChVariablesBody)
 
   private:
-    //
-    // DATA
-    //
     /// the data (qb, variables and fb, forces, already defined in base class)
 
     ChSharedMassBody* sharedmass;
@@ -107,22 +104,22 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     // CONSTRUCTORS
     //
 
-    ChLcpVariablesBodySharedMass() { sharedmass = 0; };
+    ChVariablesBodySharedMass() { sharedmass = 0; };
 
-    virtual ~ChLcpVariablesBodySharedMass(){};
+    virtual ~ChVariablesBodySharedMass() {}
 
     /// Assignment operator: copy from other object
-    ChLcpVariablesBodySharedMass& operator=(const ChLcpVariablesBodySharedMass& other);
+    ChVariablesBodySharedMass& operator=(const ChVariablesBodySharedMass& other);
 
     //
     // FUNCTIONS
     //
 
     /// Get the pointer to shared mass
-    ChSharedMassBody* GetSharedMass() { return sharedmass; };
+    ChSharedMassBody* GetSharedMass() { return sharedmass; }
 
     /// Set pointer to shared mass
-    void SetSharedMass(ChSharedMassBody* ms) { sharedmass = ms; };
+    void SetSharedMass(ChSharedMassBody* ms) { sharedmass = ms; }
 
     // IMPLEMENT PARENT CLASS METHODS
 
@@ -133,7 +130,7 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
     ChMatrix33<>& GetBodyInertia() { return sharedmass->GetBodyInertia(); }
 
     /// Access the 3x3 inertia matrix inverted
-    ChMatrix33<>& GetBodyInvInertia() { return sharedmass->GetBodyInvInertia(); };
+    ChMatrix33<>& GetBodyInvInertia() { return sharedmass->GetBodyInvInertia(); }
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and set in result: result = [invMb]*vect
@@ -179,7 +176,7 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpVariablesBody::ArchiveOUT(marchive);
+        ChVariablesBody::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(sharedmass);
     }
@@ -190,7 +187,7 @@ class ChApi ChLcpVariablesBodySharedMass : public ChLcpVariablesBody {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpVariablesBody::ArchiveIN(marchive);
+        ChVariablesBody::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(sharedmass);
     }

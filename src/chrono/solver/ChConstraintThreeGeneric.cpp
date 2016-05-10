@@ -88,9 +88,9 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
     return *this;
 }
 
-void ChConstraintThreeGeneric::SetVariables(ChLcpVariables* mvariables_a,
-                                            ChLcpVariables* mvariables_b,
-                                            ChLcpVariables* mvariables_c) {
+void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
+                                            ChVariables* mvariables_b,
+                                            ChVariables* mvariables_c) {
     if (!mvariables_a || !mvariables_b || !mvariables_c) {
         SetValid(false);
         return;

@@ -58,7 +58,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
         return *this;
     }
 
-    virtual ChLcpVariablesNode& Variables() override { return this->variables; }
+    virtual ChVariablesNode& Variables() override { return this->variables; }
 
     /// Set the rest position as the actual position.
     virtual void Relax() override {
@@ -224,7 +224,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     }
 
   protected:
-    ChLcpVariablesNode variables;  /// 3D node variables, with x,y,z
+    ChVariablesNode variables;  /// 3D node variables, with x,y,z
 
     ChVector<> X0;     ///< reference position
     ChVector<> Force;  ///< applied force

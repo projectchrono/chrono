@@ -63,7 +63,7 @@ class ChApi ChLinkMask {
 
     /// Set references to variables of two connected bodies to all
     /// constraints at once, therefore also sets all the constraints as active.
-    void SetTwoBodiesVariables(ChLcpVariables* var1, ChLcpVariables* var2);
+    void SetTwoBodiesVariables(ChVariables* var1, ChVariables* var2);
 
     /// Obtain the reference to the i-th scalar constraint data
     /// in the collection link mask.

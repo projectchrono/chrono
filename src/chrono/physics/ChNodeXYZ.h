@@ -43,7 +43,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     //
 
     // Access the xyz 'LCP variables' of the node
-    virtual ChLcpVariablesNode& Variables() =0;
+    virtual ChVariablesNode& Variables() =0;
 
     // Position of the node - in absolute csys.
     const ChVector<>& GetPos() const { return pos; }
@@ -103,8 +103,8 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
         mvars.push_back(&this->Variables());
     };
 

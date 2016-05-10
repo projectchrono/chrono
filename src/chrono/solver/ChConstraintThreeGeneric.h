@@ -61,7 +61,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     ChConstraintThreeGeneric() { Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL; }
 
     /// Construct and immediately set references to variables
-    ChConstraintThreeGeneric(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c) {
+    ChConstraintThreeGeneric(ChVariables* mvariables_a, ChVariables* mvariables_b, ChVariables* mvariables_c) {
         Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL;
         SetVariables(mvariables_a, mvariables_b, mvariables_c);
     }
@@ -123,7 +123,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
-    virtual void SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b, ChLcpVariables* mvariables_c);
+    virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b, ChVariables* mvariables_c);
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b and Eq_c  matrices

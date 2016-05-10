@@ -50,8 +50,8 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
 
     /// Construct and immediately set references to variables,
     /// also setting the U and V tangential friction constraints
-    ChConstraintNodeContactN(ChLcpVariablesBody* mvariables_a,
-                             ChLcpVariablesNode* mvariables_b,
+    ChConstraintNodeContactN(ChVariablesBody* mvariables_a,
+                             ChVariablesNode* mvariables_b,
                              ChConstraintNodeFrictionT* aU = 0,
                              ChConstraintNodeFrictionT* aV = 0)
         : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {

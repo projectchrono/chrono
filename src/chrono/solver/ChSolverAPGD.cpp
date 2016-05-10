@@ -75,7 +75,7 @@ double ChIterativeAPGD::Res4(ChLcpSystemDescriptor& sysd) {
 double ChIterativeAPGD::Solve(ChLcpSystemDescriptor& sysd) {
     bool verbose = false;
     const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    const std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
+    const std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
     if (verbose)
         std::cout << "Number of constraints: " << mconstraints.size()
                   << "\nNumber of variables  : " << mvariables.size() << std::endl;
@@ -284,7 +284,7 @@ double ChIterativeAPGD::Solve(ChLcpSystemDescriptor& sysd) {
     // v = (M^-1)*k  ...    (by rewinding to the backup vector computed at the beginning)
     sysd.FromVectorToVariables(Minvk);
 
-    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChLcpVariable items)
+    // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (size_t ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
             mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());

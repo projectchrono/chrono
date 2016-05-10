@@ -36,9 +36,9 @@ ChConstraintTwoBodies& ChConstraintTwoBodies::operator=(const ChConstraintTwoBod
     return *this;
 }
 
-void ChConstraintTwoBodies::SetVariables(ChLcpVariables* mvariables_a, ChLcpVariables* mvariables_b) {
-    assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_a));
-    assert(dynamic_cast<ChLcpVariablesBody*>(mvariables_b));
+void ChConstraintTwoBodies::SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) {
+    assert(dynamic_cast<ChVariablesBody*>(mvariables_a));
+    assert(dynamic_cast<ChVariablesBody*>(mvariables_b));
 
     if (!mvariables_a || !mvariables_b) {
         SetValid(false);

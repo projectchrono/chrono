@@ -358,14 +358,14 @@ class ChApi ChPhysicsItem : public ChObj {
     // The children classes, inherited from ChPhysicsItem, can implement them (by default,
     // the base ChPhysicsItem does not introduce any variable nor any constraint).
 
-    /// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
+    /// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() {}
 
     /// Adds the current forces (applied to item) into the
-    /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
     virtual void VariablesFbLoadForces(double factor = 1.) {}
 
-    /// Initialize the 'qb' part of the ChLcpVariables with the
+    /// Initialize the 'qb' part of the ChVariables with the
     /// current value of speeds. Note: since 'qb' is the unknown of the LCP, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
     virtual void VariablesQbLoadSpeed() {}
@@ -376,13 +376,13 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void VariablesFbIncrementMq() {}
 
     /// Fetches the item speed (ex. linear and angular vel.in rigid bodies) from the
-    /// 'qb' part of the ChLcpVariables and sets it as the current item speed.
+    /// 'qb' part of the ChVariables and sets it as the current item speed.
     /// If 'step' is not 0, also should compute the approximate acceleration of
     /// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
-    /// Mostly used after the LCP provided the solution in ChLcpVariables.
+    /// Mostly used after the solver provided the solution in ChVariables.
     virtual void VariablesQbSetSpeed(double step = 0.) {}
 
-    /// Increment item positions by the 'qb' part of the ChLcpVariables,
+    /// Increment item positions by the 'qb' part of the ChVariables,
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
@@ -390,7 +390,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void VariablesQbIncrementPosition(double step) {}
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChLcpVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a LCP solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) {}
 
@@ -415,7 +415,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void ConstraintsBiLoad_Qc(double factor = 1.) {}
 
     /// Adds the current link-forces, if any, (caused by springs, etc.) to the 'fb' vectors
-    /// of the ChLcpVariables referenced by encapsulated ChConstraints
+    /// of the ChVariables referenced by encapsulated ChConstraints
     virtual void ConstraintsFbLoadForces(double factor = 1.) {}
 
     /// Adds the current jacobians in encapsulated ChConstraints
