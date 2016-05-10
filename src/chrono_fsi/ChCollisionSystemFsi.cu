@@ -199,6 +199,7 @@ void ChCollisionSystemFsi::calcHash() {
 	uint numThreads, numBlocks;
 	computeGridSize(numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 	/* Execute Kernel */
+
 	calcHashD<<<numBlocks, numThreads>>>(U1CAST(markersProximityD->gridMarkerHashD),
 			U1CAST(markersProximityD->gridMarkerIndexD), mR3CAST(sphMarkersD->posRadD),
 			numObjectsH->numAllMarkers, isErrorD);

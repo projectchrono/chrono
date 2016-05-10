@@ -350,6 +350,7 @@ paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 void ChFsiForceParallel::Finalize() {
 	cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
 	cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+	vel_XSPH_Sorted_D.resize(numObjectsH->numAllMarkers);
 	fsiCollisionSystem->Finalize();
 
 }
@@ -435,6 +436,7 @@ void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_X
 void ChFsiForceParallel::CalculateXSPH_velocity() {	
 	/* Calculate vel_XSPH */
 	if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
+		printf("vel_XSPH_Sorted_D.size() %d numObjectsH->numAllMarkers %d \n", vel_XSPH_Sorted_D.size(), numObjectsH->numAllMarkers);
 		throw std::runtime_error ("Error! size error vel_XSPH_Sorted_D Thrown from CalculateXSPH_velocity!\n");
 	}
 	RecalcVelocity_XSPH(vel_XSPH_Sorted_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD,

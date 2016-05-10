@@ -63,7 +63,7 @@
 // FSI Interface Includes
 #include "params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
 
-#define haveFluid false
+#define haveFluid true
 
 // Chrono namespaces
 using namespace chrono;
@@ -523,11 +523,11 @@ int main(int argc, char* argv[]) {
 	chrono::ChVector<> CameraLocation = chrono::ChVector<>(0, -10, 0);
 	chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0);
 
-	chrono::fsi::SimParams* paramsH = new chrono::fsi::SimParams;
+	chrono::fsi::SimParams* paramsH = myFsiSystem.GetSimParams();
 
 		SetupParamsH(paramsH, hdimX, hdimY, hthick, basinDepth, fluidInitDimX, fluidHeight);
 		printSimulationParameters(paramsH);
-		myFsiSystem.SetSimParams(paramsH);
+//		myFsiSystem.SetSimParams(paramsH);
 #if haveFluid
 		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 		utils::GridSampler<> sampler(initSpace0);

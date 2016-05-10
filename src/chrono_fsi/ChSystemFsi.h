@@ -47,7 +47,7 @@ public:
 	void FinalizeData();
 	ChFsiDataManager* GetDataManager() {return fsiData;}
 	SimParams* GetSimParams() {return paramsH;}
-	void SetSimParams(SimParams* other_paramsH) {paramsH = other_paramsH;}
+//	void SetSimParams(SimParams* other_paramsH) {paramsH = other_paramsH;} // It is not enough to just set sim params here. It should recursively go and set for all subclasses
 	std::vector<ChSharedPtr<ChBody> > * GetFsiBodiesPtr() {return & fsiBodeisPtr;}
 	void InitializeChronoGraphics(
 		chrono::ChVector<> CameraLocation = chrono::ChVector<>(1, 0, 0), 

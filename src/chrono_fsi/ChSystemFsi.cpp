@@ -27,10 +27,11 @@ namespace fsi {
 
 ChSystemFsi::ChSystemFsi(ChSystemParallelDVI * other_physicalSystem, bool other_haveFluid) : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0), haveVehicle(false), mVehicle(NULL) {
 	fsiData = new ChFsiDataManager();
+	paramsH = new SimParams;
 	fsiBodeisPtr.resize(0);
 	numObjectsH = &(fsiData->numObjects);
 
-	bceWorker = new ChBce(&(fsiData->fsiGeneralData), paramsH, numObjectsH);
+	bceWorker = new ChBce(&(fsiData->sortedSphMarkersD), &(fsiData->markersProximityD), &(fsiData->fsiGeneralData), paramsH, numObjectsH);
 	fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH);
 	fsiInterface = new ChFsiInterface(&(fsiData->fsiBodiesH),
 		mphysicalSystem, &fsiBodeisPtr,
@@ -110,18 +111,12 @@ void ChSystemFsi::DoStepDynamics_FSI(){
 	fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
 	mTime += 0.5 * paramsH->dT;
 
-	printf("&? a1\n");
-
 	// TODO
 		DoStepChronoSystem(0.5 * paramsH->dT, mTime); // Keep only this if you are just interested in the rigid sys
 	//
 		
-		printf("&? a2\n");
-
 	fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD2));
 	bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
-
-	printf("&? a3\n");
 
 	fluidDynamics->IntegrateSPH(
 		&(fsiData->sphMarkersD1),
@@ -129,15 +124,9 @@ void ChSystemFsi::DoStepDynamics_FSI(){
 		&(fsiData->fsiBodiesD2),
 		paramsH->dT);
 
-	printf("&? a4\n");
-
 	bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
 
-	printf("&? a5\n");
-
 	fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
-
-	printf("&? a6\n");
 
 	mTime -= 0.5 * paramsH->dT;
 	fsiInterface->Copy_External_To_ChSystem();

@@ -101,6 +101,7 @@ __global__ void new_BCE_VelocityPressure(
 	if (sphIndex >= updatePortion.y) {
 		return;
 	}
+
 	uint idA = mapOriginalToSorted[sphIndex];
 	Real4 rhoPreMuA = sortedRhoPreMu[idA];
 	Real3 posRadA = sortedPosRad[idA];
@@ -254,10 +255,13 @@ __global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD,
 																 // from SPH acceleration to force
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-ChBce::ChBce(FsiGeneralData* otherFsiGeneralData,
+ChBce::ChBce(
+		SphMarkerDataD * otherSortedSphMarkersD,
+		ProximityDataD * otherMarkersProximityD,
+		FsiGeneralData* otherFsiGeneralData,
 	SimParams* otherParamsH, 
 	NumberOfObjects* otherNumObjects) :
-			 fsiGeneralData(otherFsiGeneralData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+		sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Finalize() {
@@ -434,7 +438,7 @@ void ChBce::Rigid_Forces_Torques(
 	//####### Force (Acceleration)
 	if (totalSurfaceInteractionRigid4.size() != numObjectsH->numRigidBodies ||
 	 dummyIdentify.size() != numObjectsH->numRigidBodies ||
-	 torqueMarkersD.size() != numObjectsH->numRigidBodies ) {
+	 torqueMarkersD.size() != numObjectsH->numRigid_SphMarkers ) {
 		throw std::runtime_error ("Error! wrong size: totalSurfaceInteractionRigid4 or torqueMarkersD or dummyIdentify. Thrown from Rigid_Forces_Torques!\n");
 	}
 

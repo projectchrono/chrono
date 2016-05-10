@@ -31,9 +31,11 @@ public:
 	thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;//(numRigidAndBoundaryMarkers);
 
 
-	ChBce(FsiGeneralData* otherFsiGeneralData,
-		SimParams* otherParamsH, 
-		NumberOfObjects* otherNumObjects);
+	ChBce(SphMarkerDataD * sortedSphMarkersD,
+			ProximityDataD * markersProximityD,
+			FsiGeneralData* otherFsiGeneralData,
+			SimParams* otherParamsH,
+			NumberOfObjects* otherNumObjects);
 
 	~ChBce();
 
