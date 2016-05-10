@@ -150,7 +150,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChController.cpp
     physics/ChIterative.cpp
     physics/ChRef.cpp
-    physics/ChConstraint.cpp
+    physics/ChGenericConstraint.cpp
     physics/ChPhysicsItem.cpp
     physics/ChParticlesClones.cpp
     physics/ChIndexedParticles.cpp
@@ -191,7 +191,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChBody.h
     physics/ChBodyAuxRef.h
     physics/ChBodyEasy.h
-    physics/ChConstraint.h
+    physics/ChGenericConstraint.h
     physics/ChContactContainerBase.h
     physics/ChContactContainerDVI.h
     physics/ChContactContainerDEM.h

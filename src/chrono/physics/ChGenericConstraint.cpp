@@ -9,36 +9,20 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChConstraint.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <math.h>
 
-#include "physics/ChConstraint.h"
+#include "chrono/physics/ChGenericConstraint.h"
 
 namespace chrono {
 
-////////////////////////////////////
-//
-// CLASS  ChConstraint
-//
-////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-ChConstraint::ChConstraint() {
-    valid = false;
-    disabled = false;
-    C = NULL;
-
+ChGenericConstraint::ChGenericConstraint() : valid(false), disabled(false), C(NULL) {
     Reset_Cn(Get_Cn());
 }
 
-ChConstraint::~ChConstraint() {
+ChGenericConstraint::~ChGenericConstraint() {
     if (C)
         delete C;
     C = NULL;
@@ -46,7 +30,7 @@ ChConstraint::~ChConstraint() {
 
 // Sets the number of equations in this constraints (reset the
 // size of the C residual vector).
-int ChConstraint::Reset_Cn(int mCn) {
+int ChGenericConstraint::Reset_Cn(int mCn) {
     if (mCn > 0) {
         Cn = mCn;
         if (C) {
@@ -65,23 +49,19 @@ int ChConstraint::Reset_Cn(int mCn) {
     return Cn;
 }
 
-////////////////////////////////////
-//
-// CLASS  ChConstraint_Chf
-//
-////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-ChConstraint_Chf::ChConstraint_Chf() {
+ChGenericConstraint_Chf::ChGenericConstraint_Chf() {
     root_function = NULL;
 }
 
-ChConstraint_Chf::ChConstraint_Chf(ChFunction* mRootFunct, char* mTreeIDs) {
+ChGenericConstraint_Chf::ChGenericConstraint_Chf(ChFunction* mRootFunct, char* mTreeIDs) {
     this->root_function = mRootFunct;
     this->target_function.SetTreeIDs(mTreeIDs);
     this->target_function.RestoreReference(this->root_function);
 }
 
-bool ChConstraint_Chf::RestoreReferences(ChFunction* mroot) {
+bool ChGenericConstraint_Chf::RestoreReferences(ChFunction* mroot) {
     root_function = mroot;
     if (mroot) {
         valid = this->target_function.RestoreReference(mroot);
@@ -91,16 +71,12 @@ bool ChConstraint_Chf::RestoreReferences(ChFunction* mroot) {
     }
 }
 
-////////////////////////////////////
-//
-// CLASS  ChConstraint_Chf_ImposeVal
-//
-////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-ChConstraint_Chf_ImposeVal::ChConstraint_Chf_ImposeVal(ChFunction* mRootFunct,
-                                                       char* mTreeIDs,
-                                                       double mval,
-                                                       double mtime) {
+ChGenericConstraint_Chf_ImposeVal::ChGenericConstraint_Chf_ImposeVal(ChFunction* mRootFunct,
+                                                                     char* mTreeIDs,
+                                                                     double mval,
+                                                                     double mtime) {
     this->target_function.SetTreeIDs(mTreeIDs);
     this->RestoreReferences(mRootFunct);
 
@@ -110,9 +86,9 @@ ChConstraint_Chf_ImposeVal::ChConstraint_Chf_ImposeVal(ChFunction* mRootFunct,
     this->Update();
 }
 
-bool ChConstraint_Chf_ImposeVal::Update() {
+bool ChGenericConstraint_Chf_ImposeVal::Update() {
     // INHERIT parent behaviour:
-    if (!ChConstraint_Chf::Update())
+    if (!ChGenericConstraint_Chf::Update())
         return false;
 
     // Implement method:
@@ -126,16 +102,12 @@ bool ChConstraint_Chf_ImposeVal::Update() {
     return true;
 }
 
-////////////////////////////////////
-//
-// CLASS  ChConstraint_Chf_Continuity
-//
-////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-ChConstraint_Chf_Continuity::ChConstraint_Chf_Continuity(ChFunction* mRootFunct,
-                                                         char* mTreeIDs,
-                                                         int cont_ord,
-                                                         int interf_num) {
+ChGenericConstraint_Chf_Continuity::ChGenericConstraint_Chf_Continuity(ChFunction* mRootFunct,
+                                                                       char* mTreeIDs,
+                                                                       int cont_ord,
+                                                                       int interf_num) {
     this->target_function.SetTreeIDs(mTreeIDs);
     this->RestoreReferences(mRootFunct);
 
@@ -146,9 +118,9 @@ ChConstraint_Chf_Continuity::ChConstraint_Chf_Continuity(ChFunction* mRootFunct,
     this->Update();
 }
 
-bool ChConstraint_Chf_Continuity::Update() {
+bool ChGenericConstraint_Chf_Continuity::Update() {
     // INHERIT parent behaviour:
-    if (!ChConstraint_Chf::Update())
+    if (!ChGenericConstraint_Chf::Update())
         return false;
 
     // Implement method:
@@ -202,13 +174,12 @@ bool ChConstraint_Chf_Continuity::Update() {
     return true;
 }
 
-////////////////////////////////////
-//
-// CLASS  ChConstraint_Chf_HorDistance
-//
-////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-ChConstraint_Chf_HorDistance::ChConstraint_Chf_HorDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB) {
+ChGenericConstraint_Chf_HorDistance::ChGenericConstraint_Chf_HorDistance(ChFunction* mRootFunct,
+                                                                         char* mTreeIDs,
+                                                                         int mhA,
+                                                                         int mhB) {
     this->target_function.SetTreeIDs(mTreeIDs);
     this->RestoreReferences(mRootFunct);
 
@@ -219,9 +190,9 @@ ChConstraint_Chf_HorDistance::ChConstraint_Chf_HorDistance(ChFunction* mRootFunc
     this->Update();
 }
 
-bool ChConstraint_Chf_HorDistance::Update() {
+bool ChGenericConstraint_Chf_HorDistance::Update() {
     // INHERIT parent behaviour:
-    if (!ChConstraint_Chf::Update())
+    if (!ChGenericConstraint_Chf::Update())
         return false;
 
     // Implement method:
@@ -247,13 +218,12 @@ bool ChConstraint_Chf_HorDistance::Update() {
     return true;
 }
 
-////////////////////////////////////
-//
-// CLASS  ChConstraint_Chf_VertDistance
-//
-////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-ChConstraint_Chf_VertDistance::ChConstraint_Chf_VertDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB) {
+ChGenericConstraint_Chf_VertDistance::ChGenericConstraint_Chf_VertDistance(ChFunction* mRootFunct,
+                                                                           char* mTreeIDs,
+                                                                           int mhA,
+                                                                           int mhB) {
     this->target_function.SetTreeIDs(mTreeIDs);
     this->RestoreReferences(mRootFunct);
 
@@ -264,9 +234,9 @@ ChConstraint_Chf_VertDistance::ChConstraint_Chf_VertDistance(ChFunction* mRootFu
     this->Update();
 }
 
-bool ChConstraint_Chf_VertDistance::Update() {
+bool ChGenericConstraint_Chf_VertDistance::Update() {
     // INHERIT parent behaviour:
-    if (!ChConstraint_Chf::Update())
+    if (!ChGenericConstraint_Chf::Update())
         return false;
 
     // Implement method:
@@ -295,4 +265,4 @@ bool ChConstraint_Chf_VertDistance::Update() {
     return true;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

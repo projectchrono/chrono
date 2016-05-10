@@ -12,29 +12,10 @@
 #ifndef CHCONSTRAINT_H
 #define CHCONSTRAINT_H
 
-//////////////////////////////////////////////////
-//
-//   ChConstraints.h
-//
-//   Class for generic constraint, (NOT MECHANICAL)
-//   ex. for constrained optimizations etc.
-//
-//   Note that the 'mechanical' constraints are
-//   defined in another header, i.e. ChLink.h,
-//   and they are a different stuff.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "physics/ChRef.h"
-#include "core/ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/physics/ChRef.h"
 
 namespace chrono {
 
@@ -47,22 +28,18 @@ namespace chrono {
 /// inherited implementation (see other classes below)
 ///
 /// Child classes should implement at least Update() RestoreReferences() Get_Cn().
-
-class ChApi ChConstraint {
-  private:
+///
+class ChApi ChGenericConstraint {
   protected:
-    // some flags
     bool valid;
     bool disabled;
-
-    // constraints equations in this constraint
-    int Cn;
-    // residual matrix
-    ChMatrix<>* C;
+   
+    int Cn;  ///< constraints equations in this constraint
+    ChMatrix<>* C; ///< residual matrix
 
   public:
-    ChConstraint();
-    ~ChConstraint();
+    ChGenericConstraint();
+    ~ChGenericConstraint();
 
     /// Tells if the constraint data is currently valid.
     /// Instead of implementing it, child classes may simply
@@ -120,17 +97,16 @@ class ChApi ChConstraint {
 /// This is the base data for all types of constraints which
 /// define relations between parameters of a ChFunction (mostly, of
 /// type ChFunctionSequence).
-
-class ChApi ChConstraint_Chf : public ChConstraint {
-  private:
+///
+class ChApi ChGenericConstraint_Chf : public ChGenericConstraint {
   protected:
     ChFunction* root_function;
 
     ChRefFunctionSegment target_function;
 
   public:
-    ChConstraint_Chf();
-    ChConstraint_Chf(ChFunction* mRootFunct, char* mTreeIDs);
+    ChGenericConstraint_Chf();
+    ChGenericConstraint_Chf(ChFunction* mRootFunct, char* mTreeIDs);
 
     // for easy access to inner data
     ChFunction* Get_root_function() { return root_function; }
@@ -147,8 +123,7 @@ class ChApi ChConstraint_Chf : public ChConstraint {
 /// Algebraic constraint on ChFunctions, of the type  y(T)=A
 /// Impose a value of the function (or its derivative) at given time T.
 ///
-
-class ChApi ChConstraint_Chf_ImposeVal : public ChConstraint_Chf {
+class ChApi ChGenericConstraint_Chf_ImposeVal : public ChGenericConstraint_Chf {
   private:
     double T;
     double value;
@@ -156,12 +131,8 @@ class ChApi ChConstraint_Chf_ImposeVal : public ChConstraint_Chf {
 
   protected:
   public:
-    ChConstraint_Chf_ImposeVal() {
-        T = 0;
-        value = 0;
-        derivation_order = 0;
-    };
-    ChConstraint_Chf_ImposeVal(ChFunction* mRootFunct, char* mTreeIDs, double mtime, double mval);
+    ChGenericConstraint_Chf_ImposeVal() : T(0), value(0), derivation_order(0) {}
+    ChGenericConstraint_Chf_ImposeVal(ChFunction* mRootFunct, char* mTreeIDs, double mtime, double mval);
 
     double GetT() { return T; }
     void SetT(double mT) { T = mT; }
@@ -170,49 +141,43 @@ class ChApi ChConstraint_Chf_ImposeVal : public ChConstraint_Chf {
     int GetDerivationOrder() { return derivation_order; }
     void SetDerivationOrder(int mo) { derivation_order = mo; }
 
-    int Get_Cn() { return 1; };
+    virtual int Get_Cn() override { return 1; };
 
     // virtual bool RestoreReferences(ChFunction* mroot);
 
-    virtual bool Update();  // --> see in .cpp
+    virtual bool Update() override;
 };
 
 ///
 /// Algebraic constraint on ChFunctions,
 /// Impose continuity between two function segments
 ///
-
-class ChApi ChConstraint_Chf_Continuity : public ChConstraint_Chf {
+class ChApi ChGenericConstraint_Chf_Continuity : public ChGenericConstraint_Chf {
   private:
     int continuity_order;
     int interface_num;
 
-  protected:
   public:
-    ChConstraint_Chf_Continuity() {
-        continuity_order = 0;
-        interface_num = 0;
-    };
-    ChConstraint_Chf_Continuity(ChFunction* mRootFunct, char* mTreeIDs, int cont_ord, int interf_num);
+    ChGenericConstraint_Chf_Continuity() : continuity_order(0), interface_num(0) {}
+    ChGenericConstraint_Chf_Continuity(ChFunction* mRootFunct, char* mTreeIDs, int cont_ord, int interf_num);
 
     int GetInterfaceNum() { return interface_num; }
     void SetInterfaceNum(int mi) { interface_num = mi; }
     int GetContinuityOrder() { return continuity_order; }
     void SetContinuityOrder(int mc) { continuity_order = mc; }
 
-    int Get_Cn() { return 1; };
+    virtual int Get_Cn() override { return 1; };
 
     // virtual bool RestoreReferences(ChFunction* mroot);
 
-    virtual bool Update();  // --> see in .cpp
+    virtual bool Update() override;
 };
 
 ///
 /// Algebraic constraint on ChFunctions.
 /// Impose handle distance along X axis
 ///
-
-class ChApi ChConstraint_Chf_HorDistance : public ChConstraint_Chf {
+class ChApi ChGenericConstraint_Chf_HorDistance : public ChGenericConstraint_Chf {
   private:
     double distance;
     int handleA;
@@ -220,8 +185,8 @@ class ChApi ChConstraint_Chf_HorDistance : public ChConstraint_Chf {
 
   protected:
   public:
-    ChConstraint_Chf_HorDistance() { distance = 1; };
-    ChConstraint_Chf_HorDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB);
+    ChGenericConstraint_Chf_HorDistance() { distance = 1; };
+    ChGenericConstraint_Chf_HorDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB);
 
     double GetDistance() { return distance; }
     void SetDistance(double md) { distance = md; }
@@ -233,15 +198,14 @@ class ChApi ChConstraint_Chf_HorDistance : public ChConstraint_Chf {
 
     // virtual bool RestoreReferences(ChFunction* mroot);
 
-    virtual bool Update();  // --> see in .cpp
+    virtual bool Update() override;
 };
 
 ///
 /// Algebraic constraint on ChFunctions.
 /// Impose segment vertical separation on Y axis, between two handles
 ///
-
-class ChApi ChConstraint_Chf_VertDistance : public ChConstraint_Chf {
+class ChApi ChGenericConstraint_Chf_VertDistance : public ChGenericConstraint_Chf {
   private:
     double distance;
     int handleA;
@@ -249,8 +213,8 @@ class ChApi ChConstraint_Chf_VertDistance : public ChConstraint_Chf {
 
   protected:
   public:
-    ChConstraint_Chf_VertDistance() { distance = 1; };
-    ChConstraint_Chf_VertDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB);
+    ChGenericConstraint_Chf_VertDistance() : distance(1) {}
+    ChGenericConstraint_Chf_VertDistance(ChFunction* mRootFunct, char* mTreeIDs, int mhA, int mhB);
 
     double GetDistance() { return distance; }
     void SetDistance(double md) { distance = md; }
@@ -262,9 +226,9 @@ class ChApi ChConstraint_Chf_VertDistance : public ChConstraint_Chf {
 
     // virtual bool RestoreReferences(ChFunction* mroot);
 
-    virtual bool Update();  // --> see in .cpp
+    virtual bool Update() override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChConstraint.h
+#endif
