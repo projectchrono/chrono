@@ -13,9 +13,9 @@
 #define CHCONTACTDVIROLLING_H
 
 
-#include "physics/ChContactDVI.h"
-#include "lcp/ChLcpConstraintTwoTuplesRollingN.h"
-#include "lcp/ChLcpConstraintTwoTuplesRollingT.h"
+#include "chrono/physics/ChContactDVI.h"
+#include "chrono/solver/ChConstraintTwoTuplesRollingN.h"
+#include "chrono/solver/ChConstraintTwoTuplesRollingT.h"
 
 namespace chrono {
 
@@ -286,7 +286,6 @@ class ChContactDVIrolling :
     }
 };
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

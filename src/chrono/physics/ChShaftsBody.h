@@ -12,31 +12,9 @@
 #ifndef CHSHAFTSBODY_H
 #define CHSHAFTSBODY_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaftsBody.h
-//
-//   Class for creating a constraint between a 3D
-//   ChBody object and a 1D ChShaft object. A rotation
-//   axis must be specified (to tell along which direction
-//   she shaft inertia and rotation affects the body).
-//   This constraint is useful, for example, when you have modeled a
-//   3D car using ChBody items and a 1D powertrain (gears,
-//   differential, etc.) using ChShaft objects: you can connect
-//   the former (at least, the wheels) to the latter using
-//   this constraint.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChBodyFrame.h"
-#include "physics/ChShaft.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChBodyFrame.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 
@@ -185,6 +163,6 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

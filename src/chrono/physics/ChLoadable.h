@@ -14,8 +14,8 @@
 #define CHLOADABLE_H
 
 
-#include "core/ChVectorDynamic.h"
-#include "lcp/ChLcpVariables.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
@@ -137,9 +137,6 @@ public:
                      ) =0;
 };
 
+}  // end namespace chrono
 
-
-
-}  // END_OF_NAMESPACE____
-
-#endif  
+#endif

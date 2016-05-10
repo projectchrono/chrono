@@ -14,10 +14,10 @@
 #ifndef CHNODEXYZ_H
 #define CHNODEXYZ_H
 
-#include "physics/ChNodeBase.h"
-#include "physics/ChLoadable.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
-#include "lcp/ChLcpVariablesNode.h"
+#include "chrono/physics/ChNodeBase.h"
+#include "chrono/physics/ChLoadable.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
+#include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {
 
@@ -145,6 +145,6 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     ChVector<> pos_dtdt;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

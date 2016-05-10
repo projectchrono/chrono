@@ -13,30 +13,12 @@
 #ifndef CHPHYSICSITEM_H
 #define CHPHYSICSITEM_H
 
-///////////////////////////////////////////////////
-//
-//   ChPhysicsItem.h
-//
-//
-//   Base class for items that can contain objects
-//   of ChLcpVariables or ChLcpConstraints, such as
-//   rigid bodies, mechanical joints, etc.
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChFrame.h"
-#include "physics/ChObject.h"
-#include "assets/ChAsset.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "collision/ChCCollisionModel.h"
-#include "timestepper/ChState.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChObject.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/timestepper/ChState.h"
 
 namespace chrono {
 
@@ -469,6 +451,6 @@ class ChApi ChPhysicsItem : public ChObj {
 
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

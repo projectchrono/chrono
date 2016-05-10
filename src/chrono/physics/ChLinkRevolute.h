@@ -12,8 +12,8 @@
 #ifndef CHLINKREVOLUTE_H
 #define CHLINKREVOLUTE_H
 
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
@@ -160,6 +160,6 @@ class ChApi ChLinkRevolute : public ChLink {
     double m_multipliers[5];
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

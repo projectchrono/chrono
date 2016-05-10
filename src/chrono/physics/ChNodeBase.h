@@ -15,7 +15,7 @@
 #define CHNODEBASE_H
 
 #include "chrono/core/ChRunTimeType.h"
-#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
@@ -129,9 +129,6 @@ class ChApi ChNodeBase {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-
-
-} // END_OF_NAMESPACE____
-
+}  // end namespace chrono
 
 #endif

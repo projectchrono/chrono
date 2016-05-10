@@ -13,26 +13,22 @@
 #ifndef CHLOAD_H
 #define CHLOAD_H
 
-
-
-#include "physics/ChLoader.h"
-#include "physics/ChLoaderU.h"
-#include "physics/ChLoaderUV.h"
-#include "physics/ChLoaderUVW.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpKblockGeneric.h"
-#include "timestepper/ChState.h"
-
+#include "chrono/physics/ChLoader.h"
+#include "chrono/physics/ChLoaderU.h"
+#include "chrono/physics/ChLoaderUV.h"
+#include "chrono/physics/ChLoaderUVW.h"
+#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/timestepper/ChState.h"
 
 namespace chrono {
 
-
 /// Utility class for storing jacobian matrices.
-/// This is automatically managed by the ChLoad, if needed 
+/// This is automatically managed by the ChLoad, if needed
 /// (ie. for stiff loads)
 
 class ChLoadJacobians {
-public:
+  public:
     ChLcpKblockGeneric KRM;  // sum of K,R,M, with pointers to sparse variables
     ChMatrixDynamic<double> K; // dQ/dx
     ChMatrixDynamic<double> R; // dQ/dv
@@ -561,9 +557,6 @@ public:
     virtual ChVectorDynamic<>& GetQ() {return load_Q;}
 };
 
+}  // end namespace chrono
 
-
-
-}  // END_OF_NAMESPACE____
-
-#endif  
+#endif

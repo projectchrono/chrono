@@ -12,8 +12,8 @@
 #ifndef CH_LINK_REVOLUTE_TRANSLATIONAL_H
 #define CH_LINK_REVOLUTE_TRANSLATIONAL_H
 
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 

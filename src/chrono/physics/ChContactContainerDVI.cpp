@@ -11,9 +11,9 @@
 //
 
 
-#include "physics/ChContactContainerDVI.h"
-#include "physics/ChSystem.h"
-#include "lcp/ChLcpConstraintTwoTuplesContactN.h"
+#include "chrono/physics/ChContactContainerDVI.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 
 namespace chrono {
 
@@ -471,5 +471,4 @@ void ChContactContainerDVI::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

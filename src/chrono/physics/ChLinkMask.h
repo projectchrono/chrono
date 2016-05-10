@@ -12,28 +12,11 @@
 #ifndef CHLINKMASK_H
 #define CHLINKMASK_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkMask.h
-//
-//
-//   Array of ChConstraint() objects, used as a
-//   collection of scalar constraints in ChLink()
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 #include <vector>
 
-#include "core/ChMath.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
@@ -186,6 +169,6 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     virtual void StreamOUT(ChStreamOutBinary& mstream);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

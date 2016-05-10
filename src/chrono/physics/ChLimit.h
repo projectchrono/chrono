@@ -29,10 +29,10 @@
 #include <math.h>
 #include <float.h>
 
-#include "core/ChMath.h"
-#include "physics/ChFunction.h"
-#include "physics/ChLinkMask.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/physics/ChFunction.h"
+#include "chrono/physics/ChLinkMask.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
@@ -129,6 +129,6 @@ class ChApi ChLinkLimit {
 
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

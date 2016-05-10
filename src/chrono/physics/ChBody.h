@@ -15,16 +15,16 @@
 
 #include <math.h>
 
-#include "physics/ChBodyFrame.h"
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChForce.h"
-#include "physics/ChMarker.h"
-#include "physics/ChMaterialSurface.h"
-#include "physics/ChMaterialSurfaceDEM.h"
-#include "physics/ChContactable.h"
-#include "physics/ChLoadable.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
-#include "lcp/ChLcpConstraint.h"
+#include "chrono/physics/ChBodyFrame.h"
+#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChForce.h"
+#include "chrono/physics/ChMarker.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChContactable.h"
+#include "chrono/physics/ChLoadable.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
+#include "chrono/solver/ChConstraint.h"
 
 namespace chrono {
 
@@ -819,6 +819,6 @@ const int BODY_DOF = 6;   ///< degrees of freedom of body in 3d space
 const int BODY_QDOF = 7;  ///< degrees of freedom with quaternion rotation state
 const int BODY_ROT = 3;   ///< rotational dof in Newton dynamics
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

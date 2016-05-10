@@ -12,26 +12,8 @@
 #ifndef CHSHAFT_H
 #define CHSHAFT_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaft.h
-//
-//   Class for one-degree-of-freedom part, that is
-//   shafts that can be used to build 1D models
-//   of power trains. This is more efficient than
-//   simulating power trains modeled full 3D ChBody
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChPhysicsItem.h"
-#include "lcp/ChLcpVariablesShaft.h"
+#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/solver/ChVariablesShaft.h"
 
 namespace chrono {
 
@@ -288,6 +270,6 @@ class ChApi ChShaft : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

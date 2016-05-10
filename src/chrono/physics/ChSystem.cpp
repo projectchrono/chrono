@@ -19,31 +19,30 @@
 #include <memory.h>
 #include <algorithm>
 
-#include "physics/ChSystem.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChBodyAuxRef.h"
-#include "physics/ChContactContainerDVI.h"
-#include "physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChContactContainerDVI.h"
+#include "chrono/physics/ChProximityContainerBase.h"
 
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpSimplexSolver.h"
-#include "lcp/ChLcpIterativeSOR.h"
-#include "lcp/ChLcpIterativeSymmSOR.h"
-#include "lcp/ChLcpIterativeSORmultithread.h"
-#include "lcp/ChLcpIterativeJacobi.h"
-#include "lcp/ChLcpIterativeMINRES.h"
-#include "lcp/ChLcpIterativePMINRES.h"
-#include "lcp/ChLcpIterativeBB.h"
-#include "lcp/ChLcpIterativePCG.h"
-#include "lcp/ChLcpIterativeAPGD.h"
-#include "parallel/ChOpenMP.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/solver/ChSolverSimplex.h"
+#include "chrono/solver/ChSolverSOR.h"
+#include "chrono/solver/ChSolverSymmSOR.h"
+#include "chrono/solver/ChSolverSORmultithread.h"
+#include "chrono/solver/ChSolverJacobi.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/solver/ChSolverBB.h"
+#include "chrono/solver/ChSolverPCG.h"
+#include "chrono/solver/ChSolverAPGD.h"
 
-#include "core/ChTimer.h"
-#include "collision/ChCCollisionSystemBullet.h"
-#include "collision/ChCModelBullet.h"
-#include "timestepper/ChTimestepper.h"
-#include "timestepper/ChStaticAnalysis.h"
-
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/parallel/ChOpenMP.h"
+#include "chrono/timestepper/ChStaticAnalysis.h"
+#include "chrono/timestepper/ChTimestepper.h"
 
 using namespace chrono::collision;
 
@@ -2262,9 +2261,4 @@ int ChSystem::FileWriteChR(ChStreamOutBinary& m_file) {
     return 1;
 }
 
-
-
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////////////////////// eof
+}  // end namespace chrono

@@ -12,13 +12,13 @@
 #ifndef CHCONTACTTUPLE_H
 #define CHCONTACTTUPLE_H
 
-#include "core/ChFrame.h"
-#include "core/ChVectorDynamic.h"
-#include "lcp/ChLcpConstraintTwoTuplesContactN.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "collision/ChCCollisionModel.h"
-#include "collision/ChCCollisionInfo.h"
-#include "physics/ChMaterialCouple.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/physics/ChMaterialCouple.h"
 
 namespace chrono {
 
@@ -180,6 +180,6 @@ class ChContactTuple {
     virtual void ConstraintsFetch_react(double factor) {}
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

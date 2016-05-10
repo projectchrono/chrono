@@ -12,27 +12,8 @@
 #ifndef CHSHAFTSTORQUEBASE_H
 #define CHSHAFTSTORQUEBASE_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaftsTorsionSpring.h
-//
-//   Class for defining a torsional spring-damper between
-//   two one-degree-of-freedom parts, that is,
-//   shafts that can be used to build 1D models
-//   of power trains. This is more efficient than
-//   simulating power trains modeled full 3D ChBody
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaftsCouple.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 
@@ -119,6 +100,6 @@ class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

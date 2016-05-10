@@ -13,7 +13,7 @@
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
 
-#include "chrono/lcp/ChLcpConstraintTuple.h"
+#include "chrono/solver/ChConstraintTuple.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/core/ChMatrix33.h"
@@ -188,9 +188,6 @@ public:
                             bool second) {};
 };
 
+}  // end namespace chrono
 
-
-
-}  // END_OF_NAMESPACE____
-
-#endif  
+#endif

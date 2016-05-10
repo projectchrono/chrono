@@ -12,29 +12,9 @@
 #ifndef CHSHAFTSPLANETARY_H
 #define CHSHAFTSPLANETARY_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaftsPlanetary.h
-//
-//   Class for defining a transmission ratio between
-//   three one-degree-of-freedom parts (that is,
-//   shafts that can be used to build 1D models
-//   of power trains), as in a planetary gear.
-//   This is more efficient than
-//   simulating power trains modeled full 3D ChBody
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChShaft.h"
-#include "lcp/ChLcpConstraintThreeGeneric.h"
+#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/solver/ChConstraintThreeGeneric.h"
 
 namespace chrono {
 
@@ -242,6 +222,6 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

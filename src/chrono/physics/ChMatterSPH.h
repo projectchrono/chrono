@@ -13,30 +13,13 @@
 #ifndef CHMATTERSPH_H
 #define CHMATTERSPH_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatterSPH.h
-//
-//   Class for clusters of points that can
-//   simulate a fluid or an elastic / plastic
-//   solid with the SPH Smooth Particle Hydrodynamics
-//   approach, that is with a 'meshless' FEA approach.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "physics/ChIndexedNodes.h"
-#include "physics/ChNodeXYZ.h"
-#include "physics/ChContinuumMaterial.h"
-#include "collision/ChCCollisionModel.h"
-#include "lcp/ChLcpVariablesNode.h"
+#include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {
 
@@ -440,6 +423,6 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

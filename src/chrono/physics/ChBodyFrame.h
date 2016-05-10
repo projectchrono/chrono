@@ -13,8 +13,8 @@
 #ifndef CHBODYFRAME_H
 #define CHBODYFRAME_H
 
-#include "core/ChFrameMoving.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 namespace chrono {
 
@@ -57,6 +57,6 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

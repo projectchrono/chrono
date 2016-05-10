@@ -12,10 +12,10 @@
 #ifndef CHLINKENGINE_H
 #define CHLINKENGINE_H
 
-#include "physics/ChLinkLock.h"
-#include "physics/ChShaft.h"
-#include "physics/ChShaftsBody.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 ///
@@ -255,9 +255,6 @@ class ChApi ChLinkEngine : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

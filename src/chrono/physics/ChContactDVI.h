@@ -12,14 +12,14 @@
 #ifndef CHCONTACTDVI_H
 #define CHCONTACTDVI_H
 
-#include "core/ChFrame.h"
-#include "core/ChVectorDynamic.h"
-#include "lcp/ChLcpConstraintTwoTuplesContactN.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "collision/ChCCollisionModel.h"
-#include "physics/ChContactTuple.h"
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/physics/ChContactTuple.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
@@ -342,6 +342,6 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

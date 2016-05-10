@@ -12,27 +12,8 @@
 #ifndef CHSHAFTSCLUTCH_H
 #define CHSHAFTSCLUTCH_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaftsClutch.h
-//
-//   Class for defining a clutch (or brake) between
-//   two one-degree-of-freedom parts, that is,
-//   shafts that can be used to build 1D models
-//   of power trains. This is more efficient than
-//   simulating power trains modeled full 3D ChBody
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaftsCouple.h"
-#include "lcp/ChLcpConstraintTwoGenericBoxed.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/solver/ChConstraintTwoGenericBoxed.h"
 
 namespace chrono {
 
@@ -191,6 +172,6 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

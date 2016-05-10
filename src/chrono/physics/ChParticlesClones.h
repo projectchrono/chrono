@@ -12,29 +12,13 @@
 #ifndef CHPARTICLESCLONES_H
 #define CHPARTICLESCLONES_H
 
-//////////////////////////////////////////////////
-//
-//   ChParticlesClones.h
-//
-//   Class for clusters of particle 'clones', that is many
-//   rigid objects that share the same shape and mass.
-//   This can be used to make granular flows.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "physics/ChIndexedParticles.h"
-#include "collision/ChCCollisionModel.h"
-#include "lcp/ChLcpVariablesBodySharedMass.h"
-#include "physics/ChMaterialSurface.h"
-#include "physics/ChContactable.h"
+#include "chrono/physics/ChIndexedParticles.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/solver/ChVariablesBodySharedMass.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactable.h"
 
 namespace chrono {
 
@@ -456,6 +440,6 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

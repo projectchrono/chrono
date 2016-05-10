@@ -12,8 +12,8 @@
 #ifndef CHLINKUNIVERSAL_H
 #define CHLINKUNIVERSAL_H
 
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
@@ -161,6 +161,6 @@ class ChApi ChLinkUniversal : public ChLink {
     double m_multipliers[4];
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -12,23 +12,8 @@
 #ifndef CHLINKDISTANCE_H
 #define CHLINKDISTANCE_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkDistance.h
-//
-//   Class for enforcing a fixed polar distance
-//   between two points on two ChBody objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 /// Class for enforcing a fixed polar distance
@@ -181,9 +166,6 @@ class ChApi ChLinkDistance : public ChLink {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

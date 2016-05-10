@@ -10,13 +10,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChSystemDEM.h"
-#include "physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChContactContainerDEM.h"
 
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpSolverDEM.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/solver/ChSolverDEM.h"
 
-#include "collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCCollisionSystemBullet.h"
 
 namespace chrono {
 
@@ -143,7 +143,5 @@ void ChSystemDEM::ArchiveIN(ChArchiveIn& marchive)
     // Recompute statistics, offsets, etc.
     this->Setup();
 }
-
-
 
 }  // end namespace chrono

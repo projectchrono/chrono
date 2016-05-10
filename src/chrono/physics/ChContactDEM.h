@@ -25,8 +25,8 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVectorDynamic.h"
-#include "chrono/lcp/ChLcpKblockGeneric.h"
-#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChMaterialSurfaceDEM.h"
@@ -453,6 +453,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif
