@@ -55,7 +55,7 @@ public:
             }
 
             
-            const ChLcpKblockGeneric* KRM = (*iter)->GetJacobianKRM();
+            const ChKblockGeneric* KRM = (*iter)->GetJacobianKRM();
             const ChMatrixDynamic<double>* K = (*iter)->GetJacobianK();
             const ChMatrixDynamic<double>* R = (*iter)->GetJacobianR();
 

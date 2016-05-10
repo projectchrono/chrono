@@ -416,7 +416,7 @@ int ChLcpSystemDescriptor::BuildDiagonalVector(
 
     Diagonal_vect.Reset(n_q + n_c, 1);  // fast! Reset() method does not realloc if size doesn't change
 
-    // Fill the diagonal values given by ChLcpKblock objects , if any
+    // Fill the diagonal values given by ChKblock objects , if any
     // (This cannot be easily parallelized because of possible write concurrency).
     for (int is = 0; is < (int)vstiffness.size(); is++) {
         vstiffness[is]->DiagonalAdd(Diagonal_vect);
@@ -553,7 +553,7 @@ int ChLcpSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
 }
 
 void ChLcpSystemDescriptor::ShurComplementProduct(ChMatrix<>& result, ChMatrix<>* lvector, std::vector<bool>* enabled) {
-    assert(this->vstiffness.size() == 0); // currently, the case with ChLcpKblock items is not supported (only diagonal M is supported, no K)
+    assert(this->vstiffness.size() == 0); // currently, the case with ChKblock items is not supported (only diagonal M is supported, no K)
     assert(lvector->GetRows() == CountActiveConstraints());
     assert(lvector->GetColumns() == 1);
 

@@ -59,7 +59,7 @@ class ChApi ChLcpSystemDescriptor {
     //
     std::vector<ChConstraint*> vconstraints;
     std::vector<ChLcpVariables*> vvariables;
-    std::vector<ChLcpKblock*> vstiffness;
+    std::vector<ChKblock*> vstiffness;
 
     int num_threads;
 
@@ -94,7 +94,7 @@ class ChApi ChLcpSystemDescriptor {
     std::vector<ChLcpVariables*>& GetVariablesList() { return vvariables; };
 
     /// Access the vector of stiffness matrix blocks
-    std::vector<ChLcpKblock*>& GetKblocksList() { return vstiffness; };
+    std::vector<ChKblock*>& GetKblocksList() { return vstiffness; };
 
     /// Begin insertion of items
     virtual void BeginInsertion() {
@@ -110,7 +110,7 @@ class ChApi ChLcpSystemDescriptor {
     virtual void InsertVariables(ChLcpVariables* mv) { vvariables.push_back(mv); }
 
     /// Insert reference to a ChKblock object (a piece of matrix)
-    virtual void InsertKblock(ChLcpKblock* mk) { vstiffness.push_back(mk); }
+    virtual void InsertKblock(ChKblock* mk) { vstiffness.push_back(mk); }
 
     /// End insertion of items
     virtual void EndInsertion() { UpdateCountsAndOffsets(); }
@@ -254,7 +254,7 @@ class ChApi ChLcpSystemDescriptor {
     /// length of the l_i reactions vector; constraints with enabled=false are not handled.
     /// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
     /// operation, so it may happen that you need to backup them via FromVariablesToVector()
-    /// NOTE! currently this function does NOT support the cases that use also ChLcpKblock
+    /// NOTE! currently this function does NOT support the cases that use also ChKblock
     /// objects, because it would need to invert the global M+K, that is not diagonal,
     /// for doing = [N]*l = [ [Cq][(M+K)^(-1)][Cq'] - [E] ] * l
     virtual void ShurComplementProduct(ChMatrix<>& result,   ///< matrix which contains the result of  N*l_i

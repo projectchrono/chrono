@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPKBLOCK_H
-#define CHLCPKBLOCK_H
+#ifndef CHKBLOCK_H
+#define CHKBLOCK_H
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
@@ -37,21 +37,16 @@ namespace chrono {
 /// jacobians Cq are not really assembled in large matrices, so to
 /// exploit sparsity.
 
-class ChApi ChLcpKblock {
-    CH_RTTI_ROOT(ChLcpKblock)
-
-  private:
-    //
-    // DATA
-    //
+class ChApi ChKblock {
+    CH_RTTI_ROOT(ChKblock)
 
   public:
     //
     // CONSTRUCTORS
     //
-    ChLcpKblock() {}
+    ChKblock() {}
 
-    virtual ~ChLcpKblock(){};
+    virtual ~ChKblock() {}
 
     //
     // FUNCTIONS

@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPKBLOCKGENERIC_H
-#define CHLCPKBLOCKGENERIC_H
+#ifndef CHKBLOCKGENERIC_H
+#define CHKBLOCKGENERIC_H
 
 #include "chrono/solver/ChKblock.h"
 
@@ -34,16 +34,11 @@ namespace chrono {
 /// jacobians Cq are not really assembled in large matrices, so to
 /// exploit sparsity.
 
-class ChApi ChLcpKblockGeneric : public ChLcpKblock {
-    CH_RTTI(ChLcpKblockGeneric, ChLcpKblock)
+class ChApi ChKblockGeneric : public ChKblock {
+    CH_RTTI(ChKblockGeneric, ChKblock)
 
   private:
-    //
-    // DATA
-    //
-
     ChMatrixDynamic<double>* K;
-
     std::vector<ChLcpVariables*> variables;
 
   public:
@@ -51,14 +46,14 @@ class ChApi ChLcpKblockGeneric : public ChLcpKblock {
     // CONSTRUCTORS
     //
 
-    ChLcpKblockGeneric() { K = 0; }
+    ChKblockGeneric() { K = 0; }
 
-    ChLcpKblockGeneric(std::vector<ChLcpVariables*> mvariables) {
+    ChKblockGeneric(std::vector<ChLcpVariables*> mvariables) {
         K = 0;
         this->SetVariables(mvariables);
     }
 
-    ChLcpKblockGeneric(ChLcpVariables* mvariableA, ChLcpVariables* mvariableB) {
+    ChKblockGeneric(ChLcpVariables* mvariableA, ChLcpVariables* mvariableB) {
         K = 0;
         std::vector<ChLcpVariables*> mvars;
         mvars.push_back(mvariableA);
@@ -66,14 +61,14 @@ class ChApi ChLcpKblockGeneric : public ChLcpKblock {
         this->SetVariables(mvars);
     }
 
-    virtual ~ChLcpKblockGeneric() {
+    virtual ~ChKblockGeneric() {
         if (K)
             delete K;
         K = 0;
-    };
+    }
 
     /// Assignment operator: copy from other object
-    ChLcpKblockGeneric& operator=(const ChLcpKblockGeneric& other);
+    ChKblockGeneric& operator=(const ChKblockGeneric& other);
 
     //
     // FUNCTIONS

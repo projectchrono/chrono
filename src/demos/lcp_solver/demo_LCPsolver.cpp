@@ -398,7 +398,7 @@ void test_3() {
 
     // Create two C++ objects representing 'stiffness' between variables:
 
-    ChLcpKblockGeneric mKa;
+    ChKblockGeneric mKa;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
     std::vector<ChLcpVariables*> mvarsa;
     mvarsa.push_back(&mvarA);
@@ -414,7 +414,7 @@ void test_3() {
 
     mdescriptor.InsertKblock(&mKa);
 
-    ChLcpKblockGeneric mKb;
+    ChKblockGeneric mKb;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
     std::vector<ChLcpVariables*> mvarsb;
     mvarsb.push_back(&mvarB);

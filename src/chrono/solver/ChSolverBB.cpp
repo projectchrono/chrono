@@ -371,7 +371,7 @@ double ChLcpIterativeBB::Solve_SupportingStiffness(
     ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
-    std::vector<ChLcpKblock*>& mstiffness = sysd.GetKblocksList();
+    std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();
 
     // Tuning of the spectral gradient search
     double a_min = 1e-13;

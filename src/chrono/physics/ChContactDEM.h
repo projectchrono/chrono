@@ -45,7 +45,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
   private:
     struct ChContactJacobian {
-        ChLcpKblockGeneric m_KRM;     ///< sum of scaled K and R, with pointers to sparse variables
+        ChKblockGeneric m_KRM;        ///< sum of scaled K and R, with pointers to sparse variables
         ChMatrixDynamic<double> m_K;  ///< K = dQ/dx
         ChMatrixDynamic<double> m_R;  ///< R = dQ/dv
     };
@@ -79,7 +79,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     ChVector<> GetContactForceAbs() const { return m_force; }
 
     /// Access the proxy to the Jacobian.
-    const ChLcpKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
+    const ChKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianK() const { return m_Jac ? &(m_Jac->m_K) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
@@ -435,7 +435,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     }
 
     /// Inject Jacobian blocks into the system descriptor.
-    /// Tell to a system descriptor that there are item(s) of type ChLcpKblock in this object
+    /// Tell to a system descriptor that there are item(s) of type ChKblock in this object
     /// (for further passing it to a LCP solver)
     virtual void ContInjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override {
         if (m_Jac)

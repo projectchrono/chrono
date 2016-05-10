@@ -71,7 +71,7 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
                          );
 
     /// Same as Solve(), but this also supports the presence of
-    /// ChLcpKblock blocks. If Solve() is called and stiffness is present,
+    /// ChKblock blocks. If Solve() is called and stiffness is present,
     /// Solve() automatically falls back to this function.
     /// It does not solve the Schur complement N*l-r=0 as Solve does, here the
     /// entire system KKT matrix with duals l and primals q is used.

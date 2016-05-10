@@ -73,7 +73,7 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
                          );
 
     /// Same as Solve(), but this also supports the presence of
-    /// ChLcpKblock blocks. If Solve() is called and stiffness is present,
+    /// ChKblock blocks. If Solve() is called and stiffness is present,
     /// Solve() automatically falls back to this function.
     virtual double Solve_SupportingStiffness(
         ChLcpSystemDescriptor& sysd  ///< system description with constraints and variables

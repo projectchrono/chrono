@@ -291,7 +291,7 @@ double ChLcpIterativePMINRES::Solve_SupportingStiffness(
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChLcpVariables*>& mvariables = sysd.GetVariablesList();
-    std::vector<ChLcpKblock*>& mstiffness = sysd.GetKblocksList();
+    std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();
 
     this->tot_iterations = 0;
 

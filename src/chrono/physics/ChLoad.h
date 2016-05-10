@@ -29,10 +29,10 @@ namespace chrono {
 
 class ChLoadJacobians {
   public:
-    ChLcpKblockGeneric KRM;  // sum of K,R,M, with pointers to sparse variables
-    ChMatrixDynamic<double> K; // dQ/dx
-    ChMatrixDynamic<double> R; // dQ/dv
-    ChMatrixDynamic<double> M; // dQ/da
+    ChKblockGeneric KRM;        // sum of K,R,M, with pointers to sparse variables
+    ChMatrixDynamic<double> K;  // dQ/dx
+    ChMatrixDynamic<double> R;  // dQ/dv
+    ChMatrixDynamic<double> M;  // dQ/da
 
     /// Set references to the constrained objects, each of ChLcpVariables type,
     /// automatically creating/resizing K matrix if needed.
@@ -150,7 +150,7 @@ public:
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) =0;
 
         /// Tell to a system descriptor that there are item(s) of type
-        /// ChLcpKblock in this object (for further passing it to a LCP solver)
+        /// ChKblock in this object (for further passing it to a LCP solver)
         /// Basically does nothing, but inherited classes must specialize this.
     virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)  {
         if (this->jacobians) {
@@ -159,7 +159,7 @@ public:
     } 
 
         /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-        /// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling
+        /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
         /// values Kfactor, Rfactor, Mfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
         if (this->jacobians) {

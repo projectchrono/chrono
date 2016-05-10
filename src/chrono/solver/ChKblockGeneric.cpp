@@ -15,14 +15,14 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpKblockGeneric> a_registration_ChLcpKblockGeneric;
+ChClassRegister<ChKblockGeneric> a_registration_ChKblockGeneric;
 
-ChLcpKblockGeneric& ChLcpKblockGeneric::operator=(const ChLcpKblockGeneric& other) {
+ChKblockGeneric& ChKblockGeneric::operator=(const ChKblockGeneric& other) {
     if (&other == this)
         return *this;
 
     // copy parent class data
-    // ChLcpKblock::operator=(other);
+    // ChKblock::operator=(other);
 
     this->variables = other.variables;
 
@@ -39,7 +39,7 @@ ChLcpKblockGeneric& ChLcpKblockGeneric::operator=(const ChLcpKblockGeneric& othe
     return *this;
 }
 
-void ChLcpKblockGeneric::SetVariables(std::vector<ChLcpVariables*> mvariables) {
+void ChKblockGeneric::SetVariables(std::vector<ChLcpVariables*> mvariables) {
     assert(mvariables.size() > 0);
 
     variables = mvariables;
@@ -57,7 +57,7 @@ void ChLcpKblockGeneric::SetVariables(std::vector<ChLcpVariables*> mvariables) {
     K = new ChMatrixDynamic<double>(msize, msize);
 }
 
-void ChLcpKblockGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
+void ChKblockGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(K);
 
     int kio = 0;
@@ -90,7 +90,7 @@ void ChLcpKblockGeneric::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix
     }
 }
 
-void ChLcpKblockGeneric::DiagonalAdd(ChMatrix<double>& result) {
+void ChKblockGeneric::DiagonalAdd(ChMatrix<double>& result) {
     assert(result.GetColumns() == 1);
 
     int kio = 0;
@@ -108,7 +108,7 @@ void ChLcpKblockGeneric::DiagonalAdd(ChMatrix<double>& result) {
     }
 }
 
-void ChLcpKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
+void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
     if (!K)
         return;
 
@@ -141,13 +141,13 @@ void ChLcpKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
 
 
 /*
-void ChLcpKblockGeneric::StreamOUT(ChStreamOutBinary& mstream)
+void ChKblockGeneric::StreamOUT(ChStreamOutBinary& mstream)
 {
         // class version number
     mstream.VersionWrite(1);
 
         // serialize parent class too
-    ChLcpKblock::StreamOUT(mstream);
+    ChKblock::StreamOUT(mstream);
 
         // stream out all member data
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -160,13 +160,13 @@ void ChLcpKblockGeneric::StreamOUT(ChStreamOutBinary& mstream)
 
 
 
-void ChLcpKblockGeneric::StreamIN(ChStreamInBinary& mstream)
+void ChKblockGeneric::StreamIN(ChStreamInBinary& mstream)
 {
         // class version number
     int version = mstream.VersionRead();
 
         // deserialize parent class too
-    ChLcpKblock::StreamIN(mstream);
+    ChKblock::StreamIN(mstream);
 
         // stream in all member data
     // NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so

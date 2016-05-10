@@ -32,14 +32,14 @@ namespace fea {
 ///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
 class ChApiFea ChElementGeneric : public ChElementBase {
   protected:
-    ChLcpKblockGeneric Kmatr;
+    ChKblockGeneric Kmatr;
 
   public:
     ChElementGeneric(){};
     virtual ~ChElementGeneric(){};
 
     /// Access the proxy to stiffness, for sparse LCP solver
-    ChLcpKblockGeneric& Kstiffness() { return Kmatr; }
+    ChKblockGeneric& Kstiffness() { return Kmatr; }
 
     //
     // Functions for interfacing to the state bookkeeping
@@ -67,11 +67,11 @@ class ChApiFea ChElementGeneric : public ChElementBase {
     //
 
     /// Tell to a system descriptor that there are item(s) of type
-    /// ChLcpKblock in this object (for further passing it to a LCP solver)
+    /// ChKblock in this object (for further passing it to a LCP solver)
     virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override { mdescriptor.InsertKblock(&Kmatr); }
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChLcpKblock item(s), if any. The K, R, M matrices are load with scaling
+    /// ChKblock item(s), if any. The K, R, M matrices are load with scaling
     /// values Kfactor, Rfactor, Mfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override {
         this->ComputeKRMmatricesGlobal(*this->Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
