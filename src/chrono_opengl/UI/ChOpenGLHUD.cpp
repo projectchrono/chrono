@@ -17,8 +17,9 @@
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 
-#include "collision/ChCCollisionSystemBullet.h"
-#include "lcp/ChLcpIterativeSolver.h"
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/solver/ChIterativeSolver.h"
+
 // Includes that are generated at compile time
 #include "resources/text_frag.h"
 #include "resources/text_vert.h"
@@ -266,6 +267,7 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   GenerateCD(physics_system);
   GenerateRenderer();
 }
+
 void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
 //  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
 //    ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
@@ -363,8 +365,10 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
 //    //    text.Render(buffer, posx, -0.925 + SPACING * 2, sx, sy);
 //  }
 }
+
 void ChOpenGLHUD::Draw() {
   text.Draw();
 }
-}
-}
+
+}  // end namespace opengl
+}  // end namespace chrono
