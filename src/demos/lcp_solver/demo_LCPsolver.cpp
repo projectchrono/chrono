@@ -133,10 +133,10 @@ void test_1() {
     //
     // .. create the solver
 
-    ChLcpIterativeSOR msolver_iter(1,      // max iterations
-                                   false,  // don't use warm start
-                                   0.0,    // termination tolerance
-                                   0.8);   // omega
+    ChSolverSOR msolver_iter(1,      // max iterations
+                             false,  // don't use warm start
+                             0.0,    // termination tolerance
+                             0.8);   // omega
 
     // .. pass the constraint and the variables to the solver
     //    to solve - that's all.
@@ -190,7 +190,7 @@ void test_1() {
     // only for reference or very precise solution of systems with only
     // bilateral constraints, in a limited number.
 
-    ChLcpSimplexSolver msolver_simpl;
+    ChSolverSimplex msolver_simpl;
 
     msolver_simpl.Solve(mdescriptor);
 
@@ -274,9 +274,9 @@ void test_2() {
     }
 
     // Create a solver of Krylov type
-    ChLcpIterativePMINRES msolver_krylov(20,        // max iterations
-                                         false,     // warm start
-                                         0.00001);  // tolerance
+    ChSolverPMINRES msolver_krylov(20,        // max iterations
+                                   false,     // warm start
+                                   0.00001);  // tolerance
 
     // .. pass the constraint and the variables to the solver
     //    to solve - that's all.
@@ -299,7 +299,7 @@ void test_2() {
 
     GetLog() << "\n\nTEST: 1D vertical pendulum - ChLcpSimplexSolver \n\n";
 
-    ChLcpSimplexSolver msolver_simpl;
+    ChSolverSimplex msolver_simpl;
     msolver_simpl.Solve(mdescriptor);
 
     GetLog() << "VARIABLES: \n";
@@ -420,9 +420,9 @@ void test_3() {
 
     // .. create the solver
 
-    ChLcpIterativePMINRES msolver_mr(80,      // max iterations
-                                     false,   // don't use warm start
-                                     1e-12);  // termination tolerance
+    ChSolverPMINRES msolver_mr(80,      // max iterations
+                               false,   // don't use warm start
+                               1e-12);  // termination tolerance
 
     // .. set optional parameters of solver
     msolver_mr.SetDiagonalPreconditioning(true);

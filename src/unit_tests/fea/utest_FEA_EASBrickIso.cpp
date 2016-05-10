@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     // Perform a dynamic time integration:
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPmaxItersSpeed(10000);
     my_system.SetTolForce(1e-09);

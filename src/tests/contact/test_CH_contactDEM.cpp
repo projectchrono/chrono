@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
-            ChLcpIterativeMINRES* minres_solver = new ChLcpIterativeMINRES;
+            ChSolverMINRES* minres_solver = new ChSolverMINRES;
             minres_solver->SetDiagonalPreconditioning(true);
             system.ChangeLcpSolverSpeed(minres_solver);
             system.SetIterLCPmaxItersSpeed(100);

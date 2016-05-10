@@ -17,18 +17,17 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpSimplexSolver> a_registration_ChLcpSimplexSolver;
+ChClassRegister<ChSolverSimplex> a_registration_ChSolverSimplex;
 
-
-ChLcpSimplexSolver::ChLcpSimplexSolver() {
-    MC = new ChLinkedListMatrix(30, 30);   // at least as big as 30x30
+ChSolverSimplex::ChSolverSimplex() {
+    MC = new ChLinkedListMatrix(30, 30);  // at least as big as 30x30
     X = new ChMatrixDynamic<>(30, 1);  // at least as big as 30x1
     B = new ChMatrixDynamic<>(30, 1);  // at least as big as 30x1
     unilaterals = 0;
     truncation_step = 0;
 }
 
-ChLcpSimplexSolver::~ChLcpSimplexSolver() {
+ChSolverSimplex::~ChSolverSimplex() {
     if (MC)
         delete MC;
     MC = 0;
@@ -42,8 +41,8 @@ ChLcpSimplexSolver::~ChLcpSimplexSolver() {
         delete[] unilaterals;
 }
 
-double ChLcpSimplexSolver::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                                 ) {
+double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
+                              ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();

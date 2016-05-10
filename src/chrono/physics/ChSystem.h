@@ -49,12 +49,9 @@ namespace chrono {
 
 // forward references & shortcuts..
 
-class ChLcpSolver;
+class ChSolver;
 class ChSystemDescriptor;
 class ChContactContainerBase;
-
-
-
 
 /// Physical system.
 ///
@@ -316,36 +313,34 @@ class ChApi ChSystem : public ChAssembly,
     /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
     double GetIterLCPsharpnessLambda();
 
-    /// Instead of using SetLcpSolverType(), you can create your own
-    /// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
-    /// it into the system using this function. The replaced solver is automatically deleted.
-    /// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetLcpSolverType() later.
-    virtual void ChangeLcpSolverStab(ChLcpSolver* newsolver);
+    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
+    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
+    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
+    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetSolverType() later.
+    virtual void ChangeLcpSolverStab(ChSolver* newsolver);
 
-    /// Access directly the LCP solver, configured to be used for the stabilization
+    /// Access directly the solver, configured to be used for the stabilization
     /// of constraints (solve delta positions). Use mostly for diagnostics.
-    virtual ChLcpSolver* GetLcpSolverStab();
+    virtual ChSolver* GetLcpSolverStab();
 
-    /// Instead of using SetLcpSolverType(), you can create your own
-    /// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
-    /// it into the system using this function. The replaced solver is automatically deleted.
-    /// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetLcpSolverType() later.
-    virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+    /// Instead of using SetSolverType(), you can create your own custom lcp solver (suffice it is inherited
+    /// from ChLcpSolver) and plug it into the system using this function. The replaced solver is automatically
+    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
+    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetSolverType() later.
+    virtual void ChangeLcpSolverSpeed(ChSolver* newsolver);
 
-    /// Access directly the LCP solver, configured to be used for the main differential
-    /// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
-    virtual ChLcpSolver* GetLcpSolverSpeed();
+    /// Access directly the solver, configured to be used for the main differential
+    /// inclusion problem (on speed-impulses). Use mostly for diagnostics.
+    virtual ChSolver* GetLcpSolverSpeed();
 
-    /// Instead of using the default 'system descriptor', you can create your own
-    /// custom descriptor (suffice it is inherited from ChSystemDescriptor) and plug
-    /// it into the system using this function. The replaced descriptor is automatically deleted.
-    /// When the system is deleted, the custom descriptor that you plugged will be automatically deleted.
+    /// Instead of using the default 'system descriptor', you can create your own custom descriptor (suffice
+    /// it is inherited from ChSystemDescriptor) and plug it into the system using this function. The replaced
+    /// descriptor is automatically deleted. When the system is deleted, the custom descriptor that you plugged
+    /// will be automatically deleted.
     void ChangeLcpSystemDescriptor(ChSystemDescriptor* newdescriptor);
 
-    /// Access directly the LCP 'system descriptor'. Use mostly for diagnostics.
-    ChSystemDescriptor* GetLcpSystemDescriptor() { return this->LCP_descriptor; };
+    /// Access directly the 'system descriptor'. Use mostly for diagnostics.
+    ChSystemDescriptor* GetLcpSystemDescriptor() { return this->LCP_descriptor; }
 
     /// Changes the number of parallel threads (by default is n.of cores).
     /// Note that not all solvers use parallel computation.
@@ -919,17 +914,17 @@ public:
     double tol;        // tolerance
     double tol_force;  // tolerance for forces (used to obtain a tolerance for impulses)
 
-    int maxiter;       // max iterations for nonlinear convergence in DoAssembly()
+    int maxiter;  // max iterations for nonlinear convergence in DoAssembly()
 
-    bool use_sleeping;   // if true, can put to sleep objects that come to rest, to speed up simulation (but decreasing
-                         // the precision)
+    bool use_sleeping;  // if true, can put to sleep objects that come to rest, to speed up simulation (but decreasing
+                        // the precision)
 
     eCh_integrationType integration_type;  // integration scheme
 
     ChSystemDescriptor* LCP_descriptor;  // the LCP system descriptor
-    ChLcpSolver* LCP_solver_speed;          // the LCP solver for speed problem
-    ChLcpSolver* LCP_solver_stab;           // the LCP solver for position (stabilization) problem, if any
-    eCh_lcpSolver lcp_solver_type;  // Type of LCP solver (iterative= fastest, but may fail satisfying constraints)
+    ChSolver* LCP_solver_speed;          // the LCP solver for speed problem
+    ChSolver* LCP_solver_stab;           // the LCP solver for position (stabilization) problem, if any
+    eCh_lcpSolver lcp_solver_type;       // Type of LCP solver (iterative= fastest, but may fail satisfying constraints)
 
     int iterLCPmaxIters;      // maximum n.of iterations for the iterative LCP solver
     int iterLCPmaxItersStab;  // maximum n.of iterations for the iterative LCP solver when used for stabilizing
@@ -938,7 +933,7 @@ public:
 
     double min_bounce_speed;  // maximum speed for rebounce after impacts. If lower speed at rebounce, it is clamped to
                               // zero.
-    double max_penetration_recovery_speed;  // For Anitescu/Eulero impl. linearized stepper, this limits the speed of penetration recovery
+    double max_penetration_recovery_speed;  // For Euler impl. linearized stepper, this limits the speed of penetration recovery
                                             // (>0, speed of exiting)
 
     int parallel_thread_number;  // used for multithreaded solver etc.

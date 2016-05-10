@@ -10,19 +10,17 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVESOLVER_H
-#define CHLCPITERATIVESOLVER_H
+#ifndef CHITERATIVESOLVER_H
+#define CHITERATIVESOLVER_H
 
 #include "chrono/solver/ChSolver.h"
 
 namespace chrono {
 
-/// Base class for ITERATIVE solvers aimed at solving
-/// LCP linear complementarity problems arising
+/// Base class for ITERATIVE solvers aimed at solving complementarity problems arising
 /// from QP optimization problems.
-/// This class does nothing: it is up to inherited
-/// classes to implement specific solution methods,
-/// such as simplex, iterative SOR, etc.
+/// This class does nothing: it is up to derived clases to implement specific solution
+/// methods.
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
@@ -34,15 +32,11 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpIterativeSolver : public ChLcpSolver {
+class ChApi ChIterativeSolver : public ChSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativeSolver, ChLcpSolver);
+    CH_RTTI(ChIterativeSolver, ChSolver);
 
   protected:
-    //
-    // DATA
-    //
-
     int max_iterations;
     int tot_iterations;  /// The total number of iterations performed by the solver
     bool warm_start;
@@ -59,12 +53,12 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeSolver(int mmax_iters = 50,       ///< max.number of iterations
-                         bool mwarm_start = false,  ///< uses warm start?
-                         double mtolerance = 0.0,   ///< tolerance for termination criterion
-                         double momega = 1.0,       ///< overrelaxation, if any
-                         double mshlambda = 1.0     ///< sharpness, if any
-                         )
+    ChIterativeSolver(int mmax_iters = 50,       ///< max.number of iterations
+                      bool mwarm_start = false,  ///< uses warm start?
+                      double mtolerance = 0.0,   ///< tolerance for termination criterion
+                      double momega = 1.0,       ///< overrelaxation, if any
+                      double mshlambda = 1.0     ///< sharpness, if any
+                      )
         : max_iterations(mmax_iters),
           tot_iterations(0),
           warm_start(mwarm_start),
@@ -74,9 +68,9 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
           record_violation_history(false) {
         violation_history.clear();
         dlambda_history.clear();
-    };
+    }
 
-    virtual ~ChLcpIterativeSolver(){};
+    virtual ~ChIterativeSolver() {}
 
     //
     // FUNCTIONS
@@ -166,15 +160,14 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpSolver::ArchiveOUT(marchive);
+        ChSolver::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(max_iterations);
-        marchive << CHNVP(tot_iterations); 
+        marchive << CHNVP(tot_iterations);
         marchive << CHNVP(warm_start);
         marchive << CHNVP(tolerance);
         marchive << CHNVP(omega);
@@ -182,21 +175,19 @@ class ChApi ChLcpIterativeSolver : public ChLcpSolver {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpSolver::ArchiveIN(marchive);
+        ChSolver::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(max_iterations);
-        marchive >> CHNVP(tot_iterations); 
+        marchive >> CHNVP(tot_iterations);
         marchive >> CHNVP(warm_start);
         marchive >> CHNVP(tolerance);
         marchive >> CHNVP(omega);
         marchive >> CHNVP(shlambda);
     }
-
 };
 
 }  // end namespace chrono

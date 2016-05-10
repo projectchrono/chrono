@@ -15,11 +15,10 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpIterativeSymmSOR> a_registration_ChLcpIterativeSymmSOR;
+ChClassRegister<ChSolverSymmSOR> a_registration_ChSolverSymmSOR;
 
-
-double ChLcpIterativeSymmSOR::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                                    ) {
+double ChSolverSymmSOR::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
+                              ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 

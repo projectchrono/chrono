@@ -10,15 +10,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVESYMMSOR_H
-#define CHLCPITERATIVESYMMSOR_H
+#ifndef CHSOLVERSYMMSOR_H
+#define CHSOLVERSYMMSOR_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// An iterative LCP solver based on symmetric projective
-/// fixed point method, with overrelaxation
+/// An iterative solver based on symmetric projective fixed point method, with overrelaxation
 /// and immediate variable update as in SSOR methods.
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
@@ -31,34 +30,29 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpIterativeSymmSOR : public ChLcpIterativeSolver {
+class ChApi ChSolverSymmSOR : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativeSymmSOR, ChLcpIterativeSolver);
-
-  protected:
-    //
-    // DATA
-    //
+    CH_RTTI(ChSolverSymmSOR, ChIterativeSolver);
 
   public:
     //
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeSymmSOR(int mmax_iters = 50,       ///< max.number of iterations
-                          bool mwarm_start = false,  ///< uses warm start?
-                          double mtolerance = 0.0,   ///< tolerance for termination criterion
-                          double momega = 1.0        ///< overrelaxation criterion
-                          )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega){};
+    ChSolverSymmSOR(int mmax_iters = 50,       ///< max.number of iterations
+                    bool mwarm_start = false,  ///< uses warm start?
+                    double mtolerance = 0.0,   ///< tolerance for termination criterion
+                    double momega = 1.0        ///< overrelaxation criterion
+                    )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
 
-    virtual ~ChLcpIterativeSymmSOR(){};
+    virtual ~ChSolverSymmSOR() {}
 
     //
     // FUNCTIONS
     //
 
-    /// Performs the solution of the LCP.
+    /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables

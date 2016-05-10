@@ -15,10 +15,10 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpIterativeJacobi> a_registration_ChLcpIterativeJacobi;
+ChClassRegister<ChSolverJacobi> a_registration_ChSolverJacobi;
 
-double ChLcpIterativeJacobi::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                                   ) {
+double ChSolverJacobi::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
+                             ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 

@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPSIMPLEXSOLVER_H
-#define CHLCPSIMPLEXSOLVER_H
+#ifndef CHSOLVERSIMPLEX_H
+#define CHSOLVERSIMPLEX_H
 
 #include "chrono/solver/ChDirectSolver.h"
 
@@ -21,17 +21,11 @@ class ChLinkedListMatrix;
 class ChUnilateralData;
 
 ///     ***OBSOLETE****
-///    A simplex (pivoting) method which solves LCP
-///   problems by activating/deactivating constraints
-///   and solving a linear problem each time (using a
-///   custom sparse solver)
-///    It is by far slower than iterative methods, but
-///   it gives an almost exact solution (within numerical
-///   roundoff and accumulation errors, of course).
-///    It can handle redundant constraints.
-///    This solver must be used for mixed-linear
-///   complementarity problems (MLCP) in this
-///   form:
+/// A simplex (pivoting) method which solves complementarity problems by activating/deactivating
+/// constraints and solving a linear problem each time (using a custom sparse solver)
+/// It is significantly slower than iterative methods, but it gives an almost exact solution
+/// (within numerical roundoff and accumulation errors, of course). It can handle redundant constraints.
+/// This solver must be used for mixed-linear complementarity problems (MLCP) in this form:
 ///
 ///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
 ///    | Cq  0 | |l|  |-b|  |c|
@@ -39,38 +33,38 @@ class ChUnilateralData;
 ///   as arising in the solution of QP with
 ///   inequalities or in multibody problems.
 
-class ChApi ChLcpSimplexSolver : public ChLcpDirectSolver {
+class ChApi ChSolverSimplex : public ChDirectSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpSimplexSolver, ChLcpDirectSolver);
+    CH_RTTI(ChSolverSimplex, ChDirectSolver);
 
   protected:
     //
     // DATA
     //
 
-    int truncation_step;            // if 0 no effect, if >0 steps are truncated
-    ChLinkedListMatrix* MC;             // the sparse matrix for direct solution [MC]X=B (auto fill)
-    ChMatrix<>* X;                  // the unknown vector (automatically filled)
-    ChMatrix<>* B;                  // the known vector (automatically filled)
-    ChUnilateralData* unilaterals;  // array with temporary info for pivoting
+    int truncation_step;            ///< if 0 no effect, if >0 steps are truncated
+    ChLinkedListMatrix* MC;         ///< the sparse matrix for direct solution [MC]X=B (auto fill)
+    ChMatrix<>* X;                  ///< the unknown vector (automatically filled)
+    ChMatrix<>* B;                  ///< the known vector (automatically filled)
+    ChUnilateralData* unilaterals;  ///< array with temporary info for pivoting
 
   public:
     //
     // CONSTRUCTORS
     //
 
-    ChLcpSimplexSolver();
+    ChSolverSimplex();
 
-    virtual ~ChLcpSimplexSolver();
+    virtual ~ChSolverSimplex();
 
     //
     // FUNCTIONS
     //
 
     /// Performs the solution of the LCP, using the simplex method.
-    ///  If you must solve many LCP problems with the same amount of
+    /// If you must solve many problems with the same number of
     /// variables and constraints, we suggest you to use the same
-    /// ChLcpSimplexSolver object, because it exploits coherency: avoids
+    /// ChSolverSimplex object, because it exploits coherency: avoids
     /// reallocating the sparse matrix each time.
     /// \return  the maximum constraint violation after termination.
 

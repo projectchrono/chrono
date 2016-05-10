@@ -10,26 +10,24 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPSOLVER_H
-#define CHLCPSOLVER_H
+#ifndef CHSOLVER_H
+#define CHSOLVER_H
 
 #include <vector>
 #include "chrono/solver/ChConstraint.h"
-#include "chrono/solver/ChVariables.h"
 #include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
 /// @addtogroup chrono_solver
 /// @{
 
-///  Base class for solvers aimed at solving
-/// LCP linear complementarity problems arising
+/// Base class for solvers aimed at solving complementarity problems arising
 /// from QP optimization problems.
-///  This class does nothing: it is up to inherited
-/// classes to implement specific solution methods,
-/// such as simplex, iterative SOR, etc.
-///  The problem is described by a variational inequality VI(Z*x-d,K):
+/// This class does nothing: it is up to derived classes to implement specific
+/// solution methods, such as iterative SOR, APGD, simplex, etc.
+/// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
 ///  | Cq -E | |l|  |-b|  |c|
@@ -39,24 +37,20 @@ namespace chrono {
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
-class ChApi ChLcpSolver {
+class ChApi ChSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChLcpSolver);
+    CH_RTTI_ROOT(ChSolver);
 
   public:
-    //
-    // DATA
-    //
-
     bool verbose;
 
     //
     // CONSTRUCTORS
     //
 
-    ChLcpSolver() { verbose = false; };
+    ChSolver() { verbose = false; }
 
-    virtual ~ChLcpSolver(){};
+    virtual ~ChSolver() {}
 
     //
     // FUNCTIONS
@@ -75,9 +69,11 @@ class ChApi ChLcpSolver {
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) = 0;
 
-	/// This method is implemented in direct solvers such as MKL
-	virtual double Factorize(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-		) {	return 0.0f; }; 
+    /// This method is implemented in direct solvers such as MKL
+    virtual double Factorize(ChSystemDescriptor& sysd  ///< system description with constraints and variables
+                             ) {
+        return 0.0f;
+    };
 
     //
     // Utility functions
@@ -90,8 +86,7 @@ class ChApi ChLcpSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -100,8 +95,7 @@ class ChApi ChLcpSolver {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class

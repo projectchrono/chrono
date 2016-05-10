@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Set solver
-    ChLcpIterativeMINRES* minres_solver = new ChLcpIterativeMINRES;
+    ChSolverMINRES* minres_solver = new ChSolverMINRES;
     minres_solver->SetDiagonalPreconditioning(true);
     system.ChangeLcpSolverSpeed(minres_solver);
     system.SetIterLCPmaxItersSpeed(100);

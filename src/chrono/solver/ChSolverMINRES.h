@@ -10,16 +10,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVEMINRES_H
-#define CHLCPITERATIVEMINRES_H
+#ifndef CHSOLVERMINRES_H
+#define CHSOLVERMINRES_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// An iterative LCP solver based on modified
-/// Krylov iteration of MINRES type alternated with
-/// gradient projection (active set)
+/// An iterative solver based on modified Krylov iteration of MINRES type alternated with
+/// gradient projection (active set).
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
@@ -31,14 +30,11 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
+class ChApi ChSolverMINRES : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativeMINRES, ChLcpIterativeSolver);
+    CH_RTTI(ChSolverMINRES, ChIterativeSolver);
 
   protected:
-    //
-    // DATA
-    //
     double feas_tolerance;
     int max_fixedpoint_steps;
     bool diag_preconditioning;
@@ -49,18 +45,18 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeMINRES(int mmax_iters = 50,       ///< max.number of iterations
-                         bool mwarm_start = false,  ///< uses warm start?
-                         double mtolerance = 0.0    ///< tolerance for termination criterion
-                         )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
+    ChSolverMINRES(int mmax_iters = 50,       ///< max.number of iterations
+                   bool mwarm_start = false,  ///< uses warm start?
+                   double mtolerance = 0.0    ///< tolerance for termination criterion
+                   )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
         rel_tolerance = 0.0;
         feas_tolerance = 0.2;
         max_fixedpoint_steps = 6;
         diag_preconditioning = true;
-    };
+    }
 
-    virtual ~ChLcpIterativeMINRES(){};
+    virtual ~ChSolverMINRES() {}
 
     //
     // FUNCTIONS
@@ -100,7 +96,7 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpIterativeSolver::ArchiveOUT(marchive);
+        ChIterativeSolver::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(feas_tolerance);
         marchive << CHNVP(max_fixedpoint_steps);
@@ -114,7 +110,7 @@ class ChApi ChLcpIterativeMINRES : public ChLcpIterativeSolver {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpIterativeSolver::ArchiveIN(marchive);
+        ChIterativeSolver::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(feas_tolerance);
         marchive >> CHNVP(max_fixedpoint_steps);

@@ -10,14 +10,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPSOLVERDEM_H
-#define CHLCPSOLVERDEM_H
+#ifndef CHSOLVERDEM_H
+#define CHSOLVERDEM_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// A penalty-based solver for complementarity problem as arising in DEM formulations.
+/// A solver for problems arising in penalty formulations.
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
@@ -29,18 +29,18 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpSolverDEM : public ChLcpIterativeSolver {
+class ChApi ChSolverDEM : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpSolverDEM, ChLcpIterativeSolver);
+    CH_RTTI(ChSolverDEM, ChIterativeSolver);
 
   public:
-    ChLcpSolverDEM(int mmax_iters = 50,       ///< max.number of iterations
-                   bool mwarm_start = false,  ///< uses warm start?
-                   double mtolerance = 0.0,   ///< tolerance for termination criterion
-                   double momega = 1.0)       ///< overrelaxation criterion
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
+    ChSolverDEM(int mmax_iters = 50,       ///< max.number of iterations
+                bool mwarm_start = false,  ///< uses warm start?
+                double mtolerance = 0.0,   ///< tolerance for termination criterion
+                double momega = 1.0)       ///< overrelaxation criterion
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
 
-    ~ChLcpSolverDEM() {}
+    ~ChSolverDEM() {}
 
     /// Performs the solution of the LCP.
     /// \return  the maximum constraint violation after termination.

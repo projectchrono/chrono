@@ -9,26 +9,24 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-#include "chrono/solver/ChSolverSORmultithread.h"
+#include <stdio.h>
+#include "chrono/parallel/ChThreadsSync.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
 #include "chrono/solver/ChConstraintTwoTuplesRollingN.h"
 #include "chrono/solver/ChConstraintTwoTuplesRollingT.h"
-#include "chrono/parallel/ChThreadsSync.h"
-#include <stdio.h>
+#include "chrono/solver/ChSolverSORmultithread.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpIterativeSORmultithread> a_registration_ChLcpIterativeSORmultithread;
-
+ChClassRegister<ChSolverSORmultithread> a_registration_ChSolverSORmultithread;
 
 // Each thread will own an instance of the following data:
 
 struct thread_data {
-    ChLcpIterativeSORmultithread* solver;  // reference to solver
-    ChMutexSpinlock* mutex;                // this will be used to avoid race condition when writing to shared memory.
+    ChSolverSORmultithread* solver;  // reference to solver
+    ChMutexSpinlock* mutex;          // this will be used to avoid race condition when writing to shared memory.
 
     enum solver_stage { STAGE1_PREPARE = 0, STAGE2_ADDFORCES, STAGE3_LOOPCONSTRAINTS };
 
@@ -250,19 +248,19 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
 // When the solver object is created, threads are also
 // created and initialized, in 'wait' mode.
 
-ChLcpIterativeSORmultithread::ChLcpIterativeSORmultithread(char* uniquename,
-                                                           int nthreads,
-                                                           int mmax_iters,
-                                                           bool mwarm_start,
-                                                           double mtolerance,
-                                                           double momega)
-    : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {
+ChSolverSORmultithread::ChSolverSORmultithread(char* uniquename,
+                                               int nthreads,
+                                               int mmax_iters,
+                                               bool mwarm_start,
+                                               double mtolerance,
+                                               double momega)
+    : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {
     ChThreadConstructionInfo create_args(uniquename, SolverThreadFunc, SolverMemoryFunc, nthreads);
 
     solver_threads = new ChThreads(create_args);
 }
 
-ChLcpIterativeSORmultithread::~ChLcpIterativeSORmultithread() {
+ChSolverSORmultithread::~ChSolverSORmultithread() {
     if (solver_threads) {
         solver_threads->flush();
         delete (solver_threads);
@@ -276,7 +274,7 @@ ChLcpIterativeSORmultithread::~ChLcpIterativeSORmultithread() {
 // and, after waiting for all them to be completed, with flush(), the
 // solution is done.
 
-double ChLcpIterativeSORmultithread::Solve(
+double ChSolverSORmultithread::Solve(
     ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -364,7 +362,7 @@ double ChLcpIterativeSORmultithread::Solve(
     return 0;
 }
 
-void ChLcpIterativeSORmultithread::ChangeNumberOfThreads(int mthreads) {
+void ChSolverSORmultithread::ChangeNumberOfThreads(int mthreads) {
     if (mthreads < 1)
         mthreads = 1;
 

@@ -271,7 +271,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
-            ChLcpIterativeMINRES* minres_solver = new ChLcpIterativeMINRES;
+            ChSolverMINRES* minres_solver = new ChSolverMINRES;
             minres_solver->SetDiagonalPreconditioning(true);
             system->ChangeLcpSolverSpeed(minres_solver);
             system->SetIterLCPmaxItersSpeed(100);

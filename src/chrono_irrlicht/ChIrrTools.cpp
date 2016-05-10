@@ -503,8 +503,8 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
     if (asystem.GetLcpSolverType() == ChSystem::LCP_SIMPLEX)
         return;
 
-    ChLcpIterativeSolver* msolver_speed = (ChLcpIterativeSolver*)asystem.GetLcpSolverSpeed();
-    ChLcpIterativeSolver* msolver_stab = (ChLcpIterativeSolver*)asystem.GetLcpSolverStab();
+    ChIterativeSolver* msolver_speed = (ChIterativeSolver*)asystem.GetLcpSolverSpeed();
+    ChIterativeSolver* msolver_stab = (ChIterativeSolver*)asystem.GetLcpSolverStab();
     msolver_speed->SetRecordViolation(true);
     msolver_stab->SetRecordViolation(true);
 

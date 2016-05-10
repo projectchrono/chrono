@@ -10,15 +10,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVESOR_H
-#define CHLCPITERATIVESOR_H
+#ifndef CHSOLVERSOR_H
+#define CHSOLVERSOR_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// An iterative LCP solver based on projective
-/// fixed point method, with overrelaxation
+/// An iterative solver based on projective fixed point method, with overrelaxation
 /// and immediate variable update as in SOR methods.
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
@@ -31,28 +30,23 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpIterativeSOR : public ChLcpIterativeSolver {
+class ChApi ChSolverSOR : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativeSOR, ChLcpIterativeSolver);
-
-  protected:
-    //
-    // DATA
-    //
+    CH_RTTI(ChSolverSOR, ChIterativeSolver);
 
   public:
     //
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeSOR(int mmax_iters = 50,       ///< max.number of iterations
-                      bool mwarm_start = false,  ///< uses warm start?
-                      double mtolerance = 0.0,   ///< tolerance for termination criterion
-                      double momega = 1.0        ///< overrelaxation criterion
-                      )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega){};
+    ChSolverSOR(int mmax_iters = 50,       ///< max.number of iterations
+                bool mwarm_start = false,  ///< uses warm start?
+                double mtolerance = 0.0,   ///< tolerance for termination criterion
+                double momega = 1.0        ///< overrelaxation criterion
+                )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega) {}
 
-    virtual ~ChLcpIterativeSOR(){};
+    virtual ~ChSolverSOR() {}
 
     //
     // FUNCTIONS
@@ -65,6 +59,6 @@ class ChApi ChLcpIterativeSOR : public ChLcpIterativeSolver {
                          );
 };
 
-} // end namespace chrono
+}  // end namespace chrono
 
 #endif

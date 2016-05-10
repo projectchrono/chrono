@@ -259,15 +259,15 @@ int main(int argc, char* argv[])
 	my_system.SetIterLCPmaxItersSpeed(460);
 	my_system.SetIterLCPmaxItersStab(460);
 	my_system.SetTolForce(1e-13);
-	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 	
     /*
 	    // TEST: The Matlab external linear solver, for max precision in benchmarks
     ChMatlabEngine matlab_engine;
-    ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
-    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+    ChMatlabSolver* matlab_solver_stab  = new ChMatlabSolver(matlab_engine);
+    ChMatlabSolver* matlab_solver_speed = new ChMatlabSolver(matlab_engine);
     my_system.ChangeLcpSolverStab (matlab_solver_stab);
     my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
     application.GetSystem()->Update();

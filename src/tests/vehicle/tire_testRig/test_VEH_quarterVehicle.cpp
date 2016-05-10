@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
         case MINRES: {
             std::cout << "Using MINRES solver\n";
             system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-            ChLcpIterativeMINRES* minres_solver = (ChLcpIterativeMINRES*)system->GetLcpSolverSpeed();
+            ChSolverMINRES* minres_solver = (ChSolverMINRES*)system->GetLcpSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
             system->SetIterLCPwarmStarting(true);
             system->SetIterLCPmaxItersSpeed(500);

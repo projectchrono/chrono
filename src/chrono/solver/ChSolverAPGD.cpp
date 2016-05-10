@@ -24,9 +24,9 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChIterativeAPGD> a_registration_ChIterativeAPGD;
+ChClassRegister<ChSolverAPGD> a_registration_ChSolverAPGD;
 
-void ChIterativeAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
+void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
     // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
 
     // Compute the b_shur vector in the Shur complement equation N*l = b_shur
@@ -55,7 +55,7 @@ void ChIterativeAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
     r.MatrInc(tmp);
 }
 
-double ChIterativeAPGD::Res4(ChSystemDescriptor& sysd) {
+double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
     //****METHOD 1 for residual, same as ChLcpIterativeBB
     // Project the gradient (for rollback strategy)
     // g_proj = (l-project_orthogonal(l - gdiff*g, fric))/gdiff;
@@ -72,7 +72,7 @@ double ChIterativeAPGD::Res4(ChSystemDescriptor& sysd) {
     return tmp.NormTwo();
 }
 
-double ChIterativeAPGD::Solve(ChSystemDescriptor& sysd) {
+double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     bool verbose = false;
     const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     const std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();

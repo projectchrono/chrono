@@ -412,7 +412,7 @@ void test_1() {
 	my_system.SetIterLCPmaxItersSpeed(100);
 	my_system.SetIterLCPmaxItersStab(100);
 	my_system.SetTolForce(1e-13);
-	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetLcpSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 

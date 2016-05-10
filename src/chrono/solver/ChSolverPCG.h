@@ -10,15 +10,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVEPCG_H
-#define CHLCPITERATIVEPCG_H
+#ifndef CHSOLVERPCG_H
+#define CHSOLVERPCG_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// An iterative solver based on modified
-/// Krylov iteration of projected conjugate gradient.
+/// An iterative solver based on modified Krylov iteration of projected conjugate gradient.
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
@@ -30,29 +29,22 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpIterativePCG : public ChLcpIterativeSolver {
+class ChApi ChSolverPCG : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativePCG, ChLcpIterativeSolver);
-
-  protected:
-    //
-    // DATA
-    //
+    CH_RTTI(ChSolverPCG, ChIterativeSolver);
 
   public:
     //
     // CONSTRUCTORS
     //
 
-    ChLcpIterativePCG(int mmax_iters = 50,       ///< max.number of iterations
-                      bool mwarm_start = false,  ///< uses warm start?
-                      double mtolerance = 0.0    ///< tolerance for termination criterion
-                      )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2){
+    ChSolverPCG(int mmax_iters = 50,       ///< max.number of iterations
+                bool mwarm_start = false,  ///< uses warm start?
+                double mtolerance = 0.0    ///< tolerance for termination criterion
+                )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {}
 
-          };
-
-    virtual ~ChLcpIterativePCG(){};
+    virtual ~ChSolverPCG() {}
 
     //
     // FUNCTIONS

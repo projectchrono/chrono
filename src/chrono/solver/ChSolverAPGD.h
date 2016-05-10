@@ -9,31 +9,26 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHITERATIVEAPGD_H
-#define CHITERATIVEAPGD_H
+#ifndef CHSOLVERAPGD_H
+#define CHSOLVERAPGD_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// An iterative solver based on Nesterov's
-/// Projected Gradient Descent.
-/// The problem is described by an LCP of type
+/// An iterative solver based on Nesterov's Projected Gradient Descent.
+/// The problem is described as
 ///
 ///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
 ///    | Cq  0 | |l|  |-b|  |c|
 ///
 /// or similar CCP problem.
 
-class ChApi ChIterativeAPGD : public ChLcpIterativeSolver {
+class ChApi ChSolverAPGD : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChIterativeAPGD, ChLcpIterativeSolver);
+    CH_RTTI(ChSolverAPGD, ChIterativeSolver);
 
   protected:
-    //
-    // DATA
-    //
-
     double residual;
     int nc;
     ChMatrixDynamic<> gamma_hat, gammaNew, g, y, gamma, yNew, r, tmp;
@@ -43,15 +38,13 @@ class ChApi ChIterativeAPGD : public ChLcpIterativeSolver {
     // CONSTRUCTORS
     //
 
-    ChIterativeAPGD(int mmax_iters = 1000,     ///< max.number of iterations
-                    bool mwarm_start = false,  ///< uses warm start?
-                    double mtolerance = 0.0    ///< tolerance for termination criterion
-                    )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.0001){
+    ChSolverAPGD(int mmax_iters = 1000,     ///< max.number of iterations
+                 bool mwarm_start = false,  ///< uses warm start?
+                 double mtolerance = 0.0    ///< tolerance for termination criterion
+                 )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.0001) {}
 
-          };
-
-    virtual ~ChIterativeAPGD(){};
+    virtual ~ChSolverAPGD() {}
 
     //
     // FUNCTIONS

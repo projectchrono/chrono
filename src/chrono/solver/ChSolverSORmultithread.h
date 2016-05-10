@@ -10,23 +10,19 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVESORMULTITHREAD_H
-#define CHLCPITERATIVESORMULTITHREAD_H
+#ifndef CHSOLVERSORMULTITHREAD_H
+#define CHSOLVERSORMULTITHREAD_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/parallel/ChThreads.h"
 
 namespace chrono {
 
-class ChApi ChLcpIterativeSORmultithread : public ChLcpIterativeSolver {
+class ChApi ChSolverSORmultithread : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativeSORmultithread, ChLcpIterativeSolver);
+    CH_RTTI(ChSolverSORmultithread, ChIterativeSolver);
 
   protected:
-    //
-    // DATA
-    //
-
     ChThreads* solver_threads;
 
   public:
@@ -34,15 +30,15 @@ class ChApi ChLcpIterativeSORmultithread : public ChLcpIterativeSolver {
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeSORmultithread(char* uniquename= (char*)"solver", ///< this name must be unique.
-                                 int nthreads = 2,          ///< number of threads
-                                 int mmax_iters = 50,       ///< max.number of iterations
-                                 bool mwarm_start = false,  ///< uses warm start?
-                                 double mtolerance = 0.0,   ///< tolerance for termination criterion
-                                 double momega = 1.0        ///< overrelaxation criterion
-                                 );
+    ChSolverSORmultithread(char* uniquename = (char*)"solver",  ///< this name must be unique.
+                           int nthreads = 2,                    ///< number of threads
+                           int mmax_iters = 50,                 ///< max.number of iterations
+                           bool mwarm_start = false,            ///< uses warm start?
+                           double mtolerance = 0.0,             ///< tolerance for termination criterion
+                           double momega = 1.0                  ///< overrelaxation criterion
+                           );
 
-    virtual ~ChLcpIterativeSORmultithread();
+    virtual ~ChSolverSORmultithread();
 
     //
     // FUNCTIONS

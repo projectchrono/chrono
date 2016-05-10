@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVEBB_H
-#define CHLCPITERATIVEBB_H
+#ifndef CHSOLVERBB_H
+#define CHSOLVERBB_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
@@ -31,14 +31,11 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0)
 /// * case CCP: Y_i are friction cones)
 
-class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
+class ChApi ChSolverBB : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativeBB, ChLcpIterativeSolver);
+    CH_RTTI(ChSolverBB, ChIterativeSolver);
 
   protected:
-    //
-    // DATA
-    //
     int n_armijo;
     int max_armijo_backtrace;
     bool diag_preconditioning;
@@ -48,17 +45,17 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeBB(int mmax_iters = 50,       ///< max.number of iterations
-                     bool mwarm_start = false,  ///< uses warm start?
-                     double mtolerance = 0.0    ///< tolerance for termination criterion
-                     )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
+    ChSolverBB(int mmax_iters = 50,       ///< max.number of iterations
+               bool mwarm_start = false,  ///< uses warm start?
+               double mtolerance = 0.0    ///< tolerance for termination criterion
+               )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
         n_armijo = 10;
         max_armijo_backtrace = 3;
         diag_preconditioning = true;
-    };
+    }
 
-    virtual ~ChLcpIterativeBB(){};
+    virtual ~ChSolverBB() {}
 
     //
     // FUNCTIONS
@@ -104,7 +101,7 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpIterativeSolver::ArchiveOUT(marchive);
+        ChIterativeSolver::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(n_armijo);
         marchive << CHNVP(max_armijo_backtrace);
@@ -117,7 +114,7 @@ class ChApi ChLcpIterativeBB : public ChLcpIterativeSolver {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpIterativeSolver::ArchiveIN(marchive);
+        ChIterativeSolver::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(n_armijo);
         marchive >> CHNVP(max_armijo_backtrace);

@@ -10,16 +10,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVEPMINRES_H
-#define CHLCPITERATIVEPMINRES_H
+#ifndef CHSOLVERPMINRES_H
+#define CHSOLVERPMINRES_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
 
-/// An iterative LCP solver based on modified
-/// Krylov iteration of MINRES type with gradient
-/// projections (similar to nonlinear CG with Polyak-Ribiere)
+/// An iterative solver based on modified Krylov iteration of MINRES type with gradient
+/// projections (similar to nonlinear CG with Polyak-Ribiere).
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
@@ -31,14 +30,11 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
+class ChApi ChSolverPMINRES : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativePMINRES, ChLcpIterativeSolver);
+    CH_RTTI(ChSolverPMINRES, ChIterativeSolver);
 
   protected:
-    //
-    // DATA
-    //
     double grad_diffstep;
     double rel_tolerance;
     bool diag_preconditioning;
@@ -48,17 +44,17 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
     // CONSTRUCTORS
     //
 
-    ChLcpIterativePMINRES(int mmax_iters = 50,       ///< max.number of iterations
-                          bool mwarm_start = false,  ///< uses warm start?
-                          double mtolerance = 0.0    ///< tolerance for termination criterion
-                          )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
+    ChSolverPMINRES(int mmax_iters = 50,       ///< max.number of iterations
+                    bool mwarm_start = false,  ///< uses warm start?
+                    double mtolerance = 0.0    ///< tolerance for termination criterion
+                    )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, 0.2) {
         grad_diffstep = 0.01;  // too small can cause numerical roundoff troubles!
         rel_tolerance = 0.0;
         diag_preconditioning = true;
-    };
+    }
 
-    virtual ~ChLcpIterativePMINRES(){};
+    virtual ~ChSolverPMINRES() {}
 
     //
     // FUNCTIONS
@@ -108,7 +104,7 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpSolver::ArchiveOUT(marchive);
+        ChIterativeSolver::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(grad_diffstep);
         marchive << CHNVP(rel_tolerance);
@@ -121,7 +117,7 @@ class ChApi ChLcpIterativePMINRES : public ChLcpIterativeSolver {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpSolver::ArchiveIN(marchive);
+        ChIterativeSolver::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(grad_diffstep);
         marchive >> CHNVP(rel_tolerance);

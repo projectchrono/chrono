@@ -106,7 +106,7 @@ void test_1() {
 
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);
 
@@ -190,7 +190,7 @@ void test_2() {
 
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);
@@ -276,7 +276,7 @@ void test_2b() {
 
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     my_system.SetIterLCPmaxItersSpeed(200);
     my_system.SetTolForce(1e-10);
 
@@ -373,7 +373,7 @@ void test_3() {
 
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);
 
@@ -470,7 +470,7 @@ void test_4() {
 
     my_system.SetLcpSolverType(
         ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);

@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     my_system.SetIterLCPmaxItersSpeed(200);
     my_system.SetIterLCPmaxItersStab(200);
     my_system.SetTolForce(1e-13);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 

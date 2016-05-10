@@ -16,10 +16,10 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpIterativePCG> a_registration_ChLcpIterativePCG;
+ChClassRegister<ChSolverPCG> a_registration_ChSolverPCG;
 
-double ChLcpIterativePCG::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                                ) {
+double ChSolverPCG::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
+                          ) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 

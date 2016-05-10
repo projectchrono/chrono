@@ -25,9 +25,9 @@ namespace chrono {
 /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
 /// It can solve linear systems. It cannot solve VI and complementarity problems.
 
-class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
+class ChApiMkl ChLcpMklSolver : public ChSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpMklSolver, ChLcpSolver);
+    CH_RTTI(ChLcpMklSolver, ChSolver);
 
   private:
     size_t solver_call;
@@ -66,19 +66,19 @@ class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
     /// it automatically calls ::Factorize(ChSystemDescriptor&) in order to perform analysis,
     /// reordering and factorization (MKL Pardiso phase 12).
     /// In any case a call to this function will end with a solve and refinement phase (Pardiso phase 33)
-    double Solve(ChSystemDescriptor& sysd) override;
+    virtual double Solve(ChSystemDescriptor& sysd) override;
     /// Performs a factorization of the system matrix.
-    double Factorize(ChSystemDescriptor& sysd) override;
+    virtual double Factorize(ChSystemDescriptor& sysd) override;
 
     //
     // SERIALIZATION
     //
 
-    void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
-        ChLcpSolver::ArchiveOUT(marchive);
+        ChSolver::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(sparsity_pattern_lock);
         marchive << CHNVP(use_perm);
@@ -87,11 +87,11 @@ class ChApiMkl ChLcpMklSolver : public ChLcpSolver {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) override {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
-        ChLcpSolver::ArchiveIN(marchive);
+        ChSolver::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(sparsity_pattern_lock);
         marchive >> CHNVP(use_perm);

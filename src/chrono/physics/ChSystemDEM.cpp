@@ -36,9 +36,9 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
 
     lcp_solver_type = ChSystem::LCP_DEM;
 
-    LCP_solver_speed = new ChLcpSolverDEM();
+    LCP_solver_speed = new ChSolverDEM();
 
-    LCP_solver_stab = new ChLcpSolverDEM();
+    LCP_solver_stab = new ChSolverDEM();
 
     collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 

@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
         case MINRES: {
             GetLog() << "Using MINRES solver\n";
             my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-            ChLcpIterativeMINRES* minres_solver = (ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+            ChSolverMINRES* minres_solver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
             my_system.SetIterLCPwarmStarting(true);
             my_system.SetIterLCPmaxItersSpeed(40);
             my_system.SetTolForce(1e-10);

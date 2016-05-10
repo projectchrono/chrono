@@ -10,8 +10,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPITERATIVEJACOBI_H
-#define CHLCPITERATIVEJACOBI_H
+#ifndef CHSOLVERJACOBI_H
+#define CHSOLVERJACOBI_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 
@@ -34,28 +34,23 @@ namespace chrono {
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
-class ChApi ChLcpIterativeJacobi : public ChLcpIterativeSolver {
+class ChApi ChSolverJacobi : public ChIterativeSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpIterativeJacobi, ChLcpIterativeSolver);
-
-  protected:
-    //
-    // DATA
-    //
+    CH_RTTI(ChSolverJacobi, ChIterativeSolver);
 
   public:
     //
     // CONSTRUCTORS
     //
 
-    ChLcpIterativeJacobi(int mmax_iters = 50,       ///< max.number of iterations
-                         bool mwarm_start = false,  ///< uses warm start?
-                         double mtolerance = 0.0,   ///< tolerance for termination criterion
-                         double momega = 0.2        ///< overrelaxation criterion
-                         )
-        : ChLcpIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega){};
+    ChSolverJacobi(int mmax_iters = 50,       ///< max.number of iterations
+                   bool mwarm_start = false,  ///< uses warm start?
+                   double mtolerance = 0.0,   ///< tolerance for termination criterion
+                   double momega = 0.2        ///< overrelaxation criterion
+                   )
+        : ChIterativeSolver(mmax_iters, mwarm_start, mtolerance, momega){};
 
-    virtual ~ChLcpIterativeJacobi(){};
+    virtual ~ChSolverJacobi() {}
 
     //
     // FUNCTIONS

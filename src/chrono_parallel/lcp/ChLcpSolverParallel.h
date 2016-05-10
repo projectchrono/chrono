@@ -31,7 +31,7 @@
 
 namespace chrono {
 
-class CH_PARALLEL_API ChLcpSolverParallel : public ChLcpIterativeSolver {
+class CH_PARALLEL_API ChLcpSolverParallel : public ChIterativeSolver {
  public:
   virtual ~ChLcpSolverParallel();
 

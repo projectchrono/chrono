@@ -407,57 +407,57 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
 
     switch (mval) {
         case LCP_ITERATIVE_SOR:
-            LCP_solver_speed = new ChLcpIterativeSOR();
-            LCP_solver_stab = new ChLcpIterativeSOR();
+            LCP_solver_speed = new ChSolverSOR();
+            LCP_solver_stab = new ChSolverSOR();
             break;
         case LCP_ITERATIVE_SYMMSOR:
-            LCP_solver_speed = new ChLcpIterativeSymmSOR();
-            LCP_solver_stab = new ChLcpIterativeSymmSOR();
+            LCP_solver_speed = new ChSolverSymmSOR();
+            LCP_solver_stab = new ChSolverSymmSOR();
             break;
         case LCP_SIMPLEX:
-            LCP_solver_speed = new ChLcpSimplexSolver();
-            LCP_solver_stab = new ChLcpSimplexSolver();
+            LCP_solver_speed = new ChSolverSimplex();
+            LCP_solver_stab = new ChSolverSimplex();
             break;
         case LCP_ITERATIVE_JACOBI:
-            LCP_solver_speed = new ChLcpIterativeJacobi();
-            LCP_solver_stab = new ChLcpIterativeJacobi();
+            LCP_solver_speed = new ChSolverJacobi();
+            LCP_solver_stab = new ChSolverJacobi();
             break;
         case LCP_ITERATIVE_SOR_MULTITHREAD:
-            LCP_solver_speed = new ChLcpIterativeSORmultithread((char*)"speedLCP", parallel_thread_number);
-            LCP_solver_stab = new ChLcpIterativeSORmultithread((char*)"posLCP", parallel_thread_number);
+            LCP_solver_speed = new ChSolverSORmultithread((char*)"speedLCP", parallel_thread_number);
+            LCP_solver_stab = new ChSolverSORmultithread((char*)"posLCP", parallel_thread_number);
             break;
         case LCP_ITERATIVE_PMINRES:
-            LCP_solver_speed = new ChLcpIterativePMINRES();
-            LCP_solver_stab = new ChLcpIterativePMINRES();
+            LCP_solver_speed = new ChSolverPMINRES();
+            LCP_solver_stab = new ChSolverPMINRES();
             break;
         case LCP_ITERATIVE_BARZILAIBORWEIN:
-            LCP_solver_speed = new ChLcpIterativeBB();
-            LCP_solver_stab = new ChLcpIterativeBB();
+            LCP_solver_speed = new ChSolverBB();
+            LCP_solver_stab = new ChSolverBB();
             break;
         case LCP_ITERATIVE_PCG:
-            LCP_solver_speed = new ChLcpIterativePCG();
-            LCP_solver_stab = new ChLcpIterativePCG();
+            LCP_solver_speed = new ChSolverPCG();
+            LCP_solver_stab = new ChSolverPCG();
             break;
         case LCP_ITERATIVE_APGD:
-            LCP_solver_speed = new ChIterativeAPGD();
-            LCP_solver_stab = new ChIterativeAPGD();
+            LCP_solver_speed = new ChSolverAPGD();
+            LCP_solver_stab = new ChSolverAPGD();
             break;
         case LCP_ITERATIVE_MINRES:
-            LCP_solver_speed = new ChLcpIterativeMINRES();
-            LCP_solver_stab = new ChLcpIterativeMINRES();
+            LCP_solver_speed = new ChSolverMINRES();
+            LCP_solver_stab = new ChSolverMINRES();
             break;
         default:
-            LCP_solver_speed = new ChLcpIterativeSymmSOR();
-            LCP_solver_stab = new ChLcpIterativeSymmSOR();
+            LCP_solver_speed = new ChSolverSymmSOR();
+            LCP_solver_stab = new ChSolverSymmSOR();
             break;
     }
 }
 
-ChLcpSolver* ChSystem::GetLcpSolverSpeed() {
+ChSolver* ChSystem::GetLcpSolverSpeed() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
         iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -465,11 +465,11 @@ ChLcpSolver* ChSystem::GetLcpSolverSpeed() {
     return LCP_solver_speed;
 }
 
-ChLcpSolver* ChSystem::GetLcpSolverStab() {
+ChSolver* ChSystem::GetLcpSolverStab() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChLcpIterativeSolver* iter_solver = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
         iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -478,48 +478,48 @@ ChLcpSolver* ChSystem::GetLcpSolverStab() {
 }
 
 void ChSystem::SetIterLCPwarmStarting(bool usewarm) {
-    if (ChLcpIterativeSolver* iter_solver_speed = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
         iter_solver_speed->SetWarmStart(usewarm);
     }
-    if (ChLcpIterativeSolver* iter_solver_stab = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
         iter_solver_stab->SetWarmStart(usewarm);
     }
 }
 
 bool ChSystem::GetIterLCPwarmStarting() {
-    if (ChLcpIterativeSolver* iter_solver_speed = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
         return iter_solver_speed->GetWarmStart();
     }
     return false;
 }
 
 void ChSystem::SetIterLCPomega(double momega) {
-    if (ChLcpIterativeSolver* iter_solver_speed = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
         iter_solver_speed->SetOmega(momega);
     }
-    if (ChLcpIterativeSolver* iter_solver_stab = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
         iter_solver_stab->SetOmega(momega);
     }
 }
 
 double ChSystem::GetIterLCPomega() {
-    if (ChLcpIterativeSolver* iter_solver_speed = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
         return iter_solver_speed->GetOmega();
     }
     return 1.0;
 }
 
 void ChSystem::SetIterLCPsharpnessLambda(double momega) {
-    if (ChLcpIterativeSolver* iter_solver_speed = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
         iter_solver_speed->SetSharpnessLambda(momega);
     }
-    if (ChLcpIterativeSolver* iter_solver_stab = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
         iter_solver_stab->SetSharpnessLambda(momega);
     }
 }
 
 double ChSystem::GetIterLCPsharpnessLambda() {
-    if (ChLcpIterativeSolver* iter_solver_speed = dynamic_cast<ChLcpIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
         return iter_solver_speed->GetSharpnessLambda();
     }
     return 1.0;
@@ -534,8 +534,8 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
     LCP_descriptor->SetNumThreads(mthreads);
 
     if (lcp_solver_type == LCP_ITERATIVE_SOR_MULTITHREAD) {
-        ((ChLcpIterativeSORmultithread*)LCP_solver_speed)->ChangeNumberOfThreads(mthreads);
-        ((ChLcpIterativeSORmultithread*)LCP_solver_stab)->ChangeNumberOfThreads(mthreads);
+        ((ChSolverSORmultithread*)LCP_solver_speed)->ChangeNumberOfThreads(mthreads);
+        ((ChSolverSORmultithread*)LCP_solver_stab)->ChangeNumberOfThreads(mthreads);
     }
 }
 
@@ -547,7 +547,7 @@ void ChSystem::ChangeLcpSystemDescriptor(ChSystemDescriptor* newdescriptor) {
         delete (this->LCP_descriptor);
     this->LCP_descriptor = newdescriptor;
 }
-void ChSystem::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
+void ChSystem::ChangeLcpSolverSpeed(ChSolver* newsolver) {
     assert(newsolver);
     if (this->LCP_solver_speed)
         delete (this->LCP_solver_speed);
@@ -555,7 +555,7 @@ void ChSystem::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
     this->lcp_solver_type = LCP_CUSTOM;
 }
 
-void ChSystem::ChangeLcpSolverStab(ChLcpSolver* newsolver) {
+void ChSystem::ChangeLcpSolverStab(ChSolver* newsolver) {
     assert(newsolver);
     if (this->LCP_solver_stab)
         delete (this->LCP_solver_stab);

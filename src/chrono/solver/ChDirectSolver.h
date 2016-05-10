@@ -10,21 +10,18 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHLCPDIRECTSOLVER_H
-#define CHLCPDIRECTSOLVER_H
+#ifndef CHDIRECTSOLVER_H
+#define CHDIRECTSOLVER_H
 
 #include "chrono/solver/ChSolver.h"
 
 namespace chrono {
 
-///    Base class for DIRECT solvers aimed at solving
-///   LCP linear complementarity problems arising
-///   from QP optimization problems.
-///    This class does nothing: it is up to inherited
-///   classes to implement specific solution methods,
-///   such as simplex, iterative SOR, etc.
-///    The LCP problem must be in this (symmetric)
-///   form:
+/// Base class for DIRECT solvers aimed at solving complementarity problems arising
+/// from QP optimization problems.
+/// This class does nothing: it is up to derived classes to implement specific solution
+/// methods.
+/// The LCP problem must be in this (symmetric) form:
 ///
 ///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
 ///    | Cq  0 | |l|  |-b|  |c|
@@ -32,27 +29,14 @@ namespace chrono {
 ///   as arising in the solution of QP with
 ///   inequalities or in multibody problems.
 
-class ChApi ChLcpDirectSolver : public ChLcpSolver {
+class ChApi ChDirectSolver : public ChSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpDirectSolver, ChLcpSolver);
-
-  protected:
-    //
-    // DATA
-    //
+    CH_RTTI(ChDirectSolver, ChSolver);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChDirectSolver(){};
 
-    ChLcpDirectSolver(){};
-
-    virtual ~ChLcpDirectSolver(){};
-
-    //
-    // FUNCTIONS
-    //
+    virtual ~ChDirectSolver() {}
 };
 
 }  // end namespace chrono

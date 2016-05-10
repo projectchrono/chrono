@@ -197,11 +197,11 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    int iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
+    int iters = ((ChIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
     const std::vector<double>& vhist =
-        ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
+        ((ChIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
     const std::vector<double>& dhist =
-        ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+        ((ChIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
     double residual = vhist.size() > 0 ? vhist.back() : 0.0;
     double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 
