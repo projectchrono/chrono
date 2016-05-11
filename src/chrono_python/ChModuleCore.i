@@ -112,8 +112,10 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChBody)
 %shared_ptr(chrono::ChBodyAuxRef)
 %shared_ptr(chrono::ChConveyor)
-//%shared_ptr(chrono::ChIndexedParticles)
-//%shared_ptr(chrono::ChParticlesClones)
+%shared_ptr(chrono::ChAparticle)
+%shared_ptr(chrono::ChParticleBase)
+%shared_ptr(chrono::ChIndexedParticles)
+%shared_ptr(chrono::ChParticlesClones)
 %shared_ptr(chrono::ChAssembly)
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChContactContainerBase)
@@ -157,10 +159,10 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChLinkScrew)
 %shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChLinkUniversal)
-/*
+
 %shared_ptr(chrono::ChShaft)
 %shared_ptr(chrono::ChShaftsBody)
-%shared_ptr(chrono::ChShaftsClutch
+%shared_ptr(chrono::ChShaftsClutch)
 %shared_ptr(chrono::ChShaftsCouple)
 %shared_ptr(chrono::ChShaftsGear)
 %shared_ptr(chrono::ChShaftsMotor)
@@ -168,7 +170,7 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChShaftsThermalEngine)
 %shared_ptr(chrono::ChShaftsTorqueBase)
 %shared_ptr(chrono::ChShaftsTorsionSpring)
-*/
+
 
 
 //
@@ -247,8 +249,8 @@ using namespace chrono::geometry;
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
 %include "ChConveyor.i"
-//%include "ChIndexedParticles.i"
-//%include "ChParticlesClones.i"
+%include "ChIndexedParticles.i"
+%include "ChParticlesClones.i"
 %include "ChAssembly.i"
 %include "ChSystem.i"
 %include "ChContactContainerBase.i"
@@ -272,7 +274,6 @@ using namespace chrono::geometry;
 %include "ChLinkRevoluteSpherical.i"
 %include "ChLinkUniversal.i"
 
-/*
 %include "ChShaft.i"
 %include "ChShaftsCouple.i"
 %include "ChShaftsBody.i"
@@ -282,7 +283,7 @@ using namespace chrono::geometry;
 %include "ChShaftsPlanetary.i"
 %include "ChShaftsTorqueBase.i"
 %include "ChShaftsThermalEngine.i"
-*/
+
 
 // collision/   classes
 /*
@@ -353,8 +354,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
-*/
-/*
+
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaft)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsBody)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsCouple)
@@ -364,7 +364,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsPlanetary)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsTorqueBase)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsThermalEngine)
-*/
+
 // .. to complete
 
 
