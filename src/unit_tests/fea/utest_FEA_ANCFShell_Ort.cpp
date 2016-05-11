@@ -191,9 +191,9 @@ int main(int argc, char* argv[]) {
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(100);
-    my_system.SetIterLCPmaxItersStab(100);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(100);
+    my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-09);
 
     /*ChSolverMKL * mkl_solver_stab = new ChSolverMKL; // MKL Solver option

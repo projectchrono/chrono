@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
                                                               // handle stiffness matrices
     chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     // Set up integrator

@@ -85,15 +85,15 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   int GetNumBilaterals() { return data_manager->num_bilaterals; }
 
   /// Gets the time (in seconds) spent for computing the time step
-  virtual double GetTimerStep() { return data_manager->system_timer.GetTime("step"); }
+  virtual double GetTimerStep() override { return data_manager->system_timer.GetTime("step"); }
   /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-  virtual double GetTimerLcp() { return data_manager->system_timer.GetTime("lcp"); }
+  virtual double GetTimerSolver() override { return data_manager->system_timer.GetTime("lcp"); }
   /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-  virtual double GetTimerCollisionBroad() { return data_manager->system_timer.GetTime("collision_broad"); }
+  virtual double GetTimerCollisionBroad() override { return data_manager->system_timer.GetTime("collision_broad"); }
   /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-  virtual double GetTimerCollisionNarrow() { return data_manager->system_timer.GetTime("collision_narrow"); }
+  virtual double GetTimerCollisionNarrow() override { return data_manager->system_timer.GetTime("collision_narrow"); }
   /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-  virtual double GetTimerUpdate() { return data_manager->system_timer.GetTime("update"); }
+  virtual double GetTimerUpdate() override { return data_manager->system_timer.GetTime("update"); }
 
   /// Gets the total time for the collision detection step
   double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }

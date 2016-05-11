@@ -263,13 +263,13 @@ int main(int argc, char* argv[]) {
 #ifdef USE_SEQ
 
     ////system->SetSolverType(ChSystem::SOLVER_MINRES);
-    system->SetIterLCPmaxItersSpeed(50);
-    system->SetIterLCPmaxItersStab(50);
+    system->SetMaxItersSolverSpeed(50);
+    system->SetMaxItersSolverStab(50);
     ////system->SetTol(0);
     ////system->SetMaxPenetrationRecoverySpeed(1.5);
     ////system->SetMinBounceSpeed(2.0);
-    ////system->SetIterLCPomega(0.8);
-    ////system->SetIterLCPsharpnessLambda(1.0);
+    ////system->SetSolverOverrelaxationParam(0.8);
+    ////system->SetSolverSharpnessParam(1.0);
 
 #else
 

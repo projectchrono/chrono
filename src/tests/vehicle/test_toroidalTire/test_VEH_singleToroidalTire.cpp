@@ -238,8 +238,8 @@ int main(int argc, char* argv[]) {
             system.SetSolverType(ChSystem::SOLVER_MINRES);
             ChSolverMINRES* minres_solver = (ChSolverMINRES*)system.GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
-            system.SetIterLCPwarmStarting(true);
-            system.SetIterLCPmaxItersSpeed(500);
+            system.SetSolverWarmStarting(true);
+            system.SetMaxItersSolverSpeed(500);
             system.SetTolForce(1e-5);
             break;
         }

@@ -328,9 +328,9 @@ int main(int argc, char* argv[]) {
 
     my_system.SetSolverType(
         ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(400);
-    my_system.SetIterLCPmaxItersStab(400);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(400);
+    my_system.SetMaxItersSolverStab(400);
     my_system.SetTolForce(1e-25);
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(true);

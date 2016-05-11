@@ -132,7 +132,7 @@ void ChSystemParallelDEM::PrintStepStats() {
   std::cout << "    broad phase            " << GetTimerCollisionBroad() << std::endl;
   std::cout << "    narrow phase           " << GetTimerCollisionNarrow() << std::endl;
   std::cout << "  Update                 " << GetTimerUpdate() << std::endl;
-  std::cout << "  Solver                 " << GetTimerLcp() << std::endl;
+  std::cout << "  Solver                 " << GetTimerSolver() << std::endl;
   std::cout << "    contact force calc     " << GetTimerProcessContact() << std::endl;
   std::cout << "    setup                  " << timer_solver_setup << std::endl;
   std::cout << "    stabilization          " << timer_solver_stab << std::endl;

@@ -95,13 +95,13 @@ int main(int argc, char* argv[]) {
 
     // Solver settings.
     ////vehicle.GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
-    vehicle.GetSystem()->SetIterLCPmaxItersSpeed(50);
-    vehicle.GetSystem()->SetIterLCPmaxItersStab(50);
+    vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
+    vehicle.GetSystem()->SetMaxItersSolverStab(50);
     ////vehicle.GetSystem()->SetTol(0);
     ////vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     ////vehicle.GetSystem()->SetMinBounceSpeed(2.0);
-    ////vehicle.GetSystem()->SetIterLCPomega(0.8);
-    ////vehicle.GetSystem()->SetIterLCPsharpnessLambda(1.0);
+    ////vehicle.GetSystem()->SetSolverOverrelaxationParam(0.8);
+    ////vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
 
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));

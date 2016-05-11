@@ -678,8 +678,8 @@ int main() {
         case LCP_ITSOR: {
             GetLog() << "Using SOLVER_SOR solver\n";
             my_system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
-            my_system->SetIterLCPmaxItersSpeed(100);
-            my_system->SetIterLCPmaxItersStab(100);  // Tasora stepper uses this, Anitescu does not
+            my_system->SetMaxItersSolverSpeed(100);
+            my_system->SetMaxItersSolverStab(100);  // Tasora stepper uses this, Anitescu does not
             my_system->SetSolverType(ChSystem::SOLVER_SOR);
             my_system->SetTol(1e-10);
             my_system->SetTolForce(1e-8);

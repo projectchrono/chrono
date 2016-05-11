@@ -263,8 +263,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using MINRES solver\n";
             my_system.SetSolverType(ChSystem::SOLVER_MINRES);
             ChSolverMINRES* minres_solver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-            my_system.SetIterLCPwarmStarting(true);
-            my_system.SetIterLCPmaxItersSpeed(40);
+            my_system.SetSolverWarmStarting(true);
+            my_system.SetMaxItersSolverSpeed(40);
             my_system.SetTolForce(1e-10);
             break;
         }

@@ -284,8 +284,8 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set solver and modify parameters.
-    ////system->SetIterLCPmaxItersSpeed(200);
-    ////system->SetIterLCPmaxItersStab(200);
+    ////system->SetMaxItersSolverSpeed(200);
+    ////system->SetMaxItersSolverStab(200);
     ////system->SetTolForce(1e-5);
 
     ////system->SetSolverType(ChSystem::SOLVER_MINRES);

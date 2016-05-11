@@ -152,7 +152,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   double timer_step = physics_system->GetTimerStep();
   double timer_collision_broad = physics_system->GetTimerCollisionBroad();
   double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-  double timer_lcp = physics_system->GetTimerLcp();
+  double timer_solver = physics_system->GetTimerSolver();
   double timer_update = physics_system->GetTimerUpdate();
 //  if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
 //    num_shapes = parallel_system->data_manager->num_rigid_shapes;
@@ -190,7 +190,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 9, sx, sy);
   sprintf(buffer, "NARROW   %04f", timer_collision_narrow);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 8, sx, sy);
-  sprintf(buffer, "SOLVE    %04f", timer_lcp);
+  sprintf(buffer, "SOLVE    %04f", timer_solver);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 7, sx, sy);
   sprintf(buffer, "UPDATE   %04f", timer_update);
   text.Render(buffer, RIGHT, BOTTOM + SPACING * 6, sx, sy);

@@ -236,9 +236,9 @@ int main(int argc, char* argv[]) {
     //mphysicalSystem.SetUseSleeping(true);
 
     mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.6);  // used by Anitescu stepper only
-    mphysicalSystem.SetIterLCPmaxItersSpeed(40);
-    mphysicalSystem.SetIterLCPmaxItersStab(20);  // unuseful for Anitescu, only Tasora uses this
-    mphysicalSystem.SetIterLCPwarmStarting(true);
+    mphysicalSystem.SetMaxItersSolverSpeed(40);
+    mphysicalSystem.SetMaxItersSolverStab(20);  // unuseful for Anitescu, only Tasora uses this
+    mphysicalSystem.SetSolverWarmStarting(true);
     mphysicalSystem.SetParallelThreadNumber(4);
 
     //

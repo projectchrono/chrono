@@ -307,8 +307,8 @@ int main(int argc, char* argv[]) {
         case SOR: {
             std::cout << "Using SOR solver\n";
             system->SetSolverType(ChSystem::SOLVER_SOR);
-            system->SetIterLCPmaxItersSpeed(100);
-            system->SetIterLCPmaxItersStab(100);
+            system->SetMaxItersSolverSpeed(100);
+            system->SetMaxItersSolverStab(100);
             system->SetTol(1e-10);
             system->SetTolForce(1e-8);
             break;
@@ -318,8 +318,8 @@ int main(int argc, char* argv[]) {
             system->SetSolverType(ChSystem::SOLVER_MINRES);
             ChSolverMINRES* minres_solver = (ChSolverMINRES*)system->GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
-            system->SetIterLCPwarmStarting(true);
-            system->SetIterLCPmaxItersSpeed(500);
+            system->SetSolverWarmStarting(true);
+            system->SetMaxItersSolverSpeed(500);
             system->SetTolForce(1e-5);
             break;
         }

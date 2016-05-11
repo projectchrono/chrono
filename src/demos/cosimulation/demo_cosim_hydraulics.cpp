@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         my_system.AddLink(my_link_springdamper);
 
         my_system.Set_G_acc(ChVector<>(0, 0, 0));
-        my_system.SetIterLCPmaxItersSpeed(20);
+        my_system.SetMaxItersSolverSpeed(20);
         my_system.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
 
         // 2) Add a socket framework object

@@ -251,7 +251,7 @@ int main(int argc, char* argv[]) {
         ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(1000);
+    my_system.SetMaxItersSolverSpeed(1000);
     my_system.SetTolForce(1e-08);
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);

@@ -103,7 +103,7 @@ void test_1() {
     chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
     my_system.DoStaticLinear();
@@ -206,7 +206,7 @@ void test_2() {
     chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     my_system.DoStaticLinear();
@@ -326,7 +326,7 @@ void test_3() {
     chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-12);
 
     my_system.DoStaticLinear();
@@ -451,7 +451,7 @@ void test_4() {
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-12);
 
     my_system.DoStaticLinear();
@@ -612,7 +612,7 @@ void test_5() {
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-12);
 
     my_system.DoStaticLinear();

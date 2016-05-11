@@ -107,7 +107,7 @@ void test_1() {
     my_system.SetSolverType(
         ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // INT_HHT);//INT_EULER_IMPLICIT);
@@ -192,7 +192,7 @@ void test_2() {
         ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
@@ -277,7 +277,7 @@ void test_2b() {
     my_system.SetSolverType(
         ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    my_system.SetIterLCPmaxItersSpeed(200);
+    my_system.SetMaxItersSolverSpeed(200);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
@@ -374,7 +374,7 @@ void test_3() {
     my_system.SetSolverType(
         ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(
@@ -472,7 +472,7 @@ void test_4() {
         ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);

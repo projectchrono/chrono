@@ -157,8 +157,8 @@ int main(int argc, char* argv[]) {
         // NOTE! it is strongly advised that you compile the optional MKL module 
         // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);  
   */  
 

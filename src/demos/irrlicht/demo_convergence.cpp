@@ -217,8 +217,8 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
     // mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
-    mphysicalSystem.SetIterLCPmaxItersSpeed(60);
-    mphysicalSystem.SetIterLCPmaxItersStab(5);
+    mphysicalSystem.SetMaxItersSolverSpeed(60);
+    mphysicalSystem.SetMaxItersSolverStab(5);
     mphysicalSystem.SetParallelThreadNumber(1);
 
     mphysicalSystem.SetMaxPenetrationRecoverySpeed(10);

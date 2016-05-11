@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             GetLog() << "Using DEFAULT solver.\n";
-            system.SetIterLCPmaxItersSpeed(100);
+            system.SetMaxItersSolverSpeed(100);
             system.SetTolForce(1e-6);
             break;
         }
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
             ChSolverMINRES* minres_solver = new ChSolverMINRES;
             minres_solver->SetDiagonalPreconditioning(true);
             system.ChangeSolverSpeed(minres_solver);
-            system.SetIterLCPmaxItersSpeed(100);
+            system.SetMaxItersSolverSpeed(100);
             system.SetTolForce(1e-6);
             break;
         }

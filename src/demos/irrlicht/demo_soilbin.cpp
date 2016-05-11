@@ -960,8 +960,8 @@ int main(int argc, char* argv[]) {
     // Set some integrator settings
     // mphysicalSystem.SetSolverType(ChSystem::SOLVER_APGD);
     mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
-    mphysicalSystem.SetIterLCPmaxItersSpeed(70);
-    mphysicalSystem.SetIterLCPmaxItersStab(15);
+    mphysicalSystem.SetMaxItersSolverSpeed(70);
+    mphysicalSystem.SetMaxItersSolverStab(15);
     mphysicalSystem.SetParallelThreadNumber(4);
 
     // Use real-time step of the simulation, OR...

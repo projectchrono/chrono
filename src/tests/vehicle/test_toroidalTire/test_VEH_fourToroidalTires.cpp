@@ -235,8 +235,8 @@ int main(int argc, char* argv[]) {
             my_system.SetSolverType(ChSystem::SOLVER_MINRES);
             ChSolverMINRES* minres_solver = (ChSolverMINRES*)my_system.GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
-            my_system.SetIterLCPwarmStarting(true);
-            my_system.SetIterLCPmaxItersSpeed(500);
+            my_system.SetSolverWarmStarting(true);
+            my_system.SetMaxItersSolverSpeed(500);
             my_system.SetTolForce(1e-5);
             break;
         }

@@ -298,9 +298,9 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(100000);
-    my_system.SetIterLCPmaxItersStab(100);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(100000);
+    my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-6);
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);

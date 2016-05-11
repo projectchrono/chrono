@@ -494,7 +494,7 @@ int main(int argc, char* argv[]) {
     // SETTINGS
     //
 
-    my_system.SetIterLCPmaxItersSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
+    my_system.SetMaxItersSolverSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
 
     my_system.SetSolverType(ChSystem::SOLVER_SOR);
 

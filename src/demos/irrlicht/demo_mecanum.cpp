@@ -296,8 +296,8 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
 
-    mphysicalSystem.SetIterLCPmaxItersSpeed(30);
-    mphysicalSystem.SetIterLCPmaxItersStab(30);
+    mphysicalSystem.SetMaxItersSolverSpeed(30);
+    mphysicalSystem.SetMaxItersSolverStab(30);
 
     //
     // THE SOFT-REAL-TIME CYCLE
