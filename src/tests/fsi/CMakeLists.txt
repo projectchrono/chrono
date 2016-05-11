@@ -46,9 +46,6 @@ SET(FSI_VEHICLE_TESTS
 SET(FSI_PARALLEL_VEHICLE_TESTS
 # add fsi parallel vehicle TESTS here
 	test_fsi_cylinderDrop_new
-	#test_fsi_hmmwv_pointCloud
-	#test_fsi_invertedPendulum
-	#test_pointCloud
 )
 
 #--------------------------------------------------------------
