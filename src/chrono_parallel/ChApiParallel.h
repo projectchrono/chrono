@@ -41,3 +41,15 @@
 #define ELPP_WINSOCK2
 #endif
 
+/**
+    @defgroup parallel_module PARALLEL module
+    @brief Module that enables parallel computation in Chrono 
+
+    This module implements parallel computing algorithms that can be
+    used as a faster alternative to the default simulation algorithms
+    in Chrono::Engine. This is achieved using OpenMP, CUDA, Thrust, etc.
+
+    For additional information, see:
+    - the [installation guide](@ref module_parallel_installation)
+    - the [tutorials](@ref tutorial_root)
+*/

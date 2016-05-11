@@ -196,22 +196,22 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-  double iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
-  const std::vector<double>& vhist =
-      ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
-  const std::vector<double>& dhist =
-      ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
-  double residual = vhist.size() > 0 ? vhist.back() : 0.0;
-  double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
+    int iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
+    const std::vector<double>& vhist =
+        ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
+    const std::vector<double>& dhist =
+        ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+    double residual = vhist.size() > 0 ? vhist.back() : 0.0;
+    double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 
-  sprintf(buffer, "SOLVER INFO");
-  text.Render(buffer, RIGHT, TOP - SPACING * 6, sx, sy);
-  sprintf(buffer, "ITERS    %04d", int(iters));
-  text.Render(buffer, RIGHT, TOP - SPACING * 7, sx, sy);
-  sprintf(buffer, "RESIDUAL %04f", residual);
-  text.Render(buffer, RIGHT, TOP - SPACING * 8, sx, sy);
-  sprintf(buffer, "CORRECT  %04f", dlambda);
-  text.Render(buffer, RIGHT, TOP - SPACING * 9, sx, sy);
+    sprintf(buffer, "SOLVER INFO");
+    text.Render(buffer, RIGHT, TOP - SPACING * 6, sx, sy);
+    sprintf(buffer, "ITERS    %04d", iters);
+    text.Render(buffer, RIGHT, TOP - SPACING * 7, sx, sy);
+    sprintf(buffer, "RESIDUAL %04f", residual);
+    text.Render(buffer, RIGHT, TOP - SPACING * 8, sx, sy);
+    sprintf(buffer, "CORRECT  %04f", dlambda);
+    text.Render(buffer, RIGHT, TOP - SPACING * 9, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {

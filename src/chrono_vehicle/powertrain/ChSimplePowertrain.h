@@ -28,14 +28,17 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
+/// Template for simplified powertrain model.
+/// This model uses a trivial speed-torque curve, has no torque converter
+/// and no transmission box.
 class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
   public:
     ChSimplePowertrain();
 
     virtual ~ChSimplePowertrain() {}
-
-    /// Initialize the powertrain system.
-    void Initialize();
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motorSpeed; }
@@ -70,14 +73,19 @@ class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
     /// This simplified model does not have a transmission box.
     virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
 
+    /// Initialize the powertrain system.
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
+                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
+                            ) override;
+
     /// Update the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a
     /// value in the range [0,1], and the current angular speed of the transmission
     /// shaft (from the driveline).
-    virtual void Update(double time,        ///< [in] current time
-                        double throttle,    ///< [in] current throttle input [0,1]
-                        double shaft_speed  ///< [in] current angular speed of the transmission shaft
-                        ) override;
+    virtual void Synchronize(double time,        ///< [in] current time
+                             double throttle,    ///< [in] current throttle input [0,1]
+                             double shaft_speed  ///< [in] current angular speed of the transmission shaft
+                             ) override;
 
     /// Advance the state of this powertrain system by the specified time step.
     /// This function does nothing for this simplified powertrain model.
@@ -102,6 +110,8 @@ class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
     double m_motorTorque;
     double m_shaftTorque;
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

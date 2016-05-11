@@ -32,4 +32,15 @@
 #define ChApiMkl ChApiIMPORT
 #endif
 
+/**
+    @defgroup mkl_module MKL module
+    @brief Module for the Intel MKL library direct solver
+
+    Module provides access to the Intel MKL library. This library is
+    currently used in Chrono for its parallel direct solver (Pardiso).
+
+    For additional information, see:
+    - the [installation guide](@ref module_mkl_installation)
+*/
+
 #endif  // END of header

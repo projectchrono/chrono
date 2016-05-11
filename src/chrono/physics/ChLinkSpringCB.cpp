@@ -40,8 +40,8 @@ ChLink* ChLinkSpringCB::new_Duplicate() {
 }
 
 void ChLinkSpringCB::Initialize(
-    ChSharedPtr<ChBody> body1,  // first body to link
-    ChSharedPtr<ChBody> body2,  // second body to link
+    std::shared_ptr<ChBody> body1,  // first body to link
+    std::shared_ptr<ChBody> body2,  // second body to link
     bool pos_are_relative,      // true: following pos. are considered relative to bodies. false: pos. are absolute
     ChVector<> pos1,            // position of spring endpoint for 1st body (rel. or abs., see flag above)
     ChVector<> pos2,            // position of spring endpoint for 2nd body (rel. or abs., see flag above)

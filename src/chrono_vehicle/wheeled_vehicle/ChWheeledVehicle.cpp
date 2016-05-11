@@ -30,32 +30,49 @@ namespace vehicle {
 // The default implementation of this function invokes the update functions for
 // all vehicle subsystems.
 // -----------------------------------------------------------------------------
-void ChWheeledVehicle::Update(double time,
-                              double steering,
-                              double braking,
-                              double powertrain_torque,
-                              const TireForces& tire_forces) {
+void ChWheeledVehicle::Synchronize(double time,
+                                   double steering,
+                                   double braking,
+                                   double powertrain_torque,
+                                   const TireForces& tire_forces) {
     // Apply powertrain torque to the driveline's input shaft.
-    m_driveline->Update(powertrain_torque);
+    m_driveline->Synchronize(powertrain_torque);
 
     // Let the steering subsystems process the steering input.
     for (unsigned int i = 0; i < m_steerings.size(); i++) {
-        m_steerings[i]->Update(time, steering);
+        m_steerings[i]->Synchronize(time, steering);
     }
 
     // Apply tire forces to spindle bodies and apply braking.
     for (unsigned int i = 0; i < m_suspensions.size(); i++) {
-        m_suspensions[i]->Update(LEFT, tire_forces[2 * i]);
-        m_suspensions[i]->Update(RIGHT, tire_forces[2 * i + 1]);
+        m_suspensions[i]->Synchronize(LEFT, tire_forces[2 * i]);
+        m_suspensions[i]->Synchronize(RIGHT, tire_forces[2 * i + 1]);
 
-        m_brakes[2 * i]->Update(braking);
-        m_brakes[2 * i + 1]->Update(braking);
+        m_brakes[2 * i]->Synchronize(braking);
+        m_brakes[2 * i + 1]->Synchronize(braking);
     }
 }
 
 // -----------------------------------------------------------------------------
+// Calculate and return the total vehicle mass
 // -----------------------------------------------------------------------------
-ChSharedPtr<ChBody> ChWheeledVehicle::GetWheelBody(const WheelID& wheel_id) const {
+double ChWheeledVehicle::GetVehicleMass() const {
+    double mass = m_chassis->GetMass();
+    for (size_t i = 0; i < m_suspensions.size(); i++)
+        mass += m_suspensions[i]->GetMass();
+    for (size_t i = 0; i < m_antirollbars.size(); i++)
+        mass += m_antirollbars[i]->GetMass();
+    for (size_t i = 0; i < m_steerings.size(); i++)
+        mass += m_steerings[i]->GetMass();
+    for (size_t i = 0; i < m_wheels.size(); i++)
+        mass += m_wheels[i]->GetMass();
+
+    return mass;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+std::shared_ptr<ChBody> ChWheeledVehicle::GetWheelBody(const WheelID& wheel_id) const {
     return m_suspensions[wheel_id.axle()]->GetSpindle(wheel_id.side());
 }
 

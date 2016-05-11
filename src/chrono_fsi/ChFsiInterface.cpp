@@ -24,7 +24,7 @@ namespace fsi {
 ChFsiInterface::ChFsiInterface(
 		FsiBodiesDataH * other_fsiBodiesH,
 		chrono::ChSystemParallelDVI * other_mphysicalSystem,
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * other_fsiBodeisPtr,
+		std::vector<std::shared_ptr<chrono::ChBody> > * other_fsiBodeisPtr,
 		thrust::device_vector<Real3> * other_rigid_FSI_ForcesD,
 		thrust::device_vector<Real3> * other_rigid_FSI_TorquesD) :
 fsiBodiesH(other_fsiBodiesH),
@@ -48,7 +48,7 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 	int numRigids = fsiBodeisPtr->size();
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	for (int i = 0; i < numRigids; i++) {
-		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisPtr)[i];
+		auto bodyPtr = (*fsiBodeisPtr)[i];
 
 //		// --------------------------------
 //		// Add forces to bodies: Version 1
@@ -76,14 +76,14 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 		//	string forceTag("hydrodynamics_force");
 		char forceTag[] = "fsi_force";
 		char torqueTag[] = "fsi_torque";
-		chrono::ChSharedPtr<chrono::ChForce> hydroForce = bodyPtr->SearchForce(
+		auto hydroForce = bodyPtr->SearchForce(
 				forceTag);
-		chrono::ChSharedPtr<chrono::ChForce> hydroTorque = bodyPtr->SearchForce(
+		auto hydroTorque = bodyPtr->SearchForce(
 				torqueTag);
 
-		if (hydroForce.IsNull()) {
-			hydroForce = chrono::ChSharedPtr<chrono::ChForce>(new chrono::ChForce);
-			hydroTorque = chrono::ChSharedPtr<chrono::ChForce>(new chrono::ChForce);
+		if (!hydroForce) {
+			hydroForce = std::make_shared<chrono::ChForce>();
+			hydroTorque = std::make_shared<chrono::ChForce>();
 
 			hydroForce->SetMode(FTYPE_FORCE);
 			hydroTorque->SetMode(FTYPE_TORQUE);
@@ -154,7 +154,7 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD * fsi
 	//#pragma omp parallel for // Arman: you can bring it back later, when you have a lot of bodies
 	int num_fsiBodies_Rigids = fsiBodeisPtr->size();
 	for (int i = 0; i < num_fsiBodies_Rigids; i++) {
-		chrono::ChSharedPtr<chrono::ChBody> bodyPtr = (*fsiBodeisPtr)[i];
+		auto bodyPtr = (*fsiBodeisPtr)[i];
 		fsiBodiesH->posRigid_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetPos());
 		fsiBodiesH->velMassRigid_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorRToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
 		fsiBodiesH->accRigid_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetPos_dtdt());

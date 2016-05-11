@@ -19,6 +19,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Class for corotational elements (elements with rotation
 /// matrices that follow the global motion of the element)
 class ChApiFea ChElementCorotational {
@@ -42,6 +45,8 @@ class ChApiFea ChElementCorotational {
     /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
     virtual void UpdateRotation() = 0;
 };
+
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

@@ -54,7 +54,9 @@ ChFialaTire::ChFialaTire(const std::string& name) : ChTire(name), m_stepsize(1e-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChFialaTire::Initialize() {
+void ChFialaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    ChTire::Initialize(wheel, side);
+
     SetFialaParams();
 
     // Initialize contact patach state variables to 0;
@@ -64,7 +66,10 @@ void ChFialaTire::Initialize() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChFialaTire::Update(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
+void ChFialaTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
+    // Invoke the base class function.
+    ChTire::Synchronize(time, wheel_state, terrain);
+
     ChCoordsys<> contact_frame;
     // Clear the force accumulators and set the application point to the wheel
     // center.
@@ -89,7 +94,7 @@ void ChFialaTire::Update(double time, const WheelState& wheel_state, const ChTer
         // the terrain so fast that no contact force is generated.
         // The sign of the velocity term in the damping function is negative since
         // a positive velocity means a decreasing depth, not an increasing depth
-        double Fn_mag = getNormalStiffnessForce(m_data.depth) + getNormalDampingForce(m_data.depth, -m_data.vel.z);
+        double Fn_mag = GetNormalStiffnessForce(m_data.depth) + GetNormalDampingForce(m_data.depth, -m_data.vel.z);
 
         if (Fn_mag < 0) {
             Fn_mag = 0;
@@ -172,7 +177,7 @@ void ChFialaTire::Advance(double step) {
         //}
 
         // Now calculate the new force and moment values (normal force and moment has already been accounted for in
-        // Update())
+        // Synchronize())
         // See reference for more detail on the calculations
         double SsA = std::min<>(1.0,std::sqrt(std::pow(m_states.cp_long_slip, 2) + std::pow(std::tan(m_states.cp_side_slip), 2)));
         double U = m_u_max - (m_u_max - m_u_min) * SsA;
@@ -221,7 +226,7 @@ void ChFialaTire::Advance(double step) {
         m_tireforce.moment +=
             Vcross((m_data.frame.pos + m_data.depth*m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
     }
-    // Else do nothing since the "m_tireForce" force and moment values are already 0 (set in Update())
+    // Else do nothing since the "m_tireForce" force and moment values are already 0 (set in Synchronize())
 }
 
 }  // end namespace vehicle

@@ -14,25 +14,26 @@
 #define CHELEMENTTETRA4_H
 
 #include <cmath>
-#include "ChElementTetrahedron.h"
-#include "ChNodeFEAxyz.h"
-#include "ChNodeFEAxyzP.h"
-#include "ChContinuumPoisson3D.h"
-#include "physics/ChTensors.h"
+
+#include "chrono/physics/ChTensors.h"
+#include "chrono_fea/ChElementTetrahedron.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono_fea/ChNodeFEAxyzP.h"
+#include "chrono_fea/ChContinuumPoisson3D.h"
 
 namespace chrono {
 namespace fea {
 
-/// Tetahedron FEA element with 4 nodes.
-/// This is a classical element with linear displacement, hence
-/// with constant stress, constant strain.
-/// It can be easily used for 3D FEA problems.
+/// @addtogroup fea_elements
+/// @{
 
-class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, 
-                                  public ChLoadableUVW {
+/// Tetahedron FEA element with 4 nodes.
+/// This is a classical element with linear displacement, hence with constant stress
+/// and constant strain. It can be easily used for 3D FEA problems.
+class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
-    ChSharedPtr<ChContinuumElastic> Material;
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::shared_ptr<ChContinuumElastic> Material;
     ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
     ChMatrixDynamic<> StiffnessMatrix;  // undeformed local stiffness matrix
 
@@ -42,16 +43,16 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
     ChElementTetra_4();
     virtual ~ChElementTetra_4();
 
-    virtual int GetNnodes() { return 4; }
-    virtual int GetNcoords() { return 4 * 3; }
-    virtual int GetNdofs() { return 4 * 3; }
+    virtual int GetNnodes() override { return 4; }
+    virtual int GetNdofs() override { return 4 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
-                          ChSharedPtr<ChNodeFEAxyz> nodeB,
-                          ChSharedPtr<ChNodeFEAxyz> nodeC,
-                          ChSharedPtr<ChNodeFEAxyz> nodeD) {
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                          std::shared_ptr<ChNodeFEAxyz> nodeB,
+                          std::shared_ptr<ChNodeFEAxyz> nodeC,
+                          std::shared_ptr<ChNodeFEAxyz> nodeD) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
         nodes[2] = nodeC;
@@ -374,8 +375,8 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
     //
 
     /// Set the material of the element
-    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
-    ChSharedPtr<ChContinuumElastic> GetMaterial() { return Material; }
+    void SetMaterial(std::shared_ptr<ChContinuumElastic> my_material) { Material = my_material; }
+    std::shared_ptr<ChContinuumElastic> GetMaterial() { return Material; }
 
     /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
     ChMatrix<>& GetMatrB() { return MatrB; }
@@ -401,7 +402,13 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
         mstress.MatrMultiply(this->Material->Get_StressStrainMatrix(), this->GetStrain());
         return mstress;
     }
-
+    /// This class computes and adds corresponding masses to ElementBase member m_TotalMass
+    void ComputeNodalMass() {
+        nodes[0]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
+        nodes[1]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
+        nodes[2]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
+        nodes[3]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
+    }
     //
     // Functions for interfacing to the LCP solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
@@ -492,19 +499,13 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron,
 };
 
 
-
-
-
-
 /// Tetahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
-
-class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, 
-                                   public ChLoadableUVW {
+class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableUVW {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyzP> > nodes;
-    ChSharedPtr<ChContinuumPoisson3D> Material;
+    std::vector<std::shared_ptr<ChNodeFEAxyzP> > nodes;
+    std::shared_ptr<ChContinuumPoisson3D> Material;
     ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
     ChMatrixDynamic<> StiffnessMatrix;  // local stiffness matrix
 
@@ -519,16 +520,16 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
 
     virtual ~ChElementTetra_4_P(){};
 
-    virtual int GetNnodes() { return 4; }
-    virtual int GetNcoords() { return 4 * 3; }
-    virtual int GetNdofs() { return 4 * 1; }
+    virtual int GetNnodes() override { return 4; }
+    virtual int GetNdofs() override { return 4 * 1; }
+    virtual int GetNodeNdofs(int n) override { return 1; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyzP> nodeA,
-                          ChSharedPtr<ChNodeFEAxyzP> nodeB,
-                          ChSharedPtr<ChNodeFEAxyzP> nodeC,
-                          ChSharedPtr<ChNodeFEAxyzP> nodeD) {
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
+                          std::shared_ptr<ChNodeFEAxyzP> nodeB,
+                          std::shared_ptr<ChNodeFEAxyzP> nodeC,
+                          std::shared_ptr<ChNodeFEAxyzP> nodeD) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
         nodes[2] = nodeC;
@@ -714,8 +715,8 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
     //
 
     /// Set the material of the element
-    void SetMaterial(ChSharedPtr<ChContinuumPoisson3D> my_material) { Material = my_material; }
-    ChSharedPtr<ChContinuumPoisson3D> GetMaterial() { return Material; }
+    void SetMaterial(std::shared_ptr<ChContinuumPoisson3D> my_material) { Material = my_material; }
+    std::shared_ptr<ChContinuumPoisson3D> GetMaterial() { return Material; }
 
     /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
     ChMatrix<>& GetMatrB() { return MatrB; }
@@ -815,9 +816,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron,
      virtual bool IsTetrahedronIntegrationNeeded() {return true;}
 };
 
-
-
-
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

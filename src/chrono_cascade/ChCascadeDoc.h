@@ -41,10 +41,6 @@ class TDF_Label;
 
 namespace chrono {
 
-/// \brief Namespace with classes for the OpenCASCADE unit.
-/// The "cascade" namespace contains tools for interoperation with CAD
-/// files. The OpenCASCADE open-source library is used to this end:
-/// it can load STEP files saved from most 3D CADs.
 namespace cascade {
 
 /// Class that contains an OCAF document (a tree hierarchy of
@@ -116,7 +112,7 @@ class ChApiCASCADE ChCascadeDoc {
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
 
     /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
-    static ChSharedPtr<ChBodyAuxRef> CreateBodyFromShape(
+    static std::shared_ptr<ChBodyAuxRef> CreateBodyFromShape(
                 const TopoDS_Shape& mshape,   ///< pass the shape here
                 const double density          ///< pass the density here
                 );

@@ -80,7 +80,7 @@ int ChSystemFsi::DoStepChronoSystem(Real dT,
 		}
 
 		// Update vehicle
-		mVehicle->Update(mTime);
+		mVehicle->Synchronize(mTime);
 	}
 
 #ifdef CHRONO_OPENGL

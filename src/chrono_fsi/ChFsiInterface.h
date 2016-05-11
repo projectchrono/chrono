@@ -30,7 +30,7 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 		ChFsiInterface(
 			FsiBodiesDataH * other_fsiBodiesH,
 			chrono::ChSystemParallelDVI * other_mphysicalSystem,
-			std::vector<chrono::ChSharedPtr<chrono::ChBody> > * other_fsiBodeisPtr,
+			std::vector<std::shared_ptr<chrono::ChBody> > * other_fsiBodeisPtr,
 			thrust::device_vector<Real3> * other_rigid_FSI_ForcesD,
 			thrust::device_vector<Real3> * other_rigid_FSI_TorquesD);
 		~ChFsiInterface(); // TODO
@@ -44,7 +44,7 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
 		FsiBodiesDataH * fsiBodiesH;
 		ChronoBodiesDataH * chronoRigidBackup;
 		chrono::ChSystemParallelDVI * mphysicalSystem;
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr;
+		std::vector<std::shared_ptr<chrono::ChBody> > * fsiBodeisPtr;
 		thrust::device_vector<Real3> * rigid_FSI_ForcesD;
 		thrust::device_vector<Real3> * rigid_FSI_TorquesD;
 };

@@ -92,8 +92,8 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// The revolute joint rotates about the z axis, the translational joint moves
     /// along the y axis, and the translation axis is at the specified distance
     /// along the x axis.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second frame (translational side)
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (translational side)
                     const ChCoordsys<>& csys,        ///< joint coordinate system (in absolute frame)
                     double distance                  ///< imposed distance
                     );
@@ -105,8 +105,8 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// Otherwise, it is assumed that they are specified in the absolute frame. The
     /// imposed distance between the two points can be either inferred from the provided
     /// configuration (auto_distance = true) or specified explicitly.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second frame (spherical side)
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (spherical side)
                     bool local,                      ///< true if data given in body local frames
                     const ChVector<>& p1,            ///< point on first frame (revolute side)
                     const ChVector<>& dirZ1,         ///< direction of revolute on first frame
@@ -157,10 +157,6 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();
     virtual void ConstraintsFetch_react(double factor = 1.);
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
 
     //
     // EXTRA REACTION FORCE & TORQUE FUNCTIONS
@@ -203,11 +199,10 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     // Current constraint violations
     ChMatrix<>* m_C;
 
-    // Caching of multipliers to allow warm starting
+    // Lagrange multipliers
     // Note that their order corresponds to the following order of the constraints:
     // par1, par2, dot, dist.
-    double m_cache_speed[4];
-    double m_cache_pos[4];
+    double m_multipliers[4];
 };
 
 }  // end namespace chrono

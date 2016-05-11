@@ -38,6 +38,7 @@ set(ChronoEngine_core_SOURCES
     core/ChLinkedListMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
+    core/ChCubicSpline.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -63,8 +64,6 @@ set(ChronoEngine_core_HEADERS
     core/ChPlatform.h
     core/ChQuaternion.h
     core/ChRunTimeType.h
-    core/ChShared.h
-    core/ChSmartpointers.h
     core/ChFileutils.h
     core/ChRealtimeStep.h
     core/ChStream.h
@@ -78,6 +77,7 @@ set(ChronoEngine_core_HEADERS
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
+    core/ChCubicSpline.h
     )
 
 source_group(core FILES
@@ -289,6 +289,9 @@ set(ChronoEngine_physics_HEADERS
 	physics/ChLoaderUV.h
 	physics/ChLoaderUVW.h
 	physics/ChLoad.h
+	physics/ChLoadsXYZnode.h
+	physics/ChLoadsBody.h
+	physics/ChLoadBodyMesh.h
 	physics/ChLoadContainer.h
     )
 
@@ -502,6 +505,7 @@ set(ChronoEngine_timestepper_HEADERS
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
     timestepper/ChStaticAnalysis.h
+	timestepper/ChAssemblyAnalysis.h
     )
 
 source_group(timestepper FILES

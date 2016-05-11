@@ -33,10 +33,11 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_driveline
+/// @{
+
 /// 2WD driveline model template based on ChShaft objects. This template can be
 /// used to model either a FWD or a RWD driveline.
-///
 class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
   public:
     ChShaftsDriveline2WD();
@@ -62,7 +63,7 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the axles of the
     /// specified suspension subsystems.
-    virtual void Initialize(ChSharedPtr<ChBody> chassis,          ///< handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
                             const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
@@ -83,13 +84,15 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     virtual double GetDifferentialRatio() const = 0;
 
   private:
-    ChSharedPtr<ChShaftsGearboxAngled> m_conicalgear;
-    ChSharedPtr<ChShaft> m_differentialbox;
-    ChSharedPtr<ChShaftsPlanetary> m_differential;
+    std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;
+    std::shared_ptr<ChShaft> m_differentialbox;
+    std::shared_ptr<ChShaftsPlanetary> m_differential;
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;
 };
+
+/// @} vehicle_wheeled_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

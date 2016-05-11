@@ -10,16 +10,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
-
+#include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChLinkDirFrame.h"
-#include "physics/ChSystem.h"
-#include "physics/ChIndexedNodes.h"
-
 
 using namespace chrono;
 using namespace fea;
-
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
@@ -35,8 +31,6 @@ ChClassRegister<ChLinkDirFrame> a_registration_ChLinkDirFrame;
 ChLinkDirFrame::ChLinkDirFrame ()
 {
 	this->react= VNULL;
-	this->cache_li_speed = VNULL;
-	this->cache_li_pos = VNULL;
 	this->direction = VECT_X;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
@@ -57,8 +51,6 @@ void ChLinkDirFrame::Copy(ChLinkDirFrame* source)
 		// copy class data
 
 	react = source->react;
-	cache_li_speed = source->cache_li_speed;
-	cache_li_pos = source->cache_li_pos;
 	direction= source->direction;
 }
 
@@ -91,15 +83,12 @@ void ChLinkDirFrame::SetDirectionInAbsoluteCoords(ChVector<> mattach)
 	SetDirectionInBodyCoords(direction);
 }
 
+int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> anode,  ///< node to join
+                               std::shared_ptr<ChBodyFrame> mbody,    ///< body to join
+                               ChVector<>* mdir) {
+    assert(anode && mbody);
 
-int ChLinkDirFrame::Initialize(ChSharedPtr<ChNodeFEAxyzD> anode,  ///< node to join
-						   ChSharedPtr<ChBodyFrame>  mbody,		///< body to join 
-						   ChVector<>* mdir 	
-						   )
-{
-	assert(!anode.IsNull() && !mbody.IsNull());
-
-	this->body = mbody;
+    this->body = mbody;
 	this->mnode = anode;
 
 	this->constraint1.SetVariables(&(this->mnode->Variables_D()), &(this->body->Variables()));
@@ -114,7 +103,7 @@ int ChLinkDirFrame::Initialize(ChSharedPtr<ChNodeFEAxyzD> anode,  ///< node to j
 	else
 	{
 		// downcasting
-		if (mnode.IsNull()) return false;
+		if (!mnode) return false;
 
 		ChVector<> temp= mnode->GetD(); 
 		this->direction = body->TransformDirectionParentToLocal(temp);
@@ -252,7 +241,7 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
 	//if (!this->IsActive())
 	//	return;
 
-	if (mnode.IsNull()) 
+	if (!mnode) 
 		return;
 	ChMatrix33<> Arw = this->csys_direction.rot >> this->body->coord.rot;
 	ChVector<> res = Arw.MatrT_x_Vect (mnode->GetD());
@@ -302,34 +291,6 @@ void ChLinkDirFrame::ConstraintsFetch_react(double factor)
 	this->react.y = constraint1.Get_l_i() * factor; 
 	this->react.z = constraint2.Get_l_i() * factor; 
 }
-
-// Following functions are for exploiting the contact persistence
-
-void  ChLinkDirFrame::ConstraintsLiLoadSuggestedSpeedSolution()
-{
-	constraint1.Set_l_i(this->cache_li_speed.y);
-	constraint2.Set_l_i(this->cache_li_speed.z);
-}
-
-void  ChLinkDirFrame::ConstraintsLiLoadSuggestedPositionSolution()
-{
-	constraint1.Set_l_i(this->cache_li_pos.y);
-	constraint2.Set_l_i(this->cache_li_pos.z);
-}
-
-void  ChLinkDirFrame::ConstraintsLiFetchSuggestedSpeedSolution()
-{
-	this->cache_li_speed.y = (float)constraint1.Get_l_i();
-	this->cache_li_speed.z = (float)constraint2.Get_l_i();
-}
-
-void  ChLinkDirFrame::ConstraintsLiFetchSuggestedPositionSolution()
-{
-	this->cache_li_pos.y =  (float)constraint1.Get_l_i();
-	this->cache_li_pos.z =  (float)constraint2.Get_l_i();
-}
-
-
 
 //////// FILE I/O
 

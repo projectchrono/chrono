@@ -29,7 +29,8 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
       m_use_mat_props(use_material_properties),
       m_use_history(use_history),
       m_contact_model(Hertz),
-      m_adhesion_model(Constant) {
+      m_adhesion_model(Constant),
+      m_stiff_contact(false) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
@@ -45,7 +46,7 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     // when models are closer than the safety envelope, so set default envelope to 0
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
-    contact_container = ChSharedPtr<ChContactContainerDEM>(new ChContactContainerDEM);
+    contact_container = std::make_shared<ChContactContainerDEM>();
     contact_container->SetSystem(this);
 
     m_minSlipVelocity = 1e-4; 
@@ -56,7 +57,7 @@ void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
 
     ChSystem::SetLcpSolverType(mval);
 
-    contact_container = ChSharedPtr<ChContactContainerDEM>(new ChContactContainerDEM);
+    contact_container = std::make_shared<ChContactContainerDEM>();
     contact_container->SetSystem(this);
 }
 
@@ -67,8 +68,8 @@ void ChSystemDEM::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
 }
 */
 
-void ChSystemDEM::ChangeContactContainer(ChSharedPtr<ChContactContainerBase>  newcontainer) {
-    if (newcontainer.DynamicCastTo<ChContactContainerDEM>())
+void ChSystemDEM::ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) {
+    if (std::dynamic_pointer_cast<ChContactContainerDEM>(newcontainer))
         ChSystem::ChangeContactContainer(newcontainer);
 }
 

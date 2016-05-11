@@ -31,9 +31,10 @@ namespace vehicle {
 ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            ChBezierCurve* path,
                                            const std::string& path_name,
-                                           double target_speed)
+                                           double target_speed,
+                                           bool isClosedPath)
     : ChDriver(vehicle),
-      m_steeringPID(path),
+      m_steeringPID(path, isClosedPath),
       m_pathName(path_name),
       m_target_speed(target_speed),
       m_throttle_threshold(0.2) {
@@ -45,9 +46,10 @@ ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            const std::string& speed_filename,
                                            ChBezierCurve* path,
                                            const std::string& path_name,
-                                           double target_speed)
+                                           double target_speed,
+                                           bool isClosedPath)
     : ChDriver(vehicle),
-      m_steeringPID(steering_filename, path),
+      m_steeringPID(steering_filename, path, isClosedPath),
       m_speedPID(speed_filename),
       m_pathName(path_name),
       m_target_speed(target_speed),
@@ -61,12 +63,12 @@ void ChPathFollowerDriver::Create() {
     m_speedPID.Reset(m_vehicle);
 
     // Create a fixed body to carry a visualization asset for the path
-    ChSharedPtr<ChBody> road(new ChBody);
+    auto road = std::shared_ptr<ChBody>(m_vehicle.GetSystem()->NewBody());
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
-    ChSharedPtr<ChLineShape> path_asset(new ChLineShape);
-    path_asset->SetLineGeometry(
-        ChSharedPtr<geometry::ChLineBezier>(new geometry::ChLineBezier(m_steeringPID.GetPath())));
+
+    auto path_asset = std::make_shared<ChLineShape>();
+    path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(m_steeringPID.GetPath()));
     path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);
     road->AddAsset(path_asset);

@@ -69,6 +69,8 @@ class ChMatrixDynamic;
 ///  Warning: for optimization reasons, not all functions will
 /// check about boundaries of element indexes and matrix sizes (in
 /// some cases, if sizes are wrong, debug asserts are used).
+///
+/// Further info at the @ref mathematical_objects manual page.
 
 template <class Real = double>
 class ChMatrix {
@@ -1054,6 +1056,7 @@ class ChMatrix {
                                int inscol) {
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
+#pragma omp atomic
                 Element(i + insrow, j + inscol) += (Real)matra->Element(i + cliprow, j + clipcol);
     }
 

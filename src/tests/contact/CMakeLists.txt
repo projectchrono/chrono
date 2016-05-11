@@ -1,0 +1,43 @@
+#--------------------------------------------------------------
+# Add executables
+
+IF (NOT ENABLE_MODULE_IRRLICHT)
+	return()
+ENDIF()
+
+SET(TESTS
+  test_CH_contactDEM
+)
+
+INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
+
+IF(ENABLE_MODULE_MKL)
+  INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
+  SET(CFLAGS_MKL "${CH_MKL_CXX_FLAGS}")
+  SET(LFLAGS_MKL "${CH_MKL_LINK_FLAGS}")
+  SET(LIB_MKL ChronoEngine_mkl)
+ELSE()
+  SET(CFLAGS_MKL "")
+  SET(LFLAGS_MKL "")
+  SET(LIB_MKL "")
+ENDIF()
+
+MESSAGE(STATUS "Additional test programs for Chrono contact...")
+
+FOREACH(PROGRAM ${TESTS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
+
+    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+        FOLDER tests
+        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CFLAGS_MKL}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE} ${LFLAGS_MKL}"
+    )
+
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_irrlicht ${LIB_MKL})
+
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+
+ENDFOREACH(PROGRAM)

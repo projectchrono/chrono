@@ -28,8 +28,6 @@ ChShaftsGearbox::ChShaftsGearbox() {
     SetTransmissionRatio(0.5);
 
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     this->shaft1 = 0;
     this->shaft2 = 0;
@@ -53,8 +51,6 @@ void ChShaftsGearbox::Copy(ChShaftsGearbox* source) {
     r3 = source->r3;
 
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
     this->shaft1 = 0;
     this->shaft2 = 0;
     this->body = 0;
@@ -63,14 +59,14 @@ void ChShaftsGearbox::Copy(ChShaftsGearbox* source) {
 }
 
 int ChShaftsGearbox::Initialize(
-    ChSharedPtr<ChShaft> mshaft1,    ///< first (input) shaft to join
-    ChSharedPtr<ChShaft> mshaft2,    ///< second  (output) shaft to join
-    ChSharedPtr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
-    ChVector<>& mdir                 ///< the direction of the shaft on 3D body (applied on COG: pure torque)
+    std::shared_ptr<ChShaft> mshaft1,    // first (input) shaft to join
+    std::shared_ptr<ChShaft> mshaft2,    // second  (output) shaft to join
+    std::shared_ptr<ChBodyFrame> mbody,  // 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
+    ChVector<>& mdir                     // the direction of the shaft on 3D body (applied on COG: pure torque)
     ) {
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
-    ChBodyFrame* mm3 = mbody.get_ptr();
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
+    ChBodyFrame* mm3 = mbody.get();
     assert(mm1 && mm2 && mm3);
     assert(mm1 != mm2);
     assert((mm1->GetSystem() == mm2->GetSystem()));
@@ -202,24 +198,6 @@ void ChShaftsGearbox::ConstraintsLoadJacobians() {
 void ChShaftsGearbox::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     this->torque_react = constraint.Get_l_i() * factor;
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsGearbox::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsGearbox::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsGearbox::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsGearbox::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
 }
 
 //////// FILE I/O

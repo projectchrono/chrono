@@ -90,7 +90,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
                 return true;
 
             case KEY_KEY_J:
-                if (!m_data_driver.IsNull()) {
+                if (m_data_driver) {
                     m_mode = DATAFILE;
                     m_time_shift = m_app.m_vehicle->GetSystem()->GetChTime();
                 }
@@ -118,7 +118,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 // -----------------------------------------------------------------------------
 void ChIrrGuiDriver::SetInputDataFile(const std::string& filename) {
     // Embed a DataDriver.
-    m_data_driver = ChSharedPtr<ChDataDriver>(new ChDataDriver(m_vehicle, filename, false));
+    m_data_driver = std::make_shared<ChDataDriver>(m_vehicle, filename, false);
 }
 
 // -----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ void ChIrrGuiDriver::SetInputMode(InputMode mode) {
             m_mode = KEYBOARD;
             break;
         case DATAFILE:
-            if (!m_data_driver.IsNull()) {
+            if (m_data_driver) {
                 m_mode = DATAFILE;
                 m_time_shift = m_app.m_vehicle->GetSystem()->GetChTime();
             }
@@ -145,13 +145,13 @@ void ChIrrGuiDriver::SetInputMode(InputMode mode) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrGuiDriver::Update(double time) {
+void ChIrrGuiDriver::Synchronize(double time) {
     // Do nothing if no embedded DataDriver.
-    if (m_mode != DATAFILE || m_data_driver.IsNull())
+    if (m_mode != DATAFILE || !m_data_driver)
         return;
 
     // Call the update function of the embedded DataDriver, with shifted time.
-    m_data_driver->Update(time - m_time_shift);
+    m_data_driver->Synchronize(time - m_time_shift);
 
     // Use inputs from embedded DataDriver
     m_throttle = m_data_driver->GetThrottle();

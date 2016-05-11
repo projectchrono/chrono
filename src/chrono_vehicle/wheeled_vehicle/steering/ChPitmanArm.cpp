@@ -34,7 +34,7 @@ ChPitmanArm::ChPitmanArm(const std::string& name) : ChSteering(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
     // Express the steering reference frame in the absolute coordinate system.
@@ -62,7 +62,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     ChMatrix33<> rot;
 
     // Create and initialize the steering link body
-    m_link = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(points[STEERINGLINK]);
     m_link->SetRot(steering_to_abs.GetRot());
@@ -73,7 +73,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddBody(m_link);
 
     // Create and initialize the Pitman arm body
-    m_arm = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_arm = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_arm->SetNameString(m_name + "_arm");
     m_arm->SetPos(points[PITMANARM]);
     m_arm->SetRot(steering_to_abs.GetRot());
@@ -93,7 +93,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REV_AXIS]);
     rot.Set_A_axis(u, v, dirs[REV_AXIS]);
 
-    m_revolute = ChSharedPtr<ChLinkEngine>(new ChLinkEngine);
+    m_revolute = std::make_shared<ChLinkEngine>();
     m_revolute->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
     m_revolute->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
     m_revolute->SetNameString(m_name + "_revolute");
@@ -107,7 +107,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     w = Vcross(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK]);
     rot.Set_A_axis(dirs[UNIV_AXIS_ARM], dirs[UNIV_AXIS_LINK], w);
 
-    m_universal = ChSharedPtr<ChLinkUniversal>(new ChLinkUniversal);
+    m_universal = std::make_shared<ChLinkUniversal>();
     m_universal->SetNameString(m_name + "_universal");
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universal);
@@ -124,7 +124,7 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REVSPH_AXIS]);
     rot.Set_A_axis(u, v, dirs[REVSPH_AXIS]);
 
-    m_revsph = ChSharedPtr<ChLinkRevoluteSpherical>(new ChLinkRevoluteSpherical);
+    m_revsph = std::make_shared<ChLinkRevoluteSpherical>();
     m_revsph->SetNameString(m_name + "_revsph");
     m_revsph->Initialize(chassis, m_link, ChCoordsys<>(points[REVSPH_R], rot.Get_A_quaternion()), distance);
     chassis->GetSystem()->AddLink(m_revsph);
@@ -132,14 +132,21 @@ void ChPitmanArm::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPitmanArm::Update(double time, double steering) {
-    if (ChSharedPtr<ChFunction_Const> fun = m_revolute->Get_rot_funct().DynamicCastTo<ChFunction_Const>())
+void ChPitmanArm::Synchronize(double time, double steering) {
+    if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_revolute->Get_rot_funct()))
         fun->Set_yconst(getMaxAngle() * steering);
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the steering subsystem
 // -----------------------------------------------------------------------------
-void ChPitmanArm::AddVisualizationPitmanArm(ChSharedPtr<ChBody> arm,
+double ChPitmanArm::GetMass() const {
+    return getSteeringLinkMass() + getPitmanArmMass();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChPitmanArm::AddVisualizationPitmanArm(std::shared_ptr<ChBody> arm,
                                             const ChVector<>& pt_C,
                                             const ChVector<>& pt_L,
                                             double radius) {
@@ -147,18 +154,18 @@ void ChPitmanArm::AddVisualizationPitmanArm(ChSharedPtr<ChBody> arm,
     ChVector<> p_C = arm->TransformPointParentToLocal(pt_C);
     ChVector<> p_L = arm->TransformPointParentToLocal(pt_L);
 
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = p_C;
     cyl->GetCylinderGeometry().p2 = p_L;
     cyl->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl);
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
     arm->AddAsset(col);
 }
 
-void ChPitmanArm::AddVisualizationSteeringLink(ChSharedPtr<ChBody> link,
+void ChPitmanArm::AddVisualizationSteeringLink(std::shared_ptr<ChBody> link,
                                                const ChVector<>& pt_P,
                                                const ChVector<>& pt_I,
                                                const ChVector<>& pt_TP,
@@ -170,25 +177,25 @@ void ChPitmanArm::AddVisualizationSteeringLink(ChSharedPtr<ChBody> link,
     ChVector<> p_TP = link->TransformPointParentToLocal(pt_TP);
     ChVector<> p_TI = link->TransformPointParentToLocal(pt_TI);
 
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = p_P;
     cyl->GetCylinderGeometry().p2 = p_I;
     cyl->GetCylinderGeometry().rad = radius;
     link->AddAsset(cyl);
 
-    ChSharedPtr<ChCylinderShape> cyl_P(new ChCylinderShape);
+    auto cyl_P = std::make_shared<ChCylinderShape>();
     cyl_P->GetCylinderGeometry().p1 = p_P;
     cyl_P->GetCylinderGeometry().p2 = p_TP;
     cyl_P->GetCylinderGeometry().rad = radius;
     link->AddAsset(cyl_P);
 
-    ChSharedPtr<ChCylinderShape> cyl_I(new ChCylinderShape);
+    auto cyl_I = std::make_shared<ChCylinderShape>();
     cyl_I->GetCylinderGeometry().p1 = p_I;
     cyl_I->GetCylinderGeometry().p2 = p_TI;
     cyl_I->GetCylinderGeometry().rad = radius;
     link->AddAsset(cyl_I);
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.7f, 0.7f));
     link->AddAsset(col);
 }

@@ -48,38 +48,38 @@ class Articulated_Trailer {
 
     virtual void Initialize(const chrono::ChCoordsys<>& chassisPos,
                             const bool connect_to_puller,
-                            chrono::ChSharedPtr<chrono::ChBodyAuxRef> pulling_vehicle);
+                            std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
 
-    virtual void Update(double time, double braking, const chrono::vehicle::TireForces& tire_forces);
+    virtual void Synchronize(double time, double braking, const chrono::vehicle::TireForces& tire_forces);
 
     // Log debugging information
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
     /// Get a handle to the specified wheel body.
-    chrono::ChSharedPtr<chrono::ChBody> GetWheelBody(const chrono::vehicle::WheelID& wheelID) const;
+    std::shared_ptr<chrono::ChBody> GetWheelBody(const chrono::vehicle::WheelID& wheelID) const;
 
   private:
     chrono::vehicle::SuspensionType m_suspType;
 
-    chrono::ChSharedPtr<Generic_Wheel> m_front_right_wheel;
-    chrono::ChSharedPtr<Generic_Wheel> m_front_left_wheel;
-    chrono::ChSharedPtr<Generic_Wheel> m_rear_right_wheel;
-    chrono::ChSharedPtr<Generic_Wheel> m_rear_left_wheel;
+    std::shared_ptr<Generic_Wheel> m_front_right_wheel;
+    std::shared_ptr<Generic_Wheel> m_front_left_wheel;
+    std::shared_ptr<Generic_Wheel> m_rear_right_wheel;
+    std::shared_ptr<Generic_Wheel> m_rear_left_wheel;
 
-    chrono::ChSharedPtr<Generic_BrakeSimple> m_front_right_brake;
-    chrono::ChSharedPtr<Generic_BrakeSimple> m_front_left_brake;
-    chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_right_brake;
-    chrono::ChSharedPtr<Generic_BrakeSimple> m_rear_left_brake;
+    std::shared_ptr<Generic_BrakeSimple> m_front_right_brake;
+    std::shared_ptr<Generic_BrakeSimple> m_front_left_brake;
+    std::shared_ptr<Generic_BrakeSimple> m_rear_right_brake;
+    std::shared_ptr<Generic_BrakeSimple> m_rear_left_brake;
 
-    chrono::ChSharedPtr<chrono::ChBodyAuxRef> m_chassis;    ///< handle to the chassis body
-    chrono::ChSharedPtr<chrono::ChBodyAuxRef> m_frontaxle;  ///< handle to the steering axle
+    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;    ///< handle to the chassis body
+    std::shared_ptr<chrono::ChBodyAuxRef> m_frontaxle;  ///< handle to the steering axle
     chrono::vehicle::ChSuspensionList m_suspensions;        ///< list of handles to suspension subsystems
     chrono::vehicle::ChWheelList m_wheels;                  ///< list of handles to wheel subsystems
     chrono::vehicle::ChBrakeList m_brakes;                  ///< list of handles to brake subsystems
 
-    chrono::ChSharedPtr<chrono::ChLinkLockSpherical> m_joint;  ///< handle to the joint between chassis and front axle
-    chrono::ChSharedPtr<chrono::ChLinkLockSpherical>
+    std::shared_ptr<chrono::ChLinkLockSpherical> m_joint;  ///< handle to the joint between chassis and front axle
+    std::shared_ptr<chrono::ChLinkLockSpherical>
         m_puller;  ///< handle to the joint between trailer and pulling vehicle (optional)
 
     // Chassis mass properties

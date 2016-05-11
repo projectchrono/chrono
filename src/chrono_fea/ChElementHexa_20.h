@@ -13,20 +13,20 @@
 #ifndef CHELEMENTHEXA20_H
 #define CHELEMENTHEXA20_H
 
-#include "ChElementHexahedron.h"
-#include "ChNodeFEAxyz.h"
+#include "chrono_fea/ChElementHexahedron.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
 
-/// Class for FEA elements of hexahedron type (isoparametric 3D bricks)
-/// with 20 nodes.
+/// @addtogroup fea_elements
+/// @{
 
-class ChApiFea ChElementHexa_20 : public ChElementHexahedron,
-                                  public ChLoadableUVW {
+/// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 20 nodes.
+class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW {
   protected:
-    std::vector<ChSharedPtr<ChNodeFEAxyz> > nodes;
-    ChSharedPtr<ChContinuumElastic> Material;
+    std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
+    std::shared_ptr<ChContinuumElastic> Material;
     // std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each
     // integration point)
     // we use a vector to keep in memory all the 27 matrices (-> 27 integr. point)
@@ -37,32 +37,32 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron,
     ChElementHexa_20();
     virtual ~ChElementHexa_20();
 
-    virtual int GetNnodes() { return 20; }
-    virtual int GetNcoords() { return 20 * 3; }
-    virtual int GetNdofs() { return 20 * 3; }
+    virtual int GetNnodes() override { return 20; }
+    virtual int GetNdofs() override { return 20 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 
-    virtual void SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
-                          ChSharedPtr<ChNodeFEAxyz> nodeB,
-                          ChSharedPtr<ChNodeFEAxyz> nodeC,
-                          ChSharedPtr<ChNodeFEAxyz> nodeD,
-                          ChSharedPtr<ChNodeFEAxyz> nodeE,
-                          ChSharedPtr<ChNodeFEAxyz> nodeF,
-                          ChSharedPtr<ChNodeFEAxyz> nodeG,
-                          ChSharedPtr<ChNodeFEAxyz> nodeH,
-                          ChSharedPtr<ChNodeFEAxyz> nodeI,
-                          ChSharedPtr<ChNodeFEAxyz> nodeJ,
-                          ChSharedPtr<ChNodeFEAxyz> nodeK,
-                          ChSharedPtr<ChNodeFEAxyz> nodeL,
-                          ChSharedPtr<ChNodeFEAxyz> nodeM,
-                          ChSharedPtr<ChNodeFEAxyz> nodeN,
-                          ChSharedPtr<ChNodeFEAxyz> nodeO,
-                          ChSharedPtr<ChNodeFEAxyz> nodeP,
-                          ChSharedPtr<ChNodeFEAxyz> nodeQ,
-                          ChSharedPtr<ChNodeFEAxyz> nodeR,
-                          ChSharedPtr<ChNodeFEAxyz> nodeS,
-                          ChSharedPtr<ChNodeFEAxyz> nodeT) {
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                          std::shared_ptr<ChNodeFEAxyz> nodeB,
+                          std::shared_ptr<ChNodeFEAxyz> nodeC,
+                          std::shared_ptr<ChNodeFEAxyz> nodeD,
+                          std::shared_ptr<ChNodeFEAxyz> nodeE,
+                          std::shared_ptr<ChNodeFEAxyz> nodeF,
+                          std::shared_ptr<ChNodeFEAxyz> nodeG,
+                          std::shared_ptr<ChNodeFEAxyz> nodeH,
+                          std::shared_ptr<ChNodeFEAxyz> nodeI,
+                          std::shared_ptr<ChNodeFEAxyz> nodeJ,
+                          std::shared_ptr<ChNodeFEAxyz> nodeK,
+                          std::shared_ptr<ChNodeFEAxyz> nodeL,
+                          std::shared_ptr<ChNodeFEAxyz> nodeM,
+                          std::shared_ptr<ChNodeFEAxyz> nodeN,
+                          std::shared_ptr<ChNodeFEAxyz> nodeO,
+                          std::shared_ptr<ChNodeFEAxyz> nodeP,
+                          std::shared_ptr<ChNodeFEAxyz> nodeQ,
+                          std::shared_ptr<ChNodeFEAxyz> nodeR,
+                          std::shared_ptr<ChNodeFEAxyz> nodeS,
+                          std::shared_ptr<ChNodeFEAxyz> nodeT) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
         nodes[2] = nodeC;
@@ -783,8 +783,8 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron,
     //
 
     /// Set the material of the element
-    void SetMaterial(ChSharedPtr<ChContinuumElastic> my_material) { Material = my_material; }
-    ChSharedPtr<ChContinuumElastic> GetMaterial() { return Material; }
+    void SetMaterial(std::shared_ptr<ChContinuumElastic> my_material) { Material = my_material; }
+    std::shared_ptr<ChContinuumElastic> GetMaterial() { return Material; }
 
     /// Get the StiffnessMatrix
     ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
@@ -955,6 +955,8 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron,
             /// This is needed so that it can be accessed by ChLoaderVolumeGravity
      virtual double GetDensity() { return this->Material->Get_density(); } 
 };
+
+/// @} fea_elements
 
 }  //___end of namespace fea___
 }  //___end of namespace chrono___

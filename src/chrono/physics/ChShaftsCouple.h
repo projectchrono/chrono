@@ -82,11 +82,11 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Each shaft must belong to the same ChSystem.
     /// Children classes might overload this (here, basically it only sets the two
     /// pointers)
-    virtual bool Initialize(ChSharedPtr<ChShaft> mshaft1,  ///< first  shaft to join
-                            ChSharedPtr<ChShaft> mshaft2   ///< second shaft to join
+    virtual bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
+                            std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join
                             ) {
-        ChShaft* mm1 = mshaft1.get_ptr();
-        ChShaft* mm2 = mshaft2.get_ptr();
+        ChShaft* mm1 = mshaft1.get();
+        ChShaft* mm2 = mshaft2.get();
         assert(mm1 && mm2);
         assert(mm1 != mm2);
         assert(mm1->GetSystem() == mm2->GetSystem());
@@ -150,8 +150,6 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     } 
 
 };
-
-typedef ChSharedPtr<ChShaftsCouple> ChSharedShaftsCouplePtr;
 
 }  // END_OF_NAMESPACE____
 

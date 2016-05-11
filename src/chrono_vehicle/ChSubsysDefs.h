@@ -21,14 +21,17 @@
 
 #include <vector>
 
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLinkSpringCB.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
 namespace chrono {
 namespace vehicle {
+
+/// @addtogroup vehicle
+/// @{
 
 /// Enum for the side (left/right) of a vehicle.
 enum VehicleSide {
@@ -57,8 +60,8 @@ class WheelID {
     VehicleSide side() const { return m_side; }
 
   private:
-    int m_id;              ///< wheel ID
-    int m_axle;            ///< axle index (counted from the front)
+    int m_id;            ///< wheel ID
+    int m_axle;          ///< axle index (counted from the front)
     VehicleSide m_side;  ///< vehicle side (LEFT: 0, RIGHT: 1)
 };
 
@@ -102,6 +105,16 @@ struct TireForce {
 
 /// Vector of tire force structures.
 typedef std::vector<TireForce> TireForces;
+
+/// Structure to communicate a set of generalized track shoe forces.
+struct TrackShoeForce {
+    ChVector<> force;   ///< force vector, epxressed in the global frame
+    ChVector<> point;   ///< global location of the force application point
+    ChVector<> moment;  ///< moment vector, expressed in the global frame
+};
+
+/// Vector of tire force structures.
+typedef std::vector<TrackShoeForce> TrackShoeForces;
 
 /// Utility class for specifying a linear spring force.
 class LinearSpringForce : public ChSpringForceCallback {
@@ -184,7 +197,9 @@ enum TireModelType {
     RIGID,    ///< rigid tire
     PACEJKA,  ///< Pacejka (magic formula) tire
     LUGRE,    ///< Lugre frition model tire
-    FIALA     ///< Fiala tire
+    FIALA,    ///< Fiala tire
+    ANCF,     ///< ANCF shell element-based tire
+    FEA       ///< FEA co-rotational tire
 };
 
 /// Enum for available powertrain model templates.
@@ -200,7 +215,7 @@ enum SuspensionType {
     SOLID_AXLE,               ///< solid axle
     MULTI_LINK,               ///< multi-link
     HENDRICKSON_PRIMAXX,      ///< Hendrickson PRIMAXX (walking beam)
-	MACPHERSON_STRUT          ///< MacPherson strut
+    MACPHERSON_STRUT          ///< MacPherson strut
 };
 
 /// Enum for drive types.
@@ -208,6 +223,12 @@ enum DrivelineType {
     FWD,  ///< front-wheel drive
     RWD,  ///< rear-wheel drive
     AWD   ///< all-wheel drive
+};
+
+/// Enum for track shoe types
+enum TrackShoeType {
+    CENTRAL_PIN,  ///< track shoes with central guiding pin
+    LATERAL_PIN   ///< track shoes with lateral guiding pins
 };
 
 /// Flags for output (log/debug).
@@ -218,6 +239,8 @@ enum OutputInformation {
     OUT_CONSTRAINTS = 1 << 2,  ///< constraint violation information
     OUT_TESTRIG = 1 << 3       ///< test-rig specific information
 };
+
+/// @} vehicle
 
 }  // end namespace vehicle
 }  // end namespace chrono

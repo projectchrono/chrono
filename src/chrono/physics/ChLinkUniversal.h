@@ -71,8 +71,8 @@ class ChApi ChLinkUniversal : public ChLink {
     /// universal joint are obtained by imposing that the origins of these two
     /// frames are the same and that the X axis of the joint frame on body 1 and
     /// the Y axis of the joint frame on body 2 are perpendicular.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first body frame
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second body frame
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
                     const ChFrame<>& frame           ///< joint frame (in absolute frame)
                     );
 
@@ -80,8 +80,8 @@ class ChApi ChLinkUniversal : public ChLink {
     /// joint frames on each body. If local = true, it is assumed that these quantities
     /// are specified in the local body frames. Otherwise, it is assumed that they are
     /// specified in the absolute frame.
-    void Initialize(ChSharedPtr<ChBodyFrame> body1,  ///< first body frame
-                    ChSharedPtr<ChBodyFrame> body2,  ///< second body frame
+    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
+                    std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
                     bool local,                      ///< true if data given in body local frames
                     const ChFrame<>& frame1,         ///< joint frame on body 1
                     const ChFrame<>& frame2          ///< joint frame on body 2
@@ -128,10 +128,6 @@ class ChApi ChLinkUniversal : public ChLink {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();
     virtual void ConstraintsFetch_react(double factor = 1.);
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
 
     //
     // SERIALIZATION
@@ -161,9 +157,8 @@ class ChApi ChLinkUniversal : public ChLink {
     // Current constraint violations
     ChMatrix<>* m_C;
 
-    // Caching of multipliers to allow warm starting
-    double m_cache_speed[4];
-    double m_cache_pos[4];
+    // Lagrange multipliers
+    double m_multipliers[4];
 };
 
 }  // END_OF_NAMESPACE____

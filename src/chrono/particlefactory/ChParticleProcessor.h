@@ -13,12 +13,14 @@
 #ifndef CHPARTICLEPROCESSOR_H
 #define CHPARTICLEPROCESSOR_H
 
-#include "core/ChSmartpointers.h"
 #include "ChParticleEventTrigger.h"
 #include "ChParticleProcessEvent.h"
 
 namespace chrono {
 namespace particlefactory {
+
+/// @addtogroup chrono_particles
+/// @{
 
 /// Class that can be used to process particles.
 /// It uses two 'tools' that can be plugged in:
@@ -32,13 +34,13 @@ namespace particlefactory {
 /// the default particle event processor is ChParticleProcessEventDoNothing, so
 /// the default behavior is 'do nothing', so you must plug in more sophisticated ones
 /// after you create the ChParticleProcessor and before you use it.
-class ChParticleProcessor : public ChShared {
+class ChParticleProcessor {
   public:
     ChParticleProcessor() {
         // default trigger: trigger never
-        trigger = ChSharedPtr<ChParticleEventTriggerNever>(new ChParticleEventTriggerNever);
+        trigger = std::make_shared<ChParticleEventTriggerNever>();
         // default event processor: do nothing
-        particle_processor = ChSharedPtr<ChParticleProcessEventDoNothing>(new ChParticleProcessEventDoNothing);
+        particle_processor = std::make_shared<ChParticleProcessEventDoNothing>();
     }
 
     /// This function process particles according to some rule,
@@ -54,7 +56,7 @@ class ChParticleProcessor : public ChShared {
 
         ChSystem::IteratorBodies myiter = msystem.IterBeginBodies();
         while (myiter != msystem.IterEndBodies()) {
-            ChSharedPtr<ChBody> mybody = (*myiter);
+            std::shared_ptr<ChBody> mybody = (*myiter);
 
             if (this->trigger->TriggerEvent(mybody, msystem)) {
                 this->particle_processor->ParticleProcessEvent(mybody, msystem, this->trigger);
@@ -71,15 +73,17 @@ class ChParticleProcessor : public ChShared {
     }
 
     /// Use this function to plug in an event trigger.
-    void SetEventTrigger(ChSharedPtr<ChParticleEventTrigger> mtrigger) { trigger = mtrigger; }
+    void SetEventTrigger(std::shared_ptr<ChParticleEventTrigger> mtrigger) { trigger = mtrigger; }
 
     /// Use this function to plug in a particle event processor.
-    void SetParticleEventProcessor(ChSharedPtr<ChParticleProcessEvent> mproc) { particle_processor = mproc; }
+    void SetParticleEventProcessor(std::shared_ptr<ChParticleProcessEvent> mproc) { particle_processor = mproc; }
 
   protected:
-    ChSharedPtr<ChParticleEventTrigger> trigger;
-    ChSharedPtr<ChParticleProcessEvent> particle_processor;
+    std::shared_ptr<ChParticleEventTrigger> trigger;
+    std::shared_ptr<ChParticleProcessEvent> particle_processor;
 };
+
+/// @} chrono_particles
 
 }  // end of namespace particlefactory
 }  // end of namespace chrono

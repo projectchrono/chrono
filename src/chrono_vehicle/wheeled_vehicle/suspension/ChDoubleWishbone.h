@@ -37,7 +37,9 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
 /// Base class for a double-A arm suspension modeled with bodies and constraints.
 /// Derived from ChSuspension, but still an abstract base class.
 ///
@@ -49,7 +51,6 @@ namespace vehicle {
 /// All point locations are assumed to be given for the left half of the
 /// supspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
-///
 class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
   public:
     ChDoubleWishbone(const std::string& name  ///< [in] name of the subsystem
@@ -71,10 +72,13 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Finally, tierod_body is a handle to the body to which the suspension
     /// tierods are to be attached. For a steerable suspension, this will be the
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            ChSharedPtr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) override;
+
+    /// Get the total mass of the suspension subsystem.
+    virtual double GetMass() const override;
 
     /// Get the force in the spring element.
     double GetSpringForce(VehicleSide side) const { return m_spring[side]->Get_SpringReact(); }
@@ -105,11 +109,11 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
 
     /// Specify the left body for a possible antirollbar subsystem.
     /// Return a handle to the left Lower Control Arm.
-    virtual ChSharedPtr<ChBody> GetLeftBody() const override { return m_LCA[0]; }
+    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_LCA[0]; }
 
     /// Specify the right body for a possible antirollbar subsystem.
     /// Return a handle to the right Lower Control Arm.
-    virtual ChSharedPtr<ChBody> GetRightBody() const override { return m_LCA[1]; }
+    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_LCA[1]; }
 
     /// Log the locations of all hardpoints.
     /// The reported locations are expressed in the suspension reference frame.
@@ -182,40 +186,42 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Return the callback function for shock force.
     virtual ChSpringForceCallback* getShockForceCallback() const = 0;
 
-    ChSharedPtr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
-    ChSharedPtr<ChBody> m_UCA[2];      ///< handles to the upper control arm bodies (left/right)
-    ChSharedPtr<ChBody> m_LCA[2];      ///< handles to the lower control arm bodies (left/right)
+    std::shared_ptr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
+    std::shared_ptr<ChBody> m_UCA[2];      ///< handles to the upper control arm bodies (left/right)
+    std::shared_ptr<ChBody> m_LCA[2];      ///< handles to the lower control arm bodies (left/right)
 
-    ChSharedPtr<ChLinkLockRevolute> m_revoluteUCA[2];    ///< handles to the chassis-UCA revolute joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical> m_sphericalUCA[2];  ///< handles to the upright-UCA spherical joints (left/right)
-    ChSharedPtr<ChLinkLockRevolute> m_revoluteLCA[2];    ///< handles to the chassis-LCA revolute joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical> m_sphericalLCA[2];  ///< handles to the upright-LCA spherical joints (left/right)
-    ChSharedPtr<ChLinkDistance> m_distTierod[2];         ///< handles to the tierod distance constraints (left/right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteUCA[2];    ///< handles to the chassis-UCA revolute joints (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalUCA[2];  ///< handles to the upright-UCA spherical joints (left/right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteLCA[2];    ///< handles to the chassis-LCA revolute joints (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalLCA[2];  ///< handles to the upright-LCA spherical joints (left/right)
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];         ///< handles to the tierod distance constraints (left/right)
 
-    ChSharedPtr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
-    ChSharedPtr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
 
   private:
     void InitializeSide(VehicleSide side,
-                        ChSharedPtr<ChBodyAuxRef> chassis,
-                        ChSharedPtr<ChBody> tierod_body,
+                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points);
 
-    static void AddVisualizationControlArm(ChSharedPtr<ChBody> arm,
+    static void AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
                                            const ChVector<> pt_F,
                                            const ChVector<> pt_B,
                                            const ChVector<> pt_U,
                                            double radius);
-    static void AddVisualizationUpright(ChSharedPtr<ChBody> upright,
+    static void AddVisualizationUpright(std::shared_ptr<ChBody> upright,
                                         const ChVector<> pt_C,
                                         const ChVector<> pt_U,
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
-    static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
+    static void AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width);
 
     static const std::string m_pointNames[NUM_POINTS];
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -37,7 +37,7 @@ ChSimpleDriveline::ChSimpleDriveline() : ChDriveline() {
 // This function connects this driveline subsystem to the axles of the specified
 // suspension subsystems.
 // -----------------------------------------------------------------------------
-void ChSimpleDriveline::Initialize(ChSharedPtr<ChBody> chassis,
+void ChSimpleDriveline::Initialize(std::shared_ptr<ChBody> chassis,
                                    const ChSuspensionList& suspensions,
                                    const std::vector<int>& driven_axles) {
     assert(suspensions.size() >= 2);
@@ -99,7 +99,7 @@ void differentialSplit(double torque,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleDriveline::Update(double torque) {
+void ChSimpleDriveline::Synchronize(double torque) {
     // Split the input torque front/back.
     double torque_front = torque * GetFrontTorqueFraction();
     double torque_rear = torque - torque_front;

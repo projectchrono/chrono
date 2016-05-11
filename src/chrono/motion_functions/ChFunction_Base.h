@@ -36,7 +36,6 @@
 
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "physics/ChFilePS.h"
 #include "physics/ChProplist.h"
 
@@ -54,6 +53,9 @@ namespace chrono {
     return mOptVars;      \
     }
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// THE INTERFACE BASE CLASS FOR SCALAR FUNCTIONS OF TYPE:
 ///
 ///  y= f(x)
@@ -67,10 +69,9 @@ namespace chrono {
 ///  This base class just represent a constant function of
 /// the type y= C.  Inherited classes must override at least the
 /// Get_y() method, in order to represent more complex functions.
-
-class ChApi ChFunction : public ChShared {
+class ChApi ChFunction {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChFunction_base, ChShared);
+    CH_RTTI_ROOT(ChFunction_base);
 
   public:
     ChFunction(){};
@@ -193,6 +194,8 @@ class ChApi ChFunction : public ChShared {
     /// The function is 'sampled' for nsteps times, from xmin to xmax.
     virtual int FileAsciiPairsSave(ChStreamOutAscii& m_file, double xmin = 0, double xmax = 1, int msamples = 200);
 };
+
+/// @} chrono_functions
 
 }  // END_OF_NAMESPACE____
 

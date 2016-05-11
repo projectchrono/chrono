@@ -1,19 +1,22 @@
+set(MKL_DEMOS
+    demo_MKL_MklEngine
+ )
+
 # Additional include paths
 INCLUDE_DIRECTORIES( ${CH_MKL_INCLUDES} )
 
+# ---------------------------------------------------------------------
 MESSAGE(STATUS "Demo programs for MKL module...")
 
-# ---------------------------------------------------------------------
+FOREACH(PROGRAM ${MKL_DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
+    SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
 
-MESSAGE(STATUS "...add demo_MklEngine")
-ADD_EXECUTABLE(demo_MklEngine demo_MklEngine.cpp)
-SOURCE_GROUP("" FILES demo_MklEngine.cpp)
-SET_TARGET_PROPERTIES(demo_MklEngine PROPERTIES 
-                      FOLDER demos
-                      LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_MklEngine ChronoEngine ChronoEngine_mkl)
-ADD_DEPENDENCIES(demo_MklEngine ChronoEngine ChronoEngine_mkl)
-INSTALL(TARGETS demo_MklEngine DESTINATION bin)
-
-
+    ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+                          FOLDER demos
+                          LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_mkl)
+    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+ENDFOREACH()
 

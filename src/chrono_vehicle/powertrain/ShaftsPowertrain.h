@@ -39,12 +39,12 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
 
-    virtual void SetEngineTorqueMap(ChSharedPtr<ChFunction_Recorder>& map) override { SetMapData(m_engine_torque, map); }
-    virtual void SetEngineLossesMap(ChSharedPtr<ChFunction_Recorder>& map) override { SetMapData(m_engine_losses, map); }
-    virtual void SetTorqueConverterCapacityFactorMap(ChSharedPtr<ChFunction_Recorder>& map) override {
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override { SetMapData(m_engine_torque, map); }
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override { SetMapData(m_engine_losses, map); }
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override {
         SetMapData(m_tc_capacity_factor, map);
     }
-    virtual void SetTorqeConverterTorqueRatioMap(ChSharedPtr<ChFunction_Recorder>& map) override {
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override {
         SetMapData(m_tc_torque_ratio, map);
     }
 
@@ -58,7 +58,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     void Create(const rapidjson::Document& d);
 
     void ReadMapData(const rapidjson::Value& a, MapData& map_data);
-    void SetMapData(const MapData& map_data, ChSharedPtr<ChFunction_Recorder>& map);
+    void SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map);
 
     double m_motorblock_inertia;
     double m_crankshaft_inertia;

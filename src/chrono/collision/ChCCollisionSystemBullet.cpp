@@ -762,6 +762,24 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         double mu, mv;
         double candid_mu, candid_mv; 
 
+
+        // Shortcut: if two degenerate 'skinny' triangles with points 2&3 cohincident (ex. used to
+        // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return:
+        if ((pA2 == pA3) && (pB2 == pB3) && triA->owns_e1() && triB->owns_e1()) {
+            ChVector<> cA, cB, D;
+            if (ChCollisionUtils::LineLineIntersect(pA1, pA2,  pB1, pB2,  &cA, &cB,  &mu, &mv) ) {
+                D = cB - cA;
+                dist = D.Length();
+                if (dist < max_allowed_dist && dist > min_allowed_dist && mu >0 && mu < 1 && mv > 0 && mv < 1) {    
+                    _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
+                    resultOut->refreshContactPoints();
+                    return;
+                }
+            }
+        }
+
+        // vertex-face tests:
+
         if (triA->owns_v1()) {
             dist = ChCollisionUtils::PointTriangleDistance(pA1, pB1, pB2, pB3, mu, mv, is_into, p_projected);
             if (is_into) {
@@ -829,50 +847,68 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
                 }
             }
         }
-        double beta_A1, beta_A2, beta_A3, beta_B1, beta_B2, beta_B3 =0;
+        double beta_A1, beta_A2, beta_A3, beta_B1, beta_B2, beta_B3; // defaults for free edge
         ChVector<> tA1, tA2, tA3, tB1, tB2, tB3;
         ChVector<> lA1, lA2, lA3, lB1, lB2, lB3;
 
-        //  edges edges
+        //  edges-edges tests
 
         if (triA->owns_e1()) {
             tA1 = Vcross(eA1, nA).GetNormalized();
-            lA1 = (mOa + mRa * (*triA->get_e1()) ) - pA1;
+            if(triA->get_e1())
+                lA1 = (mOa + mRa * (*triA->get_e1()) ) - pA1;
+            else 
+                lA1 = - tA1;
             beta_A1 = atan2(Vdot(lA1, tA1), Vdot(lA1, nA) );
             if (beta_A1 < 0)
                 beta_A1 += CH_C_2PI;
         }
         if (triA->owns_e2()) {
             tA2 = Vcross(eA2, nA).GetNormalized();
-            lA2 = (mOa + mRa * (*triA->get_e2()) ) - pA2;
+            if (triA->get_e2())
+                lA2 = (mOa + mRa * (*triA->get_e2()) ) - pA2;
+            else
+                lA2 = -tA2;
             beta_A2 = atan2( Vdot(lA2, tA2), Vdot(lA2, nA) );
             if (beta_A2 < 0) 
                 beta_A2 += CH_C_2PI;
         }
         if (triA->owns_e3()) {
             tA3 = Vcross(eA3, nA).GetNormalized();
-            lA3 = (mOa + mRa * (*triA->get_e3()) ) - pA3;
+            if (triA->get_e3())
+                lA3 = (mOa + mRa * (*triA->get_e3()) ) - pA3;
+            else
+                lA3 = -tA3;
             beta_A3 = atan2( Vdot(lA3, tA3), Vdot(lA3, nA) );
             if (beta_A3 < 0) 
                 beta_A3 += CH_C_2PI;
         }
         if (triB->owns_e1()) {
             tB1 = Vcross(eB1, nB).GetNormalized();
-            lB1 = (mOb + mRb * (*triB->get_e1()) ) - pB1;
+            if (triB->get_e1())
+                lB1 = (mOb + mRb * (*triB->get_e1()) ) - pB1;
+            else
+                lB1 = -tB1;
             beta_B1 = atan2( Vdot(lB1, tB1), Vdot(lB1, nB) );
             if (beta_B1 < 0) 
                 beta_B1 += CH_C_2PI;
         }
         if (triB->owns_e2()) {
             tB2 = Vcross(eB2, nB).GetNormalized();
-            lB2 = (mOb + mRb * (*triB->get_e2()) ) - pB2;
+            if (triB->get_e2())
+                lB2 = (mOb + mRb * (*triB->get_e2()) ) - pB2;
+            else
+                lB2 = -tB2;
             beta_B2 = atan2( Vdot(lB2, tB2), Vdot(lB2, nB) );
             if (beta_B2 < 0) 
                 beta_B2 += CH_C_2PI;
         }
         if (triB->owns_e3()) {
             tB3 = Vcross(eB3, nB).GetNormalized();
-            lB3 = (mOb + mRb * (*triB->get_e3()) ) - pB3;
+            if (triB->get_e3())
+                lB3 = (mOb + mRb * (*triB->get_e3()) ) - pB3;
+            else
+                lB3 = -tB3;
             beta_B3 = atan2( Vdot(lB3, tB3), Vdot(lB3, nB) );
             if (beta_B3 < 0) 
                 beta_B3 += CH_C_2PI;

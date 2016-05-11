@@ -217,7 +217,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<
 // Arman you still need local position of bce markers
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::ChSystemFsi &myFsiSystem, chrono::fsi::SimParams* paramsH) {
 
-	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_g(new chrono::ChMaterialSurface);
+	std::shared_ptr<chrono::ChMaterialSurface> mat_g(new chrono::ChMaterialSurface);
 	// Set common material Properties
 	mat_g->SetFriction(0.8);
 	mat_g->SetCohesion(0);
@@ -226,8 +226,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	mat_g->SetDampingF(0.2);
 
 	// Ground body
-	ChSharedPtr<ChBody> ground = ChSharedPtr<ChBody>(
-			new ChBody(new collision::ChCollisionModelParallel));
+	auto ground = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
 	ground->SetIdentifier(-1);
 	ground->SetBodyFixed(true);
 	ground->SetCollide(true);
@@ -259,31 +258,31 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	ChVector<> size1(hdimSide, hdimY, hthick);
 	ChQuaternion<> rot1 = chrono::QUNIT;
 	ChVector<> pos1(-midSecDim - hdimSide, 0, -hthick);
-	chrono::utils::AddBoxGeometry(ground.get_ptr(), size1, pos1, rot1, true);
+	chrono::utils::AddBoxGeometry(ground.get(), size1, pos1, rot1, true);
 
 		// end third
 	ChVector<> size2(hdimSide, hdimY, hthick);
 	ChQuaternion<> rot2 = chrono::QUNIT;
 	ChVector<> pos2(midSecDim + hdimSide, 0, -hthick);
-	chrono::utils::AddBoxGeometry(ground.get_ptr(), size2, pos2, rot2, true);
+	chrono::utils::AddBoxGeometry(ground.get(), size2, pos2, rot2, true);
 
 		// basin
 	ChVector<> size3(bottomWidth + bottomBuffer, hdimY, hthick);
 	ChQuaternion<> rot3 = chrono::QUNIT;
 	ChVector<> pos3(0, 0, -basinDepth - hthick);
-	chrono::utils::AddBoxGeometry(ground.get_ptr(), size3, pos3, rot3, true);
+	chrono::utils::AddBoxGeometry(ground.get(), size3, pos3, rot3, true);
 
 		// slope 1
 	ChVector<> size4(inclinedWidth, hdimY, hthick);
 	ChQuaternion<> rot4 = Q_from_AngAxis(phi, ChVector<>(0, 1, 0));
 	ChVector<> pos4(x1I, 0, zI);
-	chrono::utils::AddBoxGeometry(ground.get_ptr(), size4, pos4, rot4, true);
+	chrono::utils::AddBoxGeometry(ground.get(), size4, pos4, rot4, true);
 
 		// slope 2
 	ChVector<> size5(inclinedWidth, hdimY, hthick);
 	ChQuaternion<> rot5 = Q_from_AngAxis(-phi, ChVector<>(0, 1, 0));
 	ChVector<> pos5(x2I, 0, zI);
-	chrono::utils::AddBoxGeometry(ground.get_ptr(), size5, pos5, rot5, true);
+	chrono::utils::AddBoxGeometry(ground.get(), size5, pos5, rot5, true);
 	ground->GetCollisionModel()->BuildModel();
 
 	mphysicalSystem.AddBody(ground);
@@ -321,7 +320,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	ChVector<> cyl_pos = ChVector<>(0, 0, 0);
 	ChQuaternion<> cyl_rot = chrono::Q_from_AngAxis(CH_C_PI / 3, VECT_Z);
 
-	std::vector<ChSharedPtr<ChBody> > * FSI_Bodies = myFsiSystem.GetFsiBodiesPtr();
+	std::vector<std::shared_ptr<ChBody> > * FSI_Bodies = myFsiSystem.GetFsiBodiesPtr();
 	chrono::fsi::utils::CreateCylinderFSI(myFsiSystem.GetDataManager(),
 			mphysicalSystem, FSI_Bodies, paramsH, mat_g, paramsH->rho0, cyl_pos, cyl_rot, cyl_radius, cyl_length);
 
@@ -333,8 +332,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	// **** Test angular velocity
 	// **************************
 
-	ChSharedPtr<ChBody> body = ChSharedPtr<ChBody>(
-			new ChBody(new collision::ChCollisionModelParallel));
+	auto body = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
 	// body->SetIdentifier(-1);
 	body->SetBodyFixed(false);
 	body->SetCollide(true);
@@ -353,7 +351,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	body->SetInertiaXX(mass * gyration);
 	//
 	body->GetCollisionModel()->ClearModel();
-	utils::AddSphereGeometry(body.get_ptr(), sphereRad);
+	utils::AddSphereGeometry(body.get(), sphereRad);
 	body->GetCollisionModel()->BuildModel();
 	//    // *** keep this: how to calculate the velocity of a marker lying on a rigid body
 	//    //
@@ -396,7 +394,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	//
 	//  for (Real x = -4; x < 2; x += 0.25) {
 	//    for (Real y = -1; y < 1; y += 0.25) {
-	//      ChSharedPtr<ChBody> mball = ChSharedPtr<ChBody>(new ChBody(new collision::ChCollisionModelParallel));
+	//      auto mball = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
 	//      ChVector<> pos = ChVector<>(-8.5, .20, 3) + ChVector<>(x, y, 0);
 	//      mball->SetMaterialSurface(mat_g);
 	//      // body->SetIdentifier(fId);
@@ -407,8 +405,8 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	//      mball->SetInertiaXX(mass * gyration);
 	//
 	//      mball->GetCollisionModel()->ClearModel();
-	//      utils::AddSphereGeometry(mball.get_ptr(), rad);  // O
-	//                                                       //	utils::AddEllipsoidGeometry(body.get_ptr(), size);
+	//      utils::AddSphereGeometry(mball.get(), rad);  // O
+	//                                                       //	utils::AddEllipsoidGeometry(body.get(), size);
 	//                                                       // X
 	//
 	//      mball->GetCollisionModel()->SetFamily(100);

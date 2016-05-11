@@ -33,4 +33,39 @@
 #define ChApiFea ChApiIMPORT
 #endif
 
+
+/**
+    @defgroup fea_module FEA module
+    @brief Finite Element Analysis
+
+    This module allows Finite Element Analysis (FEA) in Chrono::Engine.
+
+    For additional information, see:
+    - the [installation guide](@ref module_fea_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_fea)
+
+    @{
+        @defgroup fea_nodes Nodes
+        @defgroup fea_elements Elements
+        @defgroup fea_constraints Constraints
+        @defgroup fea_math Mathematical support
+    @}
+*/
+
+
+
+namespace chrono {
+
+/// @addtogroup fea_module
+/// @{
+
+/// Namespace with classes for the FEA module.
+namespace fea {}
+
+/// @}
+
+}
+
+
+
 #endif  // END of header

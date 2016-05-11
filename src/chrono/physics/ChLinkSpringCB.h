@@ -21,7 +21,7 @@ namespace chrono {
 /// A derived class must implement the virtual operator().
 ///
 
-class ChSpringForceCallback : public ChShared {
+class ChSpringForceCallback {
   public:
     virtual double operator()(double time,         ///< current time
                               double rest_length,  ///< undeformed length
@@ -72,8 +72,8 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     /// NOTE! As in ChLinkMarkers::Initialize(), the two markers are automatically
     /// created and placed inside the two connected bodies.
     void Initialize(
-        ChSharedPtr<ChBody> body1,  ///< first body to link
-        ChSharedPtr<ChBody> body2,  ///< second body to link
+        std::shared_ptr<ChBody> body1,  ///< first body to link
+        std::shared_ptr<ChBody> body2,  ///< second body to link
         bool pos_are_relative,  ///< true: following pos. are considered relative to bodies. false: pos. are absolute
         ChVector<> pos1,        ///< position of spring endpoint for 1st body (rel. or abs., see flag above)
         ChVector<> pos2,        ///< position of spring endpoint for 2nd body (rel. or abs., see flag above)

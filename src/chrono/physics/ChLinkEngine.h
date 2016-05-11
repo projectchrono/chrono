@@ -47,10 +47,10 @@ class ChApi ChLinkEngine : public ChLinkLock {
     };
 
   protected:
-    ChSharedPtr<ChFunction> rot_funct;  // rotation(t) function
-    ChSharedPtr<ChFunction> spe_funct;  // speed(t) function
-    ChSharedPtr<ChFunction> tor_funct;  // torque(t) function
-    ChSharedPtr<ChFunction> torque_w;   // torque(w) function
+    std::shared_ptr<ChFunction> rot_funct;  // rotation(t) function
+    std::shared_ptr<ChFunction> spe_funct;  // speed(t) function
+    std::shared_ptr<ChFunction> tor_funct;  // torque(t) function
+    std::shared_ptr<ChFunction> torque_w;   // torque(w) function
 
     int learn;  // if TRUE, the actuator does not apply constraint, just
                 // records the motion into its rot_function.
@@ -74,8 +74,8 @@ class ChApi ChLinkEngine : public ChLinkLock {
 
     eCh_shaft_mode shaft_mode;  // mode of imposing constraints on extra (non-z) degrees of freedom
 
-    ChSharedPtr<ChFunction> rot_funct_x;  // rotation(t) function for keyframe polar motor
-    ChSharedPtr<ChFunction> rot_funct_y;  // rotation(t) function for keyframe polar motor
+    std::shared_ptr<ChFunction> rot_funct_x;  // rotation(t) function for keyframe polar motor
+    std::shared_ptr<ChFunction> rot_funct_y;  // rotation(t) function for keyframe polar motor
     double last_r3time;                   // internal:for backward differentiation to compute speed in keyframe mode
     double last_r3mot_rot;                // internal:for backward differentiation to compute speed in keyframe mode
     double last_r3mot_rot_dt;             // internal:for backward differentiation to compute speed in keyframe mode
@@ -83,15 +83,11 @@ class ChApi ChLinkEngine : public ChLinkLock {
     Quaternion last_r3relm_rot_dt;        // internal
     Quaternion keyed_polar_rotation;      // internal
 
-    ChSharedPtr<ChShaft> innershaft1;            // used in ENG_MODE_TO_POWERTRAIN_SHAFT
-    ChSharedPtr<ChShaft> innershaft2;            // ''      ''
-    ChSharedPtr<ChShaftsBody> innerconstraint1;  // ''     ''
-    ChSharedPtr<ChShaftsBody> innerconstraint2;  // ''     ''
-    double cache_li_speed1;
-    double cache_li_pos1;
+    std::shared_ptr<ChShaft> innershaft1;            // used in ENG_MODE_TO_POWERTRAIN_SHAFT
+    std::shared_ptr<ChShaft> innershaft2;            // ''      ''
+    std::shared_ptr<ChShaftsBody> innerconstraint1;  // ''     ''
+    std::shared_ptr<ChShaftsBody> innerconstraint2;  // ''     ''
     double torque_react1;
-    double cache_li_speed2;
-    double cache_li_pos2;
     double torque_react2;
 
   public:
@@ -115,22 +111,22 @@ class ChApi ChLinkEngine : public ChLinkLock {
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
     // data get/set
-    ChSharedPtr<ChFunction> Get_rot_funct() const { return rot_funct; }
-    ChSharedPtr<ChFunction> Get_spe_funct() const { return spe_funct; }
-    ChSharedPtr<ChFunction> Get_tor_funct() const { return tor_funct; }
-    ChSharedPtr<ChFunction> Get_torque_w_funct() const { return torque_w; }
+    std::shared_ptr<ChFunction> Get_rot_funct() const { return rot_funct; }
+    std::shared_ptr<ChFunction> Get_spe_funct() const { return spe_funct; }
+    std::shared_ptr<ChFunction> Get_tor_funct() const { return tor_funct; }
+    std::shared_ptr<ChFunction> Get_torque_w_funct() const { return torque_w; }
 
-    void Set_rot_funct(ChSharedPtr<ChFunction> mf) { rot_funct = mf; }
-    void Set_spe_funct(ChSharedPtr<ChFunction> mf) { spe_funct = mf; }
-    void Set_tor_funct(ChSharedPtr<ChFunction> mf) { tor_funct = mf; }
-    void Set_torque_w_funct(ChSharedPtr<ChFunction> mf) { torque_w = mf; }
+    void Set_rot_funct(std::shared_ptr<ChFunction> mf) { rot_funct = mf; }
+    void Set_spe_funct(std::shared_ptr<ChFunction> mf) { spe_funct = mf; }
+    void Set_tor_funct(std::shared_ptr<ChFunction> mf) { tor_funct = mf; }
+    void Set_torque_w_funct(std::shared_ptr<ChFunction> mf) { torque_w = mf; }
 
-    ChSharedPtr<ChFunction> Get_rot_funct_x() const { return rot_funct_x; }
-    ChSharedPtr<ChFunction> Get_rot_funct_y() const { return rot_funct_y; }
+    std::shared_ptr<ChFunction> Get_rot_funct_x() const { return rot_funct_x; }
+    std::shared_ptr<ChFunction> Get_rot_funct_y() const { return rot_funct_y; }
     const Quaternion& GetKeyedPolarRotation() const { return keyed_polar_rotation; }
 
-    void Set_rot_funct_x(ChSharedPtr<ChFunction> mf) { rot_funct_x = mf; }
-    void Set_rot_funct_y(ChSharedPtr<ChFunction> mf) { rot_funct_y = mf; }
+    void Set_rot_funct_x(std::shared_ptr<ChFunction> mf) { rot_funct_x = mf; }
+    void Set_rot_funct_y(std::shared_ptr<ChFunction> mf) { rot_funct_y = mf; }
     void SetKeyedPolarRotation(const Quaternion& mq) { keyed_polar_rotation = mq; }
 
     int Get_learn() const { return learn; }
@@ -164,11 +160,11 @@ class ChApi ChLinkEngine : public ChLinkLock {
     // Access the inner 1D shaft connected to the rotation of body1 about dir of motor shaft,
     // if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT. The shaft can be
     // connected to other shafts with ChShaftsClutch or similar items.
-    ChSharedPtr<ChShaft> GetInnerShaft1() { return innershaft1; }
+    std::shared_ptr<ChShaft> GetInnerShaft1() { return innershaft1; }
     // Access the inner 1D shaft connected to the rotation of body2 about dir of motor shaft,
     // if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT. The shaft can be
     // connected to other shafts with ChShaftsClutch or similar items.
-    ChSharedPtr<ChShaft> GetInnerShaft2() { return innershaft2; }
+    std::shared_ptr<ChShaft> GetInnerShaft2() { return innershaft2; }
     // Get the torque between body 1 and inner shaft 1.
     // Note: use only if in CH_ENG_MODE_TO_POWERTRAIN_SHAFT.
     double GetInnerTorque1() const { return torque_react1; }
@@ -239,10 +235,6 @@ class ChApi ChLinkEngine : public ChLinkLock {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
     virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
     virtual void VariablesFbReset();

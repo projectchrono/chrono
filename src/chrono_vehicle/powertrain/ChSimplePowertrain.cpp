@@ -31,7 +31,7 @@ ChSimplePowertrain::ChSimplePowertrain() : ChPowertrain(), m_motorSpeed(0), m_mo
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimplePowertrain::Initialize() {
+void ChSimplePowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared_ptr<ChShaft> driveshaft) {
     m_current_gear_ratio = GetForwardGearRatio();
 }
 
@@ -54,7 +54,7 @@ void ChSimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimplePowertrain::Update(double time, double throttle, double shaft_speed) {
+void ChSimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
     // The motorspeed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
 

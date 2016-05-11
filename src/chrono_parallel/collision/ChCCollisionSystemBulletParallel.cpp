@@ -3,6 +3,8 @@
 namespace chrono {
 namespace collision {
 
+static const real edge_radius = 0.01;  // default edge radius (for penalty contact)
+
 /*
  void defaultChronoNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo&
  dispatchInfo)
@@ -165,6 +167,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
           data_manager->host_data.cpta_rigid_rigid.push_back(R3(icontact.vpA.x, icontact.vpA.y, icontact.vpA.z));
           data_manager->host_data.cptb_rigid_rigid.push_back(R3(icontact.vpB.x, icontact.vpB.y, icontact.vpB.z));
           data_manager->host_data.dpth_rigid_rigid.push_back(icontact.distance);
+          data_manager->host_data.erad_rigid_rigid.push_back(edge_radius);
           data_manager->host_data.bids_rigid_rigid.push_back(I2(obA->getCompanionId(), obB->getCompanionId()));
           data_manager->num_rigid_contacts++;
         }

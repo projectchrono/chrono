@@ -33,22 +33,26 @@
 namespace chrono {
 namespace opengl {
 
+/// @addtogroup opengl
+/// @{
+
+/// Support for ADS lighting with glow and texture coordinates.
 class CH_OPENGL_API ChOpenGLVertexAttributesPADSNT {
- public:
-  ChOpenGLVertexAttributesPADSNT();
-  ChOpenGLVertexAttributesPADSNT(const glm::vec3& p,
-                                 const glm::vec3& c_a,
-                                 const glm::vec3& c_d,
-                                 const glm::vec3& c_s,
-                                 const glm::vec3& n,
-                                 const glm::vec2& t);
-  ChOpenGLVertexAttributesPADSNT(const ChOpenGLVertexAttributesPADSNT& other);
-  glm::vec3 position;
-  glm::vec3 normal;
-  glm::vec3 color_ambient;
-  glm::vec3 color_diffuse;
-  glm::vec3 color_specular;
-  glm::vec2 texture_coordinate;
+  public:
+    ChOpenGLVertexAttributesPADSNT();
+    ChOpenGLVertexAttributesPADSNT(const glm::vec3& p,
+                                   const glm::vec3& c_a,
+                                   const glm::vec3& c_d,
+                                   const glm::vec3& c_s,
+                                   const glm::vec3& n,
+                                   const glm::vec2& t);
+    ChOpenGLVertexAttributesPADSNT(const ChOpenGLVertexAttributesPADSNT& other);
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 color_ambient;
+    glm::vec3 color_diffuse;
+    glm::vec3 color_specular;
+    glm::vec2 texture_coordinate;
 };
 
 class CH_OPENGL_API ChOpenGLVertexAttributesPADSN {
@@ -104,6 +108,9 @@ class CH_OPENGL_API ChOpenGLVertexAttributesP {
   ChOpenGLVertexAttributesP(const ChOpenGLVertexAttributesP& other);
   glm::vec3 position;
 };
+
+/// @} opengl
+
 }
 }
 #endif  // END of CHOPENGLVERTEXATTRIBUTE_H

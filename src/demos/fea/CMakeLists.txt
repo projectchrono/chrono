@@ -1,9 +1,9 @@
 #--------------------------------------------------------------
 # List all FEA demos that do have no other dependencies
 SET(FEA_DEMOS
-    demo_FEAbasic
-    demo_FEAdynamics
-    demo_FEAloads
+    demo_FEA_basic
+    demo_FEA_dynamics
+    demo_FEA_loads
 )
 
 SET(FEA_DEMOS_MKL
@@ -11,33 +11,42 @@ SET(FEA_DEMOS_MKL
 
 # List all FEA demos that use Irrlicht
 SET(FEA_DEMOS_IRR
-    demo_FEAthermal
-    demo_FEAelectrostatics
-    demo_FEAvisualize
-    demo_FEAcontacts
-    demo_FEAcables
-    demo_FEAancfShell
-    demo_FEAbrick
+    demo_FEA_thermal
+    demo_FEA_electrostatics
+    demo_FEA_visualize
+    demo_FEA_contacts
+    demo_FEA_cables
+    demo_FEA_ancfShell
+    demo_FEA_brick
+    demo_FEA_cosimulate_load
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
 SET(FEA_DEMOS_IRR_MATLAB
-    demo_FEAminiature
-    demo_FEAshells
-    demo_FEAcablesMATLAB
+    demo_FEA_miniature
+    demo_FEA_cablesMATLAB
 )
 
 # List all FEA demos that use both Irrlicht and MKL
 SET(FEA_DEMOS_IRR_MKL
-    demo_FEAcablesMKL
-    demo_ToroidalTire
+    demo_FEA_beams
+    demo_FEA_beamsconstr
+    demo_FEA_cablesMKL
+    demo_FEA_abaqus_wheel
+    demo_FEA_abaqus_wheel4
+	demo_FEA_shells
+    demo_4HumveeTires
+    demo_FEA_HMMWVLuGre
+    demo_FEA_ContactANCF
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
-    demo_FEAbeamsconstr
-    demo_FEAbeams
-	demo_FEAabaqus_wheel
+)
+
+# List all FEA demos that use Irrlicht, Parallel, and OpenGL
+SET(FEA_DEMOS_IRR_PARALLEL_OPENGL
+    demo_FEA_cosimulate_granular
 )
 
 INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
@@ -76,7 +85,7 @@ FOREACH(PROGRAM ${FEA_DEMOS_MKL})
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
         FOLDER demos
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+        LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
     TARGET_LINK_LIBRARIES(${PROGRAM}
         ChronoEngine
 		ChronoEngine_mkl
@@ -118,6 +127,36 @@ IF(ENABLE_MODULE_IRRLICHT)
         INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
     
     ENDFOREACH()
+
+    IF(ENABLE_MODULE_PARALLEL AND ENABLE_MODULE_OPENGL)
+        INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES} ${CH_OPENGL_INCLUDES} )
+
+        FOREACH(PROGRAM ${FEA_DEMOS_IRR_PARALLEL_OPENGL})
+            MESSAGE(STATUS "...add ${PROGRAM}")
+
+            ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+            SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+            SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+                FOLDER demos
+                COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+                LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+            TARGET_LINK_LIBRARIES(${PROGRAM}
+                ${CH_IRRLICHTLIB}
+                ${CH_MATLABLIB}
+                ChronoEngine
+                ChronoEngine_fea
+                ChronoEngine_irrlicht
+                ChronoEngine_parallel
+                ChronoEngine_opengl)
+            ADD_DEPENDENCIES(${PROGRAM}
+                ChronoEngine
+                ChronoEngine_fea
+                ChronoEngine_irrlicht
+                ChronoEngine_parallel
+                ChronoEngine_opengl)
+            INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+        ENDFOREACH()
+    ENDIF()
 
     IF(ENABLE_MODULE_MATLAB)
         INCLUDE_DIRECTORIES( ${CH_MATLABINC} )

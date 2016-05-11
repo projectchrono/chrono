@@ -49,6 +49,7 @@ namespace chrono {
 /// either in the 'shortcut' flavour, that is "Coordsys", which assumes
 /// the type of the four scalars is double precision, so it is faster to type.
 ///
+/// Further info at the @ref coordinate_transformations manual page.
 
 template <class Real = double>
 class ChCoordsys {
@@ -419,8 +420,8 @@ ChApi Coordsys Force2Dcsys(Coordsys* cs);
 // CONSTANTS
 //
 
-static const Coordsys CSYSNULL(VNULL, QNULL);
-static const Coordsys CSYSNORM(VNULL, QUNIT);
+#define CSYSNULL ChCoordsys<double>(VNULL,QNULL)
+#define CSYSNORM ChCoordsys<double>(VNULL,QUNIT)
 
 }  // END_OF_NAMESPACE____
 

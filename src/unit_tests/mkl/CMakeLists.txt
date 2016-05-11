@@ -1,8 +1,12 @@
+
+# Unit tests for the Chrono::MKL module
+# ==================================================================
+
 SET(LIBRARIES ChronoEngine ChronoEngine_mkl)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_MKL_INCLUDES})
 
 SET(TESTS
-    test_ChCSR3Matrix
+    utest_MKL_ChCSR3Matrix
 )
 
 MESSAGE(STATUS "Unit test programs for MKL module...")
@@ -16,7 +20,7 @@ FOREACH(PROGRAM ${TESTS})
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
         FOLDER demos
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}"
     )
 
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})

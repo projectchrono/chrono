@@ -42,6 +42,8 @@
 
 namespace chrono {
 
+/// @addtogroup mkl_module
+/// @{
 
     /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
     /// It can solve linear systems. It cannot solve VI and complementarity problems.
@@ -51,17 +53,18 @@ namespace chrono {
     CH_RTTI(ChLcpMklSolver, ChLcpSolver);
 
    private:
-	   long int solver_call;
+	   size_t solver_call;
 	   ChCSR3Matrix matCSR3;
 	   ChMatrixDynamic<double> rhs;
 	   ChMatrixDynamic<double> sol;
 	   ChMatrixDynamic<double> res;
 	   ChMklEngine mkl_engine;
-	   int n;
+	   size_t n;
 
 	   bool sparsity_pattern_lock;
 	   bool use_perm;
 	   bool use_rhs_sparsity;
+	   bool manual_factorization;
 
    public:
 
@@ -71,19 +74,31 @@ namespace chrono {
 	   ChMklEngine& GetMklEngine(){ return mkl_engine; }
 	   ChCSR3Matrix& GetMatrix(){ return matCSR3; }
 
-	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; };
-	   void UsePermutationVector(bool on_off) { use_perm = on_off;  };
-	   void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; };
-	   void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); };
+	   /// If \a on_off is set to \c true then \c matCSR3 ChCSR3Matrix::Reset(int,int,int) function
+	   /// will keep the sparsity structure i.e. it is supposed that, during the next allocation,
+	   /// the matrix will have its nonzeros placed in the same position as the current allocation.
+	   void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; }
+	   void UsePermutationVector(bool on_off) { use_perm = on_off;  }
+	   void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; }
+	   void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); }
+	   /// If \a on_off is set to \c true then ::Solve(ChLcpSystemDescriptor&) call
+	   /// must be preceded by a ::Factorize(ChLcpSystemDescriptor&) call.
+	   void SetManualFactorization(bool on_off) { manual_factorization = on_off; }
 
-        /// Solve using the MKL Pardiso sparse direct solver
-	   virtual double Solve(ChLcpSystemDescriptor& sysd) override; ///< system description with constraints and variables
+       /// Solve using the MKL Pardiso sparse direct solver.
+	   /// If ::manual_factorization is turned off (i.e. set to \c false) then
+	   /// it automatically calls ::Factorize(ChLcpSystemDescriptor&) in order to perform analysis,
+	   /// reordering and factorization (MKL Pardiso phase 12).
+	   /// In any case a call to this function will end with a solve and refinement phase (Pardiso phase 33)
+	   double Solve(ChLcpSystemDescriptor& sysd) override;
+	   /// Performs a factorization of the system matrix.
+	   double Factorize(ChLcpSystemDescriptor& sysd) override;
 
 	    //
         // SERIALIZATION
         //
 
-        virtual void ArchiveOUT(ChArchiveOut& marchive) override
+        void ArchiveOUT(ChArchiveOut& marchive) override
         {
             // version number
             marchive.VersionWrite(1);
@@ -93,10 +108,11 @@ namespace chrono {
 	        marchive << CHNVP(sparsity_pattern_lock);
 	        marchive << CHNVP(use_perm);
 	        marchive << CHNVP(use_rhs_sparsity);
+			marchive << CHNVP(manual_factorization);
         }
 
         /// Method to allow de serialization of transient data from archives.
-        virtual void ArchiveIN(ChArchiveIn& marchive) override
+        void ArchiveIN(ChArchiveIn& marchive) override
         {
             // version number
             int version = marchive.VersionRead();
@@ -106,13 +122,16 @@ namespace chrono {
 	        marchive >> CHNVP(sparsity_pattern_lock);
 	        marchive >> CHNVP(use_perm);
 	        marchive >> CHNVP(use_rhs_sparsity);
+			marchive >> CHNVP(manual_factorization);
         }
+
 		
 	   
 
 
     };
 
+/// @} mkl_module
 }  // END_OF_NAMESPACE____
 
 #endif

@@ -53,7 +53,7 @@ my_system.SetIterLCPmaxItersSpeed(70)
 # Create a contact material (surface property)to share between all objects.
 # The rolling and spinning parameters are optional - if enabled they double
 # the computational time.
-brick_material = chrono.ChMaterialSurfaceShared()
+brick_material = chrono.ChMaterialSurface()
 brick_material.SetFriction(0.5)
 brick_material.SetDampingF(0.2)
 brick_material.SetCompliance (0.0000001)
@@ -80,7 +80,7 @@ inertia_brick = 2/5*(pow(size_brick_x,2))*mass_brick; # to do: compute separate 
 for ix in range(0,nbricks_on_x):
     for iy in range(0,nbricks_on_y):
         # create it
-        body_brick = chrono.ChBodyShared()
+        body_brick = chrono.ChBody()
         # set initial position
         body_brick.SetPos(chrono.ChVectorD(ix*size_brick_x, (iy+0.5)*size_brick_y, 0 ))
         # set mass properties
@@ -96,7 +96,7 @@ for ix in range(0,nbricks_on_x):
         body_brick.SetCollide(True)
 
         # Visualization shape, for rendering animation
-        body_brick_shape = chrono.ChBoxShapeShared()
+        body_brick_shape = chrono.ChBoxShape()
         body_brick_shape.GetBoxGeometry().Size = chrono.ChVectorD(size_brick_x/2, size_brick_y/2, size_brick_z/2)
         if iy%2==0 :
             body_brick_shape.SetColor(chrono.ChColor(0.65, 0.65, 0.6)) # set gray color only for odd bricks
@@ -108,7 +108,7 @@ for ix in range(0,nbricks_on_x):
 # Create the room floor: a simple fixed rigid body with a collision shape
 # and a visualization shape
 
-body_floor = chrono.ChBodyShared()
+body_floor = chrono.ChBody()
 body_floor.SetBodyFixed(True)
 body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
 body_floor.SetMaterialSurface(brick_material)
@@ -120,12 +120,12 @@ body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
 # Visualization shape
-body_floor_shape = chrono.ChBoxShapeShared()
+body_floor_shape = chrono.ChBoxShape()
 body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
 body_floor.GetAssets().push_back(body_floor_shape)
 
-body_floor_texture = chrono.ChTextureShared()
-body_floor_texture.SetTextureFilename('../data/concrete.jpg')
+body_floor_texture = chrono.ChTexture()
+body_floor_texture.SetTextureFilename('../../../data/concrete.jpg')
 body_floor.GetAssets().push_back(body_floor_texture)
 
 my_system.Add(body_floor)
@@ -138,7 +138,7 @@ size_table_x = 1;
 size_table_y = 0.2;
 size_table_z = 1;
 
-body_table = chrono.ChBodyShared()
+body_table = chrono.ChBody()
 body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
 body_table.SetMaterialSurface(brick_material)
 
@@ -149,13 +149,13 @@ body_table.GetCollisionModel().BuildModel()
 body_table.SetCollide(True)
 
 # Visualization shape
-body_table_shape = chrono.ChBoxShapeShared()
+body_table_shape = chrono.ChBoxShape()
 body_table_shape.GetBoxGeometry().Size = chrono.ChVectorD(size_table_x/2, size_table_y/2, size_table_z/2)
 body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table.GetAssets().push_back(body_table_shape)
 
-body_table_texture = chrono.ChTextureShared()
-body_table_texture.SetTextureFilename('../data/concrete.jpg')
+body_table_texture = chrono.ChTexture()
+body_table_texture.SetTextureFilename('../../../data/concrete.jpg')
 body_table.GetAssets().push_back(body_table_texture)
 
 my_system.Add(body_table)
@@ -165,7 +165,7 @@ my_system.Add(body_table)
 # of the table respect to the floor, and impose that the relative imposed position
 # depends on a specified motion law.
 
-link_shaker = chrono.ChLinkLockLockShared()
+link_shaker = chrono.ChLinkLockLock()
 link_shaker.Initialize(body_table, body_floor, chrono.CSYSNORM)
 my_system.Add(link_shaker)
 
@@ -193,7 +193,7 @@ link_shaker.SetMotion_Z(mfunZ)
 
 myapplication = chronoirr.ChIrrApp(my_system)
 
-myapplication.AddTypicalSky('../data/skybox/')
+myapplication.AddTypicalSky('../../../data/skybox/')
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1.0))
 myapplication.AddLightWithShadow(chronoirr.vector3df(2,4,2),    # point
                                  chronoirr.vector3df(0,0,0),    # aimpoint

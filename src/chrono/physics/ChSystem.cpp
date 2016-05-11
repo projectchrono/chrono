@@ -44,14 +44,10 @@
 #include "timestepper/ChTimestepper.h"
 #include "timestepper/ChStaticAnalysis.h"
 
+
 using namespace chrono::collision;
 
 namespace chrono {
-
-
-
-
-
 
 
 /// Class for iterating through all items of ChPhysicalItem that exist in
@@ -70,7 +66,6 @@ namespace chrono {
 ///        my_iter->....
 ///        ++my_iter;
 ///    }
-
 class IteratorAllPhysics {
   public:
     IteratorAllPhysics(ChSystem* msys) : msystem(msys) { RewindToBegin(); }
@@ -84,7 +79,7 @@ class IteratorAllPhysics {
         list_otherphysics = msystem->Get_otherphysicslist();
         node_otherphysics = list_otherphysics->begin();
         stage = 0;
-        mptr = ChSharedPtr<ChPhysicsItem>(0);
+        mptr = std::shared_ptr<ChPhysicsItem>();
         this->operator++();  // initialize with 1st available item
     }
 
@@ -174,7 +169,7 @@ class IteratorAllPhysics {
                 }
                 case 4: {
                     stage = 9999;
-                    mptr = ChSharedPtr<ChPhysicsItem>(0);
+                    mptr = std::shared_ptr<ChPhysicsItem>();
                     return (*this);
                 }
             }  // end cases
@@ -183,21 +178,20 @@ class IteratorAllPhysics {
         return (*this);
     }
 
-    ChSharedPtr<ChPhysicsItem> operator->() { return (mptr); }
-    ChSharedPtr<ChPhysicsItem> operator*() { return (mptr); }
+    std::shared_ptr<ChPhysicsItem> operator->() { return (mptr); }
+    std::shared_ptr<ChPhysicsItem> operator*() { return (mptr); }
 
   private:
-    std::vector< ChSharedPtr<ChBody> >::iterator node_body;
-    std::vector< ChSharedPtr<ChBody> >* list_bodies;
-    std::vector< ChSharedPtr<ChLink> >::iterator node_link;
-    std::vector< ChSharedPtr<ChLink> >* list_links;
-    std::vector< ChSharedPtr<ChPhysicsItem> >::iterator node_otherphysics;
-    std::vector< ChSharedPtr<ChPhysicsItem> >* list_otherphysics;
-    ChSharedPtr<ChPhysicsItem> mptr;
+    std::vector<std::shared_ptr<ChBody> >::iterator node_body;
+    std::vector<std::shared_ptr<ChBody> >* list_bodies;
+    std::vector<std::shared_ptr<ChLink> >::iterator node_link;
+    std::vector<std::shared_ptr<ChLink> >* list_links;
+    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator node_otherphysics;
+    std::vector<std::shared_ptr<ChPhysicsItem> >* list_otherphysics;
+    std::shared_ptr<ChPhysicsItem> mptr;
     int stage;
     ChSystem* msystem;
 };
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,8 +231,8 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
     //this->contact_container = 0;
     // default contact container
     if (init_sys) {
-        this->contact_container = ChSharedPtr<ChContactContainerDVI>(new ChContactContainerDVI());
-        this->contact_container->SetSystem(this);
+        contact_container = std::make_shared<ChContactContainerDVI>();
+        contact_container->SetSystem(this);
     }
     collision_system = 0;
     // default collision engine
@@ -246,8 +240,11 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
         collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
     }
 
-    this->timestepper =
-        ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(this));  // OK
+    // Set default collision envelope and margin.
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+
+    timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 
     collisionpoint_callback = 0;
 
@@ -406,8 +403,8 @@ void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
     LCP_descriptor = new ChLcpSystemDescriptor;
     LCP_descriptor->SetNumThreads(parallel_thread_number);
 
-    this->contact_container = ChSharedPtr<ChContactContainerDVI>(new ChContactContainerDVI());
-    this->contact_container->SetSystem(this);
+    contact_container = std::make_shared<ChContactContainerDVI>();
+    contact_container->SetSystem(this);
 
     switch (mval) {
         case LCP_ITERATIVE_SOR:
@@ -567,7 +564,7 @@ void ChSystem::ChangeLcpSolverStab(ChLcpSolver* newsolver) {
     this->lcp_solver_type = LCP_CUSTOM;
 }
 
-void ChSystem::ChangeContactContainer(ChSharedPtr<ChContactContainerBase> newcontainer) {
+void ChSystem::ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer) {
     assert(newcontainer);
 
     this->contact_container = newcontainer;
@@ -586,16 +583,13 @@ void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
 /// This function must be called once the system construction is completed.
 void ChSystem::SetupInitial() {
     for (int ip = 0; ip < bodylist.size(); ++ip) {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        Bpointer->SetupInitial();
+        bodylist[ip]->SetupInitial();
     }
     for (int ip = 0; ip < linklist.size(); ++ip) {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->SetupInitial();
+        linklist[ip]->SetupInitial();
     }
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->SetupInitial();
+        otherphysicslist[ip]->SetupInitial();
     }
 }
 
@@ -656,11 +650,8 @@ int ChSystem::ExecuteScriptFor3DStep() {
 int ChSystem::RecordAllProbes() {
     int pcount = 0;
 
-    for (unsigned int ip = 0; ip < probelist.size(); ++ip)  // ITERATE on probes
-    {
-        ChSharedPtr<ChProbe> Ppointer = probelist[ip];
-
-        Ppointer->Record(this->GetChTime());
+    for (unsigned int ip = 0; ip < probelist.size(); ++ip) {
+        probelist[ip]->Record(this->GetChTime());
     }
 
     return pcount;
@@ -669,11 +660,8 @@ int ChSystem::RecordAllProbes() {
 int ChSystem::ResetAllProbes() {
     int pcount = 0;
 
-    for (unsigned int ip = 0; ip < probelist.size(); ++ip)  // ITERATE on probes
-    {
-        ChSharedPtr<ChProbe> Ppointer = probelist[ip];
-
-        Ppointer->Reset();
+    for (unsigned int ip = 0; ip < probelist.size(); ++ip) {
+        probelist[ip]->Reset();
     }
 
     return pcount;
@@ -682,41 +670,29 @@ int ChSystem::ResetAllProbes() {
 // CONTROLS STUFF
 
 int ChSystem::ExecuteControlsForStart() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
-    {
-        ChSharedPtr<ChControls> Cpointer = controlslist[ip];
-
-        Cpointer->ExecuteForStart();
+    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
+        controlslist[ip]->ExecuteForStart();
     }
     return TRUE;
 }
 
 int ChSystem::ExecuteControlsForUpdate() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
-    {
-        ChSharedPtr<ChControls> Cpointer = controlslist[ip];
-
-        Cpointer->ExecuteForUpdate();
+    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
+        controlslist[ip]->ExecuteForUpdate();
     }
     return TRUE;
 }
 
 int ChSystem::ExecuteControlsForStep() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
-    {
-        ChSharedPtr<ChControls> Cpointer = controlslist[ip];
-
-        Cpointer->ExecuteForStep();
+    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
+        controlslist[ip]->ExecuteForStep();
     }
     return TRUE;
 }
 
 int ChSystem::ExecuteControlsFor3DStep() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip)  // ITERATE on controls
-    {
-        ChSharedPtr<ChControls> Cpointer = controlslist[ip];
-
-        Cpointer->ExecuteFor3DStep();
+    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
+        controlslist[ip]->ExecuteFor3DStep();
     }
     return TRUE;
 }
@@ -725,23 +701,21 @@ int ChSystem::ExecuteControlsFor3DStep() {
 // HIERARCHY HANDLERS
 //
 
-
-
-void ChSystem::AddProbe(ChSharedPtr<ChProbe>& newprobe) {
-    assert(std::find<std::vector<ChSharedPtr<ChProbe> >::iterator>(probelist.begin(), probelist.end(), newprobe) == probelist.end());
+void ChSystem::AddProbe(std::shared_ptr<ChProbe>& newprobe) {
+    assert(std::find<std::vector<std::shared_ptr<ChProbe> >::iterator>(probelist.begin(), probelist.end(), newprobe) ==
+           probelist.end());
 
     // newprobe->SetSystem (this);
     probelist.push_back(newprobe);
 }
 
-void ChSystem::AddControls(ChSharedPtr<ChControls>& newcontrols) {
-    assert(std::find<std::vector<ChSharedPtr<ChControls> >::iterator>(controlslist.begin(), controlslist.end(), newcontrols) == controlslist.end());
+void ChSystem::AddControls(std::shared_ptr<ChControls>& newcontrols) {
+    assert(std::find<std::vector<std::shared_ptr<ChControls> >::iterator>(controlslist.begin(), controlslist.end(),
+                                                                          newcontrols) == controlslist.end());
 
     // newcontrols->SetSystem (this);
     controlslist.push_back(newcontrols);
 }
-
-
 
 void ChSystem::RemoveAllProbes() {
 
@@ -756,17 +730,16 @@ void ChSystem::RemoveAllControls() {
 
 
 void ChSystem::Reference_LM_byID() {
-    std::vector<ChSharedPtr<ChLink> > toremove;
+    std::vector<std::shared_ptr<ChLink> > toremove;
 
     for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-
-        if (ChSharedPtr<ChLinkMarkers> malink = Lpointer.DynamicCastTo<ChLinkMarkers>() ) {
-            ChSharedPtr<ChMarker> shm1 = SearchMarker(malink->GetMarkID1());
-            ChSharedPtr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
-            ChMarker* mm1 = shm1.get_ptr();
-            ChMarker* mm2 = shm1.get_ptr();
+        std::shared_ptr<ChLink> Lpointer = linklist[ip];
+        if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(Lpointer)) {
+            std::shared_ptr<ChMarker> shm1 = SearchMarker(malink->GetMarkID1());
+            std::shared_ptr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
+            ChMarker* mm1 = shm1.get();
+            ChMarker* mm2 = shm1.get();
             malink->SetUpMarkers(mm1, mm2);
             if (mm1 && mm2) {
                 Lpointer->SetValid(true);
@@ -798,52 +771,47 @@ void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
     // (the previous will be automatically deallocated thanks to shared pointers)
     switch (integration_type) {
         case INT_ANITESCU:
-            this->timestepper =
-                ChSharedPtr<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
+            timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this); // alias of INT_EULER_IMPLICIT_LINEARIZED
             break;
         case INT_TASORA:
-            this->timestepper =
-                ChSharedPtr<ChTimestepper>();  // null because Integrate_Y_impulse will fallback to old code
+            timestepper = std::make_shared<ChTimestepperEulerImplicitProjected>(this); // alias of INT_EULER_IMPLICIT_PROJECTED
             break;
         case INT_EULER_IMPLICIT:
-            this->timestepper = ChSharedPtr<ChTimestepperEulerImplicit>(new ChTimestepperEulerImplicit(this));
-            (this->timestepper.DynamicCastTo<ChTimestepperEulerImplicit>())->SetMaxiters(4);
+            timestepper = std::make_shared<ChTimestepperEulerImplicit>(this);
+            std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxiters(4);
             break;
         case INT_EULER_IMPLICIT_LINEARIZED:
-            this->timestepper =
-                ChSharedPtr<ChTimestepperEulerImplicitLinearized>(new ChTimestepperEulerImplicitLinearized(this));
+            timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
             break;
         case INT_EULER_IMPLICIT_PROJECTED:
-            this->timestepper =
-                ChSharedPtr<ChTimestepperEulerImplicitProjected>(new ChTimestepperEulerImplicitProjected(this));
+            timestepper = std::make_shared<ChTimestepperEulerImplicitProjected>(this);
             break;
         case INT_TRAPEZOIDAL:
-            this->timestepper = ChSharedPtr<ChTimestepperTrapezoidal>(new ChTimestepperTrapezoidal(this));
-            (this->timestepper.DynamicCastTo<ChTimestepperTrapezoidal>())->SetMaxiters(4);
+            timestepper = std::make_shared<ChTimestepperTrapezoidal>(this);
+            std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxiters(4);
             break;
         case INT_TRAPEZOIDAL_LINEARIZED:
-            this->timestepper =
-                ChSharedPtr<ChTimestepperTrapezoidalLinearized>(new ChTimestepperTrapezoidalLinearized(this));
-            (this->timestepper.DynamicCastTo<ChTimestepperTrapezoidalLinearized>())->SetMaxiters(4);
+            timestepper = std::make_shared<ChTimestepperTrapezoidalLinearized>(this);
+            std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxiters(4);
             break;
         case INT_HHT:
-            this->timestepper = ChSharedPtr<ChTimestepperHHT>(new ChTimestepperHHT(this));
-            (this->timestepper.DynamicCastTo<ChTimestepperHHT>())->SetMaxiters(4);
+            timestepper = std::make_shared<ChTimestepperHHT>(this);
+            std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxiters(4);
             break;
         case INT_HEUN:
-            this->timestepper = ChSharedPtr<ChTimestepperHeun>(new ChTimestepperHeun(this));
+            timestepper = std::make_shared<ChTimestepperHeun>(this);
             break;
         case INT_RUNGEKUTTA45:
-            this->timestepper = ChSharedPtr<ChTimestepperRungeKuttaExpl>(new ChTimestepperRungeKuttaExpl(this));
+            timestepper = std::make_shared<ChTimestepperRungeKuttaExpl>(this);
             break;
         case INT_EULER_EXPLICIT:
-            this->timestepper = ChSharedPtr<ChTimestepperEulerExplIIorder>(new ChTimestepperEulerExplIIorder(this));
+            timestepper = std::make_shared<ChTimestepperEulerExplIIorder>(this);
             break;
         case INT_LEAPFROG:
-            this->timestepper = ChSharedPtr<ChTimestepperLeapfrog>(new ChTimestepperLeapfrog(this));
+            timestepper = std::make_shared<ChTimestepperLeapfrog>(this);
             break;
         case INT_NEWMARK:
-            this->timestepper = ChSharedPtr<ChTimestepperNewmark>(new ChTimestepperNewmark(this));
+            timestepper = std::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
             throw ChException("SetIntegrationType: timestepper not supported");
@@ -871,12 +839,12 @@ bool ChSystem::ManageSleepingBodies() {
 
     // Make this class for iterating through contacts 
 
-    class _wakeup_reporter_class : public ChReportContactCallback2 {
+    class _wakeup_reporter_class : public ChReportContactCallback {
       public:
         /// Callback, used to report contact points already added to the container.
         /// This must be implemented by a child class of ChReportContactCallback.
         /// If returns false, the contact scanning will be stopped.
-        virtual bool ReportContactCallback2(
+        virtual bool ReportContactCallback(
             const ChVector<>& pA,             ///< get contact pA
             const ChVector<>& pB,             ///< get contact pB
             const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
@@ -885,7 +853,7 @@ bool ChSystem::ManageSleepingBodies() {
             const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< get model A (note: some containers may not support it and could be zero!)
             ChContactable* contactobjB   ///< get model B (note: some containers may not support it and could be zero!)
-            ) {
+            ) override {
             if (!(contactobjA && contactobjB))
                 return true;
             ChBody* b1 = dynamic_cast<ChBody*>(contactobjA);
@@ -934,7 +902,7 @@ bool ChSystem::ManageSleepingBodies() {
         // scan all links and wake connected bodies
         for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
         {
-            ChSharedPtr<ChLink> Lpointer = linklist[ip];
+            std::shared_ptr<ChLink> Lpointer = linklist[ip];
 
             if (Lpointer->IsRequiringWaking()) {
                 ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
@@ -963,7 +931,7 @@ bool ChSystem::ManageSleepingBodies() {
         }
 
         // scan all contacts and wake neighbouring bodies
-        this->contact_container->ReportAllContacts2(&my_waker);
+        this->contact_container->ReportAllContacts(&my_waker);
 
         // bailout wakeup cycle prematurely, if all bodies are not sleeping
         if (!my_waker.someone_sleeps)
@@ -1005,179 +973,6 @@ void ChSystem::LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor) {
     this->InjectKRMmatrices(mdescriptor);
 
     mdescriptor.EndInsertion();
-}
-
-
-void ChSystem::LCPprepare_reset() {
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->ConstraintsBiReset();
-    }
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        Bpointer->VariablesFbReset();
-    }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->VariablesFbReset();
-        PHpointer->ConstraintsBiReset();
-    }
-    this->contact_container->ConstraintsBiReset();
-}
-
-void ChSystem::LCPprepare_load(bool load_jacobians,
-                               bool load_Mv,
-                               double F_factor,
-                               double K_factor,
-                               double R_factor,
-                               double M_factor,
-                               double Ct_factor,
-                               double C_factor,
-                               double recovery_clamp,
-                               bool do_clamp) {
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-
-        if (C_factor)
-            Lpointer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
-        if (Ct_factor)
-            Lpointer->ConstraintsBiLoad_Ct(Ct_factor);  // Ct
-        if (load_Mv) {
-            Lpointer->VariablesQbLoadSpeed();    //   v_old
-            Lpointer->VariablesFbIncrementMq();  // M*v_old
-        }
-        if (load_jacobians)
-            Lpointer->ConstraintsLoadJacobians();
-        if (F_factor) {
-                Lpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
-            }
-        }
-
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-        if (F_factor)
-            Bpointer->VariablesFbLoadForces(F_factor);  // f*dt
-        if (load_Mv) {
-            Bpointer->VariablesQbLoadSpeed();    //   v_old
-            Bpointer->VariablesFbIncrementMq();  // M*v_old
-        }
-    }
-
-    // Radu:
-    //   The loop below is not immediately parallelizable because of items such as
-    //   ChShaftsTorqueBase which add torques to other items' variables.  As such,
-    //   there is potential contention with the various VariablesFbLoadForces and
-    //   VariablesFbIncrementMq functions.
-    //
-    //   While it would be possible to protect the calls to the above two functions
-    //   in additional critical sections, more experimentation is needed to decide
-    //   if it's worth it.
-
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        if (F_factor)
-            PHpointer->VariablesFbLoadForces(F_factor);  // f*dt
-        if (load_Mv) {
-            PHpointer->VariablesQbLoadSpeed();    //   v_old
-            PHpointer->VariablesFbIncrementMq();  // M*v_old
-        }
-        if (C_factor)
-            PHpointer->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
-        if (Ct_factor)
-            PHpointer->ConstraintsBiLoad_Ct(Ct_factor);  // Ct
-        if (load_jacobians)
-            PHpointer->ConstraintsLoadJacobians();
-        if (K_factor || R_factor || M_factor)
-            PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
-        if (F_factor) {
-            PHpointer->ConstraintsFbLoadForces(F_factor);  // f*dt
-        }
-    }
-
-    if (C_factor)
-        contact_container->ConstraintsBiLoad_C(C_factor, recovery_clamp, do_clamp);
-    if (F_factor)
-        contact_container->ConstraintsFbLoadForces(F_factor);  // f*dt
-    if (load_jacobians)
-        contact_container->ConstraintsLoadJacobians();
-}
-
-
-
-void ChSystem::LCPprepare_Li_from_speed_cache() {
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->ConstraintsLiLoadSuggestedSpeedSolution();
-    }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->ConstraintsLiLoadSuggestedSpeedSolution();
-    }
-    this->contact_container->ConstraintsLiLoadSuggestedSpeedSolution();
-}
-
-void ChSystem::LCPprepare_Li_from_position_cache() {
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->ConstraintsLiLoadSuggestedPositionSolution();
-    }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->ConstraintsLiLoadSuggestedPositionSolution();
-    }
-    this->contact_container->ConstraintsLiLoadSuggestedPositionSolution();
-}
-
-void ChSystem::LCPresult_Li_into_speed_cache() {
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->ConstraintsLiFetchSuggestedSpeedSolution();
-    }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->ConstraintsLiFetchSuggestedSpeedSolution();
-    }
-    this->contact_container->ConstraintsLiFetchSuggestedSpeedSolution();
-}
-
-void ChSystem::LCPresult_Li_into_position_cache() {
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->ConstraintsLiFetchSuggestedPositionSolution();
-    }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->ConstraintsLiFetchSuggestedPositionSolution();
-    }
-    this->contact_container->ConstraintsLiFetchSuggestedPositionSolution();
-}
-
-void ChSystem::LCPresult_Li_into_reactions(double mfactor) {
-    for (int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        ChSharedPtr<ChLink> Lpointer = linklist[ip];
-        Lpointer->ConstraintsFetch_react(mfactor);
-    }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        PHpointer->ConstraintsFetch_react(mfactor);
-    }
-    this->contact_container->ConstraintsFetch_react(mfactor);
 }
 
 
@@ -1569,34 +1364,6 @@ void ChSystem::ConstraintsLoadJacobians() {
     contact_container->ConstraintsLoadJacobians();
 }
 
-void ChSystem::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiLoadSuggestedSpeedSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiLoadSuggestedSpeedSolution();
-}
-
-void ChSystem::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiLoadSuggestedPositionSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiLoadSuggestedPositionSolution();
-}
-
-void ChSystem::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiFetchSuggestedSpeedSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiFetchSuggestedSpeedSolution();
-}
-
-void ChSystem::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::ConstraintsLiFetchSuggestedPositionSolution();
-    // Use also on contact container:
-    contact_container->ConstraintsLiFetchSuggestedPositionSolution();
-}
-
 void ChSystem::ConstraintsFetch_react(double factor) {
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::ConstraintsFetch_react(factor);
@@ -1836,12 +1603,9 @@ int ChSystem::GetNcontacts() {
 }
 
 void ChSystem::SynchronizeLastCollPositions() {
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        if (Bpointer->GetCollide())
-            Bpointer->SynchronizeLastCollPos();
+    for (int ip = 0; ip < bodylist.size(); ++ip) {
+        if (bodylist[ip]->GetCollide())
+            bodylist[ip]->SynchronizeLastCollPos();
     }
 }
 
@@ -1883,16 +1647,15 @@ double ChSystem::ComputeCollisions() {
     // containers in the physic system. The default contact container
     // for ChBody and ChParticles is used always.
 
-    collision_system->ReportContacts(this->contact_container.get_ptr());
+    collision_system->ReportContacts(this->contact_container.get());
 
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-        if (ChSharedPtr<ChContactContainerBase> mcontactcontainer = PHpointer.DynamicCastTo<ChContactContainerBase>()) {
-            collision_system->ReportContacts(mcontactcontainer.get_ptr());
+    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainerBase>(otherphysicslist[ip])) {
+            collision_system->ReportContacts(mcontactcontainer.get());
         }
-        if (ChSharedPtr<ChProximityContainerBase> mproximitycontainer = PHpointer.DynamicCastTo<ChProximityContainerBase>()) {
-            collision_system->ReportProximities(mproximitycontainer.get_ptr());
+
+        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainerBase>(otherphysicslist[ip])) {
+            collision_system->ReportProximities(mproximitycontainer.get());
         }
     }
 
@@ -1927,335 +1690,15 @@ int ChSystem::DoStepDynamics(double m_step) {
 }
 
 
-int ChSystem::Integrate_Y() {
-    ResetTimers();
-    switch (integration_type) {
-        case INT_ANITESCU:
-            return Integrate_Y_impulse_Anitescu();
-        case INT_TASORA:
-            return Integrate_Y_impulse_Tasora();
-        default:
-            return Integrate_Y_timestepper();
-    }
-
-    return TRUE;
-}
-
-//
-//  PERFORM ANITESCU INTEGRATION STEP  -IMPULSIVE METHOD-
-//
-//  ...but using the differential inclusion approach, better for
-//  systems with contacts (use the Anitescu method, with stabilization)
-//
-
-int ChSystem::Integrate_Y_impulse_Anitescu() {
-    GetLog() << "WARNING! The INT_ANITESCU timestepper is deprecated. Use the INT_EULER_IMPLICIT_LINEARIZED instead.\n";
-
-    int ret_code = TRUE;
-
-    timer_step.start();
-
-    events->Record(CHEVENT_TIMESTEP);
-
-    // Executes the "forStep" script, if any
-    ExecuteScriptForStep();
-    // Executes the "forStep" script
-    // in all controls of controlslist
-    ExecuteControlsForStep();
-
-    this->stepcount++;
-    this->solvecount = 0;
-
-    // Compute contacts and create contact constraints
-    ComputeCollisions();
-
-    // Counts dofs, statistics, etc.
-    Setup();
-
-    // Update everything.
-    // Note that we do not update visualization assets at this point.
-    Update(false);
-
-    // Re-wake the bodies that cannot sleep because they are in contact with
-    // some body that is not in sleep state.
-    ManageSleepingBodies();
-
-    timer_lcp.start();
-
-    //
-    // Enforce velocity/impulses constraints ....................
-    //
-
-    // reset known-term vectors
-    LCPprepare_reset();
-
-    // fill LCP known-term vectors with proper terms (forces, etc.):
-    //
-    // | M+dt^2*K+dt*R -Cq'|*|v_new|- | [M]*v_old + f*dt      | = |0| ,  c>=0, l>=0, l*c=0;
-    // | Cq              0 | |l    |  | -Ct +min(-C/dt,vlim)  |   |c|
-    //
-
-    LCPprepare_load(true,         // Cq,
-                    true,         // adds [M]*v_old to the known vector
-                    step,         // f*dt
-                    step * step,  // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-                    step,         // dt*R   (nb only non-Schur based solvers support R matrix blocks)
-                    1.0,          // M (for FEM with non-lumped masses, add their mass-matrixes)
-                    1.0,          // Ct   (needed, for rheonomic motors)
-                    1.0 / step,   // C/dt
-                    max_penetration_recovery_speed,  // vlim, max penetrations recovery speed (positive for exiting)
-                    true);                           // do above max. clamping on -C/dt
-
-    // if warm start is used, can exploit cached multipliers from last step...
-    LCPprepare_Li_from_speed_cache();
-
-    // make vectors of variables and constraints, used by the following LCP solver
-    LCPprepare_inject(*this->LCP_descriptor);
-
-    // Solve the LCP problem.
-    // Solution variables are new speeds 'v_new'
-    GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
-
-    timer_lcp.stop();
-
-    // stores computed multipliers in constraint caches, maybe useful for warm starting next step
-    LCPresult_Li_into_speed_cache();
-
-    // updates the reactions of the constraint
-    LCPresult_Li_into_reactions(1.0 / step);  // R = l/dt  , approximately
-
-// perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
-
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        // EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-        Bpointer->VariablesQbIncrementPosition(step);
-        // Set body speed, and approximates the acceleration by differentiation.
-        Bpointer->VariablesQbSetSpeed(step);
-
-        // Now also updates all markers & forces
-        Bpointer->Update(this->ChTime);
-    }
-
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        // EULERO INTEGRATION: pos+=v_new*dt  (do not do this, if GPU already computed it)
-        PHpointer->VariablesQbIncrementPosition(step);
-        // Set body speed, and approximates the acceleration by differentiation.
-        PHpointer->VariablesQbSetSpeed(step);
-
-        // Now also updates all markers & forces
-        PHpointer->Update(this->ChTime);
-    }
-
-    this->ChTime = ChTime + step;
-
-    // Executes custom processing at the end of step
-    CustomEndOfStep();
-
-    // If there are some probe objects in the probe list,
-    // tell them to record their variables (ususally x-y couples)
-    RecordAllProbes();
-
-    // Time elapsed for step..
-    timer_step.stop();
-
-    return (ret_code);
-}
-
-//
-//  PERFORM TASORA INTEGRATION STEP  -IMPULSIVE METHOD-
-//
-//  ...but using the differential inclusion approach, better for
-//  systems with contacts (use the Tasora method, with separate
-//  positional stabilization)
-//
-
-int ChSystem::Integrate_Y_impulse_Tasora() {
-    GetLog() << "WARNING! The INT_TASORA timestepper is deprecated. Use the INT_EULER_IMPLICIT_PROJECTED instead.\n";
-
-    int ret_code = TRUE;
-
-    timer_step.start();
-
-    events->Record(CHEVENT_TIMESTEP);
-
-    // Executes the "forStep" script, if any
-    ExecuteScriptForStep();
-    // Executes the "forStep" script
-    // in all controls of controlslist
-    ExecuteControlsForStep();
-
-    this->stepcount++;
-    this->solvecount =0;
-
-    // Compute contacts and create contact constraints
-    ComputeCollisions();
-
-    // Counts dofs, statistics, etc.
-    Setup();
-
-    // Update everything.
-    // Note that we do not update visualization assets at this point.
-    Update(false);
-
-    // Re-wake the bodies that cannot sleep because they are in contact with
-    // some body that is not in sleep state.
-    ManageSleepingBodies();
-
-    timer_lcp.reset();
-    timer_lcp.start();
-
-    // 1-
-    // Enforce velocity/impulses constraints ....................
-    //
-
-    // reset known-term vectors
-    LCPprepare_reset();
-
-    // fill LCP known-term vectors with proper terms (forces, etc.):
-    //
-    // | M -Cq'|*|v_new|- | [M]*v_old + f*dt    | = |0| ,  c>=0, l>=0, l*c=0;
-    // | Cq  0 | |l    |  |  - Ct +min(-C/dt,0) |   |c|
-    //
-
-    LCPprepare_load(true,         // Cq
-                    true,         // adds [M]*v_old to the known vector
-                    step,         // f*dt
-                    step * step,  // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-                    step,         // dt*R   (nb only non-Schur based solvers support K matrix blocks)
-                    1.0,          // M (for FEM with non-lumped masses, add their mass-matrices)
-                    1.0,          // Ct      (needed, for rheonomic motors)
-                    1.0 / step,   // C/dt
-                    0.0,          // max constr.recovery speed (positive for exiting)
-                    true);        // do above max. clamping on -C/dt
-
-    // if warm start is used, can exploit cached multipliers from last step...
-    LCPprepare_Li_from_speed_cache();
-
-    // make vectors of variables and constraints, used by the following LCP solver
-    LCPprepare_inject(*this->LCP_descriptor);
-
-    // Solve the LCP problem.
-    // Solution variables are new speeds 'v_new'
-
-    GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
-
-    // stores computed multipliers in constraint caches, maybe useful for warm starting next step
-    LCPresult_Li_into_speed_cache();
-
-    // updates the reactions of the constraint
-    LCPresult_Li_into_reactions(1.0 / step);  // R = l/dt  , approximately
-
-    // perform an Eulero integration step (1st order stepping as pos+=v_new*dt)
-
-    for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-    {
-        ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-        // EULERO INTEGRATION: pos+=v_new*dt
-        Bpointer->VariablesQbIncrementPosition(step);
-        // Set body speed, and approximates the acceleration by differentiation.
-        Bpointer->VariablesQbSetSpeed(step);
-
-        // Now also updates all markers & forces
-        // Bpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
-    }
-
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        // EULERO INTEGRATION: pos+=v_new*dt
-        PHpointer->VariablesQbIncrementPosition(step);
-        // Set body speed, and approximates the acceleration by differentiation.
-        PHpointer->VariablesQbSetSpeed(step);
-
-        // Now also updates all markers & forces
-        // PHpointer->UpdateALL(this->ChTime); // not needed - will be done later anyway
-    }
-
-    this->ChTime = ChTime + step;
-
-    // 2-
-    // Stabilize constraint positions ....................
-    //
-
-    // reset known-term vectors
-    LCPprepare_reset();
-
-    // Fill known-term vectors with proper terms 0 and -C :
-    //
-    // | M -Cq'|*|Dpos|- |0 |= |0| ,  c>=0, l>=0, l*c=0;
-    // | Cq  0 | |l   |  |-C|  |c|
-    //
-
-    LCPprepare_load(false,   // Cq are already there..
-                    false,   // no addition of M*v in known term
-                    0,       // no forces
-                    0,       // no K matrix
-                    0,       // no R matrix
-                    1.0,     // M (for FEM with non-lumped masses, add their mass-matrices)
-                    0,       // no Ct term
-                    1.0,     // C
-                    0.0,     // recovery max speed (not used)
-                    false);  // no clamping on -C term
-
-    // if warm start is used, can exploit cached multipliers from last step...
-    LCPprepare_Li_from_position_cache();
-
-    // Solve the LCP problem.
-    // Solution variables are 'Dpos', delta positions.
-
-    GetLcpSolverStab()->Solve(*this->LCP_descriptor);
-
-    // stores computed multipliers in constraint caches, maybe useful for warm starting next step
-    LCPresult_Li_into_position_cache();
-
-    {
-        for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-        {
-            ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-
-            Bpointer->VariablesQbIncrementPosition(1.0);  // pos+=Dpos
-            // Now also updates all markers & forces
-            Bpointer->Update(this->ChTime);
-        }
-
-        for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-        {
-            ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-            PHpointer->VariablesQbIncrementPosition(1.0);  // pos+=Dpos
-            // Now also updates all markers & forces
-            PHpointer->Update(this->ChTime);
-        }
-    }
-
-    timer_lcp.stop();
-
-    // Executes custom processing at the end of step
-    CustomEndOfStep();
-
-    // If there are some probe objects in the probe list,
-    // tell them to record their variables (ususally x-y couples)
-    RecordAllProbes();
-
-    // Time elapsed for step..
-    timer_step.stop();
-
-    return (ret_code);
-}
 
 //
 //  PERFORM INTEGRATION STEP  using pluggable timestepper
 //
 
-int ChSystem::Integrate_Y_timestepper() {
+int ChSystem::Integrate_Y() {
+
+    ResetTimers();
+
     int ret_code = TRUE;
 
     timer_step.start();
@@ -2292,10 +1735,10 @@ int ChSystem::Integrate_Y_timestepper() {
     timer_lcp.reset();
 
     // Set some settings in timestepper object
-    this->timestepper->SetQcDoClamp(true);
-    this->timestepper->SetQcClamping(this->max_penetration_recovery_speed);
-    if (this->timestepper.IsType<ChTimestepperHHT>() || this->timestepper.IsType<ChTimestepperNewmark>())
-        this->timestepper->SetQcDoClamp(false);
+    timestepper->SetQcDoClamp(true);
+    timestepper->SetQcClamping(this->max_penetration_recovery_speed);
+    if (std::dynamic_pointer_cast<ChTimestepperHHT>(timestepper) || std::dynamic_pointer_cast<ChTimestepperNewmark>(timestepper))
+        timestepper->SetQcDoClamp(false);
 
     // PERFORM TIME STEP HERE!
     this->timestepper->Advance(step);
@@ -2306,6 +1749,9 @@ int ChSystem::Integrate_Y_timestepper() {
     // If there are some probe objects in the probe list,
     // tell them to record their variables (ususally x-y couples)
     RecordAllProbes();
+
+    // Call method to gather contact forces/torques in rigid bodies
+    contact_container->ComputeContactForces();
 
     // Time elapsed for step..
     timer_step.stop();
@@ -2323,145 +1769,22 @@ int ChSystem::DoAssembly(int action, int mflags) {
 
     this->solvecount = 0;
 
-    // Counts dofs, statistics, etc.
     Setup();
+    Update();
 
-    // Update the system and all its components.
-    // No need to update visualization assets here.
-    Update(false);
+    int old_maxsteps = this->GetIterLCPmaxItersSpeed();
+    this->SetIterLCPmaxItersSpeed(300);
 
-    //
-    // (1)--------  POSITION
-    //
-    if (action & ASS_POSITION) {
-        for (int m_iter = 0; m_iter < maxiter; m_iter++) {
-            if (mflags & ASF_COLLISIONS) {
-                // Compute new contacts and create contact constraints
-                ComputeCollisions();
+    // Prepare lists of variables and constraints. 
+    LCPprepare_inject(*this->LCP_descriptor);
 
-                Setup();        // Counts dofs, statistics, etc.
-                Update(false);  // Update everything (do not update visualization assets)
-            }
+    ChAssemblyAnalysis manalysis(*this);
+    manalysis.SetMaxAssemblyIters(this->GetMaxiter());
 
-            // Reset known-term vectors
-            LCPprepare_reset();
+    // Perform analysis
+    manalysis.AssemblyAnalysis(action, mflags);
 
-            // Fill known-term vectors with proper terms 0 and -C :
-            //
-            // | M -Cq'|*|Dpos|- |0 |= |0| ,  c>=0, l>=0, l*c=0;
-            // | Cq  0 | |l   |  |-C|  |c|
-            //
-            LCPprepare_load(true,    // calculate Jacobian Cq
-                            false,   // no addition of M*v in known term
-                            0,       // no forces
-                            0,       // no K matrix
-                            0,       // no R matrix
-                            1.0,     // M (for FEM with non-lumped masses, add their mass-matrices)
-                            0,       // no Ct term
-                            1.0,     // C
-                            0.0,     //
-                            false);  // no clamping on -C/dt
-
-            // Make the vectors of pointers to constraint and variables, for LCP solver
-            LCPprepare_inject(*this->LCP_descriptor);
-
-            // Check violation and exit Newton loop if reached tolerance.
-            double max_res, max_LCPerr;
-            this->LCP_descriptor->ComputeFeasabilityViolation(max_res, max_LCPerr);
-            if (max_res <= this->tol)
-                break;
-
-            // Solve the LCP problem.
-            // Solution variables are 'Dpos', delta positions.
-            // Note: use settings of the 'speed' lcp solver (i.e. use max number
-            // of iterations as you would use for the speed probl., if iterative solver)
-            GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
-
-            // Update bodies and other physics items at new positions
-
-            for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-            {
-                ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-                Bpointer->VariablesQbIncrementPosition(1.0);  // pos += Dpos
-                Bpointer->Update(this->ChTime);
-            }
-
-            for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-            {
-                ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-                PHpointer->VariablesQbIncrementPosition(1.0);  // pos += Dpos
-                PHpointer->Update(this->ChTime);
-            }
-
-            Update();  // Update everything
-
-        }  // end loop Newton iterations
-    }
-
-    //
-    // 2) -------- SPEEDS and ACCELERATIONS
-    //
-    if ((action & ASS_SPEED) || (action & ASS_ACCEL)) {
-        // Save current value of the time step and max number of 'speed' iterations.
-        double step_saved = step;
-        int niter_saved = GetIterLCPmaxItersSpeed();
-
-        // Use a small time step for assembly. Also, temporarily increase the max
-        // number of iterations for the speed solver (to accommodate for the bad
-        // initial guess)
-        step = 1e-7;
-        SetIterLCPmaxItersSpeed(5 * niter_saved);
-
-        // Reset known-term vectors
-        LCPprepare_reset();
-
-        // Fill LCP known-term vectors with proper terms
-        //
-        // | M -Cq'|*|v_new|- | [M]*v_old +f*dt | = |0| ,  c>=0, l>=0, l*c=0;
-        // | Cq  0 | |l    |  |  - Ct           |   |c|
-        //
-        LCPprepare_load(false,        // Cq are already there..
-                        true,         // adds [M]*v_old to the known vector
-                        step,         // f*dt
-                        step * step,  // dt^2*K  (nb only non-Schur based solvers support K matrix blocks)
-                        step,         // dt*R   (nb only non-Schur based solvers support K matrix blocks)
-                        1.0,          // M (for FEM with non-lumped masses, add their mass-matrices)
-                        1.0,          // Ct term
-                        0,            // no C term
-                        0.0,          //
-                        false);       // no clamping on -C/dt
-
-        // Make the vectors of pointers to constraint and variables, for LCP solver
-        LCPprepare_inject(*this->LCP_descriptor);
-
-        // Solve the LCP problem using the speed solver. Solution variables are new
-        // speeds 'v_new'
-        GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
-
-        // Update the constraint reaction forces.
-        LCPresult_Li_into_reactions(1 / step);
-
-        // Loop over all bodies and other physics items; approximate speeds using
-        // finite diferences (with the local, small time step value) and update all
-        // markers and forces.
-        for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-        {
-            ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-            Bpointer->VariablesQbSetSpeed(step);
-            Bpointer->Update(this->ChTime);
-        }
-
-        for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-        {
-            ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-            PHpointer->VariablesQbSetSpeed(step);
-            PHpointer->Update(this->ChTime);
-        }
-
-        // Restore the time step and max number of iterations.
-        step = step_saved;
-        SetIterLCPmaxItersSpeed(niter_saved);
-    }
+    this->SetIterLCPmaxItersSpeed(old_maxsteps);
 
     return 0;
 }
@@ -2548,41 +1871,28 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
     int err = 0;
     int reached_tolerance = FALSE;
 
-
-    if (ncoords > 0) {
-        if (ndof >= 0) {
-            for (int m_iter = 0; m_iter < nsteps; m_iter++) {
-                for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-                {
-                    ChSharedPtr<ChBody> Bpointer = bodylist[ip];
-                    // Set no body speed and no body accel.
-                    Bpointer->SetNoSpeedNoAcceleration();
-                }
-                for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-                {
-                    ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-                    PHpointer->SetNoSpeedNoAcceleration();
-                }
-
-                double m_undotime = this->GetChTime();
-                DoFrameDynamics(m_undotime +
-                                (step * 1.8) * (((double)nsteps - (double)m_iter)) /
-                                    (double)nsteps);
-                this->SetChTime(m_undotime);
-            }
-
-            for (int ip = 0; ip < bodylist.size(); ++ip)  // ITERATE on bodies
-            {
-                ChSharedPtr<ChBody> Bpointer = bodylist[ip];
+    if ((ncoords > 0) && (ndof >= 0)) {
+        for (int m_iter = 0; m_iter < nsteps; m_iter++) {
+            for (int ip = 0; ip < bodylist.size(); ++ip) {
                 // Set no body speed and no body accel.
-                Bpointer->SetNoSpeedNoAcceleration();
+                bodylist[ip]->SetNoSpeedNoAcceleration();
+            }
+            for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
+                otherphysicslist[ip]->SetNoSpeedNoAcceleration();
             }
 
-            for (int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-            {
-                ChSharedPtr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-                PHpointer->SetNoSpeedNoAcceleration();
-            }
+            double m_undotime = this->GetChTime();
+            DoFrameDynamics(m_undotime + (step * 1.8) * (((double)nsteps - (double)m_iter)) / (double)nsteps);
+            this->SetChTime(m_undotime);
+        }
+
+        for (int ip = 0; ip < bodylist.size(); ++ip) {
+            // Set no body speed and no body accel.
+            bodylist[ip]->SetNoSpeedNoAcceleration();
+        }
+
+        for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
+            otherphysicslist[ip]->SetNoSpeedNoAcceleration();
         }
     }
 
@@ -2599,7 +1909,6 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
 
 int ChSystem::DoEntireKinematics() {
     Setup();
-
 
     DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
     // first check if there are redundant links (at least one NR cycle
@@ -2625,7 +1934,6 @@ int ChSystem::DoEntireKinematics() {
 int ChSystem::DoEntireDynamics() {
     Setup();
 
-
     // the system may have wrong layout, or too large
     // clearances in costraints, so it is better to
     // check for costraint violation each time the integration starts
@@ -2648,8 +1956,6 @@ int ChSystem::DoEntireDynamics() {
         return FALSE;
     return TRUE;
 }
-
-
 
 // Perform the dynamical integration, from current ChTime to
 // the specified m_endtime, and terminating the integration exactly

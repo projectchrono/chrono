@@ -106,8 +106,8 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Each marker must belong to a rigid body, and both rigid bodies
     /// must belong to the same ChSystem.
     /// The position of mark2 is used as link's position and main reference.
-    virtual void Initialize(ChSharedPtr<ChMarker> mark1,  ///< first  marker to join
-                            ChSharedPtr<ChMarker> mark2   ///< second marker to join (master)
+    virtual void Initialize(std::shared_ptr<ChMarker> mark1,  ///< first  marker to join
+                            std::shared_ptr<ChMarker> mark2   ///< second marker to join (master)
                             );
 
     /// Use this function after link creation, to initialize the link from
@@ -116,8 +116,8 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Two markers will be created and added to the rigid bodies (later,
     /// you can use GetMarker1() and GetMarker2() to access them.
     /// To specify the (absolute) position of link and markers, use 'mpos'.
-    virtual void Initialize(ChSharedPtr<ChBody> mbody1,  ///< first  body to join
-                            ChSharedPtr<ChBody> mbody2,  ///< second body to join
+    virtual void Initialize(std::shared_ptr<ChBody> mbody1,  ///< first  body to join
+                            std::shared_ptr<ChBody> mbody2,  ///< second body to join
                             const ChCoordsys<>& mpos     ///< the current absolute pos.& alignment.
                             );
 
@@ -128,8 +128,8 @@ class ChApi ChLinkMarkers : public ChLink {
     /// you can use GetMarker1() and GetMarker2() to access them.
     /// To specify the (absolute) position of link and markers, use 'mpos'.
     virtual void Initialize(
-        ChSharedPtr<ChBody> mbody1,  ///< first  body to join
-        ChSharedPtr<ChBody> mbody2,  ///< second body to join
+        std::shared_ptr<ChBody> mbody1,  ///< first  body to join
+        std::shared_ptr<ChBody> mbody2,  ///< second body to join
         bool pos_are_relative,  ///< if =true, following two positions are relative to bodies. If false, are absolute.
         const ChCoordsys<>& mpos1,  ///< the position & alignment of 1st marker (relative to body1 cords, or absolute)
         const ChCoordsys<>& mpos2   ///< the position & alignment of 2nd marker (relative to body2 cords, or absolute)

@@ -12,8 +12,11 @@
 
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 
-namespace irr {
-namespace scene {
+namespace chrono {
+namespace irrlicht {
+
+using namespace irr;
+using namespace irr::scene;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -52,7 +55,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
     buffer->Vertices.set_used(n_tot_verts);
     buffer->Indices.set_used(n_tot_indeces);
 
-    video::SColor clr(100, 255, 255, 255);
+    irr::video::SColor clr(100, 255, 255, 255);
 
     u32 i = 0;
     u32 i_disc = 0;
@@ -130,7 +133,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
         alpha_high = atan((radiusH / radiusV) * (Yhigh / r_high));
     } else {
         r_high = 0;
-        alpha_high = core::PI / 2;
+        alpha_high = irr::core::PI / 2;
     }
 
     if (disc_low) {
@@ -138,22 +141,22 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
         alpha_low = atan((radiusH / radiusV) * (Ylow / r_low));
     } else {
         r_low = 0;
-        alpha_low = -(core::PI / 2);
+        alpha_low = -(irr::core::PI / 2);
     }
 
-    const f64 AngleX = 2 * core::PI / polyCountX;
+    const f64 AngleX = 2 * irr::core::PI / polyCountX;
     f64 borderslice = polyCountY;
     if (disc_high)
         borderslice--;
     if (disc_low)
         borderslice--;
-    const f64 AngleY = (alpha_high - alpha_low) / borderslice;  //= core::PI / polyCountY;
+    const f64 AngleY = (alpha_high - alpha_low) / borderslice;  //= irr::core::PI / polyCountY;
 
     i = 0;
     i_disc = n_tot_verts_withoutdiscs;
     f64 axz;
 
-    f64 ay = (core::PI / 2) - alpha_high;  //=0   //=AngleY / 2;  // meant to work in 0..PI, building from top
+    f64 ay = (irr::core::PI / 2) - alpha_high;  //=0   //=AngleY / 2;  // meant to work in 0..PI, building from top
     if (!disc_high)
         ay += AngleY;
 
@@ -166,14 +169,14 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
         for (u32 xz = 0; xz < polyCountX; ++xz) {
             // calculate points position
 
-            core::vector3df pos((f32)(radiusH * cos(axz) * sinay), (f32)(radiusV * cosay),
+            irr::core::vector3df pos((f32)(radiusH * cos(axz) * sinay), (f32)(radiusV * cosay),
                                 (f32)(radiusH * sin(axz) * sinay));
             // for spheres the normal is the position
-            core::vector3df normal(pos);
+            irr::core::vector3df normal(pos);
             normal.normalize();
 
             // add the offset
-            core::vector3df Roffset((f32)(offset * cos(axz)), 0, (f32)(offset * sin(axz)));
+            irr::core::vector3df Roffset((f32)(offset * cos(axz)), 0, (f32)(offset * sin(axz)));
             pos += Roffset;
 
             // calculate texture coordinates via sphere mapping
@@ -181,20 +184,20 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
             f32 tu = 0.5f;
             if (y == 0) {
                 if (normal.Y != -1.0f && normal.Y != 1.0f)
-                    tu = (f32)(acos(core::clamp(normal.X / sinay, -1.0, 1.0)) * 0.5 * core::RECIPROCAL_PI64);
+                    tu = (f32)(acos(irr::core::clamp(normal.X / sinay, -1.0, 1.0)) * 0.5 * irr::core::RECIPROCAL_PI64);
                 if (normal.Z < 0.0f)
                     tu = 1 - tu;
             } else
                 tu = buffer->Vertices[i - polyCountXPitch].TCoords.X;
 
-            buffer->Vertices[i] = video::S3DVertex(pos.X, pos.Y, pos.Z, normal.X, normal.Y, normal.Z, clr, tu,
-                                                   (f32)(ay * core::RECIPROCAL_PI64));
+            buffer->Vertices[i] = irr::video::S3DVertex(pos.X, pos.Y, pos.Z, normal.X, normal.Y, normal.Z, clr, tu,
+                                                   (f32)(ay * irr::core::RECIPROCAL_PI64));
             ++i;
 
             axz += AngleX;
         }
         // This is the doubled vertex on the initial position
-        buffer->Vertices[i] = video::S3DVertex(buffer->Vertices[i - polyCountX]);
+        buffer->Vertices[i] = irr::video::S3DVertex(buffer->Vertices[i - polyCountX]);
         buffer->Vertices[i].TCoords.X = 1.0f;
         ++i;
         ay += AngleY;
@@ -202,22 +205,22 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
 
     // the vertex at the top of the sphere
     if (disc_high)
-        buffer->Vertices[i] = video::S3DVertex(0.0f, Yhigh, 0.0f, 0.0f, 1.0f, 0.0f, clr, 0.5f, 0.0f);
+        buffer->Vertices[i] = irr::video::S3DVertex(0.0f, Yhigh, 0.0f, 0.0f, 1.0f, 0.0f, clr, 0.5f, 0.0f);
     else
-        buffer->Vertices[i] = video::S3DVertex(0.0f, radiusV, 0.0f, 0.0f, 1.0f, 0.0f, clr, 0.5f, 0.0f);
+        buffer->Vertices[i] = irr::video::S3DVertex(0.0f, radiusV, 0.0f, 0.0f, 1.0f, 0.0f, clr, 0.5f, 0.0f);
 
     // the vertex at the bottom of the sphere
     ++i;
     if (disc_low)
-        buffer->Vertices[i] = video::S3DVertex(0.0f, Ylow, 0.0f, 0.0f, -1.0f, 0.0f, clr, 0.5f, 1.0f);
+        buffer->Vertices[i] = irr::video::S3DVertex(0.0f, Ylow, 0.0f, 0.0f, -1.0f, 0.0f, clr, 0.5f, 1.0f);
     else
-        buffer->Vertices[i] = video::S3DVertex(0.0f, -radiusV, 0.0f, 0.0f, -1.0f, 0.0f, clr, 0.5f, 1.0f);
+        buffer->Vertices[i] = irr::video::S3DVertex(0.0f, -radiusV, 0.0f, 0.0f, -1.0f, 0.0f, clr, 0.5f, 1.0f);
 
     i_disc = n_tot_verts_withoutdiscs;
     if (disc_high) {
         for (u32 xz = 0; xz < (polyCountX + 1); ++xz) {
             // duplicate points for top disc
-            buffer->Vertices[i_disc] = video::S3DVertex(buffer->Vertices[i_disc - n_tot_verts_withoutdiscs]);
+            buffer->Vertices[i_disc] = irr::video::S3DVertex(buffer->Vertices[i_disc - n_tot_verts_withoutdiscs]);
             buffer->Vertices[i_disc].Normal.set(0, 1, 0);
             i_disc++;
         }
@@ -227,7 +230,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
     if (disc_low) {
         for (u32 xz = 0; xz < (polyCountX + 1); ++xz) {
             // duplicate points for low disc
-            buffer->Vertices[i_disc] = video::S3DVertex(buffer->Vertices[ifrom + mshift]);
+            buffer->Vertices[i_disc] = irr::video::S3DVertex(buffer->Vertices[ifrom + mshift]);
             buffer->Vertices[i_disc].Normal.set(0, -1, 0);
             ifrom++;
             i_disc++;
@@ -260,7 +263,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
 // Same as CGeomentryCreator::createCubeMesh(), but with no shared normals
 // between faces.
 // -----------------------------------------------------------------------------
-IMesh* createCubeMesh(const core::vector3df& size) {
+IMesh* createCubeMesh(const irr::core::vector3df& size) {
     SMeshBuffer* buffer = new SMeshBuffer();
 
     // Create indices
@@ -273,45 +276,45 @@ IMesh* createCubeMesh(const core::vector3df& size) {
         buffer->Indices[i] = u[i];
 
     // Create vertices
-    video::SColor clr(255, 255, 255, 255);
+    irr::video::SColor clr(255, 255, 255, 255);
 
     buffer->Vertices.reallocate(24);
 
-    buffer->Vertices.push_back(video::S3DVertex(0, 0, 0, 0, 0, -1, clr, 0.75f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(0, 1, 0, 0, 0, -1, clr, 0.75f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 1, 0, 0, 0, -1, clr, 1.00f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 0, 0, 0, 0, -1, clr, 1.00f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 0, 0, 0, -1, clr, 0.75f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 0, 0, 0, -1, clr, 0.75f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 0, 0, 0, -1, clr, 1.00f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 0, 0, 0, -1, clr, 1.00f, 0.666f));
 
-    buffer->Vertices.push_back(video::S3DVertex(0, 0, 1, 0, 0, 1, clr, 0.25f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(0, 1, 1, 0, 0, 1, clr, 0.25f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 1, 1, 0, 0, 1, clr, 0.50f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 0, 1, 0, 0, 1, clr, 0.50f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 1, 0, 0, 1, clr, 0.25f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 1, 0, 0, 1, clr, 0.25f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 1, 0, 0, 1, clr, 0.50f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 1, 0, 0, 1, clr, 0.50f, 0.333f));
 
-    buffer->Vertices.push_back(video::S3DVertex(0, 0, 0, -1, 0, 0, clr, 0.00f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(0, 0, 1, -1, 0, 0, clr, 0.25f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(0, 1, 1, -1, 0, 0, clr, 0.25f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(0, 1, 0, -1, 0, 0, clr, 0.00f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 0, -1, 0, 0, clr, 0.00f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 1, -1, 0, 0, clr, 0.25f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 1, -1, 0, 0, clr, 0.25f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 0, -1, 0, 0, clr, 0.00f, 0.666f));
 
-    buffer->Vertices.push_back(video::S3DVertex(1, 0, 0, 1, 0, 0, clr, 0.50f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 0, 1, 1, 0, 0, clr, 0.75f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 1, 1, 1, 0, 0, clr, 0.75f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 1, 0, 1, 0, 0, clr, 0.50f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 0, 1, 0, 0, clr, 0.50f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 1, 1, 0, 0, clr, 0.75f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 1, 1, 0, 0, clr, 0.75f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 0, 1, 0, 0, clr, 0.50f, 0.333f));
 
-    buffer->Vertices.push_back(video::S3DVertex(0, 0, 0, 0, -1, 0, clr, 0.25f, 0.000f));
-    buffer->Vertices.push_back(video::S3DVertex(0, 0, 1, 0, -1, 0, clr, 0.25f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 0, 1, 0, -1, 0, clr, 0.50f, 0.333f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 0, 0, 0, -1, 0, clr, 0.50f, 0.000f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 0, 0, -1, 0, clr, 0.25f, 0.000f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 0, 1, 0, -1, 0, clr, 0.25f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 1, 0, -1, 0, clr, 0.50f, 0.333f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 0, 0, 0, -1, 0, clr, 0.50f, 0.000f));
 
-    buffer->Vertices.push_back(video::S3DVertex(0, 1, 0, 0, 1, 0, clr, 0.25f, 1.000f));
-    buffer->Vertices.push_back(video::S3DVertex(0, 1, 1, 0, 1, 0, clr, 0.25f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 1, 1, 0, 1, 0, clr, 0.50f, 0.666f));
-    buffer->Vertices.push_back(video::S3DVertex(1, 1, 0, 0, 1, 0, clr, 0.50f, 1.000f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 0, 0, 1, 0, clr, 0.25f, 1.000f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(0, 1, 1, 0, 1, 0, clr, 0.25f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 1, 0, 1, 0, clr, 0.50f, 0.666f));
+    buffer->Vertices.push_back(irr::video::S3DVertex(1, 1, 0, 0, 1, 0, clr, 0.50f, 1.000f));
 
     // Recalculate bounding box
     buffer->BoundingBox.reset(0, 0, 0);
 
     for (u32 i = 0; i < 24; ++i) {
-        buffer->Vertices[i].Pos -= core::vector3df(0.5f, 0.5f, 0.5f);
+        buffer->Vertices[i].Pos -= irr::core::vector3df(0.5f, 0.5f, 0.5f);
         buffer->Vertices[i].Pos *= size;
         buffer->BoundingBox.addInternalPoint(buffer->Vertices[i].Pos);
     }
@@ -330,19 +333,19 @@ IMesh* createCubeMesh(const core::vector3df& size) {
 // -----------------------------------------------------------------------------
 IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
     f32 oblique = 0;
-    video::SColor color(255, 255, 255, 255);
+    irr::video::SColor color(255, 255, 255, 255);
 
     SMeshBuffer* buffer = new SMeshBuffer();
 
-    const f32 recTesselation = core::reciprocal((f32)tesselation);
+    const f32 recTesselation = irr::core::reciprocal((f32)tesselation);
     const f32 recTesselationHalf = recTesselation * 0.5f;
-    const f32 angleStep = (core::PI * 2.f) * recTesselation;
+    const f32 angleStep = (irr::core::PI * 2.f) * recTesselation;
     const f32 angleStepHalf = angleStep * 0.5f;
 
     // HULL
 
     u32 i;
-    video::S3DVertex v;
+    irr::video::S3DVertex v;
     v.Color = color;
     f32 tcx = 0.f;
 
@@ -351,13 +354,13 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
         v.Pos.X = radius * cosf(angle);
         v.Pos.Y = -length;
         v.Pos.Z = radius * sinf(angle);
-        v.Normal = core::vector3df(cosf(angle), 0, sinf(angle));
+        v.Normal = irr::core::vector3df(cosf(angle), 0, sinf(angle));
         v.TCoords.X = tcx;
         v.TCoords.Y = 0.f;
         buffer->Vertices.push_back(v);
 
         v.Pos.Y = length;
-        v.Normal = core::vector3df(cosf(angle), 0, sinf(angle));
+        v.Normal = irr::core::vector3df(cosf(angle), 0, sinf(angle));
         v.TCoords.Y = 1.f;
         buffer->Vertices.push_back(v);
 
@@ -384,7 +387,7 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
         v.Pos.X = radius * cosf(angle);
         v.Pos.Y = -length;
         v.Pos.Z = radius * sinf(angle);
-        v.Normal = core::vector3df(0, -1, 0);
+        v.Normal = irr::core::vector3df(0, -1, 0);
         v.TCoords.X = 0.5f + 0.5f * cosf(angle);
         v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
         buffer->Vertices.push_back(v);
@@ -417,7 +420,7 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
         v.Pos.X = radius * cosf(angle);
         v.Pos.Y = length;
         v.Pos.Z = radius * sinf(angle);
-        v.Normal = core::vector3df(0, 1, 0);
+        v.Normal = irr::core::vector3df(0, 1, 0);
         v.TCoords.X = 0.5f + 0.5f * cosf(angle);
         v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
         buffer->Vertices.push_back(v);
@@ -467,8 +470,8 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
         // extract vertex data
         // because the vertices are stored as structs with no common base class,
         // we need to handle each type separately
-        if (mb->getVertexType() == video::EVT_STANDARD) {
-            video::S3DVertex* mb_vertices = (video::S3DVertex*)mb->getVertices();
+        if (mb->getVertexType() == irr::video::EVT_STANDARD) {
+            irr::video::S3DVertex* mb_vertices = (irr::video::S3DVertex*)mb->getVertices();
             mb_indices = mb->getIndices();
             numVertices = mb->getVertexCount();
             for (j = 0; j < mb->getIndexCount(); j += 3) {  // get index into vertex list
@@ -482,9 +485,9 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                 }
                 chTrimesh->addTriangle(vertices[0], vertices[1], vertices[2]);
             }
-        } else if (mb->getVertexType() == video::EVT_2TCOORDS) {
+        } else if (mb->getVertexType() == irr::video::EVT_2TCOORDS) {
             // same but for S3DVertex2TCoords data
-            video::S3DVertex2TCoords* mb_vertices = (video::S3DVertex2TCoords*)mb->getVertices();
+            irr::video::S3DVertex2TCoords* mb_vertices = (irr::video::S3DVertex2TCoords*)mb->getVertices();
             u16* mb_indices = mb->getIndices();
             s32 numVertices = mb->getVertexCount();
             for (j = 0; j < mb->getIndexCount(); j += 3) {  // index into irrlicht data
@@ -511,7 +514,7 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
 //
 // ***OBSOLETE***
 // -----------------------------------------------------------------------------
-void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh* chTrimesh, video::SColor clr) {
+void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh* chTrimesh, irr::video::SColor clr) {
     SMeshBuffer* buffer = new SMeshBuffer();
 
     // From index-less triangle soup
@@ -522,13 +525,13 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh
         chrono::ChVector<> normal = chTrimesh->getTriangle(i).GetNormal();
         chrono::ChVector<> pos;
         pos = chTrimesh->getTriangle(i).p1;
-        buffer->Vertices[i * 3 + 0] = video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
+        buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
                                                        (f32)normal.z, clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p2;
-        buffer->Vertices[i * 3 + 1] = video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
+        buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
                                                        (f32)normal.z, clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p3;
-        buffer->Vertices[i * 3 + 2] = video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
+        buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
                                                        (f32)normal.z, clr, 0, 0);
         buffer->Indices[i * 3 + 0] = i * 3 + 0;
         buffer->Indices[i * 3 + 1] = i * 3 + 1;
@@ -540,5 +543,5 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh
     mmesh->recalculateBoundingBox();
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace irrlicht
+}  // end namespace chrono

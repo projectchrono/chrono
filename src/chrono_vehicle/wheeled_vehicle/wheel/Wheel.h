@@ -27,13 +27,17 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_wheel
+/// @{
+
+/// Vehicle wheel constructed with data from file (JSON format).
 class CH_VEHICLE_API Wheel : public ChWheel {
   public:
     Wheel(const std::string& filename);
     Wheel(const rapidjson::Document& d);
     ~Wheel() {}
 
-    virtual void Initialize(ChSharedPtr<ChBody> spindle) override;
+    virtual void Initialize(std::shared_ptr<ChBody> spindle) override;
 
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
@@ -62,6 +66,8 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     std::string m_meshName;
     std::string m_meshFile;
 };
+
+/// @} vehicle_wheeled_wheel
 
 }  // end namespace vehicle
 }  // end namespace chrono

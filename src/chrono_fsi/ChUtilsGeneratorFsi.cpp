@@ -70,7 +70,7 @@ void CreateBceGlobalMarkersFromBceLocalPos(
 	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	const thrust::host_vector<Real3>& posRadBCE,
-	chrono::ChSharedPtr<chrono::ChBody> body,
+	std::shared_ptr<chrono::ChBody> body,
 	chrono::ChVector<> collisionShapeRelativePos,
 	chrono::ChQuaternion<> collisionShapeRelativeRot,
 	bool isSolid) {
@@ -163,7 +163,7 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
 	const thrust::host_vector<Real3>& posRadBCE,
-	chrono::ChSharedPtr<chrono::ChBody> body,
+	std::shared_ptr<chrono::ChBody> body,
 	chrono::ChVector<> collisionShapeRelativePos,
 	chrono::ChQuaternion<> collisionShapeRelativeRot) {
 
@@ -174,7 +174,7 @@ void CreateBceGlobalMarkersFromBceLocalPosBoundary(
 void AddSphereBce(
 	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
-	chrono::ChSharedPtr<chrono::ChBody> body, 
+	std::shared_ptr<chrono::ChBody> body,
 	chrono::ChVector<> relPos,
 	chrono::ChQuaternion<> relRot,
 	Real radius) {
@@ -198,7 +198,7 @@ void AddSphereBce(
 void AddCylinderBce(
 	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
-	chrono::ChSharedPtr<chrono::ChBody> body, 
+	std::shared_ptr<chrono::ChBody> body,
 	chrono::ChVector<> relPos,
 	chrono::ChQuaternion<> relRot,
 	Real radius, 
@@ -227,7 +227,7 @@ void AddCylinderBce(
 void AddBoxBce(
 	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
-	chrono::ChSharedPtr<chrono::ChBody> body, 
+	std::shared_ptr<chrono::ChBody> body,
 	chrono::ChVector<> relPos,
 	chrono::ChQuaternion<> relRot,
 	const chrono::ChVector<>& size) {
@@ -250,7 +250,7 @@ void AddBoxBce(
 void AddBCE_FromFile(
 	ChFsiDataManager* fsiData,
 	SimParams* paramsH,
-	chrono::ChSharedPtr<chrono::ChBody> body,
+	std::shared_ptr<chrono::ChBody> body,
 	std::string dataPath) {
 	//----------------------------
 	//  chassis
@@ -287,9 +287,9 @@ void AddBCE_FromFile(
 void CreateSphereFSI(
 	ChFsiDataManager* fsiData,
 	chrono::ChSystem& mphysicalSystem,
-	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+	std::vector<std::shared_ptr<chrono::ChBody> > * fsiBodeisPtr,
 	SimParams* paramsH,
-	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+	std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
 	chrono::ChVector<> pos,
 	Real radius) {
@@ -298,10 +298,8 @@ void CreateSphereFSI(
 //	Real radius = 0.3;
 
 
-	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-			chrono::ChBody>(
-			new chrono::ChBody(
-					new chrono::collision::ChCollisionModelParallel));
+	auto body = std::make_shared<
+			chrono::ChBody>(new chrono::collision::ChCollisionModelParallel);
 	body->SetBodyFixed(false);
 	body->SetCollide(true);
 	body->SetMaterialSurface(mat_prop);
@@ -314,7 +312,7 @@ void CreateSphereFSI(
 	body->SetInertiaXX(mass * gyration);
 	//
 	body->GetCollisionModel()->ClearModel();
-	chrono::utils::AddSphereGeometry(body.get_ptr(), radius);
+	chrono::utils::AddSphereGeometry(body.get(), radius);
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
 	fsiBodeisPtr->push_back(body);
@@ -327,18 +325,16 @@ void CreateSphereFSI(
 void CreateCylinderFSI(
 	ChFsiDataManager* fsiData,
 	chrono::ChSystem& mphysicalSystem,
-	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+	std::vector<std::shared_ptr<chrono::ChBody> > * fsiBodeisPtr,
 	SimParams* paramsH,
-	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+	std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
 	chrono::ChVector<> pos,
 	chrono::ChQuaternion<> rot,
 	Real radius,
 	Real length) {
-	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-			chrono::ChBody>(
-			new chrono::ChBody(
-					new chrono::collision::ChCollisionModelParallel));
+	auto body = std::make_shared<
+				chrono::ChBody>(new chrono::collision::ChCollisionModelParallel);
 	body->SetBodyFixed(false);
 	body->SetCollide(true);
 	body->SetMaterialSurface(mat_prop);
@@ -352,7 +348,7 @@ void CreateCylinderFSI(
 	body->SetInertiaXX(mass * gyration);
 	//
 	body->GetCollisionModel()->ClearModel();
-	chrono::utils::AddCylinderGeometry(body.get_ptr(), radius, 0.5 * length);
+	chrono::utils::AddCylinderGeometry(body.get(), radius, 0.5 * length);
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
 
@@ -364,18 +360,16 @@ void CreateCylinderFSI(
 void CreateBoxFSI(
 	ChFsiDataManager* fsiData,
 	chrono::ChSystem& mphysicalSystem,
-	std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+	std::vector<std::shared_ptr<chrono::ChBody> > * fsiBodeisPtr,
 	SimParams* paramsH,
-	chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+	std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
 	Real density,
 	chrono::ChVector<> pos,
 	chrono::ChQuaternion<> rot,
 	const chrono::ChVector<>& hsize) {
 
-	chrono::ChSharedPtr<chrono::ChBody> body = chrono::ChSharedPtr<
-			chrono::ChBody>(
-			new chrono::ChBody(
-					new chrono::collision::ChCollisionModelParallel));
+	auto body = std::make_shared<
+				chrono::ChBody>(new chrono::collision::ChCollisionModelParallel);
 	body->SetBodyFixed(false);
 	body->SetCollide(true);
 	body->SetMaterialSurface(mat_prop);
@@ -388,7 +382,7 @@ void CreateBoxFSI(
 	body->SetInertiaXX(mass * gyration);
 	//
 	body->GetCollisionModel()->ClearModel();
-	chrono::utils::AddBoxGeometry(body.get_ptr(), hsize);
+	chrono::utils::AddBoxGeometry(body.get(), hsize);
 	body->GetCollisionModel()->BuildModel();
 	mphysicalSystem.AddBody(body);
 

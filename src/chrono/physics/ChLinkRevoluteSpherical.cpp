@@ -28,11 +28,8 @@ ChLinkRevoluteSpherical::ChLinkRevoluteSpherical()
       m_cur_dot(0) {
     m_C = new ChMatrixDynamic<>(2, 1);
 
-    m_cache_speed[0] = 0;
-    m_cache_speed[1] = 0;
-
-    m_cache_pos[0] = 0;
-    m_cache_pos[1] = 0;
+    m_multipliers[0] = 0;
+    m_multipliers[1] = 0;
 }
 
 ChLinkRevoluteSpherical::~ChLinkRevoluteSpherical() {
@@ -59,11 +56,8 @@ void ChLinkRevoluteSpherical::Copy(ChLinkRevoluteSpherical* source) {
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
 
-    m_cache_speed[0] = source->m_cache_speed[0];
-    m_cache_speed[1] = source->m_cache_speed[1];
-
-    m_cache_pos[0] = source->m_cache_pos[0];
-    m_cache_pos[1] = source->m_cache_pos[1];
+    m_multipliers[0] = source->m_multipliers[0];
+    m_multipliers[1] = source->m_multipliers[1];
 }
 
 ChLink* ChLinkRevoluteSpherical::new_Duplicate() {
@@ -75,13 +69,13 @@ ChLink* ChLinkRevoluteSpherical::new_Duplicate() {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-                                         ChSharedPtr<ChBodyFrame> body2,  // second frame (spherical side)
+void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
+                                         std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
                                          const ChCoordsys<>& csys,        // joint coordinate system (in absolute frame)
                                          double distance)                 // imposed distance
 {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
@@ -98,8 +92,8 @@ void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // fir
     m_cur_dot = 0;
 }
 
-void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // first frame (revolute side)
-                                         ChSharedPtr<ChBodyFrame> body2,  // second frame (spherical side)
+void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
+                                         std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
                                          bool local,                      // true if data given in body local frames
                                          const ChVector<>& pos1,          // point on first frame
                                          const ChVector<>& dir1,          // direction of revolute on first frame
@@ -107,8 +101,8 @@ void ChLinkRevoluteSpherical::Initialize(ChSharedPtr<ChBodyFrame> body1,  // fir
                                          bool auto_distance,  // true if imposed distance equal to |pos1 - po2|
                                          double distance)     // imposed distance (used only if auto_distance = false)
 {
-    Body1 = body1.get_ptr();
-    Body2 = body2.get_ptr();
+    Body1 = body1.get();
+    Body2 = body2.get();
 
     m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
     m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
@@ -247,21 +241,21 @@ void ChLinkRevoluteSpherical::IntStateGatherReactions(const unsigned int off_L, 
     if (!this->IsActive())
         return;
 
-    L(off_L) = m_cache_speed[0];
-    L(off_L + 1) = m_cache_speed[1];
+    L(off_L + 0) = m_multipliers[0];
+    L(off_L + 1) = m_multipliers[1];
 }
 
 void ChLinkRevoluteSpherical::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     if (!this->IsActive())
         return;
 
-    m_cache_speed[0] = L(off_L);
-    m_cache_speed[1] = L(off_L + 1);
+    m_multipliers[0] = L(off_L + 0);
+    m_multipliers[1] = L(off_L + 1);
 
     // Also compute 'intuitive' reactions:
 
-    double lam_dist = m_cache_speed[0];  // ||pos2_abs - pos1_abs|| - dist = 0
-    double lam_dot = m_cache_speed[1];   // dot(dir1_abs, pos2_abs - pos1_abs) = 0
+    double lam_dist = m_multipliers[0];  // ||pos2_abs - pos1_abs|| - dist = 0
+    double lam_dot = m_multipliers[1];   // dot(dir1_abs, pos2_abs - pos1_abs) = 0
 
     // Calculate the reaction torques and forces on Body 2 in the joint frame
     // (Note: origin of the joint frame is at the center of the revolute joint
@@ -435,33 +429,6 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2() {
     //  axis defined for the joint)
     //  react_torque = (0,0,0)
     return VNULL;
-}
-
-// -----------------------------------------------------------------------------
-// Load and store multipliers (caching to allow warm starting)
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::ConstraintsLiLoadSuggestedSpeedSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_dist.Set_l_i(m_cache_speed[0]);
-    m_cnstr_dot.Set_l_i(m_cache_speed[1]);
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiLoadSuggestedPositionSolution() {
-    // Set multipliers to those cached at previous step.
-    m_cnstr_dist.Set_l_i(m_cache_pos[0]);
-    m_cnstr_dot.Set_l_i(m_cache_pos[1]);
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiFetchSuggestedSpeedSolution() {
-    // Cache current multipliers.
-    m_cache_speed[0] = m_cnstr_dist.Get_l_i();
-    m_cache_speed[1] = m_cnstr_dot.Get_l_i();
-}
-
-void ChLinkRevoluteSpherical::ConstraintsLiFetchSuggestedPositionSolution() {
-    // Cache current multipliers.
-    m_cache_pos[0] = m_cnstr_dist.Get_l_i();
-    m_cache_pos[1] = m_cnstr_dot.Get_l_i();
 }
 
 

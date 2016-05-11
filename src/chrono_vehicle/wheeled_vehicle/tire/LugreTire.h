@@ -27,18 +27,23 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_tire
+/// @{
+
+/// LuGre tire constructed with data from file (JSON format).
 class CH_VEHICLE_API LugreTire : public ChLugreTire {
   public:
     LugreTire(const std::string& filename);
     LugreTire(const rapidjson::Document& d);
     ~LugreTire();
 
-    virtual int getNumDiscs() const override { return m_numDiscs; }
-    virtual double getRadius() const override { return m_radius; }
-    virtual const double* getDiscLocations() const override { return m_discLocs; }
+    virtual double GetRadius() const override { return m_radius; }
 
-    virtual double getNormalStiffness() const override { return m_normalStiffness; }
-    virtual double getNormalDamping() const override { return m_normalDamping; }
+    virtual int GetNumDiscs() const override { return m_numDiscs; }
+    virtual const double* GetDiscLocations() const override { return m_discLocs; }
+
+    virtual double GetNormalStiffness() const override { return m_normalStiffness; }
+    virtual double GetNormalDamping() const override { return m_normalDamping; }
 
     virtual void SetLugreParams() override {}
 
@@ -52,6 +57,8 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     double m_normalStiffness;
     double m_normalDamping;
 };
+
+/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

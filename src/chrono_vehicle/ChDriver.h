@@ -22,22 +22,29 @@
 
 #include <string>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_driver Driver models
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_driver
+/// @{
+
 /// Base class for a vehicle driver system.
 /// A driver system must be able to report the current values of the inputs
 /// (throttle, steering, braking). A concrete driver class must set the member
 /// variables m_throttle, m_steering, and m_braking.
-///
-class CH_VEHICLE_API ChDriver : public ChShared {
+class CH_VEHICLE_API ChDriver {
   public:
     ChDriver(ChVehicle& vehicle  ///< associated vehicle
              );
@@ -53,8 +60,11 @@ class CH_VEHICLE_API ChDriver : public ChShared {
     /// Get the driver braking input (in the range [0,1])
     double GetBraking() const { return m_braking; }
 
+    /// Initialize this driver system.
+    virtual void Initialize() {}
+
     /// Update the state of this driver system at the current time.
-    virtual void Update(double time) {}
+    virtual void Synchronize(double time) {}
 
     /// Advance the state of this driver system by the specified time step.
     virtual void Advance(double step) {}
@@ -83,6 +93,8 @@ class CH_VEHICLE_API ChDriver : public ChShared {
   private:
     std::string m_log_filename;  ///< name of output file for recording driver inputs
 };
+
+/// @} vehicle_driver
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -39,8 +39,6 @@ ChShaftsClutch::ChShaftsClutch() {
     this->modulation = 1.0;
 
     this->torque_react = 0;
-    this->cache_li_speed = 0.f;
-    this->cache_li_pos = 0.f;
 
     SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
@@ -60,17 +58,15 @@ void ChShaftsClutch::Copy(ChShaftsClutch* source) {
     modulation = source->modulation;
 
     torque_react = source->torque_react;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
 }
 
-bool ChShaftsClutch::Initialize(ChSharedPtr<ChShaft> mshaft1, ChSharedPtr<ChShaft> mshaft2) {
+bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // parent class initialization
     if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
         return false;
 
-    ChShaft* mm1 = mshaft1.get_ptr();
-    ChShaft* mm2 = mshaft2.get_ptr();
+    ChShaft* mm1 = mshaft1.get();
+    ChShaft* mm2 = mshaft2.get();
 
     this->constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
 
@@ -125,6 +121,17 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
 
     Qc(off_L) += cnstr_violation;
 }
+
+
+void ChShaftsClutch::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // Might not be the best place to put this, but it works.
+    // Update the limits on lagrangian multipliers:
+    double dt = c; // note: not always c=dt, this is true for euler implicit linearized and similar DVI timesteppers, might be not the case in future
+    // double dt = this->system->GetStep(); // this could be another option.. but with variable-dt timesteppers it should go deeper..
+    this->constraint.SetBoxedMinMax(dt * this->minT * this->modulation, 
+                                    dt * this->maxT * this->modulation);
+}
+
 
 void ChShaftsClutch::IntToLCP(const unsigned int off_v,  ///< offset in v, R
                               const ChStateDelta& v,
@@ -192,27 +199,7 @@ void ChShaftsClutch::ConstraintsFetch_react(double factor) {
     this->torque_react = constraint.Get_l_i() * factor;
 }
 
-// Following functions are for exploiting the contact persistence
-
-void ChShaftsClutch::ConstraintsLiLoadSuggestedSpeedSolution() {
-    constraint.Set_l_i(this->cache_li_speed);
-}
-
-void ChShaftsClutch::ConstraintsLiLoadSuggestedPositionSolution() {
-    constraint.Set_l_i(this->cache_li_pos);
-}
-
-void ChShaftsClutch::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)constraint.Get_l_i();
-}
-
-void ChShaftsClutch::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)constraint.Get_l_i();
-}
-
 //////// FILE I/O
-
-
 
 void ChShaftsClutch::ArchiveOUT(ChArchiveOut& marchive)
 {

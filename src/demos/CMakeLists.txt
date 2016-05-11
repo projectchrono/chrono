@@ -88,7 +88,7 @@ endif()
 if(ENABLE_MODULE_PYTHON)
 	option(BUILD_DEMOS_PYTHON "Build demo programs for Python module" TRUE)
 	mark_as_advanced(FORCE BUILD_DEMOS_PYTHON)
-	if(BUILD_DEMOS_PYHON)
+	if(BUILD_DEMOS_PYTHON)
 		add_subdirectory(pyparser)
 	endif()
 endif()
@@ -134,8 +134,11 @@ if(ENABLE_MODULE_VEHICLE)
 endif()
 
 if(ENABLE_MODULE_FSI)
-  add_subdirectory(fsi)
+ 	option(BUILD_DEMOS_FSI "Build demo programs for FSI module" TRUE)
+ 	mark_as_advanced(FORCE BUILD_DEMOS_FSI)
+	if(BUILD_DEMOS_FSI)
+  		add_subdirectory(fsi)
+  	endif()
 endif()
 
-# TODO: this will be soon removed...
-add_subdirectory(trackVehicle)
+

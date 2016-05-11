@@ -51,9 +51,6 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     // used as an interface to the LCP solver.
     ChLcpConstraintThreeGeneric constraint;
 
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
     ChShaft* shaft1;
     ChShaft* shaft2;
     ChBodyFrame* body;
@@ -118,12 +115,7 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    // virtual void ConstraintsFbLoadForces(double factor=1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions
@@ -134,12 +126,11 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// Each shaft and body must belong to the same ChSystem.
     /// Shafts directions are considered in local body coordinates.
     virtual int Initialize(
-        ChSharedPtr<ChShaft> mshaft1,  ///< first (input) shaft to join
-        ChSharedPtr<ChShaft> mshaft2,  ///< second  (output) shaft to join
-        ChSharedPtr<ChBodyFrame>
-            mbody,          ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
-        ChVector<>& mdir1,  ///< the direction of the first shaft on 3D body defining the gearbox truss
-        ChVector<>& mdir2   ///< the direction of the first shaft on 3D body defining the gearbox truss
+        std::shared_ptr<ChShaft> mshaft1,    ///< first (input) shaft to join
+        std::shared_ptr<ChShaft> mshaft2,    ///< second  (output) shaft to join
+        std::shared_ptr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
+        ChVector<>& mdir1,                   ///< the direction of the first shaft on 3D body defining the gearbox truss
+        ChVector<>& mdir2                    ///< the direction of the first shaft on 3D body defining the gearbox truss
         );
 
     /// Get the first shaft (carrier wheel)

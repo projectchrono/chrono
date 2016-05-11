@@ -101,8 +101,8 @@ void ChContactContainerDEM::BeginAddContact() {
     lastcontact_333_333 = contactlist_333_333.begin();
     n_added_333_333 = 0;
 
-    //lastcontact_roll = contactlist_roll.begin();
-    //n_added_roll = 0;
+    // lastcontact_roll = contactlist_roll.begin();
+    // n_added_roll = 0;
 }
 
 void ChContactContainerDEM::EndAddContact() {
@@ -132,7 +132,7 @@ void ChContactContainerDEM::EndAddContact() {
         lastcontact_333_333 = contactlist_333_333.erase(lastcontact_333_333);
     }
 
-    //while (lastcontact_roll != contactlist_roll.end()) {
+    // while (lastcontact_roll != contactlist_roll.end()) {
     //    delete (*lastcontact_roll);
     //    lastcontact_roll = contactlist_roll.erase(lastcontact_roll);
     //}
@@ -143,20 +143,20 @@ void ChContactContainerDEM::EndAddContact() {
 template <class Tcont, class Titer, class Ta, class Tb>
 void _OptimalContactInsert(
     std::list<Tcont*>& contactlist, 
-    Titer& lastcontact, 
-    int& n_added,
-    ChContactContainerBase* mcontainer,
-    Ta* objA,  ///< collidable object A
-    Tb* objB,  ///< collidable object B
+                           Titer& lastcontact,
+                           int& n_added,
+                           ChContactContainerBase* mcontainer,
+                           Ta* objA,  ///< collidable object A
+                           Tb* objB,  ///< collidable object B
     const collision::ChCollisionInfo& cinfo
     )
 {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
         (*lastcontact)->Reset(objA, objB, cinfo);
-            
+
         lastcontact++;
- 
+
     } else {
         // add new contact
         Tcont* mc = new Tcont(mcontainer, objA, objB, cinfo);
@@ -176,17 +176,17 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
     if (mcontact.distance >= 0)
         return;
 
-    // See if both collision models use DEM i.e. 'nonsmooth dynamics' material 
+    // See if both collision models use DEM i.e. 'nonsmooth dynamics' material
     // of type ChMaterialSurface, trying to downcast from ChMaterialSurfaceBase.
     // If not DEM vs DEM, just bailout (ex it could be that this was a DVI vs DVI contact)
 
-    ChSharedPtr<ChMaterialSurfaceDEM> mmatA( mcontact.modelA->GetContactable()->GetMaterialSurfaceBase().DynamicCastTo<ChMaterialSurfaceDEM>() );
-    ChSharedPtr<ChMaterialSurfaceDEM> mmatB( mcontact.modelB->GetContactable()->GetMaterialSurfaceBase().DynamicCastTo<ChMaterialSurfaceDEM>() );
+    auto mmatA = std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
+    auto mmatB = std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
 
-    if (mmatA.IsNull() || mmatB.IsNull())
+    if (!mmatA || !mmatB)
         return;
 
-    // Bail out if any of the two contactable objects is 
+    // Bail out if any of the two contactable objects is
     // not contact-active:
 
     bool inactiveA = !mcontact.modelA->GetContactable()->IsContactActive();
@@ -197,12 +197,12 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
 
     // CREATE THE CONTACTS
     //
-    // Switch among the various cases of contacts: i.e. between a 6-dof variable and another 6-dof variable, 
+    // Switch among the various cases of contacts: i.e. between a 6-dof variable and another 6-dof variable,
     // or 6 vs 3, etc.
-    // These cases are made distinct to exploit the optimization coming from templates and static data sizes 
+    // These cases are made distinct to exploit the optimization coming from templates and static data sizes
     // in contact types.
 
-    if (    ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelA->GetContactable())) {
+    if (ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelA->GetContactable())) {
         // 6_6
         if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
             _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, mmboA, mmboB, mcontact);
@@ -212,16 +212,18 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
             _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboA, mmboB, mcontact);
         }
         // 6_333 -> 333_6
-        if (ChContactable_3vars<3,3,3>* mmboB = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelB->GetContactable())) {
-            collision::ChCollisionInfo swapped_contact(mcontact,true);
-            _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboB, mmboA, swapped_contact);
+        if (ChContactable_3vars<3, 3, 3>* mmboB =
+                dynamic_cast<ChContactable_3vars<3, 3, 3>*>(mcontact.modelB->GetContactable())) {
+            collision::ChCollisionInfo swapped_contact(mcontact, true);
+            _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboB, mmboA,
+                                  swapped_contact);
         }
     }
 
-    if (    ChContactable_1vars<3>* mmboA = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelA->GetContactable())) {
+    if (ChContactable_1vars<3>* mmboA = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelA->GetContactable())) {
         // 3_6 -> 6_3
         if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
-            collision::ChCollisionInfo swapped_contact(mcontact,true);
+            collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboB, mmboA, swapped_contact);
         }
         // 3_3
@@ -229,13 +231,16 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
             _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, mmboA, mmboB, mcontact);
         }
         // 3_333 -> 333_3
-        if (ChContactable_3vars<3,3,3>* mmboB = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelB->GetContactable())) {
-            collision::ChCollisionInfo swapped_contact(mcontact,true);
-            _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboB, mmboA, swapped_contact);
+        if (ChContactable_3vars<3, 3, 3>* mmboB =
+                dynamic_cast<ChContactable_3vars<3, 3, 3>*>(mcontact.modelB->GetContactable())) {
+            collision::ChCollisionInfo swapped_contact(mcontact, true);
+            _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboB, mmboA,
+                                  swapped_contact);
         }
     }
 
-    if (    ChContactable_3vars<3,3,3>* mmboA = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelA->GetContactable())) {
+    if (ChContactable_3vars<3, 3, 3>* mmboA =
+            dynamic_cast<ChContactable_3vars<3, 3, 3>*>(mcontact.modelA->GetContactable())) {
         // 333_6
         if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
             _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboA, mmboB, mcontact);
@@ -244,55 +249,53 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
         if (ChContactable_1vars<3>* mmboB = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelB->GetContactable())) {
             _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboA, mmboB, mcontact);
         }
-        // 3_333 -> 333_3
-        if (ChContactable_3vars<3,3,3>* mmboB = dynamic_cast<ChContactable_3vars<3,3,3>*>(mcontact.modelB->GetContactable())) {
-            _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, mmboA, mmboB, mcontact);
+        // 333_3
+        if (ChContactable_3vars<3, 3, 3>* mmboB =
+                dynamic_cast<ChContactable_3vars<3, 3, 3>*>(mcontact.modelB->GetContactable())) {
+            _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, mmboA, mmboB,
+                                  mcontact);
         }
     }
 
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
+void ChContactContainerDEM::ComputeContactForces() {
+    contact_forces.clear();
+    SumAllContactForces(contactlist_6_6, contact_forces);
+    SumAllContactForces(contactlist_6_3, contact_forces);
+    SumAllContactForces(contactlist_333_6, contact_forces);
+}
 
 template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback2* mcallback) {
+void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        bool proceed =
-            mcallback->ReportContactCallback2((*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(),
-                                             *(*itercontact)->GetContactPlane(), (*itercontact)->GetContactDistance(),
-                                             (*itercontact)->GetContactForceLocal(),
-                                             VNULL,  // no react torques
-                                             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+        bool proceed = mcallback->ReportContactCallback(
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
+            VNULL,  // no react torques
+            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
         if (!proceed)
             break;
         ++itercontact;
     }
 }
 
-void ChContactContainerDEM::ReportAllContacts2(ChReportContactCallback2* mcallback) {
-    
+void ChContactContainerDEM::ReportAllContacts(ChReportContactCallback* mcallback) {
     _ReportAllContacts(contactlist_6_6, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_3_3, mcallback);
     _ReportAllContacts(contactlist_333_6, mcallback);
     _ReportAllContacts(contactlist_333_3, mcallback);
     _ReportAllContacts(contactlist_333_333, mcallback);
-    //***TODO*** rolling cont. 
+    //***TODO*** rolling cont.
 }
 
 ////////// STATE INTERFACE ////
 
-
-
-////////// LCP INTERFACES ////
-
-
 template <class Tcont>
-void _IntLoadResidual_F(std::list<Tcont*>& contactlist, 
-                                             ChVectorDynamic<>& R,
-                                             const double c
-                                             ) {
+void _IntLoadResidual_F(std::list<Tcont*>& contactlist, ChVectorDynamic<>& R, const double c) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntLoadResidual_F(R, c);
@@ -300,10 +303,7 @@ void _IntLoadResidual_F(std::list<Tcont*>& contactlist,
     }
 }
 
-void ChContactContainerDEM::IntLoadResidual_F(const unsigned int off, 
-                                                 ChVectorDynamic<>& R, 
-                                                 const double c
-                                             ) {
+void ChContactContainerDEM::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     _IntLoadResidual_F(contactlist_6_6, R, c);
     _IntLoadResidual_F(contactlist_6_3, R, c);
     _IntLoadResidual_F(contactlist_3_3, R, c);
@@ -312,11 +312,45 @@ void ChContactContainerDEM::IntLoadResidual_F(const unsigned int off,
     _IntLoadResidual_F(contactlist_333_333, R, c);
 }
 
-void ChContactContainerDEM::ConstraintsFbLoadForces(double factor)
-                                              {
-    GetLog() << "ChContactContainerDEM::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
+template <class Tcont>
+void _KRMmatricesLoad(std::list<Tcont*> contactlist, double Kfactor, double Rfactor) {
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    while (itercontact != contactlist.end()) {
+        (*itercontact)->ContKRMmatricesLoad(Kfactor, Rfactor);
+        ++itercontact;
+    }
 }
 
+void ChContactContainerDEM::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+    _KRMmatricesLoad(contactlist_6_6, Kfactor, Rfactor);
+    _KRMmatricesLoad(contactlist_6_3, Kfactor, Rfactor);
+    _KRMmatricesLoad(contactlist_3_3, Kfactor, Rfactor);
+    _KRMmatricesLoad(contactlist_333_6, Kfactor, Rfactor);
+    _KRMmatricesLoad(contactlist_333_3, Kfactor, Rfactor);
+    _KRMmatricesLoad(contactlist_333_333, Kfactor, Rfactor);
+}
 
+template <class Tcont>
+void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChLcpSystemDescriptor& mdescriptor) {
+    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
+    while (itercontact != contactlist.end()) {
+        (*itercontact)->ContInjectKRMmatrices(mdescriptor);
+        ++itercontact;
+    }
+}
+
+void ChContactContainerDEM::InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+    _InjectKRMmatrices(contactlist_6_6, mdescriptor);
+    _InjectKRMmatrices(contactlist_6_3, mdescriptor);
+    _InjectKRMmatrices(contactlist_3_3, mdescriptor);
+    _InjectKRMmatrices(contactlist_333_6, mdescriptor);
+    _InjectKRMmatrices(contactlist_333_3, mdescriptor);
+    _InjectKRMmatrices(contactlist_333_333, mdescriptor);
+}
+
+// OBSOLETE
+void ChContactContainerDEM::ConstraintsFbLoadForces(double factor) {
+    GetLog() << "ChContactContainerDEM::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
+}
 
 }  // END_OF_NAMESPACE____

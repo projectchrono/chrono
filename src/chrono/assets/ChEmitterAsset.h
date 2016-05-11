@@ -26,7 +26,7 @@ namespace chrono {
 
 class ChApi ChEmitterAsset : public ChAsset {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChEmitterAsset, ChShared);
+    CH_RTTI(ChEmitterAsset, ChAsset);
 
   protected:
     //

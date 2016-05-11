@@ -87,41 +87,87 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     // INTERFACE TO ChContactable
     //
 
-        /// Access variables
-    virtual ChLcpVariables* GetVariables1() {return &Variables(); }
+    /// Access variables.
+    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
 
-        /// Tell if the object must be considered in collision detection
-    virtual bool IsContactActive() { return true; }
+    /// Tell if the object must be considered in collision detection.
+    virtual bool IsContactActive() override { return true; }
 
-        /// Get the absolute speed of point abs_point if attached to the 
-        /// surface. Easy in this case because there are no roations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) {return this->pos_dt;};
+    /// Get the number of DOFs affected by this object (position part).
+    virtual int ContactableGet_ndof_x() override { return 3; }
 
-        /// ChCollisionModel might call this to get the position of the 
-        /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->pos, QUNIT);}
+    /// Get the number of DOFs affected by this object (speed part).
+    virtual int ContactableGet_ndof_w() override { return 3; }
 
-        /// Apply the force, expressed in absolute reference, applied in pos, to the 
-        /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                         ChVectorDynamic<>& R);
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteVector(this->pos, 0, 0); }
 
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point, ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second);
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.PasteVector(this->pos_dt, 0, 0); }
 
-    virtual double GetContactableMass()  {return this->GetMass();}
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        NodeIntStateIncrement(0, x_new, x, 0, dw);
+    }
 
-        /// Return the pointer to the surface material. 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase();
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+        return state_x.ClipVector(0, 0);
+    }
 
-        /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem();
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) override {
+        return state_w.ClipVector(0, 0);
+    }
 
+    /// Get the absolute speed of point abs_point if attached to the surface.
+    /// Easy in this case because there are no roations..
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->pos_dt; }
+
+    /// Return the coordinate system for the associated collision model.
+    /// ChCollisionModel might call this to get the position of the
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->pos, QUNIT); }
+
+    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) override;
+
+    /// Apply the given force at the given point and load the generalized force array.
+    /// The force and its application point are specified in the gloabl frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactForceLoadQ(const ChVector<>& F,
+                                   const ChVector<>& point,
+                                   const ChState& state_x,
+                                   ChVectorDynamic<>& Q,
+                                   int offset) override {
+        Q.PasteVector(F, offset, 0);
+    }
+
+    /// Compute the jacobian(s) part(s) for this contactable item. For example,
+    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               type_constraint_tuple& jacobian_tuple_N,
+                                               type_constraint_tuple& jacobian_tuple_U,
+                                               type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) override;
+
+    virtual double GetContactableMass() override { return this->GetMass(); }
+
+    /// Return the pointer to the surface material.
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+
+    /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // SERIALIZATION
 
@@ -206,12 +252,12 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     //
 
     // The nodes:
-    std::vector<ChSharedPtr<ChNodeSPH> > nodes;
+    std::vector<std::shared_ptr<ChNodeSPH> > nodes;
 
     ChContinuumSPH material;
 
     // data for surface contact and impact (can be shared):
-    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+    std::shared_ptr<ChMaterialSurfaceBase> matsurface;
 
     bool do_collide;
 
@@ -255,7 +301,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     unsigned int GetNnodes() { return (unsigned int)nodes.size(); }
 
     /// Access the N-th node
-    ChSharedPtr<ChNodeBase> GetNode(unsigned int n) {
+    std::shared_ptr<ChNodeBase> GetNode(unsigned int n) {
         assert(n < nodes.size());
         return nodes[n];
     }
@@ -269,10 +315,10 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void AddNode(ChVector<double> initial_state);
 
     /// Set the material surface for 'boundary contact'
-    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact' 
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS
@@ -393,8 +439,6 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     virtual void ArchiveOUT(ChArchiveOut& marchive);
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChMatterSPH> ChSharedMatterSPHPtr;
 
 }  // END_OF_NAMESPACE____
 

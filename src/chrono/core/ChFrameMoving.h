@@ -44,6 +44,7 @@ namespace chrono {
 /// amount of vectors must be transformed by the same
 /// coordinate frame.
 ///
+/// Further info at the @ref coordinate_transformations manual page.
 
 template <class Real = double>
 class ChFrameMoving : public ChFrame<Real> {

@@ -22,20 +22,27 @@
 #include <string>
 #include <vector>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_antirollbar Anti-roll bar subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_antirollbar
+/// @{
+
 /// Base class for an anti-roll bar subsystem.
-///
-class CH_VEHICLE_API ChAntirollBar : public ChShared {
+class CH_VEHICLE_API ChAntirollBar {
   public:
     ChAntirollBar(const std::string& name  ///< [in] name of the subsystem
                   );
@@ -56,11 +63,14 @@ class CH_VEHICLE_API ChAntirollBar : public ChShared {
     /// Finally, susp_body_left and susp_body_right are handles to the suspension
     /// bodies to which the anti-roll bar's droplinks are to be attached.
     virtual void Initialize(
-        ChSharedPtr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
-        const ChVector<>& location,          ///< [in] location relative to the chassis frame
-        ChSharedPtr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
-        ChSharedPtr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
+        std::shared_ptr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
+        const ChVector<>& location,              ///< [in] location relative to the chassis frame
+        std::shared_ptr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
+        std::shared_ptr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
         ) = 0;
+
+    /// Get the total mass of the anti-roll bar subsystem.
+    virtual double GetMass() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
@@ -70,7 +80,9 @@ class CH_VEHICLE_API ChAntirollBar : public ChShared {
 };
 
 /// Vector of handles to antirollbar subsystems.
-typedef std::vector<ChSharedPtr<ChAntirollBar> > ChAntirollbarList;
+typedef std::vector<std::shared_ptr<ChAntirollBar> > ChAntirollbarList;
+
+/// @} vehicle_wheeled_antirollbar
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -11,6 +11,8 @@
 
 namespace chrono{
 	
+/// @addtogroup mkl_module
+/// @{
 
 	/* ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
 	* - The more useful constructor specifies rows, columns and nonzeros
@@ -47,7 +49,7 @@ namespace chrono{
 	* Reset() function initializes arrays to their default values. Always succesfull.
 	* Resize() always preserve data in the arrays. The return value tells the user if the resizing has been done.
 	* 
-	* Reset() and Resize() expands the arrays dimension (increase occupancy)
+	* Reset() and Resize() eventually expands the arrays dimension (increase occupancy)
 	* but they DO NOT REDUCE the occupancy. Eventually it has to be done manually with Trim().
 	*/
 	
@@ -102,7 +104,7 @@ namespace chrono{
 
 		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
 		virtual double GetElement(int row, int col) override;
-		double& Element(int row, int col);
+		double& Element(int row, int col) override;
 		double& operator()(int row, int col) { return Element(row, col); }
 		double& operator()(int index) { return Element(index / GetColumns(), index % GetColumns()); }
 
@@ -132,17 +134,19 @@ namespace chrono{
 		symmetry_type GetSymmetry() const { return symmetry; }
 
 		// Testing functions
-		bool CheckArraysAlignment(int alignment = 0);
-		void GetMemoryInfo();
-		int VerifyMatrix();
+		bool CheckArraysAlignment(int alignment = 0) const;
+		void GetMemoryInfo() const;
+		int VerifyMatrix() const;
+		int VerifyMatrixByMKL() const;
 
 		// Import/Export functions
 		void ImportFromDatFile(std::string filepath);
-		void ExportToDatFile(std::string filepath, int precision = 12);
+		void ExportToDatFile(std::string filepath, int precision = 12) const;
 
 
 	};
 
+/// @} mkl_module
 }; // END namespace chrono
 
 #endif

@@ -35,7 +35,7 @@ namespace utils {
 		ChFsiDataManager* fsiData,
 		SimParams* paramsH,
 		const thrust::host_vector<Real3>& posRadBCE,
-		chrono::ChSharedPtr<chrono::ChBody> body,
+		std::shared_ptr<chrono::ChBody> body,
 		chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
 		chrono::ChQuaternion<> collisionShapeRelativeRot =  chrono::QUNIT,
 		bool isSolid = true);
@@ -44,14 +44,14 @@ namespace utils {
 		ChFsiDataManager* fsiData,
 		SimParams* paramsH,
 		const thrust::host_vector<Real3>& posRadBCE,
-		chrono::ChSharedPtr<chrono::ChBody> body,
+		std::shared_ptr<chrono::ChBody> body,
 		chrono::ChVector<> collisionShapeRelativePos,
 		chrono::ChQuaternion<> collisionShapeRelativeRot);
 
 	void AddSphereBce(
 		ChFsiDataManager* fsiData,
 		SimParams* paramsH,
-		chrono::ChSharedPtr<chrono::ChBody> body, 
+		std::shared_ptr<chrono::ChBody> body,
 		chrono::ChVector<> relPos,
 		chrono::ChQuaternion<> relRot,
 		Real radius);
@@ -59,7 +59,7 @@ namespace utils {
 	void AddCylinderBce(
 		ChFsiDataManager* fsiData,
 		SimParams* paramsH,
-		chrono::ChSharedPtr<chrono::ChBody> body, 
+		std::shared_ptr<chrono::ChBody> body,
 		chrono::ChVector<> relPos,
 		chrono::ChQuaternion<> relRot,
 		Real radius, 
@@ -68,7 +68,7 @@ namespace utils {
 	void AddBoxBce(
 		ChFsiDataManager* fsiData,
 		SimParams* paramsH,
-		chrono::ChSharedPtr<chrono::ChBody> body, 
+		std::shared_ptr<chrono::ChBody> body,
 		chrono::ChVector<> relPos,
 		chrono::ChQuaternion<> relRot,
 		const chrono::ChVector<>& size);
@@ -76,15 +76,15 @@ namespace utils {
 	void AddBCE_FromFile(
 		ChFsiDataManager* fsiData,
 		SimParams* paramsH,
-		chrono::ChSharedPtr<chrono::ChBody> body,
+		std::shared_ptr<chrono::ChBody> body,
 		std::string dataPath);
 
 	void CreateSphereFSI(
 		ChFsiDataManager* fsiData,
 		chrono::ChSystem& mphysicalSystem,
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+		std::vector<std::shared_ptr<chrono::ChBody> > * fsiBodeisPtr,
 		SimParams* paramsH,
-		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
 		Real density,
 		chrono::ChVector<> pos,
 		Real radius);
@@ -92,9 +92,9 @@ namespace utils {
 	void CreateCylinderFSI(
 		ChFsiDataManager* fsiData,
 		chrono::ChSystem& mphysicalSystem,
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+		std::vector<std::shared_ptr<chrono::ChBody> > * fsiBodeisPtr,
 		SimParams* paramsH,
-		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
 		Real density,
 		chrono::ChVector<> pos,
 		chrono::ChQuaternion<> rot,
@@ -104,9 +104,9 @@ namespace utils {
 	void CreateBoxFSI(
 		ChFsiDataManager* fsiData,
 		chrono::ChSystem& mphysicalSystem,
-		std::vector<chrono::ChSharedPtr<chrono::ChBody> > * fsiBodeisPtr,
+		std::vector<std::shared_ptr<chrono::ChBody> > * fsiBodeisPtr,
 		SimParams* paramsH,
-		chrono::ChSharedPtr<chrono::ChMaterialSurface> mat_prop,
+		std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
 		Real density,
 		chrono::ChVector<> pos,
 		chrono::ChQuaternion<> rot,

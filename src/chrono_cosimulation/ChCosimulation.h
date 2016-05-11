@@ -19,8 +19,11 @@
 
 namespace chrono {
 
-/// Namespace with classes for the cosimulation unit.
 namespace cosimul {
+
+/// @addtogroup cosimulation_module
+/// @{
+
 
 /// Class for co-simulation interface.
 /// Typically, a C::E program can instance an object
@@ -67,6 +70,7 @@ class ChApiCosimulation ChCosimulation {
     int out_n;
 };
 
+/// @} cosimulation_module
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____
 

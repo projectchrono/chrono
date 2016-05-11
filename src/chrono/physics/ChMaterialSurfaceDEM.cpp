@@ -54,14 +54,14 @@ ChMaterialSurfaceDEM::ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) {
 
 // Calculate composite material properties as a combination of the physical
 // properties of the two specified materials.
-ChCompositeMaterialDEM ChMaterialSurfaceDEM::CompositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>& mat1,
-                                                               const ChSharedPtr<ChMaterialSurfaceDEM>& mat2) {
+ChCompositeMaterialDEM ChMaterialSurfaceDEM::CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceDEM>& mat1,
+                                                               const std::shared_ptr<ChMaterialSurfaceDEM>& mat2) {
     ChCompositeMaterialDEM mat;
 
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +
                   (1 - mat2->poisson_ratio * mat2->poisson_ratio) / mat2->young_modulus;
-    float inv_G = 2 * (2 + mat1->poisson_ratio) * (1 - mat1->poisson_ratio) / mat1->young_modulus +
-                  2 * (2 + mat2->poisson_ratio) * (1 - mat2->poisson_ratio) / mat2->young_modulus;
+    float inv_G = 2 * (2 - mat1->poisson_ratio) * (1 + mat1->poisson_ratio) / mat1->young_modulus +
+                  2 * (2 - mat2->poisson_ratio) * (1 + mat2->poisson_ratio) / mat2->young_modulus;
 
     mat.E_eff = 1 / inv_E;
     mat.G_eff = 1 / inv_G;

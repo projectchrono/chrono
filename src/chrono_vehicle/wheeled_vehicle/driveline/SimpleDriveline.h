@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_driveline
+/// @{
+
+/// Simple driveline model template using data from file (JSON format).
 class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline {
   public:
     SimpleDriveline(const std::string& filename);
@@ -44,6 +48,8 @@ class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline {
     double m_front_diff_bias;
     double m_rear_diff_bias;
 };
+
+/// @} vehicle_wheeled_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

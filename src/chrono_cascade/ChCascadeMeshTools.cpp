@@ -80,6 +80,68 @@ using namespace chrono;
 using namespace cascade;
 using namespace geometry;
 
+
+void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
+        geometry::ChTriangleMeshConnected& chmesh,  ///< Mesh that will be filled with triangles
+        const TopoDS_Face& F) {
+
+    BRepAdaptor_Surface BS(F, Standard_False);
+    Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
+    GeomAbs_SurfaceType thetype = BS.GetType();
+
+    Handle(Poly_Triangulation) T;
+    TopLoc_Location theLocation;
+    T = BRep_Tool::Triangulation(F, theLocation);
+    
+    // maybe a face has been already added to this mesh, so:
+    int v_offset = (int)chmesh.m_vertices.size();
+
+    if (!T.IsNull()) {
+
+        const TColgp_Array1OfPnt& mNodes = T->Nodes();
+
+        Poly::ComputeNormals(T);
+        const TShort_Array1OfShortReal& mNormals = T->Normals();
+            
+
+        int ivert = 0;
+        for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
+            gp_Pnt p;
+            gp_Dir pn;
+            p = mNodes(j).Transformed(theLocation.Transformation());
+
+            chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
+            chrono::ChVector<> nor(mNormals((j-1)*3+1), mNormals((j-1)*3+2), mNormals((j-1)*3+3));
+            if (F.Orientation() == TopAbs_REVERSED)
+                nor*= -1;
+
+            chmesh.m_vertices.push_back(pos);
+            chmesh.m_normals.push_back(nor);
+            
+            ivert++;
+        }
+
+        int itri = 0;
+        for (int j = T->Triangles().Lower(); j <= T->Triangles().Upper(); j++) {
+            Standard_Integer n[3];
+            if (F.Orientation() == TopAbs_REVERSED)
+                T->Triangles()(j).Get(n[0], n[2], n[1]);
+            else
+                T->Triangles()(j).Get(n[0], n[1], n[2]);
+            int ia = v_offset + (n[0]) - 1;
+            int ib = v_offset + (n[1]) - 1;
+            int ic = v_offset + (n[2]) - 1;
+
+            chmesh.m_face_v_indices.push_back(ChVector<int>(ia,ib,ic));
+            chmesh.m_face_n_indices.push_back(ChVector<int>(ia,ib,ic));
+
+            itri++;
+        }
+    }
+        
+}
+
+/*
 void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh, const TopoDS_Face& F) {
     BRepAdaptor_Surface BS(F, Standard_False);
     Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
@@ -138,8 +200,9 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
         }
     }
 }
+*/
 
-void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMesh& chmesh,
+void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& chmesh,
                                                      const TopoDS_Shape& mshape,
                                                      double deflection,
                                                      bool   relative_deflection,
@@ -147,6 +210,8 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMesh& chmesh,
     BRepTools::Clean(mshape);
     BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection , angulardeflection, true);
     // GetLog() << "    ..tesselation done \n";
+    
+    chmesh.Clear();
 
     // Loop on faces..
     TopExp_Explorer ex;

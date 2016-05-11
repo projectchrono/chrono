@@ -19,21 +19,34 @@
 #ifndef CH_POWERTRAIN_H
 #define CH_POWERTRAIN_H
 
-#include "chrono/core/ChShared.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_powertrain Powertrain models
+    @}
+*/
 
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_powertrain
+/// @{
+
 /// Base class for a powertrain system.
-///
-class CH_VEHICLE_API ChPowertrain : public ChShared {
+class CH_VEHICLE_API ChPowertrain {
   public:
-    enum DriveMode { FORWARD, NEUTRAL, REVERSE };
+    /// Driving modes.
+    enum DriveMode {
+        FORWARD,  ///< vehicle moving forward
+        NEUTRAL,  ///< vehicle in neutral
+        REVERSE   ///< vehicle moving backward
+    };
 
     ChPowertrain();
 
@@ -68,14 +81,19 @@ class CH_VEHICLE_API ChPowertrain : public ChShared {
     /// Set the mode of the transmission.
     virtual void SetDriveMode(DriveMode mmode) = 0;
 
-    /// Update the state of this powertrain system at the current time.
+    /// Initialize this powertrain system.
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
+                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
+                            ) = 0;
+
+    /// Synchronize the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a
     /// value in the range [0,1], and the current angular speed of the transmission
     /// shaft (from the driveline).
-    virtual void Update(double time,        ///< [in] current time
-                        double throttle,    ///< [in] current throttle input [0,1]
-                        double shaft_speed  ///< [in] current angular speed of the transmission shaft
-                        ) = 0;
+    virtual void Synchronize(double time,        ///< [in] current time
+                             double throttle,    ///< [in] current throttle input [0,1]
+                             double shaft_speed  ///< [in] current angular speed of the transmission shaft
+                             ) = 0;
 
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) = 0;
@@ -83,6 +101,8 @@ class CH_VEHICLE_API ChPowertrain : public ChShared {
   protected:
     DriveMode m_drive_mode;
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

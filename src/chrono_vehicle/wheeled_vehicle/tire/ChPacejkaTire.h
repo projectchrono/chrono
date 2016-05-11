@@ -26,11 +26,15 @@
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 
 namespace chrono {
 namespace vehicle {
+
+/// @addtogroup vehicle_wheeled_tire
+/// @{
 
 // Forward declarations for private structures
 struct slips;
@@ -45,10 +49,8 @@ struct zetaCoefs;
 struct relaxationL;
 struct bessel;
 
-///
 /// Concrete tire class that implements the Pacejka tire model.
 /// Detailed description goes here...
-///
 class CH_VEHICLE_API ChPacejkaTire : public ChTire {
   public:
     /// Default constructor for a Pacejka tire.
@@ -68,12 +70,20 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     ~ChPacejkaTire();
 
+    /// Specify whether or not the associated wheel is driven.
+    /// By default, the wheel is assumed not driven.
+    void SetDrivenWheel(bool val) { m_driven = val; }
+
     /// specify the file name to read the Pactire input from
-    void Initialize(VehicleSide side,  ///< [in]
-                    bool driven);
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
+                            VehicleSide side                ///< [in] left/right vehicle side
+                            ) override;
+
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_R_eff; }
 
     /// return the reactions for the combined slip EQs, in global coords
-    virtual TireForce GetTireForce() const override;
+    virtual TireForce GetTireForce(bool cosim = false) const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
     TireForce GetTireForce_pureSlip(const bool local = true) const;
@@ -83,10 +93,19 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     /// Update the state of this tire system at the current time.
     /// Set the PacTire spindle state data from the global wheel body state.
-    virtual void Update(double time,                      ///< [in] current time
-                        const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                        const ChTerrain& terrain          ///< [in] reference to the terrain system
-                        ) override;
+    virtual void Synchronize(double time,                    ///< [in] current time
+                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             ) override;
+
+    /// Get the tire slip angle.
+    virtual double GetSlipAngle() const override { return m_slip->alpha; }
+
+    /// Get the tire longitudinal slip.
+    virtual double GetLongitudinalSlip() const { return m_slip->kappa; }
+
+    /// Get the tire camber angle.
+    virtual double GetCamberAngle() const { return m_slip->gamma; }
 
     /// Advance the state of this tire by the specified time step.
     /// Use the new body state, calculate all the relevant quantities over the
@@ -314,7 +333,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     // ----- Data members
     bool m_use_transient_slip;
-    VehicleSide m_side;
     bool m_driven;   // is this a driven tire?
     int m_sameSide;  // does parameter file side equal m_side? 1 = true, -1 opposite
 
@@ -417,6 +435,8 @@ T fromTline(const std::string& tline) {
     T t = fromString<T>(splitStr(splitStr(tline, '/')[0], '=')[1]);
     return t;
 }
+
+/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

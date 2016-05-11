@@ -41,7 +41,9 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
+/// @addtogroup vehicle_utils
+/// @{
+
 /// Base class for all steering path-following PID controllers.
 /// The base class implements the basic functionality to control the error
 /// between the location of a sentinel point (a point at a look-ahead distance
@@ -65,7 +67,6 @@ namespace vehicle {
 /// suspended (stopped) as many times as desired.  Data collected so far can be
 /// written to a file.  The tab-separated output ASCII file contains on each line
 /// the time, location of the target point, and location of the sentinel point.
-///
 class CH_VEHICLE_API ChSteeringController {
   public:
     /// Construct a steering controller with default parameters.
@@ -151,23 +152,24 @@ class CH_VEHICLE_API ChSteeringController {
     bool m_collect;            ///< flag indicating whether or not data is being collected
 };
 
-// -----------------------------------------------------------------------------
 /// Concrete path-following steering PID controller.
 /// The path to be followed is specified as a ChBezierCurve object and the
 /// target point is defined to be the point on that path that is closest to the
 /// current location of the sentinel point.
-///
 class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
   public:
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringController(ChBezierCurve* path);
+    ChPathSteeringController(ChBezierCurve* path, bool isClosedPath = false);
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the
     /// specified JSON file.
-    ChPathSteeringController(const std::string& filename, ChBezierCurve* path);
+    ChPathSteeringController(const std::string& filename, 
+                             ChBezierCurve* path, 
+                             bool isClosedPath = false
+                             );
 
     /// Destructor for ChPathSteeringController.
     ~ChPathSteeringController();
@@ -189,6 +191,8 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     ChBezierCurve* m_path;            ///< tracked path (piecewise cubic Bezier curve)
     ChBezierCurveTracker* m_tracker;  ///< path tracker
 };
+
+/// @} vehicle_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono

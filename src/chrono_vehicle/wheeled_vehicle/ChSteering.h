@@ -21,19 +21,26 @@
 
 #include <string>
 
-#include "chrono/core/ChShared.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_steering Steering subsystem
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_steering
+/// @{
+
 /// Base class for a steering subsystem.
-///
-class CH_VEHICLE_API ChSteering : public ChShared {
+class CH_VEHICLE_API ChSteering {
   public:
     ChSteering(const std::string& name  ///< [in] name of the subsystem
                );
@@ -49,25 +56,28 @@ class CH_VEHICLE_API ChSteering : public ChShared {
     /// Get a handle to the main link of the steering subsystems.
     /// Return a handle to the body to which the tierods of a steerbale
     /// suspension subsystem are attached.
-    ChSharedPtr<ChBody> GetSteeringLink() const { return m_link; }
+    std::shared_ptr<ChBody> GetSteeringLink() const { return m_link; }
 
     /// Initialize this steering subsystem.
     /// The steering subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis) and with specified orientation (with
     /// respect to the chassis reference frame).
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a
     /// value between -1 and +1).  Positive steering input indicates steering
     /// to the left. This function is called during the vehicle update.
-    virtual void Update(double time,     ///< [in] current time
-                        double steering  ///< [in] current steering input [-1,+1]
-                        ) = 0;
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double steering  ///< [in] current steering input [-1,+1]
+                             ) = 0;
+
+    /// Get the total mass of the steering subsystem.
+    virtual double GetMass() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
@@ -75,11 +85,13 @@ class CH_VEHICLE_API ChSteering : public ChShared {
   protected:
     std::string m_name;  ///< name of the subsystem
 
-    ChSharedPtr<ChBody> m_link;  ///< handle to the main steering link
+    std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };
 
 /// Vector of handles to steering subsystems
-typedef std::vector<ChSharedPtr<ChSteering> > ChSteeringList;
+typedef std::vector<std::shared_ptr<ChSteering> > ChSteeringList;
+
+/// @} vehicle_wheeled_steering
 
 }  // end namespace vehicle
 }  // end namespace chrono

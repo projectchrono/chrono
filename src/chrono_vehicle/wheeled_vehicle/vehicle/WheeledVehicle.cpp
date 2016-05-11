@@ -95,9 +95,9 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
     // Create the steering using the appropriate template.
     // Create the driveline using the appropriate template.
     if (subtype.compare("PitmanArm") == 0) {
-        m_steerings[which] = ChSharedPtr<ChSteering>(new PitmanArm(d));
+        m_steerings[which] = std::make_shared<PitmanArm>(d);
     } else if (subtype.compare("RackPinion") == 0) {
-        m_steerings[which] = ChSharedPtr<ChSteering>(new RackPinion(d));
+        m_steerings[which] = std::make_shared<RackPinion>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -127,11 +127,11 @@ void WheeledVehicle::LoadDriveline(const std::string& filename) {
 
     // Create the driveline using the appropriate template.
     if (subtype.compare("ShaftsDriveline2WD") == 0) {
-        m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline2WD(d));
+        m_driveline = std::make_shared<ShaftsDriveline2WD>(d);
     } else if (subtype.compare("ShaftsDriveline4WD") == 0) {
-        m_driveline = ChSharedPtr<ChDriveline>(new ShaftsDriveline4WD(d));
+        m_driveline = std::make_shared<ShaftsDriveline4WD>(d);
     } else if (subtype.compare("SimpleDriveline") == 0) {
-        m_driveline = ChSharedPtr<ChDriveline>(new SimpleDriveline(d));
+        m_driveline = std::make_shared<SimpleDriveline>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -161,15 +161,15 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
 
     // Create the suspension using the appropriate template.
     if (subtype.compare("DoubleWishbone") == 0) {
-        m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishbone(d));
+        m_suspensions[axle] = std::make_shared<DoubleWishbone>(d);
     } else if (subtype.compare("DoubleWishboneReduced") == 0) {
-        m_suspensions[axle] = ChSharedPtr<ChSuspension>(new DoubleWishboneReduced(d));
+        m_suspensions[axle] = std::make_shared<DoubleWishboneReduced>(d);
     } else if (subtype.compare("SolidAxle") == 0) {
-        m_suspensions[axle] = ChSharedPtr<ChSuspension>(new SolidAxle(d));
+        m_suspensions[axle] = std::make_shared<SolidAxle>(d);
     } else if (subtype.compare("MultiLink") == 0) {
-        m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MultiLink(d));
+        m_suspensions[axle] = std::make_shared<MultiLink>(d);
     } else if (subtype.compare("MacPhersonStrut") == 0) {
-        m_suspensions[axle] = ChSharedPtr<ChSuspension>(new MacPhersonStrut(d));
+        m_suspensions[axle] = std::make_shared<MacPhersonStrut>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -198,7 +198,7 @@ void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
     std::string subtype = d["Template"].GetString();
 
     if (subtype.compare("AntirollBarRSD") == 0) {
-        m_antirollbars.push_back(ChSharedPtr<ChAntirollBar>(new AntirollBarRSD(d)));
+        m_antirollbars.push_back(std::make_shared<AntirollBarRSD>(d));
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -228,7 +228,7 @@ void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) 
 
     // Create the wheel using the appropriate template.
     if (subtype.compare("Wheel") == 0) {
-        m_wheels[2 * axle + side] = ChSharedPtr<ChWheel>(new Wheel(d));
+        m_wheels[2 * axle + side] = std::make_shared<Wheel>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -258,7 +258,7 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
 
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
-        m_brakes[2 * axle + side] = ChSharedPtr<ChBrake>(new BrakeSimple(d));
+        m_brakes[2 * axle + side] = std::make_shared<BrakeSimple>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -300,8 +300,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     // -------------------------------------------
     // Create the chassis body
     // -------------------------------------------
-
-    m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef(m_system->GetContactMethod()));
+    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
 
     m_chassisMass = d["Chassis"]["Mass"].GetDouble();
     m_chassisCOM = loadVector(d["Chassis"]["COM"]);
@@ -323,14 +322,14 @@ void WheeledVehicle::Create(const std::string& filename) {
         geometry::ChTriangleMeshConnected trimesh;
         trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_chassisMeshFile), false, false);
 
-        ChSharedPtr<ChTriangleMeshShape> trimesh_shape(new ChTriangleMeshShape);
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_chassisMeshName);
         m_chassis->AddAsset(trimesh_shape);
 
         m_chassisUseMesh = true;
     } else {
-        ChSharedPtr<ChSphereShape> sphere(new ChSphereShape);
+        auto sphere = std::make_shared<ChSphereShape>();
         sphere->GetSphereGeometry().rad = 0.1;
         sphere->Pos = m_chassisCOM;
         m_chassis->AddAsset(sphere);

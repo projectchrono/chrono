@@ -40,9 +40,9 @@ ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name) : ChSu
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishboneReduced::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void ChDoubleWishboneReduced::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                          const ChVector<>& location,
-                                         ChSharedPtr<ChBody> tierod_body) {
+                                         std::shared_ptr<ChBody> tierod_body) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -68,8 +68,8 @@ void ChDoubleWishboneReduced::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 }
 
 void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
-                                             ChSharedPtr<ChBodyAuxRef> chassis,
-                                             ChSharedPtr<ChBody> tierod_body,
+                                             std::shared_ptr<ChBodyAuxRef> chassis,
+                                             std::shared_ptr<ChBody> tierod_body,
                                              const std::vector<ChVector<> >& points) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
@@ -78,7 +78,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
@@ -88,7 +88,7 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
-    m_upright[side] = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_upright[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_upright[side]->SetNameString(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
@@ -100,38 +100,38 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
 
     // Create and initialize joints
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_revolute[side] = ChSharedPtr<ChLinkLockRevolute>(new ChLinkLockRevolute);
+    m_revolute[side] = std::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
-    m_distUCA_F[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+    m_distUCA_F[side] = std::make_shared<ChLinkDistance>();
     m_distUCA_F[side]->SetNameString(m_name + "_distUCA_F" + suffix);
     m_distUCA_F[side]->Initialize(chassis, m_upright[side], false, points[UCA_F], points[UCA_U]);
     chassis->GetSystem()->AddLink(m_distUCA_F[side]);
 
-    m_distUCA_B[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+    m_distUCA_B[side] = std::make_shared<ChLinkDistance>();
     m_distUCA_B[side]->SetNameString(m_name + "_distUCA_B" + suffix);
     m_distUCA_B[side]->Initialize(chassis, m_upright[side], false, points[UCA_B], points[UCA_U]);
     chassis->GetSystem()->AddLink(m_distUCA_B[side]);
 
-    m_distLCA_F[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+    m_distLCA_F[side] = std::make_shared<ChLinkDistance>();
     m_distLCA_F[side]->SetNameString(m_name + "_distLCA_F" + suffix);
     m_distLCA_F[side]->Initialize(chassis, m_upright[side], false, points[LCA_F], points[LCA_U]);
     chassis->GetSystem()->AddLink(m_distLCA_F[side]);
 
-    m_distLCA_B[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+    m_distLCA_B[side] = std::make_shared<ChLinkDistance>();
     m_distLCA_B[side]->SetNameString(m_name + "_distLCA_B" + suffix);
     m_distLCA_B[side]->Initialize(chassis, m_upright[side], false, points[LCA_B], points[LCA_U]);
     chassis->GetSystem()->AddLink(m_distLCA_B[side]);
 
-    m_distTierod[side] = ChSharedPtr<ChLinkDistance>(new ChLinkDistance);
+    m_distTierod[side] = std::make_shared<ChLinkDistance>();
     m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
     m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
     chassis->GetSystem()->AddLink(m_distTierod[side]);
 
     // Create and initialize the spring/damper
-    m_shock[side] = ChSharedPtr<ChLinkSpringCB>(new ChLinkSpringCB);
+    m_shock[side] = std::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
     m_shock[side]->Set_SpringRestLength(getSpringRestLength());
@@ -140,20 +140,27 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
 
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
-    m_axle[side] = ChSharedPtr<ChShaft>(new ChShaft);
+    m_axle[side] = std::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side] = ChSharedPtr<ChShaftsBody>(new ChShaftsBody);
+    m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
 // -----------------------------------------------------------------------------
+// Get the total mass of the suspension subsystem.
 // -----------------------------------------------------------------------------
-void ChDoubleWishboneReduced::AddVisualizationUpright(ChSharedPtr<ChBody> upright,
+double ChDoubleWishboneReduced::GetMass() const {
+    return 2 * (getSpindleMass() + getUprightMass());
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
                                                       const ChVector<> pt_C,
                                                       const ChVector<> pt_U,
                                                       const ChVector<> pt_L,
@@ -168,7 +175,7 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(ChSharedPtr<ChBody> uprigh
     ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
 
     if ((p_L - p_C).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl_L(new ChCylinderShape);
+        auto cyl_L = std::make_shared<ChCylinderShape>();
         cyl_L->GetCylinderGeometry().p1 = p_L;
         cyl_L->GetCylinderGeometry().p2 = p_C;
         cyl_L->GetCylinderGeometry().rad = radius;
@@ -176,7 +183,7 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(ChSharedPtr<ChBody> uprigh
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl_U(new ChCylinderShape);
+        auto cyl_U = std::make_shared<ChCylinderShape>();
         cyl_U->GetCylinderGeometry().p1 = p_U;
         cyl_U->GetCylinderGeometry().p2 = p_C;
         cyl_U->GetCylinderGeometry().rad = radius;
@@ -184,20 +191,20 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(ChSharedPtr<ChBody> uprigh
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
-        ChSharedPtr<ChCylinderShape> cyl_T(new ChCylinderShape);
+        auto cyl_T = std::make_shared<ChCylinderShape>();
         cyl_T->GetCylinderGeometry().p1 = p_T;
         cyl_T->GetCylinderGeometry().p2 = p_C;
         cyl_T->GetCylinderGeometry().rad = radius;
         upright->AddAsset(cyl_T);
     }
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     upright->AddAsset(col);
 }
 
-void ChDoubleWishboneReduced::AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width) {
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+void ChDoubleWishboneReduced::AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width) {
+    auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     cyl->GetCylinderGeometry().rad = radius;

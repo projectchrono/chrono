@@ -28,6 +28,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_driveline
+/// @{
+
+/// 4WD driveline model template based on ChShaft objects using data from file (JSON format).
 class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
   public:
     ShaftsDriveline4WD(const std::string& filename);
@@ -65,6 +69,8 @@ class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
     double m_front_conicalgear_ratio;
     double m_rear_conicalgear_ratio;
 };
+
+/// @} vehicle_wheeled_driveline
 
 }  // end namespace vehicle
 }  // end namespace chrono

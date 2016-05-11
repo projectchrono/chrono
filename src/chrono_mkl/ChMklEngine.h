@@ -10,8 +10,8 @@
 //
 
 
-/// Class for interfacing with Pardiso Sparse Direct Solver
-/// from the Intel® MKL Library.
+// Class for interfacing with Pardiso Sparse Direct Solver
+// from the Intel® MKL Library.
 
 
 #ifndef CHMKLENGINE_H
@@ -40,6 +40,10 @@
 
 namespace chrono
 {
+
+/// @addtogroup mkl_module
+/// @{
+
 	// REMEMBER: indeces start from zero; iparm[0] is "iparm(1)" in documentation
 	// use IPARM instead to avoid misalignment due to different indexing; IPARM(1) == "iparm(1)" from documentation
 #define IPARM(i) iparm[i-1]
@@ -111,13 +115,15 @@ namespace chrono
 		void SetProblemSize(int new_size) { n = new_size; }
 
 		// Output functions
-		void GetResidual(double* res);
-		void GetResidual(ChMatrix<>& res) { GetResidual(res.GetAddress()); }
-		double GetResidualNorm(double* res) const;
-		double GetResidualNorm(ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
+		void GetResidual(double* res) const;
+		void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
+		double GetResidualNorm(const double* res) const;
+		double GetResidualNorm(const ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
 
 		// Auxiliary functions
 		int* GetIparmAddress(){ return iparm; }
+		void SetIparmValue(int parm_num, int value){ IPARM(parm_num) = value; }; //< Sets the \c parm_num th element of \c iparm to \c value
+		int GetIparmValue(int parm_num) const { return IPARM(parm_num); }; //< Returns the \c parm_num th element of \c iparm
 		void PrintIparmOutput() const;
 
 		// Advanced functions
@@ -130,7 +136,7 @@ namespace chrono
 	}; // ChMklEngine
 
 
-
+/// @} mkl_module
 } // end of namespace chrono
 
 

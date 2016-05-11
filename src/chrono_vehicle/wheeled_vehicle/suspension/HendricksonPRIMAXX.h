@@ -27,6 +27,10 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
+/// Hendrickson PRIMAXX suspension constructed with data from file.
 class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
   public:
     HendricksonPRIMAXX(const std::string& filename);
@@ -58,6 +62,8 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
 
     double m_axleInertia;
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

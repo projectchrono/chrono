@@ -63,8 +63,6 @@ void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive)
 
     // deserialize parent class
     ChFrameMoving<double>::ArchiveIN(marchive);
-    // deserialize parent class
-    //ChShared::ArchiveIN(marchive);
 
     // stream in all member data:
 }

@@ -27,14 +27,18 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_tire
+/// @{
+
+/// Rigid tire constructed with data from file (JSON format).
 class CH_VEHICLE_API RigidTire : public ChRigidTire {
   public:
     RigidTire(const std::string& filename);
     RigidTire(const rapidjson::Document& d);
     ~RigidTire() {}
 
-    virtual double getRadius() const override { return m_radius; }
-    virtual double getWidth() const override { return m_width; }
+    virtual double GetRadius() const override { return m_radius; }
+    virtual double GetWidth() const override { return m_width; }
 
   private:
     void Create(const rapidjson::Document& d);
@@ -42,6 +46,8 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     double m_radius;
     double m_width;
 };
+
+/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -32,4 +32,30 @@
 #define ChApiCosimulation ChApiIMPORT
 #endif
 
+/**
+    @defgroup cosimulation_module COSIMULATION module
+    @brief Tools for cosimulation. 
+
+    This module allows cosimulation between Chrono::Engine and
+    a third party software, using the TCP/IP socket system.
+
+    For additional information, see:
+    - the [installation guide](@ref module_cosimulation_installation)
+    - the [tutorials](@ref tutorial_root)
+*/
+
+
+
+namespace chrono {
+
+/// @addtogroup cosimulation_module
+/// @{
+
+/// Namespace with classes for the cosimulation module.
+namespace cosimul {}
+
+/// @}
+
+}
+
 #endif  // END of header

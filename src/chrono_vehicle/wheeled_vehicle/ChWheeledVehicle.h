@@ -25,21 +25,31 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
+#include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 #include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
-#include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
+
+/**
+    @addtogroup vehicle
+    @{
+        @defgroup vehicle_wheeled Wheeled vehicles
+    @}
+*/
 
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled
+/// @{
+
 /// Base class for chrono wheeled vehicle systems.
 /// This class provides the interface between the vehicle system and other
-/// systems (tires, driver, etc.)
-///
+/// systems (tires, driver, etc.).
+/// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
+/// pointing forward, and Y-axis towards the left of the vehicle.
 class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
@@ -53,22 +63,26 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual ~ChWheeledVehicle() {}
 
     /// Get the specified suspension subsystem.
-    ChSharedPtr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
+    std::shared_ptr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
 
     /// Get the specified steering subsystem.
-    ChSharedPtr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
+    std::shared_ptr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
 
     /// Get a handle to the specified vehicle wheel subsystem.
-    ChSharedPtr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
+    std::shared_ptr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
 
     /// Get a handle to the specified vehicle brake subsystem.
-    ChSharedPtr<ChBrake> GetBrake(const WheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
+    std::shared_ptr<ChBrake> GetBrake(const WheelID& wheel_id) const { return m_brakes[wheel_id.id()]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
-    ChSharedPtr<ChDriveline> GetDriveline() const { return m_driveline; }
+    std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
+
+    /// Get the vehicle total mass.
+    /// This includes the mass of the chassis and all vehicle subsystems.
+    virtual double GetVehicleMass() const override;
 
     /// Get a handle to the vehicle's driveshaft body.
-    virtual ChSharedPtr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
     /// Get the angular speed of the driveshaft.
     /// This function provides the interface between a vehicle system and a
@@ -79,7 +93,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual int GetNumberAxles() const = 0;
 
     /// Get a handle to the specified wheel body.
-    ChSharedPtr<ChBody> GetWheelBody(const WheelID& wheelID) const;
+    std::shared_ptr<ChBody> GetWheelBody(const WheelID& wheelID) const;
 
     /// Get the global location of the specified wheel.
     const ChVector<>& GetWheelPos(const WheelID& wheel_id) const;
@@ -114,24 +128,26 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
     /// from the powertrain, and tire forces (expressed in the global reference
     /// frame).
-    virtual void Update(double time,                     ///< [in] current time
-                        double steering,                 ///< [in] current steering input [-1,+1]
-                        double braking,                  ///< [in] current braking input [0,1]
-                        double powertrain_torque,        ///< [in] input torque from powertrain
-                        const TireForces& tire_forces  ///< [in] vector of tire force structures
-                        );
+    virtual void Synchronize(double time,                   ///< [in] current time
+                             double steering,               ///< [in] current steering input [-1,+1]
+                             double braking,                ///< [in] current braking input [0,1]
+                             double powertrain_torque,      ///< [in] input torque from powertrain
+                             const TireForces& tire_forces  ///< [in] vector of tire force structures
+                             );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
   protected:
-    ChSuspensionList m_suspensions;        ///< list of handles to suspension subsystems
-    ChAntirollbarList m_antirollbars;      ///< list of handles to antirollbar subsystems (optional)
-    ChSharedPtr<ChDriveline> m_driveline;  ///< handle to the driveline subsystem
-    ChSteeringList m_steerings;            ///< list of handles to steering subsystems
-    ChWheelList m_wheels;                  ///< list of handles to wheel subsystems
-    ChBrakeList m_brakes;                  ///< list of handles to brake subsystems
+    ChSuspensionList m_suspensions;            ///< list of handles to suspension subsystems
+    ChAntirollbarList m_antirollbars;          ///< list of handles to antirollbar subsystems (optional)
+    std::shared_ptr<ChDriveline> m_driveline;  ///< handle to the driveline subsystem
+    ChSteeringList m_steerings;                ///< list of handles to steering subsystems
+    ChWheelList m_wheels;                      ///< list of handles to wheel subsystems
+    ChBrakeList m_brakes;                      ///< list of handles to brake subsystems
 };
+
+/// @} vehicle_wheeled
 
 }  // end namespace vehicle
 }  // end namespace chrono

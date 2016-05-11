@@ -35,8 +35,8 @@ ChWheeledVehicleAssembly::ChWheeledVehicleAssembly(ChSystem* system,
                                                    const std::string& powertrain_def_filename)
     : m_driver_cb(NULL), m_tire_cb(NULL), m_chassis_cb(NULL) {
     // Create the vehicle and powertrain systems.
-    m_vehicle = ChSharedPtr<WheeledVehicle>(new WheeledVehicle(system, vehicle::GetDataFile(vehicle_def_filename)));
-    m_powertrain = ChSharedPtr<SimplePowertrain>(new SimplePowertrain(vehicle::GetDataFile(powertrain_def_filename)));
+    m_vehicle = std::make_shared<WheeledVehicle>(system, vehicle::GetDataFile(vehicle_def_filename));
+    m_powertrain = std::make_shared<SimplePowertrain>(vehicle::GetDataFile(powertrain_def_filename));
 
     // The vector of tire forces is required by the ChronoVehicle API. Since we
     // use rigid contact for tire-terrain interaction, these are always zero.
@@ -49,12 +49,12 @@ ChWheeledVehicleAssembly::ChWheeledVehicleAssembly(ChSystem* system,
 void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQuaternion<>& init_rot) {
     // Initialize the vehicle and powertrain systems.
     m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
-    m_powertrain->Initialize();
+    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
 
     // If provided, invoke the user-specified callback to attach chassis contact
     // geometry.
     if (m_chassis_cb) {
-        ChSharedPtr<ChBodyAuxRef> chassisBody = m_vehicle->GetChassis();
+        std::shared_ptr<ChBodyAuxRef> chassisBody = m_vehicle->GetChassis();
 
         m_chassis_cb->onCallback(chassisBody);
         chassisBody->SetCollide(true);
@@ -64,7 +64,7 @@ void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQu
     // geometry for each wheel of the vehicle.
     if (m_tire_cb) {
         for (int i = 0; i < 2 * m_vehicle->GetNumberAxles(); i++) {
-            ChSharedPtr<ChBody> wheelBody = m_vehicle->GetWheelBody(i);
+            std::shared_ptr<ChBody> wheelBody = m_vehicle->GetWheelBody(i);
             double radius = m_vehicle->GetWheel(i)->GetRadius();
             double width = m_vehicle->GetWheel(i)->GetWidth();
 
@@ -77,7 +77,7 @@ void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQu
 // -----------------------------------------------------------------------------
 // Update the vehicle model at the specified time.
 // -----------------------------------------------------------------------------
-void ChWheeledVehicleAssembly::Update(double time) {
+void ChWheeledVehicleAssembly::Synchronize(double time) {
     // Invoke the user-provided callback to get driver inputs at current time.
     double throttle = 0;
     double steering = 0;
@@ -87,10 +87,10 @@ void ChWheeledVehicleAssembly::Update(double time) {
         m_driver_cb->onCallback(time, throttle, steering, braking);
 
     // Update the powertrain system.
-    m_powertrain->Update(time, throttle, m_vehicle->GetDriveshaftSpeed());
+    m_powertrain->Synchronize(time, throttle, m_vehicle->GetDriveshaftSpeed());
 
     // Update the vehicle system.
-    m_vehicle->Update(time, steering, braking, m_powertrain->GetOutputTorque(), m_tire_forces);
+    m_vehicle->Synchronize(time, steering, braking, m_powertrain->GetOutputTorque(), m_tire_forces);
 }
 
 }  // end namespace vehicle

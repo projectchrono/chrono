@@ -28,28 +28,24 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "physics/ChBodyFrame.h"
-#include "physics/ChLinkBase.h"
+#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChBodyFrame.h"
+#include "chrono/physics/ChLinkBase.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
 
+namespace chrono {
 
+class ChIndexedNodes;  // forward ref
 
-namespace chrono
-{
+namespace fea {
 
-class ChIndexedNodes; // forward ref
+/// @addtogroup fea_constraints
+/// @{
 
-namespace fea
-{
-
-
-
-/// Class for creating a constraint between the direction of a FEA node 
+/// Class for creating a constraint between the direction of a FEA node
 /// of ChNodeFEAxyzD class, and a ChBodyFrame (frame).
-/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel 
+/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel
 /// to a given direction associated to the ChBodyFrame.
-
 class ChApiFea ChLinkDirFrame : public ChLinkBase {
 
 						// Chrono simulation of RTTI, needed for serialization
@@ -66,11 +62,8 @@ private:
 	ChLcpConstraintTwoGeneric constraint1;
 	ChLcpConstraintTwoGeneric constraint2;
 
-	ChVector<> cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
-	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
-
-	ChSharedPtr<fea::ChNodeFEAxyzD> mnode;
-	ChSharedPtr<ChBodyFrame>  body;
+    std::shared_ptr<fea::ChNodeFEAxyzD> mnode;
+    std::shared_ptr<ChBodyFrame>  body;
 
 	ChVector<> direction; 
 	ChCoordsys<> csys_direction;
@@ -131,10 +124,6 @@ public:
 	virtual void ConstraintsBiLoad_C(double factor=1., double recovery_clamp=0.1, bool do_clamp=false);
 	virtual void ConstraintsBiLoad_Ct(double factor=1.);
 	virtual void ConstraintsLoadJacobians();
-	virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-	virtual void ConstraintsLiLoadSuggestedPositionSolution();
-	virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-	virtual void ConstraintsLiFetchSuggestedPositionSolution();
 	virtual void ConstraintsFetch_react(double factor=1.);
 
 
@@ -147,16 +136,16 @@ public:
 				/// The attachment position is the actual position of the node (unless
 				/// otherwise defines, using the optional 'mattach' parameter).
 				/// Note, mnodes and mbody must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChNodeFEAxyzD> anode, ///< xyzD node to join (with the direction)
-						   ChSharedPtr<ChBodyFrame>  mbody,  ///< body (frame) to join 
-						   ChVector<>* dir=0			    ///< optional: if not null, sets the direction in absolute coordinates 
+	virtual int Initialize(std::shared_ptr<ChNodeFEAxyzD> anode, ///< xyzD node to join (with the direction)
+						   std::shared_ptr<ChBodyFrame>  mbody,  ///< body (frame) to join 
+						   ChVector<>* dir=0			         ///< optional: if not null, sets the direction in absolute coordinates 
 						   );
 
 				/// Get the connected xyz node (point)
-	virtual ChSharedPtr<fea::ChNodeFEAxyzD> GetConstrainedNode() { return this->mnode;}
+    virtual std::shared_ptr<ChNodeFEAxyzD> GetConstrainedNode() { return this->mnode; }
 				
 				/// Get the connected body (frame)
-	virtual ChSharedPtr<ChBodyFrame> GetConstrainedBodyFrame() { return this->body;}
+    virtual std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return this->body; }
 
 					/// Get the attachment position, in the reference coordinates of the body.
 	ChVector<> GetDirection() {return direction;}
@@ -196,9 +185,7 @@ public:
 
 };
 
-
-
-
+/// @} fea_constraints
 
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____

@@ -44,6 +44,9 @@
 namespace chrono {
 namespace opengl {
 
+/// @addtogroup opengl
+/// @{
+
 #ifndef BAD_GL_VALUE
 #define BAD_GL_VALUE GLuint(-1)
 #endif
@@ -78,7 +81,7 @@ static std::string GetErrorString(GLenum error) {
     return ret_val;
 }
 
-// Checks if there are any errors in the opengl context
+/// Checks if there are any errors in the opengl context.
 static bool GLReturnedError(std::string err) {
     bool return_error = false;
     GLenum glerror;
@@ -89,6 +92,7 @@ static bool GLReturnedError(std::string err) {
     return return_error;
 }
 
+/// Base class for all OpenGL related classes.
 class CH_OPENGL_API ChOpenGLBase {
  public:
   ChOpenGLBase() {}
@@ -96,10 +100,11 @@ class CH_OPENGL_API ChOpenGLBase {
 
   // Children must implement this function
   virtual void TakeDown() = 0;
-
 };
-}
-}
 
+/// @} opengl
+
+}
+}
 
 #endif  // END of CHOPENGLBASE_H

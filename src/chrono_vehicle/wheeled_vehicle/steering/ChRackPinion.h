@@ -32,7 +32,9 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_steering
+/// @{
+
 /// Base class for a Rack-Pinion steering subsystem.
 /// Derived from ChSteering, but still an abstract base class.
 ///
@@ -41,7 +43,6 @@ namespace vehicle {
 /// The steering link translates along the Y axis. We do not explicitly model the
 /// pinion but instead use the implied rack-pinion constraint to calculate the
 /// rack displacement from a given pinion rotation angle.
-///
 class CH_VEHICLE_API ChRackPinion : public ChSteering {
   public:
     /// Construct a rack-pinion steering mechanism with given base name.
@@ -53,18 +54,21 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// Initialize the steering subsystem.
     /// This attached the steering mechanism to the specified chassis body at the
     /// given offset and orientation, relative to the frame of the chassis.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< pin] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation      ///< [in] orientation relative to the chassis frame
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< pin] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a
     /// value between -1 and +1).  Positive steering input indicates steering
     /// to the left. This function is called during the vehicle update.
-    virtual void Update(double time,     ///< [in] current time
-                        double steering  ///< [in] current steering input [-1,+1]
-                        ) override;
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double steering  ///< [in] current steering input [-1,+1]
+                             ) override;
+
+    /// Get the total mass of the steering subsystem.
+    virtual double GetMass() const override;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
@@ -91,12 +95,14 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     /// Return the maximum rotation angle of the pinion (in either direction).
     virtual double GetMaxAngle() const = 0;
 
-    ChSharedPtr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
-    ChSharedPtr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
+    std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
+    std::shared_ptr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
 
   private:
     void AddVisualizationSteeringLink();
 };
+
+/// @} vehicle_wheeled_steering
 
 }  // end namespace vehicle
 }  // end namespace chrono

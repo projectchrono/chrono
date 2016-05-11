@@ -16,57 +16,67 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "physics/ChIndexedNodes.h"
-#include "physics/ChContinuumMaterial.h"
-#include "physics/ChMaterialSurface.h"
-#include "ChNodeFEAbase.h"
-#include "ChElementBase.h"
-#include "ChContactSurface.h"
-#include "ChMeshSurface.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono_fea/ChContactSurface.h"
+#include "chrono_fea/ChElementBase.h"
+#include "chrono_fea/ChMeshSurface.h"
+#include "chrono_fea/ChNodeFEAbase.h"
+
 
 namespace chrono {
 
-/// Namespace with classes for the FEA unit.
 namespace fea {
+
+/// @addtogroup fea_module
+/// @{
 
 /// Class which defines a mesh of finite elements of class ChFelem,
 /// between nodes of class  ChFnode.
-
 class ChApiFea ChMesh : public ChIndexedNodes {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMesh, ChIndexedNodes);
 
   private:
-    std::vector<ChSharedPtr<ChNodeFEAbase> > vnodes;     //  nodes
-    std::vector<ChSharedPtr<ChElementBase> > velements;  //  elements
+    std::vector<std::shared_ptr<ChNodeFEAbase> > vnodes;     ///<  nodes
+    std::vector<std::shared_ptr<ChElementBase> > velements;  ///<  elements
 
-    unsigned int n_dofs;    // total degrees of freedom
-    unsigned int n_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
+    unsigned int n_dofs;    ///< total degrees of freedom
+    unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 
-    std::vector<ChSharedPtr<ChContactSurface> > vcontactsurfaces;  //  contact surfaces
-    std::vector<ChSharedPtr<ChMeshSurface> >    vmeshsurfaces;     //  mesh surfaces, ex.for loads
+    std::vector<std::shared_ptr<ChContactSurface> > vcontactsurfaces;  ///<  contact surfaces
+    std::vector<std::shared_ptr<ChMeshSurface> >    vmeshsurfaces;     ///<  mesh surfaces, ex.for loads
     
     bool automatic_gravity_load;
 	int num_points_gravity;
 
-  public:
-    ChMesh() {
-        n_dofs = 0;
-        n_dofs_w = 0;
-        automatic_gravity_load = true;
-        num_points_gravity = 1;
-    };
-    ~ChMesh(){};
+    ChTimer<> timer_internal_forces;
+    ChTimer<> timer_KRMload;
+    int ncalls_internal_forces;
+    int ncalls_KRMload;
 
-    void AddNode(ChSharedPtr<ChNodeFEAbase> m_node);
-    void AddElement(ChSharedPtr<ChElementBase> m_elem);
+  public:
+    ChMesh()
+        : n_dofs(0),
+          n_dofs_w(0),
+          automatic_gravity_load(true),
+          num_points_gravity(1),
+          ncalls_internal_forces(0),
+          ncalls_KRMload(0) {}
+
+    ~ChMesh() {}
+
+    void AddNode(std::shared_ptr<ChNodeFEAbase> m_node);
+    void AddElement(std::shared_ptr<ChElementBase> m_elem);
     void ClearNodes();
     void ClearElements();
 
     /// Access the N-th node
-    virtual ChSharedPtr<ChNodeBase> GetNode(unsigned int n) { return vnodes[n]; };
+    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) { return vnodes[n]; };
     /// Access the N-th element
-    virtual ChSharedPtr<ChElementBase> GetElement(unsigned int n) { return velements[n]; };
+    virtual std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; };
 
     unsigned int GetNnodes() { return (unsigned int)vnodes.size(); }
     unsigned int GetNelements() { return (unsigned int)velements.size(); }
@@ -74,13 +84,23 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual int GetDOF_w() { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem
-    virtual bool GetCollide() { return true; };
+    virtual bool GetCollide() { return true; }
+
+    /// Get number of calls to internal forces evaluation.
+    int GetNumCallsInternalForces() { return ncalls_internal_forces; }
+    /// Get number of calls to load Jacobian information.
+    int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
+
+    /// Get cummulative timing for internal force evaluation.
+    double GetTimingInternalForces() { return timer_internal_forces(); }
+    /// Get cummulative timing for Jacobian load calls.
+    double GetTimingJacobianLoad() { return timer_KRMload(); }
 
     /// Add a contact surface
-    void AddContactSurface(ChSharedPtr<ChContactSurface> m_surf);
+    void AddContactSurface(std::shared_ptr<ChContactSurface> m_surf);
 
     /// Access the N-th contact surface
-    virtual ChSharedPtr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; };
+    virtual std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; };
 
     /// Get number of added contact surfaces
     unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
@@ -90,10 +110,10 @@ class ChApiFea ChMesh : public ChIndexedNodes {
 
 
     /// Add a mesh surface (set of ChLoadableUV items that support area loads such as pressure, etc.)
-    void AddMeshSurface(ChSharedPtr<ChMeshSurface> m_surf);
+    void AddMeshSurface(std::shared_ptr<ChMeshSurface> m_surf);
 
     /// Access the N-th mesh surface
-    virtual ChSharedPtr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; };
+    virtual std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; };
 
     /// Get number of added mesh surfaces
     unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
@@ -125,46 +145,25 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
     /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
 	void SetAutomaticGravity(bool mg, int num_points = 1) { automatic_gravity_load = mg; num_points_gravity = num_points; }
-    /// Tell if this mesh will add automatically a gravity load to all contained elements 
-    bool GetAutomaticGravity() {return automatic_gravity_load;} 
+    /// Tell if this mesh will add automatically a gravity load to all contained elements
+    bool GetAutomaticGravity() { return automatic_gravity_load; }
 
-    /// Load tetahedrons from .node and .ele files as saved by TetGen.
-    /// The file format for .node (with point# starting from 1) is:
-    ///   [# of points] [dimension (only 3)] [# of attributes (only 0)] [markers (only 0)]
-    ///   [node #] [x] [y] [z]
-    ///   [node #] [x] [y] [z]   etc.
-    /// The file format for .ele (with tet# starting from 1) is:
-    ///   [# of tetahedrons] [dimension (only 4 supported)] [# of attributes (only 0)]
-    ///   [tet #] [node #] [node #] [node #] [node #]
-    ///   [tet #] [node #] [node #] [node #] [node #]   etc.
-    /// If you pass a material inherited by ChContinuumElastic, nodes with 3D motion are used, and corotational
-    /// elements.
-    /// If you pass a material inherited by ChContinuumPoisson3D, nodes with scalar field are used (ex. thermal,
-    /// electrostatics, etc)
-    void LoadFromTetGenFile(const char* filename_node,                      ///< name of the .node file
-                            const char* filename_ele,                       ///< name of the .ele  file
-                            ChSharedPtr<ChContinuumMaterial> my_material,   ///< material for the created tetahedrons
-                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
-                            ChMatrix33<> rot_transform = ChMatrix33<>(1));  ///< optional rotation/scaling of imported mesh
-
-    /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
-    void LoadFromAbaqusFile(const char* filename,
-                            ChSharedPtr<ChContinuumMaterial> my_material,
-                            std::vector<std::vector<ChSharedPtr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes 
-                            ChVector<> pos_transform = VNULL,               ///< optional displacement of imported mesh
-                            ChMatrix33<> rot_transform = ChMatrix33<>(1),   ///< optional rotation/scaling of imported mesh
-                            bool discard_unused_nodes = true);              ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
+    /// Get ChMesh mass properties
+    void ComputeMassProperties(double& mass,          ///< ChMesh object mass
+                               ChVector<>& com,       ///< ChMesh center of gravity
+                               ChMatrix33<>& inertia  ///< ChMesh inertia tensor
+                               );
 
     //
     // STATE FUNCTIONS
     //
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGather(const unsigned int off_x,
-                                ChState& x,
-                                const unsigned int off_v,
-                                ChStateDelta& v,
-                                double& T);
+        // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+        virtual void IntStateGather(const unsigned int off_x,
+                                    ChState& x,
+                                    const unsigned int off_v,
+                                    ChStateDelta& v,
+                                    double& T);
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
@@ -248,6 +247,8 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
     virtual void SetupInitial() override;
 };
+
+/// @} fea_module
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -108,13 +108,13 @@ class ChApi ChConveyor : public ChPhysicsItem {
     void SetPos(const ChVector<>& mpos) { this->GetTruss()->SetPos(mpos);}
 
     /// Access the material surface properties of the conveyor belt (shortcut)
-    ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return this->GetPlate()->GetMaterialSurfaceBase(); } // Moved below
+    std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return this->GetPlate()->GetMaterialSurfaceBase(); }
 
     /// Access the DVI material surface properties of the conveyor belt (shortcut)
-    ChSharedPtr<ChMaterialSurface> GetMaterialSurface() { return this->GetPlate()->GetMaterialSurface(); }
+    std::shared_ptr<ChMaterialSurface> GetMaterialSurface() { return this->GetPlate()->GetMaterialSurface(); }
 
     /// Set the material surface properties by passing a ChMaterialSurface or ChMaterialSurfaceDEM object.
-    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { this->GetPlate()->SetMaterialSurface(mnewsurf); }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { this->GetPlate()->SetMaterialSurface(mnewsurf); }
 
     //
     // STATE FUNCTIONS
@@ -187,10 +187,6 @@ class ChApi ChConveyor : public ChPhysicsItem {
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsBiLoad_Qc(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions

@@ -13,28 +13,23 @@
 #ifndef CHLINKPOINTPOINT_H
 #define CHLINKPOINTPOINT_H
 
-
-
-#include "physics/ChLinkBase.h"
+#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChLinkBase.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
 
-
-namespace chrono
-{
+namespace chrono {
 
 class ChIndexedNodes; // forward ref
 
-namespace fea
-{
+namespace fea {
 
-
+/// @addtogroup fea_constraints
+/// @{
 
 /// Class for creating a constraint between two xyz FEA nodes (points).
 /// That is, the two nodes will be joined, as overlapping.
 /// Nodes are 3-DOF points that are used in point-based 
 /// primitives, such as ChMatterSPH or finite elements.
-
 class ChApiFea ChLinkPointPoint : public ChLinkBase {
 
 						// Chrono simulation of RTTI, needed for serialization
@@ -52,11 +47,8 @@ private:
 	ChLcpConstraintTwoGeneric constraint2;
 	ChLcpConstraintTwoGeneric constraint3;
 
-	ChVector<> cache_li_speed;	// used to cache the last computed value of multiplier (solver warm starting)
-	ChVector<> cache_li_pos;	// used to cache the last computed value of multiplier (solver warm starting)	
-
-	ChSharedPtr<fea::ChNodeFEAxyz> mnodeA;
-    ChSharedPtr<fea::ChNodeFEAxyz> mnodeB;
+    std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
+    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
 
 public:
 
@@ -114,10 +106,6 @@ public:
 	virtual void ConstraintsBiLoad_C(double factor=1., double recovery_clamp=0.1, bool do_clamp=false);
 	virtual void ConstraintsBiLoad_Ct(double factor=1.);
 	virtual void ConstraintsLoadJacobians();
-	virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-	virtual void ConstraintsLiLoadSuggestedPositionSolution();
-	virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-	virtual void ConstraintsLiFetchSuggestedPositionSolution();
 	virtual void ConstraintsFetch_react(double factor=1.);
 
 
@@ -130,15 +118,15 @@ public:
 				/// the two nodes join. 
 				/// The attachment position is the actual position of the node.
 				/// Note, mnodes must belong to the same ChSystem. 
-	virtual int Initialize(ChSharedPtr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
-						   ChSharedPtr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
+						   std::shared_ptr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
 						   );
 
 				/// Get the 1st connected xyz node (point)
-	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNodeA() { return this->mnodeA;}
+    virtual std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() { return this->mnodeA; }
 
     			/// Get the 2nd connected xyz node (point)
-	virtual ChSharedPtr<fea::ChNodeFEAxyz> GetConstrainedNodeB() { return this->mnodeB;}
+    virtual std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() { return this->mnodeB; }
 				
 				/// Get the reaction force considered as applied to ChShaft.
 	ChVector<> GetReactionOnNode() {return -(react);}
@@ -168,9 +156,7 @@ public:
 
 };
 
-
-
-
+/// @} fea_constraints
 
 } // END_OF_NAMESPACE____
 } // END_OF_NAMESPACE____

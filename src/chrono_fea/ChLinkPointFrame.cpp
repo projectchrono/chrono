@@ -11,8 +11,8 @@
 //
 
 #include "chrono_fea/ChLinkPointFrame.h"
-#include "physics/ChSystem.h"
-#include "physics/ChIndexedNodes.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChIndexedNodes.h"
 
 using namespace chrono;
 using namespace fea;
@@ -26,8 +26,6 @@ ChClassRegister<ChLinkPointFrame> a_registration_ChLinkPointFrame;
 
 ChLinkPointFrame::ChLinkPointFrame() {
 	this->react= VNULL;
-	this->cache_li_speed = VNULL;
-	this->cache_li_pos = VNULL;
 	this->attach_reference = CSYSNORM;
 
 	SetIdentifier(GetUniqueIntID()); // mark with unique ID
@@ -43,8 +41,6 @@ void ChLinkPointFrame::Copy(ChLinkPointFrame* source) {
 		// copy class data
 	attach_reference = source->attach_reference;
 	react = source->react;
-	cache_li_speed = source->cache_li_speed;
-	cache_li_pos = source->cache_li_pos;
 }
 
 ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
@@ -55,25 +51,25 @@ ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
 	return CSYSNORM;
 }
 
-int ChLinkPointFrame::Initialize(ChSharedPtr<ChIndexedNodes> mnodes, ///< nodes container
-						   unsigned int mnode_index, ///< index of the node to join
-						   ChSharedPtr<ChBodyFrame>  mbody,   ///< body to join 
+int ChLinkPointFrame::Initialize(std::shared_ptr<ChIndexedNodes> mnodes,  ///< nodes container
+                                 unsigned int mnode_index,                ///< index of the node to join
+                                 std::shared_ptr<ChBodyFrame> mbody,      ///< body to join
                                  ChVector<>* mattach) {
-	assert(!mnodes.IsNull());
+    assert(mnodes);
 
-	ChSharedPtr<ChNodeFEAxyz> anode(mnodes->GetNode(mnode_index).DynamicCastTo<ChNodeFEAxyz>() ); // downcasting
+    std::shared_ptr<ChNodeFEAxyz> anode(std::dynamic_pointer_cast<ChNodeFEAxyz>(mnodes->GetNode(mnode_index))); // downcasting
 	
-	if (anode.IsNull()) 
+	if (!anode) 
         return false;  // downcasting wasn't successfull (in a ChIndexedNodes, different types of nodes could be
                        // present..)
 
 	return this->Initialize(anode, mbody, mattach);
 }
 
-int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to join
-						   ChSharedPtr<ChBodyFrame>  mbody,		///< body to join 
+int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> anode,  ///< node to join
+						         std::shared_ptr<ChBodyFrame>  mbody,  ///< body to join 
                                  ChVector<>* mattach) {
-	assert(!anode.IsNull() && !mbody.IsNull());
+	assert(anode && mbody);
 
 	this->body = mbody;
 	this->mnode = anode;
@@ -88,7 +84,7 @@ int ChLinkPointFrame::Initialize(ChSharedPtr<ChNodeFEAxyz> anode,  ///< node to 
 		this->attach_reference.pos = body->TransformPointParentToLocal(*mattach);
     } else {
 		// downcasting
-        if (mnode.IsNull())
+        if (!mnode)
             return false;
 
 		ChVector<> temp= mnode->GetPos(); 
@@ -218,7 +214,7 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 	//if (!this->IsActive())
 	//	return;
 
-	if (mnode.IsNull()) 
+	if (!mnode) 
 		return;
 
 	ChMatrix33<> Arw (attach_reference.rot >> body->GetRot());
@@ -272,32 +268,6 @@ void ChLinkPointFrame::ConstraintsFetch_react(double factor) {
 	this->react.x = constraint1.Get_l_i() * factor; 
 	this->react.y = constraint2.Get_l_i() * factor; 
 	this->react.z = constraint3.Get_l_i() * factor; 
-}
-
-// Following functions are for exploiting the contact persistence
-
-void ChLinkPointFrame::ConstraintsLiLoadSuggestedSpeedSolution() {
-	constraint1.Set_l_i(this->cache_li_speed.x);
-	constraint2.Set_l_i(this->cache_li_speed.y);
-	constraint3.Set_l_i(this->cache_li_speed.z);
-}
-
-void ChLinkPointFrame::ConstraintsLiLoadSuggestedPositionSolution() {
-	constraint1.Set_l_i(this->cache_li_pos.x);
-	constraint2.Set_l_i(this->cache_li_pos.y);
-	constraint3.Set_l_i(this->cache_li_pos.z);
-}
-
-void ChLinkPointFrame::ConstraintsLiFetchSuggestedSpeedSolution() {
-	this->cache_li_speed.x = (float)constraint1.Get_l_i();
-	this->cache_li_speed.y = (float)constraint2.Get_l_i();
-	this->cache_li_speed.z = (float)constraint3.Get_l_i();
-}
-
-void ChLinkPointFrame::ConstraintsLiFetchSuggestedPositionSolution() {
-	this->cache_li_pos.x =  (float)constraint1.Get_l_i();
-	this->cache_li_pos.y =  (float)constraint2.Get_l_i();
-	this->cache_li_pos.z =  (float)constraint3.Get_l_i();
 }
 
 //////// FILE I/O

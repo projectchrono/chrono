@@ -30,7 +30,7 @@ class ChApi ChLineShape : public ChVisualization {
     //
     // DATA
     //
-    ChSharedPtr<geometry::ChLine> gline;
+    std::shared_ptr<geometry::ChLine> gline;
     std::string name;
 
   public:
@@ -40,9 +40,10 @@ class ChApi ChLineShape : public ChVisualization {
 
     ChLineShape() {
         // default path
-        gline = ChSharedPtr<geometry::ChLine>(new geometry::ChLineSegment);
+        gline = std::make_shared<geometry::ChLineSegment>();
     };
-    ChLineShape(ChSharedPtr<geometry::ChLine>& mline) : gline(mline){};
+
+    ChLineShape(std::shared_ptr<geometry::ChLine>& mline) : gline(mline){};
 
     virtual ~ChLineShape(){};
 
@@ -51,10 +52,10 @@ class ChApi ChLineShape : public ChVisualization {
     //
 
     // Access the line geometry
-    ChSharedPtr<geometry::ChLine> GetLineGeometry() { return gline; }
+    std::shared_ptr<geometry::ChLine> GetLineGeometry() { return gline; }
 
     // Set the line geometry
-    void SetLineGeometry(ChSharedPtr<geometry::ChLine> mline) { gline = mline; }
+    void SetLineGeometry(std::shared_ptr<geometry::ChLine> mline) { gline = mline; }
 
     const std::string& GetName() const { return name; }
     void SetName(const std::string& mname) { name = mname; }

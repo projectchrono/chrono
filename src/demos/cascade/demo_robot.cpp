@@ -29,20 +29,15 @@
 ///////////////////////////////////////////////////
 
 #include "chrono/core/ChRealtimeStep.h"
-
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
-#include "chrono_cascade/ChCascadeMeshTools.h"
-#include "chrono_cascade/ChIrrCascadeMeshTools.h"
-#include "chrono_cascade/ChIrrCascade.h"
-
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
-
-#include <irrlicht.h>
+#include "chrono_cascade/ChCascadeShapeAsset.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irlicht
 using namespace irr;
@@ -66,15 +61,15 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrAppInterface application(&my_system, L"Load a robot model from STEP file", core::dimension2d<u32>(800, 600),
+    ChIrrApp application(&my_system, L"Load a robot model from STEP file", core::dimension2d<u32>(800, 600),
                                   false, true, video::EDT_OPENGL);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    // ChIrrWizard::add_typical_Logo(application.GetDevice());
+    ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
                                     core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2, 1.6, -3.5));
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 1.6f, -3.5f), core::vector3df(0.0f, 1.0f, 0.0f));
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -85,18 +80,8 @@ int main(int argc, char* argv[]) {
     // and manages its subassembles
     ChCascadeDoc mydoc;
 
-    ChBodySceneNodeAuxRef* mrigidBody_base = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_turret = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_bicep = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_elbow = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_forearm = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_wrist = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_hand = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_cylinder = 0;
-    ChBodySceneNodeAuxRef* mrigidBody_rod = 0;
-
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP("../data/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp");
+    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("/cascade/IRB7600_23_500_m2000_rev1_01_decorated.stp").c_str());
 
     // print the contained shapes
     mydoc.Dump(GetLog());
@@ -104,7 +89,23 @@ int main(int argc, char* argv[]) {
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
 
-    // In most CADs the Y axis is horizontal, but we want it vertical.
+    //
+    // Retrieve some sub shapes from the loaded model, using
+    // the GetNamedShape() function, that can use path/subpath/subsubpath/part
+    // syntax and * or ? wldcards, etc.
+    //
+
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_base;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_turret;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_bicep;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_elbow;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_forearm;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_wrist;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_hand;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_cylinder;
+    std::shared_ptr<ChBodyEasyCascade> mrigidBody_rod;
+
+    // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
     ChQuaternion<> rotation1;
     rotation1.Q_from_AngAxis(-CH_C_PI / 2, VECT_X);  // 1: rotate 90° on X axis
@@ -114,112 +115,124 @@ int main(int argc, char* argv[]) {
     ChFrameMoving<> root_frame(ChVector<>(0, 0, 0), tot_rotation);
 
     if (load_ok) {
-        // Retrieve some sub shapes from the loaded model, using
-        // the GetNamedShape() function, that can use path/subpath/subsubpath/part
-        // syntax and * or ? wldcards, etc.
+        
 
         TopoDS_Shape shape_base;
         if (mydoc.GetNamedShape(shape_base, "Assem10/Assem8")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_base = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_base);
+
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_base, 1000, false, true));
+            mrigidBody_base = mbody;
+
+            my_system.Add(mrigidBody_base);
 
             // The base is fixed to the ground
-            mrigidBody_base->GetBody()->SetBodyFixed(true);
+            mrigidBody_base->SetBodyFixed(true);
 
-            // Move the body as for global displacement/rotation by pre-transform its coords.
-            // Note, it could be written also as   mrigidBody_base->GetBody() %= root_frame;
-            mrigidBody_base->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_base->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_turret;
         if (mydoc.GetNamedShape(shape_turret, "Assem10/Assem4")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_turret = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_turret);
+
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_turret, 1000, false, true));
+            mrigidBody_turret = mbody;
+
+            my_system.Add(mrigidBody_turret);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_turret->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_turret->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_bicep;
         if (mydoc.GetNamedShape(shape_bicep, "Assem10/Assem1")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_bicep = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_bicep);
+
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_bicep, 1000, false, true));
+            mrigidBody_bicep = mbody;
+
+            my_system.Add(mrigidBody_bicep);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_bicep->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_bicep->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_elbow;
         if (mydoc.GetNamedShape(shape_elbow, "Assem10/Assem5")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_elbow = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_elbow);
+            
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_elbow, 1000, false, true));
+            mrigidBody_elbow = mbody;
+
+            my_system.Add(mrigidBody_elbow);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_elbow->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_elbow->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_forearm;
         if (mydoc.GetNamedShape(shape_forearm, "Assem10/Assem7")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_forearm = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_forearm);
+
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_forearm, 1000, false, true));
+            mrigidBody_forearm = mbody;
+
+            my_system.Add(mrigidBody_forearm);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_forearm->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_forearm->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_wrist;
         if (mydoc.GetNamedShape(shape_wrist, "Assem10/Assem6")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_wrist = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_wrist);
+            
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_wrist, 1000, false, true));
+            mrigidBody_wrist = mbody;
+
+            my_system.Add(mrigidBody_wrist);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_wrist->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_wrist->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_hand;
         if (mydoc.GetNamedShape(shape_hand, "Assem10/Assem9")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_hand = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_hand);
 
-            // mrigidBody_hand->GetBody()->SetBodyFixed(true);
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_hand, 1000, false, true));
+            mrigidBody_hand = mbody;
+
+            my_system.Add(mrigidBody_hand);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_hand->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_hand->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_cylinder;
         if (mydoc.GetNamedShape(shape_cylinder, "Assem10/Assem3")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_cylinder = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_cylinder);
+            
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_cylinder, 1000, false, true));
+            mrigidBody_cylinder = mbody;
+
+            my_system.Add(mrigidBody_cylinder);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_cylinder->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_cylinder->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_rod;
         if (mydoc.GetNamedShape(shape_rod, "Assem10/Assem2")) {
-            // Add the shape to the Irrlicht system, to get also visualization.
-            mrigidBody_rod = (ChBodySceneNodeAuxRef*)addChBodySceneNode_Cascade_C(
-                &my_system, application.GetSceneManager(), shape_rod);
+
+            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_rod, 1000, false, true));
+            mrigidBody_rod = mbody;
+
+            my_system.Add(mrigidBody_rod);
 
             // Move the body as for global displacement/rotation
-            mrigidBody_rod->GetBody()->ConcatenatePreTransformation(root_frame);
+            mrigidBody_rod->ConcatenatePreTransformation(root_frame);
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
@@ -247,10 +260,8 @@ int main(int argc, char* argv[]) {
     // Transform the abs coordinates of the marker because everything was rotated/moved by 'root_frame' :
     frame_marker_base_turret %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link1(new ChLinkLockRevolute);
-    ChSharedBodyPtr mb1 = mrigidBody_base->GetBody();
-    ChSharedBodyPtr mb2 = mrigidBody_turret->GetBody();
-    my_link1->Initialize(mb1, mb2, frame_marker_base_turret.GetCoord());
+    std::shared_ptr<ChLinkLockRevolute> my_link1(new ChLinkLockRevolute);
+    my_link1->Initialize(mrigidBody_base, mrigidBody_turret, frame_marker_base_turret.GetCoord());
     my_system.AddLink(my_link1);
 
     ChFrame<> frame_marker_turret_bicep;
@@ -260,10 +271,8 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_turret_bicep %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link2(new ChLinkLockRevolute);
-    mb1 = mrigidBody_turret->GetBody();
-    mb2 = mrigidBody_bicep->GetBody();
-    my_link2->Initialize(mb1, mb2, frame_marker_turret_bicep.GetCoord());
+    std::shared_ptr<ChLinkLockRevolute> my_link2(new ChLinkLockRevolute);
+    my_link2->Initialize(mrigidBody_turret, mrigidBody_bicep, frame_marker_turret_bicep.GetCoord());
     my_system.AddLink(my_link2);
 
     ChFrame<> frame_marker_bicep_elbow;
@@ -273,10 +282,8 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_bicep_elbow %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link3(new ChLinkLockRevolute);
-    mb1 = mrigidBody_bicep->GetBody();
-    mb2 = mrigidBody_elbow->GetBody();
-    my_link3->Initialize(mb1, mb2, frame_marker_bicep_elbow.GetCoord());
+    std::shared_ptr<ChLinkLockRevolute> my_link3(new ChLinkLockRevolute);
+    my_link3->Initialize(mrigidBody_bicep, mrigidBody_elbow, frame_marker_bicep_elbow.GetCoord());
     my_system.AddLink(my_link3);
 
     ChFrame<> frame_marker_elbow_forearm;
@@ -286,10 +293,8 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_elbow_forearm %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link4(new ChLinkLockRevolute);
-    mb1 = mrigidBody_elbow->GetBody();
-    mb2 = mrigidBody_forearm->GetBody();
-    my_link4->Initialize(mb1, mb2, frame_marker_elbow_forearm.GetCoord());
+    std::shared_ptr<ChLinkLockRevolute> my_link4(new ChLinkLockRevolute);
+    my_link4->Initialize(mrigidBody_elbow, mrigidBody_forearm, frame_marker_elbow_forearm.GetCoord());
     my_system.AddLink(my_link4);
 
     ChFrame<> frame_marker_forearm_wrist;
@@ -299,10 +304,8 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_forearm_wrist %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link5(new ChLinkLockRevolute);
-    mb1 = mrigidBody_forearm->GetBody();
-    mb2 = mrigidBody_wrist->GetBody();
-    my_link5->Initialize(mb1, mb2, frame_marker_forearm_wrist.GetCoord());
+    std::shared_ptr<ChLinkLockRevolute> my_link5(new ChLinkLockRevolute);
+    my_link5->Initialize(mrigidBody_forearm, mrigidBody_wrist, frame_marker_forearm_wrist.GetCoord());
     my_system.AddLink(my_link5);
 
     ChFrame<> frame_marker_wrist_hand;
@@ -312,10 +315,8 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_wrist_hand %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link6(new ChLinkLockRevolute);
-    mb1 = mrigidBody_wrist->GetBody();
-    mb2 = mrigidBody_hand->GetBody();
-    my_link6->Initialize(mb1, mb2, frame_marker_wrist_hand.GetCoord());
+    std::shared_ptr<ChLinkLockRevolute> my_link6(new ChLinkLockRevolute);
+    my_link6->Initialize(mrigidBody_wrist, mrigidBody_hand, frame_marker_wrist_hand.GetCoord());
     my_system.AddLink(my_link6);
 
     ChFrame<> frame_marker_turret_cylinder;
@@ -325,10 +326,8 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_turret_cylinder %= root_frame;
 
-    ChSharedPtr<ChLinkLockRevolute> my_link7(new ChLinkLockRevolute);
-    mb1 = mrigidBody_turret->GetBody();
-    mb2 = mrigidBody_cylinder->GetBody();
-    my_link7->Initialize(mb1, mb2, frame_marker_turret_cylinder.GetCoord());
+    std::shared_ptr<ChLinkLockRevolute> my_link7(new ChLinkLockRevolute);
+    my_link7->Initialize(mrigidBody_turret, mrigidBody_cylinder, frame_marker_turret_cylinder.GetCoord());
     my_system.AddLink(my_link7);
 
     ChFrame<> frame_marker_cylinder_rod;
@@ -338,10 +337,8 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_cylinder_rod %= root_frame;
 
-    ChSharedPtr<ChLinkLockCylindrical> my_link8(new ChLinkLockCylindrical);
-    mb1 = mrigidBody_cylinder->GetBody();
-    mb2 = mrigidBody_rod->GetBody();
-    my_link8->Initialize(mb1, mb2, frame_marker_cylinder_rod.GetCoord());
+    std::shared_ptr<ChLinkLockCylindrical> my_link8(new ChLinkLockCylindrical);
+    my_link8->Initialize(mrigidBody_cylinder, mrigidBody_rod, frame_marker_cylinder_rod.GetCoord());
     my_system.AddLink(my_link8);
 
     ChFrame<> frame_marker_rod_bicep;
@@ -351,21 +348,19 @@ int main(int argc, char* argv[]) {
         GetLog() << "Warning. Desired marker not found in document \n";
     frame_marker_rod_bicep %= root_frame;
 
-    ChSharedPtr<ChLinkLockCylindrical> my_link9(new ChLinkLockCylindrical);
-    mb1 = mrigidBody_rod->GetBody();
-    mb2 = mrigidBody_bicep->GetBody();
-    my_link9->Initialize(mb1, mb2, frame_marker_rod_bicep.GetCoord());
+    std::shared_ptr<ChLinkLockCylindrical> my_link9(new ChLinkLockCylindrical);
+    my_link9->Initialize(mrigidBody_rod, mrigidBody_bicep, frame_marker_rod_bicep.GetCoord());
     my_system.AddLink(my_link9);
 
     // Add a couple of markers for the 'lock' constraint between the hand and the
     // absolute reference: when we will move the marker in absolute reference, the
     // hand will follow it.
 
-    ChSharedMarkerPtr my_marker_hand(new ChMarker);
-    ChSharedMarkerPtr my_marker_move(new ChMarker);
+    std::shared_ptr<ChMarker> my_marker_hand(new ChMarker);
+    std::shared_ptr<ChMarker> my_marker_move(new ChMarker);
 
-    mrigidBody_hand->GetBody()->AddMarker(my_marker_hand);
-    mrigidBody_base->GetBody()->AddMarker(my_marker_move);
+    mrigidBody_hand->AddMarker(my_marker_hand);
+    mrigidBody_base->AddMarker(my_marker_move);
 
     ChQuaternion<> rot_on_x;
     rot_on_x.Q_from_AngAxis(CH_C_PI / 2, VECT_X);
@@ -374,7 +369,7 @@ int main(int argc, char* argv[]) {
     my_marker_hand->Impose_Abs_Coord(frame_marker_wrist_hand.GetCoord());
     my_marker_move->Impose_Abs_Coord(frame_marker_move.GetCoord());
 
-    ChSharedPtr<ChLinkLockLock> my_link_teacher(new ChLinkLockLock);
+    std::shared_ptr<ChLinkLockLock> my_link_teacher(new ChLinkLockLock);
     my_link_teacher->Initialize(my_marker_hand, my_marker_move);
     my_system.AddLink(my_link_teacher);
 
@@ -383,15 +378,15 @@ int main(int argc, char* argv[]) {
     // motion for Z coordinate and four for Y coordinate, we join them with
     // ChFunction_Sequence and we repeat sequence by ChFunction_Repeat
 
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_z1 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_z1 (new ChFunction_ConstAcc);
     motlaw_z1->Set_h(-0.7);
     motlaw_z1->Set_end(1);
-    ChSharedPtr<ChFunction_Const> motlaw_z2 (new ChFunction_Const);
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_z3 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const> motlaw_z2 (new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_z3 (new ChFunction_ConstAcc);
     motlaw_z3->Set_h(0.7);
     motlaw_z3->Set_end(1);
-    ChSharedPtr<ChFunction_Const> motlaw_z4 (new ChFunction_Const);
-    ChSharedPtr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
+    std::shared_ptr<ChFunction_Const> motlaw_z4 (new ChFunction_Const);
+    std::shared_ptr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
     motlaw_z_seq->InsertFunct(motlaw_z1, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_z_seq->InsertFunct(motlaw_z3, 1, 1, true);
@@ -400,15 +395,15 @@ int main(int argc, char* argv[]) {
     motlaw_z->Set_fa(motlaw_z_seq);
     motlaw_z->Set_window_length(4);
 
-    ChSharedPtr<ChFunction_Const>    motlaw_y1 (new ChFunction_Const);
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_y2 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const>    motlaw_y1 (new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_y2 (new ChFunction_ConstAcc);
     motlaw_y2->Set_h(-0.6);
     motlaw_y2->Set_end(1);
-    ChSharedPtr<ChFunction_Const>    motlaw_y3(new ChFunction_Const);
-    ChSharedPtr<ChFunction_ConstAcc> motlaw_y4(new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const>    motlaw_y3(new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_y4(new ChFunction_ConstAcc);
     motlaw_y4->Set_h(0.6);
     motlaw_y4->Set_end(1);
-    ChSharedPtr<ChFunction_Sequence> motlaw_y_seq(new ChFunction_Sequence);
+    std::shared_ptr<ChFunction_Sequence> motlaw_y_seq(new ChFunction_Sequence);
     motlaw_y_seq->InsertFunct(motlaw_y1, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_y_seq->InsertFunct(motlaw_y3, 1, 1, true);
@@ -420,15 +415,29 @@ int main(int argc, char* argv[]) {
     my_marker_move->SetMotion_Z(motlaw_z);
     my_marker_move->SetMotion_Y(motlaw_y);
 
+    
     // Create a large cube as a floor.
 
-    ChBodySceneNode* mfloor = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        &my_system, application.GetSceneManager(), 1000.0, ChVector<>(0, -0.6, 0), ChQuaternion<>(1, 0, 0, 0),
-        ChVector<>(20, 1, 20));
-    mfloor->GetBody()->SetBodyFixed(true);
-    mfloor->GetBody()->SetCollide(true);
-    video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
-    mfloor->setMaterialTexture(0, cubeMap);
+    std::shared_ptr<ChBodyEasyBox> mfloor( new ChBodyEasyBox(20,1,20,1000,true,true));
+    my_system.Add(mfloor);
+    mfloor->SetBodyFixed(true);
+
+    std::shared_ptr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("blu.png").c_str()));
+    mfloor->AddAsset(mtexture);
+
+
+    // Use this function for adding a ChIrrNodeAsset to all items
+    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    application.AssetBindAll();
+
+    // Use this function for 'converting' assets into Irrlicht meshes
+    application.AssetUpdateAll();
+
+
+    //
+    // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
+    //
+
 
     // Modify the settings of the solver.
     // By default, the solver might not have sufficient precision to keep the
@@ -441,6 +450,7 @@ int main(int argc, char* argv[]) {
     // and precise (although it is not fit for frictional collisions):
 
     my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
+    my_system.SetIterLCPmaxItersSpeed(44);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
@@ -461,7 +471,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         // .. plot something on realtime view
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z, 0, 10, -0.9, 0.2);
+        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z, 0, 10, -0.9, 0.2,10,400,300,80);
+        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y, 0, 10, -0.9, 0.2,10,500,300,80);
 
         application.GetVideoDriver()->endScene();
     }

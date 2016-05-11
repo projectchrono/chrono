@@ -41,7 +41,7 @@ ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
+void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                               const ChVector<>& location,
                               const ChQuaternion<>& rotation) {
     // Express the steering reference frame in the absolute coordinate system.
@@ -52,7 +52,7 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     ChVector<> link_local(0, GetSteeringLinkCOM(), 0);
     ChVector<> link_abs = steering_to_abs.TransformPointLocalToParent(link_local);
 
-    m_link = ChSharedPtr<ChBody>(new ChBody(chassis->GetSystem()->GetContactMethod()));
+    m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(link_abs);
     m_link->SetRot(steering_to_abs.GetRot());
@@ -62,7 +62,7 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     chassis->GetSystem()->AddBody(m_link);
 
     // Create and initialize the prismatic joint between chassis and link.
-    m_prismatic = ChSharedPtr<ChLinkLockPrismatic>(new ChLinkLockPrismatic);
+    m_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassis, m_link, ChCoordsys<>(link_abs, steering_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
     chassis->GetSystem()->AddLink(m_prismatic);
@@ -76,7 +76,7 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
     ChVector<> pt1 = link_abs;
     ChVector<> pt2 = link_abs - offset * steering_to_abs.GetRot().GetYaxis();
 
-    m_actuator = ChSharedPtr<ChLinkLinActuator>(new ChLinkLinActuator);
+    m_actuator = std::make_shared<ChLinkLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");
     m_actuator->Initialize(chassis, m_link, false, ChCoordsys<>(pt1, QUNIT), ChCoordsys<>(pt2, QUNIT));
     m_actuator->Set_lin_offset(offset);
@@ -85,14 +85,21 @@ void ChRackPinion::Initialize(ChSharedPtr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::Update(double time, double steering) {
+void ChRackPinion::Synchronize(double time, double steering) {
     // Convert the steering input into an angle of the pinion and then into a
     // displacement of the rack.
     double angle = steering * GetMaxAngle();
     double displ = angle * GetPinionRadius();
 
-    if (ChSharedPtr<ChFunction_Const> fun = m_actuator->Get_dist_funct().DynamicCastTo<ChFunction_Const>())
+    if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_actuator->Get_dist_funct()))
         fun->Set_yconst(displ);
+}
+
+// -----------------------------------------------------------------------------
+// Get the total mass of the steering subsystem
+// -----------------------------------------------------------------------------
+double ChRackPinion::GetMass() const {
+    return GetSteeringLinkMass();
 }
 
 // -----------------------------------------------------------------------------
@@ -100,13 +107,13 @@ void ChRackPinion::Update(double time, double steering) {
 void ChRackPinion::AddVisualizationSteeringLink() {
     double length = GetSteeringLinkLength();
 
-    ChSharedPtr<ChCylinderShape> cyl(new ChCylinderShape);
+    auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, length / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -length / 2, 0);
     cyl->GetCylinderGeometry().rad = GetSteeringLinkRadius();
     m_link->AddAsset(cyl);
 
-    ChSharedPtr<ChColorAsset> col(new ChColorAsset);
+    auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.8f, 0.8f, 0.2f));
     m_link->AddAsset(col);
 }

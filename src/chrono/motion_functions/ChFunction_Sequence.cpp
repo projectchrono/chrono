@@ -25,7 +25,7 @@
 namespace chrono {
 
 ChFseqNode::ChFseqNode() {
-    fx = ChSharedPtr< ChFunction >(new ChFunction_Const(0));
+    fx = std::make_shared<ChFunction_Const>(0);
     duration = 1;
     weight = 1;
     t_start = 0;
@@ -34,7 +34,7 @@ ChFseqNode::ChFseqNode() {
     y_cont = ydt_cont = ydtdt_cont = FALSE;
 }
 
-ChFseqNode::ChFseqNode(ChSharedPtr<ChFunction> myfx, double mdur) {
+ChFseqNode::ChFseqNode(std::shared_ptr<ChFunction> myfx, double mdur) {
     fx = myfx;
     duration = mdur;
     weight = 1;
@@ -50,7 +50,7 @@ ChFseqNode::~ChFseqNode() {
 
 void ChFseqNode::Copy(const ChFseqNode* source) {
     fx = source->fx;		//***? shallow copy (now sharing same object)...
-    //fx = ChSharedPtr<ChFunction>(source->fx->new_Duplicate());  //***? ..or deep copy? make optional with flag?
+    //fx = std::shared_ptr<ChFunction>(source->fx->new_Duplicate());  //***? ..or deep copy? make optional with flag?
     duration = source->duration;
     weight = source->weight;
     t_start = source->t_start;
@@ -96,7 +96,7 @@ ChFunction* ChFunction_Sequence::new_Duplicate() {
     return (m_func);
 }
 
-int ChFunction_Sequence::InsertFunct(ChSharedPtr<ChFunction> myfx,
+int ChFunction_Sequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
                                      double duration,
                                      double weight,
                                      bool c0,
@@ -160,11 +160,11 @@ int ChFunction_Sequence::KillFunct(int position) {
     return FALSE;
 }
 
-ChSharedPtr<ChFunction> ChFunction_Sequence::GetNthFunction(int position) {
+std::shared_ptr<ChFunction> ChFunction_Sequence::GetNthFunction(int position) {
     ChFseqNode* mnode = GetNthNode(position);
     if (mnode)
         return mnode->fx;    
-    return ChSharedPtr<ChFunction>();
+    return std::shared_ptr<ChFunction>();
 }
 
 double ChFunction_Sequence::GetNthDuration(int position) {
@@ -208,9 +208,7 @@ void ChFunction_Sequence::Setup() {
         iter->Iydt = 0;
         iter->Iydtdt = 0;
 
-        if (iter->fx.IsType<ChFunction_Fillet3>())  // C0 C1 fillet
-        {
-            ChSharedPtr<ChFunction_Fillet3> mfillet = iter->fx.DynamicCastTo<ChFunction_Fillet3>();
+        if (auto mfillet = std::dynamic_pointer_cast<ChFunction_Fillet3>(iter->fx)) {
             mfillet->Set_y1(lastIy);
             mfillet->Set_dy1(lastIy_dt);
 

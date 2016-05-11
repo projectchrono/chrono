@@ -26,9 +26,10 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_utils
+/// @{
+
 /// Customized Chrono Irrlicht application for wheeled vehicle visualization.
-///
 class CH_VEHICLE_API ChWheeledVehicleIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a wheeled vehicle Irrlicht application.
@@ -46,6 +47,8 @@ class CH_VEHICLE_API ChWheeledVehicleIrrApp : public ChVehicleIrrApp {
 
     ChWheeledVehicle* m_wvehicle;
 };
+
+/// @} vehicle_wheeled_utils
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -30,8 +30,18 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_utils Utility classes
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
+
+/// @addtogroup vehicle_wheeled_utils
+/// @{
 
 // -----------------------------------------------------------------------------
 /// Callback class for specifying driver inputs at a specified time.
@@ -56,9 +66,9 @@ class CH_VEHICLE_API ChTireContactCallback {
     /// append the contact shape(s) to the specified wheel body. Optionally,
     /// this function can first change the collision model type for the
     /// provided wheel body (consistent with the system type).
-    virtual void onCallback(ChSharedPtr<ChBody> wheelBody,  ///< Pointer to the wheel body
-                            double radius,                  ///< wheel radius
-                            double width                    ///< wheel width
+    virtual void onCallback(std::shared_ptr<ChBody> wheelBody,  ///< Pointer to the wheel body
+                            double radius,                      ///< wheel radius
+                            double width                        ///< wheel width
                             ) = 0;
 };
 
@@ -71,7 +81,7 @@ class CH_VEHICLE_API ChChassisContactCallback {
     /// append the contact shape(s) to the provided chassis body. Optionally,
     /// this function can first change the collision model type for the
     /// provided chassis body (consistent with the system type).
-    virtual void onCallback(ChSharedPtr<ChBodyAuxRef> chassisBody  ///< Pointer to the chassis body
+    virtual void onCallback(std::shared_ptr<ChBodyAuxRef> chassisBody  ///< Pointer to the chassis body
                             ) = 0;
 };
 
@@ -114,22 +124,24 @@ class CH_VEHICLE_API ChWheeledVehicleAssembly {
                     );
 
     /// Update the vehicle model at the specified time.
-    void Update(double time);
+    void Synchronize(double time);
 
     /// Get handle to the underlying vehicle subsystem.
-    ChSharedPtr<WheeledVehicle> GetVehicle() const { return m_vehicle; }
+    std::shared_ptr<WheeledVehicle> GetVehicle() const { return m_vehicle; }
 
     /// Get handle to the underlying powertrain subsystem.
-    ChSharedPtr<SimplePowertrain> GetPowertrain() const { return m_powertrain; }
+    std::shared_ptr<SimplePowertrain> GetPowertrain() const { return m_powertrain; }
 
   private:
-    ChSharedPtr<WheeledVehicle> m_vehicle;
-    ChSharedPtr<SimplePowertrain> m_powertrain;
+    std::shared_ptr<WheeledVehicle> m_vehicle;
+    std::shared_ptr<SimplePowertrain> m_powertrain;
     TireForces m_tire_forces;
     ChDriverInputsCallback* m_driver_cb;
     ChTireContactCallback* m_tire_cb;
     ChChassisContactCallback* m_chassis_cb;
 };
+
+/// @} vehicle_wheeled_utils
 
 }  // end namespace vehicle
 }  // namespace chrono

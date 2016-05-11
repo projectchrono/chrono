@@ -14,7 +14,7 @@
 
 #include "physics/ChMaterialSurfaceBase.h"
 
-/// Class for material surface data for DEM contact
+
 namespace chrono {
 
 struct ChCompositeMaterialDEM {
@@ -31,6 +31,7 @@ struct ChCompositeMaterialDEM {
     float gt;
 };
 
+/// Class for material surface data for DEM contact
 class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMaterialSurfaceDEM, ChMaterialSurfaceBase);
@@ -105,8 +106,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     void SetGt(float val) { gt = val; }
 
     /// Calculate composite material properties
-    static ChCompositeMaterialDEM CompositeMaterial(const ChSharedPtr<ChMaterialSurfaceDEM>& mat1,
-                                                    const ChSharedPtr<ChMaterialSurfaceDEM>& mat2);
+    static ChCompositeMaterialDEM CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceDEM>& mat1,
+                                                    const std::shared_ptr<ChMaterialSurfaceDEM>& mat2);
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"

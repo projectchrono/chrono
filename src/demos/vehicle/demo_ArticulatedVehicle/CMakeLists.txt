@@ -3,7 +3,6 @@
 # This example program works with and without Irrlicht run-time visualization
 #=============================================================================
 
-MESSAGE(STATUS "...add ARTICULATED_VEHICLE demo")
 
 #--------------------------------------------------------------
 # List all model files for this demo
@@ -26,12 +25,12 @@ SET(MODEL_FILES
     ../generic/Generic_RigidTire.h
 )
 
-SET(DEMO_FILES
-    demo_ArticulatedVehicle.cpp
+SET(DEMO
+    demo_VEH_ArticulatedVehicle
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -60,15 +59,17 @@ ENDIF()
 #--------------------------------------------------------------
 # Create the executable
 
+MESSAGE(STATUS "...add ${DEMO}")
+
 if(ENABLE_MODULE_IRRLICHT)
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 else()
   set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
 endif()
 
-ADD_EXECUTABLE(demo_ArticulatedVehicle ${DEMO_FILES} ${MODEL_FILES})
-SET_TARGET_PROPERTIES(demo_ArticulatedVehicle PROPERTIES 
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${MY_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_ArticulatedVehicle ${LIBRARIES} ${LIBRARIES_IRR})
-INSTALL(TARGETS demo_ArticulatedVehicle DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES} ${LIBRARIES_IRR})
+INSTALL(TARGETS ${DEMO} DESTINATION bin)

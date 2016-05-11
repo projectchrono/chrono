@@ -35,12 +35,12 @@ mysystem      = chrono.ChSystem()
 
 # Create a fixed rigid body
 
-mbody1 = chrono.ChBodyShared()
+mbody1 = chrono.ChBody()
 mbody1.SetBodyFixed(True)
 mbody1.SetPos( chrono.ChVectorD(0,0,-0.2))
 mysystem.Add(mbody1)
 
-mboxasset = chrono.ChBoxShapeShared()
+mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
 mbody1.AddAsset(mboxasset)
 
@@ -48,22 +48,22 @@ mbody1.AddAsset(mboxasset)
 
 # Create a swinging rigid body
 
-mbody2 = chrono.ChBodyShared()
+mbody2 = chrono.ChBody()
 mbody2.SetBodyFixed(False)
 mysystem.Add(mbody2)
 
-mboxasset = chrono.ChBoxShapeShared()
+mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
 mbody2.AddAsset(mboxasset)
 
-mboxtexture = chrono.ChTextureShared()
-mboxtexture.SetTextureFilename('../data/concrete.jpg')
+mboxtexture = chrono.ChTexture()
+mboxtexture.SetTextureFilename('../../../data/concrete.jpg')
 mbody2.GetAssets().push_back(mboxtexture)
 
 
 # Create a revolute constraint
 
-mlink = chrono.ChLinkRevoluteShared()
+mlink = chrono.ChLinkRevolute()
 
     # the coordinate system of the constraint reference in abs. space:
 mframe = chrono.ChFrameD(chrono.ChVectorD(0.1,0.5,0))
@@ -80,7 +80,7 @@ mysystem.Add(mlink)
 
 myapplication = chronoirr.ChIrrApp(mysystem)
 
-myapplication.AddTypicalSky('../data/skybox/')
+myapplication.AddTypicalSky('../../../data/skybox/')
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 

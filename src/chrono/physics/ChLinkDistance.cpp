@@ -31,23 +31,22 @@ ChLinkDistance::ChLinkDistance() {
     pos1 = pos2 = VNULL;
     distance = 0;
     curr_dist = 0;
-    cache_li_speed = cache_li_pos = 0;
 }
 
 ChLinkDistance::~ChLinkDistance() {
 }
 
 int ChLinkDistance::Initialize(
-    ChSharedPtr<ChBodyFrame> mbody1,  ///< first body to link
-    ChSharedPtr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpos1,       ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
-    ChVector<> mpos2,       ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
-    bool auto_distance,     ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
-    double mdistance        ///< imposed distance (no need to define, if auto_distance=true.)
+    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+    bool pos_are_relative,                ///< true: following posit. are considered relative to bodies. false: pos.are absolute
+    ChVector<> mpos1,                     ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
+    ChVector<> mpos2,                     ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
+    bool auto_distance,                   ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
+    double mdistance                      ///< imposed distance (no need to define, if auto_distance=true.)
     ) {
-    this->Body1 = mbody1.get_ptr();
-    this->Body2 = mbody2.get_ptr();
+    this->Body1 = mbody1.get();
+    this->Body2 = mbody2.get();
     this->Cx.SetVariables(&this->Body1->Variables(), &this->Body2->Variables());
 
     if (pos_are_relative) {
@@ -84,8 +83,6 @@ void ChLinkDistance::Copy(ChLinkDistance* source) {
     pos2 = source->pos2;
     distance = source->distance;
     curr_dist = source->curr_dist;
-    cache_li_speed = source->cache_li_speed;
-    cache_li_pos = source->cache_li_pos;
 }
 
 ChLink* ChLinkDistance::new_Duplicate() {
@@ -242,27 +239,6 @@ void ChLinkDistance::ConstraintsFetch_react(double factor) {
 
     react_torque = VNULL;
 }
-
-//
-// Following functions are for exploiting the contact persistence
-//
-
-void ChLinkDistance::ConstraintsLiLoadSuggestedSpeedSolution() {
-    Cx.Set_l_i(this->cache_li_speed);
-}
-
-void ChLinkDistance::ConstraintsLiLoadSuggestedPositionSolution() {
-    Cx.Set_l_i(this->cache_li_pos);
-}
-
-void ChLinkDistance::ConstraintsLiFetchSuggestedSpeedSolution() {
-    this->cache_li_speed = (float)Cx.Get_l_i();
-}
-
-void ChLinkDistance::ConstraintsLiFetchSuggestedPositionSolution() {
-    this->cache_li_pos = (float)Cx.Get_l_i();
-}
-
 
 
 void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive)

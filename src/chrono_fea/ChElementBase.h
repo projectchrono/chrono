@@ -13,38 +13,39 @@
 #ifndef CHELEMENTBASE_H
 #define CHELEMENTBASE_H
 
-#include "physics/ChContinuumMaterial.h"
-#include "physics/ChLoadable.h"
-#include "core/ChMath.h"
-#include "core/ChShared.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "ChNodeFEAbase.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChLoadable.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono_fea/ChNodeFEAbase.h"
 
 namespace chrono {
 namespace fea {
 
-/// Base class for all finite elements, that can be
-/// used in the ChMesh physics item.
+/// @addtogroup fea_elements
+/// @{
 
-class ChApiFea ChElementBase : public virtual ChShared {
+/// Base class for all finite elements, that can be used in the ChMesh physics item.
+class ChApiFea ChElementBase {
   protected:
   public:
     ChElementBase(){};
     virtual ~ChElementBase(){};
 
-    /// Gets the number of coordinates of the node positions in space;
-    /// note this is not the coordinates of the field, use GetNdofs() instead
-    virtual int GetNcoords() = 0;
-
-    /// Gets the number of nodes used by this element
+    /// Gets the number of nodes used by this element.
     virtual int GetNnodes() = 0;
 
-    /// Gets the number of coordinates in the field used by the referenced nodes,
-    /// this is for example the size (n.of rows/columns) of the local stiffness matrix
+    /// Gets the number of coordinates in the field used by the referenced nodes.
+    /// This is for example the size (n.of rows/columns) of the local stiffness matrix.
     virtual int GetNdofs() = 0;
 
-    /// Access the nth node
-    virtual ChSharedPtr<ChNodeFEAbase> GetNodeN(int n) = 0;
+    /// Get the number of coordinates from the n-th node that are used by this element.
+    /// Note that this may be different from the value returned by
+    ///    GetNodeN(n)->Get_ndof_w();
+    virtual int GetNodeNdofs(int n) = 0;
+
+    /// Access the nth node.
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) = 0;
 
     //
     // FEM functions
@@ -56,6 +57,14 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// For corotational elements, field is assumed in local reference!
     /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
     virtual void GetStateBlock(ChMatrixDynamic<>& mD) = 0;
+
+    /// Sets M as the mass matrix.
+    /// The matrix is expressed in global reference.
+    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
+    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) = 0;
+
+    /// Compute element's nodal masses.
+    virtual void ComputeNodalMass() {}
 
     /// Sets H as the stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and mass matrix M,
@@ -78,7 +87,7 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// Update: this is called at least at each time step. If the
     /// element has to keep updated some auxiliary data, such as the rotation
     /// matrices for corotational approach, this is the proper place.
-    virtual void Update(){};
+    virtual void Update() {}
 
     //
     // Functions for interfacing to the state bookkeeping
@@ -87,12 +96,12 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// Adds the internal forces (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
     ///   R += forces * c
-    virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c){};
+    virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {}
 
     /// Adds the product of element mass M by a vector w (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
     ///   R += M * v * c
-    virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c){};
+    virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}
 
     //
     // Functions for interfacing to the LCP solver
@@ -111,14 +120,16 @@ class ChApiFea ChElementBase : public virtual ChShared {
     /// Adds the internal forces, expressed as nodal forces, into the
     /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
     /// WILL BE DEPRECATED - see EleIntLoadResidual_F
-    virtual void VariablesFbLoadInternalForces(double factor = 1.){};
+    virtual void VariablesFbLoadInternalForces(double factor = 1.) {}
 
     /// Adds M*q (internal masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     /// WILL BE DEPRECATED
-    virtual void VariablesFbIncrementMq(){};
+    virtual void VariablesFbIncrementMq() {}
 };
+
+/// @} fea_elements
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

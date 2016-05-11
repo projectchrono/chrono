@@ -100,8 +100,8 @@ class ChContactDVIrolling :
         // Compute the 'average' material
 
           // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get_ptr());
-        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get_ptr());
+        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get());
+        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get());
 
         ChMaterialCouple mat;
         mat.rolling_friction  = (float)ChMin(mmatA->rolling_friction,  mmatB->rolling_friction);
@@ -284,37 +284,7 @@ class ChContactDVIrolling :
         react_torque.y = Ru.Get_l_i() * factor;
         react_torque.z = Rv.Get_l_i() * factor;
     }
-
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiLoadSuggestedSpeedSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
-    virtual void ConstraintsLiLoadSuggestedPositionSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiLoadSuggestedPositionSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiFetchSuggestedSpeedSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
-    virtual void ConstraintsLiFetchSuggestedPositionSolution()  {
-        // base behaviour too
-        ChContactDVI< Ta, Tb >::ConstraintsLiFetchSuggestedPositionSolution();
-
-        // [Note: no persistent cache used for rolling multipliers - do nothing]
-    }
-
 };
-
 
 
 }  // END_OF_NAMESPACE____

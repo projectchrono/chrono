@@ -94,8 +94,8 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // Compute the 'average' material
 
         // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get_ptr());
-        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get_ptr());
+        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get());
+        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get());
 
         ChMaterialCouple mat;
         mat.static_friction = (float)ChMin(mmatA->static_friction, mmatB->static_friction);
@@ -207,7 +207,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
             // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 
             if (this->compliance) {
-                double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
+                double h = 1.0 / c;  // was: this->container->GetSystem()->GetStep(); note not all steppers have c = 1/h
 
                 double alpha = this->dampingf;              // [R]=alpha*[K]
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
@@ -218,7 +218,15 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
-                Qc(off_L) += c * inv_hpa * this->norm_dist;
+                double qc = inv_hpa * this->norm_dist; //***TODO*** see how to move this in KRMmatricesLoad() 
+
+                // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outgoing speed, but
+                // also the reaction, so it might allow more 'sinking'.
+                //if (do_clamp)
+                //    qc = ChMax(qc, -recovery_clamp);
+
+                Qc(off_L) += qc;
+
             } else {
                 if (do_clamp)
                     if (this->Nx.GetCohesion())
@@ -331,48 +339,6 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         react_force.x = Nx.Get_l_i() * factor;
         react_force.y = Tu.Get_l_i() * factor;
         react_force.z = Tv.Get_l_i() * factor;
-    }
-
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution() {
-        // Fetch the last computed impulsive reactions from the persistent contact manifold (could
-        // be used for warm starting the CCP speed solver):
-        if (this->reactions_cache) {
-            Nx.Set_l_i(reactions_cache[0]);
-            Tu.Set_l_i(reactions_cache[1]);
-            Tv.Set_l_i(reactions_cache[2]);
-        }
-        // GetLog() << "++++      " << (int)this << "  fetching N=" << (double)mn <<"\n";
-    }
-
-    virtual void ConstraintsLiLoadSuggestedPositionSolution() {
-        // Fetch the last computed 'positional' reactions from the persistent contact manifold (could
-        // be used for warm starting the CCP position stabilization solver):
-        if (this->reactions_cache) {
-            Nx.Set_l_i(reactions_cache[3]);
-            Tu.Set_l_i(reactions_cache[4]);
-            Tv.Set_l_i(reactions_cache[5]);
-        }
-    }
-
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution() {
-        // Store the last computed reactions into the persistent contact manifold (might
-        // be used for warm starting CCP the speed solver):
-        if (reactions_cache) {
-            reactions_cache[0] = (float)Nx.Get_l_i();
-            reactions_cache[1] = (float)Tu.Get_l_i();
-            reactions_cache[2] = (float)Tv.Get_l_i();
-        }
-        // GetLog() << "         " << (int)this << "  storing  N=" << Nx.Get_l_i() <<"\n";
-    }
-
-    virtual void ConstraintsLiFetchSuggestedPositionSolution() {
-        // Store the last computed 'positional' reactions into the persistent contact manifold (might
-        // be used for warm starting the CCP position stabilization solver):
-        if (reactions_cache) {
-            reactions_cache[3] = (float)Nx.Get_l_i();
-            reactions_cache[4] = (float)Tu.Get_l_i();
-            reactions_cache[5] = (float)Tv.Get_l_i();
-        }
     }
 };
 

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Bryan Peterson, Antonio Recuero
+// Authors: Bryan Peterson, Antonio Recuero, Radu Serban
 // =============================================================================
 // Brick element with 8 nodes (with EAS)
 // =============================================================================
@@ -29,22 +29,22 @@ ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
     m_nodes.resize(8);
 }
 // -----------------------------------------------------------------------------
-void ChElementBrick::SetNodes(ChSharedPtr<ChNodeFEAxyz> nodeA,
-                              ChSharedPtr<ChNodeFEAxyz> nodeB,
-                              ChSharedPtr<ChNodeFEAxyz> nodeC,
-                              ChSharedPtr<ChNodeFEAxyz> nodeD,
-                              ChSharedPtr<ChNodeFEAxyz> nodeE,
-                              ChSharedPtr<ChNodeFEAxyz> nodeF,
-                              ChSharedPtr<ChNodeFEAxyz> nodeG,
-                              ChSharedPtr<ChNodeFEAxyz> nodeH) {
-    assert(!nodeA.IsNull());
-    assert(!nodeB.IsNull());
-    assert(!nodeC.IsNull());
-    assert(!nodeD.IsNull());
-    assert(!nodeE.IsNull());
-    assert(!nodeF.IsNull());
-    assert(!nodeG.IsNull());
-    assert(!nodeH.IsNull());
+void ChElementBrick::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                              std::shared_ptr<ChNodeFEAxyz> nodeB,
+                              std::shared_ptr<ChNodeFEAxyz> nodeC,
+                              std::shared_ptr<ChNodeFEAxyz> nodeD,
+                              std::shared_ptr<ChNodeFEAxyz> nodeE,
+                              std::shared_ptr<ChNodeFEAxyz> nodeF,
+                              std::shared_ptr<ChNodeFEAxyz> nodeG,
+                              std::shared_ptr<ChNodeFEAxyz> nodeH) {
+    assert(nodeA);
+    assert(nodeB);
+    assert(nodeC);
+    assert(nodeD);
+    assert(nodeE);
+    assert(nodeF);
+    assert(nodeG);
+    assert(nodeH);
 
     m_nodes[0] = nodeA;
     m_nodes[1] = nodeB;
@@ -448,12 +448,13 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 void ChElementBrick::ShapeFunctions(ChMatrix<>& N, double x, double y, double z) {
     N(0) = 0.125 * (1.0 - x) * (1.0 - y) * (1.0 - z);
     N(1) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 - z);
-    N(2) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 - z);
-    N(3) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 - z);
+    N(2) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 - z);
+    N(3) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 - z);
     N(4) = 0.125 * (1.0 - x) * (1.0 - y) * (1.0 + z);
     N(5) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 + z);
-    N(6) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 + z);
-    N(7) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 + z);
+    N(6) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 + z);
+    N(7) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 + z);
+
 }
 
 // -----------------------------------------------------------------------------
@@ -463,12 +464,13 @@ void ChElementBrick::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double 
 
     Nx(0) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 - z);
     Nx(1) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 - z);
-    Nx(2) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 - z);
-    Nx(3) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 - z);
+    Nx(2) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 - z);
+    Nx(3) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 - z);
     Nx(4) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 + z);
     Nx(5) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 + z);
-    Nx(6) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 + z);
-    Nx(7) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 + z);
+    Nx(6) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 + z);
+    Nx(7) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 + z);
+
 }
 
 // -----------------------------------------------------------------------------
@@ -478,12 +480,13 @@ void ChElementBrick::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double 
 
     Ny(0) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 - z);
     Ny(1) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 - z);
-    Ny(2) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 - z);
-    Ny(3) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 - z);
+    Ny(2) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 - z);
+    Ny(3) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 - z);
     Ny(4) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 + z);
     Ny(5) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 + z);
-    Ny(6) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 + z);
-    Ny(7) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 + z);
+    Ny(6) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 + z);
+    Ny(7) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 + z);
+
 }
 
 // -----------------------------------------------------------------------------
@@ -493,12 +496,13 @@ void ChElementBrick::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double 
 
     Nz(0) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (-1.0);
     Nz(1) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (-1.0);
-    Nz(2) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (-1.0);
-    Nz(3) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (-1.0);
+    Nz(2) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (-1.0);
+    Nz(3) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (-1.0);
     Nz(4) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (1.0);
     Nz(5) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (1.0);
-    Nz(6) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (1.0);
-    Nz(7) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (1.0);
+    Nz(6) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (1.0);
+    Nz(7) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (1.0);
+
 }
 
 // ----------------------------------------------------------------------------

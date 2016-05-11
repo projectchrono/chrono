@@ -21,7 +21,14 @@ ChBody* ChSystemParallelDEM::NewBody() {
   return new ChBody(ChMaterialSurfaceBase::DEM);
 }
 
-void ChSystemParallelDEM::AddMaterialSurfaceData(ChSharedPtr<ChBody> newbody) {
+ChBodyAuxRef* ChSystemParallelDEM::NewBodyAuxRef() {
+    if (collision_system_type == COLLSYS_PARALLEL)
+        return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+
+    return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM);
+}
+
+void ChSystemParallelDEM::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
   assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DEM);
 
   // Reserve space for material properties for the specified body. Not that the
@@ -60,8 +67,8 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
   // material properties in a thread-safe manner (we cannot use the function
   // ChBody::GetMaterialSurfaceDEM since that returns a copy of the reference
   // counted shared pointer).
-  ChSharedPtr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
-  ChMaterialSurfaceDEM* mat_ptr = static_cast<ChMaterialSurfaceDEM*>(mat.get_ptr());
+  std::shared_ptr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
+  ChMaterialSurfaceDEM* mat_ptr = static_cast<ChMaterialSurfaceDEM*>(mat.get());
 
   mass[index] = body->GetMass();
   mu[index] = mat_ptr->GetSfriction();

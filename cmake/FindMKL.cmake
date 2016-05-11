@@ -46,6 +46,7 @@
 #   <Composer XE directory> -> C:\Program Files\Intel\ComposerXE-2011
 #     redist\ia32\mkl
 #     redist\intel64\mkl
+# Intel from version 2016 seems to provide a common path for Win and Linux: <intel_dir>/compilers_and_libraries/${OS}/mkl and so on...
 
 set(_MKL_IA32 FALSE)
 set(_MKL_INTEL64 FALSE)
@@ -104,13 +105,19 @@ set(_MKL_ROOT_SEARCH_DIRS
   ${MKL_ROOT}
 )
 
-foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
-    if (WIN32)
-        list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/Intel/Composer XE/mkl")
-    else()
-        list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl")
-    endif()
-endforeach()
+
+if (WIN32)
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
+else()
+	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
+		list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
+		list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
+	endforeach()
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (root permissions)
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+endif()
+
 
 if (MKL_FIND_DEBUG)
     message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
@@ -251,7 +258,7 @@ if (NOT IOMP5_LIBRARY)
     # we could instead fallback to default library (via FindOpenMP.cmake)
     list(APPEND _MKL_MISSING_LIBRARIES IOMP5)
 else()
-    list(APPEND MKL_LIBRARIES ${IOMP5_LIBRARY})
+    ####list(APPEND MKL_LIBRARIES ${IOMP5_LIBRARY})
     if (MKL_FIND_DEBUG)
         message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
                        "Found IOMP5_LIBRARY: ${IOMP5_LIBRARY}")
@@ -282,7 +289,7 @@ if (NOT MATH_LIBRARY)
     # we could instead fallback to default library (via FindOpenMP.cmake)
     list(APPEND _MKL_MISSING_LIBRARIES MATH)
 else()
-    list(APPEND MKL_LIBRARIES ${MATH_LIBRARY})
+    ####list(APPEND MKL_LIBRARIES ${MATH_LIBRARY})
     if (MKL_FIND_DEBUG)
         message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
                        "Found MATH_LIBRARY: ${MATH_LIBRARY}")
@@ -315,20 +322,22 @@ elseif (_MKL_MISSING_LIBRARIES)
     endif()
 endif()
 
-if (MKL_FOUND)
-    if (NOT MKL_FIND_QUIETLY OR MKL_FIND_DEBUG)
-        message(STATUS
-            "Intel(R) MKL was found:\n"
-            "  MKL_INCLUDE_DIRS: ${MKL_INCLUDE_DIRS}\n"
-            "  MKL_LIBRARY_DIRS: ${MKL_LIBRARY_DIRS}\n"
-            "  MKL_LIBRARIES: ${MKL_LIBRARIES}"
-        )
-    endif()
-else()
-    if (MKL_FIND_REQUIRED)
-        message(SEND_ERROR "Intel(R) MKL could not be found.")
+if (MKL_FIND_DEBUG)
+    if (MKL_FOUND)
+        if (NOT MKL_FIND_QUIETLY OR MKL_FIND_DEBUG)
+            message(STATUS
+                "Intel(R) MKL was found:\n"
+                "  MKL_INCLUDE_DIRS: ${MKL_INCLUDE_DIRS}\n"
+                "  MKL_LIBRARY_DIRS: ${MKL_LIBRARY_DIRS}\n"
+                "  MKL_LIBRARIES: ${MKL_LIBRARIES}"
+            )
+        endif()
     else()
-        message(STATUS "Intel(R) MKL could not be found.")
+        if (MKL_FIND_REQUIRED)
+            message(SEND_ERROR "Intel(R) MKL could not be found.")
+        else()
+            message(STATUS "Intel(R) MKL could not be found.")
+        endif()
     endif()
 endif()
 

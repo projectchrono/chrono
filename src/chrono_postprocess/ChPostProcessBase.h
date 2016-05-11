@@ -34,6 +34,9 @@
 namespace chrono {
 namespace postprocess {
 
+/// @addtogroup postprocess_module
+/// @{
+
 /// Base class for post processing implementations
 class ChApiPostProcess ChPostProcessBase {
   public:
@@ -60,6 +63,7 @@ class ChApiPostProcess ChPostProcessBase {
     ChSystem* mSystem;
 };
 
+/// @} postprocess_module
 }  // end namespace
 }  // end namespace
 

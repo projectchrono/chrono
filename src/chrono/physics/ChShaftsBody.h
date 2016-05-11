@@ -69,9 +69,6 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     // used as an interface to the LCP solver.
     ChLcpConstraintTwoGeneric constraint;
 
-    float cache_li_speed;  // used to cache the last computed value of multiplier (solver warm starting)
-    float cache_li_pos;    // used to cache the last computed value of multiplier (solver warm starting)
-
     ChShaft* shaft;
     ChBodyFrame* body;
 
@@ -136,10 +133,6 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
     virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsLiLoadSuggestedSpeedSolution();
-    virtual void ConstraintsLiLoadSuggestedPositionSolution();
-    virtual void ConstraintsLiFetchSuggestedSpeedSolution();
-    virtual void ConstraintsLiFetchSuggestedPositionSolution();
     virtual void ConstraintsFetch_react(double factor = 1.);
 
     // Other functions
@@ -148,9 +141,9 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     /// the 1D shaft and 3D body to join.
     /// Each item must belong to the same ChSystem.
     /// Direction is expressed in the local coordinates of the body.
-    bool Initialize(ChSharedPtr<ChShaft> mshaft,     ///< shaft to join
-                    ChSharedPtr<ChBodyFrame> mbody,  ///< body to join
-                    const ChVector<>& mdir  ///< the direction of the shaft on 3D body (applied on COG: pure torque)
+    bool Initialize(std::shared_ptr<ChShaft> mshaft,     ///< shaft to join
+                    std::shared_ptr<ChBodyFrame> mbody,  ///< body to join
+                    const ChVector<>& mdir               ///< the direction of the shaft on 3D body (applied on COG: pure torque)
                     );
 
     /// Get the shaft
@@ -191,8 +184,6 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
-
-typedef ChSharedPtr<ChShaftsBody> ChSharedShaftsBodyPtr;
 
 }  // END_OF_NAMESPACE____
 

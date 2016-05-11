@@ -39,7 +39,9 @@
 namespace chrono {
 namespace vehicle {
 
-///
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
 /// Base class for a solid axle suspension modeled with bodies and constraints.
 /// Derived from ChSuspension, but still an abstract base class.
 ///
@@ -51,7 +53,6 @@ namespace vehicle {
 /// All point locations are assumed to be given for the left half of the
 /// supspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
-///
 class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
   public:
     ChSolidAxle(const std::string& name  ///< [in] name of the subsystem
@@ -73,10 +74,13 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     /// Finally, tierod_body is a handle to the body to which the suspension
     /// tierods are to be attached. For a steerable suspension, this will be the
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
-    virtual void Initialize(ChSharedPtr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,         ///< [in] location relative to the chassis frame
-                            ChSharedPtr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) override;
+
+    /// Get the total mass of the suspension subsystem.
+    virtual double GetMass() const override;
 
     /// Get the force in the spring element.
     double GetSpringForce(VehicleSide side) const { return m_spring[side]->Get_SpringReact(); }
@@ -104,22 +108,25 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        SHOCK_A,     ///< shock, axle
-        SHOCK_C,     ///< shock, chassis
-        KNUCKLE_L,   ///< lower knuckle point
-        KNUCKLE_U,   ///< upper knuckle point
-        LL_A,        ///< lower link, axle
-        LL_C,        ///< lower link, chassis
-        UL_A,        ///< upper link, axle
-        UL_C,        ///< upper link, chassis
-        SPRING_A,    ///< spring, axle
-        SPRING_C,    ///< spring, chassis
-        TIEROD_C,    ///< tierod, chassis
-        TIEROD_K,    ///< tierod, knuckle
-        SPINDLE,     ///< spindle location
-        KNUCKLE_CM,  ///< knuckle, center of mass
-        LL_CM,       ///< lower link, center of mass
-        UL_CM,       ///< upper link, center of mass
+        SHOCK_A,            ///< shock, axle
+        SHOCK_C,            ///< shock, chassis
+        KNUCKLE_L,          ///< lower knuckle point
+        KNUCKLE_U,          ///< upper knuckle point
+        LL_A,               ///< lower link, axle
+        LL_C,               ///< lower link, chassis
+        UL_A,               ///< upper link, axle
+        UL_C,               ///< upper link, chassis
+        SPRING_A,           ///< spring, axle
+        SPRING_C,           ///< spring, chassis
+        TIEROD_K,           ///< tierod, knuckle
+        SPINDLE,            ///< spindle location
+        KNUCKLE_CM,         ///< knuckle, center of mass
+        LL_CM,              ///< lower link, center of mass
+        UL_CM,              ///< upper link, center of mass
+        BELLCRANK_TIEROD,   ///< bell crank to tierod
+        BELLCRANK_AXLE,     ///< bell crank to axle
+        BELLCRANK_DRAGLINK, ///< bell crank to draglink'
+        DRAGLINK_C,         ///< draglink, chassis
         NUM_POINTS
     };
 
@@ -140,6 +147,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getLLMass() const = 0;
     /// Return the mass of the knuckle body.
     virtual double getKnuckleMass() const = 0;
+    /// Return the mass of the tierod body.
+    virtual double getTierodMass() const = 0;
+    /// Return the mass of the draglink body.
+    virtual double getDraglinkMass() const = 0;
+    /// Return the mass of the bell crank body.
+    virtual double getBellCrankMass() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
@@ -153,6 +166,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual double getLLRadius() const = 0;
     /// Return the radius of the knuckle body (visualization only).
     virtual double getKnuckleRadius() const = 0;
+    /// Return the radius of the tierod body (visualization only).
+    virtual double getTierodRadius() const = 0;
+    /// Return the radius of the draglink body (visualization only).
+    virtual double getDraglinkRadius() const = 0;
+    /// Return the radius of the bell crank body (visualization only).
+    virtual double getBellCrankRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
     virtual const ChVector<>& getAxleTubeInertia() const = 0;
@@ -164,6 +183,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual const ChVector<>& getLLInertia() const = 0;
     /// Return the moments of inertia of the knuckle body.
     virtual const ChVector<>& getKnuckleInertia() const = 0;
+    /// Return the moments of inertia of the tierod body.
+    virtual const ChVector<>& getTierodInertia() const = 0;
+    /// Return the moments of inertia of the draglink body.
+    virtual const ChVector<>& getDraglinkInertia() const = 0;
+    /// Return the moments of inertia of the bell crank body.
+    virtual const ChVector<>& getBellCrankInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -175,51 +200,68 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     /// Return the callback function for shock force.
     virtual ChSpringForceCallback* getShockForceCallback() const = 0;
 
-    ChSharedPtr<ChBody> m_axleTube;      ///< handles to the axle tube body
-    ChSharedPtr<ChBody> m_tierod;        ///< handles to the tierod body
-    ChSharedPtr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (left/right)
-    ChSharedPtr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (left/right)
-    ChSharedPtr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (left/right)
+    std::shared_ptr<ChBody> m_axleTube;      ///< handles to the axle tube body
+    std::shared_ptr<ChBody> m_tierod;        ///< handles to the tierod body
+    std::shared_ptr<ChBody> m_bellCrank;     ///< handles to the bellcrank body
+    std::shared_ptr<ChBody> m_draglink;      ///< handles to the draglink body
+    std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (left/right)
+    std::shared_ptr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (left/right)
+    std::shared_ptr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (left/right)
 
-    ChSharedPtr<ChLinkLockRevolute>
+    std::shared_ptr<ChLinkLockRevolute>
         m_revoluteKingpin[2];     ///< handles to the knuckle-axle tube revolute joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockRevolute>
+        m_revoluteBellCrank;      ///< handles to the bellCrank-axle revolute joint (left)
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalTierod;        ///< handles to the knuckle-tierod spherical joint (left)
-    ChSharedPtr<ChLinkUniversal>
+    std::shared_ptr<ChLinkLockSpherical>
+        m_sphericalDraglink;      ///< handles to the draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkUniversal>
+        m_universalDraglink;      ///< handles to the draglink-bellCrank universal joint (left)
+    std::shared_ptr<ChLinkUniversal>
         m_universalTierod;        ///< handles to the knuckle-tierod universal joint (right)
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalUpperLink[2];  ///< handles to the upper link-axle tube spherical joints (left/right)
-    ChSharedPtr<ChLinkLockSpherical>
+    std::shared_ptr<ChLinkLockSpherical>
         m_sphericalLowerLink[2];  ///< handles to the lower link-axle tube spherical joints (left/right)
-    ChSharedPtr<ChLinkUniversal>
+    std::shared_ptr<ChLinkUniversal>
         m_universalUpperLink[2];  ///< handles to the upper link-chassis universal joints (left/right)
-    ChSharedPtr<ChLinkUniversal>
-        m_universalLowerLink[2];                  ///< handles to the lower link-chassis universal joints (left/right)
-    ChSharedPtr<ChLinkDistance> m_distTierod;  ///< handles to the tierod distance constraint (left)
+    std::shared_ptr<ChLinkUniversal>
+        m_universalLowerLink[2];  ///< handles to the lower link-chassis universal joints (left/right)
+    std::shared_ptr<ChLinkLockPointPlane>
+        m_pointPlaneBellCrank;    ///< handles to the bellCrank-tierod point-plane joint (left)
 
-    ChSharedPtr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
-    ChSharedPtr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
 
   private:
     void InitializeSide(VehicleSide side,
-                        ChSharedPtr<ChBodyAuxRef> chassis,
-                        ChSharedPtr<ChBody> tierod_body,
+                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points);
 
-    static void AddVisualizationLink(ChSharedPtr<ChBody> body,
+    static void AddVisualizationLink(std::shared_ptr<ChBody> body,
                                      const ChVector<> pt_1,
                                      const ChVector<> pt_2,
                                      double radius,
                                      const ChColor& color);
-    static void AddVisualizationKnuckle(ChSharedPtr<ChBody> knuckle,
+    static void AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
+                                    const ChVector<> pt_D,
+                                    const ChVector<> pt_A,
+                                    const ChVector<> pt_T,
+                                    double radius,
+                                    const ChColor& color);
+    static void AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
                                         const ChVector<> pt_U,
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
-    static void AddVisualizationSpindle(ChSharedPtr<ChBody> spindle, double radius, double width);
+    static void AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width);
 
     static const std::string m_pointNames[NUM_POINTS];
 };
+
+/// @} vehicle_wheeled_suspension
 
 }  // end namespace vehicle
 }  // end namespace chrono

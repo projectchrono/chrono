@@ -35,19 +35,21 @@ private:
     // 
     // DATA
     //
-    std::vector< ChSharedPtr<ChLoadBase> > loadlist;
+    std::vector< std::shared_ptr<ChLoadBase> > loadlist;
 
 public:
-    ChLoadContainer () {};
+    ChLoadContainer () {}
+    virtual ~ChLoadContainer() {}
 
         /// Add a load to the container list of loads
-    void Add(ChSharedPtr<ChLoadBase> newload) {
-        //// Radu: I don't think find can be used on a container of ChSharedPtr which does not support the == operator.
-        ////assert(std::find<std::vector<ChSharedPtr<ChLoadBase> >::iterator>(loadlist.begin(), loadlist.end(), newload) == loadlist.end());
+    void Add(std::shared_ptr<ChLoadBase> newload) {
+        //// Radu: I don't think find can be used on a container of shared pointers which does not support the == operator.
+        //// Radu: check if this is still true, now that we switched to std::shared_ptr
+        ////assert(std::find<std::vector<std::shared_ptr<ChLoadBase> >::iterator>(loadlist.begin(), loadlist.end(), newload) == loadlist.end());
         loadlist.push_back(newload);
     }
         /// Direct access to the load vector, for iterating etc.
-    std::vector< ChSharedPtr<ChLoadBase> >& GetLoadList() {return loadlist;}
+    std::vector< std::shared_ptr<ChLoadBase> >& GetLoadList() {return loadlist;}
 
     virtual void Setup(){
     }
@@ -56,6 +58,8 @@ public:
         for (size_t i=0; i<loadlist.size(); ++i)  {
             loadlist[i]->Update();
         }
+        // Overloading of base class:
+        ChPhysicsItem::Update(mytime, update_assets);
     }
 
 

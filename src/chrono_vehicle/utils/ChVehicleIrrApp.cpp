@@ -192,7 +192,7 @@ void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chase
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChVehicleIrrApp::Update(const std::string& msg, double steering, double throttle, double braking) {
+void ChVehicleIrrApp::Synchronize(const std::string& msg, double steering, double throttle, double braking) {
     m_driver_msg = msg;
     m_steering = steering;
     m_throttle = throttle;
@@ -210,7 +210,7 @@ void ChVehicleIrrApp::Advance(double step) {
     double t = 0;
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
-        m_camera.Update(step);
+        m_camera.Update(h);
         t += h;
     }
 
@@ -267,12 +267,12 @@ void ChVehicleIrrApp::DrawAll() {
 void ChVehicleIrrApp::renderSprings() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                   video::SColor(255, 150, 20, 20), 80, 15, true);
-        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                   video::SColor(255, 150, 20, 20), 80, 15, true);
+        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get())) {
+            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
+                                             video::SColor(255, 150, 20, 20), 80, 15, true);
+        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get())) {
+            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
+                                             video::SColor(255, 150, 20, 20), 80, 15, true);
         }
     }
 }
@@ -281,12 +281,12 @@ void ChVehicleIrrApp::renderSprings() {
 void ChVehicleIrrApp::renderLinks() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSegment(GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                    video::SColor(255, 0, 20, 0), true);
-        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get_ptr())) {
-            ChIrrTools::drawSegment(GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
-                                    video::SColor(255, 180, 0, 0), true);
+        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get())) {
+            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
+                                              video::SColor(255, 0, 20, 0), true);
+        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get())) {
+            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
+                                              video::SColor(255, 180, 0, 0), true);
         }
     }
 }
@@ -295,7 +295,7 @@ void ChVehicleIrrApp::renderLinks() {
 void ChVehicleIrrApp::renderGrid() {
     ChCoordsys<> gridCsys(ChVector<>(0, 0, m_gridHeight), chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
 
-    ChIrrTools::drawGrid(GetVideoDriver(), 0.5, 0.5, 100, 100, gridCsys, video::SColor(255, 80, 130, 255), true);
+    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), 0.5, 0.5, 100, 100, gridCsys, video::SColor(255, 80, 130, 255), true);
 }
 
 // Render a linear gauge in the HUD.
@@ -416,6 +416,18 @@ void ChVehicleIrrApp::renderStats() {
     // Allow derived classes to display additional information (e.g. driveline)
 
     renderOtherStats(m_HUD_x, m_HUD_y + 180);
+}
+
+// -----------------------------------------------------------------------------
+// Create a snapshot of the last rendered frame and save it to the provided
+// file. The file extension determines the image format.
+// -----------------------------------------------------------------------------
+void ChVehicleIrrApp::WriteImageToFile(const std::string& filename) {
+    video::IImage* image = GetVideoDriver()->createScreenShot();
+    if (image) {
+        GetVideoDriver()->writeImageToFile(image, filename.c_str());
+        image->drop();
+    }
 }
 
 }  // end namespace vehicle

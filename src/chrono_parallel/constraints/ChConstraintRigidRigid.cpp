@@ -456,7 +456,7 @@ void ChConstraintRigidRigid::Build_D() {
 
   SOLVERMODE solver_mode = data_manager->settings.solver.solver_mode;
 
-  const std::vector<ChSharedPtr<ChBody> >* body_list = data_manager->body_list;
+  const std::vector<std::shared_ptr<ChBody> >* body_list = data_manager->body_list;
 
 #pragma omp parallel for
   for (int index = 0; index < data_manager->num_rigid_contacts; index++) {

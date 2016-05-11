@@ -42,17 +42,17 @@ class CHOGRE_DLL_TAG ChOgreBody {
     virtual void refresh();
     virtual void setMesh(Ogre::ManualObject* Mesh, const chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
 
-    virtual chrono::ChSharedBodyPtr getChBody();
+    virtual chrono::ChSharedPtr<ChBody> getChBody();
 
-    virtual chrono::ChSharedBodyPtr operator->();  // Operator magic. Allows a refrence to an ChOgreBody to offer
-                                                   // members as an ChOgreBody object, and as a ChBody pointer
+    virtual chrono::ChSharedPtr<ChBody> operator->();  // Operator magic. Allows a refrence to an ChOgreBody to offer
+                                                       // members as an ChOgreBody object, and as a ChBody pointer
 
     std::string name;
     bool deletable;
     bool isStaticMesh;
 
   protected:
-    chrono::ChSharedBodyPtr m_pBody;
+    chrono::ChSharedPtr<ChBody> m_pBody;
 
     std::vector<ChOgreModel> m_Models;
 

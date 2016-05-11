@@ -33,7 +33,6 @@
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChException.h"
-#include "chrono/core/ChShared.h"
 #include "chrono/lcp/ChLcpConstraintTuple.h"
 
 
@@ -80,7 +79,7 @@ CH_ENUM_MAPPER_END(myEnum);
 // of run-time-type information enabled, that is the CH_RTTI_.. macros).
 //
 
-class myEmployee : public ChShared {
+class myEmployee {
     // Remember to enable the Chrono RTTI features with the CH_RTTI_.. macro
     // if you want to deserialize objects whose exact class is not known in advance!
 
@@ -261,11 +260,11 @@ void my_serialization_example(ChArchiveOut& marchive)
         // Also store c++ objects referenced by shared pointers.
         // If pointed objects objects have CH_RTTI, the class abstraction
         // vill be automatically used.
-        ChSharedPtr<myEmployeeBoss> s_boss(new myEmployeeBoss);
+        auto s_boss = std::make_shared<myEmployeeBoss>();
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
         // Serialize null shared pointer
-        ChSharedPtr<myEmployeeBoss> null_boss(0);
+        std::shared_ptr<myEmployeeBoss> null_boss;
         marchive << CHNVP(null_boss); 
 
         delete a_boss;
@@ -330,11 +329,11 @@ void my_deserialization_example(ChArchiveIn& marchive)
         // Also store c++ objects referenced by shared pointers.
         // If pointed objects objects have CH_RTTI, the class abstraction
         // will be automatically used.
-        ChSharedPtr<myEmployeeBoss> s_boss(0);
+        std::shared_ptr<myEmployeeBoss> s_boss(0);
         marchive >> CHNVP(s_boss);
 
         // Deserialize a null shared pointer
-        ChSharedPtr<myEmployeeBoss> null_boss(0);
+        std::shared_ptr<myEmployeeBoss> null_boss(0);
         marchive >> CHNVP(null_boss);
 
 

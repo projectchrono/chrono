@@ -19,14 +19,68 @@
 //
 // =============================================================================
 
-#include "physics/ChSystem.h"
+#include <cmath>
 
+#include "physics/ChSystem.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChTire::ChTire(const std::string& name) : m_name(name) {
+ChTire::ChTire(const std::string& name) : m_name(name), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
+
+// -----------------------------------------------------------------------------
+// Base class implementation of the initialization function.
+// -----------------------------------------------------------------------------
+void ChTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
+    m_wheel = wheel;
+    m_side = side;
+
+    ////WheelState state;
+    ////state.pos = wheel->GetPos();
+    ////state.rot = wheel->GetRot();
+    ////state.lin_vel = wheel->GetPos_dt();
+    ////state.ang_vel = wheel->GetWvel_par();
+    ////ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
+    ////state.omega = ang_vel_loc.y;
+}
+
+// -----------------------------------------------------------------------------
+// Calculate kinematics quantities (slip angle, longitudinal slip, camber angle,
+// and toe-in angle using the current state of the associated wheel body.
+// -----------------------------------------------------------------------------
+void ChTire::CalculateKinematics(double time, const WheelState& state, const ChTerrain& terrain) {
+    // Wheel normal (expressed in global frame)
+    ChVector<> wheel_normal = state.rot.GetYaxis();
+
+    // Terrain normal at wheel location (expressed in global frame)
+    ChVector<> Z_dir = terrain.GetNormal(state.pos.x, state.pos.y);
+
+    // Longitudinal (heading) and lateral directions, in the terrain plane
+    ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
+    X_dir.Normalize();
+    ChVector<> Y_dir = Vcross(Z_dir, X_dir);
+
+    // Tire reference coordinate system
+    ChMatrix33<> rot;
+    rot.Set_A_axis(X_dir, Y_dir, Z_dir);
+    ChCoordsys<> tire_csys(state.pos, rot.Get_A_quaternion());
+
+    // Express wheel linear velocity in tire frame
+    ChVector<> V = tire_csys.TransformDirectionParentToLocal(state.lin_vel);
+    // Express wheel normal in tire frame
+    ChVector<> n = tire_csys.TransformDirectionParentToLocal(wheel_normal);
+
+    // Slip angle
+    double abs_Vx = std::abs(V.x);
+    double zero_Vx = 1e-4;
+    m_slip_angle = (abs_Vx > zero_Vx) ? std::atan(V.y / abs_Vx) : 0;
+
+    // Longitudinal slip
+    m_longitudinal_slip = (abs_Vx > zero_Vx) ? -(V.x - state.omega * GetRadius()) / abs_Vx : 0;
+
+    // Camber angle
+    m_camber_angle = std::atan2(n.z, n.y);
 }
 
 // -----------------------------------------------------------------------------

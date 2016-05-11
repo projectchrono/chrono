@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include "core/ChApiCE.h"
 #include "core/ChMath.h"
-#include "core/ChShared.h"
 #include "core/ChVectorDynamic.h"
 #include "timestepper/ChState.h"
 #include "timestepper/ChIntegrable.h"
@@ -23,13 +22,15 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_timestepper
+/// @{
+
 /// Base class for timesteppers, that is
 /// a time integrator which can advance a system state.
 /// It operates on systems inherited from ChIntegrable.
-
-class ChApi ChTimestepper : public ChShared {
+class ChApi ChTimestepper {
     // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChTimestepper, ChShared);
+    CH_RTTI_ROOT(ChTimestepper);
 
   protected:
     ChIntegrable* integrable;
@@ -110,7 +111,6 @@ class ChApi ChTimestepper : public ChShared {
 
 /// Base class for 1st order timesteppers, that is
 /// a time integrator for whatever ChIntegrable.
-
 class ChApi ChTimestepperIorder : public ChTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperIorder, ChTimestepper);
@@ -147,7 +147,6 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
 /// (special sub lass of integrable objects that have a state
 /// made with position and velocity y={x,v}, and dy/dt={v,a}
 /// with a=acceleration)
-
 class ChApi ChTimestepperIIorder : public ChTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperIIorder, ChTimestepper);
@@ -197,23 +196,43 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChImplicitIterativeTimestepper, ChImplicitTimestepper);
 
-  private:
+  protected:
     int maxiters;
-    double tolerance;
+    double reltol;   // relative tolerance
+    double abstolS;  // absolute tolerance (states)
+    double abstolL;  // absolute tolerance (Lagrange multipliers)
 
   public:
     /// Constructors
-    ChImplicitIterativeTimestepper() : maxiters(6), tolerance(1e-10) {}
+    ChImplicitIterativeTimestepper() : maxiters(6), reltol(1e-4), abstolS(1e-10), abstolL(1e-10) {}
 
     /// Set the max number of iterations using the Newton Raphson procedure
     void SetMaxiters(int miters) { maxiters = miters; }
     /// Get the max number of iterations using the Newton Raphson procedure
     double GetMaxiters() { return maxiters; }
 
-    /// Set the tolerance for terminating the Newton Raphson procedure
-    void SetTolerance(double mtol) { tolerance = mtol; }
-    /// Get the tolerance for terminating the Newton Raphson procedure
-    double GetTolerance() { return tolerance; }
+    /// Set the relative tolerance.
+    /// This tolerance is optionally used by derived classes in the Newton-Raphson
+    /// convergence test.
+    void SetRelTolerance(double rel_tol) { reltol = rel_tol; }
+
+    /// Set the absolute tolerances.
+    /// These tolerances are optionally used by derived classes in the Newton-Raphson
+    /// convergence test.  This version sets separate absolute tolerances for states
+    /// and Lagrange multipliers.
+    void SetAbsTolerances(double abs_tolS, double abs_tolL) {
+        abstolS = abs_tolS;
+        abstolL = abs_tolL;
+    }
+
+    /// Set the absolute tolerances.
+    /// These tolerances are optionally used by derived classes in the Newton-Raphson
+    /// convergence test.  This version sets equal absolute tolerances for states and
+    /// Lagrange multipliers.
+    void SetAbsTolerances(double abs_tol) {
+        abstolS = abs_tol;
+        abstolL = abs_tol;
+    }
 
     // SERIALIZATION
 
@@ -223,7 +242,9 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
         marchive.VersionWrite(1);
         // serialize all member data:
         marchive << CHNVP(maxiters);
-        marchive << CHNVP(tolerance);
+        marchive << CHNVP(reltol);
+        marchive << CHNVP(abstolS);
+        marchive << CHNVP(abstolL);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -232,14 +253,15 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
         int version = marchive.VersionRead();
         // stream in all member data:
         marchive >> CHNVP(maxiters);
-        marchive >> CHNVP(tolerance);
+        marchive >> CHNVP(reltol);
+        marchive >> CHNVP(abstolS);
+        marchive >> CHNVP(abstolL);
     }
 };
 
 /// Euler explicit timestepper
 /// This performs the typical  y_new = y+ dy/dt * dt
 /// integration with Euler formula.
-
 class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerExpl, ChTimestepperIorder);
@@ -261,7 +283,6 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
 ///    x_new = x + v * dt
 ///    v_new = v + a * dt
 /// integration with Euler formula.
-
 class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerExplIIorder, ChTimestepperIIorder);
@@ -283,7 +304,6 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
 ///    v_new = v + a * dt
 ///    x_new = x + v_new * dt
 /// integration with Euler semi-implicit formula.
-
 class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerSemiImplicit, ChTimestepperIIorder);
@@ -299,7 +319,6 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
 
 /// Performs a step of a 4th order explicit Runge-Kutta
 /// integration scheme.
-
 class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperRungeKuttaExpl, ChTimestepperIorder);
@@ -322,7 +341,6 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
 
 /// Performs a step of a Heun explicit integrator. It is like
 /// a 2nd Runge Kutta.
-
 class ChApi ChTimestepperHeun : public ChTimestepperIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperHeun, ChTimestepperIorder);
@@ -348,7 +366,6 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
 /// the numbering of DOFs will invalidate it.
 /// Suggestion: use the ChTimestepperEulerSemiImplicit, it gives
 /// the same accuracy with a bit of faster performance.
-
 class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperLeapfrog, ChTimestepperIIorder);
@@ -366,7 +383,6 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
 };
 
 /// Performs a step of Euler implicit for II order systems
-
 class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicit, ChTimestepperIIorder);
@@ -395,7 +411,6 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
 /// the first NR corrector iteration.
 /// If the solver in StateSolveCorrection is a CCP complementarity
 /// solver, this is the typical Anitescu stabilized timestepper for DVIs.
-
 class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicitLinearized, ChTimestepperIIorder);
@@ -422,7 +437,6 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 /// keeps constraint drifting 'closed' by using a projection.
 /// If the solver in StateSolveCorrection is a CCP complementarity
 /// solver, this is the Tasora stabilized timestepper for DVIs.
-
 class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicitProjected, ChTimestepperIIorder);
@@ -449,7 +463,6 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 /// reactions in constraints, so this is a modified version that is first
 /// order in constraint reactions. Use damped HHT or damped Newmark for
 /// more advanced options.
-
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperTrapezoidal, ChTimestepperIIorder);
@@ -474,7 +487,6 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems
-
 class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperTrapezoidalLinearized, ChTimestepperIIorder);
@@ -500,7 +512,6 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 
 /// Performs a step of trapezoidal implicit linearized for II order systems
 ///*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
-
 class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperTrapezoidalLinearized2, ChTimestepperIIorder);
@@ -524,7 +535,6 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 
 /// Performs a step of HHT (generalized alpha) implicit for II order systems
 /// See Negrut et al. 2007.
-
 class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperHHT, ChTimestepperIIorder);
@@ -540,25 +550,52 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     CH_ENUM_MAPPER_END(HHT_Mode);
 
   private:
-    double alpha;
-    double gamma;
-    double beta;
-    HHT_Mode mode;
-    bool scaling;
-    int num_it;
-    ChStateDelta Da;
-    ChVectorDynamic<> Dl;
-    ChState Xnew;
-    ChStateDelta Vnew;
-    ChStateDelta Anew;
-    ChVectorDynamic<> R;
-    ChVectorDynamic<> Rold;
-    ChVectorDynamic<> Qc;
+    double alpha;   // HHT method parameters:  -1/3 <= alpha <= 0
+    double gamma;   //                         gamma = 1/2 - alpha
+    double beta;    //                         beta = (1 - alpha)^2 / 4
+    HHT_Mode mode;  // HHT formulation (ACCELERATION or POSITION)
+    bool scaling;   // include scaling by beta * h * h (POSITION only)
+    int num_it;     // total number of NR iterations over the last step
+
+    ChStateDelta Da;         // state update
+    ChStateDelta Dx;         // cummulative state updates (POSITION only)
+    ChVectorDynamic<> Dl;    // Lagrange multiplier update
+    ChState Xnew;            // current estimate of new positions
+    ChState Xprev;           // previous estimate of new positions (POSITION only)
+    ChStateDelta Vnew;       // current estimate of new velocities
+    ChStateDelta Anew;       // current estimate of new accelerations
+    ChVectorDynamic<> Lnew;  // current estimate of Lagrange multipliers
+    ChVectorDynamic<> R;     // residual of nonlinear system (dynamics portion)
+    ChVectorDynamic<> Rold;  // residual terms depending on previous state
+    ChVectorDynamic<> Qc;    // residual of nonlinear system (constranints portion)
+
+    bool step_control;            // step size control enabled?
+    int maxiters_success;         // maximum number of NR iterations to declare a step successful
+    int req_successful_steps;     // required number of successive successful steps for a stepsize increase
+    double step_increase_factor;  // factor used in increasing stepsize (>1)
+    double step_decrease_factor;  // factor used in decreasing stepsize (<1)
+    double h_min;                 // minimum allowable stepsize
+    double h;                     // internal stepsize
+    int num_successful_steps;     // number of successful steps
+
+    ChVectorDynamic<> ewtS;  // vector of error weights (states)
+    ChVectorDynamic<> ewtL;  // vector of error weights (Lagrange multipliers)
 
   public:
     /// Constructors (default empty)
-    ChTimestepperHHT(ChIntegrableIIorder* mintegrable =0)
-        : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper(), mode(ACCELERATION), scaling(false) {
+    ChTimestepperHHT(ChIntegrableIIorder* mintegrable = 0)
+        : ChTimestepperIIorder(mintegrable),
+          ChImplicitIterativeTimestepper(),
+          mode(ACCELERATION),
+          scaling(false),
+          step_control(true),
+          maxiters_success(3),
+          req_successful_steps(5),
+          step_increase_factor(2),
+          step_decrease_factor(0.5),
+          h_min(1e-10),
+          h(1e6),
+          num_successful_steps(0) {
         SetAlpha(-0.2);  // default: some dissipation
     };
 
@@ -585,7 +622,30 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Turn scaling on/off.
     void SetScaling(bool mscaling) { scaling = mscaling; }
 
-    /// Return the number of iterations at last step.
+    /// Turn step size control on/off.
+    void SetStepControl(bool val) { step_control = val; }
+
+    /// Set the minimum step size.
+    /// An exception is thrown if the internal step size decreases below this limit.
+    void SetMinStepSize(double min_step) { h_min = min_step; }
+
+    /// Set the maximum allowable number of iterations for counting a step towards a stepsize increase.
+    void SetMaxItersSuccess(int iters) { maxiters_success = iters; }
+
+    /// Set the minimum number of (internal) steps that require at most maxiters_success
+    /// before considering a stepsize increase.
+    void SetRequiredSuccessfulSteps(int num_steps) { req_successful_steps = num_steps; }
+
+    /// Set the multiplicative factor for a stepsize increase.
+    /// Must be a value larger than 1.
+    void SetStepIncreaseFactor(double factor) { step_increase_factor = factor; }
+    
+    /// Set the multiplicative factor for a stepsize decrease.
+    /// Must be a value smaller than 1.
+    void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
+
+    /// Return the number of iterations over the last step.
+    /// Note that this is a cummulative iteration count, over all internal steps.
     int GetNumIterations() const { return num_it; }
 
     /// Perform an integration timestep.
@@ -627,11 +687,16 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
         HHT_Mode_mapper modemapper;
         marchive >> CHNVP(modemapper(mode),"mode");
     }
+
+  private:
+      void Prepare(ChIntegrableIIorder* integrable, double scaling_factor);
+      void Increment(ChIntegrableIIorder* integrable, double scaling_factor);
+      bool CheckConvergence(double scaling_factor);
+      void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 };
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems
 /// See Negrut et al. 2007.
-
 class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperNewmark, ChTimestepperIIorder);
@@ -711,5 +776,8 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     }
 };
 
+/// @} chrono_timestepper
+
 }  // END_OF_NAMESPACE____
+
 #endif

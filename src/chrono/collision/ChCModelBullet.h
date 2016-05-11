@@ -29,10 +29,11 @@
 ///////////////////////////////////////////////////
 
 #include <vector>
-#include "ChCCollisionModel.h"
-#include "core/ChSmartpointers.h"
-#include "BulletCollision/CollisionShapes/btCollisionShape.h"
-#include "geometry/ChCLinePath.h"
+#include <memory>
+
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h"
+#include "chrono/geometry/ChCLinePath.h"
 
 // forward references
 class btCollisionObject;
@@ -42,7 +43,6 @@ namespace chrono {
 
 // forward references
 class ChBody;
-typedef ChSmartPtr<btCollisionShape> smartptrshapes;
 
 namespace collision {
 
@@ -61,7 +61,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     btCollisionObject* bt_collision_object;
 
     // Vector of shared pointers to geometric objects.
-    std::vector<smartptrshapes> shapes;
+    std::vector<std::shared_ptr<btCollisionShape>> shapes;
 
   public:
     ChModelBullet();

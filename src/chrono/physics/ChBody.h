@@ -32,9 +32,6 @@ namespace chrono {
 
 class ChSystem;
 
-typedef ChSharedPtr<ChForce> ChSharedForcePtr;
-typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
-
 /////////////////////////////////////
 // Define body specific flags
 
@@ -61,6 +58,7 @@ typedef ChSharedPtr<ChMarker> ChSharedMarkerPtr;
 /// These objects have mass and inertia properties. A shape can also
 /// be associated to the body, for collision detection.
 ///
+/// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBody :            public ChPhysicsItem, 
                                 public ChBodyFrame, 
@@ -84,10 +82,10 @@ class ChApi ChBody :            public ChPhysicsItem,
     unsigned int body_id;  // HM - body specific identifier, used for indexing
 
     // list of child markers
-    std::vector< ChSharedPtr<ChMarker> > marklist;
+    std::vector<std::shared_ptr<ChMarker> > marklist;
 
     // list of child forces
-    std::vector< ChSharedPtr<ChForce> > forcelist;
+    std::vector<std::shared_ptr<ChForce> > forcelist;
 
     ChVector<> gyro;  // The Qm gyroscopic torque, i.e. Qm= Wvel x (XInertia*Wvel)
 
@@ -101,7 +99,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     ChVector<> Scr_torque;  // script torque accumulator;(in abs space)
 
     // data for surface contact and impact (can be shared):
-    ChSharedPtr<ChMaterialSurfaceBase> matsurface;
+    std::shared_ptr<ChMaterialSurfaceBase> matsurface;
 
     // Auxiliary, stores position/rotation once a while
     // when collision detection routines require to know
@@ -374,28 +372,25 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// Infer the contact method from the underlying material properties object.
     ChMaterialSurfaceBase::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
 
-    /// Access the (generic) material surface properties associated with this
-    /// body.  This function returns a reference to the shared pointer member
-    /// variable and is therefore THREAD SAFE.
-   // ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; } // Moved below
-
     /// Access the DVI material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
     /// if matsurface is in fact of DEM type).  As such, it must return a copy
     /// of the shared pointer and is therefore NOT thread safe.
-    ChSharedPtr<ChMaterialSurface> GetMaterialSurface() { return matsurface.DynamicCastTo<ChMaterialSurface>(); }
+    std::shared_ptr<ChMaterialSurface> GetMaterialSurface() {
+        return std::dynamic_pointer_cast<ChMaterialSurface>(matsurface);
+    }
 
     /// Access the DEM material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
     /// if matsurface is in fact of DVI type).  As such, it must return a copy
     /// of the shared pointer and is therefore NOT thread safe.
-    ChSharedPtr<ChMaterialSurfaceDEM> GetMaterialSurfaceDEM() {
-        return matsurface.DynamicCastTo<ChMaterialSurfaceDEM>();
+    std::shared_ptr<ChMaterialSurfaceDEM> GetMaterialSurfaceDEM() {
+        return std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(matsurface);
     }
 
     /// Set the material surface properties by passing a ChMaterialSurface or
     /// ChMaterialSurfaceDEM object.
-    void SetMaterialSurface(const ChSharedPtr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
     /// The density of the rigid body, as [mass]/[unit volume]. Used just if
     /// the inertia tensor and mass are automatically recomputed from the
@@ -414,14 +409,14 @@ class ChApi ChBody :            public ChPhysicsItem,
     // NOTE! After adding/removing items to the system, you should call Update() !
 
     /// Attach a marker to this body.
-    void AddMarker(ChSharedPtr<ChMarker> amarker);
+    void AddMarker(std::shared_ptr<ChMarker> amarker);
     /// Attach a force to this body.
-    void AddForce(ChSharedPtr<ChForce> aforce);
+    void AddForce(std::shared_ptr<ChForce> aforce);
 
     /// Remove a specific marker from this body. Warning: linear time search.
-    void RemoveMarker(ChSharedPtr<ChMarker> amarker);
+    void RemoveMarker(std::shared_ptr<ChMarker> amarker);
     /// Remove a specific force from this body. Warning: linear time search.
-    void RemoveForce(ChSharedPtr<ChForce> aforce);
+    void RemoveForce(std::shared_ptr<ChForce> aforce);
 
     /// Remove all markers at once. Faster than doing multiple RemoveForce()
     /// Don't care about deletion: it is automatic, only when needed.
@@ -431,19 +426,19 @@ class ChApi ChBody :            public ChPhysicsItem,
     void RemoveAllMarkers();
 
     /// Finds a marker from its ChObject name
-    ChSharedPtr<ChMarker> SearchMarker(const char* m_name);
+    std::shared_ptr<ChMarker> SearchMarker(const char* m_name);
     /// Finds a force from its ChObject name
-    ChSharedPtr<ChForce> SearchForce(const char* m_name);
+    std::shared_ptr<ChForce> SearchForce(const char* m_name);
 
     /// Gets the list of children markers.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector< ChSharedPtr<ChMarker> >& GetMarkerList() const { return marklist; }
+    const std::vector<std::shared_ptr<ChMarker> >& GetMarkerList() const { return marklist; }
 
     /// Gets the list of children forces.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector< ChSharedPtr<ChForce> >& GetForceList() const { return forcelist; }
+    const std::vector<std::shared_ptr<ChForce> >& GetForceList() const { return forcelist; }
 
     //
     // Point/vector transf.(NOTE! you may also use operators of ChMovingFrame)
@@ -620,58 +615,119 @@ class ChApi ChBody :            public ChPhysicsItem,
     // INTERFACE TO ChContactable
     //
 
+    virtual ChLcpVariables* GetVariables1() override {return &this->variables; }
 
-    virtual ChLcpVariables* GetVariables1() {return &this->variables; }
+    /// Tell if the object must be considered in collision detection
+    virtual bool IsContactActive() override { return this->IsActive(); }
 
-        /// Tell if the object must be considered in collision detection
-    virtual bool IsContactActive() { return this->IsActive();}
+    /// Get the number of DOFs affected by this object (position part)
+    virtual int ContactableGet_ndof_x() override { return 7; }
 
-        /// Return the pointer to the surface material. 
-        /// Use dynamic cast to understand if this is a 
-        /// ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
-        /// This function returns a reference to the shared pointer member
-        /// variable and is therefore THREAD SAFE. ///***TODO*** use thread-safe shared ptrs and merge to GetMaterialSurface
-    virtual ChSharedPtr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
+    /// Get the number of DOFs affected by this object (speed part)
+    virtual int ContactableGet_ndof_w() override { return 6; }
 
-        /// Get the absolute speed of point abs_point if attached to the 
-        /// surface.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point);
+    /// Get all the DOFs packed in a single vector (position part)
+    virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
 
-        /// ChCollisionModel might call this to get the position of the 
-        /// contact model (when rigid) and sync it
-    virtual ChCoordsys<> GetCsysForCollisionModel() {return ChCoordsys<>(this->GetFrame_REF_to_abs().coord);}
+    /// Get all the DOFs packed in a single vector (speed part)
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
+        w.PasteVector(this->GetPos_dt(), 0, 0);
+        w.PasteVector(this->GetWvel_loc(), 3, 0);
+    }
 
-        /// Apply the force, expressed in absolute reference, applied in pos, to the 
-        /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                     ChVectorDynamic<>& R);
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        IntStateIncrement(0, x_new, x, 0, dw);
+    }
 
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    /// Return the pointer to the surface material.
+    /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
+    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
+
+    /// Get the resultant contact force acting on this body.
+    ChVector<> GetContactForce();
+
+    /// Get the resultant contact torque acting on this body.
+    ChVector<> GetContactTorque();
+
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        return csys.TransformPointLocalToParent(loc_point);
+    }
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChVector<> abs_vel = state_w.ClipVector(0, 0);
+        ChVector<> loc_omg = state_w.ClipVector(3, 0);
+        ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
+
+        return abs_vel + Vcross(abs_omg, loc_point);
+    }
+
+    /// Get the absolute speed of point abs_point if attached to the surface.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
+
+    /// Return the coordinate system for the associated collision model.
+    /// ChCollisionModel might call this to get the position of the
+    /// contact model (when rigid) and sync it.
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(this->GetFrame_REF_to_abs().coord); }
+
+    /// Apply the force, expressed in absolute reference, applied in pos, to the
+    /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
+                                            const ChVector<>& abs_point,
+                                            ChVectorDynamic<>& R) override;
+
+    /// Apply the given force at the given point and load the generalized force array.
+    /// The force and its application point are specified in the gloabl frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactForceLoadQ(const ChVector<>& F,
+                                   const ChVector<>& point,
+                                   const ChState& state_x,
+                                   ChVectorDynamic<>& Q,
+                                   int offset) override {
+        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+        ChVector<> point_loc = csys.TransformPointParentToLocal(point);
+        ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
+        ChVector<> torque_loc = Vcross(point_loc, force_loc);
+        Q.PasteVector(F, offset + 0, 0);
+        Q.PasteVector(torque_loc, offset + 3, 0);
+    }
+
+    /// Compute the jacobian(s) part(s) for this contactable item.
+    /// For a ChBody, this updates the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-        /// (used only for rolling friction DVI contacts)
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
+    /// Used only for rolling friction DVI contacts.
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
         ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second);
+        bool second) override;
 
-        /// Used by some DEM code
-    virtual double GetContactableMass()  {return this->GetMass();}
+    /// Used by some DEM code
+    virtual double GetContactableMass() override { return this->GetMass(); }
 
-        /// This is only for backward compatibility
-    virtual ChPhysicsItem* GetPhysicsItem() { return this;}
-
+    /// This is only for backward compatibility
+    virtual ChPhysicsItem* GetPhysicsItem() override { return this; }
 
     //
     // INTERFACE to ChLoadable 
@@ -729,7 +785,7 @@ class ChApi ChBody :            public ChPhysicsItem,
         ChVector<> absF=F.ClipVector(0,0);
         ChVector<> absT=F.ClipVector(3,0);
         ChVector<> body_absF;
-        ChVector<> body_absT;
+        ChVector<> body_locT;
         ChCoordsys<> bodycoord;
         if(state_x)
             bodycoord = state_x->ClipCoordsys(0,0); // the numerical jacobian algo might change state_x
@@ -737,9 +793,9 @@ class ChApi ChBody :            public ChPhysicsItem,
             bodycoord = this->coord;
         // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
         body_absF = absF;
-        body_absT = bodycoord.rot.RotateBack( absT + ((abs_pos-bodycoord.pos) % absF) );
+        body_locT = bodycoord.rot.RotateBack( absT + ((abs_pos-bodycoord.pos) % absF) );
         Qi.PasteVector(body_absF,0,0);
-        Qi.PasteVector(body_absT,3,0);
+        Qi.PasteVector(body_locT,3,0);
         detJ=1; // not needed because not used in quadrature.
     }
 
@@ -762,8 +818,6 @@ class ChApi ChBody :            public ChPhysicsItem,
 const int BODY_DOF = 6;   ///< degrees of freedom of body in 3d space
 const int BODY_QDOF = 7;  ///< degrees of freedom with quaternion rotation state
 const int BODY_ROT = 3;   ///< rotational dof in Newton dynamics
-
-typedef ChSharedPtr<ChBody> ChSharedBodyPtr;
 
 }  // END_OF_NAMESPACE____
 

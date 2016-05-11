@@ -37,27 +37,27 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the main namespace of Chrono, and other chrono namespaces
-
 using namespace chrono;
 using namespace chrono::particlefactory;
 using namespace chrono::geometry;
+using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
-using namespace core;
-using namespace scene;
-using namespace video;
-using namespace io;
-using namespace gui;
+using namespace irr::core;
+using namespace irr::scene;
+using namespace irr::video;
+using namespace irr::io;
+using namespace irr::gui;
 
 //     A callback executed at each particle creation can be attached to the emitter.
 //     For example, we need that new particles will be bound to Irrlicht visualization:
 
 class MyCreatorForAll : public ChCallbackPostCreation {
   public:
-    virtual void PostCreation(ChSharedPtr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+    virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
         // optional: add further assets, ex for improving visualization:
-        ChSharedPtr<ChTexture> mtexture(new ChTexture());
+        auto mtexture = std::make_shared<ChTexture>();
         mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
         mbody->AddAsset(mtexture);
 
@@ -68,7 +68,7 @@ class MyCreatorForAll : public ChCallbackPostCreation {
         // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
         mbody->SetNoGyroTorque(true);
     }
-    irr::ChIrrApp* airrlicht_application;
+    ChIrrApp* airrlicht_application;
 };
 
 int main(int argc, char* argv[]) {
@@ -93,15 +93,15 @@ int main(int argc, char* argv[]) {
     // functions it also sets mass and inertia tensor for you, and collision
     // and visualization shapes are added automatically)
 
-    ChSharedPtr<ChBodyEasySphere> msphereBody(new ChBodyEasySphere(2.1,     // radius size
-                                                                   1800,    // density
-                                                                   true,    // collide enable?
-                                                                   true));  // visualization?
+    auto msphereBody = std::make_shared<ChBodyEasySphere>(2.1,    // radius size
+                                                          1800,   // density
+                                                          true,   // collide enable?
+                                                          true);  // visualization?
     msphereBody->SetPos(ChVector<>(1, 1, 0));
     msphereBody->GetMaterialSurface()->SetFriction(0.2f);
 
     // optional: add further assets, ex for improving visualization:
-    ChSharedPtr<ChTexture> mtexture(new ChTexture());
+    auto mtexture = std::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     msphereBody->AddAsset(mtexture);
 
@@ -135,45 +135,44 @@ int main(int argc, char* argv[]) {
     // inherit your own class from these randomizers if the choice is not enough).
 
     // ---Initialize the randomizer for POSITIONS: random points in a large cube
-    ChSharedPtr<ChRandomParticlePositionOnGeometry> emitter_positions(new ChRandomParticlePositionOnGeometry);
+    auto emitter_positions = std::make_shared<ChRandomParticlePositionOnGeometry>();
 
-    ChSmartPtr<ChGeometry> sampled_cube(new ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(50, 50, 50)));
+    std::shared_ptr<ChGeometry> sampled_cube(new ChBox(VNULL, ChMatrix33<>(QUNIT), ChVector<>(50, 50, 50)));
     emitter_positions->SetGeometry(sampled_cube);
 
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for ALIGNMENTS
-    ChSharedPtr<ChRandomParticleAlignmentUniform> emitter_rotations(new ChRandomParticleAlignmentUniform);
+    auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
     emitter.SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for VELOCITIES, with statistical distribution
-    ChSharedPtr<ChRandomParticleVelocityAnyDirection> mvelo(new ChRandomParticleVelocityAnyDirection);
-    mvelo->SetModulusDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.0, 0.05)));
+    auto mvelo = std::make_shared<ChRandomParticleVelocityAnyDirection>();
+    mvelo->SetModulusDistribution(std::make_shared<ChMinMaxDistribution>(0.0, 0.5));
     emitter.SetParticleVelocity(mvelo);
 
     // ---Initialize the randomizer for ANGULAR VELOCITIES, with statistical distribution
-    ChSharedPtr<ChRandomParticleVelocityAnyDirection> mangvelo(new ChRandomParticleVelocityAnyDirection);
-    mangvelo->SetModulusDistribution(ChSmartPtr<ChMinMaxDistribution>(new ChMinMaxDistribution(0.0, 0.2)));
+    auto mangvelo = std::make_shared<ChRandomParticleVelocityAnyDirection>();
+    mangvelo->SetModulusDistribution(std::make_shared<ChMinMaxDistribution>(0.0, 0.2));
     emitter.SetParticleAngularVelocity(mangvelo);
 
     // ---Initialize the randomizer for CREATED SHAPES, with statistical distribution
-    /*
-         // Create a ChRandomShapeCreator object (ex. here for sphere particles)
-        ChSharedPtr<ChRandomShapeCreatorSpheres> mcreator_spheres(new ChRandomShapeCreatorSpheres);
-        mcreator_spheres->SetDiameterDistribution( ChSmartPtr<ChZhangDistribution>  (new ChZhangDistribution(0.6, 0.23))
-       );
-        mcreator_spheres->SetDensityDistribution ( ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600))
-       );
 
-         // Finally, tell to the emitter that it must use the creator above:
-        emitter.SetParticleCreator(mcreator_spheres);
+    /*
+    // Create a ChRandomShapeCreator object (ex. here for sphere particles)
+    auto mcreator_spheres = std::make_shared<ChRandomShapeCreatorSpheres>();
+    mcreator_spheres->SetDiameterDistribution(std::make_shared<ChZhangDistribution>(0.6, 0.23));
+    mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
+
+    // Finally, tell to the emitter that it must use the creator above:
+    emitter.SetParticleCreator(mcreator_spheres);
     */
 
     // ..as an alternative: create odd shapes with convex hulls, like faceted fragments:
-    ChSharedPtr<ChRandomShapeCreatorConvexHulls> mcreator_hulls(new ChRandomShapeCreatorConvexHulls);
+    auto mcreator_hulls = std::make_shared<ChRandomShapeCreatorConvexHulls>();
     mcreator_hulls->SetNpoints(15);
-    mcreator_hulls->SetChordDistribution(ChSmartPtr<ChZhangDistribution>(new ChZhangDistribution(1.3, 0.4)));
-    mcreator_hulls->SetDensityDistribution(ChSmartPtr<ChConstantDistribution>(new ChConstantDistribution(1600)));
+    mcreator_hulls->SetChordDistribution(std::make_shared<ChZhangDistribution>(1.3, 0.4));
+    mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
     emitter.SetParticleCreator(mcreator_hulls);
 
     // --- Optional: what to do by default on ALL newly created particles?
