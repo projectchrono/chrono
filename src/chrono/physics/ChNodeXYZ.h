@@ -42,7 +42,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     // FUNCTIONS
     //
 
-    // Access the xyz 'LCP variables' of the node
+    // Access the xyz 'variables' of the node
     virtual ChVariablesNode& Variables() =0;
 
     // Position of the node - in absolute csys.

@@ -239,24 +239,24 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         }
     }
 
-    virtual void ContIntToLCP(const unsigned int off_L,    ///< offset in L, Qc
-                              const ChVectorDynamic<>& L,  ///<
-                              const ChVectorDynamic<>& Qc  ///<
-                              ) {
-        // only for LCP warm start
+    virtual void ContIntToDescriptor(const unsigned int off_L,    ///< offset in L, Qc
+                                     const ChVectorDynamic<>& L,  ///<
+                                     const ChVectorDynamic<>& Qc  ///<
+                                     ) {
+        // only for solver warm start
         Nx.Set_l_i(L(off_L));
         Tu.Set_l_i(L(off_L + 1));
         Tv.Set_l_i(L(off_L + 2));
 
-        // LCP known terms
+        // solver known terms
         Nx.Set_b_i(Qc(off_L));
         Tu.Set_b_i(Qc(off_L + 1));
         Tv.Set_b_i(Qc(off_L + 2));
     }
 
-    virtual void ContIntFromLCP(const unsigned int off_L,  ///< offset in L
-                                ChVectorDynamic<>& L       ///<
-                                ) {
+    virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
+                                       ChVectorDynamic<>& L       ///<
+                                       ) {
         L(off_L) = Nx.Get_l_i();
         L(off_L + 1) = Tu.Get_l_i();
         L(off_L + 2) = Tv.Get_l_i();

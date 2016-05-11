@@ -688,7 +688,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //

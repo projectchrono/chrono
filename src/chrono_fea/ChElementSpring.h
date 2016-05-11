@@ -128,7 +128,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     virtual double GetDamperR() { return damper_r; }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 };
 

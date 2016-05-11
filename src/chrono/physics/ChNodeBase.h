@@ -93,15 +93,15 @@ class ChApi ChNodeBase {
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,
                                         const double c) {}
-    virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {}
-    virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) {}
+    virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {}
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {}
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a solver)
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
 
     /// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.

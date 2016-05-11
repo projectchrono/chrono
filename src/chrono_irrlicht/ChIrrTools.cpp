@@ -543,12 +543,12 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
         gui::IGUIFont* font = mdevice->getGUIEnvironment()->getBuiltInFont();
         if (font) {
             char buffer[100];
-            font->draw(L"LCP speed violation", irr::core::rect<s32>(mx + sx / 2 - 100, my, mx + sx, my + 10),
+            font->draw(L"Solver speed violation", irr::core::rect<s32>(mx + sx / 2 - 100, my, mx + sx, my + 10),
                        irr::video::SColor(200, 100, 0, 0));
             sprintf(buffer, "%g", sy / spfact);
             font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my, mx + 30, my + 10),
                        irr::video::SColor(200, 100, 0, 0));
-            font->draw(L"LCP position violation", irr::core::rect<s32>(mx + sx - 100, my, mx + sx, my + 10),
+            font->draw(L"Solver position violation", irr::core::rect<s32>(mx + sx - 100, my, mx + sx, my + 10),
                        irr::video::SColor(200, 0, 100, 0));
             sprintf(buffer, "%g", sy / posfact);
             font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx + sx / 2, my, mx + sx / 2 + 10, my + 10),

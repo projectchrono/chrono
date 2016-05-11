@@ -104,7 +104,7 @@ class ChApiFea ChElementBase {
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
     /// Tell to a system descriptor that there are item(s) of type

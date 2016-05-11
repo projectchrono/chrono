@@ -279,20 +279,20 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     R.PasteSumVector(Iw, off + 3, 0);
 }
 
-void ChBody::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                      const ChStateDelta& v,
-                      const ChVectorDynamic<>& R,
-                      const unsigned int off_L,  ///< offset in L, Qc
-                      const ChVectorDynamic<>& L,
-                      const ChVectorDynamic<>& Qc) {
-    this->variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 6, 1, 0, 0);  // for LCP warm starting only
-    this->variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 6, 1, 0, 0);  // LCP known term
+void ChBody::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                             const ChStateDelta& v,
+                             const ChVectorDynamic<>& R,
+                             const unsigned int off_L,  ///< offset in L, Qc
+                             const ChVectorDynamic<>& L,
+                             const ChVectorDynamic<>& Qc) {
+    this->variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 6, 1, 0, 0);  // for solver warm starting only
+    this->variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 6, 1, 0, 0);  // solver known term
 }
 
-void ChBody::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                        ChStateDelta& v,
-                        const unsigned int off_L,  ///< offset in L
-                        ChVectorDynamic<>& L) {
+void ChBody::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                               ChStateDelta& v,
+                               const unsigned int off_L,  ///< offset in L
+                               ChVectorDynamic<>& L) {
     v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
 }
 
@@ -324,7 +324,7 @@ void ChBody::VariablesFbIncrementMq() {
 }
 
 void ChBody::VariablesQbLoadSpeed() {
-    // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
+    // set current speed in 'qb', it can be used by the solver when working in incremental mode
     this->variables.Get_qb().PasteVector(GetCoord_dt().pos, 0, 0);
     this->variables.Get_qb().PasteVector(GetWvel_loc(), 3, 0);
 }

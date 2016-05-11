@@ -410,7 +410,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
         nodes[3]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
     }
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //
@@ -736,7 +736,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //

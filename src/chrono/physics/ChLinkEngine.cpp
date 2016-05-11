@@ -553,40 +553,40 @@ void ChLinkEngine::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynami
     }
 }
 
-void ChLinkEngine::IntToLCP(const unsigned int off_v,
-                            const ChStateDelta& v,
-                            const ChVectorDynamic<>& R,
-                            const unsigned int off_L,
-                            const ChVectorDynamic<>& L,
-                            const ChVectorDynamic<>& Qc) {
+void ChLinkEngine::IntToDescriptor(const unsigned int off_v,
+                                   const ChStateDelta& v,
+                                   const ChVectorDynamic<>& R,
+                                   const unsigned int off_L,
+                                   const ChVectorDynamic<>& L,
+                                   const ChVectorDynamic<>& Qc) {
     // First, inherit to parent class
-    ChLinkLock::IntToLCP(off_v, v, R, off_L, L, Qc);
+    ChLinkLock::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
     if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innershaft1->IntToLCP(off_v, v, R, off_L, L, Qc);
-        innershaft2->IntToLCP(off_v + 1, v, R, off_L, L, Qc);
-        innerconstraint1->IntToLCP(off_v, v, R, off_L, L, Qc);
-        innerconstraint2->IntToLCP(off_v, v, R, off_L + 1, L, Qc);
+        innershaft1->IntToDescriptor(off_v, v, R, off_L, L, Qc);
+        innershaft2->IntToDescriptor(off_v + 1, v, R, off_L, L, Qc);
+        innerconstraint1->IntToDescriptor(off_v, v, R, off_L, L, Qc);
+        innerconstraint2->IntToDescriptor(off_v, v, R, off_L + 1, L, Qc);
     }
 }
 
-void ChLinkEngine::IntFromLCP(const unsigned int off_v,
-                              ChStateDelta& v,
-                              const unsigned int off_L,
-                              ChVectorDynamic<>& L) {
+void ChLinkEngine::IntFromDescriptor(const unsigned int off_v,
+                                     ChStateDelta& v,
+                                     const unsigned int off_L,
+                                     ChVectorDynamic<>& L) {
     // First, inherit to parent class
-    ChLinkLock::IntFromLCP(off_v, v, off_L, L);
+    ChLinkLock::IntFromDescriptor(off_v, v, off_L, L);
 
     if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innershaft1->IntFromLCP(off_v, v, off_L, L);
-        innershaft2->IntFromLCP(off_v + 1, v, off_L, L);
-        innerconstraint1->IntFromLCP(off_v, v, off_L, L);
-        innerconstraint2->IntFromLCP(off_v, v, off_L + 1, L);
+        innershaft1->IntFromDescriptor(off_v, v, off_L, L);
+        innershaft2->IntFromDescriptor(off_v + 1, v, off_L, L);
+        innerconstraint1->IntFromDescriptor(off_v, v, off_L, L);
+        innerconstraint2->IntFromDescriptor(off_v, v, off_L + 1, L);
     }
 }
 
 //
-//  LCP functions
+//  SOLVER functions
 //
 
 void ChLinkEngine::InjectConstraints(ChSystemDescriptor& mdescriptor) {

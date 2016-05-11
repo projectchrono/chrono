@@ -145,12 +145,14 @@ class ChApiFea ChNodeFEAxyzP : public ChNodeFEAbase {
         R(off) += c * this->GetMass() * w(off);
     }
 
-    virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
+    virtual void NodeIntToDescriptor(const unsigned int off_v,
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R) override {
         this->variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 1, 1, 0, 0);
         this->variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 1, 1, 0, 0);
     }
 
-    virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) override {
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
         v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
     }
 

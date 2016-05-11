@@ -441,7 +441,7 @@ class ChApiFea ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUV
     ChGaussPoint* GetGaussPoint(int N) { return GpVector[N]; }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //

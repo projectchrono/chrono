@@ -180,12 +180,12 @@ void ChLinkDistance::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
         Qc(off_L) += c * (curr_dist - distance);
 }
 
-void ChLinkDistance::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                              const ChStateDelta& v,
-                              const ChVectorDynamic<>& R,
-                              const unsigned int off_L,  ///< offset in L, Qc
-                              const ChVectorDynamic<>& L,
-                              const ChVectorDynamic<>& Qc) {
+void ChLinkDistance::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R,
+                                     const unsigned int off_L,  ///< offset in L, Qc
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -194,17 +194,17 @@ void ChLinkDistance::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     Cx.Set_b_i(Qc(off_L));
 }
 
-void ChLinkDistance::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                ChStateDelta& v,
-                                const unsigned int off_L,  ///< offset in L
-                                ChVectorDynamic<>& L) {
+void ChLinkDistance::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                       ChStateDelta& v,
+                                       const unsigned int off_L,  ///< offset in L
+                                       ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
     L(off_L) = Cx.Get_l_i();
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
 void ChLinkDistance::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())

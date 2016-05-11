@@ -25,75 +25,69 @@ namespace chrono {
 /// One usually create one or more ChLoad objects acting on a ChLoadable items (ex. FEA elements),
 /// add them to this container, then  the container is added to a ChSystem.
 
-
-class  ChApi ChLoadContainer : public ChPhysicsItem   {
+class ChApi ChLoadContainer : public ChPhysicsItem {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChLoadContainer, ChPhysicsItem);
 
-private: 
-    
-    // 
+  private:
+    //
     // DATA
     //
-    std::vector< std::shared_ptr<ChLoadBase> > loadlist;
+    std::vector<std::shared_ptr<ChLoadBase> > loadlist;
 
-public:
-    ChLoadContainer () {}
+  public:
+    ChLoadContainer() {}
     virtual ~ChLoadContainer() {}
 
-        /// Add a load to the container list of loads
+    /// Add a load to the container list of loads
     void Add(std::shared_ptr<ChLoadBase> newload) {
-        //// Radu: I don't think find can be used on a container of shared pointers which does not support the == operator.
+        //// Radu: I don't think find can be used on a container of shared pointers which does not support the ==
+        ///operator.
         //// Radu: check if this is still true, now that we switched to std::shared_ptr
-        ////assert(std::find<std::vector<std::shared_ptr<ChLoadBase> >::iterator>(loadlist.begin(), loadlist.end(), newload) == loadlist.end());
+        ////assert(std::find<std::vector<std::shared_ptr<ChLoadBase> >::iterator>(loadlist.begin(), loadlist.end(),
+        ///newload) == loadlist.end());
         loadlist.push_back(newload);
     }
-        /// Direct access to the load vector, for iterating etc.
-    std::vector< std::shared_ptr<ChLoadBase> >& GetLoadList() {return loadlist;}
+    /// Direct access to the load vector, for iterating etc.
+    std::vector<std::shared_ptr<ChLoadBase> >& GetLoadList() { return loadlist; }
 
-    virtual void Setup(){
-    }
+    virtual void Setup() {}
 
     virtual void Update(double mytime, bool update_assets = true) {
-        for (size_t i=0; i<loadlist.size(); ++i)  {
+        for (size_t i = 0; i < loadlist.size(); ++i) {
             loadlist[i]->Update();
         }
         // Overloading of base class:
         ChPhysicsItem::Update(mytime, update_assets);
     }
 
-
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
-                                   ){
-        for (size_t i=0; i<loadlist.size(); ++i)  { 
-            loadlist[i]->LoadIntLoadResidual_F(R,c);
+                                   ) {
+        for (size_t i = 0; i < loadlist.size(); ++i) {
+            loadlist[i]->LoadIntLoadResidual_F(R, c);
         }
-    };
+    }
 
-        /// Tell to a system descriptor that there are items of type
-    /// ChKblock in this object (for further passing it to a LCP solver)
+    /// Tell to a system descriptor that there are items of type
+    /// ChKblock in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor){
-
-        for (size_t i=0; i<loadlist.size(); ++i) {
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+        for (size_t i = 0; i < loadlist.size(); ++i) {
             loadlist[i]->InjectKRMmatrices(mdescriptor);
         }
-    };
-
+    }
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
     /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
     /// values Kfactor, Rfactor, Mfactor.
     /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor){
-
-         for (size_t i=0; i<loadlist.size(); ++i) {
-             loadlist[i]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
-         }
-    };
-
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+        for (size_t i = 0; i < loadlist.size(); ++i) {
+            loadlist[i]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        }
+    }
 
     //
     // SERIALIZATION

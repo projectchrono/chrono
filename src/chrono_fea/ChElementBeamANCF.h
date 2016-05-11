@@ -898,7 +898,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //

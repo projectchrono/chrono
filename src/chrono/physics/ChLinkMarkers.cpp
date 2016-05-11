@@ -426,9 +426,8 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  ///< offset in R 
     }
 }
 
-/////////
-///////// LCP INTERFACE
-/////////
+
+// SOLVER INTERFACE
 
 void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
     if (!Body1 || !Body2)

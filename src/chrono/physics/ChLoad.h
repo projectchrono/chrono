@@ -141,7 +141,7 @@ public:
     virtual bool IsStiff() = 0;
 
     //
-    // Functions for interfacing to the state bookkeeping and LCP solver
+    // Functions for interfacing to the state bookkeeping and solver
     //
 
         /// Adds the internal loads Q (pasted at global nodes offsets) into
@@ -150,7 +150,7 @@ public:
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) =0;
 
         /// Tell to a system descriptor that there are item(s) of type
-        /// ChKblock in this object (for further passing it to a LCP solver)
+        /// ChKblock in this object (for further passing it to a solver)
         /// Basically does nothing, but inherited classes must specialize this.
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor)  {
         if (this->jacobians) {

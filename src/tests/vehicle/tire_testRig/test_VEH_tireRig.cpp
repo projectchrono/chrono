@@ -84,7 +84,7 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
 // Solver settings
-enum SolverType { LCP_ITSOR, MKL };
+enum SolverType { ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF, FEA)
@@ -670,12 +670,12 @@ int main() {
 
     if (solver_type == MKL) {
 #ifndef CHRONO_MKL
-        solver_type = LCP_ITSOR;
+        solver_type = ITSOR;
 #endif
     }
 
     switch (solver_type) {
-        case LCP_ITSOR: {
+        case ITSOR: {
             GetLog() << "Using SOLVER_SOR solver\n";
             my_system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
             my_system->SetMaxItersSolverSpeed(100);

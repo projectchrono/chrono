@@ -423,8 +423,8 @@ void ChSystem::SetSolverType(eCh_solverType mval) {
             solver_stab = new ChSolverJacobi();
             break;
         case SOLVER_SOR_MULTITHREAD:
-            solver_speed = new ChSolverSORmultithread((char*)"speedLCP", parallel_thread_number);
-            solver_stab = new ChSolverSORmultithread((char*)"posLCP", parallel_thread_number);
+            solver_speed = new ChSolverSORmultithread((char*)"speedSolver", parallel_thread_number);
+            solver_stab = new ChSolverSORmultithread((char*)"posSolver", parallel_thread_number);
             break;
         case SOLVER_PMINRES:
             solver_speed = new ChSolverPMINRES();
@@ -1228,32 +1228,33 @@ void ChSystem::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in Qc
     contact_container->IntLoadConstraint_Ct(displ_L + contact_container->GetOffset_L(), Qc, c);
 }
 
-void ChSystem::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,  ///< offset in L, Qc
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc) {
-    unsigned int displ_L = off_L  - this->offset_L;
-    unsigned int displ_v = off_v  - this->offset_w;
+void ChSystem::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                               const ChStateDelta& v,
+                               const ChVectorDynamic<>& R,
+                               const unsigned int off_L,  ///< offset in L, Qc
+                               const ChVectorDynamic<>& L,
+                               const ChVectorDynamic<>& Qc) {
+    unsigned int displ_L = off_L - this->offset_L;
+    unsigned int displ_v = off_v - this->offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntToLCP(off_v,  v, R, off_L,  L, Qc);
+    ChAssembly::IntToDescriptor(off_v, v, R, off_L, L, Qc);
     // Use also on contact container:
-    contact_container->IntToLCP(displ_v + contact_container->GetOffset_w(),v,R, displ_L + contact_container->GetOffset_L(),L,Qc);
+    contact_container->IntToDescriptor(displ_v + contact_container->GetOffset_w(), v, R,
+                                       displ_L + contact_container->GetOffset_L(), L, Qc);
 }
 
-void ChSystem::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                            ChStateDelta& v,
-                            const unsigned int off_L,  ///< offset in L
-                            ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L  - this->offset_L;
-    unsigned int displ_v = off_v  - this->offset_w;
+void ChSystem::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                 ChStateDelta& v,
+                                 const unsigned int off_L,  ///< offset in L
+                                 ChVectorDynamic<>& L) {
+    unsigned int displ_L = off_L - this->offset_L;
+    unsigned int displ_v = off_v - this->offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
-    ChAssembly::IntFromLCP(off_v,  v, off_L, L);
+    ChAssembly::IntFromDescriptor(off_v, v, off_L, L);
     // Use also on contact container:
-    contact_container->IntFromLCP(displ_v + contact_container->GetOffset_w(),v, displ_L + contact_container->GetOffset_L(),L);
+    contact_container->IntFromDescriptor(displ_v + contact_container->GetOffset_w(),v, displ_L + contact_container->GetOffset_L(),L);
 }
 
 ////
@@ -1458,15 +1459,15 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
     if (force_state_scatter)
         this->StateScatter(x, v, T);
 
-    // R and Qc vectors  --> LCP sparse solver structures  (also sets L and Dv to warmstart)
+    // R and Qc vectors  --> solver sparse solver structures  (also sets L and Dv to warmstart)
 
-    this->IntToLCP(0, Dv, R, 0, L, Qc);
+    this->IntToDescriptor(0, Dv, R, 0, L, Qc);
 
-    // G and Cq  matrices:  fill the LCP sparse solver structures:
+    // G and Cq  matrices:  fill the sparse solver structures:
 
     this->ConstraintsLoadJacobians();
     
-    // M, K, R matrices:  fill the LCP sparse solver structures:
+    // M, K, R matrices:  fill the sparse solver structures:
 
     if (c_a || c_v || c_x)
         this->KRMmatricesLoad(-c_x, -c_v, c_a); // for KRM blocks in ChKblock objects: fill them
@@ -1505,7 +1506,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         ((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc); // already saved as b from DumpLastMatrices?
     }
 
-    // Solve the LCP problem!!!!!!!!
+    // Solve the problem
 
     timer_solver.start();
 
@@ -1514,9 +1515,9 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
     timer_solver.stop();
 
 
-    // Dv and L vectors  <-- LCP sparse solver structures
+    // Dv and L vectors  <-- sparse solver structures
 
-    this->IntFromLCP(0, Dv, 0, L);
+    this->IntFromDescriptor(0, Dv, 0, L);
     
     // diagnostics:
 

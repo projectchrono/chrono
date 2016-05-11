@@ -62,8 +62,8 @@ class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
 
-    // Override/implement LCP system functions of ChShaftsCouple
-    // (to assembly/manage data for LCP system solver
+    // Override/implement system functions of ChShaftsCouple
+    // (to assemble/manage data for system solver)
 
     // Adds the torsional torques in the 'fb' part: qf+=torques*factor
     // of both shafts

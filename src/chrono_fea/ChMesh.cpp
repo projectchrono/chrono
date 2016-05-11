@@ -355,46 +355,33 @@ void ChMesh::IntLoadResidual_Mv(
   }
 }
 
-void ChMesh::IntToLCP(
-    const unsigned int off_v,			///< offset in v, R
-    const ChStateDelta& v,
-    const ChVectorDynamic<>& R,
-    const unsigned int off_L,			///< offset in L, Qc
-    const ChVectorDynamic<>& L,
-    const ChVectorDynamic<>& Qc
-)
-{
-  unsigned int local_off_v=0;
-  for (unsigned int j = 0; j < vnodes.size(); j++)
-  {
-    if (!vnodes[j]->GetFixed())
-    {
-      vnodes[j]->NodeIntToLCP(off_v + local_off_v,  v, R);
-      local_off_v += vnodes[j]->Get_ndof_w();
+void ChMesh::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                             const ChStateDelta& v,
+                             const ChVectorDynamic<>& R,
+                             const unsigned int off_L,  ///< offset in L, Qc
+                             const ChVectorDynamic<>& L,
+                             const ChVectorDynamic<>& Qc) {
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->GetFixed()) {
+            vnodes[j]->NodeIntToDescriptor(off_v + local_off_v, v, R);
+            local_off_v += vnodes[j]->Get_ndof_w();
+        }
     }
-  }
 }
 
-void ChMesh::IntFromLCP(
-    const unsigned int off_v,			///< offset in v
-    ChStateDelta& v,
-    const unsigned int off_L,			///< offset in L
-    ChVectorDynamic<>& L
-)
-{
-  unsigned int local_off_v=0;
-  for (unsigned int j = 0; j < vnodes.size(); j++)
-  {
-    if (!vnodes[j]->GetFixed())
-    {
-      vnodes[j]->NodeIntFromLCP(off_v + local_off_v,  v);
-      local_off_v += vnodes[j]->Get_ndof_w();
+void ChMesh::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                               ChStateDelta& v,
+                               const unsigned int off_L,  ///< offset in L
+                               ChVectorDynamic<>& L) {
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->GetFixed()) {
+            vnodes[j]->NodeIntFromDescriptor(off_v + local_off_v, v);
+            local_off_v += vnodes[j]->Get_ndof_w();
+        }
     }
-  }
 }
-
-
-
 
 //// SOLVER FUNCTIONS
 

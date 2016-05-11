@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
     // Setup linear solver
     // -------------------
 
-    // Note that not all solvers support stiffness matrices (that includes the default LcpSolverDEM).
+    // Note that not all solvers support stiffness matrices (that includes the default SolverDEM).
 #ifndef CHRONO_MKL
     if (solver_type == MKL_SOLVER) {
         GetLog() << "MKL support not enabled.  Solver reset to default.\n";

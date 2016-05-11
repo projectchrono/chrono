@@ -181,16 +181,19 @@ class ChApiFea ChMesh : public ChIndexedNodes {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc);
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L);
 
     //
-    // LCP SYSTEM FUNCTIONS        for interfacing all elements with LCP solver
+    // SYSTEM FUNCTIONS        for interfacing all elements with solver
     //
 
     /// Tell to a system descriptor that there are items of type
@@ -211,8 +214,8 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual void VariablesFbLoadForces(double factor = 1.);
 
     /// Initialize the 'qb' part of the ChVariables with the
-    /// current value of speeds. Note: since 'qb' is the unknown of the LCP, this
-    /// function seems unuseful, unless used before VariablesFbIncrementMq()
+    /// current value of speeds. Note: since 'qb' is the unknown, this
+    /// function seems unnecessary, unless used before VariablesFbIncrementMq()
     virtual void VariablesQbLoadSpeed();
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized

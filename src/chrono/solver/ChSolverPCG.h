@@ -50,7 +50,7 @@ class ChApi ChSolverPCG : public ChIterativeSolver {
     // FUNCTIONS
     //
 
-    /// Performs the solution of the LCP.
+    /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
 
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables

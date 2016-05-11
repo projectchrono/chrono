@@ -947,8 +947,7 @@ void ChLinkLock::UpdateForces(double mytime) {
 }
 
 //
-// Reimplement parent 'lcp stuff' because 'upper/lower limits' may
-// add constraints
+// Reimplement parent solver methods because 'upper/lower limits' may add constraints
 //
 
 int ChLinkLock::GetDOC_d() {
@@ -1337,14 +1336,14 @@ void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in 
     // nothing to do for ChLinkLimit
 }
 
-void ChLinkLock::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,  ///< offset in L, Qc
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc) {
+void ChLinkLock::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,  ///< offset in L, Qc
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) {
     // parent class:
-    ChLinkMasked::IntToLCP(off_v, v, R, off_L, L, Qc);
+    ChLinkMasked::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
     int local_offset = this->GetDOC_c();
 
@@ -1422,12 +1421,12 @@ void ChLinkLock::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChLinkLock::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                            ChStateDelta& v,
-                            const unsigned int off_L,  ///< offset in L
-                            ChVectorDynamic<>& L) {
+void ChLinkLock::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,  ///< offset in L
+                                   ChVectorDynamic<>& L) {
     // parent class:
-    ChLinkMasked::IntFromLCP(off_L, v, off_L, L);
+    ChLinkMasked::IntFromDescriptor(off_L, v, off_L, L);
 
     int local_offset = this->GetDOC_c();
 

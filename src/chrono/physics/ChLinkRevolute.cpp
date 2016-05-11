@@ -343,12 +343,12 @@ void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
     Qc(off_L + 4) += cnstr_vw_violation;
 }
 
-void ChLinkRevolute::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                              const ChStateDelta& v,
-                              const ChVectorDynamic<>& R,
-                              const unsigned int off_L,  ///< offset in L, Qc
-                              const ChVectorDynamic<>& L,
-                              const ChVectorDynamic<>& Qc) {
+void ChLinkRevolute::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R,
+                                     const unsigned int off_L,  ///< offset in L, Qc
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -365,10 +365,10 @@ void ChLinkRevolute::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     m_cnstr_vw.Set_b_i(Qc(off_L + 4));
 }
 
-void ChLinkRevolute::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                ChStateDelta& v,
-                                const unsigned int off_L,  ///< offset in L
-                                ChVectorDynamic<>& L) {
+void ChLinkRevolute::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                       ChStateDelta& v,
+                                       const unsigned int off_L,  ///< offset in L
+                                       ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 

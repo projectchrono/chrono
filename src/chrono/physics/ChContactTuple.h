@@ -162,14 +162,14 @@ class ChContactTuple {
 
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) {}
 
-    virtual void ContIntToLCP(const unsigned int off_L,    ///< offset in L, Qc
-                              const ChVectorDynamic<>& L,  ///<
-                              const ChVectorDynamic<>& Qc  ///<
-                              ) {}
+    virtual void ContIntToDescriptor(const unsigned int off_L,    ///< offset in L, Qc
+                                     const ChVectorDynamic<>& L,  ///<
+                                     const ChVectorDynamic<>& Qc  ///<
+                                     ) {}
 
-    virtual void ContIntFromLCP(const unsigned int off_L,  ///< offset in L
-                                ChVectorDynamic<>& L       ///<
-                                ) {}
+    virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
+                                       ChVectorDynamic<>& L       ///<
+                                       ) {}
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
 

@@ -61,7 +61,7 @@ class ChApi ChSolverSimplex : public ChDirectSolver {
     // FUNCTIONS
     //
 
-    /// Performs the solution of the LCP, using the simplex method.
+    /// Performs the solution of the problem, using the simplex method.
     /// If you must solve many problems with the same number of
     /// variables and constraints, we suggest you to use the same
     /// ChSolverSimplex object, because it exploits coherency: avoids

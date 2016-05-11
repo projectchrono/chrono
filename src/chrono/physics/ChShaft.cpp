@@ -141,20 +141,20 @@ void ChShaft::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R r
     R(off) += c * this->inertia * w(off);
 }
 
-void ChShaft::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                       const ChStateDelta& v,
-                       const ChVectorDynamic<>& R,
-                       const unsigned int off_L,  ///< offset in L, Qc
-                       const ChVectorDynamic<>& L,
-                       const ChVectorDynamic<>& Qc) {
+void ChShaft::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                              const ChStateDelta& v,
+                              const ChVectorDynamic<>& R,
+                              const unsigned int off_L,  ///< offset in L, Qc
+                              const ChVectorDynamic<>& L,
+                              const ChVectorDynamic<>& Qc) {
     this->variables.Get_qb()(0, 0) = v(off_v);
     this->variables.Get_fb()(0, 0) = R(off_v);
 }
 
-void ChShaft::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                         ChStateDelta& v,
-                         const unsigned int off_L,  ///< offset in L
-                         ChVectorDynamic<>& L) {
+void ChShaft::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                ChStateDelta& v,
+                                const unsigned int off_L,  ///< offset in L
+                                ChVectorDynamic<>& L) {
     v(off_v) = this->variables.Get_qb()(0, 0);
 }
 
@@ -179,7 +179,7 @@ void ChShaft::VariablesFbIncrementMq() {
 }
 
 void ChShaft::VariablesQbLoadSpeed() {
-    // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
+    // set current speed in 'qb', it can be used by the solver when working in incremental mode
     this->variables.Get_qb().SetElement(0, 0, pos_dt);
 }
 

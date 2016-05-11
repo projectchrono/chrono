@@ -103,7 +103,7 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
     }
 
     // --
-    // Fills the MC matrix and B vector, to pass to the sparse LCP simplex solver.
+    // Fills the MC matrix and B vector, to pass to the sparse simplex solver.
     // The original problem, stated as
     //  | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
     //  | Cq  0 | |l|  |-b|  |c|
@@ -169,8 +169,7 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
     if (max_err > 1e-10)
         GetLog() << "simplex solver: NONSYMMETRIC MC! error " << max_err << " at " << err_r << "," << err_c << "\n";
 
-    // --
-    // Solve the LCP
+    // Solve the problem
 
     MC->SolveLCP(B, X, n_c, n_d, truncation_step, false, unilaterals);
 

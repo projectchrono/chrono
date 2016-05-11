@@ -26,7 +26,7 @@ namespace fea {
 /// Class for all elements whose stiffness matrix can be seen
 /// as a NxN block-matrix to be splitted between N nodes.
 /// Helps reducing the complexity of inherited FEA elements because
-/// it implements some bookkeeping for the interface with LCP solver.
+/// it implements some bookkeeping for the interface with solver.
 /// This means that most FEA elements inherited from ChElementGeneric
 /// need to implement at most the following two fundamental methods:
 ///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
@@ -38,7 +38,7 @@ class ChApiFea ChElementGeneric : public ChElementBase {
     ChElementGeneric(){};
     virtual ~ChElementGeneric(){};
 
-    /// Access the proxy to stiffness, for sparse LCP solver
+    /// Access the proxy to stiffness, for sparse solver
     ChKblockGeneric& Kstiffness() { return Kmatr; }
 
     //
@@ -63,7 +63,7 @@ class ChApiFea ChElementGeneric : public ChElementBase {
     virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override { ComputeKRMmatricesGlobal(M, 0, 0, 1.0); }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
     /// Tell to a system descriptor that there are item(s) of type

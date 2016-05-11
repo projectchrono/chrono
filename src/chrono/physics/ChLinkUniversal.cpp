@@ -311,12 +311,12 @@ void ChLinkUniversal::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
     Qc(off_L + 3) += cnstr_dot_violation;
 }
 
-void ChLinkUniversal::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                               const ChStateDelta& v,
-                               const ChVectorDynamic<>& R,
-                               const unsigned int off_L,  ///< offset in L, Qc
-                               const ChVectorDynamic<>& L,
-                               const ChVectorDynamic<>& Qc) {
+void ChLinkUniversal::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                      const ChStateDelta& v,
+                                      const ChVectorDynamic<>& R,
+                                      const unsigned int off_L,  ///< offset in L, Qc
+                                      const ChVectorDynamic<>& L,
+                                      const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -331,10 +331,10 @@ void ChLinkUniversal::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     m_cnstr_dot.Set_b_i(Qc(off_L + 3));
 }
 
-void ChLinkUniversal::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                 ChStateDelta& v,
-                                 const unsigned int off_L,  ///< offset in L
-                                 ChVectorDynamic<>& L) {
+void ChLinkUniversal::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                        ChStateDelta& v,
+                                        const unsigned int off_L,  ///< offset in L
+                                        ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 

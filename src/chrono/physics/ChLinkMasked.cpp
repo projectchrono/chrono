@@ -313,12 +313,12 @@ void ChLinkMasked::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset i
     }
 }
 
-void ChLinkMasked::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                            const ChStateDelta& v,
-                            const ChVectorDynamic<>& R,
-                            const unsigned int off_L,  ///< offset in L, Qc
-                            const ChVectorDynamic<>& L,
-                            const ChVectorDynamic<>& Qc) {
+void ChLinkMasked::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                   const ChStateDelta& v,
+                                   const ChVectorDynamic<>& R,
+                                   const unsigned int off_L,  ///< offset in L, Qc
+                                   const ChVectorDynamic<>& L,
+                                   const ChVectorDynamic<>& Qc) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
         if (mask->Constr_N(i).IsActive()) {
@@ -329,10 +329,10 @@ void ChLinkMasked::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChLinkMasked::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                              ChStateDelta& v,
-                              const unsigned int off_L,  ///< offset in L
-                              ChVectorDynamic<>& L) {
+void ChLinkMasked::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                     ChStateDelta& v,
+                                     const unsigned int off_L,  ///< offset in L
+                                     ChVectorDynamic<>& L) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
         if (mask->Constr_N(i).IsActive()) {
@@ -342,9 +342,7 @@ void ChLinkMasked::IntFromLCP(const unsigned int off_v,  ///< offset in v
     }
 }
 
-////////////////////////////////////
-///
-///    LCP SYSTEM FUNCTIONS
+// SOLVER SYSTEM FUNCTIONS
 
 void ChLinkMasked::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())

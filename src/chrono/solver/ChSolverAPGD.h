@@ -50,7 +50,7 @@ class ChApi ChSolverAPGD : public ChIterativeSolver {
     // FUNCTIONS
     //
 
-    // Performs the solution of the LCP.
+    // Performs the solution of the problem.
     virtual double Solve(ChSystemDescriptor& sysd);
 
     void ShurBvectorCompute(ChSystemDescriptor& sysd);

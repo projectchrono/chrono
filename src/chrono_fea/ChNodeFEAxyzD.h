@@ -161,14 +161,16 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
         R(off + 5) += c * GetMassDiagonal()(2) * w(off + 5);
     }
 
-    virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
-        ChNodeFEAxyz::NodeIntToLCP(off_v, v, R);
+    virtual void NodeIntToDescriptor(const unsigned int off_v,
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R) override {
+        ChNodeFEAxyz::NodeIntToDescriptor(off_v, v, R);
         this->variables_D->Get_qb().PasteClippedMatrix(&v, off_v + 3, 0, 3, 1, 0, 0);
         this->variables_D->Get_fb().PasteClippedMatrix(&R, off_v + 3, 0, 3, 1, 0, 0);
     }
 
-    virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) override {
-        ChNodeFEAxyz::NodeIntFromLCP(off_v, v);
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
+        ChNodeFEAxyz::NodeIntFromDescriptor(off_v, v);
         v.PasteMatrix(&this->variables_D->Get_qb(), off_v + 3, 0);
     }
 

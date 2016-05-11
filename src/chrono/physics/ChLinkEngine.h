@@ -215,21 +215,24 @@ class ChApi ChLinkEngine : public ChLinkLock {
                                      bool do_clamp,
                                      double recovery_clamp);
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
-    // Overload LCP system functions of ChPhysicsItem
-    // (beyond the base link implementations, it also have to
-    // add the constraint coming from the inner shaft etc.)
+    // Overload system functions of ChPhysicsItem
+    // (besides the base link implementations, these also add
+    // the constraint coming from the inner shaft etc.)
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);

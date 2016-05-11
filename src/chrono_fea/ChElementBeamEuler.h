@@ -1030,7 +1030,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
         ChVector<>& StrainV) { /* To be completed: Created to be consistent with base class implementation*/
     }
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //

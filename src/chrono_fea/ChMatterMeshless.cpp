@@ -457,7 +457,7 @@ void ChMatterMeshless::IntLoadResidual_Mv(const unsigned int off,      ///< offs
     }
 }
 
-void ChMatterMeshless::IntToLCP(const unsigned int off_v,  ///< offset in v, R
+void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
                                 const ChStateDelta& v,
                                 const ChVectorDynamic<>& R,
                                 const unsigned int off_L,  ///< offset in L, Qc
@@ -469,7 +469,7 @@ void ChMatterMeshless::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChMatterMeshless::IntFromLCP(const unsigned int off_v,  ///< offset in v
+void ChMatterMeshless::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
                                   ChStateDelta& v,
                                   const unsigned int off_L,  ///< offset in L
                                   ChVectorDynamic<>& L) {
@@ -615,7 +615,7 @@ void ChMatterMeshless::VariablesFbIncrementMq() {
 
 void ChMatterMeshless::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
+        // set current speed in 'qb', it can be used by the solver when working in incremental mode
         this->nodes[j]->variables.Get_qb().PasteVector(this->nodes[j]->GetPos_dt(), 0, 0);
     }
 }

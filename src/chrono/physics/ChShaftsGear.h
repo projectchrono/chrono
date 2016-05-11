@@ -84,16 +84,19 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
                                      const double c,
                                      bool do_clamp,
                                      double recovery_clamp);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
-    // Override/implement LCP system functions of ChShaftsCouple
-    // (to assembly/manage data for LCP system solver
+    // Override/implement system functions of ChShaftsCouple
+    // (to assemble/manage data for system solver)
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();

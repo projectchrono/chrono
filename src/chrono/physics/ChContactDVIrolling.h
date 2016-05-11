@@ -213,11 +213,11 @@ class ChContactDVIrolling :
         // no force to add - this is DVI, not DEM
     //};
 
-    virtual void ContIntToLCP(const unsigned int off_L,  ///< offset in L, Qc
-                      const ChVectorDynamic<>& L,
-                      const ChVectorDynamic<>& Qc)  {
+    virtual void ContIntToDescriptor(const unsigned int off_L,  ///< offset in L, Qc
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc) {
         // base behaviour too
-        ChContactDVI< Ta, Tb >::ContIntToLCP(off_L, L, Qc);
+        ChContactDVI<Ta, Tb>::ContIntToDescriptor(off_L, L, Qc);
 
         Rx.Set_l_i(L(off_L + 3));
         Ru.Set_l_i(L(off_L + 4));
@@ -228,10 +228,10 @@ class ChContactDVIrolling :
         Rv.Set_b_i(Qc(off_L + 5));
     }
 
-    virtual void ContIntFromLCP(const unsigned int off_L,  ///< offset in L
-                        ChVectorDynamic<>& L)  {
+    virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
+                                       ChVectorDynamic<>& L) {
         // base behaviour too
-        ChContactDVI< Ta, Tb >::ContIntFromLCP(off_L, L);
+        ChContactDVI<Ta, Tb>::ContIntFromDescriptor(off_L, L);
 
         L(off_L + 3) = Rx.Get_l_i();
         L(off_L + 4) = Ru.Get_l_i();

@@ -56,11 +56,11 @@ class ChApi ChSolver {
     // FUNCTIONS
     //
 
-    // --Following functions are generic interfaces to the LCP solver. The
+    // --Following functions are generic interfaces to the solver. The
     //   Solve() function is a pure virtual method, so it MUST be implemented
     //   by specialized child classes:
 
-    /// Performs the solution of the LCP.
+    /// Performs the solution of the problem.
     /// You must provide a system description using ChSystemDescriptor.
     /// This function MUST be implemented in children classes, with specialized
     /// methods such as iterative schemes, simplex schemes, fixed point algorithms, etc.

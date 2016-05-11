@@ -50,11 +50,11 @@ ChSystemDescriptor::~ChSystemDescriptor() {
 }
 
 void ChSystemDescriptor::ComputeFeasabilityViolation(
-    double& resulting_maxviolation,   ///< gets the max constraint violation (either bi- and unilateral.)
-    double& resulting_lcpfeasability  ///< gets the max feasability as max |l*c| , for unilateral only
+    double& resulting_maxviolation,  ///< gets the max constraint violation (either bi- and unilateral.)
+    double& resulting_feasability    ///< gets the max feasability as max |l*c|, for unilateral only
     ) {
     resulting_maxviolation = 0;
-    resulting_lcpfeasability = 0;
+    resulting_feasability = 0;
 
     for (unsigned int ic = 0; ic < vconstraints.size(); ic++) {
         // the the residual of the constraint..
@@ -67,8 +67,8 @@ void ChSystemDescriptor::ComputeFeasabilityViolation(
 
         if (vconstraints[ic]->IsUnilateral()) {
             double candidate_feas = fabs(mres_i * vconstraints[ic]->Get_l_i());  // =|c*l|
-            if (candidate_feas > resulting_lcpfeasability)
-                resulting_lcpfeasability = candidate_feas;
+            if (candidate_feas > resulting_feasability)
+                resulting_feasability = candidate_feas;
         }
     }
 }

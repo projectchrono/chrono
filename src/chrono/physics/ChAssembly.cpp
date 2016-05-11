@@ -942,55 +942,55 @@ void ChAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in 
     }
 }
 
-void ChAssembly::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,  ///< offset in L, Qc
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc) {
+void ChAssembly::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,  ///< offset in L, Qc
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) {
     unsigned int displ_L = off_L - this->offset_L;
     unsigned int displ_v = off_v - this->offset_w;
 
     for (int ip = 0; ip < bodylist.size(); ++ip) {
         std::shared_ptr<ChBody> Bpointer = bodylist[ip];
         if (Bpointer->IsActive())
-            Bpointer->IntToLCP(displ_v + Bpointer->GetOffset_w(), v, R, displ_L + Bpointer->GetOffset_L(), L, Qc);
+            Bpointer->IntToDescriptor(displ_v + Bpointer->GetOffset_w(), v, R, displ_L + Bpointer->GetOffset_L(), L, Qc);
     }
 
     for (int ip = 0; ip < linklist.size(); ++ip) {
         std::shared_ptr<ChLink> Lpointer = linklist[ip];
         if (Lpointer->IsActive())
-            Lpointer->IntToLCP(displ_v + Lpointer->GetOffset_w(), v, R, displ_L + Lpointer->GetOffset_L(), L, Qc);
+            Lpointer->IntToDescriptor(displ_v + Lpointer->GetOffset_w(), v, R, displ_L + Lpointer->GetOffset_L(), L, Qc);
     }
 
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         std::shared_ptr<ChPhysicsItem> Ppointer = otherphysicslist[ip];
-        Ppointer->IntToLCP(displ_v + Ppointer->GetOffset_w(), v, R, displ_L + Ppointer->GetOffset_L(), L, Qc);
+        Ppointer->IntToDescriptor(displ_v + Ppointer->GetOffset_w(), v, R, displ_L + Ppointer->GetOffset_L(), L, Qc);
     }
 }
 
-void ChAssembly::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                            ChStateDelta& v,
-                            const unsigned int off_L,  ///< offset in L
-                            ChVectorDynamic<>& L) {
+void ChAssembly::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,  ///< offset in L
+                                   ChVectorDynamic<>& L) {
     unsigned int displ_L = off_L - this->offset_L;
     unsigned int displ_v = off_v - this->offset_w;
 
     for (int ip = 0; ip < bodylist.size(); ++ip) {
         std::shared_ptr<ChBody> Bpointer = bodylist[ip];
         if (Bpointer->IsActive())
-            Bpointer->IntFromLCP(displ_v + Bpointer->GetOffset_w(), v, displ_L + Bpointer->GetOffset_L(), L);
+            Bpointer->IntFromDescriptor(displ_v + Bpointer->GetOffset_w(), v, displ_L + Bpointer->GetOffset_L(), L);
     }
 
     for (int ip = 0; ip < linklist.size(); ++ip) {
         std::shared_ptr<ChLink> Lpointer = linklist[ip];
         if (Lpointer->IsActive())
-            Lpointer->IntFromLCP(displ_v + Lpointer->GetOffset_w(), v, displ_L + Lpointer->GetOffset_L(), L);
+            Lpointer->IntFromDescriptor(displ_v + Lpointer->GetOffset_w(), v, displ_L + Lpointer->GetOffset_L(), L);
     }
 
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         std::shared_ptr<ChPhysicsItem> Ppointer = otherphysicslist[ip];
-        Ppointer->IntFromLCP(displ_v + Ppointer->GetOffset_w(), v, displ_L + Ppointer->GetOffset_L(), L);
+        Ppointer->IntFromDescriptor(displ_v + Ppointer->GetOffset_w(), v, displ_L + Ppointer->GetOffset_L(), L);
     }
 }
 

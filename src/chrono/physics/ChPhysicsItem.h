@@ -331,27 +331,27 @@ class ChApi ChPhysicsItem : public ChObj {
                                       const double c           ///< a scaling factor
                                       ){};
 
-    /// Prepare LCP variables and constraints for a solution:
-    /// From a vector R  into the F 'force' term of the LCPvariables
-    /// From a vector Qc into the Qb 'constraint' term of the LCP constraints
-    /// From a vector v  into the q 'unknowns' term of the LCP variables (for warm starting)
-    /// From a vector L  into the L 'lagrangian ' term of the LCP constraints (for warm starting)
-    virtual void IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,  ///< offset in L, Qc
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc){};
+    /// Prepare variables and constraints for a solution:
+    /// From a vector R  into the F 'force' term of the variables
+    /// From a vector Qc into the Qb 'constraint' term of the constraints
+    /// From a vector v  into the q 'unknowns' term of the variables (for warm starting)
+    /// From a vector L  into the L 'lagrangian ' term of the constraints (for warm starting)
+    virtual void IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,  ///< offset in L, Qc
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) {}
 
-    /// After a LCP solution, fetch values from LCP variables and constraints:
-    /// To a vector v  from the q 'unknowns' term of the LCP variables
-    /// To a vector L  from the L 'lagrangian ' term of the LCP constraints
-    virtual void IntFromLCP(const unsigned int off_v,  ///< offset in v
-                            ChStateDelta& v,
-                            const unsigned int off_L,  ///< offset in L
-                            ChVectorDynamic<>& L){};
+    /// After a solver solution, fetch values from variables and constraints:
+    /// To a vector v  from the q 'unknowns' term of the variables
+    /// To a vector L  from the L 'lagrangian ' term of the constraints
+    virtual void IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,  ///< offset in L
+                                   ChVectorDynamic<>& L) {}
 
-    // LCP SYSTEM FUNCTIONS
+    // SOLVER SYSTEM FUNCTIONS
     //
     // These are the functions that are used to manage ChConstraint and/or ChVariable
     // objects that are sent to the system solver.
@@ -366,8 +366,8 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void VariablesFbLoadForces(double factor = 1.) {}
 
     /// Initialize the 'qb' part of the ChVariables with the
-    /// current value of speeds. Note: since 'qb' is the unknown of the LCP, this
-    /// function seems unuseful, unless used before VariablesFbIncrementMq()
+    /// current value of speeds. Note: since 'qb' is the unknown, this
+    /// function seems unnecessary, unless used before VariablesFbIncrementMq()
     virtual void VariablesQbLoadSpeed() {}
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
@@ -390,12 +390,12 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void VariablesQbIncrementPosition(double step) {}
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
 
     /// Tell to a system descriptor that there are contraints of type
-    /// ChConstraint in this object (for further passing it to a LCP solver)
+    /// ChConstraint in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
 
@@ -429,7 +429,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void ConstraintsFetch_react(double factor = 1.) {}
 
     /// Tell to a system descriptor that there are items of type
-    /// ChKblock in this object (for further passing it to a LCP solver)
+    /// ChKblock in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {}
 

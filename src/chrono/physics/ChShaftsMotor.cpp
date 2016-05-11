@@ -142,12 +142,12 @@ void ChShaftsMotor::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset 
     }
 }
 
-void ChShaftsMotor::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                             const ChStateDelta& v,
-                             const ChVectorDynamic<>& R,
-                             const unsigned int off_L,  ///< offset in L, Qc
-                             const ChVectorDynamic<>& L,
-                             const ChVectorDynamic<>& Qc) {
+void ChShaftsMotor::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                    const ChStateDelta& v,
+                                    const ChVectorDynamic<>& R,
+                                    const unsigned int off_L,  ///< offset in L, Qc
+                                    const ChVectorDynamic<>& L,
+                                    const ChVectorDynamic<>& Qc) {
     if (motor_mode != MOT_MODE_TORQUE) {
         constraint.Set_l_i(L(off_L));
 
@@ -155,16 +155,16 @@ void ChShaftsMotor::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChShaftsMotor::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                               ChStateDelta& v,
-                               const unsigned int off_L,  ///< offset in L
-                               ChVectorDynamic<>& L) {
+void ChShaftsMotor::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                      ChStateDelta& v,
+                                      const unsigned int off_L,  ///< offset in L
+                                      ChVectorDynamic<>& L) {
     if (motor_mode != MOT_MODE_TORQUE) {
         L(off_L) = constraint.Get_l_i();
     }
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
 void ChShaftsMotor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())

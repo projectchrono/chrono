@@ -184,37 +184,31 @@ void ChLinkDirFrame::IntLoadConstraint_C(
 	Qc(off_L+1) += cres.z;
 }
 
-void ChLinkDirFrame::IntToLCP(
-					const unsigned int off_v,			///< offset in v, R
-					const ChStateDelta& v,
-					const ChVectorDynamic<>& R,
-					const unsigned int off_L,			///< offset in L, Qc
-					const ChVectorDynamic<>& L,
-					const ChVectorDynamic<>& Qc
-					)
-{
-	if (!IsActive())
-    return;
+void ChLinkDirFrame::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R,
+                                     const unsigned int off_L,  ///< offset in L, Qc
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc) {
+    if (!IsActive())
+        return;
 
-	constraint1.Set_l_i(L(off_L+0));
+    constraint1.Set_l_i(L(off_L+0));
 	constraint2.Set_l_i(L(off_L+1));
 
 	constraint1.Set_b_i(Qc(off_L+0));
 	constraint2.Set_b_i(Qc(off_L+1));
 }
 
-void ChLinkDirFrame::IntFromLCP(
-					const unsigned int off_v,			///< offset in v
-					ChStateDelta& v,
-					const unsigned int off_L,			///< offset in L
-					ChVectorDynamic<>& L
-					)
-{
-	if (!IsActive())
-    return;
+void ChLinkDirFrame::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                       ChStateDelta& v,
+                                       const unsigned int off_L,  ///< offset in L
+                                       ChVectorDynamic<>& L) {
+    if (!IsActive())
+        return;
 
-	L(off_L+0)=constraint1.Get_l_i();
-	L(off_L+1)=constraint2.Get_l_i();
+    L(off_L + 0) = constraint1.Get_l_i();
+    L(off_L + 1) = constraint2.Get_l_i();
 }
 
 

@@ -181,7 +181,7 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
     /// Overrides the empty behaviour of the parent ChLink implementation, which

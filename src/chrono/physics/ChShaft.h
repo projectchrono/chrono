@@ -151,20 +151,23 @@ class ChApi ChShaft : public ChPhysicsItem {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP FUNCTIONS
+    // SOLVER FUNCTIONS
     //
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
 
     /// Sets the 'fb' part of the encapsulated ChVariables to zero.
     void VariablesFbReset();
@@ -173,8 +176,8 @@ class ChApi ChShaft : public ChPhysicsItem {
     void VariablesFbLoadForces(double factor = 1.);
 
     /// Initialize the 'qb' part of the ChVariables with the
-    /// current value of shaft speed. Note: since 'qb' is the unknown of the LCP, this
-    /// function seems unuseful, unless used before VariablesFbIncrementMq()
+    /// current value of shaft speed. Note: since 'qb' is the unknown , this
+    /// function seems unnecessary, unless used before VariablesFbIncrementMq()
     void VariablesQbLoadSpeed();
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized

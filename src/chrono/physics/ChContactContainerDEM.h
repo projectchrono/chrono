@@ -118,7 +118,7 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
     virtual void ConstraintsFbLoadForces(double factor);

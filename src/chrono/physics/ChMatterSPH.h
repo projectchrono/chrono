@@ -325,20 +325,23 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
 
     /// Sets the 'fb' part of the encapsulated ChVariablesBody to zero.
     void VariablesFbReset();
@@ -348,7 +351,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void VariablesFbLoadForces(double factor = 1.);
 
     /// Initialize the 'qb' part of the ChVariablesBody with the
-    /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
+    /// current value of body speeds. Note: since 'qb' is the unknown, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
     void VariablesQbLoadSpeed();
 
@@ -374,7 +377,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void VariablesQbIncrementPosition(double step);
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 

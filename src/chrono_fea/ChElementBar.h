@@ -172,7 +172,7 @@ class ChApiFea ChElementBar : public ChElementGeneric {
     double GetStress() { return GetBarYoungModulus() * GetStrain(); }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 };
 

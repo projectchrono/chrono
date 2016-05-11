@@ -676,13 +676,13 @@ void ChIrrAppInterface::DrawAll() {
     str += (int)(1000 * system->GetTimerStep());
     str += " ms \n  CPU Collision time =";
     str += (int)(1000 * system->GetTimerCollisionBroad());
-    str += " ms \n  CPU LCP time         =";
+    str += " ms \n  CPU Solver time         =";
     str += (int)(1000 * system->GetTimerSolver());
     str += " ms \n  CPU Update time      =";
     str += (int)(1000 * system->GetTimerUpdate());
-    str += " ms \n\nLCP vel.iters : ";
+    str += " ms \n\nSolver vel.iters : ";
     str += system->GetMaxItersSolverSpeed();
-    str += "\nLCP pos.iters : ";
+    str += "\nSolver pos.iters : ";
     str += system->GetMaxItersSolverStab();
     str += "\n\nN.of active bodies  : ";
     str += system->GetNbodies();
@@ -872,7 +872,7 @@ void ChIrrAppInterface::DumpMatrices() {
     }
 
     // This DoStep() is necessary because we want to get the matrices as they
-    // are set-up for the time stepping LCP/CCP problem.
+    // are set-up for the time stepping problem.
     // (If we avoid this, the previous 'mvold' vector won't be in-sync.)
     DoStep();
 

@@ -21,7 +21,7 @@ namespace chrono {
 /// from QP optimization problems.
 /// This class does nothing: it is up to derived classes to implement specific solution
 /// methods.
-/// The LCP problem must be in this (symmetric) form:
+/// The problem must be in this (symmetric) form:
 ///
 ///    | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
 ///    | Cq  0 | |l|  |-b|  |c|

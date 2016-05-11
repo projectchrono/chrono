@@ -108,12 +108,11 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     float density;  // used when doing the 'recompute mass' operation.
 
-    // used to store mass matrix and coordinates, as
-    // an interface to the LCP solver.
+    // Used to store mass matrix and coordinates, as an interface to the solver.
     ChVariablesBodyOwnMass variables;
 
-    float max_speed;  // limit on linear speed (useful for VR & videagames)
-    float max_wvel;   // limit on angular vel. (useful for VR & videagames)
+    float max_speed;  // limit on linear speed (useful for VR & videogames)
+    float max_wvel;   // limit on angular vel. (useful for VR & videogames)
 
     float sleep_time;
     float sleep_minspeed;
@@ -262,20 +261,23 @@ class ChApi ChBody :            public ChPhysicsItem,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP FUNCTIONS
+    // SOLVER FUNCTIONS
     //
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
+    // Override/implement solver system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
 
     /// Sets the 'fb' part of the encapsulated ChVariablesBodyOwnMass to zero.
     void VariablesFbReset();
@@ -285,8 +287,8 @@ class ChApi ChBody :            public ChPhysicsItem,
     void VariablesFbLoadForces(double factor = 1.);
 
     /// Initialize the 'qb' part of the ChVariablesBody with the
-    /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
-    /// function seems unuseful, unless used before VariablesFbIncrementMq()
+    /// current value of body speeds. Note: since 'qb' is the unknown, this
+    /// function seems unnecessary, unless used before VariablesFbIncrementMq()
     void VariablesQbLoadSpeed();
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
@@ -311,7 +313,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     void VariablesQbIncrementPosition(double step);
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a solver)
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     /// Instantiate the collision model
