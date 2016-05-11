@@ -32,7 +32,7 @@
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 
@@ -184,9 +184,9 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(3, (f32)3, -4), core::vector3df(0, tire_rad, 0));
+    application.AddTypicalCamera(core::vector3df(3, (f32)3, -4), core::vector3df(0, (f32)tire_rad, 0));
     application.AddLightWithShadow(core::vector3df(1.5, 15.5, -2.5), core::vector3df(0, 0, 0), 3, 10.2, 17.2, 40, 512,
-                                   video::SColorf(0.8, 0.8, 1));
+                                   video::SColorf((f32)0.8, (f32)0.8, 1));
 
     //
     // CREATE THE PHYSICAL SYSTEM
@@ -357,8 +357,8 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-10);  
 */
         // Change solver to pluggable MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);

@@ -1,8 +1,7 @@
-#include "chrono_mkl/ChCSR3Matrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 
-#include "chrono_mkl/ChLcpMklSolver.h"
-#include <mkl.h>
+#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_mkl/ChCSR3Matrix.h"
 
 using namespace chrono;
 

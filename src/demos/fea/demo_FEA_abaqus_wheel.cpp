@@ -30,7 +30,7 @@
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 
@@ -307,8 +307,8 @@ int main(int argc, char* argv[]) {
 
    
         // Change solver to pluggable MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();

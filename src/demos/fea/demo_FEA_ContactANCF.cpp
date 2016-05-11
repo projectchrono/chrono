@@ -17,7 +17,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/solver/ChSolverMINRES.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
@@ -90,9 +90,9 @@ int main(int argc, char* argv[]) {
     // It is a DEM-p (penalty) material that we will assign to
     // all surfaces that might generate contacts.
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
-    mysurfmaterial->SetYoungModulus(6e4);
-    mysurfmaterial->SetFriction(0.3);
-    mysurfmaterial->SetRestitution(0.5);
+    mysurfmaterial->SetYoungModulus(6e4f);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.5f);
     mysurfmaterial->SetAdhesion(0);
 
     GetLog() << "-----------------------------------------------------------\n";
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
         mfloor->AddAsset(masset_texture);
     }
 
-    int TotalNumNodes, TotalNumElements, TottalNumBEdges;
+    int TotalNumNodes, TotalNumElements;
     std::vector<int> BC_NODES;
     auto material = std::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
     auto my_mesh = std::make_shared<ChMesh>();
@@ -197,8 +197,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    //    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    //    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    //    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    //    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
     //    my_system.ChangeLcpSolverStab(mkl_solver_stab);
     //    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     //    mkl_solver_stab->SetSparsityPatternLock(true);

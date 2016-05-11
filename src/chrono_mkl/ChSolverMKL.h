@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#ifndef CHMKLSOLVER_H
-#define CHMKLSOLVER_H
+#ifndef CHSOLVERMKL_H
+#define CHSOLVERMKL_H
 
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/solver/ChSolver.h"
@@ -25,9 +25,9 @@ namespace chrono {
 /// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
 /// It can solve linear systems. It cannot solve VI and complementarity problems.
 
-class ChApiMkl ChLcpMklSolver : public ChSolver {
+class ChApiMkl ChSolverMKL : public ChSolver {
     // Chrono RTTI, needed for serialization
-    CH_RTTI(ChLcpMklSolver, ChSolver);
+    CH_RTTI(ChSolverMKL, ChSolver);
 
   private:
     size_t solver_call;
@@ -44,8 +44,8 @@ class ChApiMkl ChLcpMklSolver : public ChSolver {
     bool manual_factorization;
 
   public:
-    ChLcpMklSolver();
-    virtual ~ChLcpMklSolver(){};
+    ChSolverMKL();
+    virtual ~ChSolverMKL() {}
 
     ChMklEngine& GetMklEngine() { return mkl_engine; }
     ChCSR3Matrix& GetMatrix() { return matCSR3; }

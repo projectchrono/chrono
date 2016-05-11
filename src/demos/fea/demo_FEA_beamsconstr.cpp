@@ -31,7 +31,7 @@
 //#include "chrono_matlab/ChMatlabEngine.h"
 //#include "chrono_matlab/ChLcpMatlabSolver.h"
 
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -294,8 +294,8 @@ int main(int argc, char* argv[]) {
         my_system.ChangeLcpSolverSpeed(matlab_solver_speed);*/
 		
 		//***TEST***
-		ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-		ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+		ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+		ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
 		my_system.ChangeLcpSolverStab(mkl_solver_stab);
 		my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
 
@@ -504,8 +504,8 @@ int main(int argc, char* argv[]) {
         //my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 		
 		//***TEST***
-		ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-		ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+		ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+		ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
 		my_system.ChangeLcpSolverStab(mkl_solver_stab);
 		my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
 

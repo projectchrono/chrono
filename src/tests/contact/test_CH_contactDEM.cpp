@@ -18,7 +18,7 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 #include <irrlicht.h>
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
         case MKL_SOLVER: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver.\n";
-            ChLcpMklSolver* mkl_solver = new ChLcpMklSolver;
+            ChSolverMKL* mkl_solver = new ChSolverMKL;
             system.ChangeLcpSolverSpeed(mkl_solver);
             mkl_solver->SetSparsityPatternLock(true);
 #endif

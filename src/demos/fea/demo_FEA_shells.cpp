@@ -32,7 +32,7 @@
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #include "chrono_postprocess/ChGnuPlot.h"
 
 // Remember to use the namespace 'chrono' because all classes 
@@ -427,8 +427,8 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
     // Change solver to MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
 	mkl_solver_stab->SetSparsityPatternLock(true);
@@ -488,7 +488,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChGnuPlot mplot("__cantilever.gpl");
-    mplot.SetGrid(false, 1, ChColor(0.8,0.8,0.8));
+    mplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     mplot.SetLabelX("Torque T/T0");
     mplot.SetLabelY("Tip displacement [m]");
     mplot << "set key left top";

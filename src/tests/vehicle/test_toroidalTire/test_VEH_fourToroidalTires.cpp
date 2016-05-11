@@ -30,7 +30,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 #include "../ancfToroidalTire/ANCFToroidalTire.h"
@@ -243,8 +243,8 @@ int main(int argc, char* argv[]) {
         case MKL: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver\n";
-            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
             my_system.ChangeLcpSolverStab(mkl_solver_stab);
             my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);

@@ -1,9 +1,9 @@
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 namespace chrono {
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpMklSolver> a_registration_ChLcpMklSolver;
+ChClassRegister<ChSolverMKL> a_registration_ChSolverMKL;
 
 /** \brief It calls Intel MKL Pardiso Sparse Direct Solver.
 *
@@ -13,7 +13,7 @@ ChClassRegister<ChLcpMklSolver> a_registration_ChLcpMklSolver;
 *   arrays dimensions, but it also keeps column and row indexes through different calls.
 */
 
-ChLcpMklSolver::ChLcpMklSolver()
+ChSolverMKL::ChSolverMKL()
     : solver_call(0),
       matCSR3(1, 1, 1),
       mkl_engine(1, 11),
@@ -23,7 +23,7 @@ ChLcpMklSolver::ChLcpMklSolver()
       use_rhs_sparsity(false),
       manual_factorization(false) {}
 
-double ChLcpMklSolver::Solve(ChSystemDescriptor& sysd) {
+double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     int pardiso_message_phase12 = 0;
     if (!manual_factorization)
         pardiso_message_phase12 = static_cast<int>(Factorize(sysd));
@@ -54,7 +54,7 @@ double ChLcpMklSolver::Solve(ChSystemDescriptor& sysd) {
     return 0.0f;
 }
 
-double ChLcpMklSolver::Factorize(ChSystemDescriptor& sysd) {
+double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
     // Initial resizing;
     if (solver_call == 0) {
         // not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE

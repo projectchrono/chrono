@@ -38,7 +38,7 @@
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 using namespace chrono;
 using namespace fea;
@@ -642,8 +642,8 @@ int main(int argc, char* argv[]) {
     
 
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;  // MKL Solver option
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;  // MKL Solver option
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);

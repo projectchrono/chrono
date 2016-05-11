@@ -61,7 +61,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 using namespace chrono;
@@ -326,8 +326,8 @@ int main(int argc, char* argv[]) {
         case MKL: {
 #ifdef CHRONO_MKL
             std::cout << "Using MKL solver\n";
-            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
             system->ChangeLcpSolverStab(mkl_solver_stab);
             system->ChangeLcpSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);

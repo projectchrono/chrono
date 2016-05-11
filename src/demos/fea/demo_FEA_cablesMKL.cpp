@@ -17,7 +17,7 @@
 
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 #include "FEAcables.h"
 /*
@@ -86,8 +86,8 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Change solver to MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
     my_system.ChangeLcpSolverStab(mkl_solver_stab);
     my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
 	mkl_solver_stab->SetSparsityPatternLock(true);
