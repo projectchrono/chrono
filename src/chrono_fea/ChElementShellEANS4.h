@@ -257,8 +257,14 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     std::array<ChQuaternion<>, NUMGP> iTa_i;               ///< inverse of reference rotations at gauss points
     std::array<ChQuaternion<>, NUMSP> iTa_S;               ///< inverse of reference rotations at shear points
 
-    std::array<ChQuaternion<>, NUMGP> T_i0;                ///< initial rotations at gauss points
-    std::array<ChQuaternion<>, NUMSP> T_S0;                ///< initial rotations at shear stitching points
+    std::array<ChVector<>, NUMGP> eps_tilde_u_0_i;           ///< initial strains at gauss points
+    std::array<ChVector<>, NUMGP> eps_tilde_v_0_i;           ///< initial strains at gauss points
+    std::array<ChVector<>, NUMGP> kur_tilde_u_0_i;           ///< initial curvatures at gauss points
+    std::array<ChVector<>, NUMGP> kur_tilde_v_0_i;           ///< initial curvatures at gauss points
+
+    std::array<ChVector<>, NUMSP> eps_tilde_u_0_S;           ///< initial strains at shear stitching points
+    std::array<ChVector<>, NUMSP> eps_tilde_v_0_S;           ///< initial strains at shear stitching points
+
     double alpha_i[NUMGP];                                 ///< determinant of jacobian at gauss points 
     std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_i; ///< precomputed matrices at gauss points
     std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_S; ///< precomputed matrices at shear stitching points
