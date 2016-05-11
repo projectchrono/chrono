@@ -183,7 +183,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChMaterialSurfaceDEM.cpp
     physics/ChMaterialSurface.cpp
     physics/ChContinuumMaterial.cpp
-	physics/ChLoadContainer.cpp
+	  physics/ChLoadContainer.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -270,7 +270,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsTorsionSpring.h
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h
-    physics/ChSolver.h
     physics/ChSolvmin.h
     physics/ChSystem.h
     physics/ChAssembly.h
@@ -283,16 +282,16 @@ set(ChronoEngine_physics_HEADERS
     physics/ChInertiaUtils.h
     physics/ChContactable.h
     physics/ChContactTuple.h
-	physics/ChLoadable.h
-	physics/ChLoader.h
-	physics/ChLoaderU.h
-	physics/ChLoaderUV.h
-	physics/ChLoaderUVW.h
-	physics/ChLoad.h
-	physics/ChLoadsXYZnode.h
-	physics/ChLoadsBody.h
-	physics/ChLoadBodyMesh.h
-	physics/ChLoadContainer.h
+	  physics/ChLoadable.h
+	  physics/ChLoader.h
+	  physics/ChLoaderU.h
+	  physics/ChLoaderUV.h
+	  physics/ChLoaderUVW.h
+	  physics/ChLoad.h
+	  physics/ChLoadsXYZnode.h
+	  physics/ChLoadsBody.h
+	  physics/ChLoadBodyMesh.h
+	  physics/ChLoadContainer.h
     )
 
 source_group(physics FILES
@@ -747,7 +746,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/bt2DShape.cpp
-	collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.cpp
+	  collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
