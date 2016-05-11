@@ -9,9 +9,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "chrono/solver/ChSolverSimplex.h"
-#include "chrono/solver/ChKblock.h"
 #include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/solver/ChKblock.h"
+#include "chrono/solver/ChSolverSimplex.h"
 
 namespace chrono {
 
@@ -21,8 +21,8 @@ ChClassRegister<ChSolverSimplex> a_registration_ChSolverSimplex;
 
 ChSolverSimplex::ChSolverSimplex() {
     MC = new ChLinkedListMatrix(30, 30);  // at least as big as 30x30
-    X = new ChMatrixDynamic<>(30, 1);  // at least as big as 30x1
-    B = new ChMatrixDynamic<>(30, 1);  // at least as big as 30x1
+    X = new ChMatrixDynamic<>(30, 1);     // at least as big as 30x1
+    B = new ChMatrixDynamic<>(30, 1);     // at least as big as 30x1
     unilaterals = 0;
     truncation_step = 0;
 }
@@ -49,9 +49,7 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
 
     double maxviolation = 0.;
 
-    // --
     // Count active linear constraints..
-
     int n_c = 0;
     int n_d = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
@@ -66,9 +64,7 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
         }
     }
 
-    // --
     // Count active variables, by scanning through all variable blocks..
-
     int n_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
@@ -87,9 +83,7 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
     int nc = sysd.CountActiveConstraints();
     int nx = nv + nc;  // total scalar unknowns, in x vector for full KKT system Z*x-d=0
 
-    // --
     // Reset and resize (if needed) auxiliary vectors
-
     MC->Reset(n_vars, n_vars);  // fast! Reset() method does not realloc if size doesn't change
     B->Reset(n_vars, 1);
     X->Reset(n_vars, 1);
@@ -102,7 +96,6 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
         unilaterals = new ChUnilateralData[n_d];
     }
 
-    // --
     // Fills the MC matrix and B vector, to pass to the sparse simplex solver.
     // The original problem, stated as
     //  | M -Cq'|*|q|- | f|= |0| ,   c>=0, l>=0, l*c=0;
@@ -117,7 +110,7 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
     int s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
-            mvariables[iv]->Build_M(*MC, s_q, s_q, 1.0);             // .. fills  MC (M part)
+            mvariables[iv]->Build_M(*MC, s_q, s_q, 1.0);        // .. fills  MC (M part)
             B->PasteMatrix(&mvariables[iv]->Get_fb(), s_q, 0);  // .. fills  B  (f part)
 
             s_q += mvariables[iv]->Get_ndof();
@@ -135,8 +128,8 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
     int s_c = 0;
     int s_d = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive()){
-            if (mconstraints[ic]->IsLinear()){
+        if (mconstraints[ic]->IsActive()) {
+            if (mconstraints[ic]->IsLinear()) {
                 if (mconstraints[ic]->IsUnilateral()) {
                     mconstraints[ic]->Build_Cq(*MC, n_q + n_c + s_d);                 // .. fills MC (Cq  part)
                     mconstraints[ic]->Build_CqT(*MC, n_q + n_c + s_d);                // .. fills MC (Cq' part)
@@ -170,10 +163,8 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
         GetLog() << "simplex solver: NONSYMMETRIC MC! error " << max_err << " at " << err_r << "," << err_c << "\n";
 
     // Solve the problem
+    MC->Solve(B, X, n_c, n_d, truncation_step, false, unilaterals);
 
-    MC->SolveLCP(B, X, n_c, n_d, truncation_step, false, unilaterals);
-
-    // --
     // Update results into variable-interface objects
     s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
@@ -183,13 +174,12 @@ double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description 
         }
     }
 
-    // --
     // Update results into constraint-interface objects
     s_c = 0;
     s_d = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive()){
-            if (mconstraints[ic]->IsLinear()){
+        if (mconstraints[ic]->IsActive()) {
+            if (mconstraints[ic]->IsLinear()) {
                 if (mconstraints[ic]->IsUnilateral()) {  //(change sign of multipliers!)
                     mconstraints[ic]->Set_l_i(-X->GetElement(n_q + n_c + s_d, 0));
                     s_d++;
