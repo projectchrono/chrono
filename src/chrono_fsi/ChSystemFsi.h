@@ -12,7 +12,8 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Class for performing handling fsi system.
+// Implementation of fsi system that includes all subclasses for proximity and
+// force calculation, and time integration
 // =============================================================================
 
 #ifndef CH_SYSTEMFSI_H_

@@ -1,20 +1,5 @@
-/*
- * Old classic cutil_math customized for the type Real, which can be
- * float or double
- * Copyright 1993-2010 NVIDIA Corporation.  All rights reserved.
- *
- * Please refer to the NVIDIA end user license agreement (EULA) associated
- * with this source code for terms and conditions that govern your use of
- * this software. Any use, reproduction, disclosure, or distribution of
- * this software and related documentation outside the terms of the EULA
- * is strictly prohibited.
- *
- */
-
-#ifndef CUSTOM_CUTIL_MATH_H
-#define CUSTOM_CUTIL_MATH_H
-////////Define Real, either float or double
-// #include <cuda_runtime.h>
+#ifndef CUSTOM_MATH_H
+#define CUSTOM_MATH_H
 
 #define DOUBLEPRECISION 1
 #if DOUBLEPRECISION
@@ -22,19 +7,6 @@ typedef double Real;
 #else
 typedef float Real;
 #endif
-
-// // Arman: alternative solution check later:
-// #ifdef __CUDACC__
-// #include <cuda_runtime.h> // for __host__ __device__ flags
-// #define CUDA_CALLABLE_MEMBER __host__ __device__
-// #else
-// #define CUDA_CALLABLE_MEMBER
-// #include <math.h>
-// #endif 
-// // then remove the following four lines. replace all __host__ __device__ 
-// // with CUDA_CALLABLE_MEMBER. also remove the block defined about from the 
-// // ChFsiGeneral since this file is included there anyway. Or alternatively,
-// // add the lines above in a thernary file and include it both in here and there
 
 #include <cuda_runtime.h> // for __host__ __device__ flags
 #ifndef __CUDACC__

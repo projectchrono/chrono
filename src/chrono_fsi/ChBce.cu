@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Base class for processing bce forces in fsi system.//
+// Base class for processing boundary condition enforcing (bce) markers forces in fsi system.//
 // =============================================================================
 
 #include "chrono_fsi/ChBce.cuh" //for FsiGeneralData
@@ -20,7 +20,6 @@
 
 namespace chrono {
 namespace fsi {
-
 
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
@@ -44,15 +43,11 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
 // Arman : revisit equation 10 of tech report, is it only on fluid or it is on all markers
-__device__ void BCE_modification_Share(
-		Real3& sumVW,
-		Real& sumWAll,
-		Real3& sumRhoRW,
-		Real& sumPW,
-		Real& sumWFluid,
-		int& isAffectedV, int& isAffectedP, int3 gridPos,
-		Real3 posRadA, Real3* sortedPosRad, Real3* sortedVelMas,
-		Real4* sortedRhoPreMu, uint* cellStart, uint* cellEnd) {
+__device__ void BCE_modification_Share(Real3& sumVW, Real& sumWAll,
+		Real3& sumRhoRW, Real& sumPW, Real& sumWFluid, int& isAffectedV,
+		int& isAffectedP, int3 gridPos, Real3 posRadA, Real3* sortedPosRad,
+		Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* cellStart,
+		uint* cellEnd) {
 	uint gridHash = calcGridHash(gridPos);
 	// get start of bucket for this cell
 	uint startIndex = cellStart[gridHash];
@@ -89,12 +84,8 @@ __global__ void new_BCE_VelocityPressure(
 		Real4* rhoPreMu_ModifiedBCE,  		// input: sorted velocities
 		Real3* sortedPosRad,                // input: sorted positions
 		Real3* sortedVelMas,                // input: sorted velocities
-		Real4* sortedRhoPreMu,
-		uint* cellStart,
-		uint* cellEnd,
-		uint* mapOriginalToSorted,
-		Real3* bceAcc,
-		int2 updatePortion,
+		Real4* sortedRhoPreMu, uint* cellStart, uint* cellEnd,
+		uint* mapOriginalToSorted, Real3* bceAcc, int2 updatePortion,
 		volatile bool *isErrorD) {
 	uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	uint sphIndex = bceIndex + updatePortion.x; // updatePortion = [start, end] index of the update portion
@@ -108,7 +99,6 @@ __global__ void new_BCE_VelocityPressure(
 	Real3 velMasA = sortedVelMas[idA];
 	int isAffectedV = 0;
 	int isAffectedP = 0;
-
 
 	Real3 sumVW = mR3(0);
 	Real sumWAll = 0;
@@ -126,9 +116,10 @@ __global__ void new_BCE_VelocityPressure(
 		for (int y = -1; y <= 1; y++) {
 			for (int x = -1; x <= 1; x++) {
 				int3 neighbourPos = gridPos + mI3(x, y, z);
-				BCE_modification_Share(sumVW, sumWAll, sumRhoRW, sumPW, sumWFluid, isAffectedV, isAffectedP,
-						neighbourPos, posRadA, sortedPosRad,
-						sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
+				BCE_modification_Share(sumVW, sumWAll, sumRhoRW, sumPW,
+						sumWFluid, isAffectedV, isAffectedP, neighbourPos,
+						posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu,
+						cellStart, cellEnd);
 			}
 		}
 	}
@@ -142,8 +133,10 @@ __global__ void new_BCE_VelocityPressure(
 		Real3 a3 = mR3(0);
 		if (fabs(rhoPreMuA.w) > 0) {  // rigid BCE
 			int rigidBceIndex = sphIndex - numObjectsD.startRigidMarkers;
-			if (rigidBceIndex < 0 || rigidBceIndex >= numObjectsD.numRigid_SphMarkers) {
-				printf("Error! marker index out of bound: thrown from SDKCollisionSystem.cu, new_BCE_VelocityPressure !\n");
+			if (rigidBceIndex < 0
+					|| rigidBceIndex >= numObjectsD.numRigid_SphMarkers) {
+				printf(
+						"Error! marker index out of bound: thrown from SDKCollisionSystem.cu, new_BCE_VelocityPressure !\n");
 				*isErrorD = true;
 				return;
 			}
@@ -161,13 +154,9 @@ __global__ void new_BCE_VelocityPressure(
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // calculate marker acceleration, required in ADAMI
-__global__ void calcBceAcceleration_kernel(
-		Real3* bceAcc,
-		Real4* q_fsiBodies_D,
-		Real3* accRigid_fsiBodies_D,
-		Real3* omegaVelLRF_fsiBodies_D,
-		Real3* omegaAccLRF_fsiBodies_D,
-		Real3* rigidSPH_MeshPos_LRF_D,
+__global__ void calcBceAcceleration_kernel(Real3* bceAcc, Real4* q_fsiBodies_D,
+		Real3* accRigid_fsiBodies_D, Real3* omegaVelLRF_fsiBodies_D,
+		Real3* omegaAccLRF_fsiBodies_D, Real3* rigidSPH_MeshPos_LRF_D,
 		const uint* rigidIdentifierD) {
 	uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	if (bceIndex >= numObjectsD.numRigid_SphMarkers) {
@@ -185,21 +174,21 @@ __global__ void calcBceAcceleration_kernel(
 	Real3 wVelCrossS = cross(wVel3, rigidSPH_MeshPos_LRF);
 	Real3 wVelCrossWVelCrossS = cross(wVel3, wVelCrossS);
 	acc3 += dot(a1, wVelCrossWVelCrossS), dot(a2, wVelCrossWVelCrossS), dot(a3,
-			wVelCrossWVelCrossS); 						// centrigugal acceleration
+			wVelCrossWVelCrossS); 					// centrigugal acceleration
 
 	Real3 wAcc3 = omegaAccLRF_fsiBodies_D[rigidBodyIndex];
 	Real3 wAccCrossS = cross(wAcc3, rigidSPH_MeshPos_LRF);
-	acc3 += dot(a1, wAccCrossS), dot(a2, wAccCrossS), dot(a3,
-			wAccCrossS); 								// tangential acceleration
+	acc3 += dot(a1, wAccCrossS), dot(a2, wAccCrossS), dot(a3, wAccCrossS); // tangential acceleration
 
 //	printf("linear acc %f %f %f point acc %f %f %f \n", accRigid3.x, accRigid3.y, accRigid3.z, acc3.x, acc3.y, acc3.z);
 	bceAcc[bceIndex] = acc3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // updates the rigid body particles
-__global__ void UpdateRigidMarkersPositionVelocityD(Real3* posRadD, Real3* velMasD,
-		const Real3* rigidSPH_MeshPos_LRF_D, const uint* rigidIdentifierD,
-		Real3* posRigidD, Real4* velMassRigidD, Real3* omegaLRF_D, Real4* qD) {
+__global__ void UpdateRigidMarkersPositionVelocityD(Real3* posRadD,
+		Real3* velMasD, const Real3* rigidSPH_MeshPos_LRF_D,
+		const uint* rigidIdentifierD, Real3* posRigidD, Real4* velMassRigidD,
+		Real3* omegaLRF_D, Real4* qD) {
 	uint index = blockIdx.x * blockDim.x + threadIdx.x;
 	if (index >= numObjectsD.numRigid_SphMarkers) {
 		return;
@@ -255,13 +244,13 @@ __global__ void Calc_Markers_TorquesD(Real3* torqueMarkersD,
 																 // from SPH acceleration to force
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-ChBce::ChBce(
-		SphMarkerDataD * otherSortedSphMarkersD,
+ChBce::ChBce(SphMarkerDataD * otherSortedSphMarkersD,
 		ProximityDataD * otherMarkersProximityD,
-		FsiGeneralData* otherFsiGeneralData,
-	SimParams* otherParamsH, 
-	NumberOfObjects* otherNumObjects) :
-		sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+		FsiGeneralData* otherFsiGeneralData, SimParams* otherParamsH,
+		NumberOfObjects* otherNumObjects) :
+		sortedSphMarkersD(otherSortedSphMarkersD), markersProximityD(
+				otherMarkersProximityD), fsiGeneralData(otherFsiGeneralData), paramsH(
+				otherParamsH), numObjectsH(otherNumObjects) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Finalize() {
@@ -272,9 +261,13 @@ void ChBce::Finalize() {
 	torqueMarkersD.resize(numObjectsH->numRigid_SphMarkers);
 
 	// modify BCE velocity and pressure
-	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
-	if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
-		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly!\n");
+	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2
+			+ numObjectsH->numRigidBodies - 1].y
+			- fsiGeneralData->referenceArray[0].y;
+	if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers)
+			!= numRigidAndBoundaryMarkers) {
+		throw std::runtime_error(
+				"Error! number of rigid and boundary markers are saved incorrectly!\n");
 	}
 	velMas_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
 	rhoPreMu_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
@@ -289,7 +282,8 @@ void ChBce::MakeRigidIdentifier() {
 	if (numObjectsH->numRigidBodies > 0) {
 		for (int rigidSphereA = 0; rigidSphereA < numObjectsH->numRigidBodies;
 				rigidSphereA++) {
-			int4 referencePart = fsiGeneralData->referenceArray[2 + rigidSphereA];
+			int4 referencePart =
+					fsiGeneralData->referenceArray[2 + rigidSphereA];
 			if (referencePart.z != 1) {
 				printf(
 						" Error! in accessing rigid bodies. Reference array indexing is wrong\n");
@@ -308,9 +302,8 @@ void ChBce::MakeRigidIdentifier() {
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
 
-void ChBce::Populate_RigidSPH_MeshPos_LRF(
-	SphMarkerDataD* sphMarkersD,
-	FsiBodiesDataD * fsiBodiesD) {
+void ChBce::Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD,
+		FsiBodiesDataD * fsiBodiesD) {
 	MakeRigidIdentifier();
 
 	uint nBlocks_numRigid_SphMarkers;
@@ -319,11 +312,15 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(
 			nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
 
 	Populate_RigidSPH_MeshPos_LRF_kernel<<<nBlocks_numRigid_SphMarkers,
-			nThreads_SphMarkers>>>(mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
-			mR3CAST(sphMarkersD->posRadD), U1CAST(fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+			nThreads_SphMarkers>>>(
+			mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
+			mR3CAST(sphMarkersD->posRadD),
+			U1CAST(fsiGeneralData->rigidIdentifierD),
+			mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
 			mR4CAST(fsiBodiesD->q_fsiBodies_D));
 	cudaThreadSynchronize();
-	cudaCheckError();
+	cudaCheckError()
+	;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -336,11 +333,10 @@ void ChBce::RecalcSortedVelocityPressure_BCE(
 		const thrust::device_vector<uint>& cellStart,
 		const thrust::device_vector<uint>& cellEnd,
 		const thrust::device_vector<uint>& mapOriginalToSorted,
-		const thrust::device_vector<Real3>& bceAcc,
-		int2 updatePortion) {
+		const thrust::device_vector<Real3>& bceAcc, int2 updatePortion) {
 
 	bool *isErrorH, *isErrorD;
-	isErrorH = (bool *)malloc(sizeof(bool));
+	isErrorH = (bool *) malloc(sizeof(bool));
 	cudaMalloc((void**) &isErrorD, sizeof(bool));
 	*isErrorH = false;
 	cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
@@ -348,31 +344,30 @@ void ChBce::RecalcSortedVelocityPressure_BCE(
 
 	// thread per particle
 	uint numThreads, numBlocks;
-	computeGridSize(updatePortion.y - updatePortion.x, 64, numBlocks, numThreads);
+	computeGridSize(updatePortion.y - updatePortion.x, 64, numBlocks,
+			numThreads);
 
 	new_BCE_VelocityPressure<<<numBlocks, numThreads>>>(
-			mR3CAST(velMas_ModifiedBCE),
-			mR4CAST(rhoPreMu_ModifiedBCE),  // input: sorted velocities
+			mR3CAST(velMas_ModifiedBCE), mR4CAST(rhoPreMu_ModifiedBCE), // input: sorted velocities
 			mR3CAST(sortedPosRad), mR3CAST(sortedVelMas),
-			mR4CAST(sortedRhoPreMu), U1CAST(cellStart), U1CAST(cellEnd), U1CAST(mapOriginalToSorted),
-			mR3CAST(bceAcc),
-			updatePortion,
+			mR4CAST(sortedRhoPreMu), U1CAST(cellStart), U1CAST(cellEnd),
+			U1CAST(mapOriginalToSorted), mR3CAST(bceAcc), updatePortion,
 			isErrorD);
 
 	cudaThreadSynchronize();
 	cudaCheckError()
 
-	//------------------------------------------------------------------------
+		//------------------------------------------------------------------------
 	cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
 	if (*isErrorH == true) {
-		throw std::runtime_error ("Error! program crashed in  new_BCE_VelocityPressure!\n");
+		throw std::runtime_error(
+				"Error! program crashed in  new_BCE_VelocityPressure!\n");
 	}
 	cudaFree(isErrorD);
 	free(isErrorH);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::CalcBceAcceleration(
-		thrust::device_vector<Real3>& bceAcc,
+void ChBce::CalcBceAcceleration(thrust::device_vector<Real3>& bceAcc,
 		const thrust::device_vector<Real4>& q_fsiBodies_D,
 		const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
 		const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
@@ -386,38 +381,59 @@ void ChBce::CalcBceAcceleration(
 	computeGridSize(numRigid_SphMarkers, 64, numBlocks, numThreads);
 
 	calcBceAcceleration_kernel<<<numBlocks, numThreads>>>(mR3CAST(bceAcc),
-			mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D), mR3CAST(omegaAccLRF_fsiBodies_D),
+			mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D),
+			mR3CAST(omegaVelLRF_fsiBodies_D), mR3CAST(omegaAccLRF_fsiBodies_D),
 			mR3CAST(rigidSPH_MeshPos_LRF_D), U1CAST(rigidIdentifierD));
 
 	cudaThreadSynchronize();
-	cudaCheckError();
+	cudaCheckError()
+	;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::ModifyBceVelocity(
-	SphMarkerDataD* sphMarkersD,
-	FsiBodiesDataD * fsiBodiesD) {
+void ChBce::ModifyBceVelocity(SphMarkerDataD* sphMarkersD,
+		FsiBodiesDataD * fsiBodiesD) {
 	// modify BCE velocity and pressure
-	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
-	if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
-		throw std::runtime_error ("Error! number of rigid and boundary markers are saved incorrectly. Thrown from ModifyBceVelocity!\n");
+	int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2
+			+ numObjectsH->numRigidBodies - 1].y
+			- fsiGeneralData->referenceArray[0].y;
+	if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers)
+			!= numRigidAndBoundaryMarkers) {
+		throw std::runtime_error(
+				"Error! number of rigid and boundary markers are saved incorrectly. Thrown from ModifyBceVelocity!\n");
 	}
-	if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers && rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
-		throw std::runtime_error ("Error! size error velMas_ModifiedBCE and rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
+	if (!(velMas_ModifiedBCE.size() == numRigidAndBoundaryMarkers
+			&& rhoPreMu_ModifiedBCE.size() == numRigidAndBoundaryMarkers)) {
+		throw std::runtime_error(
+				"Error! size error velMas_ModifiedBCE and rhoPreMu_ModifiedBCE. Thrown from ModifyBceVelocity!\n");
 	}
-	int2 updatePortion = mI2(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y);
+	int2 updatePortion =
+			mI2(fsiGeneralData->referenceArray[0].y,
+					fsiGeneralData->referenceArray[2
+							+ numObjectsH->numRigidBodies - 1].y);
 	if (paramsH->bceType == ADAMI) {
 		thrust::device_vector<Real3> bceAcc(numObjectsH->numRigid_SphMarkers);
 		if (numObjectsH->numRigid_SphMarkers > 0) {
-			CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D, fsiBodiesD->omegaVelLRF_fsiBodies_D,
-					fsiBodiesD->omegaAccLRF_fsiBodies_D, fsiGeneralData->rigidSPH_MeshPos_LRF_D, fsiGeneralData->rigidIdentifierD, numObjectsH->numRigid_SphMarkers);
+			CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D,
+					fsiBodiesD->accRigid_fsiBodies_D,
+					fsiBodiesD->omegaVelLRF_fsiBodies_D,
+					fsiBodiesD->omegaAccLRF_fsiBodies_D,
+					fsiGeneralData->rigidSPH_MeshPos_LRF_D,
+					fsiGeneralData->rigidIdentifierD,
+					numObjectsH->numRigid_SphMarkers);
 		}
-		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE, rhoPreMu_ModifiedBCE,
-				sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD, markersProximityD->cellStartD, markersProximityD->cellEndD, 
+		RecalcSortedVelocityPressure_BCE(velMas_ModifiedBCE,
+				rhoPreMu_ModifiedBCE, sortedSphMarkersD->posRadD,
+				sortedSphMarkersD->velMasD, sortedSphMarkersD->rhoPresMuD,
+				markersProximityD->cellStartD, markersProximityD->cellEndD,
 				markersProximityD->mapOriginalToSorted, bceAcc, updatePortion);
 		bceAcc.clear();
 	} else {
-		thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, sphMarkersD->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
-		thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x, sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
+		thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x,
+				sphMarkersD->velMasD.begin() + updatePortion.y,
+				velMas_ModifiedBCE.begin());
+		thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
+				sphMarkersD->rhoPresMuD.begin() + updatePortion.y,
+				rhoPreMu_ModifiedBCE.begin());
 	}
 
 }
@@ -426,8 +442,7 @@ void ChBce::ModifyBceVelocity(
 // the end
 // precondition: for the first step of RK2, all variables with '2' at the end have the values the same as those without
 // '2' at the end.
-void ChBce::Rigid_Forces_Torques(
-		SphMarkerDataD* sphMarkersD,
+void ChBce::Rigid_Forces_Torques(SphMarkerDataD* sphMarkersD,
 		FsiBodiesDataD* fsiBodiesD) {
 	// Arman: InitSystem has to be called before this point to set the number of objects
 
@@ -436,13 +451,15 @@ void ChBce::Rigid_Forces_Torques(
 	}
 	//################################################### make force and torque arrays
 	//####### Force (Acceleration)
-	if (totalSurfaceInteractionRigid4.size() != numObjectsH->numRigidBodies ||
-	 dummyIdentify.size() != numObjectsH->numRigidBodies ||
-	 torqueMarkersD.size() != numObjectsH->numRigid_SphMarkers ) {
-		throw std::runtime_error ("Error! wrong size: totalSurfaceInteractionRigid4 or torqueMarkersD or dummyIdentify. Thrown from Rigid_Forces_Torques!\n");
+	if (totalSurfaceInteractionRigid4.size() != numObjectsH->numRigidBodies
+			|| dummyIdentify.size() != numObjectsH->numRigidBodies
+			|| torqueMarkersD.size() != numObjectsH->numRigid_SphMarkers) {
+		throw std::runtime_error(
+				"Error! wrong size: totalSurfaceInteractionRigid4 or torqueMarkersD or dummyIdentify. Thrown from Rigid_Forces_Torques!\n");
 	}
 
-	thrust::fill(totalSurfaceInteractionRigid4.begin(), totalSurfaceInteractionRigid4.end(), mR4(0));
+	thrust::fill(totalSurfaceInteractionRigid4.begin(),
+			totalSurfaceInteractionRigid4.end(), mR4(0));
 	thrust::fill(torqueMarkersD.begin(), torqueMarkersD.end(), mR3(0));
 
 	thrust::equal_to<uint> binary_pred;
@@ -450,10 +467,12 @@ void ChBce::Rigid_Forces_Torques(
 	//** forces on BCE markers of each rigid body are accumulated at center. "totalSurfaceInteractionRigid4" is got built.
 	(void) thrust::reduce_by_key(fsiGeneralData->rigidIdentifierD.begin(),
 			fsiGeneralData->rigidIdentifierD.end(),
-			fsiGeneralData->derivVelRhoD.begin() + numObjectsH->startRigidMarkers,
-			dummyIdentify.begin(), totalSurfaceInteractionRigid4.begin(),
-			binary_pred, thrust::plus<Real4>());
-	thrust::fill(fsiGeneralData->rigid_FSI_ForcesD.begin(), fsiGeneralData->rigid_FSI_ForcesD.end(), mR3(0));
+			fsiGeneralData->derivVelRhoD.begin()
+					+ numObjectsH->startRigidMarkers, dummyIdentify.begin(),
+			totalSurfaceInteractionRigid4.begin(), binary_pred,
+			thrust::plus<Real4>());
+	thrust::fill(fsiGeneralData->rigid_FSI_ForcesD.begin(),
+			fsiGeneralData->rigid_FSI_ForcesD.end(), mR3(0));
 
 	uint nBlock_UpdateRigid;
 	uint nThreads_rigidParticles;
@@ -463,34 +482,37 @@ void ChBce::Rigid_Forces_Torques(
 	//** accumulated BCE forces at center are transformed to acceleration of rigid body "rigid_FSI_ForcesD".
 	//"rigid_FSI_ForcesD" gets built.
 	Calc_Rigid_FSI_ForcesD<<<nBlock_UpdateRigid, nThreads_rigidParticles>>>(
-			mR3CAST(fsiGeneralData->rigid_FSI_ForcesD), mR4CAST(totalSurfaceInteractionRigid4));
+			mR3CAST(fsiGeneralData->rigid_FSI_ForcesD),
+			mR4CAST(totalSurfaceInteractionRigid4));
 	cudaThreadSynchronize();
-	cudaCheckError();
+	cudaCheckError()
+	;
 
 	//####### Torque
 	uint nBlocks_numRigid_SphMarkers;
 	uint nThreads_SphMarkers;
 	computeGridSize(numObjectsH->numRigid_SphMarkers, 256,
 			nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
-	
 
 	//** the current position of the rigid, 'posRigidD', is used to calculate the moment of BCE acceleration at the rigid
 	//*** body center (i.e. torque/mass). "torqueMarkersD" gets built.
 	Calc_Markers_TorquesD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
-			mR3CAST(torqueMarkersD), mR4CAST(fsiGeneralData->derivVelRhoD), mR3CAST(sphMarkersD->posRadD),
-			U1CAST(fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D));
+			mR3CAST(torqueMarkersD), mR4CAST(fsiGeneralData->derivVelRhoD),
+			mR3CAST(sphMarkersD->posRadD),
+			U1CAST(fsiGeneralData->rigidIdentifierD),
+			mR3CAST(fsiBodiesD->posRigid_fsiBodies_D));
 	cudaThreadSynchronize();
-	cudaCheckError();
+	cudaCheckError()
+	;
 
 	(void) thrust::reduce_by_key(fsiGeneralData->rigidIdentifierD.begin(),
 			fsiGeneralData->rigidIdentifierD.end(), torqueMarkersD.begin(),
-			dummyIdentify.begin(), fsiGeneralData->rigid_FSI_TorquesD.begin(), binary_pred,
-			thrust::plus<Real3>());
+			dummyIdentify.begin(), fsiGeneralData->rigid_FSI_TorquesD.begin(),
+			binary_pred, thrust::plus<Real3>());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::UpdateRigidMarkersPositionVelocity(
-	SphMarkerDataD* sphMarkersD,
-	FsiBodiesDataD* fsiBodiesD) {
+void ChBce::UpdateRigidMarkersPositionVelocity(SphMarkerDataD* sphMarkersD,
+		FsiBodiesDataD* fsiBodiesD) {
 
 	if (numObjectsH->numRigidBodies == 0) {
 		return;
@@ -507,12 +529,17 @@ void ChBce::UpdateRigidMarkersPositionVelocity(
 	//** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new rigid body (position,
 	// orientation)/(velocity, angular velocity)
 	UpdateRigidMarkersPositionVelocityD<<<nBlocks_numRigid_SphMarkers,
-			nThreads_SphMarkers>>>(mR3CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
-			mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D), U1CAST(fsiGeneralData->rigidIdentifierD),
-			mR3CAST(fsiBodiesD->posRigid_fsiBodies_D), mR4CAST(fsiBodiesD->velMassRigid_fsiBodies_D), 
-			mR3CAST(fsiBodiesD->omegaVelLRF_fsiBodies_D), mR4CAST(fsiBodiesD->q_fsiBodies_D));
+			nThreads_SphMarkers>>>(mR3CAST(sphMarkersD->posRadD),
+			mR3CAST(sphMarkersD->velMasD),
+			mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
+			U1CAST(fsiGeneralData->rigidIdentifierD),
+			mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+			mR4CAST(fsiBodiesD->velMassRigid_fsiBodies_D),
+			mR3CAST(fsiBodiesD->omegaVelLRF_fsiBodies_D),
+			mR4CAST(fsiBodiesD->q_fsiBodies_D));
 	cudaThreadSynchronize();
-	cudaCheckError();
+	cudaCheckError()
+	;
 }
 
 } // end namespace fsi

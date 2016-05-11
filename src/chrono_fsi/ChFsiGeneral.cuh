@@ -19,7 +19,7 @@
 #define CH_FSIGENERAL_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/custom_math.h"
 #include "chrono_fsi/ChParams.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
 

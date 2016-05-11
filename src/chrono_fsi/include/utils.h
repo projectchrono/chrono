@@ -9,7 +9,7 @@
 #include <thrust/device_vector.h>
 
 /* Chrono::FSI Library */
-#include "../custom_cutil_math.h"
+#include "../custom_math.h"
 
 namespace chrono {
 namespace fsi {

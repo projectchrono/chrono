@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Class for handling time integration in fsi system.//
+// Base class for processing sph force in fsi system.//
 // =============================================================================
 #include "chrono_fsi/ChFsiForceParallel.cuh"
 #include "chrono_fsi/ChDeviceUtils.cuh"

@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Base class for fsi system.//
+// Base class for processing proximity in fsi system.//
 // =============================================================================
 
 #include <stdexcept>

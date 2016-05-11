@@ -7,7 +7,7 @@
 
 #ifndef CHPARAMS_CUH_
 #define CHPARAMS_CUH_
-#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/custom_math.h"
 
 namespace chrono {
 namespace fsi {

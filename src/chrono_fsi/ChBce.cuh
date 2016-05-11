@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Base class for processing bce forces in fsi system.//
+// Base class for processing boundary condition enforcing (bce) markers forces in fsi system.//
 // =============================================================================
 
 #ifndef CH_BCE_CUH_

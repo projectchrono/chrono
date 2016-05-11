@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Base class for processing collision in fsi system.//
+// Base class for processing proximity in fsi system.//
 // =============================================================================
 
 #ifndef CH_COLLISIONSYSTEM_FSI_H_

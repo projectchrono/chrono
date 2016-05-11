@@ -19,7 +19,7 @@
 #include "utils/ChUtilsCreators.h"
 #include "utils/ChUtilsGenerators.h"
 
-#include "chrono_fsi/custom_cutil_math.h"
+#include "chrono_fsi/custom_math.h"
 #include "chrono_fsi/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
