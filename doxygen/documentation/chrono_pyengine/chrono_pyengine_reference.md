@@ -278,13 +278,13 @@ proxy of <Swig Object of type 'chrono::ChVector< double > *' at 0x03EDCEA8> >
 ~~~~~~~~~~~~~~~
 
 A function that is not yet mapped, for instance
-ChSystem.GetLcpSystemDescriptor(), will give a shorter echo, that
+ChSystem.GetSystemDescriptor(), will give a shorter echo, that
 represents the type information for a pointer to an object that is
 unusable in Python:
 
 ~~~~~~~~~~~~~~~{.py}
-my_system.GetLcpSystemDescriptor()
-<Swig Object of type 'chrono::ChLcpSystemDescriptor *' at 0x03EDD800>
+my_system.GetSystemDescriptor()
+<Swig Object of type 'chrono::ChSystemDescriptor *' at 0x03EDD800>
 ~~~~~~~~~~~~~~~
 
 <div class="ce-info">
