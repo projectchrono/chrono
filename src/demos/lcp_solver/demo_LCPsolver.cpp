@@ -167,7 +167,7 @@ void test_1() {
     matrCq.StreamOUT(GetLog());
     // Other checks
 
-    GetLog() << "**** Using ChLcpIterativeSOR  ********** \n\n";
+    GetLog() << "**** Using ChSolverSOR  ********** \n\n";
     GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
     GetLog() << "vars q_a and q_b -------------------\n";
     GetLog() << mvarA.Get_qb();
@@ -195,7 +195,7 @@ void test_1() {
     msolver_simpl.Solve(mdescriptor);
 
     mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
-    GetLog() << "**** Using ChLcpSimplexSolver ********* \n\n";
+    GetLog() << "**** Using ChSolverSimplex ********* \n\n";
     GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
     GetLog() << "vars q_a and q_b -------------------\n";
     GetLog() << mvarA.Get_qb();
@@ -239,7 +239,7 @@ void test_2() {
             constraints[im - 1]->Set_b_i(0);
             constraints[im - 1]->Get_Cq_a()->ElementN(0) = 1;
             constraints[im - 1]->Get_Cq_b()->ElementN(0) = -1;
-            // constraints[im-1]->SetMode(CONSTRAINT_UNILATERAL); // not supported by  ChLcpSimplexSolver
+            // constraints[im-1]->SetMode(CONSTRAINT_UNILATERAL); // not supported by  ChSolverSimplex
             mdescriptor.InsertConstraint(constraints[im - 1]);
         }
     }
@@ -297,7 +297,7 @@ void test_2() {
     // only for reference or very precise solution of systems with only
     // bilateral constraints, in a limited number.
 
-    GetLog() << "\n\nTEST: 1D vertical pendulum - ChLcpSimplexSolver \n\n";
+    GetLog() << "\n\nTEST: 1D vertical pendulum - ChSolverSimplex \n\n";
 
     ChSolverSimplex msolver_simpl;
     msolver_simpl.Solve(mdescriptor);
@@ -312,9 +312,8 @@ void test_2() {
 }
 
 // Test 3
-// Create three variables, with some mass, and also add a
-// ChLcpStiffness item that connects two of these variables
-// with random stiffness.
+// Create three variables, with some mass, and also add a stiffness item
+// that connects two of these variables with random stiffness.
 // Also use the ChSystemDescriptor functions FromUnknownsToVector
 // and FromVectorToUnknowns for doing checks.
 //

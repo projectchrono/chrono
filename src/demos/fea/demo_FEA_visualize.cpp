@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(40);
     my_system.SetTolForce(1e-10);
-    // chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
     // msolver->SetVerbose(true);
     // msolver->SetDiagonalPreconditioning(true);
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise

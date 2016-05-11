@@ -324,7 +324,7 @@ class ChApi ChSystem : public ChAssembly,
     virtual ChSolver* GetLcpSolverStab();
 
     /// Instead of using SetSolverType(), you can create your own custom lcp solver (suffice it is inherited
-    /// from ChLcpSolver) and plug it into the system using this function. The replaced solver is automatically
+    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
     /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
     /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetSolverType() later.
     virtual void ChangeLcpSolverSpeed(ChSolver* newsolver);

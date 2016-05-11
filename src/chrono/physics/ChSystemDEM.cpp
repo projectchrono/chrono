@@ -62,8 +62,8 @@ void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
 }
 
 /*
-void ChSystemDEM::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
-    if (dynamic_cast<ChLcpSolverDEM*>(newsolver))
+void ChSystemDEM::ChangeLcpSolverSpeed(ChSolver* newsolver) {
+    if (dynamic_cast<ChSolverDEM*>(newsolver))
         ChSystem::ChangeLcpSolverSpeed(newsolver);
 }
 */

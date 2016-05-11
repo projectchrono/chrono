@@ -17,12 +17,10 @@
 
 namespace chrono {
 
-/// An iterative solver for VI (VI/CCP/LCP/linear problems,..) based
-/// on projective fixed point method, similar to a projected
-/// Jacobi method.
-/// Note: this method is here mostly for comparison
-/// and tests: we suggest you to use the more efficient
-/// ChLcpIterativeSOR - similar, but faster & converges better.
+/// An iterative solver for VI (VI/CCP/LCP/linear problems,..) based on projective fixed
+/// point method, similar to a projected Jacobi method.
+/// Note: this method is here mostly for comparison and tests: we suggest you to use the
+/// more efficient ChSolverSOR - similar, but faster & converges better.
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y

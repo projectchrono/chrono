@@ -68,7 +68,7 @@ namespace chrono {
 		row = mrow;
 	}
 
-	//***TO DO*** move into ChLcpSimplexSolver
+	//***TO DO*** move into ChSolverSimplex
 
 	#define LCP_MAX_ITERS 200
 	#define CONSTR_UNILATERAL_NONE 0

@@ -67,7 +67,7 @@ class ChApi ChSystemDEM : public ChSystem {
     virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM); }
 
     virtual void SetLcpSolverType(eCh_lcpSolver mval);
-    // virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+    // virtual void ChangeLcpSolverSpeed(ChSolver* newsolver);
     virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer);
 
     /// Enable/disable using physical contact material properties.

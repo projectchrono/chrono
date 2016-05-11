@@ -289,7 +289,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     ////system->SetTolForce(1e-5);
 
     ////system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    ////ChLcpIterativeMINRES* solver = static_cast<ChLcpIterativeMINRES*>(system->GetLcpSolverSpeed());
+    ////ChSolverMINRES* solver = static_cast<ChSolverMINRES*>(system->GetLcpSolverSpeed());
 
     // Set integrator and modify parameters.
     system->SetIntegrationType(ChSystem::INT_HHT);

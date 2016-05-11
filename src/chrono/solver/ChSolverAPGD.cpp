@@ -56,7 +56,6 @@ void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
 }
 
 double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
-    //****METHOD 1 for residual, same as ChLcpIterativeBB
     // Project the gradient (for rollback strategy)
     // g_proj = (l-project_orthogonal(l - gdiff*g, fric))/gdiff;
     double gdiff = 1.0 / pow(nc, 2.0);
@@ -67,7 +66,6 @@ double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
     sysd.ConstraintsProject(tmp);
     tmp.MatrSub(gammaNew, tmp);
     tmp.MatrScale(1.0 / gdiff);
-    //****End of METHOD 1 for residual, same as ChLcpIterativeBB
 
     return tmp.NormTwo();
 }
