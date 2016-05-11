@@ -606,14 +606,14 @@ int main(int argc, char* argv[]) {
     GetLog() << "Using MKL solver\n";
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
     ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
     mkl_solver_stab->SetSparsityPatternLock(true);
 #else
     GetLog() << "Using MINRES solver\n";
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPmaxItersSpeed(100);
     my_system.SetTolForce(1e-10);

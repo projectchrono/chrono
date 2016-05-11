@@ -247,15 +247,15 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys) {
 
     collisionpoint_callback = 0;
 
-    LCP_descriptor = 0;
-    LCP_solver_speed = 0;
-    LCP_solver_stab = 0;
+    descriptor = 0;
+    solver_speed = 0;
+    solver_stab = 0;
 
     iterLCPmaxIters = 30;
     iterLCPmaxItersStab = 10;
     
     if (init_sys) {
-        SetLcpSolverType(LCP_ITERATIVE_SYMMSOR);
+        SetSolverType(SOLVER_SYMMSOR);
     }
 
     use_sleeping = false;
@@ -289,15 +289,15 @@ ChSystem::~ChSystem() {
     RemoveAllProbes();
     RemoveAllControls();
 
-    if (LCP_solver_speed)
-        delete LCP_solver_speed;
-    LCP_solver_speed = 0;
-    if (LCP_solver_stab)
-        delete LCP_solver_stab;
-    LCP_solver_stab = 0;
-    if (LCP_descriptor)
-        delete LCP_descriptor;
-    LCP_descriptor = 0;
+    if (solver_speed)
+        delete solver_speed;
+    solver_speed = 0;
+    if (solver_stab)
+        delete solver_stab;
+    solver_stab = 0;
+    if (descriptor)
+        delete descriptor;
+    descriptor = 0;
 
     if (collision_system)
         delete collision_system;
@@ -340,7 +340,7 @@ void ChSystem::Copy(ChSystem* source) {
     max_penetration_recovery_speed = source->max_penetration_recovery_speed;
     iterLCPmaxIters = source->iterLCPmaxIters;
     iterLCPmaxItersStab = source->iterLCPmaxItersStab;
-    SetLcpSolverType(GetLcpSolverType());
+    SetSolverType(GetSolverType());
     parallel_thread_number = source->parallel_thread_number;
     use_sleeping = source->use_sleeping;
 
@@ -383,143 +383,143 @@ void ChSystem::Clear() {
 // Set/Get routines
 //
 
-void ChSystem::SetLcpSolverType(eCh_lcpSolver mval) {
-    if (mval == LCP_CUSTOM)
+void ChSystem::SetSolverType(eCh_solverType mval) {
+    if (mval == SOLVER_CUSTOM)
         return;
 
-    lcp_solver_type = mval;
+    solver_type = mval;
 
-    if (LCP_solver_speed)
-        delete LCP_solver_speed;
-    LCP_solver_speed = 0;
-    if (LCP_solver_stab)
-        delete LCP_solver_stab;
-    LCP_solver_stab = 0;
-    if (LCP_descriptor)
-        delete LCP_descriptor;
-    LCP_descriptor = 0;
+    if (solver_speed)
+        delete solver_speed;
+    solver_speed = 0;
+    if (solver_stab)
+        delete solver_stab;
+    solver_stab = 0;
+    if (descriptor)
+        delete descriptor;
+    descriptor = 0;
 
-    LCP_descriptor = new ChSystemDescriptor;
-    LCP_descriptor->SetNumThreads(parallel_thread_number);
+    descriptor = new ChSystemDescriptor;
+    descriptor->SetNumThreads(parallel_thread_number);
 
     contact_container = std::make_shared<ChContactContainerDVI>();
     contact_container->SetSystem(this);
 
     switch (mval) {
-        case LCP_ITERATIVE_SOR:
-            LCP_solver_speed = new ChSolverSOR();
-            LCP_solver_stab = new ChSolverSOR();
+        case SOLVER_SOR:
+            solver_speed = new ChSolverSOR();
+            solver_stab = new ChSolverSOR();
             break;
-        case LCP_ITERATIVE_SYMMSOR:
-            LCP_solver_speed = new ChSolverSymmSOR();
-            LCP_solver_stab = new ChSolverSymmSOR();
+        case SOLVER_SYMMSOR:
+            solver_speed = new ChSolverSymmSOR();
+            solver_stab = new ChSolverSymmSOR();
             break;
-        case LCP_SIMPLEX:
-            LCP_solver_speed = new ChSolverSimplex();
-            LCP_solver_stab = new ChSolverSimplex();
+        case SOLVER_SIMPLEX:
+            solver_speed = new ChSolverSimplex();
+            solver_stab = new ChSolverSimplex();
             break;
-        case LCP_ITERATIVE_JACOBI:
-            LCP_solver_speed = new ChSolverJacobi();
-            LCP_solver_stab = new ChSolverJacobi();
+        case SOLVER_JACOBI:
+            solver_speed = new ChSolverJacobi();
+            solver_stab = new ChSolverJacobi();
             break;
-        case LCP_ITERATIVE_SOR_MULTITHREAD:
-            LCP_solver_speed = new ChSolverSORmultithread((char*)"speedLCP", parallel_thread_number);
-            LCP_solver_stab = new ChSolverSORmultithread((char*)"posLCP", parallel_thread_number);
+        case SOLVER_SOR_MULTITHREAD:
+            solver_speed = new ChSolverSORmultithread((char*)"speedLCP", parallel_thread_number);
+            solver_stab = new ChSolverSORmultithread((char*)"posLCP", parallel_thread_number);
             break;
-        case LCP_ITERATIVE_PMINRES:
-            LCP_solver_speed = new ChSolverPMINRES();
-            LCP_solver_stab = new ChSolverPMINRES();
+        case SOLVER_PMINRES:
+            solver_speed = new ChSolverPMINRES();
+            solver_stab = new ChSolverPMINRES();
             break;
-        case LCP_ITERATIVE_BARZILAIBORWEIN:
-            LCP_solver_speed = new ChSolverBB();
-            LCP_solver_stab = new ChSolverBB();
+        case SOLVER_BARZILAIBORWEIN:
+            solver_speed = new ChSolverBB();
+            solver_stab = new ChSolverBB();
             break;
-        case LCP_ITERATIVE_PCG:
-            LCP_solver_speed = new ChSolverPCG();
-            LCP_solver_stab = new ChSolverPCG();
+        case SOLVER_PCG:
+            solver_speed = new ChSolverPCG();
+            solver_stab = new ChSolverPCG();
             break;
-        case LCP_ITERATIVE_APGD:
-            LCP_solver_speed = new ChSolverAPGD();
-            LCP_solver_stab = new ChSolverAPGD();
+        case SOLVER_APGD:
+            solver_speed = new ChSolverAPGD();
+            solver_stab = new ChSolverAPGD();
             break;
-        case LCP_ITERATIVE_MINRES:
-            LCP_solver_speed = new ChSolverMINRES();
-            LCP_solver_stab = new ChSolverMINRES();
+        case SOLVER_MINRES:
+            solver_speed = new ChSolverMINRES();
+            solver_stab = new ChSolverMINRES();
             break;
         default:
-            LCP_solver_speed = new ChSolverSymmSOR();
-            LCP_solver_stab = new ChSolverSymmSOR();
+            solver_speed = new ChSolverSymmSOR();
+            solver_stab = new ChSolverSymmSOR();
             break;
     }
 }
 
-ChSolver* ChSystem::GetLcpSolverSpeed() {
+ChSolver* ChSystem::GetSolverSpeed() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
         iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
 
-    return LCP_solver_speed;
+    return solver_speed;
 }
 
-ChSolver* ChSystem::GetLcpSolverStab() {
+ChSolver* ChSystem::GetSolverStab() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
         iter_solver->SetMaxIterations(GetIterLCPmaxItersSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
 
-    return LCP_solver_stab;
+    return solver_stab;
 }
 
 void ChSystem::SetIterLCPwarmStarting(bool usewarm) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
         iter_solver_speed->SetWarmStart(usewarm);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
         iter_solver_stab->SetWarmStart(usewarm);
     }
 }
 
 bool ChSystem::GetIterLCPwarmStarting() {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
         return iter_solver_speed->GetWarmStart();
     }
     return false;
 }
 
 void ChSystem::SetIterLCPomega(double momega) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
         iter_solver_speed->SetOmega(momega);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
         iter_solver_stab->SetOmega(momega);
     }
 }
 
 double ChSystem::GetIterLCPomega() {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
         return iter_solver_speed->GetOmega();
     }
     return 1.0;
 }
 
 void ChSystem::SetIterLCPsharpnessLambda(double momega) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
         iter_solver_speed->SetSharpnessLambda(momega);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(LCP_solver_stab)) {
+    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
         iter_solver_stab->SetSharpnessLambda(momega);
     }
 }
 
 double ChSystem::GetIterLCPsharpnessLambda() {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(LCP_solver_speed)) {
+    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
         return iter_solver_speed->GetSharpnessLambda();
     }
     return 1.0;
@@ -531,36 +531,36 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
 
     parallel_thread_number = mthreads;
 
-    LCP_descriptor->SetNumThreads(mthreads);
+    descriptor->SetNumThreads(mthreads);
 
-    if (lcp_solver_type == LCP_ITERATIVE_SOR_MULTITHREAD) {
-        ((ChSolverSORmultithread*)LCP_solver_speed)->ChangeNumberOfThreads(mthreads);
-        ((ChSolverSORmultithread*)LCP_solver_stab)->ChangeNumberOfThreads(mthreads);
+    if (solver_type == SOLVER_SOR_MULTITHREAD) {
+        ((ChSolverSORmultithread*)solver_speed)->ChangeNumberOfThreads(mthreads);
+        ((ChSolverSORmultithread*)solver_stab)->ChangeNumberOfThreads(mthreads);
     }
 }
 
 // Plug-in components configuration
 
-void ChSystem::ChangeLcpSystemDescriptor(ChSystemDescriptor* newdescriptor) {
+void ChSystem::ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor) {
     assert(newdescriptor);
-    if (this->LCP_descriptor)
-        delete (this->LCP_descriptor);
-    this->LCP_descriptor = newdescriptor;
+    if (this->descriptor)
+        delete (this->descriptor);
+    this->descriptor = newdescriptor;
 }
-void ChSystem::ChangeLcpSolverSpeed(ChSolver* newsolver) {
+void ChSystem::ChangeSolverSpeed(ChSolver* newsolver) {
     assert(newsolver);
-    if (this->LCP_solver_speed)
-        delete (this->LCP_solver_speed);
-    this->LCP_solver_speed = newsolver;
-    this->lcp_solver_type = LCP_CUSTOM;
+    if (this->solver_speed)
+        delete (this->solver_speed);
+    this->solver_speed = newsolver;
+    this->solver_type = SOLVER_CUSTOM;
 }
 
-void ChSystem::ChangeLcpSolverStab(ChSolver* newsolver) {
+void ChSystem::ChangeSolverStab(ChSolver* newsolver) {
     assert(newsolver);
-    if (this->LCP_solver_stab)
-        delete (this->LCP_solver_stab);
-    this->LCP_solver_stab = newsolver;
-    this->lcp_solver_type = LCP_CUSTOM;
+    if (this->solver_stab)
+        delete (this->solver_stab);
+    this->solver_stab = newsolver;
+    this->solver_type = SOLVER_CUSTOM;
 }
 
 void ChSystem::ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer) {
@@ -1478,7 +1478,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     if (c_a || c_v || c_x)
         this->KRMmatricesLoad(-c_x, -c_v, c_a); // for KRM blocks in ChKblock objects: fill them
-    this->LCP_descriptor->SetMassFactor(c_a); // for ChVariable objects, that does not have ChKblock: just use a coeff., to avoid duplicated data 
+    this->descriptor->SetMassFactor(c_a); // for ChVariable objects, that does not have ChKblock: just use a coeff., to avoid duplicated data 
 
 
     // diagnostics:
@@ -1493,8 +1493,8 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
         std::string sprefix(cprefix);
 
-        this->LCP_descriptor->DumpLastMatrices(true,  sprefix.c_str());
-        this->LCP_descriptor->DumpLastMatrices(false, sprefix.c_str());
+        this->descriptor->DumpLastMatrices(true,  sprefix.c_str());
+        this->descriptor->DumpLastMatrices(false, sprefix.c_str());
 
         chrono::ChStreamOutAsciiFile file_x( (sprefix+"x_pre.dat").c_str() );
         file_x.SetNumFormat(numformat);
@@ -1517,7 +1517,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 
     timer_lcp.start();
 
-    GetLcpSolverSpeed()->Solve(*this->LCP_descriptor);
+    GetSolverSpeed()->Solve(*this->descriptor);
 
     timer_lcp.stop();
 
@@ -1728,8 +1728,8 @@ int ChSystem::Integrate_Y() {
     ManageSleepingBodies();
 
     // Prepare lists of variables and constraints. 
-    LCPprepare_inject(*this->LCP_descriptor);
-    LCP_descriptor->UpdateCountsAndOffsets();
+    LCPprepare_inject(*this->descriptor);
+    descriptor->UpdateCountsAndOffsets();
 
     timer_lcp.reset();
 
@@ -1775,7 +1775,7 @@ int ChSystem::DoAssembly(int action, int mflags) {
     this->SetIterLCPmaxItersSpeed(300);
 
     // Prepare lists of variables and constraints. 
-    LCPprepare_inject(*this->LCP_descriptor);
+    LCPprepare_inject(*this->descriptor);
 
     ChAssemblyAnalysis manalysis(*this);
     manalysis.SetMaxAssemblyIters(this->GetMaxiter());
@@ -1801,7 +1801,7 @@ int ChSystem::DoStaticLinear() {
     this->SetIterLCPmaxItersSpeed(300);
 
     // Prepare lists of variables and constraints. 
-    LCPprepare_inject(*this->LCP_descriptor);
+    LCPprepare_inject(*this->descriptor);
 
     ChStaticLinearAnalysis manalysis(*this);
 
@@ -1813,19 +1813,19 @@ int ChSystem::DoStaticLinear() {
     bool dump_data = false;
 
     if (dump_data) {
-        this->GetLcpSystemDescriptor()->DumpLastMatrices();
+        GetSystemDescriptor()->DumpLastMatrices();
 
         // optional check for correctness in result
         chrono::ChMatrixDynamic<double> md;
-        GetLcpSystemDescriptor()->BuildDiVector(md);  // d={f;-b}
+        GetSystemDescriptor()->BuildDiVector(md);  // d={f;-b}
 
         chrono::ChMatrixDynamic<double> mx;
-        GetLcpSystemDescriptor()->FromUnknownsToVector(mx);  // x ={q,-l}
+        GetSystemDescriptor()->FromUnknownsToVector(mx);  // x ={q,-l}
         chrono::ChStreamOutAsciiFile file_x("dump_x.dat");
         mx.StreamOUTdenseMatlabFormat(file_x);
 
         chrono::ChMatrixDynamic<double> mZx;
-        GetLcpSystemDescriptor()->SystemProduct(mZx, &mx);  // Zx = Z*x
+        GetSystemDescriptor()->SystemProduct(mZx, &mx);  // Zx = Z*x
 
         GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
         GetLog() << (mZx - md).NormInf() << "\n";
@@ -1847,7 +1847,7 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
     this->SetIterLCPmaxItersSpeed(300);
 
     // Prepare lists of variables and constraints. 
-    LCPprepare_inject(*this->LCP_descriptor);
+    LCPprepare_inject(*this->descriptor);
 
     ChStaticNonLinearAnalysis manalysis(*this);
     manalysis.SetMaxiters(nsteps);
@@ -2131,11 +2131,11 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(maxiter);
     marchive << CHNVP(use_sleeping);
 
-    eCh_lcpSolver_mapper msolmapper;
-    marchive << CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
-    marchive << CHNVP(LCP_descriptor); 
-    marchive << CHNVP(LCP_solver_speed); 
-    marchive << CHNVP(LCP_solver_stab);  
+    eCh_solverType_mapper msolmapper;
+    marchive << CHNVP(msolmapper(solver_type), "solver_type");
+    marchive << CHNVP(descriptor); 
+    marchive << CHNVP(solver_speed); 
+    marchive << CHNVP(solver_stab);  
 
     marchive << CHNVP(iterLCPmaxIters);
     marchive << CHNVP(iterLCPmaxItersStab);
@@ -2185,17 +2185,17 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(maxiter);
     marchive >> CHNVP(use_sleeping);
 
-    eCh_lcpSolver_mapper msolmapper;
-    marchive >> CHNVP(msolmapper(lcp_solver_type),"lcp_solver_type");
+    eCh_solverType_mapper msolmapper;
+    marchive >> CHNVP(msolmapper(solver_type),"solver_type");
 
-    if (LCP_descriptor) delete LCP_descriptor;
-    marchive >> CHNVP(LCP_descriptor); 
+    if (descriptor) delete descriptor;
+    marchive >> CHNVP(descriptor); 
 
-    if (LCP_solver_speed) delete LCP_solver_speed;
-    marchive >> CHNVP(LCP_solver_speed); 
+    if (solver_speed) delete solver_speed;
+    marchive >> CHNVP(solver_speed); 
     
-    if (LCP_solver_stab) delete LCP_solver_stab;
-    marchive >> CHNVP(LCP_solver_stab);  
+    if (solver_stab) delete solver_stab;
+    marchive >> CHNVP(solver_stab);  
 
     marchive >> CHNVP(iterLCPmaxIters);
     marchive >> CHNVP(iterLCPmaxItersStab);

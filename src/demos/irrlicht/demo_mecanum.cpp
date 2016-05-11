@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);
 
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
 
     mphysicalSystem.SetIterLCPmaxItersSpeed(30);
     mphysicalSystem.SetIterLCPmaxItersStab(30);

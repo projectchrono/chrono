@@ -92,8 +92,8 @@ int main(int argc, char* argv[]) {
     ChMatlabEngine matlab_engine;
     ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
     ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-    my_system.ChangeLcpSolverStab(matlab_solver_stab);
-    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    my_system.ChangeSolverStab(matlab_solver_stab);
+    my_system.ChangeSolverSpeed(matlab_solver_speed);
     application.GetSystem()->Update();
 
     // Change type of integrator:

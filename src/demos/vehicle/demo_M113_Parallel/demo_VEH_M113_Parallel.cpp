@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    ////system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
     system->SetIterLCPmaxItersSpeed(50);
     system->SetIterLCPmaxItersStab(50);
     ////system->SetTol(0);

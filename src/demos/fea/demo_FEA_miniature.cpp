@@ -326,13 +326,13 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(400);
     my_system.SetIterLCPmaxItersStab(400);
     my_system.SetTolForce(1e-25);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(true);
     msolver->SetDiagonalPreconditioning(false);
 
@@ -340,8 +340,8 @@ int main(int argc, char* argv[]) {
     ChMatlabEngine matlab_engine;
     ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
     ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-    my_system.ChangeLcpSolverStab(matlab_solver_stab);
-    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    my_system.ChangeSolverStab(matlab_solver_stab);
+    my_system.ChangeSolverSpeed(matlab_solver_speed);
 
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 

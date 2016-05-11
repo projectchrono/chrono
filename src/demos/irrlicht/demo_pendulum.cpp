@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 
-    //application.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN); // if you need a more precise CCP solver..
+    //application.GetSystem()->SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN); // if you need a more precise CCP solver..
 
 
     while (application.GetDevice()->run()) {

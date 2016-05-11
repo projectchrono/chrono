@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
     // Solver settings.
-    ////vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+    ////vehicle.GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
     vehicle.GetSystem()->SetIterLCPmaxItersSpeed(50);
     vehicle.GetSystem()->SetIterLCPmaxItersStab(50);
     ////vehicle.GetSystem()->SetTol(0);

@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
     mphysicalSystem.SetIterLCPmaxItersSpeed(20);
     // mphysicalSystem.SetIterLCPmaxItersStab(5);
 

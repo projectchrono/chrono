@@ -676,11 +676,11 @@ int main() {
 
     switch (solver_type) {
         case LCP_ITSOR: {
-            GetLog() << "Using LCP_ITERATIVE_SOR solver\n";
+            GetLog() << "Using SOLVER_SOR solver\n";
             my_system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
             my_system->SetIterLCPmaxItersSpeed(100);
             my_system->SetIterLCPmaxItersStab(100);  // Tasora stepper uses this, Anitescu does not
-            my_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+            my_system->SetSolverType(ChSystem::SOLVER_SOR);
             my_system->SetTol(1e-10);
             my_system->SetTolForce(1e-8);
             break;
@@ -690,8 +690,8 @@ int main() {
             GetLog() << "Using MKL solver\n";
             ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
             ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-            my_system->ChangeLcpSolverStab(mkl_solver_stab);
-            my_system->ChangeLcpSolverSpeed(mkl_solver_speed);
+            my_system->ChangeSolverStab(mkl_solver_stab);
+            my_system->ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 

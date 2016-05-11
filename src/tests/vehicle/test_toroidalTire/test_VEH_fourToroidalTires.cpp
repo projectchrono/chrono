@@ -232,8 +232,8 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case MINRES: {
             GetLog() << "Using MINRES solver\n";
-            my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-            ChSolverMINRES* minres_solver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+            my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+            ChSolverMINRES* minres_solver = (ChSolverMINRES*)my_system.GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
             my_system.SetIterLCPwarmStarting(true);
             my_system.SetIterLCPmaxItersSpeed(500);
@@ -245,8 +245,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using MKL solver\n";
             ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
             ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-            my_system.ChangeLcpSolverStab(mkl_solver_stab);
-            my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+            my_system.ChangeSolverStab(mkl_solver_stab);
+            my_system.ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 #endif

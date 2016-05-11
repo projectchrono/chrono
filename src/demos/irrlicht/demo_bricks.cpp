@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
 
     //mphysicalSystem.SetUseSleeping(true);
 

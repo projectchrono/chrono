@@ -208,7 +208,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
   chrono::int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
   real4* rot = msystem->data_manager->host_data.rot_rigid.data();
 
-  ((ChIterativeSolverParallelDVI*)msystem->GetLcpSolverSpeed())->ComputeD();
+  ((ChIterativeSolverParallelDVI*)msystem->GetSolverSpeed())->ComputeD();
 
   CompressedMatrix<real>& D_n_T = msystem->data_manager->host_data.D_n_T;
   CompressedMatrix<real>& D_t_T = msystem->data_manager->host_data.D_t_T;

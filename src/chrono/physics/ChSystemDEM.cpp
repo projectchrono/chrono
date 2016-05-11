@@ -31,14 +31,13 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
       m_contact_model(Hertz),
       m_adhesion_model(Constant),
       m_stiff_contact(false) {
-    LCP_descriptor = new ChSystemDescriptor;
-    LCP_descriptor->SetNumThreads(parallel_thread_number);
+    descriptor = new ChSystemDescriptor;
+    descriptor->SetNumThreads(parallel_thread_number);
 
-    lcp_solver_type = ChSystem::LCP_DEM;
+    solver_type = ChSystem::SOLVER_DEM;
 
-    LCP_solver_speed = new ChSolverDEM();
-
-    LCP_solver_stab = new ChSolverDEM();
+    solver_speed = new ChSolverDEM();
+    solver_stab = new ChSolverDEM();
 
     collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
@@ -53,18 +52,18 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     m_characteristicVelocity = 1; 
 }
 
-void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
+void ChSystemDEM::SetSolverType(eCh_solverType mval) {
 
-    ChSystem::SetLcpSolverType(mval);
+    ChSystem::SetSolverType(mval);
 
     contact_container = std::make_shared<ChContactContainerDEM>();
     contact_container->SetSystem(this);
 }
 
 /*
-void ChSystemDEM::ChangeLcpSolverSpeed(ChSolver* newsolver) {
+void ChSystemDEM::ChangeSolverSpeed(ChSolver* newsolver) {
     if (dynamic_cast<ChSolverDEM*>(newsolver))
-        ChSystem::ChangeLcpSolverSpeed(newsolver);
+        ChSystem::ChangeSolverSpeed(newsolver);
 }
 */
 

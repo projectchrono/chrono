@@ -500,11 +500,11 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
                                   int sy,
                                   double spfact,
                                   double posfact) {
-    if (asystem.GetLcpSolverType() == ChSystem::LCP_SIMPLEX)
+    if (asystem.GetSolverType() == ChSystem::SOLVER_SIMPLEX)
         return;
 
-    ChIterativeSolver* msolver_speed = (ChIterativeSolver*)asystem.GetLcpSolverSpeed();
-    ChIterativeSolver* msolver_stab = (ChIterativeSolver*)asystem.GetLcpSolverStab();
+    ChIterativeSolver* msolver_speed = (ChIterativeSolver*)asystem.GetSolverSpeed();
+    ChIterativeSolver* msolver_stab = (ChIterativeSolver*)asystem.GetSolverStab();
     msolver_speed->SetRecordViolation(true);
     msolver_stab->SetRecordViolation(true);
 

@@ -15,7 +15,7 @@ INITIALIZE_EASYLOGGINGPP
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
   data_manager = new ChParallelDataManager();
 
-  LCP_descriptor = new ChSystemDescriptorParallel(data_manager);
+  descriptor = new ChSystemDescriptorParallel(data_manager);
   contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
   collision_system = new ChCollisionSystemParallel(data_manager);
 
@@ -56,7 +56,7 @@ ChSystemParallel::~ChSystemParallel() {
 int ChSystemParallel::Integrate_Y() {
   LOG(INFO) << "ChSystemParallel::Integrate_Y()";
   // Get the pointer for the system descriptor and store it into the data manager
-  data_manager->lcp_system_descriptor = this->LCP_descriptor;
+  data_manager->lcp_system_descriptor = this->descriptor;
   data_manager->body_list = &this->bodylist;
   data_manager->link_list = &this->linklist;
   data_manager->other_physics_list = &this->otherphysicslist;
@@ -79,14 +79,14 @@ int ChSystemParallel::Integrate_Y() {
   data_manager->system_timer.stop("collision");
 
   data_manager->system_timer.start("lcp");
-  ((ChIterativeSolverParallel*)(LCP_solver_speed))->RunTimeStep();
+  ((ChIterativeSolverParallel*)(solver_speed))->RunTimeStep();
   data_manager->system_timer.stop("lcp");
 
   data_manager->system_timer.start("update");
 
   // Iterate over the active bilateral constraints and store their Lagrange
   // multiplier.
-  std::vector<ChConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
   for (int index = 0; index < data_manager->num_bilaterals; index++) {
     int cntr = data_manager->host_data.bilateral_mapping[index];
     mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
@@ -271,13 +271,13 @@ void ChSystemParallel::Update() {
   data_manager->host_data.bilateral_mapping.clear();
   data_manager->host_data.bilateral_type.clear();
 
-  this->LCP_descriptor->BeginInsertion();
+  this->descriptor->BeginInsertion();
   UpdateLinks();
   UpdateOtherPhysics();
   UpdateRigidBodies();
   UpdateShafts();
   UpdateFluidBodies();
-  LCP_descriptor->EndInsertion();
+  descriptor->EndInsertion();
 
   UpdateBilaterals();
 }
@@ -380,7 +380,7 @@ void ChSystemParallel::UpdateLinks() {
     linklist[i]->ConstraintsFbLoadForces(GetStep());
     linklist[i]->ConstraintsLoadJacobians();
 
-    linklist[i]->InjectConstraints(*LCP_descriptor);
+    linklist[i]->InjectConstraints(*descriptor);
 
     for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
       data_manager->host_data.bilateral_type.push_back(BODY_BODY);
@@ -444,7 +444,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
     if (type == UNKNOWN)
       continue;
 
-    otherphysicslist[i]->InjectConstraints(*LCP_descriptor);
+    otherphysicslist[i]->InjectConstraints(*descriptor);
 
     for (int j = 0; j < otherphysicslist[i]->GetDOC_c(); j++)
       data_manager->host_data.bilateral_type.push_back(type);
@@ -457,7 +457,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
 //
 void ChSystemParallel::UpdateBilaterals() {
   data_manager->nnz_bilaterals = 0;
-  std::vector<ChConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
 
   for (uint ic = 0; ic < mconstraints.size(); ic++) {
     if (mconstraints[ic]->IsActive()) {
@@ -613,7 +613,7 @@ void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
 // the provided vector. Return the maximum constraint violation.
 //
 double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec) {
-  std::vector<ChConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+  std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
   cvec.resize(data_manager->num_bilaterals);
   double max_c = 0;
 

@@ -62,13 +62,13 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual ~ChSystemDEM() {}
 
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
     virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurfaceBase::DEM); }
     virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM); }
 
-    virtual void SetLcpSolverType(eCh_lcpSolver mval);
-    // virtual void ChangeLcpSolverSpeed(ChSolver* newsolver);
-    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer);
+    virtual void SetSolverType(eCh_solverType mval) override;
+    // virtual void ChangeSolverSpeed(ChSolver* newsolver) override;
+    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) override;
 
     /// Enable/disable using physical contact material properties.
     /// If true, contact coefficients are estimated from physical material properties. Otherwise,

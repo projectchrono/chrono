@@ -162,11 +162,11 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);      // <- NEEDED because other solvers can't handle stiffness matrices
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);      // <- NEEDED because other solvers can't handle stiffness matrices
     my_system.SetIterLCPwarmStarting(false);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(538);
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetRelTolerance(1e-20);
     msolver->SetTolerance(1e-20);
     msolver->SetVerbose(true);

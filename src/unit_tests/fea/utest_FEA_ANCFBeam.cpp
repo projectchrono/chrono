@@ -173,12 +173,12 @@ int main(int argc, char* argv[]) {
     mloadcontainer->Add(mgravity4);
 
     // Change solver settings
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(200);
     my_system.SetIterLCPmaxItersStab(200);
     my_system.SetTolForce(1e-14);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 

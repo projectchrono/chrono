@@ -640,12 +640,11 @@ int main(int argc, char* argv[]) {
     auto mtexture = std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg").c_str());
     mrigidBody->AddAsset(mtexture);
     
-
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;  // MKL Solver option
     ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
     mkl_solver_stab->SetSparsityPatternLock(true);
 

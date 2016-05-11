@@ -1552,8 +1552,8 @@ int main(int argc, char* argv[]) {
     // Use the MKL Solver
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
     ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
     mkl_solver_speed->SetSparsityPatternLock(true);
     my_system.Update();

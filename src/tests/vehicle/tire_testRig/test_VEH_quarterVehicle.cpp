@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case SOR: {
             std::cout << "Using SOR solver\n";
-            system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+            system->SetSolverType(ChSystem::SOLVER_SOR);
             system->SetIterLCPmaxItersSpeed(100);
             system->SetIterLCPmaxItersStab(100);
             system->SetTol(1e-10);
@@ -315,8 +315,8 @@ int main(int argc, char* argv[]) {
         }
         case MINRES: {
             std::cout << "Using MINRES solver\n";
-            system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-            ChSolverMINRES* minres_solver = (ChSolverMINRES*)system->GetLcpSolverSpeed();
+            system->SetSolverType(ChSystem::SOLVER_MINRES);
+            ChSolverMINRES* minres_solver = (ChSolverMINRES*)system->GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
             system->SetIterLCPwarmStarting(true);
             system->SetIterLCPmaxItersSpeed(500);
@@ -328,8 +328,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Using MKL solver\n";
             ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
             ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-            system->ChangeLcpSolverStab(mkl_solver_stab);
-            system->ChangeLcpSolverSpeed(mkl_solver_speed);
+            system->ChangeSolverStab(mkl_solver_stab);
+            system->ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 #endif

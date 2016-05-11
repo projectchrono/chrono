@@ -313,12 +313,12 @@ int main(int argc, char* argv[]) {
     AddConstraints(my_system);
 
     // Set up linear solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(2000);
     my_system.SetIterLCPmaxItersStab(2000);
     my_system.SetTolForce(1e-7);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 

@@ -147,7 +147,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
  public:
   ChSystemParallelDVI(unsigned int max_objects = 1000);
 
-  void ChangeSolverType(SOLVERTYPE type) { ((ChIterativeSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
+  void ChangeSolverType(SOLVERTYPE type) { ((ChIterativeSolverParallelDVI*)(solver_speed))->ChangeSolverType(type); }
 
   virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
   virtual ChBody* NewBody() override;

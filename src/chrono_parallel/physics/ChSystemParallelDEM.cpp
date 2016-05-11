@@ -4,7 +4,7 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemParallel(max_objects) {
-  LCP_solver_speed = new ChIterativeSolverParallelDEM(data_manager);
+  solver_speed = new ChIterativeSolverParallelDEM(data_manager);
 
   data_manager->settings.collision.collision_envelope = 0;
 

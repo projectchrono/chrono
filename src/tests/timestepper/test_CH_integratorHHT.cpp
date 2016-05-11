@@ -409,8 +409,8 @@ void RigidPendulums() {
 #ifdef CHRONO_MKL
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
     ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    system.ChangeLcpSolverStab(mkl_solver_stab);
-    system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    system.ChangeSolverStab(mkl_solver_stab);
+    system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
     mkl_solver_stab->SetSparsityPatternLock(true);
 #endif

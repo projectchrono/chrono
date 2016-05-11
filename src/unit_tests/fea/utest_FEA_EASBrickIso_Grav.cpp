@@ -221,9 +221,9 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Perform a dynamic time integration:
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPmaxItersSpeed(10000);
     my_system.SetTolForce(1e-09);

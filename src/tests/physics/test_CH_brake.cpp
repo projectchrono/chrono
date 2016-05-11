@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     // Set solver
     ChSolverMINRES* minres_solver = new ChSolverMINRES;
     minres_solver->SetDiagonalPreconditioning(true);
-    system.ChangeLcpSolverSpeed(minres_solver);
+    system.ChangeSolverSpeed(minres_solver);
     system.SetIterLCPmaxItersSpeed(100);
     system.SetTolForce(1e-6);
 

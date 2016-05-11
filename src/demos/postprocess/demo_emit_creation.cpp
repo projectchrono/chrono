@@ -381,7 +381,7 @@ int main(int argc, char* argv[]) {
 
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN);//(ChSystem::LCP_ITERATIVE_SOR);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
     mphysicalSystem.SetIterLCPmaxItersSpeed(30);
     mphysicalSystem.SetIterLCPmaxItersStab(5);
 

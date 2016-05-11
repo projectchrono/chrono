@@ -429,17 +429,17 @@ int main(int argc, char* argv[]) {
     // Change solver to MKL
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
     ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
 	mkl_solver_stab->SetSparsityPatternLock(true);
 	mkl_solver_speed->SetSparsityPatternLock(true);
     /*
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS or Matlab or MKL solver
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES); // <- NEEDED THIS or Matlab or MKL solver
 	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetIterLCPmaxItersSpeed(200);
 	my_system.SetIterLCPmaxItersStab(200);
 	my_system.SetTolForce(1e-13);
-	ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+	ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
     */

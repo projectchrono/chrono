@@ -407,12 +407,13 @@ void test_1() {
 
     // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
 
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS or MKL because other solvers can't handle stiffness matrices
-	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(100);
-	my_system.SetIterLCPmaxItersStab(100);
-	my_system.SetTolForce(1e-13);
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED THIS or MKL because other solvers can't handle stiffness matrices
+    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetIterLCPmaxItersStab(100);
+    my_system.SetTolForce(1e-13);
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 

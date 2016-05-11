@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig rig(track_assembly, sprocket_loc, idler_loc, susp_locs, ChMaterialSurfaceBase::DVI);
     //rig.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-    rig.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+    rig.GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
     rig.GetSystem()->SetIterLCPmaxItersSpeed(50);
     rig.GetSystem()->SetIterLCPmaxItersStab(50);
     rig.GetSystem()->SetTol(0);

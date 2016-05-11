@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
 
 /*    
         // Change solver to embedded MINRES
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);     
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetIterLCPmaxItersSpeed(90);
     my_system.SetTolForce(1e-10);  
@@ -359,8 +359,8 @@ int main(int argc, char* argv[]) {
         // Change solver to pluggable MKL
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
     ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
 	mkl_solver_speed->SetSparsityPatternLock(true);
     application.GetSystem()->Update();

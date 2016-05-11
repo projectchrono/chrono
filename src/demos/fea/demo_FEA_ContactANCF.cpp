@@ -199,15 +199,15 @@ int main(int argc, char* argv[]) {
 
     //    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
     //    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    //    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    //    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    //    my_system.ChangeSolverStab(mkl_solver_stab);
+    //    my_system.ChangeSolverSpeed(mkl_solver_speed);
     //    mkl_solver_stab->SetSparsityPatternLock(true);
     //    mkl_solver_speed->SetSparsityPatternLock(true);
     //    application.GetSystem()->Update();
 
     // Setup solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of
     my_system.SetIterLCPmaxItersSpeed(4000000);

@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using MINRES solver.\n";
             ChSolverMINRES* minres_solver = new ChSolverMINRES;
             minres_solver->SetDiagonalPreconditioning(true);
-            system.ChangeLcpSolverSpeed(minres_solver);
+            system.ChangeSolverSpeed(minres_solver);
             system.SetIterLCPmaxItersSpeed(100);
             system.SetTolForce(1e-6);
             break;
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver.\n";
             ChSolverMKL* mkl_solver = new ChSolverMKL;
-            system.ChangeLcpSolverSpeed(mkl_solver);
+            system.ChangeSolverSpeed(mkl_solver);
             mkl_solver->SetSparsityPatternLock(true);
 #endif
             break;
