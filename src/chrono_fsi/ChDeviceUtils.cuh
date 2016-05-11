@@ -104,39 +104,32 @@ typedef unsigned int uint;
 // time between a start and stop event.
 // --------------------------------------------------------------------
 class GpuTimer {
-public:
-	GpuTimer(cudaStream_t stream = 0) :
-			m_stream(stream) {
-		cudaEventCreate(&m_start);
-		cudaEventCreate(&m_stop);
-	}
+ public:
+  GpuTimer(cudaStream_t stream = 0) : m_stream(stream) {
+    cudaEventCreate(&m_start);
+    cudaEventCreate(&m_stop);
+  }
 
-	~GpuTimer() {
-		cudaEventDestroy(m_start);
-		cudaEventDestroy(m_stop);
-	}
+  ~GpuTimer() {
+    cudaEventDestroy(m_start);
+    cudaEventDestroy(m_stop);
+  }
 
-	void Start() {
-		cudaEventRecord(m_start, m_stream);
-	}
-	void Stop() {
-		cudaEventRecord(m_stop, m_stream);
-	}
+  void Start() { cudaEventRecord(m_start, m_stream); }
+  void Stop() { cudaEventRecord(m_stop, m_stream); }
 
-	float Elapsed() {
-		float elapsed;
-		cudaEventSynchronize(m_stop);
-		cudaEventElapsedTime(&elapsed, m_start, m_stop);
-		return elapsed;
-	}
+  float Elapsed() {
+    float elapsed;
+    cudaEventSynchronize(m_stop);
+    cudaEventElapsedTime(&elapsed, m_start, m_stop);
+    return elapsed;
+  }
 
-private:
-	cudaStream_t m_stream;
-	cudaEvent_t m_start;
-	cudaEvent_t m_stop;
+ private:
+  cudaStream_t m_stream;
+  cudaEvent_t m_start;
+  cudaEvent_t m_stop;
 };
-
-
 
 // --------------------------------------------------------------------
 // ChDeviceUtils
@@ -145,23 +138,22 @@ private:
 // might be needed in host files
 // --------------------------------------------------------------------
 class CH_FSI_API ChDeviceUtils {
-	public:
+ public:
+  static void ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize);
+  static void ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize);
+  static void FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v);
+  static void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
+  static void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
+  static void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
+  static void PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3);
+  static void PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4);
+  static void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size);
+  static void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size);
+  static void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
 
-	static void ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize);
-	static void ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize);
-	static void FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v);
-	static void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
-	static void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
-	static void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
-	static void PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3);
-	static void PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4);
-	static void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size);
-	static void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size);
-	static void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
-
-	private:
+ private:
 };
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 
 #endif

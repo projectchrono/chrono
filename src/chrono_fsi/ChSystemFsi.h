@@ -31,57 +31,53 @@
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
-
 namespace chrono {
 namespace fsi {
 
-class CH_FSI_API ChSystemFsi : public ChFsiGeneral{
+class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
+ public:
+  ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_haveFluid);
+  ~ChSystemFsi();
 
-public:
-	ChSystemFsi(ChSystemParallelDVI * other_physicalSystem, bool other_haveFluid);
-	~ChSystemFsi();
+  void DoStepDynamics_FSI();
+  void DoStepDynamics_ChronoRK2();
+  void CopyDeviceDataToHalfStep();
+  void SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle);
+  void FinalizeData();
+  ChFsiDataManager* GetDataManager() { return fsiData; }
+  SimParams* GetSimParams() { return paramsH; }
+  //	void SetSimParams(SimParams* other_paramsH) {paramsH = other_paramsH;} // It is not enough to just set sim
+  //params here. It should recursively go and set for all subclasses
+  std::vector<std::shared_ptr<ChBody> >* GetFsiBodiesPtr() { return &fsiBodeisPtr; }
+  void InitializeChronoGraphics(chrono::ChVector<> CameraLocation = chrono::ChVector<>(1, 0, 0),
+                                chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0));
 
-	void DoStepDynamics_FSI();
-	void DoStepDynamics_ChronoRK2(); 
-	void CopyDeviceDataToHalfStep();
-	void SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle);
-	void FinalizeData();
-	ChFsiDataManager* GetDataManager() {return fsiData;}
-	SimParams* GetSimParams() {return paramsH;}
-//	void SetSimParams(SimParams* other_paramsH) {paramsH = other_paramsH;} // It is not enough to just set sim params here. It should recursively go and set for all subclasses
-	std::vector<std::shared_ptr<ChBody> > * GetFsiBodiesPtr() {return & fsiBodeisPtr;}
-	void InitializeChronoGraphics(
-		chrono::ChVector<> CameraLocation = chrono::ChVector<>(1, 0, 0), 
-		chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0));
+  virtual void Finalize();
 
-	virtual void Finalize();
+ private:
+  int DoStepChronoSystem(Real dT, double mTime);
 
-private:
-	int DoStepChronoSystem(Real dT,
-		double mTime);
+  ChFsiDataManager* fsiData;
+  // map fsi to chrono bodies
+  std::vector<std::shared_ptr<ChBody> > fsiBodeisPtr;
+  ChFluidDynamics* fluidDynamics;
+  ChFsiInterface* fsiInterface;
+  ChBce* bceWorker;
 
-	ChFsiDataManager* fsiData;
-	// map fsi to chrono bodies
-	std::vector<std::shared_ptr<ChBody> > fsiBodeisPtr;
-	ChFluidDynamics* fluidDynamics;
-	ChFsiInterface* fsiInterface;
-	ChBce* bceWorker;
+  chrono::ChSystemParallelDVI* mphysicalSystem;
+  chrono::vehicle::ChWheeledVehicleAssembly* mVehicle;
 
-	chrono::ChSystemParallelDVI * mphysicalSystem;
-	chrono::vehicle::ChWheeledVehicleAssembly* mVehicle;
+  SimParams* paramsH;
+  NumberOfObjects* numObjectsH;
 
-	SimParams* paramsH;
-	NumberOfObjects* numObjectsH;
-
-	double mTime;
-	bool haveFluid;
-	bool haveVehicle;
+  double mTime;
+  bool haveFluid;
+  bool haveVehicle;
 
 #ifdef CHRONO_OPENGL
-	chrono::opengl::ChOpenGLWindow* gl_window;
+  chrono::opengl::ChOpenGLWindow* gl_window;
 #endif
-
 };
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 #endif

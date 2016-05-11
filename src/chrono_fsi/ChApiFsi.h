@@ -31,6 +31,4 @@
 #define CH_FSI_API ChApiIMPORT
 #endif
 
-
-
 #endif /* CHAPIFSI_H_ */

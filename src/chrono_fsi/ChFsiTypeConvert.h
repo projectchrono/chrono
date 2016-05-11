@@ -12,7 +12,7 @@
 // Author: Arman Pazouki
 // =============================================================================
 //
-// Utility class for Conversions between Real and ChSystem types such as 
+// Utility class for Conversions between Real and ChSystem types such as
 // (ChVector, ChQuaternion)
 // =============================================================================
 
@@ -23,22 +23,20 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono_fsi/custom_math.h"
 
-
 namespace chrono {
 namespace fsi {
 
 class ChFsiTypeConvert {
-public:
-	static ChVector<> Real3ToChVector(Real3 p3);
-	static ChVector<> Real4ToChVector(Real4 p4);
-	static ChQuaternion<> Real4ToChQuaternion(Real4 q4);
-	static Real3 ChVectorToReal3(ChVector<> v3);
-	static Real4 ChVectorRToReal4(ChVector<> v3, Real m);
-	static Real4 ChQuaternionToReal4(ChQuaternion<> q4);
-private:
+ public:
+  static ChVector<> Real3ToChVector(Real3 p3);
+  static ChVector<> Real4ToChVector(Real4 p4);
+  static ChQuaternion<> Real4ToChQuaternion(Real4 q4);
+  static Real3 ChVectorToReal3(ChVector<> v3);
+  static Real4 ChVectorRToReal4(ChVector<> v3, Real m);
+  static Real4 ChQuaternionToReal4(ChQuaternion<> q4);
+
+ private:
 };
-
-
 
 // namespace utils {
 
@@ -49,6 +47,6 @@ private:
 // Real4 ConvertChVectorToR4(ChVector<> v3, Real m);
 // Real4 ConvertChQuaternionToR4(ChQuaternion<> q4);
 
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 #endif

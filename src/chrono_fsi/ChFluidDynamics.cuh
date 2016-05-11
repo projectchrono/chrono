@@ -24,39 +24,33 @@
 namespace chrono {
 namespace fsi {
 
-class CH_FSI_API ChFluidDynamics : public ChFsiGeneral{
-public:
-	//TODO: Default constructor
-	ChFluidDynamics(
-		ChBce* otherBceWorker,
-		ChFsiDataManager* otherFsiData,
-		SimParams* otherParamsH, 
-		NumberOfObjects* otherNumObjects);
+class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
+ public:
+  // TODO: Default constructor
+  ChFluidDynamics(ChBce* otherBceWorker,
+                  ChFsiDataManager* otherFsiData,
+                  SimParams* otherParamsH,
+                  NumberOfObjects* otherNumObjects);
 
-	~ChFluidDynamics();
-	
-	void IntegrateSPH(
-	SphMarkerDataD * sphMarkersD2,
-	SphMarkerDataD * sphMarkersD1,
-	FsiBodiesDataD * fsiBodiesD1,
-	Real dT);
+  ~ChFluidDynamics();
 
-	void DensityReinitialization();
+  void IntegrateSPH(SphMarkerDataD* sphMarkersD2, SphMarkerDataD* sphMarkersD1, FsiBodiesDataD* fsiBodiesD1, Real dT);
 
-	virtual void Finalize();
+  void DensityReinitialization();
 
-protected:
-	ChFsiDataManager* fsiData;
-	ChFsiForceParallel* forceSystem;
-	SimParams* paramsH;
-	NumberOfObjects* numObjectsH;
+  virtual void Finalize();
 
-	void UpdateFluid(SphMarkerDataD * sphMarkersD, Real dT);
-	void ApplyBoundarySPH_Markers(SphMarkerDataD * sphMarkersD);
+ protected:
+  ChFsiDataManager* fsiData;
+  ChFsiForceParallel* forceSystem;
+  SimParams* paramsH;
+  NumberOfObjects* numObjectsH;
 
+  void UpdateFluid(SphMarkerDataD* sphMarkersD, Real dT);
+  void ApplyBoundarySPH_Markers(SphMarkerDataD* sphMarkersD);
 };
 
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 
 #endif

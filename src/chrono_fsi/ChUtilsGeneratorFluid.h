@@ -21,16 +21,13 @@
 #include "chrono_fsi/custom_math.h"
 #include "chrono_fsi/ChFsiDataManager.cuh"
 
-namespace chrono{
+namespace chrono {
 namespace fsi {
 namespace utils {
-	int2 CreateFluidMarkers(
-	SphMarkerDataH& sphMarkersH,
-	FsiGeneralData& fsiGeneralData,
-	SimParams& paramsH);
+int2 CreateFluidMarkers(SphMarkerDataH& sphMarkersH, FsiGeneralData& fsiGeneralData, SimParams& paramsH);
 
-} // end namespace utils
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace utils
+}  // end namespace fsi
+}  // end namespace chrono
 
 #endif
