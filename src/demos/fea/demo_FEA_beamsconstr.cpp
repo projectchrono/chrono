@@ -29,7 +29,7 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 //#include "chrono_matlab/ChMatlabEngine.h"
-//#include "chrono_matlab/ChLcpMatlabSolver.h"
+//#include "chrono_matlab/ChSolverMatlab.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
 
@@ -281,15 +281,15 @@ int main(int argc, char* argv[]) {
         my_system.SetIterLCPmaxItersSpeed(600);
         my_system.SetIterLCPmaxItersStab(600);
         my_system.SetTolForce(1e-20);
-        chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
         msolver->SetVerbose(true);
         msolver->SetDiagonalPreconditioning(false);
         */
 
         //***TEST***
         /*ChMatlabEngine matlab_engine;
-        ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
-        ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+        ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
+        ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
         my_system.ChangeLcpSolverStab(matlab_solver_stab);
         my_system.ChangeLcpSolverSpeed(matlab_solver_speed);*/
 		
@@ -492,14 +492,14 @@ int main(int argc, char* argv[]) {
         my_system.SetIterLCPmaxItersSpeed(600);
         my_system.SetIterLCPmaxItersStab(600);
         my_system.SetTolForce(1e-12);
-        chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetLcpSolverSpeed();
         msolver->SetDiagonalPreconditioning(true);
         */
 
         ////***TEST***
         //ChMatlabEngine matlab_engine;
-        //ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
-        //ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
+        //ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
+        //ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
         //my_system.ChangeLcpSolverStab(matlab_solver_stab);
         //my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
 		

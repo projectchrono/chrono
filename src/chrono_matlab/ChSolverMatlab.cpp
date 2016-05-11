@@ -9,23 +9,24 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "chrono_matlab/ChLcpMatlabSolver.h"
+#include "chrono_matlab/ChSolverMatlab.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLcpMatlabSolver> a_registration_ChLcpMatlabSolver;
+ChClassRegister<ChSolverMatlab> a_registration_ChSolverMatlab;
 
-ChLcpMatlabSolver::ChLcpMatlabSolver(ChMatlabEngine& me) {
+ChSolverMatlab::ChSolverMatlab(ChMatlabEngine& me) {
     mengine = &me;
 }
-ChLcpMatlabSolver::ChLcpMatlabSolver() {
+
+ChSolverMatlab::ChSolverMatlab() {
     mengine = 0;
 }
 
 // Solve using the Matlab default direct solver (as in x=A\b)
-double ChLcpMatlabSolver::Solve(ChLcpSystemDescriptor& sysd) {
+double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
     chrono::ChLinkedListMatrix mdM;
     chrono::ChLinkedListMatrix mdCq;
     chrono::ChLinkedListMatrix mdE;
