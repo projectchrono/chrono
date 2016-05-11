@@ -1720,7 +1720,7 @@ int ChSystem::Integrate_Y() {
     ManageSleepingBodies();
 
     // Prepare lists of variables and constraints. 
-    DescriptoPrepareInject(*descriptor);
+    DescriptorPrepareInject(*descriptor);
     descriptor->UpdateCountsAndOffsets();
 
     timer_solver.reset();
@@ -1767,7 +1767,7 @@ int ChSystem::DoAssembly(int action, int mflags) {
     this->SetMaxItersSolverSpeed(300);
 
     // Prepare lists of variables and constraints. 
-    DescriptoPrepareInject(*descriptor);
+    DescriptorPrepareInject(*descriptor);
 
     ChAssemblyAnalysis manalysis(*this);
     manalysis.SetMaxAssemblyIters(this->GetMaxiter());
@@ -1793,7 +1793,7 @@ int ChSystem::DoStaticLinear() {
     this->SetMaxItersSolverSpeed(300);
 
     // Prepare lists of variables and constraints. 
-    DescriptoPrepareInject(*descriptor);
+    DescriptorPrepareInject(*descriptor);
 
     ChStaticLinearAnalysis manalysis(*this);
 
@@ -1839,7 +1839,7 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
     this->SetMaxItersSolverSpeed(300);
 
     // Prepare lists of variables and constraints. 
-    DescriptoPrepareInject(*descriptor);
+    DescriptorPrepareInject(*descriptor);
 
     ChStaticNonLinearAnalysis manalysis(*this);
     manalysis.SetMaxiters(nsteps);
