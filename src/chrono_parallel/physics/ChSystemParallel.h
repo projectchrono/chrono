@@ -86,8 +86,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   /// Gets the time (in seconds) spent for computing the time step
   virtual double GetTimerStep() override { return data_manager->system_timer.GetTime("step"); }
-  /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-  virtual double GetTimerSolver() override { return data_manager->system_timer.GetTime("lcp"); }
+  /// Gets the fraction of time (in seconds) for the solver, within the time step
+  virtual double GetTimerSolver() override { return data_manager->system_timer.GetTime("solver"); }
   /// Gets the fraction of time (in seconds) for finding collisions, within the time step
   virtual double GetTimerCollisionBroad() override { return data_manager->system_timer.GetTime("collision_broad"); }
   /// Gets the fraction of time (in seconds) for finding collisions, within the time step

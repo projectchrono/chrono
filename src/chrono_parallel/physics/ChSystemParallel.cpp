@@ -37,7 +37,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager->system_timer.AddTimer("collision");
   data_manager->system_timer.AddTimer("collision_broad");
   data_manager->system_timer.AddTimer("collision_narrow");
-  data_manager->system_timer.AddTimer("lcp");
+  data_manager->system_timer.AddTimer("solver");
 
   data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Solve");
   data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Setup");
@@ -56,7 +56,7 @@ ChSystemParallel::~ChSystemParallel() {
 int ChSystemParallel::Integrate_Y() {
   LOG(INFO) << "ChSystemParallel::Integrate_Y()";
   // Get the pointer for the system descriptor and store it into the data manager
-  data_manager->lcp_system_descriptor = this->descriptor;
+  data_manager->system_descriptor = this->descriptor;
   data_manager->body_list = &this->bodylist;
   data_manager->link_list = &this->linklist;
   data_manager->other_physics_list = &this->otherphysicslist;
@@ -78,9 +78,9 @@ int ChSystemParallel::Integrate_Y() {
   }
   data_manager->system_timer.stop("collision");
 
-  data_manager->system_timer.start("lcp");
+  data_manager->system_timer.start("solver");
   ((ChIterativeSolverParallel*)(solver_speed))->RunTimeStep();
-  data_manager->system_timer.stop("lcp");
+  data_manager->system_timer.stop("solver");
 
   data_manager->system_timer.start("update");
 
@@ -235,7 +235,7 @@ void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
   data_manager->host_data.shaft_active.push_back(true);
 }
 //
-// Reset forces for all lcp variables
+// Reset forces for all variables
 //
 void ChSystemParallel::ClearForceVariables() {
 #pragma omp parallel for
@@ -260,7 +260,7 @@ void ChSystemParallel::ClearForceVariables() {
 //
 void ChSystemParallel::Update() {
   LOG(INFO) << "ChSystemParallel::Update()";
-  // Clear the forces for all lcp variables
+  // Clear the forces for all variables
   ClearForceVariables();
 
   // Allocate space for the velocities and forces for all objects

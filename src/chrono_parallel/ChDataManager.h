@@ -207,7 +207,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     host_container host_data;
 
     // This pointer is used by the bilarerals for computing the jacobian and other terms
-    ChSystemDescriptor* lcp_system_descriptor;
+    ChSystemDescriptor* system_descriptor;
 
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure

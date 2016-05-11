@@ -141,9 +141,9 @@ void ChSystemParallelDVI::SolveSystem() {
   collision_system->Run();
   collision_system->ReportContacts(this->contact_container.get());
   data_manager->system_timer.stop("collision");
-  data_manager->system_timer.start("lcp");
+  data_manager->system_timer.start("solver");
   ((ChIterativeSolverParallel*)(solver_speed))->RunTimeStep();
-  data_manager->system_timer.stop("lcp");
+  data_manager->system_timer.stop("solver");
   data_manager->system_timer.stop("step");
 }
 
