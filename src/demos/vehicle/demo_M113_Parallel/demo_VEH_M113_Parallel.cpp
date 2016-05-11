@@ -25,7 +25,7 @@
 
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 
 // Chrono::Parallel OpenGL header files

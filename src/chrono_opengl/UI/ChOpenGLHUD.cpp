@@ -272,16 +272,16 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
 //  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
 //    ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 //
-//    sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChLcpSolverParallel_N"));
+//    sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));
 //    text.Render(buffer, LEFT, BOTTOM + SPACING * 6, sx, sy);
 //
-//    sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChLcpSolverParallel_R"));
+//    sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChIterativeSolverParallel_R"));
 //    text.Render(buffer, LEFT, BOTTOM + SPACING * 5, sx, sy);
 //
-//    sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChLcpSolverParallel_E"));
+//    sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChIterativeSolverParallel_E"));
 //    text.Render(buffer, LEFT, BOTTOM + SPACING * 4, sx, sy);
 //
-//    sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChLcpSolverParallel_D"));
+//    sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChIterativeSolverParallel_D"));
 //    text.Render(buffer, LEFT, BOTTOM + SPACING * 3, sx, sy);
 //
 //    sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverParallel_Solve"));

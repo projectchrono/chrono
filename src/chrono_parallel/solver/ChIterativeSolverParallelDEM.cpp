@@ -21,7 +21,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 using namespace chrono;
 
@@ -365,11 +365,11 @@ void function_CalcContactForces(
 // -----------------------------------------------------------------------------
 // Calculate contact forces and torques for all contact pairs.
 // -----------------------------------------------------------------------------
-void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body_id,
-                                                    custom_vector<real3>& ext_body_force,
-                                                    custom_vector<real3>& ext_body_torque,
-                                                    custom_vector<int2>& shape_pairs,
-                                                    custom_vector<bool>& shear_touch) {
+void ChIterativeSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body_id,
+                                                          custom_vector<real3>& ext_body_force,
+                                                          custom_vector<real3>& ext_body_torque,
+                                                          custom_vector<int2>& shape_pairs,
+                                                          custom_vector<bool>& shear_touch) {
 #pragma omp parallel for
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         function_CalcContactForces(
@@ -398,7 +398,7 @@ void ChLcpSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body
 // cummulative force and torque, respectively, over all contacts involving that
 // body.
 // -----------------------------------------------------------------------------
-void ChLcpSolverParallelDEM::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {
+void ChIterativeSolverParallelDEM::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {
     const custom_vector<real3>& ct_body_force = data_manager->host_data.ct_body_force;
     const custom_vector<real3>& ct_body_torque = data_manager->host_data.ct_body_torque;
 
@@ -417,7 +417,7 @@ void ChLcpSolverParallelDEM::host_AddContactForces(uint ct_body_count, const cus
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLcpSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id) {
+void ChIterativeSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id) {
     custom_vector<int>& ct_body_map = data_manager->host_data.ct_body_map;
 
 #pragma omp parallel for
@@ -438,7 +438,7 @@ struct sum_tuples {
 // generate contact forces, and update the (linear and rotational) impulses for
 // all bodies involved in at least one contact.
 // -----------------------------------------------------------------------------
-void ChLcpSolverParallelDEM::ProcessContacts() {
+void ChIterativeSolverParallelDEM::ProcessContacts() {
     // 1. Calculate contact forces and torques - per contact basis
     //    For each pair of contact shapes that overlap, we calculate and store the
     //    IDs of the two corresponding bodies and the resulting contact forces and
@@ -513,7 +513,7 @@ void ChLcpSolverParallelDEM::ProcessContacts() {
     host_SetContactForcesMap(ct_body_count, ct_body_id);
 }
 
-void ChLcpSolverParallelDEM::ComputeD() {
+void ChIterativeSolverParallelDEM::ComputeD() {
     uint num_constraints = data_manager->num_constraints;
     if (num_constraints <= 0) {
         return;
@@ -537,7 +537,7 @@ void ChLcpSolverParallelDEM::ComputeD() {
     bilateral.Build_D();
 }
 
-void ChLcpSolverParallelDEM::ComputeE() {
+void ChIterativeSolverParallelDEM::ComputeE() {
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -548,7 +548,7 @@ void ChLcpSolverParallelDEM::ComputeE() {
     bilateral.Build_E();
 }
 
-void ChLcpSolverParallelDEM::ComputeR() {
+void ChIterativeSolverParallelDEM::ComputeR() {
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -568,7 +568,7 @@ void ChLcpSolverParallelDEM::ComputeR() {
 // generalized velocities, then enforces the velocity-level constraints for any
 // bilateral (joint) constraints present in the system.
 // -----------------------------------------------------------------------------
-void ChLcpSolverParallelDEM::RunTimeStep() {
+void ChIterativeSolverParallelDEM::RunTimeStep() {
     // This is the total number of constraints, note that there are no contacts
     data_manager->num_constraints = data_manager->num_bilaterals;
     data_manager->num_unilaterals = 0;
@@ -578,9 +578,9 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
     thrust::fill(data_manager->host_data.ct_body_map.begin(), data_manager->host_data.ct_body_map.end(), -1);
 
     if (data_manager->num_rigid_contacts > 0) {
-        data_manager->system_timer.start("ChLcpSolverParallelDEM_ProcessContact");
+        data_manager->system_timer.start("ChIterativeSolverParallelDEM_ProcessContact");
         ProcessContacts();
-        data_manager->system_timer.stop("ChLcpSolverParallelDEM_ProcessContact");
+        data_manager->system_timer.stop("ChIterativeSolverParallelDEM_ProcessContact");
     }
 
     // Generate the mass matrix and compute M_inv_k
@@ -588,7 +588,7 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
 
     // If there are (bilateral) constraints, calculate Lagrange multipliers.
     if (data_manager->num_constraints != 0) {
-        data_manager->system_timer.start("ChLcpSolverParallel_Setup");
+        data_manager->system_timer.start("ChIterativeSolverParallel_Setup");
 
         bilateral.Setup(data_manager);
 
@@ -609,7 +609,7 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
         ComputeE();
         ComputeR();
 
-        data_manager->system_timer.stop("ChLcpSolverParallel_Setup");
+        data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
 
         // Solve for the Lagrange multipliers associated with bilateral constraints.
         PerformStabilization();
@@ -625,7 +625,7 @@ void ChLcpSolverParallelDEM::RunTimeStep() {
     tot_iterations = data_manager->measures.solver.maxd_hist.size();
 }
 
-void ChLcpSolverParallelDEM::ComputeImpulses() {
+void ChIterativeSolverParallelDEM::ComputeImpulses() {
     DynamicVector<real>& v = data_manager->host_data.v;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;

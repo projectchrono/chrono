@@ -1,9 +1,9 @@
-#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 #include "physics/ChBody.h"
 using namespace chrono;
 
-ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
+ChIterativeSolverParallel::ChIterativeSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
   tolerance = 1e-7;
   record_violation_history = true;
   warm_start = false;
@@ -11,12 +11,12 @@ ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manag
   solver = new ChSolverAPGD();
 }
 
-ChLcpSolverParallel::~ChLcpSolverParallel() {
+ChIterativeSolverParallel::~ChIterativeSolverParallel() {
   delete solver;
 }
 
-void ChLcpSolverParallel::ComputeMassMatrix() {
-  LOG(INFO) << "ChLcpSolverParallel::ComputeMassMatrix()";
+void ChIterativeSolverParallel::ComputeMassMatrix() {
+  LOG(INFO) << "ChIterativeSolverParallel::ComputeMassMatrix()";
   uint num_bodies = data_manager->num_rigid_bodies;
   uint num_shafts = data_manager->num_shafts;
   uint num_dof = data_manager->num_dof;
@@ -92,8 +92,8 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
   M_invk = v + M_inv * hf;
 }
 
-void ChLcpSolverParallel::PerformStabilization() {
-  LOG(INFO) << "ChLcpSolverParallel::PerformStabilization";
+void ChIterativeSolverParallel::PerformStabilization() {
+  LOG(INFO) << "ChIterativeSolverParallel::PerformStabilization";
   const DynamicVector<real>& R_full = data_manager->host_data.R_full;
   DynamicVector<real>& gamma = data_manager->host_data.gamma;
   uint num_unilaterals = data_manager->num_unilaterals;
@@ -106,7 +106,7 @@ void ChLcpSolverParallel::PerformStabilization() {
   ConstSubVectorType R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
   SubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
-  data_manager->system_timer.start("ChLcpSolverParallel_Stab");
+  data_manager->system_timer.start("ChIterativeSolverParallel_Stab");
   solver->SolveStab(data_manager->settings.solver.max_iteration_bilateral, num_bilaterals, R_b, gamma_b);
-  data_manager->system_timer.stop("ChLcpSolverParallel_Stab");
+  data_manager->system_timer.stop("ChIterativeSolverParallel_Stab");
 }

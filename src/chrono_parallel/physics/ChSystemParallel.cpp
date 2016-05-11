@@ -15,7 +15,7 @@ INITIALIZE_EASYLOGGINGPP
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
   data_manager = new ChParallelDataManager();
 
-  LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
+  LCP_descriptor = new ChSystemDescriptorParallel(data_manager);
   contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
   collision_system = new ChCollisionSystemParallel(data_manager);
 
@@ -39,9 +39,9 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
   data_manager->system_timer.AddTimer("collision_narrow");
   data_manager->system_timer.AddTimer("lcp");
 
-  data_manager->system_timer.AddTimer("ChLcpSolverParallel_Solve");
-  data_manager->system_timer.AddTimer("ChLcpSolverParallel_Setup");
-  data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
+  data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Solve");
+  data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Setup");
+  data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Stab");
 #ifdef LOGGINGENABLED
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
   el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "false");
@@ -79,7 +79,7 @@ int ChSystemParallel::Integrate_Y() {
   data_manager->system_timer.stop("collision");
 
   data_manager->system_timer.start("lcp");
-  ((ChLcpSolverParallel*)(LCP_solver_speed))->RunTimeStep();
+  ((ChIterativeSolverParallel*)(LCP_solver_speed))->RunTimeStep();
   data_manager->system_timer.stop("lcp");
 
   data_manager->system_timer.start("update");

@@ -4,14 +4,14 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemParallel(max_objects) {
-  LCP_solver_speed = new ChLcpSolverParallelDEM(data_manager);
+  LCP_solver_speed = new ChIterativeSolverParallelDEM(data_manager);
 
   data_manager->settings.collision.collision_envelope = 0;
 
   // Set this so that the CD can check what type of system it is (needed for narrowphase)
   data_manager->settings.system_type = SYSTEM_DEM;
 
-  data_manager->system_timer.AddTimer("ChLcpSolverParallelDEM_ProcessContact");
+  data_manager->system_timer.AddTimer("ChIterativeSolverParallelDEM_ProcessContact");
 }
 
 ChBody* ChSystemParallelDEM::NewBody() {
@@ -115,8 +115,8 @@ real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const {
 }
 
 void ChSystemParallelDEM::PrintStepStats() {
-  double timer_solver_setup = data_manager->system_timer.GetTime("ChLcpSolverParallel_Setup");
-  double timer_solver_stab = data_manager->system_timer.GetTime("ChLcpSolverParallel_Stab");
+  double timer_solver_setup = data_manager->system_timer.GetTime("ChIterativeSolverParallel_Setup");
+  double timer_solver_stab = data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
 
   std::cout << std::endl;
   std::cout << "System Information" << std::endl;

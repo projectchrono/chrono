@@ -32,8 +32,8 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
@@ -147,7 +147,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
  public:
   ChSystemParallelDVI(unsigned int max_objects = 1000);
 
-  void ChangeSolverType(SOLVERTYPE type) { ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
+  void ChangeSolverType(SOLVERTYPE type) { ((ChIterativeSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
 
   virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
   virtual ChBody* NewBody() override;
@@ -189,7 +189,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
   virtual void PrintStepStats();
 
   double GetTimerProcessContact() const {
-    return data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");
   }
 };
 
