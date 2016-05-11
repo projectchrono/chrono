@@ -1,7 +1,7 @@
 Introduction {#introduction_root}
 ==========================
 
--   Chrono FAQ: @subpage faq_root
+-   FAQ: @subpage faq_root
 
 -   High level overview of Chrono: @subpage introduction_chrono
 
