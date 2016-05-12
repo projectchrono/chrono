@@ -152,12 +152,12 @@ void ChLinkLock::Copy(ChLinkLock* source) {
     if (motion_ang3)
         delete motion_ang3;
 
-    motion_X = source->motion_X->new_Duplicate();
-    motion_Y = source->motion_Y->new_Duplicate();
-    motion_Z = source->motion_Z->new_Duplicate();
-    motion_ang = source->motion_ang->new_Duplicate();
-    motion_ang2 = source->motion_ang2->new_Duplicate();
-    motion_ang3 = source->motion_ang3->new_Duplicate();
+    motion_X = source->motion_X->Clone();
+    motion_Y = source->motion_Y->Clone();
+    motion_Z = source->motion_Z->Clone();
+    motion_ang = source->motion_ang->Clone();
+    motion_ang2 = source->motion_ang2->Clone();
+    motion_ang3 = source->motion_ang3->Clone();
 
     motion_axis = source->motion_axis;
     angleset = source->angleset;

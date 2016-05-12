@@ -93,9 +93,9 @@ int main(int argc, char* argv[]) {
 
     class ChFunction_MyTest : public ChFunction {
       public:
-        ChFunction* new_Duplicate() { return new ChFunction_MyTest; }
+        virtual ChFunction_MyTest* Clone() const override { return new ChFunction_MyTest(); }
 
-        double Get_y(double x) { return cos(x); }  // just for test: simple cosine
+        virtual double Get_y(double x) const override { return cos(x); }  // just for test: simple cosine
     };
 
     ChFunction_MyTest f_test;

@@ -1,44 +1,34 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Poly345.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Poly345.h"
+#include "chrono/motion_functions/ChFunction_Poly345.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChFunction_Poly345> a_registration_poly345;
 
-void ChFunction_Poly345::Copy(ChFunction_Poly345* source) {
-    h = source->h;
-    end = source->end;
+ChFunction_Poly345::ChFunction_Poly345(double m_h, double m_end) : h(m_h) {
+    Set_end(m_end);
 }
 
-ChFunction* ChFunction_Poly345::new_Duplicate() {
-    ChFunction_Poly345* m_func;
-    m_func = new ChFunction_Poly345;
-    m_func->Copy(this);
-    return (m_func);
+ChFunction_Poly345::ChFunction_Poly345(const ChFunction_Poly345& other) {
+    h = other.h;
+    end = other.end;
 }
 
-double ChFunction_Poly345::Get_y(double x) {
+double ChFunction_Poly345::Get_y(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
@@ -49,7 +39,7 @@ double ChFunction_Poly345::Get_y(double x) {
     return ret;
 }
 
-double ChFunction_Poly345::Get_y_dx(double x) {
+double ChFunction_Poly345::Get_y_dx(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
@@ -60,7 +50,7 @@ double ChFunction_Poly345::Get_y_dx(double x) {
     return ret;
 }
 
-double ChFunction_Poly345::Get_y_dxdx(double x) {
+double ChFunction_Poly345::Get_y_dxdx(double x) const {
     double ret = 0;
     if (x <= 0)
         return 0;
@@ -71,8 +61,4 @@ double ChFunction_Poly345::Get_y_dxdx(double x) {
     return ret;
 }
 
-
-
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

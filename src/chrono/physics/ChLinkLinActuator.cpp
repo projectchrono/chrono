@@ -53,9 +53,9 @@ void ChLinkLinActuator::Copy(ChLinkLinActuator* source) {
     learn_torque_rotation = source->learn_torque_rotation;
     offset = source->offset;
 
-    dist_funct = std::shared_ptr<ChFunction>(source->dist_funct->new_Duplicate());
-    mot_torque = std::shared_ptr<ChFunction>(source->mot_torque->new_Duplicate());
-    mot_rot = std::shared_ptr<ChFunction>(source->mot_rot->new_Duplicate());
+    dist_funct = std::shared_ptr<ChFunction>(source->dist_funct->Clone());
+    mot_torque = std::shared_ptr<ChFunction>(source->mot_torque->Clone());
+    mot_rot = std::shared_ptr<ChFunction>(source->mot_rot->Clone());
 
     mot_tau = source->mot_tau;
     mot_eta = source->mot_eta;

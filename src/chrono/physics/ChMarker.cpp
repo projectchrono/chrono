@@ -116,10 +116,10 @@ void ChMarker::Copy(ChMarker* source) {
         delete motion_Z;
     if (motion_ang)
         delete motion_ang;
-    motion_X = source->motion_X->new_Duplicate();
-    motion_Y = source->motion_Y->new_Duplicate();
-    motion_Z = source->motion_Z->new_Duplicate();
-    motion_ang = source->motion_ang->new_Duplicate();
+    motion_X = source->motion_X->Clone();
+    motion_Y = source->motion_Y->Clone();
+    motion_Z = source->motion_Z->Clone();
+    motion_ang = source->motion_ang->Clone();
     motion_axis = source->motion_axis;
 
     rest_coord = source->rest_coord;

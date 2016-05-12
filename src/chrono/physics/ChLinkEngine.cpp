@@ -87,13 +87,13 @@ void ChLinkEngine::Copy(ChLinkEngine* source) {
     last_r3relm_rot_dt = source->last_r3relm_rot_dt;
     keyed_polar_rotation = source->keyed_polar_rotation;
 
-    rot_funct = std::shared_ptr<ChFunction>(source->rot_funct->new_Duplicate());
-    spe_funct = std::shared_ptr<ChFunction>(source->spe_funct->new_Duplicate());
-    tor_funct = std::shared_ptr<ChFunction>(source->tor_funct->new_Duplicate());
-    torque_w = std::shared_ptr<ChFunction>(source->torque_w->new_Duplicate());
+    rot_funct = std::shared_ptr<ChFunction>(source->rot_funct->Clone());
+    spe_funct = std::shared_ptr<ChFunction>(source->spe_funct->Clone());
+    tor_funct = std::shared_ptr<ChFunction>(source->tor_funct->Clone());
+    torque_w = std::shared_ptr<ChFunction>(source->torque_w->Clone());
 
-    rot_funct_x = std::shared_ptr<ChFunction>(source->rot_funct_x->new_Duplicate());
-    rot_funct_y = std::shared_ptr<ChFunction>(source->rot_funct_y->new_Duplicate());
+    rot_funct_x = std::shared_ptr<ChFunction>(source->rot_funct_x->Clone());
+    rot_funct_y = std::shared_ptr<ChFunction>(source->rot_funct_y->Clone());
 
     mot_tau = source->mot_tau;
     mot_eta = source->mot_eta;

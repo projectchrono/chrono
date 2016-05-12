@@ -59,9 +59,9 @@ void ChLinkForce::Copy(ChLinkForce* source) {
     if (modul_R)
         delete modul_R;
 
-    modul_iforce = source->modul_iforce->new_Duplicate();
-    modul_K = source->modul_K->new_Duplicate();
-    modul_R = source->modul_R->new_Duplicate();
+    modul_iforce = source->modul_iforce->Clone();
+    modul_K = source->modul_K->Clone();
+    modul_R = source->modul_R->Clone();
 }
 
 ChLinkForce* ChLinkForce::new_Duplicate() {

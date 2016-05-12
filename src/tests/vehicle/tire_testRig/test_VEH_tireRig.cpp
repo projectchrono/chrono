@@ -225,9 +225,9 @@ class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallba
 // =============================================================================
 class ChFunction_SlipAngle : public ChFunction {
   public:
-    ChFunction* new_Duplicate() { return new ChFunction_SlipAngle; }
+    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(); }
 
-    double Get_y(double t) {
+    virtual double Get_y(double t) const override {
         // Ramp for 1 second and stay at that value (scale)
         double delay = 0.05;
         double scale = -10.0 / 180 * CH_C_PI;
@@ -247,9 +247,9 @@ class ChFunction_SlipAngle : public ChFunction {
 
 class ChFunction_CamberAngle : public ChFunction {
   public:
-    ChFunction* new_Duplicate() { return new ChFunction_CamberAngle; }
+    virtual ChFunction_CamberAngle* Clone() const override { return new ChFunction_CamberAngle(); }
 
-    double Get_y(double t) { return 0.; }
+    virtual double Get_y(double t) const override { return 0.; }
 };
 
 // =============================================================================

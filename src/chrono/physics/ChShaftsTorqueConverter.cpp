@@ -55,8 +55,8 @@ void ChShaftsTorqueConverter::Copy(ChShaftsTorqueConverter* source) {
     state_warning_reverseflow = source->state_warning_reverseflow;
     state_warning_wrongimpellerdirection = source->state_warning_wrongimpellerdirection;
 
-    this->K = std::shared_ptr<ChFunction>(source->K->new_Duplicate());  // deep copy
-    this->T = std::shared_ptr<ChFunction>(source->T->new_Duplicate());  // deep copy
+    this->K = std::shared_ptr<ChFunction>(source->K->Clone());  // deep copy
+    this->T = std::shared_ptr<ChFunction>(source->T->Clone());  // deep copy
 }
 
 int ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,
