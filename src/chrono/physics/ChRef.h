@@ -12,24 +12,10 @@
 #ifndef CHREF_H
 #define CHREF_H
 
-//////////////////////////////////////////////////
-//
-//   ChRef.h
-//
-//   Class for referencing objects (a bit OBSOLETE?)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "core/ChLists.h"
-#include "physics/ChFunction.h"
+#include "chrono/core/ChLists.h"
+#include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {
 

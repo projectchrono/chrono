@@ -12,11 +12,10 @@
 #ifndef CHC_LINECAM_H
 #define CHC_LINECAM_H
 
-
 #include <math.h>
 
-#include "ChCLine.h"
-#include "physics/ChFunction.h"
+#include "chrono/geometry/ChCLine.h"
+#include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {
 namespace geometry {

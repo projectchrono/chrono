@@ -12,20 +12,11 @@
 #ifndef CHLINKFORCE_H
 #define CHLINKFORCE_H
 
-//////////////////////////////////////////////////
-//
-//   ChLinkForce.h
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 #include <float.h>
 
-#include "core/ChMath.h"
-#include "physics/ChFunction.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {
 
