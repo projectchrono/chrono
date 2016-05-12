@@ -12,19 +12,15 @@
 #ifndef CHCONSTRAINTTWOTUPLESCONTACTN_H
 #define CHCONSTRAINTTWOTUPLESCONTACTN_H
 
-
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
 
 namespace chrono {
-
 
 /// This is enough to use dynamic_casting<> to detect all template types
 /// from ChConstraintTwoTuplesContactN
 
 class ChApi ChConstraintTwoTuplesContactNall {
-
-public:
-
+  public:
     /// Get the friction coefficient
     double GetFrictionCoefficient() { return friction; }
     /// Set the friction coefficient
@@ -35,12 +31,11 @@ public:
     /// Set the cohesion
     void SetCohesion(double mcoh) { cohesion = mcoh; }
 
-protected:
+  protected:
     /// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
     double friction;
     /// the cohesion 'c', positive, if any, for  sqrt(Tx^2+Ty^2)<f*(Nz+c)
     double cohesion;
-
 };
 
 /// This class is inherited from the ChConstraintTwoTuples,
@@ -57,36 +52,25 @@ protected:
 /// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
 
 template <class Ta, class Tb>
-class ChApi ChConstraintTwoTuplesContactN : 
-            public ChConstraintTwoTuples<Ta,Tb>, 
-            public ChConstraintTwoTuplesContactNall {
-
-    //
-    // DATA
-    //
-
+class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>,
+                                            public ChConstraintTwoTuplesContactNall {
   protected:
-
     /// the pointer to U tangential component
-    ChConstraintTwoTuplesFrictionT< Ta, Tb >* constraint_U;
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_U;
     /// the pointer to V tangential component
-    ChConstraintTwoTuplesFrictionT< Ta, Tb >* constraint_V;
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_V;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintTwoTuplesContactN() {
         this->mode = CONSTRAINT_FRIC;
         friction = 0.0;
         cohesion = 0.0;
         constraint_U = constraint_V = 0;
-    };
-
+    }
 
     /// Copy constructor
-    ChConstraintTwoTuplesContactN(const ChConstraintTwoTuplesContactN& other) : ChConstraintTwoTuples< Ta, Tb >(other) {
+    ChConstraintTwoTuplesContactN(const ChConstraintTwoTuplesContactN& other) : ChConstraintTwoTuples<Ta, Tb>(other) {
         friction = other.friction;
         cohesion = other.cohesion;
         constraint_U = other.constraint_U;
@@ -95,14 +79,15 @@ class ChApi ChConstraintTwoTuplesContactN :
 
     virtual ~ChConstraintTwoTuplesContactN() {}
 
-    virtual ChConstraintTwoTuplesContactN* new_Duplicate() { return new ChConstraintTwoTuplesContactN(*this); };
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintTwoTuplesContactN* Clone() const override { return new ChConstraintTwoTuplesContactN(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintTwoTuplesContactN& operator=(const ChConstraintTwoTuplesContactN& other) {
         if (&other == this)
             return *this;
         // copy parent class data
-        ChConstraintTwoTuples< Ta, Tb >::operator=(other);
+        ChConstraintTwoTuples<Ta, Tb>::operator=(other);
 
         friction = other.friction;
         cohesion = other.cohesion;
@@ -111,20 +96,15 @@ class ChApi ChConstraintTwoTuplesContactN :
         return *this;
     }
 
-    //
-    // FUNCTIONS
-    //
-
-
     /// Get pointer to U tangential component
-    ChConstraintTwoTuplesFrictionT< Ta, Tb >* GetTangentialConstraintU() { return constraint_U; }
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintU() { return constraint_U; }
     /// Get pointer to V tangential component
-    ChConstraintTwoTuplesFrictionT< Ta, Tb >* GetTangentialConstraintV() { return constraint_V; }
+    ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintV() { return constraint_V; }
 
     /// Set pointer to U tangential component
-    void SetTangentialConstraintU(ChConstraintTwoTuplesFrictionT< Ta, Tb >* mconstr) { constraint_U = mconstr; }
+    void SetTangentialConstraintU(ChConstraintTwoTuplesFrictionT<Ta, Tb>* mconstr) { constraint_U = mconstr; }
     /// Set pointer to V tangential component
-    void SetTangentialConstraintV(ChConstraintTwoTuplesFrictionT< Ta, Tb >* mconstr) { constraint_V = mconstr; }
+    void SetTangentialConstraintV(ChConstraintTwoTuplesFrictionT<Ta, Tb>* mconstr) { constraint_V = mconstr; }
 
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible set.

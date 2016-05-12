@@ -18,14 +18,13 @@
 
 #include <cmath>
 
-#include "chrono/geometry/ChCLineBezier.h"
 #include "chrono/core/ChMathematics.h"
+#include "chrono/geometry/ChCLineBezier.h"
 
 namespace chrono {
 namespace geometry {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLineBezier> a_registration_ChLineBezier;
 
 ChLineBezier::ChLineBezier(ChBezierCurve* path) : m_own_data(false), m_path(path) {
@@ -38,13 +37,13 @@ ChLineBezier::ChLineBezier(const std::string& filename) {
     complexityU = static_cast<int>(m_path->getNumPoints());
 }
 
-ChLineBezier::ChLineBezier(const ChLineBezier& source) {
+ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
     m_path = source.m_path;
     m_own_data = false;
     complexityU = source.complexityU;
 }
 
-ChLineBezier::ChLineBezier(const ChLineBezier* source) {
+ChLineBezier::ChLineBezier(const ChLineBezier* source) : ChLine(*source) {
     m_path = source->m_path;
     m_own_data = false;
     complexityU = source->complexityU;
@@ -55,7 +54,7 @@ ChLineBezier::~ChLineBezier() {
         delete m_path;
 }
 
-void ChLineBezier::Evaluate(Vector& pos, const double parU, const double parV, const double parW) {
+void ChLineBezier::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
     double par = ChClamp(parU, 0.0, 1.0);
     size_t numIntervals = m_path->getNumPoints() - 1;
     double epar = par * numIntervals;

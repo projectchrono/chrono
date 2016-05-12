@@ -9,7 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
 #include <math.h>
 
 #include "chrono/physics/ChGenericConstraint.h"
@@ -126,7 +125,7 @@ bool ChGenericConstraint_Chf_Continuity::Update() {
     // Implement method:
 
     // a- cast target function to sequence, if correct
-    if (this->Get_target_function()->Get_Type() != FUNCT_SEQUENCE)
+    if (this->Get_target_function()->Get_Type() != ChFunction::FUNCT_SEQUENCE)
         return false;
 
     ChFunction_Sequence* mfun = (ChFunction_Sequence*)this->Get_target_function();
@@ -198,7 +197,7 @@ bool ChGenericConstraint_Chf_HorDistance::Update() {
     // Implement method:
 
     // a- cast target function to sequence, if correct
-    if (this->Get_target_function()->Get_Type() != FUNCT_SEQUENCE)
+    if (this->Get_target_function()->Get_Type() != ChFunction::FUNCT_SEQUENCE)
         return false;
 
     ChFunction_Sequence* mfun = (ChFunction_Sequence*)this->Get_target_function();
@@ -242,7 +241,7 @@ bool ChGenericConstraint_Chf_VertDistance::Update() {
     // Implement method:
 
     // a- cast target function to sequence, if correct
-    if (this->Get_target_function()->Get_Type() != FUNCT_SEQUENCE)
+    if (this->Get_target_function()->Get_Type() != ChFunction::FUNCT_SEQUENCE)
         return false;
 
     ChFunction_Sequence* mfun = (ChFunction_Sequence*)this->Get_target_function();

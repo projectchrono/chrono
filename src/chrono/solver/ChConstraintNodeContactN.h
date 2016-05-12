@@ -24,10 +24,6 @@ namespace chrono {
 class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
     CH_RTTI(ChConstraintNodeContactN, ChConstraintTwoGeneric)
 
-    //
-    // DATA
-    //
-
   protected:
     /// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
     float friction;
@@ -38,11 +34,8 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
     ChConstraintNodeFrictionT* constraint_V;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
-      ChConstraintNodeContactN() {
+    ChConstraintNodeContactN() {
         mode = CONSTRAINT_FRIC;
         friction = 0.0;
         constraint_U = constraint_V = 0;
@@ -68,9 +61,10 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
         constraint_V = other.constraint_V;
     }
 
-    virtual ~ChConstraintNodeContactN(){};
+    virtual ~ChConstraintNodeContactN() {}
 
-    virtual ChConstraintNodeContactN* new_Duplicate() { return new ChConstraintNodeContactN(*this); };
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintNodeContactN* Clone() const override { return new ChConstraintNodeContactN(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintNodeContactN& operator=(const ChConstraintNodeContactN& other) {
@@ -84,10 +78,6 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
         constraint_V = other.constraint_V;
         return *this;
     }
-
-    //
-    // FUNCTIONS
-    //
 
     /// Get the friction coefficient
     float GetFrictionCoefficient() { return friction; }
@@ -110,10 +100,6 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
     /// tangential friction constraints (projection onto the friction cone,
     /// as by Anitescu-Tasora theory).
     virtual void Project();
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

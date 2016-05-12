@@ -1,45 +1,32 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChCLinePoly.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCLinePoly.h"
+#include "chrono/geometry/ChCLinePoly.h"
 
 namespace chrono {
 namespace geometry {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinePoly> a_registration_ChLinePoly;
 
-//
-// CLASS FOR POLY LINE
-//
-// The object which represent 3d lines/splines
-//
-
-ChLinePoly::ChLinePoly(int mnumpoints) {
-    closed = 0;
+ChLinePoly::ChLinePoly(int mnumpoints) : degree(1) {
     points.resize(mnumpoints);
-    int degree = 1;
 }
 
-ChLinePoly::~ChLinePoly() {
+ChLinePoly::ChLinePoly(const ChLinePoly& source) : ChLine(source) {
+    points = source.points;
+    degree = source.degree;
 }
 
 void ChLinePoly::Copy(const ChLinePoly* source) {
@@ -51,30 +38,22 @@ void ChLinePoly::Copy(const ChLinePoly* source) {
     degree = source->degree;
 }
 
-bool ChLinePoly::Get_closed() {
-    return closed;
-}
-
-void ChLinePoly::Set_closed(bool mc) {
-    closed = mc;
-}
-
-size_t ChLinePoly::Get_numpoints() {
+size_t ChLinePoly::Get_numpoints() const {
     return points.size();
 }
 
-int ChLinePoly::Get_degree() {
+int ChLinePoly::Get_degree() const {
     return degree;
 }
 
-Vector ChLinePoly::Get_point(size_t mnum) {
+ChVector<> ChLinePoly::Get_point(size_t mnum) const {
     if (mnum >= Get_numpoints())
         return VNULL;
 
-    return this->points[mnum];
+    return points[mnum];
 }
 
-int ChLinePoly::Set_point(int mnum, Vector mpoint) {
+int ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
     if (mnum >= Get_numpoints())
         return FALSE;
 
@@ -87,7 +66,7 @@ int ChLinePoly::Set_point(int mnum, Vector mpoint) {
 // Curve evaluation.
 //
 
-void ChLinePoly::Evaluate(Vector& pos, const double parU, const double parV, const double parW) {
+void ChLinePoly::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
     double par = parU;
     pos = VNULL;
 
@@ -117,7 +96,7 @@ void ChLinePoly::Evaluate(Vector& pos, const double parU, const double parV, con
     pos = Vadd(Vmul(Get_point(pA), 1 - (epar - (double)pA)), Vmul(Get_point(pB), epar - (double)pA));
 }
 
-double ChLinePoly::Length(int sampling) {
+double ChLinePoly::Length(int sampling) const {
     return ChLine::Length(1);
 }
 
@@ -125,7 +104,7 @@ double ChLinePoly::Length(int sampling) {
 
 int ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
     ChPageVect mp1;
-    Vector mv1;
+    ChVector<> mv1;
 
     mfle->GrSave();
     mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), PS_SPACE_PAGE);
@@ -152,9 +131,5 @@ int ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inter
     return TRUE;
 }
 
-
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace geometry
+}  // end namespace chrono

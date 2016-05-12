@@ -101,9 +101,9 @@ int main(int argc, char* argv[]) {
 
         class ChFunction_myf : public ChFunction {
           public:
-            ChFunction* new_Duplicate() { return new ChFunction_myf; }
+            virtual ChFunction_myf* Clone() const override { return new ChFunction_myf(); }
 
-            double Get_y(double x) {
+            virtual double Get_y(double x) const override {
                 if (x > 0.4)
                     return CH_C_PI;
                 else

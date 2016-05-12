@@ -13,33 +13,23 @@
 #ifndef CHCONSTRAINTTWOTUPLESROLLINGT_H
 #define CHCONSTRAINTTWOTUPLESROLLINGT_H
 
-
 #include "chrono/solver/ChConstraintTwoTuples.h"
 
 namespace chrono {
 
 /// This is enough to use dynamic_casting<> to detect all template types
 /// from ChConstraintTwoTuplesRollingT
-class ChApi ChConstraintTwoTuplesRollingTall {
-};
+class ChApi ChConstraintTwoTuplesRollingTall {};
 
 /// Base class for friction constraints between two objects,
 /// each represented by a tuple of ChVariables objects.
-/// This constraint cannot be used alone. It must be used together with 
+/// This constraint cannot be used alone. It must be used together with
 /// a ChConstraintTwoTuplesContactN
 
 template <class Ta, class Tb>
 class ChApi ChConstraintTwoTuplesRollingT : public ChConstraintTwoTuples<Ta, Tb>,
                                             public ChConstraintTwoTuplesRollingTall {
-    //
-    // DATA
-    //
-
-  protected:
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintTwoTuplesRollingT() { this->mode = CONSTRAINT_FRIC; }
 
@@ -48,7 +38,8 @@ class ChApi ChConstraintTwoTuplesRollingT : public ChConstraintTwoTuples<Ta, Tb>
 
     virtual ~ChConstraintTwoTuplesRollingT() {}
 
-    virtual ChConstraint* new_Duplicate() { return new ChConstraintTwoTuplesRollingT(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintTwoTuplesRollingT* Clone() const override { return new ChConstraintTwoTuplesRollingT(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintTwoTuplesRollingT& operator=(const ChConstraintTwoTuplesRollingT& other) {
@@ -56,24 +47,19 @@ class ChApi ChConstraintTwoTuplesRollingT : public ChConstraintTwoTuples<Ta, Tb>
             return *this;
 
         // copy parent class data
-        ChConstraintTwoTuples< Ta, Tb >::operator=(other);
+        ChConstraintTwoTuples<Ta, Tb>::operator=(other);
 
         return *this;
     }
-
-    //
-    // FUNCTIONS
-    //
 
     /// Tells that this constraint is not linear, that is: it cannot
     /// be solved with a plain simplex solver.
     virtual bool IsLinear() const { return false; }
 
     /// The constraint is satisfied?
-    virtual double Violation(double mc_i) { return 0.0;}
-
+    virtual double Violation(double mc_i) { return 0.0; }
 };
 
 }  // end namespace chrono
 
-#endif  
+#endif

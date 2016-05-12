@@ -85,12 +85,12 @@ void ChLinkLimit::Copy(ChLinkLimit* source) {
         delete modul_Rmin;
     if (polar_Max)
         delete polar_Max;
-    modul_Kmax = source->modul_Kmax->new_Duplicate();
-    modul_Kmin = source->modul_Kmin->new_Duplicate();
-    modul_Rmax = source->modul_Rmax->new_Duplicate();
-    modul_Rmin = source->modul_Rmin->new_Duplicate();
+    modul_Kmax = source->modul_Kmax->Clone();
+    modul_Kmin = source->modul_Kmin->Clone();
+    modul_Rmax = source->modul_Rmax->Clone();
+    modul_Rmin = source->modul_Rmin->Clone();
     if (source->polar_Max)
-        polar_Max = source->polar_Max->new_Duplicate();
+        polar_Max = source->polar_Max->Clone();
     else
         polar_Max = NULL;
 }

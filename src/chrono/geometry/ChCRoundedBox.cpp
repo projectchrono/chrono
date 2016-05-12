@@ -1,41 +1,41 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2003, 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-//////////////////////////////////////////////////
-//
-//   ChCRounded.cpp
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdio.h>
 
-#include "ChCRoundedBox.h"
-#include "core/ChTransform.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/geometry/ChCRoundedBox.h"
 
 namespace chrono {
 namespace geometry {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChRoundedBox> a_registration_ChRoundedBox;
 
-ChRoundedBox::ChRoundedBox(Vector& mC0, Vector& mC1, Vector& mC2, Vector& mC3) {
-    Vector D1 = Vsub(mC1, mC0);
-    Vector D2 = Vsub(mC2, mC0);
-    Vector D3 = Vsub(mC3, mC0);
-    Vector C0 = mC0;
+ChRoundedBox::ChRoundedBox(ChRoundedBox& source) {
+    Pos = source.Pos;
+    Size = source.Size;
+    Rot.CopyFromMatrix(source.Rot);
+}
 
-    Vector zax;
+ChRoundedBox::ChRoundedBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3) {
+    ChVector<> D1 = Vsub(mC1, mC0);
+    ChVector<> D2 = Vsub(mC2, mC0);
+    ChVector<> D3 = Vsub(mC3, mC0);
+    ChVector<> C0 = mC0;
+
+    ChVector<> zax;
     zax.Cross(D1, D2);
     if (Vdot(D3, zax) < 0) {
         C0 += D3;
@@ -49,72 +49,72 @@ ChRoundedBox::ChRoundedBox(Vector& mC0, Vector& mC1, Vector& mC2, Vector& mC3) {
     this->Rot.Set_A_axis(Vnorm(D1), Vnorm(D2), Vnorm(D3));
 }
 
-void ChRoundedBox::Evaluate(Vector& pos, const double parU, const double parV, const double parW) {
-    Vector Pr;
+void ChRoundedBox::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
+    ChVector<> Pr;
     Pr.x = Size.x * (parU - 0.5);
     Pr.y = Size.y * (parV - 0.5);
     Pr.z = Size.z * (parW - 0.5);
     pos = ChTransform<>::TransformLocalToParent(Pr, Pos, Rot);
 }
 
-Vector ChRoundedBox::GetP1() {
-    Vector P1r;
+ChVector<> ChRoundedBox::GetP1() const {
+    ChVector<> P1r;
     P1r.x = +Size.x;
     P1r.y = +Size.y;
     P1r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P1r, Pos, Rot);
 }
-Vector ChRoundedBox::GetP2() {
-    Vector P2r;
+ChVector<> ChRoundedBox::GetP2() const {
+    ChVector<> P2r;
     P2r.x = -Size.x;
     P2r.y = +Size.y;
     P2r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P2r, Pos, Rot);
 }
-Vector ChRoundedBox::GetP3() {
-    Vector P3r;
+ChVector<> ChRoundedBox::GetP3() const {
+    ChVector<> P3r;
     P3r.x = -Size.x;
     P3r.y = -Size.y;
     P3r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P3r, Pos, Rot);
 }
-Vector ChRoundedBox::GetP4() {
-    Vector P4r;
+ChVector<> ChRoundedBox::GetP4() const {
+    ChVector<> P4r;
     P4r.x = +Size.x;
     P4r.y = -Size.y;
     P4r.z = +Size.z;
     return ChTransform<>::TransformLocalToParent(P4r, Pos, Rot);
 }
-Vector ChRoundedBox::GetP5() {
-    Vector P5r;
+ChVector<> ChRoundedBox::GetP5() const {
+    ChVector<> P5r;
     P5r.x = +Size.x;
     P5r.y = +Size.y;
     P5r.z = -Size.z;
     return ChTransform<>::TransformLocalToParent(P5r, Pos, Rot);
 }
-Vector ChRoundedBox::GetP6() {
-    Vector P6r;
+ChVector<> ChRoundedBox::GetP6() const {
+    ChVector<> P6r;
     P6r.x = -Size.x;
     P6r.y = +Size.y;
     P6r.z = -Size.z;
     return ChTransform<>::TransformLocalToParent(P6r, Pos, Rot);
 }
-Vector ChRoundedBox::GetP7() {
-    Vector P7r;
+ChVector<> ChRoundedBox::GetP7() const {
+    ChVector<> P7r;
     P7r.x = -Size.x;
     P7r.y = -Size.y;
     P7r.z = -Size.z;
     return ChTransform<>::TransformLocalToParent(P7r, Pos, Rot);
 }
-Vector ChRoundedBox::GetP8() {
-    Vector P8r;
+ChVector<> ChRoundedBox::GetP8() const {
+    ChVector<> P8r;
     P8r.x = +Size.x;
     P8r.y = -Size.y;
     P8r.z = -Size.z;
     return ChTransform<>::TransformLocalToParent(P8r, Pos, Rot);
 }
 
-Vector ChRoundedBox::GetPn(int ipoint) {
+ChVector<> ChRoundedBox::GetPn(int ipoint) const {
     switch (ipoint) {
         case 1:
             return GetP1();
@@ -143,10 +143,10 @@ void ChRoundedBox::GetBoundingBox(double& xmin,
                                   double& ymax,
                                   double& zmin,
                                   double& zmax,
-                                  ChMatrix33<>* bbRot) {
+                                  ChMatrix33<>* bbRot) const {
     // TO OPTIMIZE for speed
 
-    Vector p1, p2, p3, p4, p5, p6, p7, p8;
+    ChVector<> p1, p2, p3, p4, p5, p6, p7, p8;
 
     xmax = ymax = zmax = -10e20;
     xmin = ymin = zmin = +10e20;
@@ -270,8 +270,8 @@ void ChRoundedBox::GetBoundingBox(double& xmin,
         zmin = p8.z;
 }
 
-void ChRoundedBox::CovarianceMatrix(ChMatrix33<>& C) {
-    Vector p1, p2, p3, p4, p5, p6, p7, p8;
+void ChRoundedBox::CovarianceMatrix(ChMatrix33<>& C) const {
+    ChVector<> p1, p2, p3, p4, p5, p6, p7, p8;
 
     p1 = GetP1();
     p2 = GetP2();
@@ -296,6 +296,5 @@ void ChRoundedBox::CovarianceMatrix(ChMatrix33<>& C) {
         p1.y * p1.z + p2.y * p2.z + p3.y * p3.z + p4.y * p4.z + p5.y * p5.z + p6.y * p6.z + p7.y * p7.z + p8.y * p8.z;
 }
 
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono

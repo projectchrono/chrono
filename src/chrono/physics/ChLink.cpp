@@ -9,10 +9,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChLink.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChSystem.h"
-#include "physics/ChExternalObject.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 

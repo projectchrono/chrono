@@ -29,15 +29,10 @@ namespace chrono {
 
 template <class T>
 class ChConstraintTuple_1vars {
-
   protected:
-    /// The first  constrained object
-    ChVariables* variables;
-
-    /// The [Cq] jacobian of the constraint 
-    ChMatrixNM<double, 1, T::nvars1> Cq;
-    /// The [Eq] product [Eq]=[invM]*[Cq]'
-    ChMatrixNM<double, T::nvars1, 1> Eq;
+    ChVariables* variables;               ///< The constrained object
+    ChMatrixNM<double, 1, T::nvars1> Cq;  ///< The [Cq] jacobian of the constraint
+    ChMatrixNM<double, T::nvars1, 1> Eq;  ///< The [Eq] product [Eq]=[invM]*[Cq]'
 
   public:
     /// Default constructor
@@ -66,7 +61,6 @@ class ChConstraintTuple_1vars {
     ChVariables* GetVariables() { return variables; }
 
     void SetVariables(T& m_tuple_carrier) {
-
         if (!m_tuple_carrier.GetVariables1()) {
             throw ChException("ERROR. SetVariables() getting null pointer. \n");
         }
@@ -114,7 +108,6 @@ class ChConstraintTuple_1vars {
                 result += vect(off + i) * Cq.ElementN(i);
     }
 
-
     void MultiplyTandAdd(ChMatrix<double>& result, double l) {
         int off = variables->GetOffset();
 
@@ -132,16 +125,12 @@ class ChConstraintTuple_1vars {
         if (variables->IsActive())
             storage.PasteTranspMatrix(&Cq, variables->GetOffset(), inscol);
     }
-
 };
 
-
-///// Case of tuple with reference to 2 ChVariable objects:
-
+/// Case of tuple with reference to 2 ChVariable objects:
 
 template <class T>
-class ChConstraintTuple_2vars { 
-
+class ChConstraintTuple_2vars {
   protected:
     ChVariables* variables_1;
     ChVariables* variables_2;
@@ -288,11 +277,9 @@ class ChConstraintTuple_2vars {
         if (variables_2->IsActive())
             storage.PasteTranspMatrix(&Cq_2, variables_2->GetOffset(), inscol);
     }
-
 };
 
-
-///// Case of tuple with reference to 3 ChVariable objects:
+/// Case of tuple with reference to 3 ChVariable objects:
 
 template <class T>
 class ChConstraintTuple_3vars {
@@ -359,9 +346,9 @@ class ChConstraintTuple_3vars {
         if (!m_tuple_carrier.GetVariables1() || !m_tuple_carrier.GetVariables2() || !m_tuple_carrier.GetVariables3()) {
             throw ChException("ERROR. SetVariables() getting null pointer. \n");
         }
-        variables_1 = m_tuple_carrier.GetVariables1() ;
-        variables_2 = m_tuple_carrier.GetVariables2() ;
-        variables_3 = m_tuple_carrier.GetVariables3() ;
+        variables_1 = m_tuple_carrier.GetVariables1();
+        variables_2 = m_tuple_carrier.GetVariables2();
+        variables_3 = m_tuple_carrier.GetVariables3();
     }
 
     void Update_auxiliary(double& g_i) {
@@ -429,7 +416,6 @@ class ChConstraintTuple_3vars {
         if (variables_3->IsActive())
             for (int i = 0; i < T::nvars3; i++)
                 variables_3->Get_qb()(i) += Eq_3.ElementN(i) * deltal;
-
     }
 
     void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
@@ -504,21 +490,21 @@ class ChVariableTupleCarrier_1vars {
 
 template <int N1, int N2>
 class ChVariableTupleCarrier_2vars {
-public:
-    typedef ChConstraintTuple_3vars< ChVariableTupleCarrier_2vars< N1, N2> > type_constraint_tuple;
-    static int  const nvars1 = N1;
-    static int  const nvars2 = N2;
+  public:
+    typedef ChConstraintTuple_3vars<ChVariableTupleCarrier_2vars<N1, N2> > type_constraint_tuple;
+    static int const nvars1 = N1;
+    static int const nvars2 = N2;
     virtual ChVariables* GetVariables1() = 0;
     virtual ChVariables* GetVariables2() = 0;
 };
 
 template <int N1, int N2, int N3>
 class ChVariableTupleCarrier_3vars {
-public:
-    typedef ChConstraintTuple_3vars< ChVariableTupleCarrier_3vars< N1, N2, N3 > > type_constraint_tuple;
-    static int  const nvars1 = N1;
-    static int  const nvars2 = N2;
-    static int  const nvars3 = N3;
+  public:
+    typedef ChConstraintTuple_3vars<ChVariableTupleCarrier_3vars<N1, N2, N3> > type_constraint_tuple;
+    static int const nvars1 = N1;
+    static int const nvars2 = N2;
+    static int const nvars3 = N3;
     virtual ChVariables* GetVariables1() = 0;
     virtual ChVariables* GetVariables2() = 0;
     virtual ChVariables* GetVariables3() = 0;

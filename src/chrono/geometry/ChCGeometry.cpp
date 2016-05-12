@@ -1,38 +1,57 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2006, 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-//////////////////////////////////////////////////
-//
-//   ChCGeometry.cpp
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdio.h>
 
-#include "ChCGeometry.h"
+#include "chrono/geometry/ChCGeometry.h"
 
 namespace chrono {
 namespace geometry {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChGeometry> a_registration_ChGeometry;
 
-ChGeometry::ChGeometry(){}
+void ChGeometry::InflateBoundingBox(double& xmin,
+                                    double& xmax,
+                                    double& ymin,
+                                    double& ymax,
+                                    double& zmin,
+                                    double& zmax,
+                                    ChMatrix33<>* Rot) const {
+    double bxmin, bxmax, bymin, bymax, bzmin, bzmax;
+    GetBoundingBox(bxmin, bxmax, bymin, bymax, bzmin, bzmax, Rot);
+    if (xmin > bxmin)
+        xmin = bxmin;
+    if (ymin > bymin)
+        ymin = bymin;
+    if (zmin > bzmin)
+        zmin = bzmin;
+    if (xmax < bxmax)
+        xmax = bxmax;
+    if (ymax < bymax)
+        ymax = bymax;
+    if (zmax < bzmax)
+        zmax = bzmax;
+}
 
-ChGeometry::~ChGeometry(){}
+double ChGeometry::Size() const {
+    double bxmin, bxmax, bymin, bymax, bzmin, bzmax;
+    GetBoundingBox(bxmin, bxmax, bymin, bymax, bzmin, bzmax);
+    return sqrt(pow((0.5 * (bxmax - bxmin)), 2) + pow((0.5 * (bymax - bymin)), 2) + pow((0.5 * (bzmax - bzmin)), 2));
+}
 
-void ChGeometry::Derive(Vector& dir, const double parU, const double parV, const double parW) {
+void ChGeometry::Derive(ChVector<>& dir, const double parU, const double parV, const double parW) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
 
@@ -43,13 +62,11 @@ void ChGeometry::Derive(Vector& dir, const double parU, const double parV, const
         uB = parU + bdf;
         uA = parU;
     }
-    Vector vA, vB;
+    ChVector<> vA, vB;
     Evaluate(vA, uA);
     Evaluate(vB, uB);
     dir = (vB - vA) * (1 / bdf);
 }
 
-
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono

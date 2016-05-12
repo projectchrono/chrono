@@ -14,13 +14,13 @@
 #define CHCONSTRAINT_H
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChClassRegister.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChSparseMatrix.h"
-#include "chrono/core/ChClassRegister.h"
 
 namespace chrono {
 
-// forward reference
+// Forward reference
 class ChLinkedListMatrix;
 
 /// Modes for constraint
@@ -61,10 +61,6 @@ class ChApi ChConstraint {
     CH_RTTI_ROOT(ChConstraint)
 
   protected:
-    //
-    // DATA
-    //
-
     /// The 'c_i' residual of the constraint (if satisfied, c must be =0)
     double c_i;
     /// The 'l_i' lagrangian multiplier (reaction)
@@ -77,18 +73,12 @@ class ChApi ChConstraint {
     /// Example, it could be   cfm = [k * h^2](^-1)   where k is stiffness
     double cfm_i;
 
-    // FLAGS
   private:
-    /// Flag: the link has no formal problems (references restored correctly, etc)
-    bool valid;
-    /// Flag: the user can turn on/off the link easily
-    bool disabled;
-    /// Flag: the constraint is redundant or singular
-    bool redundant;
-    /// Flag: the constraint is broken (someone pulled too much..)
-    bool broken;
-    /// Cached active state depending on previous flags. Internal update.
-    bool _active;
+    bool valid;      ///< the link has no formal problems (references restored correctly, etc)
+    bool disabled;   ///< the user can turn on/off the link easily
+    bool redundant;  ///< the constraint is redundant or singular
+    bool broken;     ///< the constraint is broken (someone pulled too much..)
+    bool _active;    ///< Cached active state depending on previous flags. Internal update.
 
   protected:
     /// The mode of the constraint: free / lock / complementar
@@ -103,9 +93,7 @@ class ChApi ChConstraint {
     int offset;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    /// Default constructor
     ChConstraint() {
         c_i = 0;
         g_i = 0;
@@ -136,17 +124,14 @@ class ChApi ChConstraint {
 
     virtual ~ChConstraint() {}
 
-    virtual ChConstraint* new_Duplicate() = 0;
+    /// "Virtual" copy constructor.
+    virtual ChConstraint* Clone() const = 0;
 
     /// Assignment operator: copy from other object
     ChConstraint& operator=(const ChConstraint& other);
 
     /// Comparison (compares anly flags, not the jacobians etc.)
     bool operator==(const ChConstraint& other) const;
-
-    //
-    // FUNCTIONS
-    //
 
     /// Tells if the constraint data is currently valid.
     virtual bool IsValid() const { return valid; }
@@ -221,7 +206,7 @@ class ChApi ChConstraint {
     virtual double Compute_c_i() {
         c_i = Compute_Cq_q() + cfm_i * l_i + b_i;
         return c_i;
-    };
+    }
 
     /// Return the residual 'c_i' of this constraint. // CURRENTLY NOT USED
     double Get_c_i() const { return c_i; }
@@ -256,7 +241,7 @@ class ChApi ChConstraint {
     /// solution process.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes, which have some jacobians!
-    virtual void Update_auxiliary(){/* do nothing */};
+    virtual void Update_auxiliary() {}
 
     /// Return the 'g_i' product , that is [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
     double Get_g_i() const { return g_i; }
@@ -329,17 +314,13 @@ class ChApi ChConstraint {
     /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes!
-	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }
 
     /// Get offset in global q vector
     int GetOffset() const { return offset; }
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

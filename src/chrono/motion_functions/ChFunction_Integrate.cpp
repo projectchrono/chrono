@@ -1,57 +1,43 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Integrate.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Integrate.h"
-#include "ChFunction_Const.h"
+#include "chrono/motion_functions/ChFunction_Const.h"
+#include "chrono/motion_functions/ChFunction_Integrate.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChFunction_Integrate> a_registration_integrate;
 
-ChFunction_Integrate::ChFunction_Integrate() {
-    order = 1;
-    fa = std::make_shared<ChFunction_Const>(); // default
-    C_start = x_start = 0;
-    x_end = 1;
-    num_samples = 2000;
+ChFunction_Integrate::ChFunction_Integrate() : order(1), C_start(0), x_start(0), x_end(1), num_samples(2000) {
+    fa = std::make_shared<ChFunction_Const>();  // default
     array_x = new ChMatrixDynamic<>(num_samples, 1);
 }
 
-void ChFunction_Integrate::Copy(ChFunction_Integrate* source) {
-    // fa = source->fa;		//***? shallow copy (now sharing same object)...
-    fa = std::shared_ptr<ChFunction>(source->fa->new_Duplicate());  //***? ..or deep copy? make optional with flag?
-    order = source->order;
-    C_start = source->C_start;
-    x_start = source->x_start;
-    x_end = source->x_end;
-    num_samples = source->num_samples;
-    array_x->CopyFromMatrix(*source->array_x);
+ChFunction_Integrate::ChFunction_Integrate(const ChFunction_Integrate& other) {
+    fa = std::shared_ptr<ChFunction>(other.fa->Clone());
+    order = other.order;
+    C_start = other.C_start;
+    x_start = other.x_start;
+    x_end = other.x_end;
+    num_samples = other.num_samples;
+    array_x->CopyFromMatrix(*other.array_x);
 }
 
-ChFunction* ChFunction_Integrate::new_Duplicate() {
-    ChFunction_Integrate* m_func;
-    m_func = new ChFunction_Integrate;
-    m_func->Copy(this);
-    return (m_func);
+ChFunction_Integrate::~ChFunction_Integrate() {
+    if (array_x)
+        delete array_x;
 }
 
 void ChFunction_Integrate::ComputeIntegral() {
@@ -74,7 +60,7 @@ void ChFunction_Integrate::ComputeIntegral() {
     }
 }
 
-double ChFunction_Integrate::Get_y(double x) {
+double ChFunction_Integrate::Get_y(double x) const {
     if ((x < x_start) || (x > x_end))
         return 0.0;
     int i_a, i_b;
@@ -94,31 +80,9 @@ double ChFunction_Integrate::Get_y(double x) {
     return (weightA * (array_x->GetElement(i_a, 0)) + weightB * (array_x->GetElement(i_b, 0)));
 }
 
-void ChFunction_Integrate::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Integrate::Estimate_x_range(double& xmin, double& xmax) const {
     xmin = x_start;
     xmax = x_end;
 }
 
-int ChFunction_Integrate::MakeOptVariableTree(ChList<chjs_propdata>* mtree) {
-    int i = 0;
-
-    // inherit parent behaviour
-    ChFunction::MakeOptVariableTree(mtree);
-
-    // expand tree for children..
-
-    chjs_propdata* mdataA = new chjs_propdata;
-    strcpy(mdataA->propname, "fa");
-    strcpy(mdataA->label, mdataA->propname);
-    mdataA->haschildren = TRUE;
-    mtree->AddTail(mdataA);
-
-    i += this->fa->MakeOptVariableTree(&mdataA->children);
-
-    return i;
-}
-
-
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

@@ -1,49 +1,48 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdio.h>
 
-#include "ChCTriangle.h"
+#include "chrono/geometry/ChCTriangle.h"
 
 namespace chrono {
 namespace geometry {
 
-ChTriangle::ChTriangle() {
-    p1 = p2 = p3 = VNULL;
-}
-
-ChTriangle::ChTriangle(const ChVector<>& mp1, const ChVector<>& mp2, const ChVector<>& mp3) {
-    p1 = mp1;
-    p2 = mp2;
-    p3 = mp3;
-}
-
-ChTriangle::ChTriangle(const ChTriangle& source) {
-    Copy(&source);
-}
-
-ChTriangle::~ChTriangle(){}
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChTriangle> a_registration_ChTriangle;
 
+ChTriangle::ChTriangle(const ChTriangle& source) {
+    p1 = source.p1;
+    p2 = source.p2;
+    p3 = source.p3;
+}
+
+ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
+    if (&source == this)
+        return *this;
+    p1 = source.p1;
+    p2 = source.p2;
+    p3 = source.p3;
+    return *this;
+}
 void ChTriangle::GetBoundingBox(double& xmin,
                                 double& xmax,
                                 double& ymin,
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot) {
+                                ChMatrix33<>* Rot) const {
     if (Rot == NULL) {
         xmin = ChMin(ChMin(p1.x, p2.x), p3.x);
         ymin = ChMin(ChMin(p1.y, p2.y), p3.y);
@@ -52,9 +51,9 @@ void ChTriangle::GetBoundingBox(double& xmin,
         ymax = ChMax(ChMax(p1.y, p2.y), p3.y);
         zmax = ChMax(ChMax(p1.z, p2.z), p3.z);
     } else {
-        Vector trp1 = Rot->MatrT_x_Vect(p1);
-        Vector trp2 = Rot->MatrT_x_Vect(p2);
-        Vector trp3 = Rot->MatrT_x_Vect(p3);
+        ChVector<> trp1 = Rot->MatrT_x_Vect(p1);
+        ChVector<> trp2 = Rot->MatrT_x_Vect(p2);
+        ChVector<> trp3 = Rot->MatrT_x_Vect(p3);
         xmin = ChMin(ChMin(trp1.x, trp2.x), trp3.x);
         ymin = ChMin(ChMin(trp1.y, trp2.y), trp3.y);
         zmin = ChMin(ChMin(trp1.z, trp2.z), trp3.z);
@@ -64,15 +63,15 @@ void ChTriangle::GetBoundingBox(double& xmin,
     }
 }
 
-Vector ChTriangle::Baricenter() {
-    Vector mb;
+ChVector<> ChTriangle::Baricenter() const {
+    ChVector<> mb;
     mb.x = (p1.x + p2.x + p3.x) / 3.;
     mb.y = (p1.y + p2.y + p3.y) / 3.;
     mb.z = (p1.z + p2.z + p3.z) / 3.;
     return mb;
 }
 
-void ChTriangle::CovarianceMatrix(ChMatrix33<>& C) {
+void ChTriangle::CovarianceMatrix(ChMatrix33<>& C) const {
     C(0, 0) = p1.x * p1.x + p2.x * p2.x + p3.x * p3.x;
     C(1, 1) = p1.y * p1.y + p2.y * p2.y + p3.y * p3.y;
     C(2, 2) = p1.z * p1.z + p2.z * p2.z + p3.z * p3.z;
@@ -81,13 +80,13 @@ void ChTriangle::CovarianceMatrix(ChMatrix33<>& C) {
     C(1, 2) = p1.y * p1.z + p2.y * p2.z + p3.y * p3.z;
 }
 
-bool ChTriangle::Normal(Vector& N) {
-    Vector u;
+bool ChTriangle::Normal(ChVector<>& N) const {
+    ChVector<> u;
     u = Vsub(p2, p1);
-    Vector v;
+    ChVector<> v;
     v = Vsub(p3, p1);
 
-    Vector n;
+    ChVector<> n;
     n = Vcross(u, v);
 
     double len = Vlength(n);
@@ -100,31 +99,37 @@ bool ChTriangle::Normal(Vector& N) {
     return true;
 }
 
-bool ChTriangle::IsDegenerated() {
-    Vector u = Vsub(p2, p1);
-    Vector v = Vsub(p3, p1);
+ChVector<> ChTriangle::GetNormal() const {
+    ChVector<> mn;
+    Normal(mn);
+    return mn;
+}
 
-    Vector vcr;
+bool ChTriangle::IsDegenerated() const {
+    ChVector<> u = Vsub(p2, p1);
+    ChVector<> v = Vsub(p3, p1);
+
+    ChVector<> vcr;
     vcr = Vcross(u, v);
     if (fabs(vcr.x) < EPS_TRIDEGENERATE && fabs(vcr.y) < EPS_TRIDEGENERATE && fabs(vcr.z) < EPS_TRIDEGENERATE)
         return true;
     return false;
 }
 
-double ChTriangle::PointTriangleDistance(Vector B,
-                                         Vector& A1,  ///< point of triangle
-                                         Vector& A2,  ///< point of triangle
-                                         Vector& A3,  ///< point of triangle
+double ChTriangle::PointTriangleDistance(ChVector<> B,
+                                         ChVector<>& A1,  ///< point of triangle
+                                         ChVector<>& A2,  ///< point of triangle
+                                         ChVector<>& A3,  ///< point of triangle
                                          double& mu,
                                          double& mv,
                                          bool& is_into,
-                                         Vector& Bprojected) {
+                                         ChVector<>& Bprojected) {
     // defaults
     is_into = false;
     mu = mv = -1;
     double mdistance = 10e22;
 
-    Vector Dx, Dy, Dz, T1, T1p;
+    ChVector<> Dx, Dy, Dz, T1, T1p;
 
     Dx = Vsub(A2, A1);
     Dz = Vsub(A3, A1);
@@ -159,14 +164,14 @@ double ChTriangle::PointTriangleDistance(Vector B,
     return mdistance;
 }
 
-double ChTriangle::PointLineDistance(Vector& p, Vector& dA, Vector& dB, double& mu, bool& is_insegment) {
+double ChTriangle::PointLineDistance(ChVector<>& p, ChVector<>& dA, ChVector<>& dB, double& mu, bool& is_insegment) {
     mu = -1.0;
     is_insegment = 0;
     double mdist = 10e34;
 
-    Vector vseg = Vsub(dB, dA);
-    Vector vdir = Vnorm(vseg);
-    Vector vray = Vsub(p, dA);
+    ChVector<> vseg = Vsub(dB, dA);
+    ChVector<> vdir = Vnorm(vseg);
+    ChVector<> vray = Vsub(p, dA);
 
     mdist = Vlength(Vcross(vray, vdir));
     mu = Vdot(vray, vdir) / Vlength(vseg);
@@ -177,7 +182,5 @@ double ChTriangle::PointLineDistance(Vector& p, Vector& dA, Vector& dB, double& 
     return mdist;
 }
 
-
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono

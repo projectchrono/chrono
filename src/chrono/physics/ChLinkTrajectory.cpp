@@ -60,7 +60,7 @@ void ChLinkTrajectory::Copy(ChLinkTrajectory* source) {
 
     // copy own data
 
-    space_fx = std::shared_ptr<ChFunction>(source->space_fx->new_Duplicate());  // deep copy
+    space_fx = std::shared_ptr<ChFunction>(source->space_fx->Clone());  // deep copy
 
     trajectory_line = std::shared_ptr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
 }

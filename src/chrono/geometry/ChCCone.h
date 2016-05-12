@@ -1,69 +1,55 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_CONE_H
 #define CHC_CONE_H
 
-
-#include "ChCGeometry.h"
+#include "chrono/geometry/ChCGeometry.h"
 
 namespace chrono {
 namespace geometry {
 
-#define EPS_SHPEREDEGENERATE 1e-20
-
 #define CH_GEOCLASS_CONE 4
 
-///
-/// A sphere.
-/// Geometric object for collisions and such.
-///
+/// A conical geometric object for collisions and visualization.
 
 class ChApi ChCone : public ChGeometry {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChCone, ChGeometry);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChVector<> center;  ///< base center
+    ChVector<> rad;     ///< cone radius
 
-    ChCone() {
-        center = VNULL;
-        rad = 0;
-    };
-
-    ChCone(Vector& mc, Vector mrad) {
-        center = mc;
-        rad = mrad;
-    }
-
-    ChCone(const ChCone& source) { Copy(&source); }
+  public:
+    ChCone() : center(VNULL), rad(0) {}
+    ChCone(ChVector<>& mc, ChVector<> mrad) : center(mc), rad(mrad) {}
+    ChCone(const ChCone& source);
+    ~ChCone() {}
 
     void Copy(const ChCone* source) {
         center = source->center;
         rad = source->rad;
-    };
+    }
 
     ChGeometry* Duplicate() {
         ChGeometry* mgeo = new ChCone();
         mgeo->Copy(this);
         return mgeo;
-    };
+    }
 
-    //
-    // OVERRIDE BASE CLASS FUNCTIONS
-    //
-
-    virtual int GetClassType() { return CH_GEOCLASS_CONE; };
+    virtual int GetClassType() const override { return CH_GEOCLASS_CONE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -71,31 +57,20 @@ class ChApi ChCone : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL) {}
+                                ChMatrix33<>* Rot = NULL) const override {
+        //// TODO
+    }
 
-    virtual Vector Baricenter() { return center; };
+    virtual ChVector<> Baricenter() const override { return center; }
 
-    virtual void CovarianceMatrix(ChMatrix33<>& C){
-
-    };
+    virtual void CovarianceMatrix(ChMatrix33<>& C) const override {
+        //// TODO
+    }
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
+    virtual int GetManifoldDimension() const override { return 3; }
 
-    //
-    // DATA
-    //
-
-    Vector center;
-
-    Vector rad;
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -106,8 +81,7 @@ class ChApi ChCone : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -118,7 +92,7 @@ class ChApi ChCone : public ChGeometry {
     }
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono
 
 #endif

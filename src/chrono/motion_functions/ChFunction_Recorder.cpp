@@ -1,52 +1,37 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Recorder.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Recorder.h"
+#include "chrono/motion_functions/ChFunction_Recorder.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChFunction_Recorder> a_registration_recorder;
 
-void ChFunction_Recorder::Copy(ChFunction_Recorder* source) {
-    points.KillAll();
-    lastnode = NULL;
+ChFunction_Recorder::ChFunction_Recorder(const ChFunction_Recorder& other) {
     ChRecPoint* mpt;
-    for (ChNode<ChRecPoint>* mnode = source->points.GetHead(); mnode != NULL; mnode = mnode->next) {
+    for (ChNode<ChRecPoint>* mnode = other.points.GetHead(); mnode != NULL; mnode = mnode->next) {
         mpt = new ChRecPoint;
         mpt->x = mnode->data->x;
         mpt->y = mnode->data->y;
         mpt->w = mnode->data->w;
         points.AddTail(mpt);
     }
+    lastnode = NULL;
 }
 
-ChFunction* ChFunction_Recorder::new_Duplicate() {
-    ChFunction_Recorder* m_func;
-    m_func = new ChFunction_Recorder;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-void ChFunction_Recorder::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Recorder::Estimate_x_range(double& xmin, double& xmax) const {
     if (!points.GetTail()) {
         xmin = 0.0;
         xmax = 1.2;
@@ -164,7 +149,7 @@ int ChFunction_Recorder::AddPointClean(double mx, double my, double dx_clean) {
     return TRUE;
 }
 
-double ChFunction_Recorder::Get_y(double x) {
+double ChFunction_Recorder::Get_y(double x) const {
     double y = 0;
 
     ChRecPoint p1;
@@ -217,7 +202,7 @@ double ChFunction_Recorder::Get_y(double x) {
     return y;
 }
 
-double ChFunction_Recorder::Get_y_dx(double x) {
+double ChFunction_Recorder::Get_y_dx(double x) const {
     double dy = 0;
 
     ChRecPoint p1;  //    p0...p1..x...p2.....p3
@@ -315,7 +300,7 @@ double ChFunction_Recorder::Get_y_dx(double x) {
     return dy;
 }
 
-double ChFunction_Recorder::Get_y_dxdx(double x) {
+double ChFunction_Recorder::Get_y_dxdx(double x) const {
     double ddy = 0;
 
     ChRecPoint p1;  //    p0...p1..x...p2.....p3
@@ -413,7 +398,4 @@ double ChFunction_Recorder::Get_y_dxdx(double x) {
     return ddy;
 }
 
-
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

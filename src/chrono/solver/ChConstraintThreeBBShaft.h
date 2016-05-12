@@ -24,10 +24,6 @@ namespace chrono {
 class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     CH_RTTI(ChConstraintThreeBBShaft, ChConstraintThree)
 
-    //
-    // DATA
-    //
-
   protected:
     /// The [Cq_a] jacobian of the constraint
     ChMatrixNM<float, 1, 6> Cq_a;
@@ -46,16 +42,11 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     ChMatrixNM<float, 1, 1> Eq_c;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintThreeBBShaft() {}
 
     /// Construct and immediately set references to variables
-    ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a,
-                             ChVariablesBody* mvariables_b,
-                             ChVariables* mvariables_c) {
+    ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b, ChVariables* mvariables_c) {
         assert(mvariables_c->Get_ndof() == 1);
         SetVariables(mvariables_a, mvariables_b, mvariables_c);
     }
@@ -72,14 +63,11 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
 
     virtual ~ChConstraintThreeBBShaft() {}
 
-    virtual ChConstraint* new_Duplicate() { return new ChConstraintThreeBBShaft(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintThreeBBShaft* Clone() const override { return new ChConstraintThreeBBShaft(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintThreeBBShaft& operator=(const ChConstraintThreeBBShaft& other);
-
-    //
-    // FUNCTIONS
-    //
 
     /// Access jacobian matrix
     virtual ChMatrix<float>* Get_Cq_a() { return &Cq_a; }
@@ -132,7 +120,6 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative solvers.
-
     virtual void Increment_q(const double deltal) {
         if (variables_a->IsActive())
             for (int i = 0; i < Eq_a.GetRows(); i++)
@@ -189,7 +176,7 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// offset of the corresponding ChVariable.
     /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())
             storage.PasteMatrixFloat(&Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
@@ -197,7 +184,7 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
         if (variables_c->IsActive())
             storage.PasteMatrixFloat(&Cq_c, insrow, variables_c->GetOffset());
     }
-	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_a->IsActive())
             storage.PasteTranspMatrixFloat(&Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
@@ -205,11 +192,6 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
         if (variables_c->IsActive())
             storage.PasteTranspMatrixFloat(&Cq_c, variables_c->GetOffset(), inscol);
     }
-
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

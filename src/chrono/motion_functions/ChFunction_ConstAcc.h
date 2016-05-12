@@ -1,43 +1,30 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHFUNCT_CONSTACC_H
 #define CHFUNCT_CONSTACC_H
 
-//////////////////////////////////////////////////
-//
-//   ChFunction_ConstAcc.h
-//
-//   Function objects,
-//   as scalar functions of scalar variable y=f(t)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Base.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
 
 namespace chrono {
 
-#define FUNCT_CONSTACC 8
-
-/// CONSTANT ACCELERATION FUNCTION:
-/// h = height, amount of displacement
-/// end = duration of motion,
-/// av  = fraction of 1st acceleration end  (0..1)
-/// aw  = fraction of 2nd acceleration start (0..1) , with aw>av;
+/// Constant acceleration function:
+///
+///   h = height, amount of displacement
+///   end = duration of motion,
+///   av  = fraction of 1st acceleration end  (0..1)
+///   aw  = fraction of 2nd acceleration start (0..1) , with aw>av;
 
 class ChApi ChFunction_ConstAcc : public ChFunction {
     CH_RTTI(ChFunction_ConstAcc, ChFunction);
@@ -49,26 +36,26 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     double end;
 
   public:
-    ChFunction_ConstAcc() {
-        h = 1;
-        av = 0.5;
-        aw = 0.5;
-        end = 1;
-    }
-    ChFunction_ConstAcc(double m_h, double m_av, double m_aw, double m_end) {
-        h = m_h;
-        Set_end(m_end);
-        Set_avw(m_av, m_aw);
-    };
-    ~ChFunction_ConstAcc(){};
-    void Copy(ChFunction_ConstAcc* source);
-    ChFunction* new_Duplicate();
+    ChFunction_ConstAcc() : h(1), av(0.5), aw(0.5), end(1) {}
+    ChFunction_ConstAcc(double m_h, double m_av, double m_aw, double m_end);
+    ChFunction_ConstAcc(const ChFunction_ConstAcc& other);
+    ~ChFunction_ConstAcc() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChFunction_ConstAcc* Clone() const override { return new ChFunction_ConstAcc(*this); }
+
+    virtual FunctionType Get_Type() const override { return FUNCT_CONSTACC; }
+
+    virtual double Get_y(double x) const override;
+    virtual double Get_y_dx(double x) const override;
+    virtual double Get_y_dxdx(double x) const override;
 
     void Set_end(double m_end) {
         if (m_end < 0)
             m_end = 0;
         end = m_end;
     }
+
     void Set_av(double m_av) {
         if (m_av < 0)
             m_av = 0;
@@ -95,36 +82,22 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
         Set_aw(m_aw);
     }
 
-    double Get_end() { return end; }
-    double Get_av() { return av; }
-    double Get_aw() { return aw; }
-    double Get_h() { return h; }
+    double Get_end() const { return end; }
+    double Get_av() const { return av; }
+    double Get_aw() const { return aw; }
+    double Get_h() const { return h; }
 
-    double Get_y(double x);
-    double Get_y_dx(double x);
-    double Get_y_dxdx(double x);
+    virtual double Get_Ca_pos() const override;
+    virtual double Get_Ca_neg() const override;
+    virtual double Get_Cv() const override;
 
-    double Get_Ca_pos();
-    double Get_Ca_neg();
-    double Get_Cv();
-
-    void Estimate_x_range(double& xmin, double& xmax) {
+    virtual void Estimate_x_range(double& xmin, double& xmax) const {
         xmin = 0.0;
         xmax = end;
-    };
-
-    int Get_Type() { return (FUNCT_CONSTACC); }
-
-    OPT_VARIABLES_START
-    "h", "end", "aw", "av", OPT_VARIABLES_END
-
-    //
-    // SERIALIZATION
-    //
+    }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -137,8 +110,7 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -149,9 +121,8 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
         marchive >> CHNVP(aw);
         marchive >> CHNVP(av);
     }
-
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

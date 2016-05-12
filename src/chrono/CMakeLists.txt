@@ -105,7 +105,6 @@ source_group(serialization FILES
 set(ChronoEngine_physics_SOURCES
     physics/ChFilePS.cpp
     physics/ChNlsolver.cpp
-    physics/ChFunction.cpp
     physics/ChLimit.cpp
     physics/ChObject.cpp
     physics/ChMarker.cpp
@@ -199,10 +198,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChControls.h
     physics/ChConveyor.h
     physics/ChEvents.h
-    physics/ChExternalObject.h
     physics/ChFilePS.h
     physics/ChForce.h
-    physics/ChFunction.h
     physics/ChFx.h
     physics/ChGlobal.h
     physics/ChIndexedNodes.h
@@ -576,6 +573,7 @@ set(ChronoEngine_motion_functions_SOURCES
     )
 
 set(ChronoEngine_motion_functions_HEADERS
+    motion_functions/ChFunction.h
     motion_functions/ChFunction_Base.h
     motion_functions/ChFunction_Const.h
     motion_functions/ChFunction_ConstAcc.h

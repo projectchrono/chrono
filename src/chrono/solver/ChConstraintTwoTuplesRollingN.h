@@ -12,16 +12,14 @@
 #ifndef CHCONSTRAINTTWOTUPLESROLLINGN_H
 #define CHCONSTRAINTTWOTUPLESROLLINGN_H
 
-#include "chrono/solver/ChConstraintTwoTuplesRollingT.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
+#include "chrono/solver/ChConstraintTwoTuplesRollingT.h"
 
 namespace chrono {
 
-
 /// This is enough to use dynamic_casting<> to detect all template types
 /// from ChConstraintTwoTuplesRollingN
-class ChApi ChConstraintTwoTuplesRollingNall {
-};
+class ChApi ChConstraintTwoTuplesRollingNall {};
 
 /// This class is inherited from ChConstraintTwoTuples,
 /// It is used to represent the normal reaction between two objects,
@@ -37,30 +35,21 @@ class ChApi ChConstraintTwoTuplesRollingNall {
 /// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
 
 template <class Ta, class Tb>
-class ChApi ChConstraintTwoTuplesRollingN : 
-            public ChConstraintTwoTuples<Ta,Tb>, 
-            public ChConstraintTwoTuplesRollingNall {
-
-    //
-    // DATA
-    //
-
+class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>,
+                                            public ChConstraintTwoTuplesRollingNall {
   protected:
     /// the rolling friction coefficient
     float rollingfriction;
     float spinningfriction;
 
     /// the pointer to U tangential component
-    ChConstraintTwoTuplesRollingT< Ta, Tb >* constraint_U;
+    ChConstraintTwoTuplesRollingT<Ta, Tb>* constraint_U;
     /// the pointer to V tangential component
-    ChConstraintTwoTuplesRollingT< Ta, Tb >* constraint_V;
+    ChConstraintTwoTuplesRollingT<Ta, Tb>* constraint_V;
     /// the pointer to N  component
-    ChConstraintTwoTuplesContactN< Ta, Tb >* constraint_N;
+    ChConstraintTwoTuplesContactN<Ta, Tb>* constraint_N;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintTwoTuplesRollingN() {
         this->mode = CONSTRAINT_FRIC;
@@ -71,7 +60,7 @@ class ChApi ChConstraintTwoTuplesRollingN :
     }
 
     /// Copy constructor
-    ChConstraintTwoTuplesRollingN(const ChConstraintTwoTuplesRollingN& other) : ChConstraintTwoTuples< Ta, Tb >(other) {
+    ChConstraintTwoTuplesRollingN(const ChConstraintTwoTuplesRollingN& other) : ChConstraintTwoTuples<Ta, Tb>(other) {
         rollingfriction = other.rollingfriction;
         spinningfriction = other.spinningfriction;
         constraint_U = other.constraint_U;
@@ -81,14 +70,15 @@ class ChApi ChConstraintTwoTuplesRollingN :
 
     virtual ~ChConstraintTwoTuplesRollingN() {}
 
-    virtual ChConstraintTwoTuplesRollingN* new_Duplicate() { return new ChConstraintTwoTuplesRollingN(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintTwoTuplesRollingN* Clone() const override { return new ChConstraintTwoTuplesRollingN(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintTwoTuplesRollingN& operator=(const ChConstraintTwoTuplesRollingN& other) {
         if (&other == this)
             return *this;
         // copy parent class data
-        ChConstraintTwoTuples< Ta, Tb >::operator=(other);
+        ChConstraintTwoTuples<Ta, Tb>::operator=(other);
 
         rollingfriction = other.rollingfriction;
         spinningfriction = other.spinningfriction;
@@ -97,10 +87,6 @@ class ChApi ChConstraintTwoTuplesRollingN :
         constraint_N = other.constraint_N;
         return *this;
     }
-
-    //
-    // FUNCTIONS
-    //
 
     /// Get the rolling friction coefficient
     float GetRollingFrictionCoefficient() { return rollingfriction; }
@@ -113,18 +99,18 @@ class ChApi ChConstraintTwoTuplesRollingN :
     void SetSpinningFrictionCoefficient(float mcoeff) { spinningfriction = mcoeff; }
 
     /// Get pointer to U tangential component
-    ChConstraintTwoTuplesRollingT< Ta, Tb >* GetRollingConstraintU() { return constraint_U; }
+    ChConstraintTwoTuplesRollingT<Ta, Tb>* GetRollingConstraintU() { return constraint_U; }
     /// Get pointer to V tangential component
-    ChConstraintTwoTuplesRollingT< Ta, Tb >* GetRollingConstraintV() { return constraint_V; }
+    ChConstraintTwoTuplesRollingT<Ta, Tb>* GetRollingConstraintV() { return constraint_V; }
     /// Get pointer to normal contact component
-    ChConstraintTwoTuplesContactN< Ta, Tb >* GetNormalConstraint() { return constraint_N; }
+    ChConstraintTwoTuplesContactN<Ta, Tb>* GetNormalConstraint() { return constraint_N; }
 
     /// Set pointer to U tangential component
-    void SetRollingConstraintU(ChConstraintTwoTuplesRollingT< Ta, Tb >* mconstr) { constraint_U = mconstr; }
+    void SetRollingConstraintU(ChConstraintTwoTuplesRollingT<Ta, Tb>* mconstr) { constraint_U = mconstr; }
     /// Set pointer to V tangential component
-    void SetRollingConstraintV(ChConstraintTwoTuplesRollingT< Ta, Tb >* mconstr) { constraint_V = mconstr; }
+    void SetRollingConstraintV(ChConstraintTwoTuplesRollingT<Ta, Tb>* mconstr) { constraint_V = mconstr; }
     /// Set pointer to normal contact component
-    void SetNormalConstraint(ChConstraintTwoTuplesContactN< Ta, Tb >* mconstr) { constraint_N = mconstr; }
+    void SetNormalConstraint(ChConstraintTwoTuplesContactN<Ta, Tb>* mconstr) { constraint_N = mconstr; }
 
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible set.

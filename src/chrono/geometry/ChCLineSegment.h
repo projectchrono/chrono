@@ -1,61 +1,43 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_LINESEGMENT_H
 #define CHC_LINESEGMENT_H
 
 #include <math.h>
 
-#include "ChCLine.h"
+#include "chrono/geometry/ChCLine.h"
 
 namespace chrono {
 namespace geometry {
 
 #define CH_GEOCLASS_LINESEGMENT 18
 
-///
-/// SEGMENT
-///
-/// Geometric object representing a segment in 3D space
-/// with two end points
-///
+/// Geometric object representing a segment in 3D space with two end points.
 
 class ChApi ChLineSegment : public ChLine {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChLineSegment, ChLine);
 
   public:
-    //
-    // DATA
-    //
-
-    ChVector<> pA;
-    ChVector<> pB;
+    ChVector<> pA;  ///< first segment endpoint
+    ChVector<> pB;  ///< second segment endpoint
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChLineSegment(const ChVector<> mA = VNULL, const ChVector<> mB = VNULL) {
-        pA = mA;
-        pB = mB;
-    }
-
-    ~ChLineSegment(){};
-
-    ChLineSegment(const ChLineSegment& source) {
-        pA = source.pA;
-        pB = source.pB;
-    }
+    ChLineSegment(const ChVector<> mA = VNULL, const ChVector<> mB = VNULL) : pA(mA), pB(mB) {}
+    ChLineSegment(const ChLineSegment& source);
+    ~ChLineSegment() {}
 
     void Copy(const ChLineSegment* source) {
         ChLine::Copy(source);
@@ -63,34 +45,22 @@ class ChApi ChLineSegment : public ChLine {
         pB = source->pB;
     }
 
-    ChGeometry* Duplicate() { return new ChLineSegment(*this); };
+    ChGeometry* Duplicate() { return new ChLineSegment(*this); }
 
-    //
-    // OVERRIDE BASE CLASS FUNCTIONS
-    //
+    virtual int GetClassType() const override { return CH_GEOCLASS_LINESEGMENT; }
 
-    virtual int GetClassType() { return CH_GEOCLASS_LINESEGMENT; };
-
-    virtual int Get_complexity() { return 2; };
+    virtual int Get_complexity() const override { return 2; }
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.) {
-        pos = pA * (1 - parU) + pB * parU;
-    }
+    virtual void Evaluate(ChVector<>& pos,
+                          const double parU,
+                          const double parV = 0,
+                          const double parW = 0) const override;
 
     /// Returns curve length. sampling does not matter
-    double Length(int sampling) { return (pA - pB).Length(); }
+    virtual double Length(int sampling) const override { return (pA - pB).Length(); }
 
-    //
-    // CUSTOM FUNCTIONS
-    //
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -101,8 +71,7 @@ class ChApi ChLineSegment : public ChLine {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -111,11 +80,9 @@ class ChApi ChLineSegment : public ChLine {
         marchive >> CHNVP(pA);
         marchive >> CHNVP(pB);
     }
-
-
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono
 
-#endif  // END of header
+#endif
