@@ -42,14 +42,14 @@
 //#include "chrono_vehicle/ChVehicleModelData.h"
 
 //#include "chrono_utils/ChUtilsVehicle.h"
-#include "utils/ChUtilsGeometry.h"
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsGenerators.h"
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 // Chrono general utils
-#include "core/ChFileutils.h"
-#include <core/ChTransform.h>  //transform acc from GF to LF for post process
+#include "chrono/core/ChFileutils.h"
+#include "chrono/core/ChTransform.h"  //transform acc from GF to LF for post process
 
 //#include "BallDropParams.h"
 //#include "chrono_fsi/SphInterface.h"
@@ -61,7 +61,7 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 
 // FSI Interface Includes
-#include "params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
+#include "tests/fsi/params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
 
 #define haveFluid true
 
