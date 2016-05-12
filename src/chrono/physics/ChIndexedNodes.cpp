@@ -13,11 +13,9 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "physics/ChIndexedNodes.h"
-#include "physics/ChSystem.h"
-
-#include "physics/ChExternalObject.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 

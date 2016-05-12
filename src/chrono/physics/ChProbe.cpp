@@ -9,28 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChProbe.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "physics/ChProbe.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChExternalObject.h"
+#include "chrono/physics/ChProbe.h"
+#include "chrono/physics/ChGlobal.h"
 
 namespace chrono {
 
-/////////////////////////////////////////////////////////
-///
-///   CLASS
-///
-///
 
 ChProbe::ChProbe() {
     SetIdentifier(GetUniqueIntID());  // mark with unique ID

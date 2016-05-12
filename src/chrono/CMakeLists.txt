@@ -199,7 +199,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChControls.h
     physics/ChConveyor.h
     physics/ChEvents.h
-    physics/ChExternalObject.h
     physics/ChFilePS.h
     physics/ChForce.h
     physics/ChFunction.h

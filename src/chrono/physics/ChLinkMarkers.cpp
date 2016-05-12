@@ -10,18 +10,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChLinkMarkers.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkMarkers.h"
-//#include "physics/ChCollide.h"
-#include "physics/ChExternalObject.h"
+#include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
