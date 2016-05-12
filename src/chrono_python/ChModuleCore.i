@@ -92,7 +92,7 @@ using namespace chrono::geometry;
 
 %shared_ptr(chrono::ChAsset)
 %shared_ptr(chrono::ChVisualization)
-%shared_ptr(chrono::ChColor)
+//%shared_ptr(chrono::ChColor)
 %shared_ptr(chrono::ChColorAsset)
 %shared_ptr(chrono::ChAssetLevel)
 %shared_ptr(chrono::ChObjShapeFile)
@@ -223,8 +223,8 @@ using namespace chrono::geometry;
 
 // assets
 %include "ChAsset.i"
-%include "ChVisualization.i"
 %include "ChColor.i"
+%include "ChVisualization.i"
 %include "ChColorAsset.i"
 %include "ChAssetLevel.i"
 %include "ChObjShapeFile.i"
