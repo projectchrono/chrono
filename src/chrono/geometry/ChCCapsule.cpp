@@ -1,34 +1,56 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2006, 2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-//////////////////////////////////////////////////
-//
-//   ChCapsule.cpp
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdio.h>
 
-#include "ChCCapsule.h"
+#include "chrono/geometry/ChCCapsule.h"
 
 namespace chrono {
 namespace geometry {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChCapsule> a_registration_ChCapsule;
 
+ChCapsule::ChCapsule(const ChCapsule& source) {
+    center = source.center;
+    rad = source.rad;
+    hlen = source.hlen;
+}
 
+void ChCapsule::GetBoundingBox(double& xmin,
+                               double& xmax,
+                               double& ymin,
+                               double& ymax,
+                               double& zmin,
+                               double& zmax,
+                               ChMatrix33<>* Rot) const {
+    ChVector<> trsfCenter = Rot ? Rot->MatrT_x_Vect(center) : center;
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+    xmin = trsfCenter.x - rad;
+    xmax = trsfCenter.x + rad;
+    ymin = trsfCenter.y - (rad + hlen);
+    ymax = trsfCenter.y + (rad + hlen);
+    zmin = trsfCenter.z - rad;
+    zmax = trsfCenter.z + rad;
+}
+
+void ChCapsule::CovarianceMatrix(ChMatrix33<>& C) const {
+    C.Reset();
+    C(0, 0) = center.x * center.x;
+    C(1, 1) = center.y * center.y;
+    C(2, 2) = center.z * center.z;
+}
+
+}  // end namespace geometry
+}  // end namespace chrono

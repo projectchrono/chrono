@@ -1,35 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_TRI_H
 #define CHC_TRI_H
 
-//////////////////////////////////////////////////
-//
-//   ChCTriangle.h
-//
-//   Basic triangle geometry in 3d.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "ChCGeometry.h"
+#include "chrono/geometry/ChCGeometry.h"
 
 namespace chrono {
 namespace geometry {
@@ -38,49 +26,39 @@ namespace geometry {
 
 #define CH_GEOCLASS_TRIANGLE 1
 
-///
-/// A triangle.
-/// Geometric object for collisions and such.
-///
+/// A triangle geometric shape for collisions and visualization.
 
 class ChApi ChTriangle : public ChGeometry {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTriangle, ChGeometry);
 
   public:
-    ChTriangle();
+    ChVector<> p1;  ///< first triangle vertex
+    ChVector<> p2;  ///< second triangle vertex
+    ChVector<> p3;  ///< third triangle vertex
 
-    ChTriangle(const ChVector<>& mp1, const ChVector<>& mp2, const ChVector<>& mp3);
-
+  public:
+    ChTriangle() : p1(VNULL), p2(VNULL), p3(VNULL) {}
+    ChTriangle(const ChVector<>& mp1, const ChVector<>& mp2, const ChVector<>& mp3) : p1(mp1), p2(mp2), p3(mp3) {}
     ChTriangle(const ChTriangle& source);
-
-    virtual ~ChTriangle();
+    ~ChTriangle() {}
 
     /// Assignment operator: copy from another triangle
-    ChTriangle& operator=(const ChTriangle& source) {
-        if (&source == this)
-            return *this;
-        this->Copy(&source);
-        return *this;
-    }
+    ChTriangle& operator=(const ChTriangle& source);
 
     void Copy(const ChTriangle* source) {
         p1 = source->p1;
         p2 = source->p2;
         p3 = source->p3;
-    };
+    }
 
     ChGeometry* Duplicate() {
         ChGeometry* mgeo = new ChTriangle();
         mgeo->Copy(this);
         return mgeo;
-    };
+    }
 
-    //
-    // OVERRIDE BASE CLASS FUNCTIONS
-    //
-
-    virtual int GetClassType() { return CH_GEOCLASS_TRIANGLE; };
+    virtual int GetClassType() const override { return CH_GEOCLASS_TRIANGLE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -88,29 +66,21 @@ class ChApi ChTriangle : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL);
+                                ChMatrix33<>* Rot = NULL) const override;
 
-    virtual ChVector<> Baricenter();
-    virtual void CovarianceMatrix(ChMatrix33<>& C);
+    virtual ChVector<> Baricenter() const override;
+
+    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
     /// This is a surface
-    virtual int GetManifoldDimension() { return 2; }
-
-    //
-    // CUSTOM FUNCTIONS
-    //
+    virtual int GetManifoldDimension() const override { return 2; }
 
     // return false if triangle has almost zero area
-    bool IsDegenerated();
+    bool IsDegenerated() const;
 
     // compute triangle normal
-    bool Normal(Vector& N);
-
-    ChVector<> GetNormal() {
-        ChVector<> mn;
-        this->Normal(mn);
-        return mn;
-    };
+    bool Normal(ChVector<>& N) const;
+    ChVector<> GetNormal() const;
 
     /// Given point B and a generic triangle, computes the distance from the triangle plane,
     /// returning also the projection of point on the plane and other infos
@@ -149,20 +119,7 @@ class ChApi ChTriangle : public ChGeometry {
         bool& is_insegment  ///< returns true if projected point is between dA and dB
         );
 
-    //
-    // DATA
-    //
-
-    ChVector<> p1;
-    ChVector<> p2;
-    ChVector<> p3;
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -174,8 +131,7 @@ class ChApi ChTriangle : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -185,11 +141,9 @@ class ChApi ChTriangle : public ChGeometry {
         marchive >> CHNVP(p2);
         marchive >> CHNVP(p3);
     }
-
-
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono
 
 #endif

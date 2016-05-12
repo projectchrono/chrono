@@ -1,79 +1,62 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_ROUNDEDBOX_H
 #define CHC_ROUNDEDBOX_H
 
-
 #include <math.h>
 
-#include "geometry/ChCGeometry.h"
+#include "chrono/geometry/ChCGeometry.h"
 
 namespace chrono {
 namespace geometry {
 
 #define CH_GEOCLASS_ROUNDEDBOX 16
 
-///
-/// A box.
-/// Geometric object for collisions and such.
-///
+/// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 
 class ChApi ChRoundedBox : public ChGeometry {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChRoundedBox, ChGeometry);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChMatrix33<> Rot;  /// rotation of box
+    ChVector<> Pos;    /// position of center
+    ChVector<> Size;   /// box halflengths
+    double radsphere;  ///< radius of sweeping sphere
 
-    ChRoundedBox() {
-        Pos = VNULL;
-        Size = VNULL;
-        Rot.Set33Identity();
-        radsphere = 0;
-    };
-
-    /// Build from pos, rotation, xyzlengths
-    ChRoundedBox(ChVector<>& mpos, ChMatrix33<>& mrot, ChVector<>& mlengths, double mradsphere) {
-        Pos = mpos;
-        Size = 0.5 * mlengths;
-        Rot.CopyFromMatrix(mrot);
-        radsphere = mradsphere;
-    }
-
-    /// Build from first corner and three other neighbouring corners
+  public:
+    ChRoundedBox() : Pos(VNULL), Size(VNULL), Rot(1), radsphere(0) {}
+    ChRoundedBox(ChVector<>& mpos, ChMatrix33<>& mrot, ChVector<>& mlengths, double mradsphere)
+        : Pos(mpos), Size(0.5 * mlengths), Rot(mrot), radsphere(mradsphere) {}
     ChRoundedBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
-
-    ChRoundedBox(ChRoundedBox& source) { Copy(&source); }
+    ChRoundedBox(ChRoundedBox& source);
+    ~ChRoundedBox() {}
 
     void Copy(ChRoundedBox* source) {
         Pos = source->Pos;
         Size = source->Size;
         Rot.CopyFromMatrix(*source->GetRotm());
-    };
+    }
 
     ChGeometry* Duplicate() {
         ChGeometry* mgeo = new ChRoundedBox();
         mgeo->Copy(this);
         return mgeo;
-    };
+    }
 
-    //
-    // OVERRIDE BASE CLASS FUNCTIONS
-    //
-
-    virtual int GetClassType() { return CH_GEOCLASS_ROUNDEDBOX; };
+    virtual int GetClassType() const override { return CH_GEOCLASS_ROUNDEDBOX; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -81,33 +64,32 @@ class ChApi ChRoundedBox : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* bbRot = NULL);
+                                ChMatrix33<>* bbRot = NULL) const override;
 
     /// Computes the baricenter of the box
-    virtual Vector Baricenter() { return Pos; };
+    virtual ChVector<> Baricenter() const override { return Pos; }
 
     /// Computes the covariance matrix for the box
-    virtual void CovarianceMatrix(ChMatrix33<>& C);
+    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
     /// Evaluate position in cube volume
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.);
+    virtual void Evaluate(ChVector<>& pos,
+                          const double parU,
+                          const double parV = 0.,
+                          const double parW = 0.) const override;
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
-
-    //
-    // CUSTOM FUNCTIONS
-    //
+    virtual int GetManifoldDimension() const override { return 3; }
 
     /// Access the rotation of the box
-    ChMatrix33<>* GetRotm() { return &Rot; };
+    ChMatrix33<>* GetRotm() { return &Rot; }
 
     /// Access the position of the barycenter of the box
-    ChVector<>& GetPos() { return Pos; };
+    ChVector<>& GetPos() { return Pos; }
 
     /// Access the size of the box: a vector with the
     /// three hemi-lengths (lengths divided by two!)
-    ChVector<>& GetSize() { return Size; };
+    ChVector<>& GetSize() { return Size; }
 
     /// Get the x y z lengths of this box (that is, double
     /// the Size values)
@@ -118,26 +100,22 @@ class ChApi ChRoundedBox : public ChGeometry {
     void SetLengths(ChVector<>& mlen) { Size = 0.5 * mlen; }
 
     // Get the 8 corner points, translated and rotated
-    ChVector<> GetP1();
-    ChVector<> GetP2();
-    ChVector<> GetP3();
-    ChVector<> GetP4();
-    ChVector<> GetP5();
-    ChVector<> GetP6();
-    ChVector<> GetP7();
-    ChVector<> GetP8();
+    ChVector<> GetP1() const;
+    ChVector<> GetP2() const;
+    ChVector<> GetP3() const;
+    ChVector<> GetP4() const;
+    ChVector<> GetP5() const;
+    ChVector<> GetP6() const;
+    ChVector<> GetP7() const;
+    ChVector<> GetP8() const;
+
     /// Get the n-th corner point, with ipoint = 1...8
-    ChVector<> GetPn(int ipoint);
+    ChVector<> GetPn(int ipoint) const;
 
     /// Get the volume (assuming no scaling in Rot matrix)
     double GetVolume() { return Size.x * Size.y * Size.z * 8.0; };
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -146,13 +124,12 @@ class ChApi ChRoundedBox : public ChGeometry {
         marchive << CHNVP(Pos);
         marchive << CHNVP(Rot);
         ChVector<> Lengths = GetLengths();
-        marchive << CHNVP(Lengths); // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lenths, because less intuitive
         marchive << CHNVP(radsphere);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -161,27 +138,13 @@ class ChApi ChRoundedBox : public ChGeometry {
         marchive >> CHNVP(Pos);
         marchive >> CHNVP(Rot);
         ChVector<> Lengths;
-        marchive >> CHNVP(Lengths); 
+        marchive >> CHNVP(Lengths);
         SetLengths(Lengths);
         marchive >> CHNVP(radsphere);
     }
-
-
-    //
-    // DATA
-    //
-
-    /// Rotation of box
-    ChMatrix33<> Rot;
-    /// Position of center
-    ChVector<> Pos;
-    /// Hemi size (extension of box from center to corner)
-    ChVector<> Size;
-    /// Radius of sweeping sphere
-    double radsphere;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono
 
 #endif

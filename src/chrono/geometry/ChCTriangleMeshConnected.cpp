@@ -1,60 +1,55 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
+//
+// This is a modification of the code by J.W. Ratcliff (MIT license below)
+//
+// Copyright (c) 20011 by John W. Ratcliff mailto:jratcliffscarab@gmail.com
+//
+//
+// The MIT license:
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is furnished
+// to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// =============================================================================
 
 #include <stdio.h>
-
-#include "ChCTriangleMeshConnected.h"
-#include <unordered_map>
 #include <map>
-#include "core/ChLinearAlgebra.h"
+#include <unordered_map>
+
+#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/geometry/ChCTriangleMeshConnected.h"
 
 namespace chrono {
 namespace geometry {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChTriangleMeshConnected> a_registration_ChTriangleMeshConnected;
-
-
-// NOTE!!!
-// THE FOLLOWING CODE IS MODIFIED BY A.TASORA TO MATCH SOME
-// FEATURES OF THE C::E CLASS
-
-/*!
-**
-** Copyright (c) 20011 by John W. Ratcliff mailto:jratcliffscarab@gmail.com
-**
-**
-** The MIT license:
-**
-** Permission is hereby granted, free of charge, to any person obtaining a copy
-** of this software and associated documentation files (the "Software"), to deal
-** in the Software without restriction, including without limitation the rights
-** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-** copies of the Software, and to permit persons to whom the Software is furnished
-** to do so, subject to the following conditions:
-**
-** The above copyright notice and this permission notice shall be included in all
-** copies or substantial portions of the Software.
-
-** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-** WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-** CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
 
 #ifdef _WIN32
 #define strcasecmp _stricmp
@@ -630,14 +625,14 @@ int OBJ::ParseLine(int /*lineno*/,
                 // ***ALEX*** do not use the BuildMesh stuff
                 int vcount = argc - 1;
                 const char* argvT[3];
-                argvT[0] = argv[1]; // pivot for triangle fans when quad/poly face
+                argvT[0] = argv[1];  // pivot for triangle fans when quad/poly face
                 for (int i = 1; i < argc; i++) {
                     if (i >= 3) {
-                        argvT[1] = argv[i-1];
+                        argvT[1] = argv[i - 1];
                         argvT[2] = argv[i];
-                    
+
                         // do a fan triangle here..
-                        for (int ip=0; ip<3; ++ip) {
+                        for (int ip = 0; ip < 3; ++ip) {
                             // the index of i-th vertex
                             int index = atoi(argvT[ip]) - 1;
                             this->mIndexesVerts.push_back(index);
@@ -660,9 +655,7 @@ int OBJ::ParseLine(int /*lineno*/,
                                 }
                             }
                         }
-
                     }
-
                 }
 
                 /* ***ALEX***
@@ -756,34 +749,25 @@ class BuildMesh : public GeometryInterface {
 // http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 //
 // File Version: 5.0.1 (2010/10/01)
-
+//
+// void ComputeMassProperties (const Vector3<Real>* vertices, int numTriangles,
+//                             const int* indices, bool bodyCoords, Real& mass,
+//                             Vector3<Real>& center, Matrix3<Real>& inertia)
+//
 void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
                                                     double& mass,
                                                     ChVector<>& center,
-                                                    ChMatrix33<>& inertia)
-// void ComputeMassProperties (const Vector3<Real>* vertices, int numTriangles,
-//    const int* indices, bool bodyCoords, Real& mass, Vector3<Real>& center,
-//   Matrix3<Real>& inertia)
-{
+                                                    ChMatrix33<>& inertia) {
     const double oneDiv6 = (double)(1.0 / 6.0);
     const double oneDiv24 = (double)(1.0 / 24.0);
     const double oneDiv60 = (double)(1.0 / 60.0);
     const double oneDiv120 = (double)(1.0 / 120.0);
 
     // order:  1, x, y, z, x^2, y^2, z^2, xy, yz, zx
-    double integral[10] = {(double)0.0,
-                           (double)0.0,
-                           (double)0.0,
-                           (double)0.0,
-                           (double)0.0,
-                           (double)0.0,
-                           (double)0.0,
-                           (double)0.0,
-                           (double)0.0,
-                           (double)0.0};
+    double integral[10] = {(double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0,
+                           (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0};
 
-    int i;
-    for (i = 0; i < this->getNumTriangles(); i++) {
+    for (int i = 0; i < this->getNumTriangles(); i++) {
         // Get vertices of triangle i.
         ChVector<double> v0 = this->m_vertices[m_face_v_indices[i].x];
         ChVector<double> v1 = this->m_vertices[m_face_v_indices[i].y];
@@ -925,11 +909,11 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
             ChVector<int>(obj.mIndexesTexels[iit], obj.mIndexesTexels[iit + 1], obj.mIndexesTexels[iit + 2]));
     }
 
-    if(!load_normals) {
+    if (!load_normals) {
         this->m_normals.clear();
         this->m_face_n_indices.clear();
     }
-    if(!load_uv) {
+    if (!load_uv) {
         this->m_UV.clear();
         this->m_face_uv_indices.clear();
     }
@@ -1026,161 +1010,154 @@ bool WavefrontObj::saveObj(const char *fname,int vcount,const float *vertices,in
 
 */
 
-
 void ChTriangleMeshConnected::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {
-    for (int i= 0; i < m_vertices.size(); ++i) {
+    for (int i = 0; i < m_vertices.size(); ++i) {
         m_vertices[i] = rotscale * m_vertices[i];
         m_vertices[i] += displ;
-    } 
-    for (int i= 0; i < m_normals.size(); ++i) {
+    }
+    for (int i = 0; i < m_normals.size(); ++i) {
         m_normals[i] = rotscale * m_normals[i];
         m_normals[i].Normalize();
-    } 
+    }
 }
 
-
 bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::array<int, 4>>& tri_map) const {
-    
     bool pathological_edges = false;
-    
-    std::multimap< std::pair<int, int>, int> edge_map;
-        
-    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+
+    std::multimap<std::pair<int, int>, int> edge_map;
+
+    for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
         // edges = pairs of vertexes indexes
         std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
         std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
         std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
         // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
-        if (medgeA.first>medgeA.second) 
+        if (medgeA.first > medgeA.second)
             medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
-        if (medgeB.first>medgeB.second) 
+        if (medgeB.first > medgeB.second)
             medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
-        if (medgeC.first>medgeC.second) 
+        if (medgeC.first > medgeC.second)
             medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
-        edge_map.insert( { medgeA , it} );
-        edge_map.insert( { medgeB , it} );
-        edge_map.insert( { medgeC , it} );
+        edge_map.insert({medgeA, it});
+        edge_map.insert({medgeB, it});
+        edge_map.insert({medgeC, it});
     }
 
     // Create a map of neighbouring triangles, vector of:
     // [Ti TieA TieB TieC]
     tri_map.resize(this->m_face_v_indices.size());
-    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
-        tri_map[it][0]=it;
-        tri_map[it][1]=-1; // default no neighbour
-        tri_map[it][2]=-1; // default no neighbour
-        tri_map[it][3]=-1; // default no neighbour
+    for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
+        tri_map[it][0] = it;
+        tri_map[it][1] = -1;  // default no neighbour
+        tri_map[it][2] = -1;  // default no neighbour
+        tri_map[it][3] = -1;  // default no neighbour
         // edges = pairs of vertexes indexes
         std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
         std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
         std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
         // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
-        if (medgeA.first>medgeA.second) 
+        if (medgeA.first > medgeA.second)
             medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
-        if (medgeB.first>medgeB.second) 
+        if (medgeB.first > medgeB.second)
             medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
-        if (medgeC.first>medgeC.second) 
+        if (medgeC.first > medgeC.second)
             medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
-        if (edge_map.count(medgeA) >2 ||
-            edge_map.count(medgeB) >2 ||
-            edge_map.count(medgeC) >2) {
+        if (edge_map.count(medgeA) > 2 || edge_map.count(medgeB) > 2 || edge_map.count(medgeC) > 2) {
             pathological_edges = true;
-            //GetLog() << "Warning, edge shared with more than two triangles! \n";
+            // GetLog() << "Warning, edge shared with more than two triangles! \n";
         }
         auto retA = edge_map.equal_range(medgeA);
-        for (auto fedge=retA.first; fedge!=retA.second; ++fedge) {
+        for (auto fedge = retA.first; fedge != retA.second; ++fedge) {
             if (fedge->second != it) {
-                tri_map[it][1]=fedge->second;
+                tri_map[it][1] = fedge->second;
                 break;
             }
         }
         auto retB = edge_map.equal_range(medgeB);
-        for (auto fedge=retB.first; fedge!=retB.second; ++fedge) {
+        for (auto fedge = retB.first; fedge != retB.second; ++fedge) {
             if (fedge->second != it) {
-                tri_map[it][2]=fedge->second;
+                tri_map[it][2] = fedge->second;
                 break;
             }
         }
         auto retC = edge_map.equal_range(medgeC);
-        for (auto fedge=retC.first; fedge!=retC.second; ++fedge) {
+        for (auto fedge = retC.first; fedge != retC.second; ++fedge) {
             if (fedge->second != it) {
-                tri_map[it][3]=fedge->second;
+                tri_map[it][3] = fedge->second;
                 break;
             }
-        }  
+        }
     }
     return pathological_edges;
 }
 
-
-bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int,int>, std::pair<int,int>>& winged_edges,
+bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, std::pair<int, int>>& winged_edges,
                                                  bool allow_single_wing) const {
-
     bool pathological_edges = false;
 
-    std::multimap< std::pair<int, int>, int> edge_map;
-        
-    for (int it = 0; it< this->m_face_v_indices.size(); ++it) {
+    std::multimap<std::pair<int, int>, int> edge_map;
+
+    for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
         // edges = pairs of vertexes indexes
         std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
         std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
         std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
         // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
-        if (medgeA.first>medgeA.second) 
+        if (medgeA.first > medgeA.second)
             medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
-        if (medgeB.first>medgeB.second) 
+        if (medgeB.first > medgeB.second)
             medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
-        if (medgeC.first>medgeC.second) 
+        if (medgeC.first > medgeC.second)
             medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
-        edge_map.insert( { medgeA , it} );
-        edge_map.insert( { medgeB , it} );
-        edge_map.insert( { medgeC , it} );
+        edge_map.insert({medgeA, it});
+        edge_map.insert({medgeB, it});
+        edge_map.insert({medgeC, it});
     }
 
-    for ( auto aedge = edge_map.begin(); aedge != edge_map.end(); ++aedge ) {
+    for (auto aedge = edge_map.begin(); aedge != edge_map.end(); ++aedge) {
         auto ret = edge_map.equal_range(aedge->first);
-        int nt=0;
-        std::pair<int,int> wingedge;
-        std::pair<int,int> wingtri;
+        int nt = 0;
+        std::pair<int, int> wingedge;
+        std::pair<int, int> wingtri;
         wingtri.first = -1;
         wingtri.second = -1;
-        for (auto fedge=ret.first; fedge!=ret.second; ++fedge) {
+        for (auto fedge = ret.first; fedge != ret.second; ++fedge) {
             if (fedge->second == -1)
                 break;
             wingedge.first = fedge->first.first;
-            wingedge.second= fedge->first.second;
-            if (nt==0) 
-                wingtri.first  = fedge->second;
-            if (nt==1) 
+            wingedge.second = fedge->first.second;
+            if (nt == 0)
+                wingtri.first = fedge->second;
+            if (nt == 1)
                 wingtri.second = fedge->second;
             ++nt;
-            if (nt==2) 
+            if (nt == 2)
                 break;
         }
-        if ((nt==2) || ((nt==1) && allow_single_wing) ) {
-            winged_edges.insert(std::pair<std::pair<int,int>, std::pair<int,int>>(wingedge,wingtri)); // ok found winged edge!
-            aedge->second = -1; // deactivate this way otherwise found again by sister
+        if ((nt == 2) || ((nt == 1) && allow_single_wing)) {
+            winged_edges.insert(
+                std::pair<std::pair<int, int>, std::pair<int, int>>(wingedge, wingtri));  // ok found winged edge!
+            aedge->second = -1;  // deactivate this way otherwise found again by sister
         }
-        if (nt==3){
+        if (nt == 3) {
             pathological_edges = true;
-            //GetLog() << "Warning: winged edge between "<< wing[0] << " and " << wing[1]  << " shared with more than two triangles.\n";
+            // GetLog() << "Warning: winged edge between "<< wing[0] << " and " << wing[1]  << " shared with more than
+            // two triangles.\n";
         }
     }
     return pathological_edges;
 }
 
-
 int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
-    
     int nmerged = 0;
     std::vector<ChVector<>> processed_verts;
-    std::vector< int > new_indexes(m_vertices.size());
-    
+    std::vector<int> new_indexes(m_vertices.size());
+
     // merge vertexes
-    for (int i= 0; i< this->m_vertices.size(); ++i) {
+    for (int i = 0; i < this->m_vertices.size(); ++i) {
         bool tomerge = false;
-        for (int j=0; j<processed_verts.size(); ++j) {
-            if ((m_vertices[i]-processed_verts[j]).Length2()<tolerance) {
+        for (int j = 0; j < processed_verts.size(); ++j) {
+            if ((m_vertices[i] - processed_verts[j]).Length2() < tolerance) {
                 tomerge = true;
                 ++nmerged;
                 new_indexes[i] = j;
@@ -1189,14 +1166,14 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
         }
         if (!tomerge) {
             processed_verts.push_back(m_vertices[i]);
-            new_indexes[i] = processed_verts.size()-1;
+            new_indexes[i] = processed_verts.size() - 1;
         }
     }
 
     this->m_vertices = processed_verts;
 
     // update the merged vertexes also in face indexes to vertexes
-    for (int i= 0; i< this->m_face_v_indices.size(); ++i) {
+    for (int i = 0; i < this->m_face_v_indices.size(); ++i) {
         m_face_v_indices[i].x = new_indexes[m_face_v_indices[i].x];
         m_face_v_indices[i].y = new_indexes[m_face_v_indices[i].y];
         m_face_v_indices[i].z = new_indexes[m_face_v_indices[i].z];
@@ -1205,57 +1182,54 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
     return nmerged;
 }
 
-
 // Offset algorithm based on:
 // " A 3D surface offset method for STL-format models"
 //   Xiuzhi Qu and Brent Stucker
 
 bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
-    
     std::map<int, std::vector<int>> map_vertex_triangles;
     std::vector<ChVector<>> voffsets(this->m_vertices.size());
 
-    //build the topological info for triangles connected to vertex
-    for (int i = 0; i< this->m_face_v_indices.size(); ++i) {
+    // build the topological info for triangles connected to vertex
+    for (int i = 0; i < this->m_face_v_indices.size(); ++i) {
         map_vertex_triangles[m_face_v_indices[i].x].push_back(i);
         map_vertex_triangles[m_face_v_indices[i].y].push_back(i);
         map_vertex_triangles[m_face_v_indices[i].z].push_back(i);
     }
 
-    // scan through vertexes and offset them 
-    for (int i = 0; i< this->m_vertices.size(); ++i) {
+    // scan through vertexes and offset them
+    for (int i = 0; i < this->m_vertices.size(); ++i) {
         auto mpair = map_vertex_triangles.find(i);
-        if (mpair != map_vertex_triangles.end() ) {
+        if (mpair != map_vertex_triangles.end()) {
             std::vector<int>& mverttriangles = mpair->second;
             int ntri = mverttriangles.size();
-            ChMatrixDynamic<> A (ntri, ntri);
-            ChMatrixDynamic<> b (ntri,1);
-            ChMatrixDynamic<> x (ntri,1);
-            for (int j=0; j< ntri; ++j) {
-                b(j,0)=1;
-                for (int k=0; k< ntri; ++k) {
-                    A(j,k) = Vdot(this->getTriangle(mverttriangles[j]).GetNormal(), this->getTriangle(mverttriangles[k]).GetNormal());
+            ChMatrixDynamic<> A(ntri, ntri);
+            ChMatrixDynamic<> b(ntri, 1);
+            ChMatrixDynamic<> x(ntri, 1);
+            for (int j = 0; j < ntri; ++j) {
+                b(j, 0) = 1;
+                for (int k = 0; k < ntri; ++k) {
+                    A(j, k) = Vdot(this->getTriangle(mverttriangles[j]).GetNormal(),
+                                   this->getTriangle(mverttriangles[k]).GetNormal());
                 }
             }
-            ChLinearAlgebra::Solve_LinSys(A,&b,&x);
+            ChLinearAlgebra::Solve_LinSys(A, &b, &x);
 
             // weighted sum as offset vector
             voffsets[i] = VNULL;
-            for (int j=0; j< ntri; ++j) {
+            for (int j = 0; j < ntri; ++j) {
                 voffsets[i] += this->getTriangle(mverttriangles[j]).GetNormal() * x(j);
             }
         }
     }
 
     // apply offset vectors to itself:
-    for (int i = 0; i< this->m_vertices.size(); ++i) {
+    for (int i = 0; i < this->m_vertices.size(); ++i) {
         m_vertices[i] += voffsets[i] * moffset;
     }
 
     return true;
 }
 
-
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono

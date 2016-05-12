@@ -21,8 +21,8 @@
 
 #include <math.h>
 
-#include "chrono/geometry/ChCLine.h"
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/geometry/ChCLine.h"
 
 namespace chrono {
 namespace geometry {
@@ -40,23 +40,20 @@ class ChApi ChLineBezier : public ChLine {
     ChLineBezier(const std::string& filename);
     ChLineBezier(const ChLineBezier& source);
     ChLineBezier(const ChLineBezier* source);
-
     ~ChLineBezier();
 
-    virtual int GetClassType() { return CH_GEOCLASS_LINEBEZIER; }
+    virtual int GetClassType() const override { return CH_GEOCLASS_LINEBEZIER; }
 
     virtual void Set_closed(bool mc) {}
     virtual void Set_complexity(int mc) {}
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(Vector& pos, const double parU, const double parV = 0., const double parW = 0.);
+    virtual void Evaluate(ChVector<>& pos,
+                          const double parU,
+                          const double parV = 0.,
+                          const double parW = 0.) const override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -67,8 +64,7 @@ class ChApi ChLineBezier : public ChLine {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class

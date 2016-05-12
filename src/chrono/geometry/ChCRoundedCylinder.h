@@ -1,53 +1,45 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_ROUNDEDCYLINDER_H
 #define CHC_ROUNDEDCYLINDER_H
 
-
-#include "ChCGeometry.h"
+#include "chrono/geometry/ChCGeometry.h"
 
 namespace chrono {
 namespace geometry {
 
 #define CH_GEOCLASS_ROUNDEDCYLINDER 15
 
-///
-/// A capsule geometric object for collision, visualization, etc.
-///
+/// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
 
 class ChApi ChRoundedCylinder : public ChGeometry {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChRoundedCylinder, ChGeometry);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChVector<> center;  ///< cylinder center
+    double rad;         ///< cylinder radius
+    double hlen;        ///< cylinder halflength
+    double radsphere;   ///< Radius of sweeping sphere
 
-    ChRoundedCylinder() {
-        center = ChVector<>(0, 0, 0);
-        rad = 0;
-        hlen = 0;
-        radsphere = 0;
-    };
-
-    ChRoundedCylinder(ChVector<>& mcenter, double mrad, double mhlen, double mradsphere) {
-        center = mcenter;
-        rad = mrad;
-        hlen = mhlen;
-        radsphere = mradsphere;
-    }
-
-    ChRoundedCylinder(const ChRoundedCylinder& source) { Copy(&source); }
+  public:
+    ChRoundedCylinder() : center(VNULL), rad(0), hlen(0), radsphere(0) {}
+    ChRoundedCylinder(ChVector<>& mcenter, double mrad, double mhlen, double mradsphere)
+        : center(mcenter), rad(mrad), hlen(mhlen), radsphere(mradsphere) {}
+    ChRoundedCylinder(const ChRoundedCylinder& source);
+    ~ChRoundedCylinder() {}
 
     void Copy(const ChRoundedCylinder* source) {
         center = source->center;
@@ -62,11 +54,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
         return mgeo;
     }
 
-    //
-    // OVERRIDE BASE CLASS FUNCTIONS
-    //
-
-    virtual int GetClassType() { return CH_GEOCLASS_ROUNDEDCYLINDER; }
+    virtual int GetClassType() const override { return CH_GEOCLASS_ROUNDEDCYLINDER; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -74,39 +62,19 @@ class ChApi ChRoundedCylinder : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL) {
-        //***TO DO*** Implement Bounding Box
+                                ChMatrix33<>* Rot = NULL) const override {
+        //// TODO
     }
 
-    virtual ChVector<> Baricenter() { return center; }
+    virtual ChVector<> Baricenter() const override { return center; }
 
-    //***TO DO***  obsolete/unused
-    virtual void CovarianceMatrix(ChMatrix33<>& C) {
-        C.Reset();
-        C(0, 0) = center.x * center.x;
-        C(1, 1) = center.y * center.y;
-        C(2, 2) = center.z * center.z;
-    }
+    //// TODO obsolete/unused
+    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
+    virtual int GetManifoldDimension() const override { return 3; }
 
-    //
-    // DATA
-    //
-
-    ChVector<> center;
-    double rad;
-    double hlen;
-    /// Radius of sweeping sphere
-    double radsphere;
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -119,8 +87,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -131,11 +98,9 @@ class ChApi ChRoundedCylinder : public ChGeometry {
         marchive >> CHNVP(hlen);
         marchive >> CHNVP(radsphere);
     }
-
-
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono
 
 #endif

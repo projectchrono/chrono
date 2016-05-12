@@ -1,62 +1,43 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_CAPSULE_H
 #define CHC_CAPSULE_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCapsule.h
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCGeometry.h"
+#include "chrono/geometry/ChCGeometry.h"
 
 namespace chrono {
 namespace geometry {
 
 #define CH_GEOCLASS_CAPSULE 14
 
-///
-/// A capsule geometric object for collision, visualization, etc.
-///
+/// A capsule geometric object for collision and visualization.
 
 class ChApi ChCapsule : public ChGeometry {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChCapsule, ChGeometry);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChVector<> center;  ///< capsule center
+    double rad;         ///< capsule radius
+    double hlen;        ///< capsule halflength
 
-    ChCapsule() {
-        center = ChVector<>(0, 0, 0);
-        rad = 0;
-        hlen = 0;
-    };
-
-    ChCapsule(ChVector<>& mcenter, double mrad, double mhlen) {
-        center = mcenter;
-        rad = mrad;
-        hlen = mhlen;
-    }
-
-    ChCapsule(const ChCapsule& source) { Copy(&source); }
+  public:
+    ChCapsule() : center(VNULL), rad(0), hlen(0) {}
+    ChCapsule(ChVector<>& mcenter, double mrad, double mhlen) : center(mcenter), rad(mrad), hlen(mhlen) {}
+    ChCapsule(const ChCapsule& source);
+    ~ChCapsule() {}
 
     void Copy(const ChCapsule* source) {
         center = source->center;
@@ -70,11 +51,7 @@ class ChApi ChCapsule : public ChGeometry {
         return mgeo;
     }
 
-    //
-    // OVERRIDE BASE CLASS FUNCTIONS
-    //
-
-    virtual int GetClassType() { return CH_GEOCLASS_CAPSULE; }
+    virtual int GetClassType() const override { return CH_GEOCLASS_CAPSULE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -82,44 +59,16 @@ class ChApi ChCapsule : public ChGeometry {
                                 double& ymax,
                                 double& zmin,
                                 double& zmax,
-                                ChMatrix33<>* Rot = NULL) {
-        Vector trsfCenter = Rot ? Rot->MatrT_x_Vect(center) : center;
+                                ChMatrix33<>* Rot = NULL) const override;
 
-        xmin = trsfCenter.x - rad;
-        xmax = trsfCenter.x + rad;
-        ymin = trsfCenter.y - (rad + hlen);
-        ymax = trsfCenter.y + (rad + hlen);
-        zmin = trsfCenter.z - rad;
-        zmax = trsfCenter.z + rad;
-    }
+    virtual ChVector<> Baricenter() const override { return center; }
 
-    virtual ChVector<> Baricenter() { return center; }
-
-    //***TO DO***  obsolete/unused
-    virtual void CovarianceMatrix(ChMatrix33<>& C) {
-        C.Reset();
-        C(0, 0) = center.x * center.x;
-        C(1, 1) = center.y * center.y;
-        C(2, 2) = center.z * center.z;
-    }
+    virtual void CovarianceMatrix(ChMatrix33<>& C) const override;
 
     /// This is a solid
-    virtual int GetManifoldDimension() { return 3; }
+    virtual int GetManifoldDimension() const override { return 3; }
 
-    //
-    // DATA
-    //
-
-    ChVector<> center;
-    double rad;
-    double hlen;
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -131,8 +80,7 @@ class ChApi ChCapsule : public ChGeometry {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -140,12 +88,11 @@ class ChApi ChCapsule : public ChGeometry {
         // stream in all member data:
         marchive >> CHNVP(center);
         marchive >> CHNVP(rad);
-        marchive >> CHNVP(hlen); 
+        marchive >> CHNVP(hlen);
     }
-
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace geometry
+}  // end namespace chrono
 
 #endif
