@@ -32,10 +32,6 @@ namespace chrono {
 class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
     CH_RTTI(ChConstraintTwoGeneric, ChConstraintTwo)
 
-    //
-    // DATA
-    //
-
   protected:
     /// The [Cq_a] jacobian of the constraint
     ChMatrixDynamic<double>* Cq_a;
@@ -50,9 +46,6 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
     ChMatrixDynamic<double>* Eq_b;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintTwoGeneric() { Cq_a = Cq_b = Eq_a = Eq_b = NULL; }
 
@@ -86,14 +79,11 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
             delete Eq_b;
     }
 
-    virtual ChConstraint* new_Duplicate() { return new ChConstraintTwoGeneric(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintTwoGeneric* Clone() const override { return new ChConstraintTwoGeneric(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintTwoGeneric& operator=(const ChConstraintTwoGeneric& other);
-
-    //
-    // FUNCTIONS
-    //
 
     /// Access jacobian matrix
     virtual ChMatrix<double>* Get_Cq_a() { return Cq_a; }
@@ -139,7 +129,6 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative solvers.
-
     virtual void Increment_q(const double deltal) {
         if (variables_a->IsActive())
             for (int i = 0; i < Eq_a->GetRows(); i++)
@@ -193,24 +182,19 @@ class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
     /// offset of the corresponding ChVariable.
     /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-	virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())
             storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
             storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
     }
-	virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
+
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_a->IsActive())
             storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
             storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
     }
-
-
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

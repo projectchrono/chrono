@@ -31,10 +31,6 @@ namespace chrono {
 class ChApi ChConstraintTwo : public ChConstraint {
     CH_RTTI(ChConstraintTwo, ChConstraint)
 
-    //
-    // DATA
-    //
-
   protected:
     /// The first  constrained object
     ChVariables* variables_a;
@@ -42,9 +38,6 @@ class ChApi ChConstraintTwo : public ChConstraint {
     ChVariables* variables_b;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintTwo() { variables_a = variables_b = NULL; }
 
@@ -54,14 +47,10 @@ class ChApi ChConstraintTwo : public ChConstraint {
         variables_b = other.variables_b;
     }
 
-    virtual ~ChConstraintTwo(){};
+    virtual ~ChConstraintTwo() {}
 
     /// Assignment operator: copy from other object
     ChConstraintTwo& operator=(const ChConstraintTwo& other);
-
-    //
-    // FUNCTIONS
-    //
 
     /// Access jacobian matrix
     virtual ChMatrix<double>* Get_Cq_a() = 0;
@@ -81,10 +70,6 @@ class ChApi ChConstraintTwo : public ChConstraint {
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
     virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) = 0;
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

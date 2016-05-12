@@ -31,18 +31,11 @@ namespace chrono {
 class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     CH_RTTI(ChConstraintTwoGenericBoxed, ChConstraintTwoGeneric)
 
-    //
-    // DATA
-    //
-
   protected:
     double l_min;
     double l_max;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintTwoGenericBoxed() {
         l_min = -1.;
@@ -52,8 +45,8 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     /// Construct and immediately set references to variables
     ChConstraintTwoGenericBoxed(ChVariables* mvariables_a, ChVariables* mvariables_b)
         : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
-        l_min = -1.;
-        l_max = 1.;
+        l_min = -1;
+        l_max = 1;
     }
 
     /// Copy constructor
@@ -62,9 +55,10 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
         l_max = other.l_max;
     }
 
-    virtual ~ChConstraintTwoGenericBoxed(){};
+    virtual ~ChConstraintTwoGenericBoxed() {}
 
-    virtual ChConstraintTwoGenericBoxed* new_Duplicate() { return new ChConstraintTwoGenericBoxed(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintTwoGenericBoxed* Clone() const override { return new ChConstraintTwoGenericBoxed(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintTwoGenericBoxed& operator=(const ChConstraintTwoGenericBoxed& other) {
@@ -80,9 +74,6 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
         return *this;
     }
 
-    //
-    // FUNCTIONS
-    //
     /// Set lower/upper limit for the multiplier.
     void SetBoxedMinMax(double mmin, double mmax) {
         assert(mmin <= mmax);
@@ -109,10 +100,6 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     /// linear map  mc_i =  [Cq]*q + b_i + cfm*l_i , returns the
     /// violation of the constraint, considering inequalities, etc.
     virtual double Violation(double mc_i);
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

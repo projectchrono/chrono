@@ -25,15 +25,7 @@ namespace chrono {
 class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
     CH_RTTI(ChConstraintNodeFrictionT, ChConstraintTwoGeneric)
 
-    //
-    // DATA
-    //
-
-  protected:
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintNodeFrictionT() { mode = CONSTRAINT_FRIC; }
 
@@ -51,7 +43,8 @@ class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
 
     virtual ~ChConstraintNodeFrictionT() {}
 
-    virtual ChConstraint* new_Duplicate() { return new ChConstraintNodeFrictionT(*this); };
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintNodeFrictionT* Clone() const override { return new ChConstraintNodeFrictionT(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintNodeFrictionT& operator=(const ChConstraintNodeFrictionT& other) {
@@ -64,20 +57,12 @@ class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
         return *this;
     }
 
-    //
-    // FUNCTIONS
-    //
-
     /// Tells that this constraint is not linear, that is: it cannot
     /// be solved with a plain simplex solver.
     virtual bool IsLinear() const { return false; }
 
     /// The constraint is satisfied?
     virtual double Violation(double mc_i);
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

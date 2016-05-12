@@ -57,7 +57,7 @@ ChLinkMask::ChLinkMask(ChLinkMask& source) {
     nconstr = source.nconstr;
     constraints.resize(source.nconstr);
     for (int i = 0; i < nconstr; i++)
-        constraints[i] = (ChConstraintTwoBodies*)source.Constr_N(i).new_Duplicate();
+        constraints[i] = source.Constr_N(i).Clone();
 }
 
 void ChLinkMask::ResetNconstr(int newnconstr) {
@@ -92,7 +92,7 @@ void ChLinkMask::Copy(ChLinkMask* source) {
     constraints.resize(nconstr);
 
     for (i = 0; i < nconstr; i++)
-        constraints[i] = (ChConstraintTwoBodies*)source->constraints[i]->new_Duplicate();
+        constraints[i] = source->constraints[i]->Clone();
 }
 
 ChLinkMask* ChLinkMask::NewDuplicate() {

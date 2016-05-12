@@ -17,7 +17,6 @@
 
 namespace chrono {
 
-
 /// This constraint is built on top of two ChConstraintTuple objects, each with a tuple of
 /// 1 or 2 or 3 differently-sized jacobian chunks. For instance, this might
 /// happen because you want a constraint between an edge (i.e. two xyz variables, each
@@ -32,39 +31,27 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     typedef typename Ta::type_constraint_tuple type_constraint_tuple_a;
     typedef typename Tb::type_constraint_tuple type_constraint_tuple_b;
 
-    //
-    // DATA
-    //
-
   protected:
     type_constraint_tuple_a tuple_a;
     type_constraint_tuple_b tuple_b;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     /// Default constructor
     ChConstraintTwoTuples() {}
 
     /// Copy constructor
-    ChConstraintTwoTuples(const ChConstraintTwoTuples& other) :
-        tuple_a(other.tuple_a),
-        tuple_b(other.tuple_b) {}
+    ChConstraintTwoTuples(const ChConstraintTwoTuples& other) : tuple_a(other.tuple_a), tuple_b(other.tuple_b) {}
 
-    virtual ~ChConstraintTwoTuples(){};
+    virtual ~ChConstraintTwoTuples() {}
 
-    virtual ChConstraint* new_Duplicate() { return new ChConstraintTwoTuples(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConstraintTwoTuples* Clone() const override { return new ChConstraintTwoTuples(*this); }
 
     /// Assignment operator: copy from other object
     ChConstraintTwoTuples& operator=(const ChConstraintTwoTuples& other) {
         tuple_a = other.tuple_a;
         tuple_b = other.tuple_b;
     }
-
-    //
-    // FUNCTIONS
-    //
 
     /// Access tuple a
     type_constraint_tuple_a& Get_tuple_a() { return tuple_a; }
@@ -95,7 +82,6 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///  v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative solvers.
-
     virtual void Increment_q(const double deltal) {
         tuple_a.Increment_q(deltal);
         tuple_b.Increment_q(deltal);
