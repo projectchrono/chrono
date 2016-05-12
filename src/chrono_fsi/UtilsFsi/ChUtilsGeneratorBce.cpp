@@ -17,7 +17,7 @@
 #include <fstream>  // std::ifstream
 #include <sstream>  // std::stringstream
 
-#include "chrono_fsi/ChUtilsGeneratorBce.h"
+#include "chrono_fsi/UtilsFsi/ChUtilsGeneratorBce.h"
 #include "chrono/core/ChMathematics.h"  // for CH_C_PI
 #include "chrono_fsi/ChDeviceUtils.cuh"
 

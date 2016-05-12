@@ -16,7 +16,7 @@
 // =============================================================================
 
 #include "chrono_fsi/ChBce.cuh"  //for FsiGeneralData
-#include "chrono_fsi/ChUtilsGeneralSph.cuh"
+#include "chrono_fsi/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {

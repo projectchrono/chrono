@@ -7,8 +7,8 @@
 // ****************************************************************************
 // This file contains miscellaneous macros and utilities used in the SPH code.
 // ****************************************************************************
-#ifndef CH_UTILS_GENERALSPH_CUH
-#define CH_UTILS_GENERALSPH_CUH
+#ifndef CH_SPH_GENERAL_CUH
+#define CH_SPH_GENERAL_CUH
 
 // ----------------------------------------------------------------------------
 // CUDA headers

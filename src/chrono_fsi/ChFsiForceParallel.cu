@@ -16,7 +16,7 @@
 // =============================================================================
 #include "chrono_fsi/ChFsiForceParallel.cuh"
 #include "chrono_fsi/ChDeviceUtils.cuh"
-#include "chrono_fsi/ChUtilsGeneralSph.cuh"
+#include "chrono_fsi/ChSphGeneral.cuh"
 #include <thrust/sort.h>
 
 namespace chrono {

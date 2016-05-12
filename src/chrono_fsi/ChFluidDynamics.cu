@@ -20,7 +20,7 @@
 
 #include "chrono_fsi/ChFluidDynamics.cuh"
 #include "chrono_fsi/ChDeviceUtils.cuh"
-#include "chrono_fsi/ChUtilsGeneralSph.cuh"
+#include "chrono_fsi/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {

@@ -15,7 +15,7 @@
 // Utility class for generating fluid markers.//
 // =============================================================================
 
-#include "chrono_fsi/ChUtilsGeneratorFluid.h"
+#include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFluid.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 
 namespace chrono {

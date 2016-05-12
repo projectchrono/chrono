@@ -67,10 +67,11 @@ ChFsiForceParallel.cu
 ChFsiGeneral.cu
 ChFsiInterface.cpp
 ChSystemFsi.cpp
-ChUtilsGeneratorBce.cpp
-ChUtilsGeneratorFluid.cpp
-ChUtilsGeneratorFsi.cpp
 ChFsiTypeConvert.cpp
+UtilsFsi/ChUtilsGeneratorBce.cpp
+UtilsFsi/ChUtilsGeneratorFluid.cpp
+UtilsFsi/ChUtilsGeneratorFsi.cpp
+UtilsFsi/ChUtilsPrintSph.cu
 )
 
 SET(ChronoEngine_FSI_HEADERS
@@ -83,13 +84,14 @@ ChFsiForceParallel.cuh
 ChFsiGeneral.cuh
 ChFsiInterface.h
 ChSystemFsi.h
-ChUtilsGeneratorBce.h
-ChUtilsGeneratorFluid.h
-ChUtilsGeneratorFsi.h
+ChSphGeneral.cuh
 ChApiFsi.h
-ChUtilsGeneralSph.cuh
 include/utils.h
 ChFsiTypeConvert.h
+UtilsFsi/ChUtilsGeneratorBce.h
+UtilsFsi/ChUtilsGeneratorFluid.h
+UtilsFsi/ChUtilsGeneratorFsi.h
+UtilsFsi/ChUtilsPrintSph.cuh
 )
 
 SOURCE_GROUP("" FILES 

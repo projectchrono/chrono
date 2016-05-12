@@ -20,7 +20,7 @@
 #include "utils/ChUtilsGenerators.h"
 
 #include "chrono_fsi/custom_math.h"
-#include "chrono_fsi/ChUtilsGeneratorFsi.h"
+#include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 // #include "chrono/core/ChFrame.h"

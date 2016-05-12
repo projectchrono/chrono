@@ -57,7 +57,7 @@
 //#include "chrono_fsi/FSI_Integrate.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
-#include "chrono_fsi/ChUtilsGeneratorFsi.h"
+#include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
 
 // FSI Interface Includes
