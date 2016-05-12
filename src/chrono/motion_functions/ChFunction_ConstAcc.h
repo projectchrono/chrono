@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_CONSTACC 8
-
 /// Constant acceleration function:
 ///
 ///   h = height, amount of displacement
@@ -46,7 +44,7 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_ConstAcc* Clone() const override { return new ChFunction_ConstAcc(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_CONSTACC); }
+    virtual FunctionType Get_Type() const override { return FUNCT_CONSTACC; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;

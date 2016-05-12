@@ -20,8 +20,6 @@
 
 namespace chrono {
 
-#define FUNCT_DERIVE 16
-
 /// Derivative of a function: y = df/dx
 ///
 /// Uses a numerical differentiation method to compute the derivative
@@ -42,7 +40,7 @@ class ChApi ChFunction_Derive : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Derive* Clone() const override { return new ChFunction_Derive(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_DERIVE); }
+    virtual FunctionType Get_Type() const override { return FUNCT_DERIVE; }
 
     virtual double Get_y(double x) const override;
 

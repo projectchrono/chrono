@@ -20,8 +20,6 @@
 
 namespace chrono {
 
-#define FUNCT_SEQUENCE 7
-
 /// Node for the list of functions in a ChFunction_Sequence object.
 class ChApi ChFseqNode {
   public:
@@ -110,7 +108,7 @@ class ChApi ChFunction_Sequence : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Sequence* Clone() const override { return new ChFunction_Sequence(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_SEQUENCE); }
+    virtual FunctionType Get_Type() const override { return FUNCT_SEQUENCE; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;

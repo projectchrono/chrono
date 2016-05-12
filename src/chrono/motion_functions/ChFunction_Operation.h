@@ -20,8 +20,6 @@
 
 namespace chrono {
 
-#define FUNCT_OPERATION 12
-
 enum eChOperation {
     ChOP_ADD = 0,
     ChOP_SUB,
@@ -70,7 +68,7 @@ class ChApi ChFunction_Operation : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Operation* Clone() const override { return new ChFunction_Operation(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_OPERATION); }
+    virtual FunctionType Get_Type() const override { return FUNCT_OPERATION; }
 
     virtual double Get_y(double x) const override;
 

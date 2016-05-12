@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_POLY345 9
-
 /// Ramp function, as a 3-4-5 polynomial:
 ///
 ///   - h   = height, amount of displacement
@@ -42,7 +40,7 @@ class ChApi ChFunction_Poly345 : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Poly345* Clone() const override { return new ChFunction_Poly345(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_POLY345); }
+    virtual FunctionType Get_Type() const override { return FUNCT_POLY345; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;

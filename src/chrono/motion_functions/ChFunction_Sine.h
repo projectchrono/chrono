@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_SINE 2
-
 /// SINE FUNCTION:
 /// y = sin (phase + w*x )     w=2*PI*freq
 
@@ -43,7 +41,7 @@ class ChApi ChFunction_Sine : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Sine* Clone() const override { return new ChFunction_Sine(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_SINE); }
+    virtual FunctionType Get_Type() const override { return FUNCT_SINE; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;

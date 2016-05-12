@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_INTEGRATE 17
-
 /// Integral of a function: y = int{ f(x) dx.
 ///
 /// Uses a numerical quadrature method to compute the definite integral.
@@ -45,7 +43,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Integrate* Clone() const override { return new ChFunction_Integrate(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_INTEGRATE); }
+    virtual FunctionType Get_Type() const override { return FUNCT_INTEGRATE; }
 
     virtual double Get_y(double x) const override;
 

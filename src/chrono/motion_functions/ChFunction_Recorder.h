@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_RECORDER 11
-
 class ChApi ChRecPoint {
   public:
     double x;
@@ -62,7 +60,7 @@ class ChApi ChFunction_Recorder : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Recorder* Clone() const override { return new ChFunction_Recorder(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_RECORDER); }
+    virtual FunctionType Get_Type() const override { return FUNCT_RECORDER; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;

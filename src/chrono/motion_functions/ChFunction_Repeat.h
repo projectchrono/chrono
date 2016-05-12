@@ -20,8 +20,6 @@
 
 namespace chrono {
 
-#define FUNCT_REPEAT 19
-
 /// Repeat function:
 ///     y = __/__/__/
 ///
@@ -43,7 +41,7 @@ class ChApi ChFunction_Repeat : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Repeat* Clone() const override { return new ChFunction_Repeat(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_REPEAT); }
+    virtual FunctionType Get_Type() const override { return FUNCT_REPEAT; }
 
     virtual double Get_y(double x) const override;
 

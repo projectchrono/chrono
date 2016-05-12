@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_NOISE 15
-
 /// Noise function:
 /// y = multi-octave noise with cubic interpolation
 
@@ -41,7 +39,7 @@ class ChApi ChFunction_Noise : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Noise* Clone() const override { return new ChFunction_Noise(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_NOISE); }
+    virtual FunctionType Get_Type() const override { return FUNCT_NOISE; }
 
     virtual double Get_y(double x) const override;
 

@@ -10,12 +10,11 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChLinkEngine.h"
+#include "chrono/physics/ChLinkEngine.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkEngine> a_registration_ChLinkEngine;
 
 ChLinkEngine::ChLinkEngine() {
@@ -134,10 +133,10 @@ void ChLinkEngine::Set_learn(int mset) {
         ChangedLinkMask();
     }
 
-    if (eng_mode == ENG_MODE_ROTATION && rot_funct->Get_Type() != FUNCT_RECORDER)
+    if (eng_mode == ENG_MODE_ROTATION && rot_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
         rot_funct = std::make_shared<ChFunction_Recorder>();
 
-    if (eng_mode == ENG_MODE_SPEED && spe_funct->Get_Type() != FUNCT_RECORDER)
+    if (eng_mode == ENG_MODE_SPEED && spe_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
         spe_funct = std::make_shared<ChFunction_Recorder>();
 }
 
@@ -175,15 +174,15 @@ void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
         ChangedLinkMask();  // update all from new mask
     }
 
-    if (eng_mode == ENG_MODE_KEY_ROTATION && rot_funct->Get_Type() != FUNCT_CONST)
+    if (eng_mode == ENG_MODE_KEY_ROTATION && rot_funct->Get_Type() != ChFunction::FUNCT_CONST)
         rot_funct = std::make_shared<ChFunction_Const>();
 
     if (eng_mode == ENG_MODE_KEY_POLAR) {
-        if (rot_funct->Get_Type() != FUNCT_CONST)
+        if (rot_funct->Get_Type() != ChFunction::FUNCT_CONST)
             rot_funct = std::make_shared<ChFunction_Const>();
-        if (rot_funct_x->Get_Type() != FUNCT_CONST)
+        if (rot_funct_x->Get_Type() != ChFunction::FUNCT_CONST)
             rot_funct_x = std::make_shared<ChFunction_Const>();
-        if (rot_funct_y->Get_Type() != FUNCT_CONST)
+        if (rot_funct_y->Get_Type() != ChFunction::FUNCT_CONST)
             rot_funct_y = std::make_shared<ChFunction_Const>();
     }
 }
@@ -260,7 +259,7 @@ void ChLinkEngine::UpdateTime(double mytime) {
         }
 
         if (eng_mode == ENG_MODE_ROTATION) {
-            if (rot_funct->Get_Type() != FUNCT_RECORDER)
+            if (rot_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
                 rot_funct = std::make_shared<ChFunction_Recorder>();
 
             // record point
@@ -271,7 +270,7 @@ void ChLinkEngine::UpdateTime(double mytime) {
         }
 
         if (eng_mode == ENG_MODE_SPEED) {
-            if (spe_funct->Get_Type() != FUNCT_RECORDER)
+            if (spe_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
                 spe_funct = std::make_shared<ChFunction_Recorder>();
 
             // record point

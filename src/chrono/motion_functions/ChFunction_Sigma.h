@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_SIGMA 5
-
 /// Sigma function:
 ///   y = polynomial smooth ramp
 
@@ -41,7 +39,7 @@ class ChApi ChFunction_Sigma : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Sigma* Clone() const override { return new ChFunction_Sigma(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_SIGMA); }
+    virtual FunctionType Get_Type() const override { return FUNCT_SIGMA; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;

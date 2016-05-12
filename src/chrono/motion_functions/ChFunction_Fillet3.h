@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_FILLET3 10
-
 /// Cubic fillet function (cubic poly with C0 C1 boundary conditions).
 ///
 ///  - y1 = y at the beginning
@@ -48,7 +46,7 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Fillet3* Clone() const override { return new ChFunction_Fillet3(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_FILLET3); }
+    virtual FunctionType Get_Type() const override { return FUNCT_FILLET3; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;

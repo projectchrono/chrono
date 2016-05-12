@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_POLY 4
-
 #define POLY_COEFF_ARRAY 6
 
 /// POLYNOMIAL FUNCTION:
@@ -40,7 +38,7 @@ class ChApi ChFunction_Poly : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Poly* Clone() const override { return new ChFunction_Poly(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_POLY); }
+    virtual FunctionType Get_Type() const override { return FUNCT_POLY; }
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;
     virtual double Get_y_dxdx(double x) const override;

@@ -20,8 +20,6 @@
 
 namespace chrono {
 
-#define FUNCT_MIRROR 18
-
 /// Mirror function:
 ///    y = __/\__
 ///
@@ -42,7 +40,7 @@ class ChApi ChFunction_Mirror : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Mirror* Clone() const override { return new ChFunction_Mirror(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_MIRROR); }
+    virtual FunctionType Get_Type() const override { return FUNCT_MIRROR; }
 
     virtual double Get_y(double x) const override;
 

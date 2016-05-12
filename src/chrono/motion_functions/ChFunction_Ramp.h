@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_RAMP 1
-
 /// Linear function (like a straight ramp):
 /// y = y0 + x * speed
 
@@ -40,7 +38,7 @@ class ChApi ChFunction_Ramp : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Ramp* Clone() const override { return new ChFunction_Ramp(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_RAMP); }
+    virtual FunctionType Get_Type() const override { return FUNCT_RAMP; }
 
     virtual double Get_y(double x) const override { return (y0 + (x * ang)); }
     virtual double Get_y_dx(double x) const override { return (ang); }

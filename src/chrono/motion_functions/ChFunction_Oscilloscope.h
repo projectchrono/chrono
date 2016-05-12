@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_OSCILLOSCOPE 20
-
 /// Oscilloscope function
 ///
 /// y = interpolation of array of (x,y) data,
@@ -50,7 +48,7 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Oscilloscope* Clone() const override { return new ChFunction_Oscilloscope(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_OSCILLOSCOPE); }
+    virtual FunctionType Get_Type() const override { return FUNCT_OSCILLOSCOPE; }
 
     virtual double Get_y(double x) const override;
 

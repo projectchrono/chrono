@@ -9,21 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChMarker.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 
-#include "core/ChTransform.h"
-#include "physics/ChMarker.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChBody.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/physics/ChMarker.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 
@@ -237,7 +228,7 @@ void ChMarker::UpdateTime(double mytime) {
     csys.pos.x = motion_X->Get_y(mytime);
     csys.pos.y = motion_Y->Get_y(mytime);
     csys.pos.z = motion_Z->Get_y(mytime);
-    if (motion_X->Get_Type() != FUNCT_MOCAP)
+    if (motion_X->Get_Type() != ChFunction::FUNCT_MOCAP)
         csys.pos += rest_coord.pos;
 
     // update speeds:		rel_pos_dt
@@ -311,15 +302,14 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
     // otherwise see if a BDF is needed, cause an external 3rd party is moving the marker
     this->motion_type = M_MOTION_FUNCTIONS;
 
+    // if POSITION or ROTATION ("rel_pos") has been changed in acceptable time step...
     if ((!(Vequal(coord.pos, last_rel_coord.pos)) || !(Qequal(coord.rot, last_rel_coord.rot))) && (fabs(mstep) < 0.1) &&
-        (mstep != 0))  // if POSITION or ROTATION ("rel_pos") has been changed in acceptable time step,.
-    {
+        (mstep != 0)) {
+        // ... and if motion wasn't caused by motion laws, then it was a keyframed movement!
         if ((motion_X->Get_y(mtime) == 0) && (motion_Y->Get_y(mtime) == 0) && (motion_Z->Get_y(mtime) == 0) &&
-            (motion_ang->Get_y(mtime) == 0) && (motion_X->Get_Type() == FUNCT_CONST) &&
-            (motion_Y->Get_Type() == FUNCT_CONST) && (motion_Z->Get_Type() == FUNCT_CONST) &&
-            (motion_ang->Get_Type() ==
-             FUNCT_CONST))  // .. and if motion wasn't caused by motion laws, then it was a keyframed movement!
-        {
+            (motion_ang->Get_y(mtime) == 0) && (motion_X->Get_Type() == ChFunction::FUNCT_CONST) &&
+            (motion_Y->Get_Type() == ChFunction::FUNCT_CONST) && (motion_Z->Get_Type() == ChFunction::FUNCT_CONST) &&
+            (motion_ang->Get_Type() == ChFunction::FUNCT_CONST)) {
             // compute the relative speed by BDF !
             m_rel_pos_dt.pos = Vmul(Vsub(coord.pos, last_rel_coord.pos), 1 / mstep);
             m_rel_pos_dt.rot = Qscale(Qsub(coord.rot, last_rel_coord.rot), 1 / mstep);

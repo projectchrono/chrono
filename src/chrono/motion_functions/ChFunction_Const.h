@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_CONST 0
-
 /// Constant function:  y = C
 
 class ChApi ChFunction_Const : public ChFunction {
@@ -39,7 +37,7 @@ class ChApi ChFunction_Const : public ChFunction {
     virtual ChFunction_Const* Clone() const override { return new ChFunction_Const(*this); }
 
     /// Returns the y value of the function, at position x.
-    virtual int Get_Type() const override { return (FUNCT_CONST); }
+    virtual FunctionType Get_Type() const override { return FUNCT_CONST; }
 
     virtual double Get_y(double x) const override { return C; }
     virtual double Get_y_dx(double x) const override { return 0; }

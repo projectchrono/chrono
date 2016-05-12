@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_MOCAP 3
-
 /// Motion capture (sample) function:
 /// y = (linear interpolated array of samples)
 
@@ -45,7 +43,7 @@ class ChApi ChFunction_Mocap : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Mocap* Clone() const override { return new ChFunction_Mocap(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_MOCAP); }
+    virtual FunctionType Get_Type() const override { return FUNCT_MOCAP; }
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;
     virtual double Get_y_dxdx(double x) const override;

@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define FUNCT_MATLAB 13
-
 #define CHF_MATLAB_STRING_LEN 200
 
 /// Matlab function: y = matlab evaluation of function y=f(x)
@@ -39,7 +37,7 @@ class ChApi ChFunction_Matlab : public ChFunction {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Matlab* Clone() const override { return new ChFunction_Matlab(*this); }
 
-    virtual int Get_Type() const override { return (FUNCT_MATLAB); }
+    virtual FunctionType Get_Type() const override { return FUNCT_MATLAB; }
 
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;
