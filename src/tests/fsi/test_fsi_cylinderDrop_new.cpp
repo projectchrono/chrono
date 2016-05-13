@@ -35,7 +35,6 @@
 
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
 
 // Chrono Vehicle Include
 //#include "chrono_fsi/VehicleExtraProperties.h"
