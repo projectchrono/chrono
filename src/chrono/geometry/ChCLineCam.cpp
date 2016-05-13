@@ -52,26 +52,6 @@ ChLineCam::ChLineCam(const ChLineCam& source) : ChLine(source) {
     internal = source.internal;
 }
 
-void ChLineCam::Copy(const ChLineCam* source) {
-    // copy parent class data
-    ChLine::Copy(source);
-    // copy class data
-
-    type = source->type;
-
-    Rb = source->Rb;
-    Rr = source->Rr;
-    p = source->p;
-    d = source->d;
-    b0 = source->b0;
-    center = source->center;
-    e = source->e;
-    s = source->s;
-    law = source->law;
-    negative = source->negative;
-    internal = source->internal;
-}
-
 void ChLineCam::Set_Rb(double mrb) {
     Rb = mrb;
     if (e > 0.9 * Rb)

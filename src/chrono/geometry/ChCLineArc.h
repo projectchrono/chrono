@@ -47,16 +47,8 @@ class ChApi ChLineArc : public ChLine {
     ChLineArc(const ChLineArc& source);
     ~ChLineArc() {}
 
-    void Copy(const ChLineArc* source) {
-        ChLine::Copy(source);
-        origin = source->origin;
-        radius = source->radius;
-        angle1 = source->angle1;
-        angle2 = source->angle2;
-        counterclockwise = source->counterclockwise;
-    }
-
-    ChGeometry* Duplicate() { return new ChLineArc(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLineArc* Clone() const override { return new ChLineArc(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_LINEARC; }
 

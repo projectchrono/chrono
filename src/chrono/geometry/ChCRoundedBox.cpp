@@ -23,7 +23,7 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChRoundedBox> a_registration_ChRoundedBox;
 
-ChRoundedBox::ChRoundedBox(ChRoundedBox& source) {
+ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     Pos = source.Pos;
     Size = source.Size;
     Rot.CopyFromMatrix(source.Rot);

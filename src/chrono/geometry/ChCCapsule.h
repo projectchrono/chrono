@@ -39,17 +39,8 @@ class ChApi ChCapsule : public ChGeometry {
     ChCapsule(const ChCapsule& source);
     ~ChCapsule() {}
 
-    void Copy(const ChCapsule* source) {
-        center = source->center;
-        rad = source->rad;
-        hlen = source->hlen;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChCapsule();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChCapsule* Clone() const override { return new ChCapsule(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_CAPSULE; }
 

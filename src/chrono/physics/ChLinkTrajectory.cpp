@@ -9,17 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChLinkTrajectory.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkTrajectory.h"
-#include "geometry/ChCLineSegment.h"
+#include "chrono/physics/ChLinkTrajectory.h"
+#include "chrono/geometry/ChCLineSegment.h"
 
 namespace chrono {
 
@@ -62,7 +53,7 @@ void ChLinkTrajectory::Copy(ChLinkTrajectory* source) {
 
     space_fx = std::shared_ptr<ChFunction>(source->space_fx->Clone());  // deep copy
 
-    trajectory_line = std::shared_ptr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
+    trajectory_line = std::shared_ptr<ChLine>((ChLine*)source->trajectory_line->Clone());  // deep copy
 }
 
 ChLink* ChLinkTrajectory::new_Duplicate() {

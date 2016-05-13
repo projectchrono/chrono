@@ -12,24 +12,8 @@
 #ifndef CHLINKPOINTSPLINE_H
 #define CHLINKPOINTSPLINE_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkPointSpline.h
-//
-//
-//   Class for point-on-spline constraint
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkLock.h"
-#include "geometry/ChCLine.h"
+#include "chrono/physics/ChLinkLock.h"
+#include "chrono/geometry/ChCLine.h"
 
 namespace chrono {
 ///

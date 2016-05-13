@@ -29,15 +29,6 @@ ChLinePoly::ChLinePoly(const ChLinePoly& source) : ChLine(source) {
     degree = source.degree;
 }
 
-void ChLinePoly::Copy(const ChLinePoly* source) {
-    // Copy parent data;
-    ChLine::Copy(source);
-
-    // Copy custom data;
-    points = source->points;
-    degree = source->degree;
-}
-
 size_t ChLinePoly::Get_numpoints() const {
     return points.size();
 }

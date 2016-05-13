@@ -83,7 +83,7 @@ void ChLinePath::AddSubLine(std::shared_ptr<ChLine> mline, double duration) {
 }
 
 void ChLinePath::AddSubLine(ChLine& mline, double duration) {
-    std::shared_ptr<ChLine> pline((ChLine*)mline.Duplicate());
+    std::shared_ptr<ChLine> pline(mline.Clone());
     AddSubLine(pline, duration);
 }
 
@@ -96,7 +96,7 @@ void ChLinePath::InsertSubLine(size_t n, std::shared_ptr<ChLine> mline, double d
 }
 
 void ChLinePath::InsertSubLine(size_t n, ChLine& mline, double duration) {
-    std::shared_ptr<ChLine> pline((ChLine*)mline.Duplicate());
+    std::shared_ptr<ChLine> pline(mline.Clone());
     InsertSubLine(n, pline, duration);
 }
 

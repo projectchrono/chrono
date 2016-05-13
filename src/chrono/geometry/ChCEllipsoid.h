@@ -38,16 +38,8 @@ class ChApi ChEllipsoid : public ChGeometry {
     ChEllipsoid(const ChEllipsoid& source);
     ~ChEllipsoid() {}
 
-    void Copy(const ChEllipsoid* source) {
-        center = source->center;
-        rad = source->rad;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChEllipsoid();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChEllipsoid* Clone() const override { return new ChEllipsoid(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_SPHERE; }
 

@@ -38,16 +38,8 @@ class ChApi ChSphere : public ChGeometry {
     ChSphere(const ChSphere& source);
     ~ChSphere() {}
 
-    void Copy(const ChSphere* source) {
-        center = source->center;
-        rad = source->rad;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChSphere();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChSphere* Clone() const override { return new ChSphere(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_SPHERE; }
 

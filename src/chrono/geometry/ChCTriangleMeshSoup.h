@@ -34,6 +34,10 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
 
   public:
     ChTriangleMeshSoup() {}
+    ChTriangleMeshSoup(const ChTriangleMeshSoup& source);
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChTriangleMeshSoup* Clone() const override { return new ChTriangleMeshSoup(*this); }
 
     /// Access the n-th triangle in mesh
     virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }

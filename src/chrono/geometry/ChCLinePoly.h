@@ -39,12 +39,8 @@ class ChApi ChLinePoly : public ChLine {
     ChLinePoly(const ChLinePoly& source);
     ~ChLinePoly() {}
 
-    void Copy(const ChLinePoly* source);
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChLinePoly(*this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinePoly* Clone() const override { return new ChLinePoly(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_LINEPOLY; }
 

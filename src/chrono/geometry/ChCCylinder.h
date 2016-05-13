@@ -39,17 +39,8 @@ class ChApi ChCylinder : public ChGeometry {
     ChCylinder(const ChCylinder& source);
     ~ChCylinder() {}
 
-    void Copy(const ChCylinder* source) {
-        p1 = source->p1;
-        p2 = source->p2;
-        rad = source->rad;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChCylinder();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChCylinder* Clone() const override { return new ChCylinder(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_CYLINDER; }
 

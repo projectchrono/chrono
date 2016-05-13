@@ -39,13 +39,8 @@ class ChApi ChLineSegment : public ChLine {
     ChLineSegment(const ChLineSegment& source);
     ~ChLineSegment() {}
 
-    void Copy(const ChLineSegment* source) {
-        ChLine::Copy(source);
-        pA = source->pA;
-        pB = source->pB;
-    }
-
-    ChGeometry* Duplicate() { return new ChLineSegment(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLineSegment* Clone() const override { return new ChLineSegment(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_LINESEGMENT; }
 

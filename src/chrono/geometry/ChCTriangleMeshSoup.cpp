@@ -22,6 +22,10 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChTriangleMeshSoup> a_registration_ChTriangleMeshSoup;
 
+ChTriangleMeshSoup::ChTriangleMeshSoup(const ChTriangleMeshSoup& source) {
+    m_triangles = source.m_triangles;
+}
+
 void ChTriangleMeshSoup::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {
     for (int i = 0; i < this->m_triangles.size(); ++i) {
         m_triangles[i].p1 = rotscale * m_triangles[i].p1;

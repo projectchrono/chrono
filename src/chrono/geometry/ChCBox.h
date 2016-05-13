@@ -41,17 +41,8 @@ class ChApi ChBox : public ChGeometry {
     ChBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
     ChBox(const ChBox& source);
 
-    void Copy(ChBox* source) {
-        Pos = source->Pos;
-        Size = source->Size;
-        Rot.CopyFromMatrix(*source->GetRotm());
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChBox();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChBox* Clone() const override { return new ChBox(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_BOX; }
 

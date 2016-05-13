@@ -74,13 +74,8 @@ class ChApi ChLineCam : public ChLine {
     ChLineCam(const ChLineCam& source);
     ~ChLineCam() {}
 
-    void Copy(const ChLineCam* source);
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChLineCam();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLineCam* Clone() const override { return new ChLineCam(*this); }
 
     /// Get the class type as unique numerical ID.
     /// Each inherited class must return an unique ID.

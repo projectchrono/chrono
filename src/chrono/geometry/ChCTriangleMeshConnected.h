@@ -47,6 +47,11 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
   public:
     ChTriangleMeshConnected() {}
+    ChTriangleMeshConnected(const ChTriangleMeshConnected& source);
+    ~ChTriangleMeshConnected() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChTriangleMeshConnected* Clone() const override { return new ChTriangleMeshConnected(*this); }
 
     std::vector<ChVector<double>>& getCoordsVertices() { return m_vertices; }
     std::vector<ChVector<double>>& getCoordsNormals() { return m_normals; }

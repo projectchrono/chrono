@@ -40,13 +40,8 @@ class ChApi ChGeometry {
     ChGeometry(const ChGeometry& source) {}
     virtual ~ChGeometry() {}
 
-    virtual void Copy(ChGeometry* source) {}
-
-    virtual ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChGeometry();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor.
+    virtual ChGeometry* Clone() const = 0;
 
     /// Get the class type as unique numerical ID (faster
     /// than using ChronoRTTI mechanism).

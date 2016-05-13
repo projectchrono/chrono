@@ -34,16 +34,8 @@ class ChApi ChRoundedCone : public ChGeometry {
     ChRoundedCone(const ChRoundedCone& source);
     ~ChRoundedCone() {}
 
-    void Copy(const ChRoundedCone* source) {
-        center = source->center;
-        rad = source->rad;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChRoundedCone();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChRoundedCone* Clone() const override { return new ChRoundedCone(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_ROUNDEDCONE; }
 

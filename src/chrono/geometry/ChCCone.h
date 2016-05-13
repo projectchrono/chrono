@@ -38,16 +38,8 @@ class ChApi ChCone : public ChGeometry {
     ChCone(const ChCone& source);
     ~ChCone() {}
 
-    void Copy(const ChCone* source) {
-        center = source->center;
-        rad = source->rad;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChCone();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChCone* Clone() const override { return new ChCone(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_CONE; }
 

@@ -43,20 +43,11 @@ class ChApi ChTriangle : public ChGeometry {
     ChTriangle(const ChTriangle& source);
     ~ChTriangle() {}
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChTriangle* Clone() const override { return new ChTriangle(*this); }
+
     /// Assignment operator: copy from another triangle
     ChTriangle& operator=(const ChTriangle& source);
-
-    void Copy(const ChTriangle* source) {
-        p1 = source->p1;
-        p2 = source->p2;
-        p3 = source->p3;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChTriangle();
-        mgeo->Copy(this);
-        return mgeo;
-    }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_TRIANGLE; }
 

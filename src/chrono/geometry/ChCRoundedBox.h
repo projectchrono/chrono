@@ -41,20 +41,11 @@ class ChApi ChRoundedBox : public ChGeometry {
     ChRoundedBox(ChVector<>& mpos, ChMatrix33<>& mrot, ChVector<>& mlengths, double mradsphere)
         : Pos(mpos), Size(0.5 * mlengths), Rot(mrot), radsphere(mradsphere) {}
     ChRoundedBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
-    ChRoundedBox(ChRoundedBox& source);
+    ChRoundedBox(const ChRoundedBox& source);
     ~ChRoundedBox() {}
 
-    void Copy(ChRoundedBox* source) {
-        Pos = source->Pos;
-        Size = source->Size;
-        Rot.CopyFromMatrix(*source->GetRotm());
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChRoundedBox();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChRoundedBox* Clone() const override { return new ChRoundedBox(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_ROUNDEDBOX; }
 

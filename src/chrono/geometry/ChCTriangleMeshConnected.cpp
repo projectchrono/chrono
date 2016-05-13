@@ -299,7 +299,7 @@ int InPlaceParser::ProcessLine(int lineno, char* line, InPlaceParserInterface* c
                         foo++;
                         break;
                     } else if (IsHard(*foo))  // if we hit a hard separator, stomp a zero byte and store the hard
-                                              // separator argument
+                    // separator argument
                     {
                         const char* hard = &mHardString[*foo * 2];
                         *foo = 0;
@@ -437,7 +437,7 @@ const char** InPlaceParser::GetArglist(
                         foo++;
                         break;
                     } else if (IsHard(*foo))  // if we hit a hard separator, stomp a zero byte and store the hard
-                                              // separator argument
+                    // separator argument
                     {
                         const char* hard = &mHardString[*foo * 2];
                         *foo = 0;
@@ -537,9 +537,9 @@ int OBJ::LoadMesh(const char* fname, GeometryInterface* iface, bool textured) {
 /***
 static const char * GetArg(const char **argv,int i,int argc)
 {
-  const char * ret = 0;
-  if ( i < argc ) ret = argv[i];
-  return ret;
+const char * ret = 0;
+if ( i < argc ) ret = argv[i];
+return ret;
 }
 ****/
 
@@ -665,7 +665,7 @@ int OBJ::ParseLine(int /*lineno*/,
 
                for (int i=1; i<argc; i++)
                {
-                 GetVertex(v[i-1],argv[i] );
+               GetVertex(v[i-1],argv[i] );
                }
 
 
@@ -673,10 +673,10 @@ int OBJ::ParseLine(int /*lineno*/,
 
                if ( vcount >=3 ) // do the fan
                {
-                 for (int i=2; i<(vcount-1); i++)
-                 {
-                   mCallback->NodeTriangle(&v[0],&v[i],&v[i+1], mTextured);
-                 }
+               for (int i=2; i<(vcount-1); i++)
+               {
+               mCallback->NodeTriangle(&v[0],&v[i],&v[i+1], mTextured);
+               }
                }
                */
             }
@@ -738,10 +738,26 @@ class BuildMesh : public GeometryInterface {
     FloatVector mTexCoords;
     IntVector mIndices;
 };
+
+}  // end namespace WAVEFRONT
+
+
+// -----------------------------------------------------------------------------
+
+ChTriangleMeshConnected::ChTriangleMeshConnected(const ChTriangleMeshConnected& source) {
+    m_vertices = source.m_vertices;
+    m_normals = source.m_normals;
+    m_UV = source.m_UV;
+    m_colors = source.m_colors;
+
+    m_face_v_indices = source.m_face_v_indices;
+    m_face_n_indices = source.m_face_n_indices;
+    m_face_uv_indices = source.m_face_uv_indices;
+    m_face_col_indices = source.m_face_col_indices;
 }
 
 // Following function is a modified version of:
-
+//
 // Geometric Tools, LLC
 // Copyright (c) 1998-2014
 // Distributed under the Boost Software License, Version 1.0.

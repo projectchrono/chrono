@@ -40,16 +40,8 @@ class ChApi ChLine : public ChGeometry {
     ChLine(const ChLine& source);
     virtual ~ChLine() {}
 
-    void Copy(const ChLine* source) {
-        closed = source->closed;
-        complexityU = source->complexityU;
-    }
-
-    ChGeometry* Duplicate() {
-        ChGeometry* mgeo = new ChLine();
-        mgeo->Copy(this);
-        return mgeo;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLine* Clone() const override { return new ChLine(*this); }
 
     /// Get the class type as unique numerical ID (faster
     /// than using ChronoRTTI mechanism).

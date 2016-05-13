@@ -41,14 +41,8 @@ class ChApi ChLinePath : public ChLine {
     ChLinePath(const ChLinePath& source);
     ~ChLinePath() {}
 
-    void Copy(const ChLinePath* source) {
-        ChLine::Copy(source);
-        lines = source->lines;
-        end_times = source->end_times;
-        durations = source->durations;
-    }
-
-    ChGeometry* Duplicate() { return new ChLinePath(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinePath* Clone() const override { return new ChLinePath(*this); }
 
     virtual int GetClassType() const override { return CH_GEOCLASS_LINEPATH; }
 
