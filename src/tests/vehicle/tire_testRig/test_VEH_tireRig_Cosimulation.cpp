@@ -72,13 +72,9 @@ class RigNode {
     std::shared_ptr<ChDeformableTire> m_tire;
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;
 
-    void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indeces) {
-        std::cout << "[Rig node    ] contact forces" << std::endl;
-        for (int i = 0; i < indeces.size(); i++) {
-            std::cout << "  id = " << indeces[i] << "  force = " << forces[i].x << "  " << forces[i].y << "  "
-                      << forces[i].z << std::endl;
-        }
-    }
+    void PrintLowestNode();
+    void PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel);
+    void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indeces);
 };
 
 RigNode::RigNode(int num_threads) {
@@ -182,13 +178,9 @@ void RigNode::Synchronize(int step_number, double time) {
     std::vector<ChVector<int>> triangles;
     m_contact_load->OutputSimpleMesh(vert_pos, vert_vel, triangles);
 
-    // Display information on lowest contact vertex.
-    auto lowest = std::min_element(vert_pos.begin(), vert_pos.end(),
-                                   [](const ChVector<>& a, const ChVector<>& b) { return a.z < b.z; });
-    int index = lowest - vert_pos.begin();
-    const ChVector<>& vel = vert_vel[index];
-    std::cout << "[Rig node    ] lowest vertex:  index = " << index << "  height = " << (*lowest).z
-              << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+    // Display information on lowest mesh node and lowest contact vertex.
+    PrintLowestNode();
+    PrintLowestVertex(vert_pos, vert_vel);
 
     // Send tire mesh vertex locations and velocities to the terrain node
     unsigned int num_vert = (unsigned int)vert_pos.size();
@@ -256,6 +248,43 @@ void RigNode::Advance(double step_size) {
     }
 }
 
+void RigNode::PrintLowestNode() {
+    // Unfortunately, we do not have access to the node container of a mesh,
+    // so we cannot use some nice algorithm here...
+    unsigned int num_nodes = m_tire->GetMesh()->GetNnodes();
+    unsigned int index = 0;
+    double zmin = 1e10;
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+        // Ugly casting here. (Note also that we need dynamic downcasting, due to the virtual base)
+        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(i));
+        if (node->GetPos().z < zmin) {
+            zmin = node->GetPos().z;
+            index = i;
+        }
+    }
+
+    ChVector<> vel = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(index))->GetPos_dt();
+    std::cout << "[Rig node    ] lowest node:    index = " << index << "  height = " << zmin << "  velocity = " << vel.x
+              << "  " << vel.y << "  " << vel.z << std::endl;
+}
+
+void RigNode::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel) {
+    auto lowest = std::min_element(vert_pos.begin(), vert_pos.end(),
+                                   [](const ChVector<>& a, const ChVector<>& b) { return a.z < b.z; });
+    int index = lowest - vert_pos.begin();
+    const ChVector<>& vel = vert_vel[index];
+    std::cout << "[Rig node    ] lowest vertex:  index = " << index << "  height = " << (*lowest).z
+              << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+}
+
+void RigNode::PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indeces) {
+    std::cout << "[Rig node    ] contact forces" << std::endl;
+    for (int i = 0; i < indeces.size(); i++) {
+        std::cout << "  id = " << indeces[i] << "  force = " << forces[i].x << "  " << forces[i].y << "  "
+                  << forces[i].z << std::endl;
+    }
+}
+
 // =============================================================================
 
 class TerrainNode {
@@ -288,7 +317,7 @@ private:
     unsigned int m_num_tri;
 
     void PrintContactData();
-
+    void PrintLowestVertex();
 };
 
 TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
@@ -544,13 +573,7 @@ void TerrainNode::Synchronize(int step_number, double time) {
     delete[] tri_data;
 
     // Display information on lowest proxy.
-    auto lowest = std::min_element(
-        m_proxies.begin(), m_proxies.end(),
-        [](const ProxyNodeBody& a, const ProxyNodeBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
-    const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
-    double height = (*lowest).m_body->GetPos().z;
-    std::cout << "[Terrain node] lowest vertex   index = " << (*lowest).m_index << "  height = " << height
-              << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+    PrintLowestVertex();
 
     // Calculate cumulative contact forces for all bodies in system.
     m_system->CalculateContactForces();
@@ -638,6 +661,16 @@ void TerrainNode::PrintContactData() {
 
     ////    std::cout << " id1 = " << bodyA->GetIdentifier() << "  id2 = " << bodyB->GetIdentifier() << std::endl;
     ////}
+}
+
+void TerrainNode::PrintLowestVertex() {
+    auto lowest = std::min_element(
+        m_proxies.begin(), m_proxies.end(),
+        [](const ProxyNodeBody& a, const ProxyNodeBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
+    const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
+    double height = (*lowest).m_body->GetPos().z;
+    std::cout << "[Terrain node] lowest vertex:  index = " << (*lowest).m_index << "  height = " << height
+              << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
 }
 
 // =============================================================================
