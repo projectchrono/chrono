@@ -33,9 +33,9 @@ ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ow
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Integration and Solver settings
-    m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    m_system->SetIterLCPmaxItersSpeed(150);
-    m_system->SetIterLCPmaxItersStab(150);
+    m_system->SetSolverType(ChSystem::SOLVER_SOR);
+    m_system->SetMaxItersSolverSpeed(150);
+    m_system->SetMaxItersSolverStab(150);
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
 }
 

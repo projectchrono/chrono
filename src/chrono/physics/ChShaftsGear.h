@@ -12,27 +12,8 @@
 #ifndef CHSHAFTSGEAR_H
 #define CHSHAFTSGEAR_H
 
-//////////////////////////////////////////////////
-//
-//   ChShaftsGear.h
-//
-//   Class for defining a transmission ratio between
-//   two one-degree-of-freedom parts, that is,
-//   shafts that can be used to build 1D models
-//   of power trains. This is more efficient than
-//   simulating power trains modeled full 3D ChBody
-//   objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaftsCouple.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 
@@ -60,8 +41,8 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
 
     double torque_react;
 
-    // used as an interface to the LCP solver.
-    ChLcpConstraintTwoGeneric constraint;
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric constraint;
 
   public:
     //
@@ -103,18 +84,21 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
                                      const double c,
                                      bool do_clamp,
                                      double recovery_clamp);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
-    // Override/implement LCP system functions of ChShaftsCouple
-    // (to assembly/manage data for LCP system solver
+    // Override/implement system functions of ChShaftsCouple
+    // (to assemble/manage data for system solver)
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);
@@ -164,6 +148,6 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

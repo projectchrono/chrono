@@ -38,21 +38,21 @@ real timestep = .001;
 real factor = 1.0 / timestep;
 
 int main(int argc, char* argv[]) {
-  ChSystemParallelDVI* system_gpu = new ChSystemParallelDVI;
-  system_gpu->SetIntegrationType(ChSystem::INT_ANITESCU);
+  ChSystemParallelDVI* system = new ChSystemParallelDVI;
+  system->SetIntegrationType(ChSystem::INT_ANITESCU);
 
   std::stringstream ss;
   ss << "container_checkpoint_2_settled.txt";
 
-  system_gpu->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
-  system_gpu->SetStep(timestep);
-  system_gpu->SetMaxPenetrationRecoverySpeed(10000);
-  utils::ReadCheckpoint(system_gpu, ss.str());
+  system->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
+  system->SetStep(timestep);
+  system->SetMaxPenetrationRecoverySpeed(10000);
+  utils::ReadCheckpoint(system, ss.str());
 
-  system_gpu->AssembleSystem();
+  system->AssembleSystem();
 
-  std::vector<ChLcpConstraint*>& mconstraints = system_gpu->GetLcpSystemDescriptor()->GetConstraintsList();
-  std::vector<ChLcpVariables*>& mvariables = system_gpu->GetLcpSystemDescriptor()->GetVariablesList();
+  std::vector<ChConstraint*>& mconstraints = system->GetSystemDescriptor()->GetConstraintsList();
+  std::vector<ChVariables*>& mvariables = system->GetSystemDescriptor()->GetVariablesList();
 
   std::vector<real> bi_a(mconstraints.size());
   std::vector<real> bi_b(mconstraints.size());
@@ -60,11 +60,11 @@ int main(int argc, char* argv[]) {
   std::vector<real> J_b(mconstraints.size());
   ChMatrixDynamic<> mb(mconstraints.size(), 1);
   ChMatrixDynamic<> mb_tmp(mconstraints.size(), 1);
-  system_gpu->GetLcpSystemDescriptor()->BuildBiVector(mb_tmp);
+  system->GetSystemDescriptor()->BuildBiVector(mb_tmp);
 
   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
     bi_a[ic] = mb_tmp(ic, 0);
-    J_a[ic] = ((ChLcpConstraintTwoBodies*)mconstraints[ic])->Get_Cq_a()->ElementN(ic);
+    J_a[ic] = ((ChConstraintTwoBodies*)mconstraints[ic])->Get_Cq_a()->ElementN(ic);
   }
   {
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
@@ -86,10 +86,10 @@ int main(int argc, char* argv[]) {
       }
 
     // ..and finally do   b_shur = b_shur - c
-    system_gpu->GetLcpSystemDescriptor()->BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
+    system->GetSystemDescriptor()->BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
     mb.MatrDec(mb_tmp);
   }
-  auto container = std::dynamic_pointer_cast<ChContactContainerParallel>(system_gpu->GetContactContainer());
+  auto container = std::dynamic_pointer_cast<ChContactContainerParallel>(system->GetContactContainer());
 
   std::list<ChContactContainerParallel::ChContact_6_6*> m_list = container->GetContactList();
   ChTimer<real> timer;
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     // WeakEqual(mb(ic, 0), b_b[ic],ZERO_EPSILON*10);
   }
   ChMatrixDynamic<> mg_tmp1(mconstraints.size(), 1);
-  system_gpu->GetLcpSystemDescriptor()->ShurComplementProduct(mg_tmp1, &mb, 0);
+  system->GetSystemDescriptor()->ShurComplementProduct(mg_tmp1, &mb, 0);
   for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
     std::cout << mg_tmp1(ic, 0) << std::endl;
   }

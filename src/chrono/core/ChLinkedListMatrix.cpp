@@ -19,8 +19,8 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChMath.h"
 #include "core/ChLinkedListMatrix.h"
+#include "core/ChMath.h"
 
 #define PIVOT_ACCEPT_TRESHOLD 0.8
 #define ACCEPT_PIVOT 0.001
@@ -158,10 +158,12 @@ void ChLinkedListMatrix::MoreBuffer(double inflate) {
     mbuffer_added = 0;
 }
 
-	bool ChLinkedListMatrix::Resize(int nrows, int ncols, int nonzeros)
-	{ assert(false); return 0; }
+bool ChLinkedListMatrix::Resize(int nrows, int ncols, int nonzeros) {
+    assert(false);
+    return 0;
+}
 
-	void ChLinkedListMatrix::Reset() {
+void ChLinkedListMatrix::Reset() {
     Reset(rows, columns);
 }
 
@@ -408,7 +410,6 @@ void ChLinkedListMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, 
     }
 }
 
-
 void ChLinkedListMatrix::PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
@@ -547,13 +548,13 @@ void ChLinkedListMatrix::PasteTranspMatrix(ChLinkedListMatrix* matra, int insrow
 }
 
 void ChLinkedListMatrix::PasteClippedMatrix(ChMatrix<>* matra,
-                                        int cliprow,
-                                        int clipcol,
-                                        int nrows,
-                                        int ncolumns,
-                                        int insrow,
-                                        int inscol,
-										bool overwrite) {
+                                            int cliprow,
+                                            int clipcol,
+                                            int nrows,
+                                            int ncolumns,
+                                            int insrow,
+                                            int inscol,
+                                            bool overwrite) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -572,12 +573,12 @@ void ChLinkedListMatrix::PasteClippedMatrix(ChMatrix<>* matra,
 }
 
 void ChLinkedListMatrix::PasteSumClippedMatrix(ChMatrix<>* matra,
-                                           int cliprow,
-                                           int clipcol,
-                                           int nrows,
-                                           int ncolumns,
-                                           int insrow,
-                                           int inscol) {
+                                               int cliprow,
+                                               int clipcol,
+                                               int nrows,
+                                               int ncolumns,
+                                               int insrow,
+                                               int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -711,9 +712,9 @@ void ChLinkedListMatrix::DiagPivotSymmetric(int rowA, int rowB) {
 // The array of pivot indexes (pivarray) is optional
 
 int ChLinkedListMatrix::Solve_LinSys(ChMatrix<>* B,
-                                 ChMatrix<>* X,
-                                 int* pivarray,
-                                 double* det)  // the object is the [A] matrix.
+                                     ChMatrix<>* X,
+                                     int* pivarray,
+                                     double* det)  // the object is the [A] matrix.
 {
     ChMelement* rowel;
     ChMelement* subrowel;
@@ -1113,24 +1114,20 @@ int ChLinkedListMatrix::DecomposeAndSolve_LDL(ChMatrix<>* B, ChMatrix<>* X, doub
     return nredundancy;
 }
 
-//
-// LCP solver
-//
-
-#define LCP_EPS 10e-6
+#define SOLVER_EPS 10e-6
 
 //
-// Decompose and solve at once (optimized for LCP iteration)
+// Decompose and solve at once (optimized)
 //
 
-int ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(ChMatrix<>* B,
-                                                 ChMatrix<>* X,
-                                                 double& mdet,
-                                                 int i_D,
-                                                 int i_C,
-                                                 int n_unilaterals,
-                                                 ChUnilateralData constr_data[],
-                                                 int from_eq) {
+int ChLinkedListMatrix::DecomposeAndSolve_LDL(ChMatrix<>* B,
+                                              ChMatrix<>* X,
+                                              double& mdet,
+                                              int i_D,
+                                              int i_C,
+                                              int n_unilaterals,
+                                              ChUnilateralData constr_data[],
+                                              int from_eq) {
     ChLinkedListMatrix tempM;
     tempM.CopyFromMatrix(this);
 
@@ -1145,17 +1142,17 @@ int ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(ChMatrix<>* B,
     return TRUE;
 }
 
-int ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(ChLinkedListMatrix* Aorig,
-                                                 ChLinkedListMatrix* Afact,
-                                                 ChMatrix<>* B,
-                                                 ChMatrix<>* X,
-                                                 double& mdet,
-                                                 int i_D,
-                                                 int i_C,
-                                                 int n_unilaterals,
-                                                 ChUnilateralData constr_data[],
-                                                 int from_eq,
-                                                 int backup_from) {
+int ChLinkedListMatrix::DecomposeAndSolve_LDL(ChLinkedListMatrix* Aorig,
+                                              ChLinkedListMatrix* Afact,
+                                              ChMatrix<>* B,
+                                              ChMatrix<>* X,
+                                              double& mdet,
+                                              int i_D,
+                                              int i_C,
+                                              int n_unilaterals,
+                                              ChUnilateralData constr_data[],
+                                              int from_eq,
+                                              int backup_from) {
     assert(B->GetRows() == Afact->rows);
     assert(X->GetRows() == Afact->rows);
     assert(Afact->rows == Afact->columns);
@@ -1299,15 +1296,15 @@ int ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(ChLinkedListMatrix* Aorig,
     return TRUE;
 }
 
-static void LCP_compute_DL_residuals(ChLinkedListMatrix* M,
-                                     ChMatrix<>* B,
-                                     ChMatrix<>* X,
-                                     ChMatrix<>* D,
-                                     ChMatrix<>* L,
-                                     int i_D,
-                                     int i_C,
-                                     int n_unilaterals,
-                                     ChUnilateralData constr_data[]) {
+static void Compute_DL_residuals(ChLinkedListMatrix* M,
+                                 ChMatrix<>* B,
+                                 ChMatrix<>* X,
+                                 ChMatrix<>* D,
+                                 ChMatrix<>* L,
+                                 int i_D,
+                                 int i_C,
+                                 int n_unilaterals,
+                                 ChUnilateralData constr_data[]) {
     // Recover the residuals of unilateral constraints, given body accelerations and jacobians
     // (for example, contact normal accelerations)
 
@@ -1333,15 +1330,15 @@ static void LCP_compute_DL_residuals(ChLinkedListMatrix* M,
     L->PasteClippedMatrix(X, i_D, 0, n_unilaterals, 1, 0, 0);
 }
 
-static bool LCP_compute_maxstep(ChMatrix<>* D,
-                                ChMatrix<>* L,
-                                ChMatrix<>* Dguess,
-                                ChMatrix<>* Lguess,
-                                const int idirection,
-                                ChUnilateralData constr_data[],
-                                int n_unilaterals,
-                                int& ichanged,
-                                double& step) {
+static bool Compute_maxstep(ChMatrix<>* D,
+                            ChMatrix<>* L,
+                            ChMatrix<>* Dguess,
+                            ChMatrix<>* Lguess,
+                            const int idirection,
+                            ChUnilateralData constr_data[],
+                            int n_unilaterals,
+                            int& ichanged,
+                            double& step) {
     step = 1.0;
     ichanged = -1;
 
@@ -1354,7 +1351,7 @@ static bool LCP_compute_maxstep(ChMatrix<>* D,
 
     for (id = 0; id < n_unilaterals; id++) {
         if (constr_data[id].status == CONSTR_UNILATERAL_ON) {
-            if (Lguess->GetElement(id, 0) > +LCP_EPS) {
+            if (Lguess->GetElement(id, 0) > +SOLVER_EPS) {
                 try_step = -L->GetElement(id, 0) / (Lguess->GetElement(id, 0) - L->GetElement(id, 0));
                 if (try_step < step) {
                     step = try_step;
@@ -1369,7 +1366,7 @@ static bool LCP_compute_maxstep(ChMatrix<>* D,
 
     for (id = 0; id < n_unilaterals; id++) {
         if (constr_data[id].status == CONSTR_UNILATERAL_OFF) {
-            if (Dguess->GetElement(id, 0) < -LCP_EPS) {
+            if (Dguess->GetElement(id, 0) < -SOLVER_EPS) {
                 try_step = -D->GetElement(id, 0) / (Dguess->GetElement(id, 0) - D->GetElement(id, 0));
                 if (try_step < step) {
                     step = try_step;
@@ -1380,7 +1377,7 @@ static bool LCP_compute_maxstep(ChMatrix<>* D,
     }
 
     if ((step <= 0) || (step > 1.0000001)) {
-        // R3Error("  Warning, overconstrained LCP,  Step %g is not in 0..1. Changed constr.%d on %d",
+        // R3Error("  Warning, overconstrained problem,  Step %g is not in 0..1. Changed constr.%d on %d",
         //							step, ichanged, n_unilaterals);	//***DEBUG***
         step = 0;
         ichanged = idirection;
@@ -1393,15 +1390,15 @@ static bool LCP_compute_maxstep(ChMatrix<>* D,
     return true;
 }
 
-#define UNOPTIMIZED_LCP 1
+#define UNOPTIMIZED_FACTORIZATION 1
 
-int ChLinkedListMatrix::SolveLCP(ChMatrix<>* B,
-                             ChMatrix<>* X,
-                             int n_bilaterals,
-                             int n_unilaterals,
-                             int maxiters,
-                             bool keep_unilateral_status,
-                             ChUnilateralData constr_data[]) {
+int ChLinkedListMatrix::Solve(ChMatrix<>* B,
+                              ChMatrix<>* X,
+                              int n_bilaterals,
+                              int n_unilaterals,
+                              int maxiters,
+                              bool keep_unilateral_status,
+                              ChUnilateralData constr_data[]) {
     // Check some low-level error in passing function parameters
 
     assert(B->GetRows() == this->rows);
@@ -1459,11 +1456,10 @@ int ChLinkedListMatrix::SolveLCP(ChMatrix<>* B,
     //   for no unilateral constraint clamped...
     double mdet;
 
-#ifdef UNOPTIMIZED_LCP
-    DecomposeAndSolve_LDL_forLCP(B, X, mdet, i_D, i_C, n_unilaterals, constr_data);
+#ifdef UNOPTIMIZED_FACTORIZATION
+    DecomposeAndSolve_LDL(B, X, mdet, i_D, i_C, n_unilaterals, constr_data);
 #else
-    ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(this, &Mbackup, B, X, mdet, i_D, i_C, n_unilaterals, constr_data, 0,
-                                                 i_D);
+    ChLinkedListMatrix::DecomposeAndSolve_LDL(this, &Mbackup, B, X, mdet, i_D, i_C, n_unilaterals, constr_data, 0, i_D);
 #endif
 
     //
@@ -1474,19 +1470,17 @@ int ChLinkedListMatrix::SolveLCP(ChMatrix<>* B,
 
     if (!keep_unilateral_status)
         while (true) {
-            // - compute D and L residuals
+            // compute D and L residuals
+            Compute_DL_residuals(this, B, X, &D, &L, i_D, i_C, n_unilaterals, constr_data);
 
-            LCP_compute_DL_residuals(this, B, X, &D, &L, i_D, i_C, n_unilaterals, constr_data);
-
-            // - find a residual to drive-to-zero in the main outer loop, if any
-
+            // find a residual to drive-to-zero in the main outer loop, if any
             int id;
             bool must_drive = false;
 
             for (id = 0; id < n_unilaterals; id++) {
                 if ((constr_data[id].status != CONSTR_UNILATERAL_ON) &&
                     (constr_data[id].status != CONSTR_UNILATERAL_REDUNDANT))
-                    if (D.GetElement(id, 0) < -LCP_EPS) {
+                    if (D.GetElement(id, 0) < -SOLVER_EPS) {
                         must_drive = true;
                         break;  // will drive the residual n. 'id'.
                     }
@@ -1497,29 +1491,29 @@ int ChLinkedListMatrix::SolveLCP(ChMatrix<>* B,
                 break;  // -> exit: all D residuals are at least >=0;
             }
 
-            // - Now perform the inner loop, to drive-to-zero the 'id' residual:
+            // Perform the inner loop, to drive the 'id' residual to zero:
 
             constr_data[id].status = CONSTR_UNILATERAL_ON;
 
             while (true) {
-// Guess a destination, hoping that solution is reached without
-// clamping or unclamping any constraint (if not, will repeat from rewound position..)
-#ifdef UNOPTIMIZED_LCP
-                DecomposeAndSolve_LDL_forLCP(B, &Xguess, mdet, i_D, i_C, n_unilaterals, constr_data);
+                // Guess a destination, hoping that solution is reached without
+                // clamping or unclamping any constraint (if not, will repeat from rewound position..)
+#ifdef UNOPTIMIZED_FACTORIZATION
+                DecomposeAndSolve_LDL(B, &Xguess, mdet, i_D, i_C, n_unilaterals, constr_data);
 #else
-                ChLinkedListMatrix::DecomposeAndSolve_LDL_forLCP(this, &Mbackup, B, &Xguess, mdet, i_D, i_C, n_unilaterals,
-                                                             constr_data, i_D, i_D);
+                ChLinkedListMatrix::DecomposeAndSolve_LDL(this, &Mbackup, B, &Xguess, mdet, i_D, i_C, n_unilaterals,
+                                                          constr_data, i_D, i_D);
 #endif
 
                 // D and L variables for the guess..
 
-                LCP_compute_DL_residuals(this, B, &Xguess, &Dguess, &Lguess, i_D, i_C, n_unilaterals, constr_data);
+                Compute_DL_residuals(this, B, &Xguess, &Dguess, &Lguess, i_D, i_C, n_unilaterals, constr_data);
 
                 // Find the 'most limiting' inequality from path to guessed solution:
 
                 double step;
                 int ichanged;
-                if (!LCP_compute_maxstep(&D, &L, &Dguess, &Lguess, id, constr_data, n_unilaterals, ichanged, step)) {
+                if (!Compute_maxstep(&D, &L, &Dguess, &Lguess, id, constr_data, n_unilaterals, ichanged, step)) {
                     // move the D and L and X values to end of step (for lucky step=1)
                     X->CopyFromMatrix(Xguess);
                     D.CopyFromMatrix(Dguess);
@@ -1552,7 +1546,7 @@ int ChLinkedListMatrix::SolveLCP(ChMatrix<>* B,
 
     // compute final feasability
 
-    LCP_compute_DL_residuals(this, B, X, &Dguess, &Lguess, i_D, i_C, n_unilaterals, constr_data);
+    Compute_DL_residuals(this, B, X, &Dguess, &Lguess, i_D, i_C, n_unilaterals, constr_data);
     double minD = Dguess.Min();  // test
     double maxD = Dguess.Max();  // test
     double minL = Lguess.Min();  // test
@@ -1589,20 +1583,19 @@ void ChLinkedListMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) 
 }
 
 void ChLinkedListMatrix::StreamOUT(ChStreamOutAscii& mstream) {
-  mstream << "\n"
-    << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
-    << "\n";
-  for (int i = 0; i < ChMin(GetRows(), 8); i++) {
-    for (int j = 0; j < ChMin(GetColumns(), 8); j++)
-      mstream << GetElement(i, j) << "  ";
-    if (GetColumns() > 8)
-      mstream << "...";
-    mstream << "\n";
-  }
-  if (GetRows() > 8)
-    mstream << "... \n\n";
+    mstream << "\n"
+            << "Matrix " << GetRows() << " rows, " << GetColumns() << " columns."
+            << "\n";
+    for (int i = 0; i < ChMin(GetRows(), 8); i++) {
+        for (int j = 0; j < ChMin(GetColumns(), 8); j++)
+            mstream << GetElement(i, j) << "  ";
+        if (GetColumns() > 8)
+            mstream << "...";
+        mstream << "\n";
+    }
+    if (GetRows() > 8)
+        mstream << "... \n\n";
 }
-
 
 }  // END_OF_NAMESPACE____
 

@@ -446,11 +446,11 @@ int main(int argc, char* argv[]) {
     // kinematic chain, i.e. the hand, is very low when compared to other bodies, so
     // the convergence of the solver would be bad when 'pulling the hand' as in this
     // 'teaching mode' IK.
-    // So switch to a more precise solver; this LCP_ITERATIVE_PMINRES is fast
+    // So switch to a more precise solver; this SOLVER_MINRES is fast
     // and precise (although it is not fit for frictional collisions):
 
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
-    my_system.SetIterLCPmaxItersSpeed(44);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetMaxItersSolverSpeed(44);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

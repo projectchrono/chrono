@@ -17,7 +17,7 @@
 // Include some headers used by this tutorial...
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementSpring.h"
 #include "chrono_fea/ChElementShellANCF.h"
@@ -104,10 +104,10 @@ void test_1() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // INT_HHT);//INT_EULER_IMPLICIT);
@@ -188,11 +188,11 @@ void test_2() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
@@ -274,10 +274,10 @@ void test_2b() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    my_system.SetIterLCPmaxItersSpeed(200);
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetMaxItersSolverSpeed(200);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
@@ -371,10 +371,10 @@ void test_3() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(
@@ -468,11 +468,11 @@ void test_4() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);

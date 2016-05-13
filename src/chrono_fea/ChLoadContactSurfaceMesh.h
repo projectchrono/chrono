@@ -218,7 +218,7 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
         }
     }
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->InjectKRMmatrices(mdescriptor);
         }

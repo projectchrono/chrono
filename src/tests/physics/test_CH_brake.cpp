@@ -11,7 +11,7 @@
 
 #include <cmath>
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -100,10 +100,10 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Set solver
-    ChLcpIterativeMINRES* minres_solver = new ChLcpIterativeMINRES;
+    ChSolverMINRES* minres_solver = new ChSolverMINRES;
     minres_solver->SetDiagonalPreconditioning(true);
-    system.ChangeLcpSolverSpeed(minres_solver);
-    system.SetIterLCPmaxItersSpeed(100);
+    system.ChangeSolverSpeed(minres_solver);
+    system.SetMaxItersSolverSpeed(100);
     system.SetTolForce(1e-6);
 
     // ---------------

@@ -260,9 +260,9 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
-    mphysicalSystem.SetIterLCPmaxItersSpeed(20);
-    // mphysicalSystem.SetIterLCPmaxItersStab(5);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
+    mphysicalSystem.SetMaxItersSolverSpeed(20);
+    // mphysicalSystem.SetMaxItersSolverStab(5);
 
     // Cohesion in a contact depends on the cohesion in the surface property of
     // the touching bodies, but the user can override this value when each contact is created,

@@ -30,7 +30,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -215,10 +215,10 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN);
-    // mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    mphysicalSystem.SetIterLCPmaxItersSpeed(60);
-    mphysicalSystem.SetIterLCPmaxItersStab(5);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
+    // mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetMaxItersSolverSpeed(60);
+    mphysicalSystem.SetMaxItersSolverStab(5);
     mphysicalSystem.SetParallelThreadNumber(1);
 
     mphysicalSystem.SetMaxPenetrationRecoverySpeed(10);

@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -30,7 +30,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 #include "../ancfToroidalTire/ANCFToroidalTire.h"
@@ -232,21 +232,21 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case MINRES: {
             GetLog() << "Using MINRES solver\n";
-            my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-            ChLcpIterativeMINRES* minres_solver = (ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+            my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+            ChSolverMINRES* minres_solver = (ChSolverMINRES*)my_system.GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
-            my_system.SetIterLCPwarmStarting(true);
-            my_system.SetIterLCPmaxItersSpeed(500);
+            my_system.SetSolverWarmStarting(true);
+            my_system.SetMaxItersSolverSpeed(500);
             my_system.SetTolForce(1e-5);
             break;
         }
         case MKL: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver\n";
-            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-            my_system.ChangeLcpSolverStab(mkl_solver_stab);
-            my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+            my_system.ChangeSolverStab(mkl_solver_stab);
+            my_system.ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 #endif

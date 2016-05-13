@@ -9,35 +9,25 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCModelBullet.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <memory>
 #include <array>
 
-#include "ChCModelBullet.h"
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChSystem.h"
-#include "collision/bullet/btBulletCollisionCommon.h"
-#include "collision/ChCCollisionUtils.h"
-#include "GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
-#include "GIMPACTUtils/btGImpactConvexDecompositionShape.h"
-#include "collision/ChCCollisionSystemBullet.h"
-#include "BulletWorldImporter/btBulletWorldImporter.h"
-#include "collision/ChCConvexDecomposition.h"
-#include "geometry/ChCLineArc.h"
-#include "geometry/ChCLineSegment.h"
-#include "geometry/ChCTriangleMeshConnected.h"
-#include "BulletCollision/CollisionShapes/btBarrelShape.h"
-#include "BulletCollision/CollisionShapes/bt2DShape.h"
-#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
-
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletWorldImporter/btBulletWorldImporter.h"
+#include "chrono/collision/bullet/btBulletCollisionCommon.h"
+#include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "chrono/collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.h"
+#include "chrono/geometry/ChLineArc.h"
+#include "chrono/geometry/ChLineSegment.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 

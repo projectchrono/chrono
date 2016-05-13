@@ -149,9 +149,9 @@ int main(int argc, char *argv[]) {
 
 		unsigned int deleteSpheres = 0;
 
-		app.getChSystem()->SetIterLCPmaxItersSpeed(800);
+		app.getChSystem()->SetMaxItersSolverSpeed(800);
 		app.getChSystem()->SetMaxPenetrationRecoverySpeed(100000);
-		//app.getChSystem()->SetLcpSolverType(chrono::ChSystem::LCP_ITERATIVE_SYMMSOR);
+		//app.getChSystem()->SetSolverType(chrono::ChSystem::SOLVER_SYMMSOR);
 		app.getChSystem()->SetTol(0);
 
 

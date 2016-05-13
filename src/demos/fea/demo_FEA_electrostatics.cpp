@@ -17,7 +17,7 @@
 // Include some headers used by this tutorial...
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementSpring.h"
 #include "chrono_fea/ChElementBar.h"
@@ -162,11 +162,11 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetLcpSolverType(
-        ChSystem::LCP_ITERATIVE_MINRES);      // <- NEEDED because other solvers can't handle stiffness matrices
-    my_system.SetIterLCPwarmStarting(false);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(538);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);      // <- NEEDED because other solvers can't handle stiffness matrices
+    my_system.SetSolverWarmStarting(false);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(538);
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetRelTolerance(1e-20);
     msolver->SetTolerance(1e-20);
     msolver->SetVerbose(true);

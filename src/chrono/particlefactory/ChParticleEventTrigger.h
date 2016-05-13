@@ -13,9 +13,9 @@
 #ifndef CHPARTICLEEVENTTRIGGER_H
 #define CHPARTICLEEVENTTRIGGER_H
 
-#include "core/ChHashTable.h"
-#include "physics/ChSystem.h"
-#include "geometry/ChCBox.h"
+#include "chrono/core/ChHashTable.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/geometry/ChBox.h"
 
 namespace chrono {
 namespace particlefactory {

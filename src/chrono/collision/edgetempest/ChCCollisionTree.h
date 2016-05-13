@@ -12,26 +12,10 @@
 #ifndef CHC_COLLISIONTREE_H
 #define CHC_COLLISIONTREE_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionTree.h
-//
-//   The collision tree class, defining a tree
-//   of geometric objects.
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <vector>
 
-#include "geometry/ChCGeometry.h"
-#include "ChCAbsoluteAABB.h"
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/collision/edgetempest/ChCAbsoluteAABB.h"
 
 #define CH_COLL_ENVELOPE 0.0022
 

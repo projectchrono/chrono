@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementShellANCF.h"
@@ -186,11 +186,11 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Set up solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't
-                                                                 // handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
+                                                              // handle stiffness matrices
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(100);
+    my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     // Set up integrator

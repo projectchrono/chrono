@@ -250,7 +250,7 @@ bool test_EULER_IMPLICIT_LINEARIZED(double step,
     system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
 
     // Set verbose solver and integrator (for debugging).
-    ////system->GetLcpSolverSpeed()->SetVerbose(true);
+    ////system->GetSolverSpeed()->SetVerbose(true);
     ////system->GetTimestepper()->SetVerbose(true);
 
     // Simulate the model for the specified number of steps.
@@ -284,12 +284,12 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set solver and modify parameters.
-    ////system->SetIterLCPmaxItersSpeed(200);
-    ////system->SetIterLCPmaxItersStab(200);
+    ////system->SetMaxItersSolverSpeed(200);
+    ////system->SetMaxItersSolverStab(200);
     ////system->SetTolForce(1e-5);
 
-    ////system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    ////ChLcpIterativeMINRES* solver = static_cast<ChLcpIterativeMINRES*>(system->GetLcpSolverSpeed());
+    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
+    ////ChSolverMINRES* solver = static_cast<ChSolverMINRES*>(system->GetSolverSpeed());
 
     // Set integrator and modify parameters.
     system->SetIntegrationType(ChSystem::INT_HHT);
@@ -299,7 +299,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     integrator->SetAbsTolerances(1e-6);
 
     // Set verbose solver and integrator (for debugging).
-    ////system->GetLcpSolverSpeed()->SetVerbose(true);
+    ////system->GetSolverSpeed()->SetVerbose(true);
     ////system->GetTimestepper()->SetVerbose(true);
 
     // Simulate the model for the specified number of steps.

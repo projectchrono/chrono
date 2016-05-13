@@ -13,7 +13,7 @@
 #ifndef CHNODEFEAXYZ_H
 #define CHNODEFEAXYZ_H
 
-#include "chrono/lcp/ChLcpVariablesNode.h"
+#include "chrono/solver/ChVariablesNode.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
@@ -58,7 +58,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
         return *this;
     }
 
-    virtual ChLcpVariablesNode& Variables() override { return this->variables; }
+    virtual ChVariablesNode& Variables() override { return this->variables; }
 
     /// Set the rest position as the actual position.
     virtual void Relax() override {
@@ -150,20 +150,22 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
         R(off + 2) += c * GetMass() * w(off + 2);
     }
 
-    virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
+    virtual void NodeIntToDescriptor(const unsigned int off_v,
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R) override {
         this->variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 3, 1, 0, 0);
         this->variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 3, 1, 0, 0);
     }
 
-    virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) override {
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
         v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override {
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
         mdescriptor.InsertVariables(&this->variables);
     }
 
@@ -224,7 +226,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     }
 
   protected:
-    ChLcpVariablesNode variables;  /// 3D node variables, with x,y,z
+    ChVariablesNode variables;  /// 3D node variables, with x,y,z
 
     ChVector<> X0;     ///< reference position
     ChVector<> Force;  ///< applied force

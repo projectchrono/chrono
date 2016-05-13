@@ -9,135 +9,119 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
 // Class for interfacing with Pardiso Sparse Direct Solver
 // from the Intel® MKL Library.
 
-
 #ifndef CHMKLENGINE_H
 #define CHMKLENGINE_H
-
-///////////////////////////////////////////////////
-//
-//   ChMklEngine.h
-//
-//   Use this header if you want to exploit Intel®
-//	 MKL Library from Chrono::Engine programs.
-//
-//   HEADER file for CHRONO,
-//  Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <mkl.h>
 #include "chrono_mkl/ChApiMkl.h"
 #include "chrono_mkl/ChCSR3Matrix.h"
 
-
-
-namespace chrono
-{
+namespace chrono {
 
 /// @addtogroup mkl_module
 /// @{
 
-	// REMEMBER: indeces start from zero; iparm[0] is "iparm(1)" in documentation
-	// use IPARM instead to avoid misalignment due to different indexing; IPARM(1) == "iparm(1)" from documentation
-#define IPARM(i) iparm[i-1]
+// REMEMBER: indeces start from zero; iparm[0] is "iparm(1)" in documentation
+// use IPARM instead to avoid misalignment due to different indexing; IPARM(1) == "iparm(1)" from documentation
+#define IPARM(i) iparm[i - 1]
 
-	class ChApiMkl ChMklEngine {
-	private:
+class ChApiMkl ChMklEngine {
+  private:
+    // ChCSR3Matrix system_matrix;
 
-		//ChCSR3Matrix system_matrix;
+    void* pt[64];  // Handle to internal data structure (must be zeroed at startup)
 
-		void* pt[64]; //Handle to internal data structure (must be zeroed at startup)
+    // Matrix in CSR3 format
+    double* a;    // (pointer to the) array of non-zero elements of the A
+    MKL_INT* ja;  // columns indices
+    MKL_INT* ia;  // row index
 
-		// Matrix in CSR3 format
-		double* a;				// (pointer to the) array of non-zero elements of the A
-		MKL_INT* ja;			// columns indices
-		MKL_INT* ia;			// row index
+    // rhs
+    double* b;  // rhs
 
-		// rhs
-		double* b;				// rhs
+    // Output
+    double* x;  // solution vector
 
-		// Output
-		double* x;				// solution vector
+    // Problem properties
+    MKL_INT n;      //(square-)matrix size
+    MKL_INT mtype;  // matrix type
+    MKL_INT nrhs;   // number of rhs
 
-		// Problem properties
-		MKL_INT n;				//(square-)matrix size
-		MKL_INT mtype;			// matrix type
-		MKL_INT nrhs;			// number of rhs
+    // Pardiso solver settings
+    MKL_INT iparm[64];  // Pardiso solver parameter
+    MKL_INT maxfct;     // maximum number of numerical factorizations
+    std::vector<int> perm;
 
-		// Pardiso solver settings
-		MKL_INT iparm[64];		// Pardiso solver parameter
-		MKL_INT maxfct;			// maximum number of numerical factorizations
-		std::vector<int> perm;
+    // Pardiso solver settings
+    MKL_INT mnum;  // 1<=mnum<=maxfct : which factorizations to use; usually 1
 
-		// Pardiso solver settings
-		MKL_INT mnum;           // 1<=mnum<=maxfct : which factorizations to use; usually 1
+    // Auxiliary variables
+    int last_phase_called;
 
-		// Auxiliary variables
-		int last_phase_called;
+  protected:
+    void resetIparmElement(int iparm_num, int reset_value = 0);
 
-	protected:
-		void resetIparmElement(int iparm_num, int reset_value = 0);
+  public:
+    ChMklEngine(int problem_size = 3, int matrix_type = 11);
+    ~ChMklEngine();
 
-	public:
+    /**Setting the linear system <tt>A*x=b</tt> to be solved means that the user must provide:
+    *	- the matrix \c Z: in \c ChCSR3Matrix format or directly through the 3 CSR3 array format
+    *	- the solution vector \c x: in any ChMatrix<> derived format or in bare C array
+    *	- the unknowns vector \c b: in any ChMatrix<> derived format or in bare C array
+    */
 
-		ChMklEngine(int problem_size = 3, int matrix_type = 11);
-		~ChMklEngine();
+    // Problem input functions
+    void SetMatrix(
+        ChCSR3Matrix& Z);  //< It sets the matrix, but also the problem size \c n and the matrix type \c mtype
+    void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
-		/**Setting the linear system <tt>A*x=b</tt> to be solved means that the user must provide:
-		*	- the matrix \c Z: in \c ChCSR3Matrix format or directly through the 3 CSR3 array format
-		*	- the solution vector \c x: in any ChMatrix<> derived format or in bare C array
-		*	- the unknowns vector \c b: in any ChMatrix<> derived format or in bare C array
-		*/
+    void SetSolutionVector(ChMatrix<>& insx);
+    void SetSolutionVector(double* insx);
 
-		// Problem input functions
-		void SetMatrix(ChCSR3Matrix& Z); //< It sets the matrix, but also the problem size \c n and the matrix type \c mtype
-		void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
+    void SetKnownVector(ChMatrix<>& insb) { b = insb.GetAddress(); }
+    void SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest);
+    void SetKnownVector(double* insb) { b = insb; }
 
-		void SetSolutionVector(ChMatrix<>& insx);
-		void SetSolutionVector(double* insx);
+    void SetProblem(
+        ChCSR3Matrix& Z,
+        ChMatrix<>& insb,
+        ChMatrix<>& insx);  //< It sets the data arrays, but also the problem size \c n and the matrix type \c mtype
 
-		void SetKnownVector(ChMatrix<>& insb) { b = insb.GetAddress(); }
-		void SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest);
-		void SetKnownVector(double* insb){ b = insb;}
+    // Solver routine
+    int PardisoCall(int set_phase = 13, int message_level = 0);
+    void ResetSolver(int new_mat_type = 0);  //< reinitializes the solver to default values
+    void SetProblemSize(int new_size) { n = new_size; }
 
-		void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx); //< It sets the data arrays, but also the problem size \c n and the matrix type \c mtype
+    // Output functions
+    void GetResidual(double* res) const;
+    void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
+    double GetResidualNorm(const double* res) const;
+    double GetResidualNorm(const ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
 
-		// Solver routine
-		int PardisoCall(int set_phase = 13, int message_level = 0);
-		void ResetSolver(int new_mat_type = 0); //< reinitializes the solver to default values
-		void SetProblemSize(int new_size) { n = new_size; }
+    // Auxiliary functions
+    int* GetIparmAddress() { return iparm; }
+    void SetIparmValue(int parm_num, int value) {
+        IPARM(parm_num) = value;
+    };  //< Sets the \c parm_num th element of \c iparm to \c value
+    int GetIparmValue(int parm_num) const {
+        return IPARM(parm_num);
+    };  //< Returns the \c parm_num th element of \c iparm
+    void PrintIparmOutput() const;
 
-		// Output functions
-		void GetResidual(double* res) const;
-		void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
-		double GetResidualNorm(const double* res) const;
-		double GetResidualNorm(const ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
+    // Advanced functions
+    void UsePermutationVector(bool on_off);
+    void UsePartialSolution(int option = 1, int start_row = 0, int end_row = 0);
+    void OutputSchurComplement(int option, int start_row, int end_row = 0);
+    void SetPreconditionedCGS(bool on_off, int L);
 
-		// Auxiliary functions
-		int* GetIparmAddress(){ return iparm; }
-		void SetIparmValue(int parm_num, int value){ IPARM(parm_num) = value; }; //< Sets the \c parm_num th element of \c iparm to \c value
-		int GetIparmValue(int parm_num) const { return IPARM(parm_num); }; //< Returns the \c parm_num th element of \c iparm
-		void PrintIparmOutput() const;
-
-		// Advanced functions
-		void UsePermutationVector(bool on_off);
-		void UsePartialSolution(int option = 1, int start_row = 0, int end_row = 0);
-		void OutputSchurComplement(int option, int start_row, int end_row = 0);
-		void SetPreconditionedCGS(bool on_off, int L);
-
-
-	}; // ChMklEngine
-
+};  // ChMklEngine
 
 /// @} mkl_module
-} // end of namespace chrono
 
+}  // end of namespace chrono
 
 #endif

@@ -153,24 +153,24 @@ void ChConveyor::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
     this->conveyor_plate->IntLoadResidual_Mv(off + 6, R, w, c);
 }
 
-void ChConveyor::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,  ///< offset in L, Qc
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc) {
-    this->conveyor_truss->IntToLCP(off_v    , v, R, off_L, L, Qc);
-    this->conveyor_plate->IntToLCP(off_v + 6, v, R, off_L, L, Qc);
-    this->internal_link->IntToLCP(off_v, v, R, off_L, L, Qc);
+void ChConveyor::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,  ///< offset in L, Qc
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) {
+    this->conveyor_truss->IntToDescriptor(off_v, v, R, off_L, L, Qc);
+    this->conveyor_plate->IntToDescriptor(off_v + 6, v, R, off_L, L, Qc);
+    this->internal_link->IntToDescriptor(off_v, v, R, off_L, L, Qc);
 }
 
-void ChConveyor::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                            ChStateDelta& v,
-                            const unsigned int off_L,  ///< offset in L
-                            ChVectorDynamic<>& L) {
-    this->conveyor_truss->IntFromLCP(off_v    , v, off_L, L);
-    this->conveyor_plate->IntFromLCP(off_v + 6, v, off_L, L);
-    this->internal_link->IntFromLCP(off_v, v, off_L, L);
+void ChConveyor::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,  ///< offset in L
+                                   ChVectorDynamic<>& L) {
+    this->conveyor_truss->IntFromDescriptor(off_v, v, off_L, L);
+    this->conveyor_plate->IntFromDescriptor(off_v + 6, v, off_L, L);
+    this->internal_link->IntFromDescriptor(off_v, v, off_L, L);
 }
 
 void ChConveyor::IntLoadResidual_CqL(const unsigned int off_L,
@@ -192,9 +192,9 @@ void ChConveyor::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>&
     this->internal_link->IntLoadConstraint_Ct(off, Qc, c);
 }
 
-//// LCP INTERFACE
+// SOLVER INTERFACE
 
-void ChConveyor::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChConveyor::InjectVariables(ChSystemDescriptor& mdescriptor) {
     this->conveyor_truss->InjectVariables(mdescriptor);
     this->conveyor_plate->InjectVariables(mdescriptor);
 }
@@ -229,7 +229,7 @@ void ChConveyor::VariablesQbIncrementPosition(double dt_step) {
     this->conveyor_plate->VariablesQbIncrementPosition(dt_step);
 }
 
-void ChConveyor::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChConveyor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     this->internal_link->InjectConstraints(mdescriptor);
 }
 

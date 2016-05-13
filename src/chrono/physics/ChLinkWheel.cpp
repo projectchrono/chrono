@@ -122,16 +122,16 @@ void ChLinkWheel::Copy(ChLinkWheel* source) {
 
     if (wheel_rotation)
         delete wheel_rotation;
-    wheel_rotation = source->wheel_rotation->new_Duplicate();
+    wheel_rotation = source->wheel_rotation->Clone();
     if (fri_spe)
         delete fri_spe;
-    fri_spe = source->fri_spe->new_Duplicate();
+    fri_spe = source->fri_spe->Clone();
     if (fri_norm)
         delete fri_norm;
-    fri_norm = source->fri_norm->new_Duplicate();
+    fri_norm = source->fri_norm->Clone();
     if (rad_k_def)
         delete rad_k_def;
-    rad_k_def = source->rad_k_def->new_Duplicate();
+    rad_k_def = source->rad_k_def->Clone();
 
     angle = angle_dt = angle_dtdt = slipping = f_slip = l_slip = derive_angle = tforce = f_tforce = l_tforce =
         curr_friction = 0;

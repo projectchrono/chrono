@@ -14,8 +14,8 @@
 
 
 
-#include "assets/ChVisualization.h"
-#include "geometry/ChCCone.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChCone.h"
 
 namespace chrono {
 

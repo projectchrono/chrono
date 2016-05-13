@@ -1,41 +1,27 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHFUNCT_MIRROR_H
 #define CHFUNCT_MIRROR_H
 
-//////////////////////////////////////////////////
-//
-//   ChFunction_Mirror.h
-//
-//   Function objects,
-//   as scalar functions of scalar variable y=f(t)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Base.h"
-#include "ChFunction_Const.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
+#include "chrono/motion_functions/ChFunction_Const.h"
 
 namespace chrono {
 
-#define FUNCT_MIRROR 18
-
-/// MIRROR FUNCTION:
-/// y = __/\__
+/// Mirror function:
+///    y = __/\__
 ///
 /// Mirrors a function about a vertical axis.
 
@@ -44,16 +30,19 @@ class ChApi ChFunction_Mirror : public ChFunction {
 
   private:
     std::shared_ptr<ChFunction> fa;
-    double mirror_axis;  // simmetry axis position on x
+    double mirror_axis;  ///< symmetry axis position on x
 
   public:
-    ChFunction_Mirror() {
-        mirror_axis = 0;
-        fa = std::make_shared<ChFunction_Const>(); // default
-    }
-    ~ChFunction_Mirror(){};
-    void Copy(ChFunction_Mirror* source);
-    ChFunction* new_Duplicate();
+    ChFunction_Mirror();
+    ChFunction_Mirror(const ChFunction_Mirror& other);
+    ~ChFunction_Mirror() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChFunction_Mirror* Clone() const override { return new ChFunction_Mirror(*this); }
+
+    virtual FunctionType Get_Type() const override { return FUNCT_MIRROR; }
+
+    virtual double Get_y(double x) const override;
 
     void Set_mirror_axis(double m_axis) { mirror_axis = m_axis; }
     double Get_mirror_axis() { return mirror_axis; }
@@ -61,22 +50,10 @@ class ChApi ChFunction_Mirror : public ChFunction {
     void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
     std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
-    double Get_y(double x);
-
-    void Estimate_x_range(double& xmin, double& xmax);
-    int Get_Type() { return (FUNCT_MIRROR); }
-
-    int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
-    OPT_VARIABLES_START
-    "mirror_axis", OPT_VARIABLES_END
-
-    //
-    // SERIALIZATION
-    //
+    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -87,8 +64,7 @@ class ChApi ChFunction_Mirror : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -97,9 +73,8 @@ class ChApi ChFunction_Mirror : public ChFunction {
         marchive >> CHNVP(fa);
         marchive >> CHNVP(mirror_axis);
     }
-
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif
