@@ -16,7 +16,7 @@
 // using  1) BendingQuasiStatic; 2) Dynamic swinging shell under gravity
 // =============================================================================
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChMesh.h"
 
@@ -202,10 +202,10 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     my_system.SetupInitial();
 
     // Set up solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(900);
+    my_system.SetMaxItersSolverSpeed(900);
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
@@ -411,11 +411,10 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     // ----------------------------------
 
     // Set up solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't
-                                                                 // handle stiffness matrices
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPmaxItersSpeed(500);
+    my_system.SetMaxItersSolverSpeed(500);
     my_system.SetTolForce(1e-08);
 
     // Set the time integrator parameters

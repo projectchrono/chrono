@@ -66,7 +66,7 @@ void ChElementBrick_9::SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,
     m_nodes[7] = node8;
     m_central_node = nodeC;
 
-    std::vector<ChLcpVariables*> mvars;
+    std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
     mvars.push_back(&m_nodes[1]->Variables());
     mvars.push_back(&m_nodes[2]->Variables());
@@ -1328,7 +1328,7 @@ void ChElementBrick_9::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic
 }
 
 // Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-void ChElementBrick_9::LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+void ChElementBrick_9::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < 8; ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
     }

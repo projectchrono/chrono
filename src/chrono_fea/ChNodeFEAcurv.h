@@ -18,7 +18,7 @@
 #ifndef CHNODEFEACURV_H
 #define CHNODEFEACURV_H
 
-#include "chrono/lcp/ChLcpVariablesGenericDiagonalMass.h"
+#include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
 namespace chrono {
@@ -38,14 +38,14 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
         m_rxx_dtdt = VNULL;
         m_ryy_dtdt = VNULL;
         m_rzz_dtdt = VNULL;
-        m_variables = new ChLcpVariablesGenericDiagonalMass(9);
+        m_variables = new ChVariablesGenericDiagonalMass(9);
         m_variables->GetMassDiagonal().FillElem(0);
     }
 
     ~ChNodeFEAcurv() { delete m_variables; }
 
     ChNodeFEAcurv(const ChNodeFEAcurv& other) : ChNodeFEAbase(other) {
-        m_variables = new ChLcpVariablesGenericDiagonalMass(9);
+        m_variables = new ChVariablesGenericDiagonalMass(9);
         *m_variables = *other.m_variables;
         m_rxx = other.m_rxx;
         m_ryy = other.m_ryy;
@@ -116,7 +116,7 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
     //// TODO  is this even meaningful/needed for this type of node?
     void SetMass(double mass) { m_variables->GetMassDiagonal().FillElem(mass); }
 
-    ChLcpVariables& Variables() { return *m_variables; }
+    ChVariables& Variables() { return *m_variables; }
 
     /// Reset the 2nd derivatives of position vector and their time derivatives.
     virtual void Relax() override {
@@ -223,12 +223,12 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
         }
     }
 
-    virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
+    virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
         m_variables->Get_qb().PasteClippedMatrix(&v, off_v, 0, 9, 1, 0, 0);
         m_variables->Get_fb().PasteClippedMatrix(&R, off_v, 0, 9, 1, 0, 0);
     }
 
-    virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) override {
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
         v.PasteMatrix(&m_variables->Get_qb(), off_v, 0);
     }
 
@@ -236,7 +236,7 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
     // Functions for interfacing to the LCP solver
     //
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override {
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
         mdescriptor.InsertVariables(m_variables);
     }
 
@@ -325,7 +325,7 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
     }
 
   private:
-    ChLcpVariablesGenericDiagonalMass* m_variables;
+    ChVariablesGenericDiagonalMass* m_variables;
 
     ChVector<> m_rxx;
     ChVector<> m_ryy;

@@ -19,16 +19,15 @@
 // deformation problems.
 // =============================================================================
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include <irrlicht.h>
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -234,10 +233,10 @@ void AxialDynamics() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
     mkl_solver_speed->SetSparsityPatternLock(true);
     my_system.Update();
@@ -467,18 +466,18 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't
-    //                                                             // handle stiffness matrices
-    // chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    // msolver->SetDiagonalPreconditioning(true);
-    // my_system.SetIterLCPmaxItersSpeed(100);
-    // my_system.SetTolForce(1e-10);
+    //my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
+    //                                                   // handle stiffness matrices
+    //ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    //msolver->SetDiagonalPreconditioning(true);
+    //my_system.SetMaxItersSolverSpeed(100);
+    //my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
     mkl_solver_speed->SetSparsityPatternLock(true);
     my_system.Update();
@@ -717,18 +716,18 @@ void SwingingShell() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED because other solvers can't
-    //                                                             // handle stiffness matrices
-    // chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
-    // msolver->SetDiagonalPreconditioning(true);
-    // my_system.SetIterLCPmaxItersSpeed(100);
-    // my_system.SetTolForce(1e-10);
+    //my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
+    //                                                   // handle stiffness matrices
+    //ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    //msolver->SetDiagonalPreconditioning(true);
+    //my_system.SetMaxItersSolverSpeed(100);
+    //my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
     mkl_solver_speed->SetSparsityPatternLock(true);
     my_system.Update();

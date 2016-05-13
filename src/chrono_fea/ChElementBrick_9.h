@@ -150,7 +150,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override;
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override;
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
     /// Evaluate N'*F, where N is some type of shape function evaluated at (U,V,W).
     /// Here, U,V,W are coordinates of the volume, each ranging in -1..+1
