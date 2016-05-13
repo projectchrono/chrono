@@ -8,7 +8,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 using namespace chrono;
@@ -407,10 +407,10 @@ void RigidPendulums() {
 
     // Set MKL solver
 #ifdef CHRONO_MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    system.ChangeLcpSolverStab(mkl_solver_stab);
-    system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    system.ChangeSolverStab(mkl_solver_stab);
+    system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
     mkl_solver_stab->SetSparsityPatternLock(true);
 #endif

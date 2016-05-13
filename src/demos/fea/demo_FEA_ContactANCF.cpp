@@ -9,32 +9,33 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLoadBodyMesh.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChLoadBodyMesh.h"
-
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono_mkl/ChSolverMKL.h"
+
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChLoadContactSurfaceMesh.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChMeshFileLoader.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono/physics/ChLoaderUV.h"
-#include "chrono/physics/ChLoadContainer.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono_fea/ChLoadContactSurfaceMesh.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrWizard.h"
@@ -90,9 +91,9 @@ int main(int argc, char* argv[]) {
     // It is a DEM-p (penalty) material that we will assign to
     // all surfaces that might generate contacts.
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
-    mysurfmaterial->SetYoungModulus(6e4);
-    mysurfmaterial->SetFriction(0.3);
-    mysurfmaterial->SetRestitution(0.5);
+    mysurfmaterial->SetYoungModulus(6e4f);
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0.5f);
     mysurfmaterial->SetAdhesion(0);
 
     GetLog() << "-----------------------------------------------------------\n";
@@ -113,7 +114,7 @@ int main(int argc, char* argv[]) {
         mfloor->AddAsset(masset_texture);
     }
 
-    int TotalNumNodes, TotalNumElements, TottalNumBEdges;
+    int TotalNumNodes, TotalNumElements;
     std::vector<int> BC_NODES;
     auto material = std::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
     auto my_mesh = std::make_shared<ChMesh>();
@@ -197,20 +198,20 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    //    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    //    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    //    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    //    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    //    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    //    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    //    my_system.ChangeSolverStab(mkl_solver_stab);
+    //    my_system.ChangeSolverSpeed(mkl_solver_speed);
     //    mkl_solver_stab->SetSparsityPatternLock(true);
     //    mkl_solver_speed->SetSparsityPatternLock(true);
     //    application.GetSystem()->Update();
 
     // Setup solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    ChLcpIterativeMINRES* msolver = (ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of
-    my_system.SetIterLCPmaxItersSpeed(4000000);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of
+    my_system.SetMaxItersSolverSpeed(4000000);
     my_system.SetTolForce(1e-6);
     msolver->SetVerbose(false);
     //

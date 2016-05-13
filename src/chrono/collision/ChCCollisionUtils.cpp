@@ -9,30 +9,21 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChCCollisionUtils.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
 #include <memory.h>
 
-#include "core/ChTransform.h"
-#include "collision/ChCCollisionUtils.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChSolvmin.h"
-#include "physics/ChNlsolver.h"
-#include "geometry/ChCTriangle.h"
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCBox.h"
-#include "geometry/ChCTriangleMeshConnected.h"
+#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChTriangle.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChNlsolver.h"
+#include "chrono/physics/ChSolvmin.h"
 
 namespace chrono {
 namespace collision {

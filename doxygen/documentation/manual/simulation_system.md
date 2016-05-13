@@ -89,9 +89,9 @@ my_system.AddLink(my_link_AB);
 	
 // 4- Adjust settings of the integrator (optional):
 my_system.SetIntegrationType(ChSystem::INT_IMPLICIT_EULER)
-my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-my_system.SetIterLCPmaxItersSpeed(20);
-my_system.SetIterLCPmaxItersStab(20);
+my_system.SetSolverType(ChSystem::SOLVER_SOR);
+my_system.SetMaxItersSolverSpeed(20);
+my_system.SetMaxItersSolverStab(20);
 my_system.SetMaxPenetrationRecoverySpeed(0.2);
 my_system.SetMinBounceSpeed(0.1);
 		
@@ -193,38 +193,38 @@ However, there are some combinations that work better.
 </div>
 
 Solvers can be changed in two ways:
-- using the ```my_system.SetLcpSolverType(...)``` function, that has ready-to-use 
+- using the ```my_system.SetSolverType(...)``` function, that has ready-to-use 
   enums that you can choose 
-- using the ```my_system.ChangeLcpSolverSpeed(...)``` function, that allows plugging custom 
+- using the ```my_system.ChangeSolverSpeed(...)``` function, that allows plugging custom 
   solvers, maybe developed by you, or in optional modules.
   
 Using the first 'easy' method, one changes the time stepper 
 as in the following example:
 
 ~~~{.cpp}
-my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+my_system.SetSolverType(ChSystem::SOLVER_SOR);
 ~~~
 
 Among the available solvers, we suggest to use one of these most useful algorithms:
 
-- ```LCP_ITERATIVE_SOR``` 	
+- ```SOLVER_SOR``` 	
 	- maximum speed: good for real-time applications, 
 	- low precision: convergence might stall, especially with odd mass ratios
-	- supports DVI (hard contacts)
+	- supports DVI (hard contacts, with complementarity)
 	
-- ```LCP_ITERATIVE_APGD```	
+- ```SOLVER_APGD```	
 	- slow but better convergence
-	- supports DVI (hard contacts)
+	- supports DVI (hard contacts, with complementarity)
 	
-- ```LCP_ITERATIVE_BARZILAIBORWEIN``` 
+- ```SOLVER_BARZILAIBORWEIN``` 
     - slow but better convergence
-	- supports DVI (hard contacts)   
-    - very similar to ```LCP_ITERATIVE_APGD``` but a bit more robust when using large mass ratios
+	- supports DVI (hard contacts, with complementarity)   
+    - very similar to ```SOLVER_APGD``` but a bit more robust when using large mass ratios
 	
-- ```LCP_ITERATIVE_MINRES``` 
+- ```SOLVER_MINRES``` 
     - good convergence
     - supports FEA problems
-    - does nor support DVI (hard contacts) for the moment.	
+    - does nor support DVI (hard contacts, with complementarity) for the moment.	
 	
 - (etc.)
 
@@ -238,7 +238,7 @@ The max. number of iterations can be easily changed in this way:
 
 ~~~{.cpp}
 // Change the max iterations for the solver
-my_system.SetIterLCPmaxItersSpeed(20);
+my_system.SetMaxItersSolverSpeed(20);
 ~~~
 
 Depending on the type of solver, maybe there are additional 
@@ -247,12 +247,12 @@ are not accessible directly from @ref chrono::ChSystem,
 so you should do something along the lines of the following example:
 
 ~~~{.cpp}
-if (auto msolver = dynamic_cast<chrono::ChLcpIterativeMINRES*>(my_system.GetLcpSolverSpeed())) {
+if (auto msolver = dynamic_cast<chrono::ChSolverMINRES*>(my_system.GetSolverSpeed())) {
 	msolver->SetDiagonalPreconditioning(true);
 }
 ~~~
 
-See @ref chrono::ChLcpSolver for API details.
+See @ref chrono::ChSolver for API details and children classes.
 
 
 # Other parameters  {#other_simulation_parameters}

@@ -13,8 +13,8 @@
 #define CHROUNDEDBOXSHAPE_H
 
 
-#include "assets/ChVisualization.h"
-#include "geometry/ChCRoundedBox.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChRoundedBox.h"
 
 namespace chrono {
 

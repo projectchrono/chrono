@@ -13,30 +13,12 @@
 #ifndef CHPHYSICSITEM_H
 #define CHPHYSICSITEM_H
 
-///////////////////////////////////////////////////
-//
-//   ChPhysicsItem.h
-//
-//
-//   Base class for items that can contain objects
-//   of ChLcpVariables or ChLcpConstraints, such as
-//   rigid bodies, mechanical joints, etc.
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChFrame.h"
-#include "physics/ChObject.h"
-#include "assets/ChAsset.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "collision/ChCCollisionModel.h"
-#include "timestepper/ChState.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChObject.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/timestepper/ChState.h"
 
 namespace chrono {
 
@@ -44,7 +26,7 @@ namespace chrono {
 class ChSystem;
 
 /// Base class for items that can contain objects
-/// of ChLcpVariables or ChLcpConstraints, such as
+/// of ChVariables or ChConstraints, such as
 /// rigid bodies, mechanical joints, etc.
 
 class ChApi ChPhysicsItem : public ChObj {
@@ -349,43 +331,43 @@ class ChApi ChPhysicsItem : public ChObj {
                                       const double c           ///< a scaling factor
                                       ){};
 
-    /// Prepare LCP variables and constraints for a solution:
-    /// From a vector R  into the F 'force' term of the LCPvariables
-    /// From a vector Qc into the Qb 'constraint' term of the LCP constraints
-    /// From a vector v  into the q 'unknowns' term of the LCP variables (for warm starting)
-    /// From a vector L  into the L 'lagrangian ' term of the LCP constraints (for warm starting)
-    virtual void IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,  ///< offset in L, Qc
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc){};
+    /// Prepare variables and constraints for a solution:
+    /// From a vector R  into the F 'force' term of the variables
+    /// From a vector Qc into the Qb 'constraint' term of the constraints
+    /// From a vector v  into the q 'unknowns' term of the variables (for warm starting)
+    /// From a vector L  into the L 'lagrangian ' term of the constraints (for warm starting)
+    virtual void IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,  ///< offset in L, Qc
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) {}
 
-    /// After a LCP solution, fetch values from LCP variables and constraints:
-    /// To a vector v  from the q 'unknowns' term of the LCP variables
-    /// To a vector L  from the L 'lagrangian ' term of the LCP constraints
-    virtual void IntFromLCP(const unsigned int off_v,  ///< offset in v
-                            ChStateDelta& v,
-                            const unsigned int off_L,  ///< offset in L
-                            ChVectorDynamic<>& L){};
+    /// After a solver solution, fetch values from variables and constraints:
+    /// To a vector v  from the q 'unknowns' term of the variables
+    /// To a vector L  from the L 'lagrangian ' term of the constraints
+    virtual void IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,  ///< offset in L
+                                   ChVectorDynamic<>& L) {}
 
-    // LCP SYSTEM FUNCTIONS
+    // SOLVER SYSTEM FUNCTIONS
     //
-    // These are the functions that are used to manage ChLcpConstraint and/or ChLcpVariable
+    // These are the functions that are used to manage ChConstraint and/or ChVariable
     // objects that are sent to the system solver.
     // The children classes, inherited from ChPhysicsItem, can implement them (by default,
     // the base ChPhysicsItem does not introduce any variable nor any constraint).
 
-    /// Sets the 'fb' part (the known term) of the encapsulated ChLcpVariables to zero.
+    /// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() {}
 
     /// Adds the current forces (applied to item) into the
-    /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
     virtual void VariablesFbLoadForces(double factor = 1.) {}
 
-    /// Initialize the 'qb' part of the ChLcpVariables with the
-    /// current value of speeds. Note: since 'qb' is the unknown of the LCP, this
-    /// function seems unuseful, unless used before VariablesFbIncrementMq()
+    /// Initialize the 'qb' part of the ChVariables with the
+    /// current value of speeds. Note: since 'qb' is the unknown, this
+    /// function seems unnecessary, unless used before VariablesFbIncrementMq()
     virtual void VariablesQbLoadSpeed() {}
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
@@ -394,13 +376,13 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void VariablesFbIncrementMq() {}
 
     /// Fetches the item speed (ex. linear and angular vel.in rigid bodies) from the
-    /// 'qb' part of the ChLcpVariables and sets it as the current item speed.
+    /// 'qb' part of the ChVariables and sets it as the current item speed.
     /// If 'step' is not 0, also should compute the approximate acceleration of
     /// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
-    /// Mostly used after the LCP provided the solution in ChLcpVariables.
+    /// Mostly used after the solver provided the solution in ChVariables.
     virtual void VariablesQbSetSpeed(double step = 0.) {}
 
-    /// Increment item positions by the 'qb' part of the ChLcpVariables,
+    /// Increment item positions by the 'qb' part of the ChVariables,
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
@@ -408,51 +390,51 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void VariablesQbIncrementPosition(double step) {}
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChLcpVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
 
     /// Tell to a system descriptor that there are contraints of type
-    /// ChLcpConstraint in this object (for further passing it to a LCP solver)
+    /// ChConstraint in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
 
-    /// Sets to zero the known term (b_i) of encapsulated ChLcpConstraints
+    /// Sets to zero the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiReset() {}
 
     /// Adds the current C (constraint violation) to the known term (b_i) of
-    /// encapsulated ChLcpConstraints
+    /// encapsulated ChConstraints
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) {}
 
     /// Adds the current Ct (partial t-derivative, as in C_dt=0-> [Cq]*q_dt=-Ct)
-    /// to the known term (b_i) of encapsulated ChLcpConstraints
+    /// to the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiLoad_Ct(double factor = 1.) {}
 
     /// Adds the current Qc (the vector of C_dtdt=0 -> [Cq]*q_dtdt=Qc )
-    /// to the known term (b_i) of encapsulated ChLcpConstraints
+    /// to the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiLoad_Qc(double factor = 1.) {}
 
     /// Adds the current link-forces, if any, (caused by springs, etc.) to the 'fb' vectors
-    /// of the ChLcpVariables referenced by encapsulated ChLcpConstraints
+    /// of the ChVariables referenced by encapsulated ChConstraints
     virtual void ConstraintsFbLoadForces(double factor = 1.) {}
 
-    /// Adds the current jacobians in encapsulated ChLcpConstraints
+    /// Adds the current jacobians in encapsulated ChConstraints
     virtual void ConstraintsLoadJacobians() {}
 
     /// Fetches the reactions from the lagrangian multiplier (l_i)
-    /// of encapsulated ChLcpConstraints.
-    /// Mostly used after the LCP provided the solution in ChLcpConstraints.
+    /// of encapsulated ChConstraints.
+    /// Mostly used after the solver provided the solution in ChConstraints.
     /// Also, should convert the reactions obtained from dynamical simulation,
     /// from link space to intuitive react_force and react_torque.
     virtual void ConstraintsFetch_react(double factor = 1.) {}
 
     /// Tell to a system descriptor that there are items of type
-    /// ChLcpKblock in this object (for further passing it to a LCP solver)
+    /// ChKblock in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {}
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {}
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling
+    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
     /// values Kfactor, Rfactor, Mfactor.
     /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {}
@@ -469,6 +451,6 @@ class ChApi ChPhysicsItem : public ChObj {
 
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -12,25 +12,11 @@
 #ifndef CHC_OBB_H
 #define CHC_OBB_H
 
-//////////////////////////////////////////////////
-//
-//   ChCOBB.h
-//
-//   Header for the Object oriented Bounding Box
-//   class. Useful for BSP collision queries.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
-#include "geometry/ChCGeometry.h"
-#include "ChCCompile.h"
 #include <vector>
+
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/collision/edgetempest/ChCCompile.h"
 
 namespace chrono {
 namespace collision {

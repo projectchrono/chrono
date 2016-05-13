@@ -17,8 +17,8 @@
 //       say CFD or SPH (here simulated as a function in this .cpp file)
 //       that is perform a cosimulation.
 
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
@@ -156,9 +156,9 @@ int main(int argc, char* argv[]) {
         // Change solver to embedded MINRES
         // NOTE! it is strongly advised that you compile the optional MKL module 
         // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);     
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);  
   */  
 

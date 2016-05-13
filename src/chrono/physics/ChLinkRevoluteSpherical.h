@@ -12,8 +12,8 @@
 #ifndef CHLINKREVOLUTESPHERICAL_H
 #define CHLINKREVOLUTESPHERICAL_H
 
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
@@ -128,19 +128,22 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
                                      const double c,
                                      bool do_clamp,
                                      double recovery_clamp);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
     // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& descriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();
@@ -175,8 +178,8 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     double m_cur_dot;   // actual value of dot constraint
 
     // The constraint objects
-    ChLcpConstraintTwoBodies m_cnstr_dist;  // ||pos2_abs - pos1_abs|| - dist = 0
-    ChLcpConstraintTwoBodies m_cnstr_dot;   // dot(dir1_abs, pos2_abs - pos1_abs) = 0
+    ChConstraintTwoBodies m_cnstr_dist;  // ||pos2_abs - pos1_abs|| - dist = 0
+    ChConstraintTwoBodies m_cnstr_dot;   // dot(dir1_abs, pos2_abs - pos1_abs) = 0
 
     // Current constraint violations
     ChMatrix<>* m_C;
@@ -185,6 +188,6 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     double m_multipliers[2];
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -12,23 +12,8 @@
 #ifndef CHLINKDISTANCE_H
 #define CHLINKDISTANCE_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkDistance.h
-//
-//   Class for enforcing a fixed polar distance
-//   between two points on two ChBody objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 /// Class for enforcing a fixed polar distance
@@ -54,7 +39,7 @@ class ChApi ChLinkDistance : public ChLink {
     ChVector<> pos1;
     ChVector<> pos2;
     // the constraint object
-    ChLcpConstraintTwoBodies Cx;
+    ChConstraintTwoBodies Cx;
 
     double curr_dist;  // used for internal optimizations
 
@@ -152,19 +137,22 @@ class ChApi ChLinkDistance : public ChLink {
                                      const double c,
                                      bool do_clamp,
                                      double recovery_clamp);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();
@@ -181,9 +169,6 @@ class ChApi ChLinkDistance : public ChLink {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

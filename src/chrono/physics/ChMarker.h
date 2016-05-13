@@ -12,31 +12,14 @@
 #ifndef CHMARKER_H
 #define CHMARKER_H
 
-//////////////////////////////////////////////////
-//
-//   ChMarker.h
-//
-//   "Marker" definition (an auxiliary frame, to be
-//   attached to rigid bodies).
-//   Each body needs markers to define links
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <iostream>
 
-#include "core/ChLog.h"
-#include "core/ChMath.h"
-#include "core/ChFrameMoving.h"
-
-#include "physics/ChFunction.h"
-#include "physics/ChObject.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/physics/ChObject.h"
 
 namespace chrono {
 

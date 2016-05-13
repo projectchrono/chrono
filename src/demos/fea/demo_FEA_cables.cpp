@@ -14,9 +14,9 @@
 //
 //     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
 
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "FEAcables.h"
@@ -90,13 +90,13 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Change solver settings
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);  // <- NEEDED THIS OR ::LCP_SIMPLEX because other
-                                                                 // solvers can't handle stiffness matrices
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(200);
-    my_system.SetIterLCPmaxItersStab(200);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED THIS OR ::SOLVER_SIMPLEX because other
+                                                              // solvers can't handle stiffness matrices
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(200);
+    my_system.SetMaxItersSolverStab(200);
     my_system.SetTolForce(1e-13);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 

@@ -111,9 +111,9 @@ void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector
 void ChAparticle::ComputeJacobianForContactPart(
     const ChVector<>& abs_point,
     ChMatrix33<>& contact_plane,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
     ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
     ChMatrix33<> Jx1, Jr1;
@@ -140,9 +140,9 @@ void ChAparticle::ComputeJacobianForContactPart(
 void ChAparticle::ComputeJacobianForRollingContactPart(
     const ChVector<>& abs_point,
     ChMatrix33<>& contact_plane,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
     ChMatrix33<> Jx1, Jr1;
 
@@ -419,29 +419,29 @@ void ChParticlesClones::IntLoadResidual_Mv(const unsigned int off,      ///< off
     }
 }
 
-void ChParticlesClones::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  ///< offset in L, Qc
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) {
+void ChParticlesClones::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                        const ChStateDelta& v,
+                                        const ChVectorDynamic<>& R,
+                                        const unsigned int off_L,  ///< offset in L, Qc
+                                        const ChVectorDynamic<>& L,
+                                        const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         this->particles[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v + 6 * j, 0, 6, 1, 0, 0);
         this->particles[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v + 6 * j, 0, 6, 1, 0, 0);
     }
 }
 
-void ChParticlesClones::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,  ///< offset in L
-                                   ChVectorDynamic<>& L) {
+void ChParticlesClones::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                          ChStateDelta& v,
+                                          const unsigned int off_L,  ///< offset in L
+                                          ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         v.PasteMatrix(&this->particles[j]->variables.Get_qb(), off_v + 6 * j, 0);
     }
 }
 
 ////
-void ChParticlesClones::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChParticlesClones::InjectVariables(ChSystemDescriptor& mdescriptor) {
     // this->variables.SetDisabled(!this->IsActive());
     for (unsigned int j = 0; j < particles.size(); j++) {
         mdescriptor.InsertVariables(&(this->particles[j]->variables));
@@ -472,7 +472,7 @@ void ChParticlesClones::VariablesFbLoadForces(double factor) {
 
 void ChParticlesClones::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
+        // set current speed in 'qb', it can be used by the solver when working in incremental mode
         this->particles[j]->variables.Get_qb().PasteVector(this->particles[j]->GetCoord_dt().pos, 0, 0);
         this->particles[j]->variables.Get_qb().PasteVector(this->particles[j]->GetWvel_loc(), 3, 0);
     }

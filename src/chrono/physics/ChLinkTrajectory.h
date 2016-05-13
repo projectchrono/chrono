@@ -12,24 +12,8 @@
 #ifndef CHLINKTRAJECTORY_H
 #define CHLINKTRAJECTORY_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkTrajectory.h
-//
-//
-//   Class for point-on-imposed-trajectory constraint
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkLock.h"
-#include "geometry/ChCLine.h"
+#include "chrono/physics/ChLinkLock.h"
+#include "chrono/geometry/ChLine.h"
 
 namespace chrono {
 ///

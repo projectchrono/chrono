@@ -59,7 +59,7 @@
 #endif
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 using namespace chrono;
@@ -84,7 +84,7 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
 // Solver settings
-enum SolverType { LCP_ITSOR, MKL };
+enum SolverType { ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF, FEA)
@@ -225,9 +225,9 @@ class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallba
 // =============================================================================
 class ChFunction_SlipAngle : public ChFunction {
   public:
-    ChFunction* new_Duplicate() { return new ChFunction_SlipAngle; }
+    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(); }
 
-    double Get_y(double t) {
+    virtual double Get_y(double t) const override {
         // Ramp for 1 second and stay at that value (scale)
         double delay = 0.05;
         double scale = -10.0 / 180 * CH_C_PI;
@@ -247,9 +247,9 @@ class ChFunction_SlipAngle : public ChFunction {
 
 class ChFunction_CamberAngle : public ChFunction {
   public:
-    ChFunction* new_Duplicate() { return new ChFunction_CamberAngle; }
+    virtual ChFunction_CamberAngle* Clone() const override { return new ChFunction_CamberAngle(); }
 
-    double Get_y(double t) { return 0.; }
+    virtual double Get_y(double t) const override { return 0.; }
 };
 
 // =============================================================================
@@ -670,17 +670,17 @@ int main() {
 
     if (solver_type == MKL) {
 #ifndef CHRONO_MKL
-        solver_type = LCP_ITSOR;
+        solver_type = ITSOR;
 #endif
     }
 
     switch (solver_type) {
-        case LCP_ITSOR: {
-            GetLog() << "Using LCP_ITERATIVE_SOR solver\n";
+        case ITSOR: {
+            GetLog() << "Using SOLVER_SOR solver\n";
             my_system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
-            my_system->SetIterLCPmaxItersSpeed(100);
-            my_system->SetIterLCPmaxItersStab(100);  // Tasora stepper uses this, Anitescu does not
-            my_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+            my_system->SetMaxItersSolverSpeed(100);
+            my_system->SetMaxItersSolverStab(100);  // Tasora stepper uses this, Anitescu does not
+            my_system->SetSolverType(ChSystem::SOLVER_SOR);
             my_system->SetTol(1e-10);
             my_system->SetTolForce(1e-8);
             break;
@@ -688,10 +688,10 @@ int main() {
         case MKL: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver\n";
-            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-            my_system->ChangeLcpSolverStab(mkl_solver_stab);
-            my_system->ChangeLcpSolverSpeed(mkl_solver_speed);
+            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+            my_system->ChangeSolverStab(mkl_solver_stab);
+            my_system->ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 

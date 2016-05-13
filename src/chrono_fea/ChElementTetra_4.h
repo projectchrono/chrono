@@ -57,7 +57,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
         nodes[1] = nodeB;
         nodes[2] = nodeC;
         nodes[3] = nodeD;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
         mvars.push_back(&nodes[2]->Variables());
@@ -410,7 +410,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
         nodes[3]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
     }
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //
@@ -451,8 +451,8 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         for (int i=0; i<nodes.size(); ++i)
             mvars.push_back(&this->nodes[i]->Variables());
     };
@@ -534,7 +534,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
         nodes[1] = nodeB;
         nodes[2] = nodeC;
         nodes[3] = nodeD;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
         mvars.push_back(&nodes[2]->Variables());
@@ -736,7 +736,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //
@@ -777,8 +777,8 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 1;}
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         for (int i=0; i<nodes.size(); ++i)
             mvars.push_back(&this->nodes[i]->Variables());
     };

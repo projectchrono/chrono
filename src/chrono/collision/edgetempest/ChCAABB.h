@@ -14,8 +14,9 @@
 
 #include <math.h>
 #include <vector>
-#include "geometry/ChCGeometry.h"
-#include "ChCCompile.h"
+
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/collision/edgetempest/ChCCompile.h"
 
 namespace chrono {
 namespace collision {

@@ -42,11 +42,11 @@ chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
 # Maybe you want to change some settings for the solver. For example you
-# might want to use SetIterLCPmaxItersSpeed to set the number of iterations
+# might want to use SetMaxItersSolverSpeed to set the number of iterations
 # per timestep, etc.
 
-#my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_BARZILAIBORWEIN) # precise, more slow
-my_system.SetIterLCPmaxItersSpeed(70)
+#my_system.SetSolverType(chrono.ChSystem.SOLVER_BARZILAIBORWEIN) # precise, more slow
+my_system.SetMaxItersSolverSpeed(70)
 
 
 

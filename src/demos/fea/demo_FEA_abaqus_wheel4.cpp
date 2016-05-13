@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
@@ -32,7 +32,7 @@
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 
@@ -184,9 +184,9 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(3, (f32)3, -4), core::vector3df(0, tire_rad, 0));
+    application.AddTypicalCamera(core::vector3df(3, (f32)3, -4), core::vector3df(0, (f32)tire_rad, 0));
     application.AddLightWithShadow(core::vector3df(1.5, 15.5, -2.5), core::vector3df(0, 0, 0), 3, 10.2, 17.2, 40, 512,
-                                   video::SColorf(0.8, 0.8, 1));
+                                   video::SColorf((f32)0.8, (f32)0.8, 1));
 
     //
     // CREATE THE PHYSICAL SYSTEM
@@ -351,16 +351,16 @@ int main(int argc, char* argv[]) {
 
 /*    
         // Change solver to embedded MINRES
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);     
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(90);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(90);
     my_system.SetTolForce(1e-10);  
 */
         // Change solver to pluggable MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
 	mkl_solver_speed->SetSparsityPatternLock(true);
     application.GetSystem()->Update();

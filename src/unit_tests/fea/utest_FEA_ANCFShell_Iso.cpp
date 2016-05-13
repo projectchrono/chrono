@@ -29,11 +29,12 @@
 
 #include <cmath>
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
+
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
@@ -174,18 +175,18 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Setup solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(100);
-    my_system.SetIterLCPmaxItersStab(100);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(100);
+    my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-6);
 
-    /*ChLcpMklSolver * mkl_solver_stab = new ChLcpMklSolver; // MKL Solver option
-    ChLcpMklSolver * mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    /*ChSolverMKL * mkl_solver_stab = new ChSolverMKL; // MKL Solver option
+    ChSolverMKL * mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetProblemSizeLock(true);
     mkl_solver_stab->SetSparsityPatternLock(false);
     my_system.Update();*/

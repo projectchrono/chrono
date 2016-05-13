@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetIterLCPmaxItersSpeed(26);
+    mphysicalSystem.SetMaxItersSolverSpeed(26);
 
     //
     // THE SOFT-REAL-TIME CYCLE

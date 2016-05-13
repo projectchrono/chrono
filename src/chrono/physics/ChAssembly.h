@@ -339,23 +339,23 @@ public:
                                      bool do_clamp,
                                      double recovery_clamp);
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, 
-                            ChStateDelta& v, 
-                            const unsigned int off_L, 
-                            ChVectorDynamic<>& L);
-    
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
-    
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
+
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsLoadJacobians();
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
 
     // Old bookkeeping system - to be removed soon

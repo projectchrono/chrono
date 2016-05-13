@@ -13,9 +13,9 @@
 #ifndef CHGAUSSPOINT
 #define CHGAUSSPOINT
 
-#include "physics/ChTensors.h"
-#include "core/ChMath.h"
-#include "lcp/ChLcpSystemDescriptor.h"
+#include "chrono/physics/ChTensors.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
 namespace fea {
@@ -84,7 +84,7 @@ class ChGaussPoint {
 
 /// @} fea_math
 
-}  //__end mamespace fea
-}  //__end namespace chrono
+}  //  end mamespace fea
+}  //  end namespace chrono
 
 #endif

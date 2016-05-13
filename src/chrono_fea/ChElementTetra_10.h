@@ -68,7 +68,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
         nodes[7] = nodeH;
         nodes[8] = nodeI;
         nodes[9] = nodeJ;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
         mvars.push_back(&nodes[2]->Variables());
@@ -688,7 +688,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
     //
@@ -741,8 +741,8 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
 
-        /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         for (int i=0; i<nodes.size(); ++i)
             mvars.push_back(&this->nodes[i]->Variables());
     };

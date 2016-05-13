@@ -12,26 +12,11 @@
 #ifndef CHC_CONVEXDECOMPOSITION_H
 #define CHC_CONVEXDECOMPOSITION_H
 
-//////////////////////////////////////////////////
-//
-//   ChCConvexDecomposition.h
-//
-//   Wrapper for the convex decomposition code
-//   by John W. Ratcliff (in the convexdecomp/ dir)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChApiCE.h"
-#include "collision/convexdecomposition/HACD/hacdHACD.h"
-#include "collision/convexdecomposition/HACDv2/HACD.h"
-#include "collision/convexdecomposition/JR/NvConvexDecomposition.h"
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/collision/convexdecomposition/HACD/hacdHACD.h"
+#include "chrono/collision/convexdecomposition/HACDv2/HACD.h"
+#include "chrono/collision/convexdecomposition/JR/NvConvexDecomposition.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 
 namespace chrono {
 namespace collision {

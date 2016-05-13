@@ -14,8 +14,8 @@
 #define CHLOADABLE_H
 
 
-#include "core/ChVectorDynamic.h"
-#include "lcp/ChLcpVariables.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
@@ -52,8 +52,8 @@ public:
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) = 0;
 
-        /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) = 0;
+        /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) = 0;
 };
 
 
@@ -137,9 +137,6 @@ public:
                      ) =0;
 };
 
+}  // end namespace chrono
 
-
-
-}  // END_OF_NAMESPACE____
-
-#endif  
+#endif
