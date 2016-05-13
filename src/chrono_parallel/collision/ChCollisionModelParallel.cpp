@@ -34,7 +34,7 @@ int ChCollisionModelParallel::ClearModel() {
     if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
         GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
     }
-
+    local_convex_data.clear();
     mData.clear();
     nObjects = 0;
     family_group = 1;

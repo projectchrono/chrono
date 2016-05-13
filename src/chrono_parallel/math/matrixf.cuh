@@ -164,6 +164,14 @@ CUDA_HOST_DEVICE static inline float Length2(const float2& v1) {
 CUDA_HOST_DEVICE static inline float2 Normalize(const float2& v) {
     return v / sqrtf(Dot(v));
 }
+
+CUDA_HOST_DEVICE inline float Clamp(float x, float low, float high) {
+    if (low > high) {
+        Swap(low, high);
+    }
+    return fmaxf(low, fminf(x, high));
+}
+
 class Mat33f {
   public:
     // Zero constructor
