@@ -2,7 +2,8 @@ Install Chrono {#tutorial_install_chrono}
 ==========================
 
 
-This page explains how to install the Chrono::Engine sources and to compile them into binaries that later you can use to develop your project.
+This page explains how to **install** the Chrono::Engine sources and to **build** 
+them into binaries that later you can use to develop your project.
 
 ![](Pic_build_ce.png)
 
@@ -97,12 +98,18 @@ Now you just created a project to build Chrono::Engine. You can also close CMake
 
 2. **Double-click** on that file: your Visual Studio project will open.
 
-3. **Choose 'Release' or 'Debug' mode** using the toggle in the toolbar.
+3. **Choose 'Debug' mode** using the dropbox in the toolbar.
  
-4. **Press F7** in the Visual Studio editor: the entire Chrono::Engine project
-   and its demos will be compiled, creating many .exe and .dll files.  
+4. Use the menu **BUILD / Build solution...** in the Visual Studio editor: the entire Chrono::Engine project
+   and its demos will be compiled, creating many .exe and .dll files in the bin/Debug directory.  
    This will take few minutes.
 
+5. **Choose 'Release' mode** using the dropbox in the toolbar.
+ 
+6. Use again the menu **BUILD / Build solution...** in the Visual Studio editor: the entire Chrono::Engine project
+   and its demos will be compiled, creating many .exe and .dll files, this time in the bin/Release directory.   
+   This will take few minutes.
+   
    
 ###Play with the demos
 

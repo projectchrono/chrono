@@ -33,6 +33,13 @@
 /**
     @defgroup vehicle Chrono::Vehicle
     @brief Ground vehicle modeling
+
+    This module introduces template-based modeling tools
+    for creating wheeled and tracked vehicles.
+
+    For additional information, see:
+    - the [installation guide](@ref module_vehicle_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
 */
 
 namespace chrono {

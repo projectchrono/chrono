@@ -1,8 +1,8 @@
-Chrono SolidWorks&copy; Support {#tutorial_table_of_content_chrono_solidworks}
+Chrono::SolidWorks&copy; tutorials {#tutorial_table_of_content_chrono_solidworks}
 ==========================
 
 
-Tutorials for users that installed the Chrono::SolidWorks add-in for SolidWorks
+Tutorials for users that installed the [Chrono::Solidworks](@ref introduction_chrono_solidworks) add-in for SolidWorks
 
 
 -   @subpage tutorial_chrono_solidworks_demo_engine

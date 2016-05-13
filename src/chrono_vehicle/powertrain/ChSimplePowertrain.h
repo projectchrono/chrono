@@ -40,9 +40,6 @@ class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
 
     virtual ~ChSimplePowertrain() {}
 
-    /// Initialize the powertrain system.
-    void Initialize();
-
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motorSpeed; }
 
@@ -75,6 +72,11 @@ class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
     /// Use this function to set the mode of automatic transmission.
     /// This simplified model does not have a transmission box.
     virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
+
+    /// Initialize the powertrain system.
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
+                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
+                            ) override;
 
     /// Update the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a

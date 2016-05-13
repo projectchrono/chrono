@@ -22,7 +22,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// CShaderPreprocessor
@@ -2005,7 +2005,7 @@ inline void ScreenQuadCB::OnSetConstants(irr::video::IMaterialRendererServices* 
     }
 }
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

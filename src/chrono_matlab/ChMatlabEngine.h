@@ -41,6 +41,10 @@ namespace matlabengine {
 
 namespace chrono {
 
+/// @addtogroup matlab_module
+/// @{
+
+
 /// Class for accessing the Matlab engine with a C++ wrapper.
 /// When a ChMatlabEngine object is instanced, a Matlab engine
 /// is started (assuming Matlab is properly installed and its
@@ -112,6 +116,7 @@ class ChApiMatlab ChMatlabEngine {
     }
 };
 
+/// @} matlab_module
 }  // END_OF_NAMESPACE____
 
 #endif

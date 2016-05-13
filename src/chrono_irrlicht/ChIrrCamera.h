@@ -20,7 +20,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class to create an interactive videocamera in Irrlicht, that is similar to
@@ -144,7 +144,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     void updateMatrices();
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrlicht
 }  // end namespace chrono

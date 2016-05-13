@@ -41,22 +41,38 @@ ChANCFTire::ChANCFTire(const std::string& name)
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),
+      m_use_mat_props(true),
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
       m_friction(0.6f),
       m_restitution(0.1f),
+      m_kn(2e5),
+      m_kt(2e5),
+      m_gn(40),
+      m_gt(20),
       m_pressure(-1) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChANCFTire::SetContactMaterial(float friction_coefficient,
-                                    float restitution_coefficient,
-                                    float young_modulus,
-                                    float poisson_ratio) {
+void ChANCFTire::SetContactMaterialProperties(float friction_coefficient,
+                                              float restitution_coefficient,
+                                              float young_modulus,
+                                              float poisson_ratio) {
+    m_use_mat_props = true;
+
     m_friction = friction_coefficient;
     m_restitution = restitution_coefficient;
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
+}
+
+void ChANCFTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
+    m_use_mat_props = false;
+
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
 }
 
 // -----------------------------------------------------------------------------
@@ -78,9 +94,9 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     auto load_container = std::make_shared<ChLoadContainer>();
     system->Add(load_container);
 
+    // Enable tire pressure
     if (m_pressure_enabled) {
-        // If pressure was not explicitly specified, fall back to the
-        // default value.
+        // If pressure was not explicitly specified, fall back to the default value.
         if (m_pressure < 0)
             m_pressure = GetDefaultPressure();
 
@@ -96,35 +112,46 @@ void ChANCFTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
         }
     }
 
-    if (m_contact_enabled) {
-        // Create the contact material
-        auto contact_mat = std::make_shared<ChMaterialSurfaceDEM>();
-        contact_mat->SetYoungModulus(m_young_modulus);
-        contact_mat->SetFriction(m_friction);
-        contact_mat->SetRestitution(m_restitution);
-        contact_mat->SetPoissonRatio(m_poisson_ratio);
+    // Create the contact material
+    m_contact_mat = std::make_shared<ChMaterialSurfaceDEM>();
+    if (m_use_mat_props) {
+        m_contact_mat->SetYoungModulus(m_young_modulus);
+        m_contact_mat->SetFriction(m_friction);
+        m_contact_mat->SetRestitution(m_restitution);
+        m_contact_mat->SetPoissonRatio(m_poisson_ratio);
 
-        // Create the contact surface
+        system->UseMaterialProperties(true);
+    } else {
+        m_contact_mat->SetKn(m_kn);
+        m_contact_mat->SetGn(m_gn);
+        m_contact_mat->SetKt(m_kt);
+        m_contact_mat->SetGt(m_gt);
+
+        system->UseMaterialProperties(false);
+    }
+
+    // Enable tire contact
+    if (m_contact_enabled) {
         switch (m_contact_type) {
             case NODE_CLOUD: {
                 auto contact_surf = std::make_shared<ChContactSurfaceNodeCloud>();
                 m_mesh->AddContactSurface(contact_surf);
                 contact_surf->AddAllNodes(m_contact_node_radius);
-                contact_surf->SetMaterialSurface(contact_mat);
+                contact_surf->SetMaterialSurface(m_contact_mat);
                 break;
             }
             case TRIANGLE_MESH: {
                 auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
                 m_mesh->AddContactSurface(contact_surf);
                 contact_surf->AddFacesFromBoundary(m_contact_face_thickness);
-                contact_surf->SetMaterialSurface(contact_mat);
+                contact_surf->SetMaterialSurface(m_contact_mat);
                 break;
             }
         }
     }
 
+    // Enable tire connection to rim
     if (m_connection_enabled) {
-        // Connect nodes to rim
         auto nodes = GetConnectedNodes();
 
         m_connections.resize(nodes.size());

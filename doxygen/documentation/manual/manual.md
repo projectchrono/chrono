@@ -2,9 +2,11 @@ Manual {#manual_root}
 ==========================
 
 
-* [Install Chrono](@ref tutorial_install_chrono)
+* [Install and build Chrono](@ref tutorial_install_chrono)
 
-* [Create a project](@ref tutorial_cmake)
+* [Build a project](@ref tutorial_install_project)
+
+* @subpage modularity
 
 * @subpage mathematical_objects
 	* [Linear algebra](@ref linear_algebra)

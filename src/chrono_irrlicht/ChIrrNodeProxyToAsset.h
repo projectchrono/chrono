@@ -20,7 +20,7 @@
 namespace chrono {
 namespace irrlicht {
 
-/// @addtogroup irrlicht
+/// @addtogroup irrlicht_module
 /// @{
 
 /// Class for proxy to ChAsset, it is a node with mesh in Irrlicht system
@@ -79,7 +79,7 @@ class ChApiIrr ChIrrNodeProxyToAsset : public irr::scene::ISceneNode {
     virtual irr::scene::ESCENE_NODE_TYPE getType() const { return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHIRRNODEPROXYTOASSET; }
 };
 
-/// @} irrlicht
+/// @} irrlicht_module
 
 }  // end namespace irrrlicht
 }  // end namespace chrono

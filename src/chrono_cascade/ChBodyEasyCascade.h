@@ -23,6 +23,8 @@ namespace chrono {
 
 namespace cascade {
 
+/// @addtogroup cascade_module
+/// @{
 
 // This header includes some easy-to-use bodies, that can be used
 // to create ChBody objects that already include a visualization shape
@@ -109,7 +111,7 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
 
 
 
-
+/// @} cascade_module
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

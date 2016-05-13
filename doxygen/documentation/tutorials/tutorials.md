@@ -2,29 +2,36 @@ Tutorials {#tutorial_root}
 ==========================
 
 
-@subpage tutorial_table_of_content_install
--   Learn how to set up Chrono on your machine
+-   @subpage tutorial_table_of_content_install
 
-@subpage tutorial_table_of_content_chrono
--   Learn about the core of the Chrono library
+    Learn how to set up Chrono and Chrono-based projects on your machine
 
-@subpage tutorial_table_of_content_chrono_fea
--   Basic information about FEA support in Chrono
+-   @subpage tutorial_table_of_content_chrono
 
-@subpage tutorial_table_of_content_chrono_vehicle
--   Learn how to set up a vehicle model in Chrono
+    Learn about the core of the Chrono library
 
-@subpage tutorial_table_of_content_chrono_solidworks
--   Learn how to use the solidworks module
+-   @subpage tutorial_table_of_content_chrono_fea
 
-Building a Chrono project
--------------------------
+    Basic information about FEA support in Chrono
 
--   Via CMake: @subpage tutorial_cmake
+-   @subpage tutorial_table_of_content_chrono_vehicle
+ 
+    Learn how to set up a vehicle model in Chrono
 
--   Low level alternative: @subpage advanced_build
+-   @subpage tutorial_table_of_content_chrono_solidworks
+
+    Learn how to use [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+
+-   @subpage tutorial_table_of_content_chrono_pyengine
+ 
+    Learn how to use [Chrono::PyEngine](@ref introduction_chrono_pyengine)
+
+
 
 Documentation guides
 -----------------
 
-@subpage tutorial_converting_wiki
+-    @subpage tutorial_converting_wiki
+
+-    @subpage tutorial_writing_whitepapers
+

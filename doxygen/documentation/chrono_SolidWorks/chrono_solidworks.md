@@ -19,6 +19,6 @@ the .py file in a simple Python program (or C++ program, using the
 **Python module** for parsing), add items to a ChSystem object, and run a
 loop for computing the simulation.
 
-* @subpage tutorial_install_chrono_solidworks
+* @subpage chrono_solidworks_installation
 * [Tutorials](@ref tutorial_table_of_content_chrono_solidworks).
 

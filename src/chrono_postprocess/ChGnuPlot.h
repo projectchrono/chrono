@@ -28,6 +28,9 @@ namespace chrono {
 /// Namespace with classes for the postprocess unit.
 namespace postprocess {
 
+/// @addtogroup postprocess_module
+/// @{
+
 class ChGnuPlotDataplot {
   public:
     std::string command;
@@ -434,6 +437,7 @@ class ChGnuPlot {
     bool persist;
 };
 
+/// @} postprocess_module
 }  // end namespace
 }  // end namespace
 

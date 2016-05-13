@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------
 
     M113_SimplePowertrain powertrain;
-    powertrain.Initialize();
+    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -161,6 +161,8 @@ int main(int argc, char* argv[]) {
     driver.SetSteeringDelta(render_step_size / steering_time);
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
+
+    driver.Initialize();
 
     // -----------------
     // Initialize output

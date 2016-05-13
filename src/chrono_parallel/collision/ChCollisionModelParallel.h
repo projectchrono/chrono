@@ -26,6 +26,11 @@ namespace chrono {
 class ChBody;
 
 namespace collision {
+
+/// @addtogroup parallel_module
+/// @{
+
+
 ///  A wrapper to uses GPU collision detection
 
 struct ConvexModel {
@@ -202,5 +207,6 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
     float total_volume;
 };
 
+/// @} parallel_module
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

@@ -96,7 +96,7 @@ ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
 
 float mu_g = 0.8f;
 
-int num_particles = 100; //// 40000;
+unsigned int num_particles = 100; //// 40000;
 
 // -----------------------------------------------------------------------------
 // Specification of the vehicle model
@@ -166,7 +166,7 @@ double CreateParticles(ChSystem* system) {
 
     // Create a particle generator and a mixture entirely made out of spheres
     utils::Generator gen(system);
-    std::shared_ptr<utils::MixtureIngredient>& m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
+    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
 #ifdef USE_DEM
     m1->setDefaultMaterialDEM(mat_g);
 #else
@@ -203,12 +203,12 @@ void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
     return;
 
   float ratio = x / (float)n;
-  int c = ratio * w;
+  unsigned int c = (unsigned int)(ratio * w);
 
   std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
-  for (int x = 0; x < c; x++)
+  for (unsigned int x = 0; x < c; x++)
     std::cout << "=";
-  for (int x = c; x < w; x++)
+  for (unsigned int x = c; x < w; x++)
     std::cout << " ";
   std::cout << "]\r" << std::flush;
 }
@@ -386,11 +386,11 @@ int main(int argc, char* argv[]) {
 
     // Create the powertrain system
     M113_SimplePowertrain powertrain;
-    powertrain.Initialize();
+    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
 
     // Create the driver system
     ChDataDriver driver(vehicle, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-
+    driver.Initialize();
 
     // ---------------
     // Simulation loop
@@ -405,7 +405,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Number of simulation steps between two 3D view render frames
-    int out_steps = std::ceil((1.0 / time_step) / out_fps);
+    int out_steps = (int)std::ceil((1.0 / time_step) / out_fps);
 
     // Run simulation for specified time.
     double time = 0;

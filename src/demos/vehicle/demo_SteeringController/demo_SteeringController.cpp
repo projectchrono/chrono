@@ -246,6 +246,7 @@ int main(int argc, char* argv[]) {
 
     // Create both a GUI driver and a path-follower and allow switching between them
     ChIrrGuiDriver driver_gui(app);
+    driver_gui.Initialize();
 
     /*
     ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
@@ -255,6 +256,7 @@ int main(int argc, char* argv[]) {
     */
     ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), vehicle::GetDataFile(steering_controller_file),
                                          vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
+    driver_follower.Initialize();
 
     // Create and register a custom Irrlicht event receiver to allow selecting the
     // current driver model.

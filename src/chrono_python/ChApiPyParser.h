@@ -52,6 +52,19 @@
 #endif
 
 
+/**
+    @defgroup python_module PYTHON module
+    @brief Parsing of Python commands 
 
+    This module has two functions:
+    - it builds Chrono::PyEngine modules that later can be used in a Python program, 
+      that wrap the Chrono functions,
+    - it builds a PyParser library that can be used from the C++ side to parse and execute Python commands
+
+    For additional information, see:
+    - the [installation guide](@ref module_python_installation)
+    - the [tutorials](@ref tutorial_root)
+
+*/
 
 #endif  // END of header

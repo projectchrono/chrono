@@ -2,8 +2,10 @@
 # List of all OpenGL demos
 
 SET(DEMOS
-  demo_cohesion_gl
-  demo_inv_pendulum
+  demo_GL_cohesion
+  demo_GL_inv_pendulum
+  demo_GL_benchmark
+  demo_GL_shapes
 )
 
 #--------------------------------------------------------------
