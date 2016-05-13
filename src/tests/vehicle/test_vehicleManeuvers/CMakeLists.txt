@@ -5,11 +5,6 @@ SET(TEST_PROGRAMS
 IF(ENABLE_MODULE_IRRLICHT)
   INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 ENDIF()
-
-SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_irrlicht
-    ChronoEngine_vehicle)
     
 SET(LIBRARIES
     ChronoEngine
