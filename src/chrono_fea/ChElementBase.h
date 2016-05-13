@@ -25,26 +25,26 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Base class for all finite elements, that can be
-/// used in the ChMesh physics item.
+/// Base class for all finite elements, that can be used in the ChMesh physics item.
 class ChApiFea ChElementBase {
   protected:
   public:
     ChElementBase(){};
     virtual ~ChElementBase(){};
 
-    /// Gets the number of coordinates of the node positions in space;
-    /// note this is not the coordinates of the field, use GetNdofs() instead
-    virtual int GetNcoords() = 0;
-
-    /// Gets the number of nodes used by this element
+    /// Gets the number of nodes used by this element.
     virtual int GetNnodes() = 0;
 
-    /// Gets the number of coordinates in the field used by the referenced nodes,
-    /// this is for example the size (n.of rows/columns) of the local stiffness matrix
+    /// Gets the number of coordinates in the field used by the referenced nodes.
+    /// This is for example the size (n.of rows/columns) of the local stiffness matrix.
     virtual int GetNdofs() = 0;
 
-    /// Access the nth node
+    /// Get the number of coordinates from the n-th node that are used by this element.
+    /// Note that this may be different from the value returned by
+    ///    GetNodeN(n)->Get_ndof_w();
+    virtual int GetNodeNdofs(int n) = 0;
+
+    /// Access the nth node.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) = 0;
 
     //

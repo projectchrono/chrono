@@ -14,6 +14,7 @@
 #define CHELEMENTTETRA10_H
 
 #include <cmath>
+
 #include "chrono_fea/ChElementTetrahedron.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 
@@ -26,8 +27,7 @@ namespace fea {
 /// Tetahedron FEA element with 10 nodes.
 /// This is a quadratic element for displacementes; stress and strain
 /// are interpolated depending on Gauss points.
-class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
-                                   public ChLoadableUVW  {
+class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUVW {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;
@@ -42,9 +42,9 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron,
     ChElementTetra_10();
     virtual ~ChElementTetra_10();
 
-    virtual int GetNnodes() { return 10; }
-    virtual int GetNcoords() { return 10 * 3; }
-    virtual int GetNdofs() { return 10 * 3; }
+    virtual int GetNnodes() override { return 10; }
+    virtual int GetNdofs() override { return 10 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

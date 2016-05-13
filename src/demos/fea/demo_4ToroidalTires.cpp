@@ -227,22 +227,22 @@ void MakeANCFWheel(ChSystem& my_system,
     for (int j = 0; j < N_Diameter; j++) {  // Start node numbering by zero
         for (int i = 0; i < numEl_Thread; i++) {
             if (j == N_Diameter - 1) {
-                node0 = i + j * (numEl_Thread + 1);
-                node1 = i;
-                node2 = i + 1;
+                node0 = i + 1;                
+                node1 = i;                
+                node2 = i + j * (numEl_Thread + 1);
                 node3 = i + 1 + j * (numEl_Thread + 1);
             } else {
-                node0 = i + j * (numEl_Thread + 1);
+                node0 = i + 1 + (j + 1) * (numEl_Thread + 1);
                 node1 = i + (j + 1) * (numEl_Thread + 1);
-                node2 = i + 1 + (j + 1) * (numEl_Thread + 1);
+                node2 = i + j * (numEl_Thread + 1);
                 node3 = i + 1 + j * (numEl_Thread + 1);
             }
             // Create the element and set its nodes.
             auto element = std::make_shared<ChElementShellANCF>();
-            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node2)),
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node0)),
                 std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node1)),
-                std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node3)),
-                std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node0)));
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node2)),
+                std::dynamic_pointer_cast<ChNodeFEAxyzD>(TireMesh->GetNode(node3)));
             // Set element dimensions
             element->SetDimensions(dx, dy);
             // Add a single layers with a fiber angle of 0 degrees.

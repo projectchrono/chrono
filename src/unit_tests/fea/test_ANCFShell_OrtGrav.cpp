@@ -143,11 +143,10 @@ int main(int argc, char* argv[]) {
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         // Adjacent nodes
-        int node0 = (i / (numDiv_x)) * (N_x)+i % numDiv_x;
-        int node1 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + N_x;
-        int node3 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;
-
+        int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
+        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),

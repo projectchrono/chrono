@@ -67,7 +67,7 @@ double wheel_mass = 40;
 ChVector<> wheel_inertia(1, 1, 1);
 
 // Initial offset of the tire above the terrain
-double tire_offset = 0.03;
+double tire_offset = 0.01;
 
 // Rigid terrain dimensions
 double terrain_length = 100.0;  // size in X direction
@@ -78,6 +78,34 @@ enum SolverType { MINRES, MKL };
 SolverType solver_type = MKL;
 
 double step_size = 1e-3;  // integration step size
+
+// =============================================================================
+// Contact reporter class
+
+class MyContactReporter : public ChReportContactCallback {
+  public:
+    MyContactReporter(std::shared_ptr<ChBody> ground) : m_ground(ground) {}
+
+  private:
+    virtual bool ReportContactCallback(const ChVector<>& pA,
+                                       const ChVector<>& pB,
+                                       const ChMatrix33<>& plane_coord,
+                                       const double& distance,
+                                       const ChVector<>& react_forces,
+                                       const ChVector<>& react_torques,
+                                       ChContactable* objA,
+                                       ChContactable* objB) override {
+        ChVector<> force = plane_coord.Matr_x_Vect(react_forces);
+        ChVector<> point = (objA == m_ground.get()) ? pA : pB;
+        std::cout << "---  " << distance << std::endl;
+        std::cout << "     " << point.x << "  " << point.y << "  " << point.z << std::endl;
+        std::cout << "     " << force.x << "  " << force.y << "  " << force.z << std::endl;
+
+        return true;
+    }
+
+    std::shared_ptr<ChBody> m_ground;
+};
 
 // =============================================================================
 // Main driver program
@@ -251,6 +279,7 @@ int main(int argc, char* argv[]) {
 
     // Perform the simulation
     // ----------------------
+    MyContactReporter reporter(terrain->GetGroundBody());
     WheelState wheel_state;
     TireForce tire_force;
 
@@ -283,5 +312,10 @@ int main(int argc, char* argv[]) {
         // Advance simulation
         tire->Advance(step_size);
         app.DoStep();
+
+        std::cout << "Time: " << system.GetChTime() << "  Wheel center height: " << wheel->GetPos().z << std::endl << std::endl;
+
+        // Report tire-terrain contacts
+        system.GetContactContainer()->ReportAllContacts(&reporter);
     }
 }

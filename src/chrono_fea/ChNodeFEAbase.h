@@ -13,10 +13,8 @@
 #ifndef CHNODEFEABASE_H
 #define CHNODEFEABASE_H
 
-
-#include "ChApiFEA.h"
-#include "physics/ChNodeBase.h"
-
+#include "chrono/physics/ChNodeBase.h"
+#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -27,51 +25,34 @@ namespace fea {
 // Forward
 class ChMesh;
 
-
 /// Base class for a generic finite element node
 /// that can be stored in ChMesh containers.
 /// Children classes must implement specialized versions.
-class ChApiFea ChNodeFEAbase  :  public virtual ChNodeBase
-{
-public:
+class ChApiFea ChNodeFEAbase : public virtual ChNodeBase {
+  public:
+    ChNodeFEAbase() {}
 
-    ChNodeFEAbase() {
-    }
+    /// Set the rest position as the actual position.
+    virtual void Relax() = 0;
 
-				/// Set the rest position as the actual position.
-	virtual void Relax () =0;
+    /// Reset to no speed and acceleration.
+    virtual void SetNoSpeedNoAcceleration() = 0;
 
-				/// Reset to no speed and acceleration.
-	virtual void SetNoSpeedNoAcceleration () =0;
+    /// Set the 'fixed' state of the node.
+    /// If true, its current field value is not changed by solver.
+    virtual void SetFixed(bool mev) = 0;
 
-				/// Sets the 'fixed' state of the node. 
-				/// If true, its current field value is not changed by solver.
-	virtual void SetFixed  (bool mev) =0;  
-				/// Sets the global index of the node
-	virtual void SetIndex(unsigned int mindex){g_index = mindex;}
-				/// Gets the 'fixed' state of the node. 
-				/// If true, its current field value is not changed by solver.
-    virtual bool GetFixed()  =0;  
-    			/// Gets the global index of the node
-    virtual unsigned int GetIndex(){return g_index;}
+    /// Get the 'fixed' state of the node.
+    /// If true, its current field value is not changed by solver.
+    virtual bool GetFixed() = 0;
 
-
-    double m_TotalMass; ///< Nodal mass obtained from element masss matrix
-
-protected:
-
-    //
-    // DATA
-    //
-
-	unsigned int g_index; ///< global node index
-
+    double m_TotalMass;  ///< Nodal mass obtained from element masss matrix
 };
 
 /// @} fea_nodes
 
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
+} // end namespace fea
+} // end namespace chrono
 
 
 #endif

@@ -1,18 +1,17 @@
-About Chrono::Pyengine {#introduction_chrono_pyengine}
+Chrono::PyEngine reference {#chrono_pyengine_reference}
 ==========================
 
 Chrono::PyEngine is a Python wrapper for Chrono::Engine. It is a set of
 Python modules that correspond to the main units of Chrono::Engine, as
 shown in this scheme:
 
-![](/images/Units_python.png)
-
+![](Units_python.png)
 
 
 First steps with Python
 -----------------------
 
-After the installation, you are ready to use Chrono::PyEngine from
+After the [installation](@ref chrono_pyengine_installation), you are ready to use Chrono::PyEngine from
 Python. To begin:
 
 -   start your editor, for example PyScripter.
@@ -110,7 +109,7 @@ Learn additional lessons by reading the PyChrono::Engine tutorials.
 
 <div class="ce-info">
 Most classes behave like their C++ counterparts, so you are 
-invited to look at the [C++ API documentation]() to understand their features. 
+invited to look at the [C++ API documentation](http://api.chrono.projectchrono.org) to understand their features. 
 </div>
 
 <div class="ce-warning">
@@ -150,7 +149,7 @@ managed by Python. So **object creation in Python** is simply:
 my_vect = chrono.ChSystem()
 ~~~~~~~~~~~~~~~
 
-Note that the *=* operator in Python does not mean *copy* (except for
+Note that the = operator in Python does not mean *copy* (except for
 simple types such as integers, floats, etc.) but means *assign*, so for
 example
 

@@ -22,10 +22,9 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Class for FEA elements of hexahedron type (isoparametric 3D bricks)
-/// with 8 nodes. This element has a linear displacement field.
-class ChApiFea ChElementHexa_8 : public ChElementHexahedron,
-                                 public ChLoadableUVW {
+/// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 8 nodes.
+/// This element has a linear displacement field.
+class ChApiFea ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUVW {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;
@@ -40,9 +39,9 @@ class ChApiFea ChElementHexa_8 : public ChElementHexahedron,
     ChElementHexa_8();
     virtual ~ChElementHexa_8();
 
-    virtual int GetNnodes() { return 8; }
-    virtual int GetNcoords() { return 8 * 3; }
-    virtual int GetNdofs() { return 8 * 3; }
+    virtual int GetNnodes() override { return 8; }
+    virtual int GetNdofs() override { return 8 * 3; }
+    virtual int GetNodeNdofs(int n) override { return 3; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
 

@@ -82,14 +82,14 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame,
             // Adjacent nodes
             int inode0, inode1, inode2, inode3;
             inode1 = j + i * (m_div_width + 1);
-            inode3 = j + 1 + i * (m_div_width + 1);
+            inode2 = j + 1 + i * (m_div_width + 1);
             if (i == m_div_circumference - 1) {
                 inode0 = j;
-                inode2 = j + 1;
+                inode3 = j + 1;
             }
             else {
                 inode0 = j + (i + 1) * (m_div_width + 1);
-                inode2 = j + 1 + (i + 1) * (m_div_width + 1);
+                inode3 = j + 1 + (i + 1) * (m_div_width + 1);
             }
 
             auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode0));

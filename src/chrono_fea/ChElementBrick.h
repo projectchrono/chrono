@@ -16,10 +16,10 @@
 #ifndef CHELEMENTBRICK_H
 #define CHELEMENTBRICK_H
 
+#include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
-#include "core/ChQuadrature.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +27,7 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Brick element with 8 nodes (with EAS)
+/// Brick element with 8 nodes (with EAS).
 class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
   public:
     ChElementBrick();
@@ -259,12 +259,16 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
 
     /// Get number of nodes of this element
     virtual int GetNnodes() override { return 8; }
-    /// Get number of coordinates of the element
-    virtual int GetNcoords() override { return 8 * 3; }
+
     /// Get number of degrees of freedom of this element
     virtual int GetNdofs() override { return 8 * 3; }
+
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs(int n) override { return 3; }
+
     /// Access the n-th node of this element.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                   std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -274,19 +278,25 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
                   std::shared_ptr<ChNodeFEAxyz> nodeF,
                   std::shared_ptr<ChNodeFEAxyz> nodeG,
                   std::shared_ptr<ChNodeFEAxyz> nodeH);
-    /// Set the element number
+
+    /// Set the element number.
     void SetElemNum(int kb) { m_elementnumber = kb; }
-    /// Set EAS internal parameters (stored values)
+
+    /// Set EAS internal parameters (stored values).
     void
     SetStockAlpha(double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9);
-    /// Set EAS Jacobian matrix
+    
+    /// Set EAS Jacobian matrix.
     void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }
-    /// Set Analytical Jacobian
+ 
+    /// Set Analytical Jacobian.
     void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }
-    /// Set some element parameters (dimensions)
+ 
+    /// Set some element parameters (dimensions).
     void SetInertFlexVec(const ChMatrixNM<double, 3, 1>& a) { m_InertFlexVec = a; }
 
     int GetElemNum() const { return m_elementnumber; }
+    
     /// Get initial position of the element in matrix form
     const ChMatrixNM<double, 8, 3>& GetInitialPos() const { return m_d0; }
 
