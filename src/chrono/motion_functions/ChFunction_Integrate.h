@@ -1,40 +1,25 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHFUNCT_INTEGRATE_H
 #define CHFUNCT_INTEGRATE_H
 
-//////////////////////////////////////////////////
-//
-//   ChFunction_Integrate.h
-//
-//   Function objects,
-//   as scalar functions of scalar variable y=f(t)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Base.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
 
 namespace chrono {
 
-#define FUNCT_INTEGRATE 17
-
-/// INTEGRAL OF A FUNCTION:
-/// y = int{ f(x) dx
+/// Integral of a function: y = int{ f(x) dx.
 ///
 /// Uses a numerical quadrature method to compute the definite integral.
 
@@ -52,64 +37,57 @@ class ChApi ChFunction_Integrate : public ChFunction {
 
   public:
     ChFunction_Integrate();
-    ~ChFunction_Integrate() {
-        if (array_x)
-            delete array_x;
-    };
-    void Copy(ChFunction_Integrate* source);
-    ChFunction* new_Duplicate();
+    ChFunction_Integrate(const ChFunction_Integrate& other);
+    ~ChFunction_Integrate();
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChFunction_Integrate* Clone() const override { return new ChFunction_Integrate(*this); }
+
+    virtual FunctionType Get_Type() const override { return FUNCT_INTEGRATE; }
+
+    virtual double Get_y(double x) const override;
 
     void ComputeIntegral();
 
     void Set_order(int m_order) { order = m_order; }
-    int Get_order() { return order; }
+    int Get_order() const { return order; }
+
     void Set_num_samples(int m_samples) {
         num_samples = m_samples;
         array_x->Reset(num_samples, 1);
         ComputeIntegral();
     }
-    int Get_num_samples() { return num_samples; }
+    int Get_num_samples() const { return num_samples; }
+
     void Set_C_start(double m_val) {
         C_start = m_val;
         ComputeIntegral();
     }
-    double Get_C_start() { return C_start; }
+    double Get_C_start() const { return C_start; }
+
     void Set_x_start(double m_val) {
         x_start = m_val;
         ComputeIntegral();
     }
-    double Get_x_start() { return x_start; }
+    double Get_x_start() const { return x_start; }
+
     void Set_x_end(double m_val) {
         x_end = m_val;
         ComputeIntegral();
     }
-    double Get_x_end() { return x_end; }
+    double Get_x_end() const { return x_end; }
 
     /// Set the function to be integrated
     void Set_fa(std::shared_ptr<ChFunction> m_fa) {
         fa = m_fa;
         ComputeIntegral();
     }
+    std::shared_ptr<ChFunction> Get_fa() const { return fa; }
 
-    std::shared_ptr<ChFunction> Get_fa() { return fa; }
-
-    double Get_y(double x);
-
-    void Estimate_x_range(double& xmin, double& xmax);
-
-    int Get_Type() { return (FUNCT_INTEGRATE); }
-
-    int MakeOptVariableTree(ChList<chjs_propdata>* mtree);
-    OPT_VARIABLES_START
-    "C_start", OPT_VARIABLES_END
-
-    //
-    // SERIALIZATION
-    //
+    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -124,8 +102,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -140,9 +117,8 @@ class ChApi ChFunction_Integrate : public ChFunction {
         array_x->Reset(num_samples, 1);
         ComputeIntegral();
     }
-
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

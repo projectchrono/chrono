@@ -13,8 +13,8 @@
 #define CHCYLINDERSHAPE_H
 
 
-#include "assets/ChVisualization.h"
-#include "geometry/ChCCylinder.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChCylinder.h"
 
 namespace chrono {
 

@@ -262,8 +262,8 @@ and configure the system's solver precision:
 
 
 		my_system.Set_G_acc(ChVector<>(0,0,0));
-		my_system.SetIterLCPmaxItersSpeed(20);
-		my_system.SetLcpSolverType(ChSystem::eCh_lcpSolver::LCP_ITERATIVE_BARZILAIBORWEIN);
+		my_system.SetMaxItersSolverSpeed(20);
+		my_system.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
 ~~~
 
 Add a socket framework object (an unique copy to be used through 

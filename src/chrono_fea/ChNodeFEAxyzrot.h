@@ -14,7 +14,7 @@
 #define CHNODEFEAXYZROT_H
 
 #include "chrono/core/ChFrameMoving.h"
-#include "chrono/lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
@@ -65,9 +65,9 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
         return *this;
     }
 
-    virtual ChLcpVariables& Variables() override { return this->variables; }
+    virtual ChVariables& Variables() override { return this->variables; }
 
-    virtual ChLcpVariablesBodyOwnMass& VariablesBody() override { return this->variables; }
+    virtual ChVariablesBodyOwnMass& VariablesBody() override { return this->variables; }
 
     /// Set the rest position as the actual position.
     virtual void Relax() override {
@@ -197,20 +197,22 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
         R.PasteSumVector(Iw, off + 3, 0);
     }
 
-    virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
+    virtual void NodeIntToDescriptor(const unsigned int off_v,
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R) override {
         this->variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 6, 1, 0, 0);
         this->variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 6, 1, 0, 0);
     }
 
-    virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) override {
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
         v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override {
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
         mdescriptor.InsertVariables(&this->variables);
     };
 
@@ -224,7 +226,7 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
     }
 
     virtual void VariablesQbLoadSpeed() override {
-        // set current speed in 'qb', it can be used by the LCP solver when working in incremental mode
+        // set current speed in 'qb', it can be used by the solver when working in incremental mode
         this->variables.Get_qb().PasteVector(this->GetCoord_dt().pos, 0, 0);
         this->variables.Get_qb().PasteVector(this->GetWvel_loc(), 3, 0);
     }
@@ -306,7 +308,7 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
     }
 
   private:
-    ChLcpVariablesBodyOwnMass variables;  /// 3D node variables, with x,y,z displ. and 3D rot.
+    ChVariablesBodyOwnMass variables;  /// 3D node variables, with x,y,z displ. and 3D rot.
 
     // ChFrameMoving<> frame;	///< frame
 

@@ -202,7 +202,7 @@ void ChElementShellEANS4::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA,
     m_nodes[1] = nodeB;
     m_nodes[2] = nodeC;
     m_nodes[3] = nodeD;
-    std::vector<ChLcpVariables*> mvars;
+    std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
     mvars.push_back(&m_nodes[1]->Variables());
     mvars.push_back(&m_nodes[2]->Variables());
@@ -1404,8 +1404,8 @@ void ChElementShellEANS4::EvaluateSectionVelNorm(double U, double V, ChVector<>&
     }
 }
 
-// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-void ChElementShellEANS4::LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+// Get the pointers to the contained ChVariables, appending to the mvars vector.
+void ChElementShellEANS4::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
     }

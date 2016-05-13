@@ -12,22 +12,7 @@
 #ifndef CHTHREADS_H
 #define CHTHREADS_H
 
-//////////////////////////////////////////////////
-//
-//   ChThreads.h
-//
-//   Interface for multithreading (for multi-core
-//   processors, SPUs etc.)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
 
 #if defined _WIN32
 #include "ChThreadsWIN32.h"
@@ -71,6 +56,6 @@ class ChApi ChThreads : private ChThreadsPlatformImplementation {
     virtual std::string getUniqueName() { return ChThreadsPlatformImplementation::getUniqueName(); }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -12,20 +12,6 @@
 #ifndef CHFORCE_H
 #define CHFORCE_H
 
-//////////////////////////////////////////////////
-//
-//   ChForce.h
-//
-//   Force definition.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <iostream>
 #include <string.h>
@@ -33,10 +19,10 @@
 #include <float.h>
 #include <memory.h>
 
-#include "core/ChLog.h"
-#include "core/ChMath.h"
-#include "physics/ChFunction.h"
-#include "physics/ChObject.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/physics/ChObject.h"
 
 namespace chrono {
 
@@ -44,8 +30,6 @@ namespace chrono {
 class ChBody;
 
 #define CHCLASS_FORCE 3
-
-///////////////////////////////
 
 // Types of force application
 

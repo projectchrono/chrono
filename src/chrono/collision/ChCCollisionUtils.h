@@ -12,23 +12,9 @@
 #ifndef CHCOLLISIONUTILS_H
 #define CHCOLLISIONUTILS_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionUtils.h
-//
-//   Class for collision utilities
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChBody.h"
-#include "LinearMath/btConvexHull.h"
-#include "geometry/ChCTriangleMeshConnected.h"
+#include "chrono/collision/bullet/LinearMath/btConvexHull.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace collision {

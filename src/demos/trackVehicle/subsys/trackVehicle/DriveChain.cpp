@@ -46,8 +46,8 @@ DriveChain::DriveChain(const std::string& name,
                        const ChVector<>& COG_to_REF)
     : ChTrackVehicle(name, vis, collide, 1), m_damping(pin_damping_coef), m_tensioner_preload(tensioner_preload), m_TrackSystem_loc(right_pos_rel) {
     // Solver variables - DEFAULTS SET IN PARENT CLASS CONSTRUCTOR
-    m_system->SetIterLCPomega(0.9);
-    m_system->SetIterLCPsharpnessLambda(0.9);
+    m_system->SetSolverOverrelaxationParam(0.9);
+    m_system->SetSolverSharpnessParam(0.9);
     m_system->SetMaxPenetrationRecoverySpeed(1.5);
 
     // ---------------------------------------------------------------------------
@@ -103,17 +103,17 @@ void DriveChain::Advance(double step) {
     double t = 0;
     double settlePhaseA = 0.05;
     double settlePhaseB = 0.25;
-    m_system->SetIterLCPmaxItersStab(75);
-    m_system->SetIterLCPmaxItersSpeed(100);
+    m_system->SetMaxItersSolverStab(75);
+    m_system->SetMaxItersSolverSpeed(100);
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
         if (m_system->GetChTime() < settlePhaseA) {
-            m_system->SetIterLCPmaxItersStab(100);
-            m_system->SetIterLCPmaxItersSpeed(150);
+            m_system->SetMaxItersSolverStab(100);
+            m_system->SetMaxItersSolverSpeed(150);
         }
         else if (m_system->GetChTime() < settlePhaseB) {
-            m_system->SetIterLCPmaxItersStab(100);
-            m_system->SetIterLCPmaxItersSpeed(150);
+            m_system->SetMaxItersSolverStab(100);
+            m_system->SetMaxItersSolverSpeed(150);
         }
         m_system->DoStepDynamics(h);
         t += h;

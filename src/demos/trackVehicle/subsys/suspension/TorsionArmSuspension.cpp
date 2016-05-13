@@ -23,7 +23,7 @@
 #include "assets/ChTriangleMeshShape.h"
 #include "assets/ChTexture.h"
 #include "assets/ChColorAsset.h"
-#include "physics/ChFunction.h"
+#include "motion_functions/ChFunction.h"
 
 #include "utils/ChUtilsInputOutput.h"
 

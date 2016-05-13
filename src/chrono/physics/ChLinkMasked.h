@@ -53,7 +53,7 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     // THE SCALAR CONSTRAINTS
     // The mask of the locked coords, with the status of the
     // scalar constraints. This encapsulated object also
-    // contains the jacobians and residuals for the LCP solver.
+    // contains the jacobians and residuals for the solver.
     ChLinkMask* mask;
 
     // the following counters are cached here for optimization purposes
@@ -135,7 +135,7 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     virtual void SetBroken(bool mon);
 
     /// Get the pointer to the link mask, ie. a ChLinkMask (sort of
-    /// array containing a set of ChLcpConstraint items).
+    /// array containing a set of ChConstraint items).
     ChLinkMask* GetMask() { return mask; }
 
     /// overwrites inherited implementation of this method
@@ -162,19 +162,22 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
                                      bool do_clamp,
                                      double recovery_clamp);
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP INTERFACE  ( functions to assembly/manage data for system solver)
+    // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsBiLoad_Ct(double factor = 1.);

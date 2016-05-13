@@ -19,8 +19,8 @@
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMesh.h"
@@ -323,19 +323,19 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);     
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(40);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  
 
     //***TEST***
     /*
     ChMatlabEngine matlab_engine;
-    ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
-    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-    my_system.ChangeLcpSolverStab (matlab_solver_stab);
-    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    ChSolverMatlab* matlab_solver_stab  = new ChSolverMatlab(matlab_engine);
+    ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
+    my_system.ChangeSolverStab (matlab_solver_stab);
+    my_system.ChangeSolverSpeed(matlab_solver_speed);
     */
     application.SetTimestep(0.001);
 

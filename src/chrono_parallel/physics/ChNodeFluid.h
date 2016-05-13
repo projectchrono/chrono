@@ -21,8 +21,8 @@
 
 #include <math.h>
 
-#include "physics/ChNodeXYZ.h"
-#include "lcp/ChLcpVariablesNode.h"
+#include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/solver/ChVariablesNode.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/ChDataManager.h"

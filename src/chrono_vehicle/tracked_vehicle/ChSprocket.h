@@ -38,9 +38,9 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
-#include "chrono/geometry/ChCLinePath.h"
-#include "chrono/geometry/ChCLineSegment.h"
-#include "chrono/geometry/ChCLineArc.h"
+#include "chrono/geometry/ChLinePath.h"
+#include "chrono/geometry/ChLineSegment.h"
+#include "chrono/geometry/ChLineArc.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"

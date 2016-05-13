@@ -9,12 +9,11 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChLinkLinActuator.h"
+#include "chrono/physics/ChLinkLinActuator.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkLinActuator> a_registration_ChLinkLinActuator;
 
 ChLinkLinActuator::ChLinkLinActuator() {
@@ -53,9 +52,9 @@ void ChLinkLinActuator::Copy(ChLinkLinActuator* source) {
     learn_torque_rotation = source->learn_torque_rotation;
     offset = source->offset;
 
-    dist_funct = std::shared_ptr<ChFunction>(source->dist_funct->new_Duplicate());
-    mot_torque = std::shared_ptr<ChFunction>(source->mot_torque->new_Duplicate());
-    mot_rot = std::shared_ptr<ChFunction>(source->mot_rot->new_Duplicate());
+    dist_funct = std::shared_ptr<ChFunction>(source->dist_funct->Clone());
+    mot_torque = std::shared_ptr<ChFunction>(source->mot_torque->Clone());
+    mot_rot = std::shared_ptr<ChFunction>(source->mot_rot->Clone());
 
     mot_tau = source->mot_tau;
     mot_eta = source->mot_eta;
@@ -85,16 +84,16 @@ void ChLinkLinActuator::Set_learn(int mset) {
     ChangedLinkMask();
 
     learn = mset;
-    if (dist_funct->Get_Type() != FUNCT_RECORDER)
+    if (dist_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
         dist_funct = std::make_shared<ChFunction_Recorder>();
 }
 
 void ChLinkLinActuator::Set_learn_torque_rotaton(int mset) {
 	learn_torque_rotation = mset;
-    if (mot_torque->Get_Type() != FUNCT_RECORDER)
+    if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)
         mot_torque = std::make_shared<ChFunction_Recorder>();
 
-    if (mot_rot->Get_Type() != FUNCT_RECORDER)
+    if (mot_rot->Get_Type() != ChFunction::FUNCT_RECORDER)
         mot_rot = std::make_shared<ChFunction_Recorder>();
 }
 
@@ -113,7 +112,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
         deltaC_dt.rot = QNULL;
         deltaC_dtdt.rot = QNULL;
         */
-        if (dist_funct->Get_Type() != FUNCT_RECORDER)
+        if (dist_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
             dist_funct = std::make_shared<ChFunction_Recorder>();
 
         // record point
@@ -188,10 +187,10 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     //  m_torque =  (deltaC_dtdt.pos.x / mot_tau) * mot_inertia + (this->react_force.x * mot_tau) / mot_eta;
 
     if (learn_torque_rotation == TRUE) {
-		if (mot_torque->Get_Type() != FUNCT_RECORDER)
+		if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)
 			mot_torque = std::make_shared<ChFunction_Recorder>();
 
-		if (mot_rot->Get_Type() != FUNCT_RECORDER)
+		if (mot_rot->Get_Type() != ChFunction::FUNCT_RECORDER)
 			mot_rot = std::make_shared<ChFunction_Recorder>();
 
         std::static_pointer_cast<ChFunction_Recorder>(mot_torque)->AddPoint(mytime, mot_retorque, 1);  // (x,y,w)  x=t

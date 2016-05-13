@@ -215,9 +215,9 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    mphysicalSystem.SetIterLCPmaxItersSpeed(20);
-    mphysicalSystem.SetIterLCPmaxItersStab(5);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetMaxItersSolverSpeed(20);
+    mphysicalSystem.SetMaxItersSolverStab(5);
 
     // mphysicalSystem.SetUseSleeping(true);
 

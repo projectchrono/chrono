@@ -22,14 +22,15 @@ SET(CH_MATLABSDK "" CACHE PATH
 SET(ChronoEngine_MATLAB_HEADERS
   ChApiMatlab.h
   ChMatlabEngine.h
-  ChLcpMatlabSolver.h
+  ChSolverMatlab.h
 )
 
 SET(ChronoEngine_MATLAB_SOURCES
   ChMatlabEngine.cpp
-  ChLcpMatlabSolver.cpp
+  ChSolverMatlab.cpp
 )
 
+SOURCE_GROUP("" FILES ${ChronoEngine_MATLAB_HEADERS} ${ChronoEngine_MATLAB_SOURCES})
 
 SET (CH_MATLABINC "${CH_MATLABSDK}/include")
 

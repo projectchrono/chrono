@@ -378,8 +378,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override;
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1

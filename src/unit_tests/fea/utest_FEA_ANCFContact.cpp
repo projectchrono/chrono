@@ -15,28 +15,31 @@
 // This unit test creats 2 ANCF shell elements and place them in different positions
 // in order to validate the collision detection in Chrono.
 // =============================================================================
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactDEM.h"
+
+#include <math.h>
+
+#include <algorithm>
+#include <functional>
+
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChContactDEM.h"
 #include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
-#include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChContactable.h"
+#include "chrono/physics/ChMaterialSurfaceDEM.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/solver/ChSolverMINRES.h"
+
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include <math.h>
-
-#include <algorithm>
-#include <functional>
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -172,7 +175,7 @@ class MyContactContainer : public ChContactContainerDEM {
     // Traverse the list contactlist_6_6
     bool isThereContacts(std::shared_ptr<ChElementBase> myShellANCF, bool print) {
         auto iter = contactlist_333_333.begin();
-        int num_contact;
+        int num_contact = 0;
         while (iter != contactlist_333_333.end()) {
             ChContactable* objA = (*iter)->GetObjA();
             ChContactable* objB = (*iter)->GetObjB();
@@ -188,7 +191,7 @@ class MyContactContainer : public ChContactContainerDEM {
             num_contact++;
             ++iter;
         }
-        return num_contact;
+        return num_contact > 0;
     }
 };
 
@@ -292,12 +295,12 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_system.SetupInitial();
     // ---------------
 
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(100000);
-    my_system.SetIterLCPmaxItersStab(100);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(100000);
+    my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-6);
 
     my_system.SetIntegrationType(ChSystem::INT_HHT);

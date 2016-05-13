@@ -434,12 +434,12 @@ void ChLinkMateGeneric::IntLoadConstraint_Ct(const unsigned int off_L,  ///< off
     // NOT NEEDED BECAUSE NO RHEONOMIC TERM
 }
 
-void ChLinkMateGeneric::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  ///< offset in L, Qc
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) {
+void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                        const ChStateDelta& v,
+                                        const ChVectorDynamic<>& R,
+                                        const unsigned int off_L,  ///< offset in L, Qc
+                                        const ChVectorDynamic<>& L,
+                                        const ChVectorDynamic<>& Qc) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
         if (mask->Constr_N(i).IsActive()) {
@@ -450,10 +450,10 @@ void ChLinkMateGeneric::IntToLCP(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChLinkMateGeneric::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,  ///< offset in L
-                                   ChVectorDynamic<>& L) {
+void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                          ChStateDelta& v,
+                                          const unsigned int off_L,  ///< offset in L
+                                          ChVectorDynamic<>& L) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
         if (mask->Constr_N(i).IsActive()) {
@@ -463,9 +463,9 @@ void ChLinkMateGeneric::IntFromLCP(const unsigned int off_v,  ///< offset in v
     }
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
-void ChLinkMateGeneric::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 

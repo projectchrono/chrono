@@ -16,11 +16,13 @@
 
 // Include some headers used by this tutorial...
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
+#include <vector>
+
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono_fea/ChElementShellANCF.h"
@@ -29,10 +31,9 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #include "chrono_postprocess/ChGnuPlot.h"
-#include <vector>
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -564,27 +565,26 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
     // Change solver to MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
 	mkl_solver_stab->SetSparsityPatternLock(true);
 	mkl_solver_speed->SetSparsityPatternLock(true);
     /*
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS or Matlab or MKL solver
-	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(200);
-	my_system.SetIterLCPmaxItersStab(200);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES); // <- NEEDED THIS or Matlab or MKL solver
+	my_system.SetSolverWarmStarting(true); // this helps a lot to speedup convergence in this class of problems
+	my_system.SetMaxItersSolverSpeed(200);
+	my_system.SetMaxItersSolverStab(200);
 	my_system.SetTolForce(1e-13);
-	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+	ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
     */
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT); 
-    /*
-    if (auto msol =  dynamic_cast<chrono::ChTimestepperEulerImplicit*>(my_system.GetLcpSolverSpeed())) {
+    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
+    if (auto msol =  dynamic_cast<ChTimestepperEulerImplicit*>(my_system.GetSolverSpeed())) {
         msol->SetMaxiters(6);
         msol->SetAbsTolerances(1e-10, 1e-10);
     }
@@ -630,7 +630,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChGnuPlot mplot("__cantilever.gpl");
-    mplot.SetGrid(false, 1, ChColor(0.8,0.8,0.8));
+    mplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     mplot.SetLabelX("Torque T/T0");
     mplot.SetLabelY("Tip displacement [m]");
     mplot << "set key left top";

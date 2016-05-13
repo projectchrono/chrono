@@ -10,7 +10,7 @@
 
 
 /* Parse the header file to generate wrappers */
-%include "../physics/ChShaftsThermalEngine.h"  
+%include "../chrono/physics/ChShaftsThermalEngine.h"  
 
 
 

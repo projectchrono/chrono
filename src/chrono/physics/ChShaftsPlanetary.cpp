@@ -125,25 +125,25 @@ void ChShaftsPlanetary::IntLoadConstraint_C(const unsigned int off_L,  ///< offs
     Qc(off_L) += cnstr_violation;
 }
 
-void ChShaftsPlanetary::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  ///< offset in L, Qc
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) {
+void ChShaftsPlanetary::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                        const ChStateDelta& v,
+                                        const ChVectorDynamic<>& R,
+                                        const unsigned int off_L,  ///< offset in L, Qc
+                                        const ChVectorDynamic<>& L,
+                                        const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
 
     constraint.Set_b_i(Qc(off_L));
 }
 
-void ChShaftsPlanetary::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,  ///< offset in L
-                                   ChVectorDynamic<>& L) {
+void ChShaftsPlanetary::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                          ChStateDelta& v,
+                                          const unsigned int off_L,  ///< offset in L
+                                          ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
 void ChShaftsPlanetary::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = this->torque_react;
@@ -153,7 +153,7 @@ void ChShaftsPlanetary::IntStateScatterReactions(const unsigned int off_L, const
     this->torque_react = L(off_L);
 }
 
-void ChShaftsPlanetary::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

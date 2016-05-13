@@ -19,9 +19,9 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChDistribution.h"
-#include "chrono/geometry/ChCSphere.h"
-#include "chrono/geometry/ChCBox.h"
-#include "chrono/geometry/ChCCylinder.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChCylinder.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 namespace chrono {

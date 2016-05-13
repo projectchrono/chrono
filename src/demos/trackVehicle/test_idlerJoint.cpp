@@ -235,9 +235,9 @@ int main(int argc, char* argv[]) {
     ChSystem system;
     system.Set_G_acc(ChVector<>(0, -gravity, 0));
     // Integration and Solver settings
-    system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    system.SetIterLCPmaxItersSpeed(150);
-    system.SetIterLCPmaxItersStab(150);
+    system.SetSolverType(ChSystem::SOLVER_SOR);
+    system.SetMaxItersSolverSpeed(150);
+    system.SetMaxItersSolverStab(150);
     system.SetMaxPenetrationRecoverySpeed(4.0);
 
     // 2. Create the two mechanisms, attach to a common ground body

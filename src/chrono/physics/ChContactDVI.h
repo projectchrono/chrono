@@ -12,14 +12,14 @@
 #ifndef CHCONTACTDVI_H
 #define CHCONTACTDVI_H
 
-#include "core/ChFrame.h"
-#include "core/ChVectorDynamic.h"
-#include "lcp/ChLcpConstraintTwoTuplesContactN.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "collision/ChCCollisionModel.h"
-#include "physics/ChContactTuple.h"
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/physics/ChContactTuple.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
@@ -37,9 +37,9 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
     /// The three scalar constraints, to be fed into the system solver.
     /// They contain jacobians data and special functions.
-    ChLcpConstraintTwoTuplesContactN<typecarr_a, typecarr_b> Nx;
-    ChLcpConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tu;
-    ChLcpConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tv;
+    ChConstraintTwoTuplesContactN<typecarr_a, typecarr_b> Nx;
+    ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tu;
+    ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tv;
 
     ChVector<> react_force;
 
@@ -239,30 +239,30 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         }
     }
 
-    virtual void ContIntToLCP(const unsigned int off_L,    ///< offset in L, Qc
-                              const ChVectorDynamic<>& L,  ///<
-                              const ChVectorDynamic<>& Qc  ///<
-                              ) {
-        // only for LCP warm start
+    virtual void ContIntToDescriptor(const unsigned int off_L,    ///< offset in L, Qc
+                                     const ChVectorDynamic<>& L,  ///<
+                                     const ChVectorDynamic<>& Qc  ///<
+                                     ) {
+        // only for solver warm start
         Nx.Set_l_i(L(off_L));
         Tu.Set_l_i(L(off_L + 1));
         Tv.Set_l_i(L(off_L + 2));
 
-        // LCP known terms
+        // solver known terms
         Nx.Set_b_i(Qc(off_L));
         Tu.Set_b_i(Qc(off_L + 1));
         Tv.Set_b_i(Qc(off_L + 2));
     }
 
-    virtual void ContIntFromLCP(const unsigned int off_L,  ///< offset in L
-                                ChVectorDynamic<>& L       ///<
-                                ) {
+    virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
+                                       ChVectorDynamic<>& L       ///<
+                                       ) {
         L(off_L) = Nx.Get_l_i();
         L(off_L + 1) = Tu.Get_l_i();
         L(off_L + 2) = Tv.Get_l_i();
     }
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {
         mdescriptor.InsertConstraint(&Nx);
         mdescriptor.InsertConstraint(&Tu);
         mdescriptor.InsertConstraint(&Tv);
@@ -342,6 +342,6 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

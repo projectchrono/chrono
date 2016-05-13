@@ -10,13 +10,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChSystemDEM.h"
-#include "physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChContactContainerDEM.h"
 
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpSolverDEM.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/solver/ChSolverDEM.h"
 
-#include "collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCCollisionSystemBullet.h"
 
 namespace chrono {
 
@@ -31,14 +31,13 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
       m_contact_model(Hertz),
       m_adhesion_model(Constant),
       m_stiff_contact(false) {
-    LCP_descriptor = new ChLcpSystemDescriptor;
-    LCP_descriptor->SetNumThreads(parallel_thread_number);
+    descriptor = new ChSystemDescriptor;
+    descriptor->SetNumThreads(parallel_thread_number);
 
-    lcp_solver_type = ChSystem::LCP_DEM;
+    solver_type = ChSystem::SOLVER_DEM;
 
-    LCP_solver_speed = new ChLcpSolverDEM();
-
-    LCP_solver_stab = new ChLcpSolverDEM();
+    solver_speed = new ChSolverDEM();
+    solver_stab = new ChSolverDEM();
 
     collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
@@ -53,18 +52,18 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigne
     m_characteristicVelocity = 1; 
 }
 
-void ChSystemDEM::SetLcpSolverType(eCh_lcpSolver mval) {
+void ChSystemDEM::SetSolverType(eCh_solverType mval) {
 
-    ChSystem::SetLcpSolverType(mval);
+    ChSystem::SetSolverType(mval);
 
     contact_container = std::make_shared<ChContactContainerDEM>();
     contact_container->SetSystem(this);
 }
 
 /*
-void ChSystemDEM::ChangeLcpSolverSpeed(ChLcpSolver* newsolver) {
-    if (dynamic_cast<ChLcpSolverDEM*>(newsolver))
-        ChSystem::ChangeLcpSolverSpeed(newsolver);
+void ChSystemDEM::ChangeSolverSpeed(ChSolver* newsolver) {
+    if (dynamic_cast<ChSolverDEM*>(newsolver))
+        ChSystem::ChangeSolverSpeed(newsolver);
 }
 */
 
@@ -143,7 +142,5 @@ void ChSystemDEM::ArchiveIN(ChArchiveIn& marchive)
     // Recompute statistics, offsets, etc.
     this->Setup();
 }
-
-
 
 }  // end namespace chrono

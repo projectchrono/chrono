@@ -33,7 +33,7 @@
 #include "utils/ChUtilsData.h"
 
 // collision mesh
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "geometry/ChTriangleMeshSoup.h"
 // custom collision detection classes
 #include "subsys/collision/TrackCollisionCallback.h"
 
@@ -220,20 +220,20 @@ void TrackSoilBin::Update(double time, double throttle, double braking) {
 
 void TrackSoilBin::Advance(double step) {
     double t = 0;
-    m_system->SetIterLCPmaxItersStab(80);
-    m_system->SetIterLCPmaxItersSpeed(95);
+    m_system->SetMaxItersSolverStab(80);
+    m_system->SetMaxItersSolverSpeed(95);
     double settlePhaseA = 0.3;
     double settlePhaseB = 1.0;
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
         if (m_system->GetChTime() < settlePhaseA) {
             h = 5e-4;
-            m_system->SetIterLCPmaxItersStab(100);
-            m_system->SetIterLCPmaxItersSpeed(100);
+            m_system->SetMaxItersSolverStab(100);
+            m_system->SetMaxItersSolverSpeed(100);
         } else if (m_system->GetChTime() < settlePhaseB) {
             h = 1e-3;
-            m_system->SetIterLCPmaxItersStab(75);
-            m_system->SetIterLCPmaxItersSpeed(150);
+            m_system->SetMaxItersSolverStab(75);
+            m_system->SetMaxItersSolverSpeed(150);
         }
         m_system->DoStepDynamics(h);
         t += h;

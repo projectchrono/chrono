@@ -13,8 +13,8 @@
 #ifndef CHLOADBODYMESH_H
 #define CHLOADBODYMESH_H
 
-#include "physics/ChLoadsBody.h"
-#include "geometry/ChCTriangleMeshConnected.h"
+#include "chrono/physics/ChLoadsBody.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 
 namespace chrono {
@@ -181,7 +181,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
         }
     };
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)  {
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor)  {
         for (int i= 0; i<forces.size(); ++i) {
             forces[i]->InjectKRMmatrices(mdescriptor);
         }

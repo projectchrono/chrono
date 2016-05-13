@@ -55,8 +55,8 @@ TrackVehicleM113::TrackVehicleM113(const std::string& name,
       m_tensioner_preload(tensioner_preload) {
 
     // Solver variables - DEFAULTS SET IN PARENT CLASS CONSTRUCTOR
-    m_system->SetIterLCPomega(0.9);
-    m_system->SetIterLCPsharpnessLambda(0.9);
+    m_system->SetSolverOverrelaxationParam(0.9);
+    m_system->SetSolverSharpnessParam(0.9);
     m_system->SetMaxPenetrationRecoverySpeed(1.5);
 
     // ---------------------------------------------------------------------------
@@ -138,17 +138,17 @@ void TrackVehicleM113::Advance(double step) {
     double t = 0;
     double settlePhaseA = 1.0;
     double settlePhaseB = 1.0;
-    m_system->SetIterLCPmaxItersStab(100);
-    m_system->SetIterLCPmaxItersSpeed(200);
+    m_system->SetMaxItersSolverStab(100);
+    m_system->SetMaxItersSolverSpeed(200);
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
         if (m_system->GetChTime() < settlePhaseA) {
-            m_system->SetIterLCPmaxItersStab(100);
-            m_system->SetIterLCPmaxItersSpeed(100);
+            m_system->SetMaxItersSolverStab(100);
+            m_system->SetMaxItersSolverSpeed(100);
             // h = step/2.0;
         } else if (m_system->GetChTime() < settlePhaseB) {
-            m_system->SetIterLCPmaxItersStab(100);
-            m_system->SetIterLCPmaxItersSpeed(100);
+            m_system->SetMaxItersSolverStab(100);
+            m_system->SetMaxItersSolverSpeed(100);
             // h = step/2.0;
         }
         m_system->DoStepDynamics(h);

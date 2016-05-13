@@ -17,7 +17,7 @@
 
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_matlab/ChMatlabEngine.h"
-#include "chrono_matlab/ChLcpMatlabSolver.h"
+#include "chrono_matlab/ChSolverMatlab.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "FEAcables.h"
@@ -90,10 +90,10 @@ int main(int argc, char* argv[]) {
 
     // Change solver to Matlab external linear solver, for max precision in benchmarks
     ChMatlabEngine matlab_engine;
-    ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
-    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-    my_system.ChangeLcpSolverStab(matlab_solver_stab);
-    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
+    ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
+    my_system.ChangeSolverStab(matlab_solver_stab);
+    my_system.ChangeSolverSpeed(matlab_solver_speed);
     application.GetSystem()->Update();
 
     // Change type of integrator:

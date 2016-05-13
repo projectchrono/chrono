@@ -13,27 +13,12 @@
 #ifndef CHC_MODELBULLET_H
 #define CHC_MODELBULLET_H
 
-//////////////////////////////////////////////////
-//
-//   ChCModelBullet.h
-//
-//   A wrapper to use the Bullet collision detection
-//   library
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <vector>
 #include <memory>
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h"
-#include "chrono/geometry/ChCLinePath.h"
+#include "chrono/geometry/ChLinePath.h"
 
 // forward references
 class btCollisionObject;

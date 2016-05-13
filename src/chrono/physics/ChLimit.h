@@ -12,27 +12,13 @@
 #ifndef CHLINKLIMIT_H
 #define CHLINKLIMIT_H
 
-//////////////////////////////////////////////////
-//
-//   ChLimit.h
-//
-//   Limit for links (costraints) coordinates.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 #include <float.h>
 
-#include "core/ChMath.h"
-#include "physics/ChFunction.h"
-#include "physics/ChLinkMask.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/physics/ChLinkMask.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
@@ -63,8 +49,8 @@ class ChApi ChLinkLimit {
     ChFunction* polar_Max;
 
   public:
-    ChLcpConstraintTwoBodies constr_upper;
-    ChLcpConstraintTwoBodies constr_lower;
+    ChConstraintTwoBodies constr_upper;
+    ChConstraintTwoBodies constr_lower;
 
     ChLinkLimit();
     ~ChLinkLimit();
@@ -129,6 +115,6 @@ class ChApi ChLinkLimit {
 
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

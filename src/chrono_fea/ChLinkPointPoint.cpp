@@ -129,17 +129,17 @@ void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  ///< offse
 	Qc(off_L+2) += cres.z;
 }
 
-void ChLinkPointPoint::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-					const ChStateDelta& v,
-					const ChVectorDynamic<>& R,
-					const unsigned int off_L,			///< offset in L, Qc
-					const ChVectorDynamic<>& L,
-                                const ChVectorDynamic<>& Qc) {
-	if (!IsActive())
-    return;
+void ChLinkPointPoint::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                       const ChStateDelta& v,
+                                       const ChVectorDynamic<>& R,
+                                       const unsigned int off_L,  ///< offset in L, Qc
+                                       const ChVectorDynamic<>& L,
+                                       const ChVectorDynamic<>& Qc) {
+    if (!IsActive())
+        return;
 
-	constraint1.Set_l_i(L(off_L+0));
-	constraint2.Set_l_i(L(off_L+1));
+    constraint1.Set_l_i(L(off_L + 0));
+    constraint2.Set_l_i(L(off_L+1));
 	constraint3.Set_l_i(L(off_L+2));
 
 	constraint1.Set_b_i(Qc(off_L+0));
@@ -147,21 +147,21 @@ void ChLinkPointPoint::IntToLCP(const unsigned int off_v,  ///< offset in v, R
 	constraint3.Set_b_i(Qc(off_L+2));
 }
 
-void ChLinkPointPoint::IntFromLCP(const unsigned int off_v,  ///< offset in v
-					ChStateDelta& v,
-					const unsigned int off_L,			///< offset in L
-                                  ChVectorDynamic<>& L) {
-	if (!IsActive())
-    return;
+void ChLinkPointPoint::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                         ChStateDelta& v,
+                                         const unsigned int off_L,  ///< offset in L
+                                         ChVectorDynamic<>& L) {
+    if (!IsActive())
+        return;
 
-	L(off_L+0)=constraint1.Get_l_i();
-	L(off_L+1)=constraint2.Get_l_i();
-	L(off_L+2)=constraint3.Get_l_i();
+    L(off_L + 0) = constraint1.Get_l_i();
+    L(off_L + 1) = constraint2.Get_l_i();
+    L(off_L+2)=constraint3.Get_l_i();
 }
 
-////////// LCP INTERFACES ////
+////////// SOLVER INTERFACES ////
 
-void ChLinkPointPoint::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkPointPoint::InjectConstraints(ChSystemDescriptor& mdescriptor) {
 	//if (!this->IsActive())
 	//	return;
 

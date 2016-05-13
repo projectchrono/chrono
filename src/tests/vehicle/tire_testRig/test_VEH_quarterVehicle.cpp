@@ -45,7 +45,7 @@
 #include <valarray>
 #include <vector>
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -54,14 +54,14 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 using namespace chrono;
@@ -306,30 +306,30 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case SOR: {
             std::cout << "Using SOR solver\n";
-            system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-            system->SetIterLCPmaxItersSpeed(100);
-            system->SetIterLCPmaxItersStab(100);
+            system->SetSolverType(ChSystem::SOLVER_SOR);
+            system->SetMaxItersSolverSpeed(100);
+            system->SetMaxItersSolverStab(100);
             system->SetTol(1e-10);
             system->SetTolForce(1e-8);
             break;
         }
         case MINRES: {
             std::cout << "Using MINRES solver\n";
-            system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-            ChLcpIterativeMINRES* minres_solver = (ChLcpIterativeMINRES*)system->GetLcpSolverSpeed();
+            system->SetSolverType(ChSystem::SOLVER_MINRES);
+            ChSolverMINRES* minres_solver = (ChSolverMINRES*)system->GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
-            system->SetIterLCPwarmStarting(true);
-            system->SetIterLCPmaxItersSpeed(500);
+            system->SetSolverWarmStarting(true);
+            system->SetMaxItersSolverSpeed(500);
             system->SetTolForce(1e-5);
             break;
         }
         case MKL: {
 #ifdef CHRONO_MKL
             std::cout << "Using MKL solver\n";
-            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-            system->ChangeLcpSolverStab(mkl_solver_stab);
-            system->ChangeLcpSolverSpeed(mkl_solver_speed);
+            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+            system->ChangeSolverStab(mkl_solver_stab);
+            system->ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 #endif
