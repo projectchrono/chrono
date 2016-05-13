@@ -398,6 +398,15 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
 
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
+        int index = particle_indices[i];
+        sorted_pos_fluid[i] = pos_fluid[index];
+        sorted_vel_fluid[i] = vel_fluid[index];
+        v[body_offset + i * 3 + 0] = vel_fluid[index].x;
+        v[body_offset + i * 3 + 1] = vel_fluid[index].y;
+        v[body_offset + i * 3 + 2] = vel_fluid[index].z;
+
+        reverse_mapping[index] = i;
+
         int c = ff_bin_ids[i];
         if (i == 0) {
             ff_bin_starts[c] = i;
@@ -413,17 +422,10 @@ void ChCNarrowphaseDispatch::SphereSphereContact(const int num_fluid_bodies,
         }
     }
 
-#pragma omp parallel for
-    for (int i = 0; i < num_fluid_bodies; i++) {
-        int index = particle_indices[i];
-        sorted_pos_fluid[i] = pos_fluid[index];
-        sorted_vel_fluid[i] = vel_fluid[index];
-        v[body_offset + i * 3 + 0] = vel_fluid[index].x;
-        v[body_offset + i * 3 + 1] = vel_fluid[index].y;
-        v[body_offset + i * 3 + 2] = vel_fluid[index].z;
-
-        reverse_mapping[index] = i;
-    }
+//#pragma omp parallel for
+//    for (int i = 0; i < num_fluid_bodies; i++) {
+//
+//    }
 
 #pragma omp parallel for
     for (int p = 0; p < num_fluid_bodies; p++) {
@@ -838,8 +840,6 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
     is_rigid_bin_active.resize(total_bins);
     Thrust_Fill(is_rigid_bin_active, 1000000000);
-
-
 
 #pragma omp parallel for
     for (int index = 0; index < f_number_of_bins_active; index++) {
