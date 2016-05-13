@@ -13,31 +13,13 @@
 #ifndef CHMATTERMESHLESS_H
 #define CHMATTERMESHLESS_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatterMeshless.h
-//
-//   Class for clusters of nodes that can 
-//   simulate a visco-elasto-plastic deformable solid 
-//   using the approach in Mueller ("Point based.." paper)
-//   that is with a 'meshless' FEA approach.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-
 #include <math.h>
 
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/lcp/ChLcpVariablesNode.h"
+#include "chrono/solver/ChVariablesNode.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 
 namespace chrono {
@@ -82,8 +64,8 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     // Get the mass of the node
     double GetMass() const { return variables.GetNodeMass(); }
 
-    // Access the 'LCP variables' of the node
-    ChLcpVariablesNode& Variables() { return variables; }
+    // Access the variables of the node
+    virtual ChVariablesNode& Variables() override { return variables; }
 
     // Get the SPH container
     ChMatterMeshless* GetMatterContainer() const { return container; }
@@ -95,7 +77,7 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     //
 
     /// Access variables
-    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
+    virtual ChVariables* GetVariables1() override { return &Variables(); }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return true; }
@@ -194,7 +176,7 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 	ChStrainTensor<> e_strain; // elastic strain
 	ChStressTensor<> e_stress; // stress
 
-	ChLcpVariablesNode	variables;
+	ChVariablesNode	variables;
 	collision::ChCollisionModel*	collision_model;
 
 	ChVector<> UserForce;		
@@ -312,20 +294,23 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver))
 
     void VariablesFbReset();
 
@@ -339,7 +324,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
 
     void VariablesQbIncrementPosition(double step);
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     // Other functions
 
@@ -400,8 +385,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     void StreamOUT(ChStreamOutBinary& mstream);
 };
 
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
-
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

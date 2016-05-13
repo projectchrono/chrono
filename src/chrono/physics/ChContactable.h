@@ -13,7 +13,7 @@
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
 
-#include "chrono/lcp/ChLcpConstraintTuple.h"
+#include "chrono/solver/ChConstraintTuple.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/core/ChMatrix33.h"
@@ -97,100 +97,89 @@ class ChContactable {
 };
 
 // Note that template T1 is the number of DOFs in the referenced ChVariable, 
-// for instance = 6 for rigid bodies, =3 for ChNodeXYZ, etc. 
+// for instance = 6 for rigid bodies, =3 for ChNodeXYZ, etc.
 
 template <int T1>
-class ChContactable_1vars : public ChContactable,  public ChLcpVariableTupleCarrier_1vars<T1> {
-public:
-    typedef ChLcpVariableTupleCarrier_1vars<T1> type_variable_tuple_carrier;
-    typedef typename ChLcpVariableTupleCarrier_1vars<T1>::type_constraint_tuple type_constraint_tuple;
+class ChContactable_1vars : public ChContactable, public ChVariableTupleCarrier_1vars<T1> {
+  public:
+    typedef ChVariableTupleCarrier_1vars<T1> type_variable_tuple_carrier;
+    typedef typename ChVariableTupleCarrier_1vars<T1>::type_constraint_tuple type_constraint_tuple;
 
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the three corresponding 1x6 jacobian rows.
-    virtual void ComputeJacobianForContactPart(
-                            const ChVector<>& abs_point, 
-                            ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second) =0;
+    /// Compute the jacobian(s) part(s) for this contactable item. For example,
+    /// if the contactable is a ChBody, this should update the three corresponding 1x6 jacobian rows.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               type_constraint_tuple& jacobian_tuple_N,
+                                               type_constraint_tuple& jacobian_tuple_U,
+                                               type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) = 0;
 
-        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-        /// (used only for rolling friction DVI contacts)
-    virtual void ComputeJacobianForRollingContactPart(
-                            const ChVector<>& abs_point, 
-                            ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second) {};
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
+    /// (used only for rolling friction DVI contacts)
+    virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      type_constraint_tuple& jacobian_tuple_N,
+                                                      type_constraint_tuple& jacobian_tuple_U,
+                                                      type_constraint_tuple& jacobian_tuple_V,
+                                                      bool second){};
 };
-
 
 // Note that template T1 and T2 are the number of DOFs in the referenced ChVariable s, 
-// for instance 3 and 3 for an 'edge' betweeen two xyz nodes. 
+// for instance 3 and 3 for an 'edge' betweeen two xyz nodes.
 
 template <int T1, int T2>
-class ChContactable_2vars : public ChContactable,  public ChLcpVariableTupleCarrier_2vars<T1,T2> {
-public:
-    typedef ChLcpVariableTupleCarrier_2vars<T1, T2> type_variable_tuple_carrier;
-    typedef typename ChLcpVariableTupleCarrier_2vars<T1, T2>::type_constraint_tuple type_constraint_tuple;
+class ChContactable_2vars : public ChContactable, public ChVariableTupleCarrier_2vars<T1, T2> {
+  public:
+    typedef ChVariableTupleCarrier_2vars<T1, T2> type_variable_tuple_carrier;
+    typedef typename ChVariableTupleCarrier_2vars<T1, T2>::type_constraint_tuple type_constraint_tuple;
 
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(
-                            const ChVector<>& abs_point, 
-                            ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second) =0;
+    /// Compute the jacobian(s) part(s) for this contactable item. For example,
+    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               type_constraint_tuple& jacobian_tuple_N,
+                                               type_constraint_tuple& jacobian_tuple_U,
+                                               type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) = 0;
 
-        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-        /// (used only for rolling friction DVI contacts)
-    virtual void ComputeJacobianForRollingContactPart(
-                            const ChVector<>& abs_point, 
-                            ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second) {};
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
+    /// (used only for rolling friction DVI contacts)
+    virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      type_constraint_tuple& jacobian_tuple_N,
+                                                      type_constraint_tuple& jacobian_tuple_U,
+                                                      type_constraint_tuple& jacobian_tuple_V,
+                                                      bool second){};
 };
-
 
 // Note that template T1 and T2 and T3 are the number of DOFs in the referenced ChVariable s, 
-// for instance 3 and 3 and 3 for a 'triangle face' betweeen two xyz nodes. 
+// for instance 3 and 3 and 3 for a 'triangle face' betweeen two xyz nodes.
 
 template <int T1, int T2, int T3>
-class ChContactable_3vars : public ChContactable,  public ChLcpVariableTupleCarrier_3vars<T1,T2,T3> {
-public:
-    typedef ChLcpVariableTupleCarrier_3vars<T1, T2, T3> type_variable_tuple_carrier;
-    typedef typename ChLcpVariableTupleCarrier_3vars<T1, T2, T3>::type_constraint_tuple type_constraint_tuple;
+class ChContactable_3vars : public ChContactable, public ChVariableTupleCarrier_3vars<T1, T2, T3> {
+  public:
+    typedef ChVariableTupleCarrier_3vars<T1, T2, T3> type_variable_tuple_carrier;
+    typedef typename ChVariableTupleCarrier_3vars<T1, T2, T3>::type_constraint_tuple type_constraint_tuple;
 
-        /// Compute the jacobian(s) part(s) for this contactable item. For example,
-        /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(
-                            const ChVector<>& abs_point, 
-                            ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N, 
-                            type_constraint_tuple& jacobian_tuple_U, 
-                            type_constraint_tuple& jacobian_tuple_V, 
-                            bool second) =0;
+    /// Compute the jacobian(s) part(s) for this contactable item. For example,
+    /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               type_constraint_tuple& jacobian_tuple_N,
+                                               type_constraint_tuple& jacobian_tuple_U,
+                                               type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) = 0;
 
-        /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-        /// (used only for rolling friction DVI contacts)
-    virtual void ComputeJacobianForRollingContactPart(
-                            const ChVector<>& abs_point, 
-                            ChMatrix33<>& contact_plane, 
-                            type_constraint_tuple& jacobian_tuple_N,
-                            type_constraint_tuple& jacobian_tuple_U,
-                            type_constraint_tuple& jacobian_tuple_V,
-                            bool second) {};
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
+    /// (used only for rolling friction DVI contacts)
+    virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      type_constraint_tuple& jacobian_tuple_N,
+                                                      type_constraint_tuple& jacobian_tuple_U,
+                                                      type_constraint_tuple& jacobian_tuple_V,
+                                                      bool second){};
 };
 
+}  // end namespace chrono
 
-
-
-}  // END_OF_NAMESPACE____
-
-#endif  
+#endif

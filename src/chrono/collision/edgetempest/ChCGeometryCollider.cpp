@@ -9,25 +9,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCGeometryCollider.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdio.h>
 #include <cmath>
 
-#include "ChCGeometryCollider.h"
-#include "geometry/ChCTriangle.h"
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCBox.h"
-#include "ChCOBB.h"
-
-#include "core/ChTransform.h"
+#include "chrono/collision/edgetempest/ChCGeometryCollider.h"
+#include "chrono/collision/edgetempest/ChCOBB.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChTriangle.h"
 
 #define COLL_PRECISION 0.000001
 
@@ -52,12 +42,12 @@ int ChGeometryCollider::ComputeCollisions(
 
     // Dispatch all subcases of geometry-geometry pairs..
 
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_TRIANGLE) && (mgeo2.GetClassType() == CH_GEOCLASS_TRIANGLE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) && (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
         //***TO DO***
         return 0;
     }
 
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_SPHERE) && (mgeo2.GetClassType() == CH_GEOCLASS_SPHERE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) && (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph1 = (geometry::ChSphere*)&mgeo1;
         geometry::ChSphere* msph2 = (geometry::ChSphere*)&mgeo2;
         Vector c1, c2;
@@ -66,44 +56,44 @@ int ChGeometryCollider::ComputeCollisions(
         return ComputeSphereSphereCollisions(*msph1, &c1, *msph2, &c2, mcollider, just_intersection);
     }
 
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_BOX) && (mgeo2.GetClassType() == CH_GEOCLASS_BOX)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) && (mgeo2.GetClassType() == geometry::ChGeometry::BOX)) {
         geometry::ChBox* mbox1 = (geometry::ChBox*)&mgeo1;
         geometry::ChBox* mbox2 = (geometry::ChBox*)&mgeo2;
         return ComputeBoxBoxCollisions(*mbox1, R1, T1, *mbox2, R2, T2, mcollider, just_intersection);
     }
 
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_SPHERE) && (mgeo2.GetClassType() == CH_GEOCLASS_TRIANGLE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) && (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo1;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo2;
         Vector c1 = ChTransform<>::TransformLocalToParent(msph->center, *T1, *R1);
         return ComputeSphereTriangleCollisions(*msph, &c1, *mtri, R2, T2, mcollider, just_intersection, false);
     }
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_TRIANGLE) && (mgeo2.GetClassType() == CH_GEOCLASS_SPHERE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) && (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo2;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo1;
         Vector c2 = ChTransform<>::TransformLocalToParent(msph->center, *T2, *R2);
         return ComputeSphereTriangleCollisions(*msph, &c2, *mtri, R1, T1, mcollider, just_intersection, true);
     }
 
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_SPHERE) && (mgeo2.GetClassType() == CH_GEOCLASS_BOX)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) && (mgeo2.GetClassType() == geometry::ChGeometry::BOX)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo1;
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo2;
         Vector c1 = ChTransform<>::TransformLocalToParent(msph->center, *T1, *R1);
         return ComputeSphereBoxCollisions(*msph, &c1, *mbox, R2, T2, mcollider, just_intersection, false);
     }
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_BOX) && (mgeo2.GetClassType() == CH_GEOCLASS_SPHERE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) && (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo2;
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo1;
         Vector c2 = ChTransform<>::TransformLocalToParent(msph->center, *T2, *R2);
         return ComputeSphereBoxCollisions(*msph, &c2, *mbox, R1, T1, mcollider, just_intersection, true);
     }
 
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_BOX) && (mgeo2.GetClassType() == CH_GEOCLASS_TRIANGLE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) && (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo1;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo2;
         return ComputeBoxTriangleCollisions(*mbox, R1, T1, *mtri, R2, T2, mcollider, just_intersection, false);
     }
-    if ((mgeo1.GetClassType() == CH_GEOCLASS_TRIANGLE) && (mgeo2.GetClassType() == CH_GEOCLASS_BOX)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) && (mgeo2.GetClassType() == geometry::ChGeometry::BOX)) {
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo2;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo1;
         return ComputeBoxTriangleCollisions(*mbox, R2, T2, *mtri, R1, T1, mcollider, just_intersection, true);

@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetIterLCPmaxItersSpeed(6);  // lower the LCP iters, no needed here
+    mphysicalSystem.SetMaxItersSolverSpeed(6);  // lower the solver iters, no needed here
 
     //
     // THE SOFT-REAL-TIME CYCLE

@@ -299,12 +299,12 @@ void ChLinkRevoluteSpherical::IntLoadConstraint_C(const unsigned int off_L,  ///
     Qc(off_L + 1) += cnstr_dot_violation;
 }
 
-void ChLinkRevoluteSpherical::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                       const ChStateDelta& v,
-                                       const ChVectorDynamic<>& R,
-                                       const unsigned int off_L,  ///< offset in L, Qc
-                                       const ChVectorDynamic<>& L,
-                                       const ChVectorDynamic<>& Qc) {
+void ChLinkRevoluteSpherical::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                              const ChStateDelta& v,
+                                              const ChVectorDynamic<>& R,
+                                              const unsigned int off_L,  ///< offset in L, Qc
+                                              const ChVectorDynamic<>& L,
+                                              const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -315,10 +315,10 @@ void ChLinkRevoluteSpherical::IntToLCP(const unsigned int off_v,  ///< offset in
     m_cnstr_dot.Set_b_i(Qc(off_L + 1));
 }
 
-void ChLinkRevoluteSpherical::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                         ChStateDelta& v,
-                                         const unsigned int off_L,  ///< offset in L
-                                         ChVectorDynamic<>& L) {
+void ChLinkRevoluteSpherical::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                                ChStateDelta& v,
+                                                const unsigned int off_L,  ///< offset in L
+                                                ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
@@ -329,7 +329,7 @@ void ChLinkRevoluteSpherical::IntFromLCP(const unsigned int off_v,  ///< offset 
 // -----------------------------------------------------------------------------
 // Implementation of solver interface functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
+void ChLinkRevoluteSpherical::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 

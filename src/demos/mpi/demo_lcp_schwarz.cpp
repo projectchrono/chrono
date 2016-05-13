@@ -26,13 +26,13 @@
 
 // Include some headers used by this tutorial...
 
-#include "lcp/ChLcpVariablesGeneric.h"
-#include "lcp/ChLcpVariablesBody.h"
-#include "lcp/ChLcpConstraintTwoGeneric.h"
+#include "lcp/ChVariablesGeneric.h"
+#include "lcp/ChVariablesBody.h"
+#include "lcp/ChConstraintTwoGeneric.h"
 #include "core/ChLinearAlgebra.h"
 #include "unit_MPI/ChMpi.h"
-#include "unit_MPI/ChLcpIterativeSchwarzMPI.h"
-#include "unit_MPI/ChLcpSystemDescriptorMPI.h"
+#include "unit_MPI/ChIterativeSchwarzMPI.h"
+#include "unit_MPI/ChSystemDescriptorMPI.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -64,15 +64,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Use the following 'MPI-specialized' LCP system descriptor instead of
-    // the normal ChLcpSystemDescriptor:
+    // the normal ChSystemDescriptor:
 
-    ChLcpSystemDescriptorMPI mdescriptor;
+    ChSystemDescriptorMPI mdescriptor;
 
     // We want that last variable of 1st domain is shared with
     // the first variable of the 2nd domain, before BeginInsertion().
     // First, tell that there is an overlapping Schwarz interface per
     // each domain:
-    ChLcpSharedInterfaceMPI minterface;
+    ChSharedInterfaceMPI minterface;
     if (myid == 0)
         minterface.SetMPIfriend(1);
     if (myid == 1)
@@ -87,17 +87,17 @@ int main(int argc, char* argv[]) {
 
     int n_masses = 11;
 
-    std::vector<ChLcpVariablesGeneric*> vars;
-    std::vector<ChLcpConstraintTwoGeneric*> constraints;
+    std::vector<ChVariablesGeneric*> vars;
+    std::vector<ChConstraintTwoGeneric*> constraints;
 
     for (int im = 0; im < n_masses; im++) {
-        vars.push_back(new ChLcpVariablesGeneric(1));
+        vars.push_back(new ChVariablesGeneric(1));
         vars[im]->GetMass()(0) = 10;
         vars[im]->GetInvMass()(0) = 1. / vars[im]->GetMass()(0);
         vars[im]->Get_fb()(0) = -9.8 * vars[im]->GetMass()(0) * 0.01;
         mdescriptor.InsertVariables(vars[im]);
         if (im > 0) {
-            constraints.push_back(new ChLcpConstraintTwoGeneric(vars[im], vars[im - 1]));
+            constraints.push_back(new ChConstraintTwoGeneric(vars[im], vars[im - 1]));
             constraints[im - 1]->Set_b_i(0);
             constraints[im - 1]->Get_Cq_a()->ElementN(0) = 1;
             constraints[im - 1]->Get_Cq_b()->ElementN(0) = -1;
@@ -112,13 +112,13 @@ int main(int argc, char* argv[]) {
 
     // Last variable of 1st domain is shared with 1st variable of 2nd domain:
     if (myid == 0) {
-        ChLcpSharedVarMPI msh;
+        ChSharedVarMPI msh;
         msh.var = vars.back();  // vars[10];
         msh.uniqueID = 1012;    // must be unique! (important if many shares in single interface)
         mdescriptor.GetSharedInterfacesList()[0].InsertSharedVariable(msh);
     }
     if (myid == 1) {
-        ChLcpSharedVarMPI msh;
+        ChSharedVarMPI msh;
         msh.var = vars[0];
         msh.uniqueID = 1014;  // must be unique! (important if many shares in single interface)
         mdescriptor.GetSharedInterfacesList()[0].InsertSharedVariable(msh);
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     // approximate (but very fast) solution:
     //
     // .. create the solver
-    ChLcpIterativeSchwarzMPI msolver_iter(20,     // outer iterations (updates between domains)
+    ChIterativeSchwarzMPI msolver_iter(20,     // outer iterations (updates between domains)
                                           480,    // inner iterations
                                           false,  // don't use warm start
                                           0.0,    // termination tolerance

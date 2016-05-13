@@ -17,24 +17,26 @@
 // Global direction of rolling is assumed along the X axis
 // [LuGre contact formulation needs to be modified for other cases]
 
+#include <cmath>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtilsValidation.h"
+#include "chrono/core/ChMathematics.h"
+
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/utils/ChUtilsValidation.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
-#include "physics/ChLoadContainer.h"
+
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include <irrlicht.h>
-#include <cmath>
+#include "chrono_mkl/ChSolverMKL.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -1548,10 +1550,10 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Use the MKL Solver
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
     mkl_solver_speed->SetSparsityPatternLock(true);
     my_system.Update();

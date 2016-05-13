@@ -13,8 +13,8 @@
 #define CHOBJSPHERESHAPE_H
 
 
-#include "assets/ChVisualization.h"
-#include "geometry/ChCSphere.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChSphere.h"
 
 namespace chrono {
 

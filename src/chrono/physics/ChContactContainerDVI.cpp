@@ -11,9 +11,9 @@
 //
 
 
-#include "physics/ChContactContainerDVI.h"
-#include "physics/ChSystem.h"
-#include "lcp/ChLcpConstraintTwoTuplesContactN.h"
+#include "chrono/physics/ChContactContainerDVI.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 
 namespace chrono {
 
@@ -199,6 +199,12 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
+void ChContactContainerDVI::ComputeContactForces() {
+    contact_forces.clear();
+    SumAllContactForces(contactlist_6_6, contact_forces);
+    SumAllContactForces(contactlist_6_3, contact_forces);
+}
+
 template <class Tcont>
 void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
@@ -334,70 +340,68 @@ void ChContactContainerDVI::IntLoadConstraint_C(const unsigned int off,  ///< of
     _IntLoadConstraint_C(coffset, contactlist_6_6_rolling, off, Qc, c, do_clamp, recovery_clamp, 6);
 }
 
-
-
 template <class Tcont>
-void _IntToLCP(unsigned int& coffset, std::list<Tcont*>& contactlist,
-                                  const unsigned int off_v,  ///< offset in v, R
-                                  const ChStateDelta& v,
-                                  const ChVectorDynamic<>& R,
-                                  const unsigned int off_L,  ///< offset in L, Qc
-                                  const ChVectorDynamic<>& L,
-                                  const ChVectorDynamic<>& Qc,
-                                  const int stride) {
+void _IntToDescriptor(unsigned int& coffset,
+                      std::list<Tcont*>& contactlist,
+                      const unsigned int off_v,  ///< offset in v, R
+                      const ChStateDelta& v,
+                      const ChVectorDynamic<>& R,
+                      const unsigned int off_L,  ///< offset in L, Qc
+                      const ChVectorDynamic<>& L,
+                      const ChVectorDynamic<>& Qc,
+                      const int stride) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        (*itercontact)->ContIntToLCP(off_L + coffset, L, Qc);
+        (*itercontact)->ContIntToDescriptor(off_L + coffset, L, Qc);
         coffset += stride;
         ++itercontact;
     }
 }
 
-void ChContactContainerDVI::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                  const ChStateDelta& v,
-                                  const ChVectorDynamic<>& R,
-                                  const unsigned int off_L,  ///< offset in L, Qc
-                                  const ChVectorDynamic<>& L,
-                                  const ChVectorDynamic<>& Qc) {
+void ChContactContainerDVI::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                            const ChStateDelta& v,
+                                            const ChVectorDynamic<>& R,
+                                            const unsigned int off_L,  ///< offset in L, Qc
+                                            const ChVectorDynamic<>& L,
+                                            const ChVectorDynamic<>& Qc) {
     unsigned int coffset = 0;
-    _IntToLCP(coffset, contactlist_6_6, off_v, v, R, off_L, L, Qc, 3);
-    _IntToLCP(coffset, contactlist_6_3, off_v, v, R, off_L, L, Qc, 3);
-    _IntToLCP(coffset, contactlist_3_3, off_v, v, R, off_L, L, Qc, 3);
-    _IntToLCP(coffset, contactlist_6_6_rolling, off_v, v, R, off_L, L, Qc, 6);
+    _IntToDescriptor(coffset, contactlist_6_6, off_v, v, R, off_L, L, Qc, 3);
+    _IntToDescriptor(coffset, contactlist_6_3, off_v, v, R, off_L, L, Qc, 3);
+    _IntToDescriptor(coffset, contactlist_3_3, off_v, v, R, off_L, L, Qc, 3);
+    _IntToDescriptor(coffset, contactlist_6_6_rolling, off_v, v, R, off_L, L, Qc, 6);
 }
 
-
-
 template <class Tcont>
-void _IntFromLCP(unsigned int& coffset, std::list<Tcont*>& contactlist,
-                                    const unsigned int off_v,  ///< offset in v
-                                    ChStateDelta& v,
-                                    const unsigned int off_L,  ///< offset in L
-                                    ChVectorDynamic<>& L,
-                                    const int stride) {
+void _IntFromDescriptor(unsigned int& coffset,
+                        std::list<Tcont*>& contactlist,
+                        const unsigned int off_v,  ///< offset in v
+                        ChStateDelta& v,
+                        const unsigned int off_L,  ///< offset in L
+                        ChVectorDynamic<>& L,
+                        const int stride) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        (*itercontact)->ContIntFromLCP(off_L + coffset, L);
+        (*itercontact)->ContIntFromDescriptor(off_L + coffset, L);
         coffset += stride;
         ++itercontact;
     }
 }
 
-void ChContactContainerDVI::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                    ChStateDelta& v,
-                                    const unsigned int off_L,  ///< offset in L
-                                    ChVectorDynamic<>& L) {
+void ChContactContainerDVI::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                              ChStateDelta& v,
+                                              const unsigned int off_L,  ///< offset in L
+                                              ChVectorDynamic<>& L) {
     unsigned int coffset = 0;
-    _IntFromLCP(coffset, contactlist_6_6, off_v, v, off_L, L, 3);
-    _IntFromLCP(coffset, contactlist_6_3, off_v, v, off_L, L, 3);
-    _IntFromLCP(coffset, contactlist_3_3, off_v, v, off_L, L, 3);
-    _IntFromLCP(coffset, contactlist_6_6_rolling, off_v, v, off_L, L, 6);
+    _IntFromDescriptor(coffset, contactlist_6_6, off_v, v, off_L, L, 3);
+    _IntFromDescriptor(coffset, contactlist_6_3, off_v, v, off_L, L, 3);
+    _IntFromDescriptor(coffset, contactlist_3_3, off_v, v, off_L, L, 3);
+    _IntFromDescriptor(coffset, contactlist_6_6_rolling, off_v, v, off_L, L, 6);
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
 template <class Tcont>
-void _InjectConstraints(std::list<Tcont*>& contactlist, ChLcpSystemDescriptor& mdescriptor) {
+void _InjectConstraints(std::list<Tcont*>& contactlist, ChSystemDescriptor& mdescriptor) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->InjectConstraints(mdescriptor);
@@ -405,7 +409,7 @@ void _InjectConstraints(std::list<Tcont*>& contactlist, ChLcpSystemDescriptor& m
     }
 }
 
-void ChContactContainerDVI::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChContactContainerDVI::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     _InjectConstraints(contactlist_6_6, mdescriptor);
     _InjectConstraints(contactlist_6_3, mdescriptor);
     _InjectConstraints(contactlist_3_3, mdescriptor);
@@ -465,5 +469,4 @@ void ChContactContainerDVI::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

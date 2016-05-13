@@ -13,6 +13,7 @@ SET(TESTS
     utest_FEA_EASBrickMooneyR_Grav
     utest_FEA_ANCFConstraints
     utest_FEA_ANCFContact
+    utest_FEA_compute_contact_mesh
     utest_FEA_Brick9
 )
 

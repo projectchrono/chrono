@@ -13,8 +13,8 @@
 #define CHOBJELLIPSOIDSHAPE_H
 
 
-#include "assets/ChVisualization.h"
-#include "geometry/ChCEllipsoid.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChEllipsoid.h"
 
 namespace chrono {
 

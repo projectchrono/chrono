@@ -13,34 +13,30 @@
 #ifndef CHLOAD_H
 #define CHLOAD_H
 
-
-
-#include "physics/ChLoader.h"
-#include "physics/ChLoaderU.h"
-#include "physics/ChLoaderUV.h"
-#include "physics/ChLoaderUVW.h"
-#include "lcp/ChLcpSystemDescriptor.h"
-#include "lcp/ChLcpKblockGeneric.h"
-#include "timestepper/ChState.h"
-
+#include "chrono/physics/ChLoader.h"
+#include "chrono/physics/ChLoaderU.h"
+#include "chrono/physics/ChLoaderUV.h"
+#include "chrono/physics/ChLoaderUVW.h"
+#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/timestepper/ChState.h"
 
 namespace chrono {
 
-
 /// Utility class for storing jacobian matrices.
-/// This is automatically managed by the ChLoad, if needed 
+/// This is automatically managed by the ChLoad, if needed
 /// (ie. for stiff loads)
 
 class ChLoadJacobians {
-public:
-    ChLcpKblockGeneric KRM;  // sum of K,R,M, with pointers to sparse variables
-    ChMatrixDynamic<double> K; // dQ/dx
-    ChMatrixDynamic<double> R; // dQ/dv
-    ChMatrixDynamic<double> M; // dQ/da
+  public:
+    ChKblockGeneric KRM;        // sum of K,R,M, with pointers to sparse variables
+    ChMatrixDynamic<double> K;  // dQ/dx
+    ChMatrixDynamic<double> R;  // dQ/dv
+    ChMatrixDynamic<double> M;  // dQ/da
 
-    /// Set references to the constrained objects, each of ChLcpVariables type,
+    /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing K matrix if needed.
-    void SetVariables(std::vector<ChLcpVariables*> mvariables) {
+    void SetVariables(std::vector<ChVariables*> mvariables) {
         KRM.SetVariables(mvariables);
         int nscalar_coords = KRM.Get_K()->GetColumns();
         K.Reset(nscalar_coords,nscalar_coords);
@@ -112,7 +108,7 @@ public:
     ChLoadJacobians* GetJacobians() {return this->jacobians;}
 
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() =0;
 
         /// Update: this is called at least at each time step. 
@@ -145,7 +141,7 @@ public:
     virtual bool IsStiff() = 0;
 
     //
-    // Functions for interfacing to the state bookkeeping and LCP solver
+    // Functions for interfacing to the state bookkeeping and solver
     //
 
         /// Adds the internal loads Q (pasted at global nodes offsets) into
@@ -154,16 +150,16 @@ public:
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) =0;
 
         /// Tell to a system descriptor that there are item(s) of type
-        /// ChLcpKblock in this object (for further passing it to a LCP solver)
+        /// ChKblock in this object (for further passing it to a solver)
         /// Basically does nothing, but inherited classes must specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor)  {
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor)  {
         if (this->jacobians) {
             mdescriptor.InsertKblock(&this->jacobians->KRM);
         }
     } 
 
         /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-        /// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling
+        /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
         /// values Kfactor, Rfactor, Mfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
         if (this->jacobians) {
@@ -272,13 +268,13 @@ public:
         return loader.IsStiff();
     }
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() {
         if (!this->jacobians) {
             // create jacobian structure
             this->jacobians = new ChLoadJacobians;
             // set variables forsparse KRM block
-            std::vector<ChLcpVariables*> mvars;
+            std::vector<ChVariables*> mvars;
             loader.GetLoadable()->LoadableGetVariables(mvars);
             this->jacobians->SetVariables(mvars);
         }
@@ -383,13 +379,13 @@ public:
     virtual bool IsStiff() = 0;
 
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() {
         if (!this->jacobians) {
             // create jacobian structure
             this->jacobians = new ChLoadJacobians;
             // set variables forsparse KRM block
-            std::vector<ChLcpVariables*> mvars;
+            std::vector<ChVariables*> mvars;
             loadable->LoadableGetVariables(mvars);
             this->jacobians->SetVariables(mvars);
         }
@@ -544,13 +540,13 @@ public:
     virtual bool IsStiff() = 0;
 
         /// Create the jacobian loads if needed, and also
-        /// set the ChLcpVariables referenced by the sparse KRM block.
+        /// set the ChVariables referenced by the sparse KRM block.
     virtual void CreateJacobianMatrices() {
         if (!this->jacobians) {
             // create jacobian structure
             this->jacobians = new ChLoadJacobians;
             // set variables for sparse KRM block appending them to mvars list
-            std::vector<ChLcpVariables*> mvars;
+            std::vector<ChVariables*> mvars;
             for (int i= 0; i<loadables.size(); ++i)
                 loadables[i]->LoadableGetVariables(mvars);
             this->jacobians->SetVariables(mvars);
@@ -561,9 +557,6 @@ public:
     virtual ChVectorDynamic<>& GetQ() {return load_Q;}
 };
 
+}  // end namespace chrono
 
-
-
-}  // END_OF_NAMESPACE____
-
-#endif  
+#endif

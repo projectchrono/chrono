@@ -19,7 +19,9 @@ bool MPRCollision(const ConvexShape& ShapeA,
                   real3& returnNormal,
                   real3& pointA,
                   real3& pointB,
-                  real& depth);
+                  real& depth,
+				  real& effectiveRadius,
+				  real defaultRadius);
 CH_PARALLEL_API
 void MPRGetPoints(const ConvexShape& ShapeA,
                   const ConvexShape& ShapeB,

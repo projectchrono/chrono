@@ -105,6 +105,9 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     /// results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true);
 
+    /// Compute contact forces on all contactable objects in this container.
+    virtual void ComputeContactForces() override;
+
     //
     // STATE FUNCTIONS
     //
@@ -112,10 +115,10 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     // Override/implement interfaces for global state vectors (see ChPhysicsItem)
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override;
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
     virtual void ConstraintsFbLoadForces(double factor);

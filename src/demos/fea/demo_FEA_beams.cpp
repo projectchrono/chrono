@@ -22,8 +22,8 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChBuilderBeam.h"
@@ -35,7 +35,7 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 //#include "chrono_matlab/ChMatlabEngine.h"
-//#include "chrono_matlab/ChLcpMatlabSolver.h"
+//#include "chrono_matlab/ChSolverMatlab.h"
 
 // Remember to use the namespace 'chrono' because all classes 
 // of Chrono::Engine belong to this namespace and its children...
@@ -253,23 +253,24 @@ int main(int argc, char* argv[])
 
 	// 
 	// THE SOFT-REAL-TIME CYCLE
-	//
-	my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS OR ::LCP_SIMPLEX because other solvers can't handle stiffness matrices
-	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(460);
-	my_system.SetIterLCPmaxItersStab(460);
-	my_system.SetTolForce(1e-13);
-	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    //
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED THIS OR ::SOLVER_SIMPLEX because other solvers
+                                                              // can't handle stiffness matrices
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(460);
+    my_system.SetMaxItersSolverStab(460);
+    my_system.SetTolForce(1e-13);
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 	
     /*
 	    // TEST: The Matlab external linear solver, for max precision in benchmarks
     ChMatlabEngine matlab_engine;
-    ChLcpMatlabSolver* matlab_solver_stab  = new ChLcpMatlabSolver(matlab_engine);
-    ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-    my_system.ChangeLcpSolverStab (matlab_solver_stab);
-    my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+    ChMatlabSolver* matlab_solver_stab  = new ChMatlabSolver(matlab_engine);
+    ChMatlabSolver* matlab_solver_speed = new ChMatlabSolver(matlab_engine);
+    my_system.ChangeSolverStab (matlab_solver_stab);
+    my_system.ChangeSolverSpeed(matlab_solver_speed);
     application.GetSystem()->Update();
     application.SetPaused(true);
     */

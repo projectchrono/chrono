@@ -25,8 +25,8 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVectorDynamic.h"
-#include "chrono/lcp/ChLcpKblockGeneric.h"
-#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChMaterialSurfaceDEM.h"
@@ -45,7 +45,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
   private:
     struct ChContactJacobian {
-        ChLcpKblockGeneric m_KRM;     ///< sum of scaled K and R, with pointers to sparse variables
+        ChKblockGeneric m_KRM;        ///< sum of scaled K and R, with pointers to sparse variables
         ChMatrixDynamic<double> m_K;  ///< K = dQ/dx
         ChMatrixDynamic<double> m_R;  ///< R = dQ/dv
     };
@@ -69,17 +69,17 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         delete m_Jac;
     }
 
-    /// Get the contact force, if computed, in absolute coordinate system.
-    virtual ChVector<> GetContactForce() override { return m_force; }
+    /// Get the contact force, if computed, in contact coordinate system
+    virtual ChVector<> GetContactForce() override { return this->contact_plane.MatrT_x_Vect(m_force); }
 
     /// Get the contact penetration (positive if there is overlap).
     double GetContactPenetration() const { return -this->norm_dist; }
 
     /// Get the contact force, expressed in the frame of the contact.
-    ChVector<> GetContactForceLocal() const { return this->contact_plane.MatrT_x_Vect(m_force); }
+    ChVector<> GetContactForceAbs() const { return m_force; }
 
     /// Access the proxy to the Jacobian.
-    const ChLcpKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
+    const ChKblockGeneric* GetJacobianKRM() const { return m_Jac ? &(m_Jac->m_KRM) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianK() const { return m_Jac ? &(m_Jac->m_K) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
@@ -322,7 +322,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         // NOTE: currently, only contactable objects derived from ChContactable_1vars<6>,
         //       ChContactable_1vars<3>, and ChContactable_3vars<3,3,3> are supported.
         int ndof_w = 0;
-        std::vector<ChLcpVariables*> vars;
+        std::vector<ChVariables*> vars;
 
         vars.push_back(this->objA->GetVariables1());
         if (auto objA_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objA)) {
@@ -435,9 +435,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     }
 
     /// Inject Jacobian blocks into the system descriptor.
-    /// Tell to a system descriptor that there are item(s) of type ChLcpKblock in this object
-    /// (for further passing it to a LCP solver)
-    virtual void ContInjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) override {
+    /// Tell to a system descriptor that there are item(s) of type ChKblock in this object
+    /// (for further passing it to a solver)
+    virtual void ContInjectKRMmatrices(ChSystemDescriptor& mdescriptor) override {
         if (m_Jac)
             mdescriptor.InsertKblock(&m_Jac->m_KRM);
     }
@@ -453,6 +453,6 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

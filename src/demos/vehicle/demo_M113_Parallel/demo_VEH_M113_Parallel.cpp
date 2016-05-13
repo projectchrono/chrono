@@ -25,7 +25,7 @@
 
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
 
 // Chrono::Parallel OpenGL header files
@@ -47,8 +47,8 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 
 // M113 model header files
-#include "m113/M113_SimplePowertrain.h"
-#include "m113/M113_Vehicle.h"
+#include "models/vehicle/m113/M113_SimplePowertrain.h"
+#include "models/vehicle/m113/M113_Vehicle.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -167,11 +167,7 @@ double CreateParticles(ChSystem* system) {
     // Create a particle generator and a mixture entirely made out of spheres
     utils::Generator gen(system);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-#ifdef USE_DEM
-    m1->setDefaultMaterialDEM(mat_g);
-#else
-    m1->setDefaultMaterialDVI(mat_g);
-#endif
+    m1->setDefaultMaterial(mat_g);
     m1->setDefaultDensity(rho_g);
     m1->setDefaultSize(r_g);
 
@@ -266,14 +262,14 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    ////system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    system->SetIterLCPmaxItersSpeed(50);
-    system->SetIterLCPmaxItersStab(50);
+    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
+    system->SetMaxItersSolverSpeed(50);
+    system->SetMaxItersSolverStab(50);
     ////system->SetTol(0);
     ////system->SetMaxPenetrationRecoverySpeed(1.5);
     ////system->SetMinBounceSpeed(2.0);
-    ////system->SetIterLCPomega(0.8);
-    ////system->SetIterLCPsharpnessLambda(1.0);
+    ////system->SetSolverOverrelaxationParam(0.8);
+    ////system->SetSolverSharpnessParam(1.0);
 
 #else
 

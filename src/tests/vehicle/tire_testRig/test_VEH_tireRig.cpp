@@ -30,6 +30,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include <algorithm>
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
@@ -51,13 +52,14 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_fea/ChElementShellANCF.h"
 
+// #define USE_IRRLICHT
 
 #ifdef CHRONO_OPENMP_ENABLED
 #include <omp.h>
 #endif
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 using namespace chrono;
@@ -67,12 +69,12 @@ using namespace chrono::irrlicht;
 using namespace irr;
 using namespace fea;
 
+#ifdef CHRONO_FEA
 // Forward declarations
-
 void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>> & NodeNeighborElement);
 void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 	std::vector<std::vector<int>> & NodeNeighborElement);
-
+#endif 
 
 // =============================================================================
 // USER SETTINGS
@@ -82,11 +84,11 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
 // Solver settings
-enum SolverType { LCP_ITSOR, MKL };
+enum SolverType { ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF, FEA)
-TireModelType tire_model = FEA;
+TireModelType tire_model = ANCF;
 
 // Settings specific to FEA-based tires
 bool enable_tire_pressure = true;
@@ -223,9 +225,9 @@ class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallba
 // =============================================================================
 class ChFunction_SlipAngle : public ChFunction {
   public:
-    ChFunction* new_Duplicate() { return new ChFunction_SlipAngle; }
+    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(); }
 
-    double Get_y(double t) {
+    virtual double Get_y(double t) const override {
         // Ramp for 1 second and stay at that value (scale)
         double delay = 0.05;
         double scale = -10.0 / 180 * CH_C_PI;
@@ -245,9 +247,9 @@ class ChFunction_SlipAngle : public ChFunction {
 
 class ChFunction_CamberAngle : public ChFunction {
   public:
-    ChFunction* new_Duplicate() { return new ChFunction_CamberAngle; }
+    virtual ChFunction_CamberAngle* Clone() const override { return new ChFunction_CamberAngle(); }
 
-    double Get_y(double t) { return 0.; }
+    virtual double Get_y(double t) const override { return 0.; }
 };
 
 // =============================================================================
@@ -288,10 +290,10 @@ int main() {
         return 1;
     }
 
-
+    /*
 #ifdef CHRONO_OPENMP_ENABLED
     omp_set_num_threads(8);
-#endif
+#endif*/
 
     // Set the simulation and output time settings
     double sim_step = 1e-4;
@@ -323,13 +325,13 @@ int main() {
     // Set contact model to DEM if ANCF tire is used
     if (tire_model == ANCF || tire_model == FEA) {
         contact_method = ChMaterialSurfaceBase::DEM;
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
     }
 
     ChSystem* my_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
 
     if (auto sysDEM = dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
         sysDEM->SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
     }
 
     my_system->Set_G_acc(ChVector<>(0.0, 0.0, -g));
@@ -668,17 +670,17 @@ int main() {
 
     if (solver_type == MKL) {
 #ifndef CHRONO_MKL
-        solver_type = LCP_ITSOR;
+        solver_type = ITSOR;
 #endif
     }
 
     switch (solver_type) {
-        case LCP_ITSOR: {
-            GetLog() << "Using LCP_ITERATIVE_SOR solver\n";
+        case ITSOR: {
+            GetLog() << "Using SOLVER_SOR solver\n";
             my_system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
-            my_system->SetIterLCPmaxItersSpeed(100);
-            my_system->SetIterLCPmaxItersStab(100);  // Tasora stepper uses this, Anitescu does not
-            my_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+            my_system->SetMaxItersSolverSpeed(100);
+            my_system->SetMaxItersSolverStab(100);  // Tasora stepper uses this, Anitescu does not
+            my_system->SetSolverType(ChSystem::SOLVER_SOR);
             my_system->SetTol(1e-10);
             my_system->SetTolForce(1e-8);
             break;
@@ -686,10 +688,10 @@ int main() {
         case MKL: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver\n";
-            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-            my_system->ChangeLcpSolverStab(mkl_solver_stab);
-            my_system->ChangeLcpSolverSpeed(mkl_solver_speed);
+            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+            my_system->ChangeSolverStab(mkl_solver_stab);
+            my_system->ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 
@@ -708,7 +710,7 @@ int main() {
 
     // Create the Irrlicht application for visualization
     // -------------------------------------------------
-
+#ifdef USE_IRRLICHT
     ChIrrApp* application =
         new ChIrrApp(my_system, L"Tire Test Rig", core::dimension2d<u32>(800, 600), false, true);
     application->AddTypicalLogo();
@@ -721,6 +723,9 @@ int main() {
     application->AssetUpdateAll();
 
     application->SetTimestep(sim_step);
+#endif // !USE_IRRLICHT
+
+
 
     // Perform the simulation
     // -----------------------
@@ -772,8 +777,10 @@ int main() {
 
     TireTestContactReporter my_reporter;
     double rig_mass = wheel_carrier_mass + set_camber_mass + rim_mass + wheel_mass;
-    
-    std::vector<std::vector<int>> NodeNeighborElement; 
+
+#ifdef CHRONO_FEA
+    std::vector<std::vector<int>> NodeNeighborElement;
+
     switch (tire_model) {
         case ANCF:
             // Create connectivity section of VTK file
@@ -781,16 +788,21 @@ int main() {
             CreateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), NodeNeighborElement);
             break;
     }
+#endif
 
+#ifdef USE_IRRLICHT
     while (application->GetDevice()->run()) {
+#else
+    while (simTime < sim_endtime) {
+#endif
         // GetLog() << "Time: " << my_system->GetChTime() << " s. \n";
         // my_system->DoStepDynamics(sim_step);
-
+#ifdef USE_IRRLICHT
         // Render scene
         application->BeginScene();
         application->DrawAll();
         application->EndScene();
-
+#endif
         // Get state of wheel body
         wheelstate.pos = wheel->GetPos();           // global position
         wheelstate.rot = wheel->GetRot();           // orientation with respect to global frame
@@ -815,15 +827,21 @@ int main() {
         wheel->Accumulate_torque(tireforce.moment, false);
 
         // Advance simulation
+#ifdef USE_IRRLICHT
         application->DoStep();
+#else
+        my_system->DoStepDynamics(sim_step);
+#endif
         tire->Advance(sim_step);
 
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - sim_step / 2) {
+#ifdef CHRONO_FEA
             switch (tire_model) {
                 case ANCF:
                     UpdateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), simTime, NodeNeighborElement);
             }
+#endif
             ChMatrix33<> A(wheelstate.rot);
             ChVector<> disc_normal = A.Get_A_Yaxis();
             ChCoordsys<> linkCoordsys = revolute_set_camber_rim->GetLinkRelativeCoords();
@@ -903,7 +921,10 @@ int main() {
             break;
     }
 
+#ifdef USE_IRRLICHT
     delete application;
+#endif
+
     delete my_system;
     delete my_collider;
 

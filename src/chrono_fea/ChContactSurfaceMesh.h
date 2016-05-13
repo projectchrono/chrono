@@ -67,11 +67,11 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3> {
     //
 
     /// Access variables for node 1
-    virtual ChLcpVariables* GetVariables1() override { return &mnode1->Variables(); }
+    virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
     /// Access variables for node 2
-    virtual ChLcpVariables* GetVariables2() override { return &mnode2->Variables(); }
+    virtual ChVariables* GetVariables2() override { return &mnode2->Variables(); }
     /// Access variables for node 3
-    virtual ChLcpVariables* GetVariables3() override { return &mnode3->Variables(); }
+    virtual ChVariables* GetVariables3() override { return &mnode3->Variables(); }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return true; }

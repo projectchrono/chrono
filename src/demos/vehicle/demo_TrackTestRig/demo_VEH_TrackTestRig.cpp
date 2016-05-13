@@ -25,7 +25,7 @@
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
-#include "m113/M113_TrackAssembly.h"
+#include "models/vehicle/m113/M113_TrackAssembly.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -65,14 +65,14 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig rig(track_assembly, sprocket_loc, idler_loc, susp_locs, ChMaterialSurfaceBase::DVI);
     //rig.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-    rig.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    rig.GetSystem()->SetIterLCPmaxItersSpeed(50);
-    rig.GetSystem()->SetIterLCPmaxItersStab(50);
+    rig.GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
+    rig.GetSystem()->SetMaxItersSolverSpeed(50);
+    rig.GetSystem()->SetMaxItersSolverStab(50);
     rig.GetSystem()->SetTol(0);
     rig.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     rig.GetSystem()->SetMinBounceSpeed(2.0);
-    rig.GetSystem()->SetIterLCPomega(0.8);
-    rig.GetSystem()->SetIterLCPsharpnessLambda(1.0);
+    rig.GetSystem()->SetSolverOverrelaxationParam(0.8);
+    rig.GetSystem()->SetSolverSharpnessParam(1.0);
 
     rig.Initialize(ChCoordsys<>());
 

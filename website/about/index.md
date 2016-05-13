@@ -7,7 +7,9 @@ permalink: /about/
 
 <h3>What is {% include module.html first="PROJECT" second="CHRONO" %}?</h3>
 
-{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to develop simulation software. The other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
+{% include module.html first="PROJECT" second="CHRONO" %} is a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. 
+The core of {% include module.html first="PROJECT" second="CHRONO" %} is the Chrono::Engine middleware, an object-oriented library whose C++ API can be used to perform multi-physics simulations. 
+Among the other components of the {% include module.html first="PROJECT" second="CHRONO" %} ecosystems are: 
 
 - Chrono::Parallel, a library for enabling parallel computation in Chrono
 - Chrono::Vehicle, which provides support for vehicle dynamics simulation
@@ -17,12 +19,9 @@ permalink: /about/
 - Chrono::SolidWorks, an add-in for SolidWorks&copy;, which can be used to export 3D models and geometries from a  CAD file into Chrono
 
 
-<h4> Project Leaders</h4>
-
-
-- <a href="http://homepages.cae.wisc.edu/~negrut/index.htm">Dan Negrut</a> - Associate Professor, University of Wisconsin-Madison, USA
-- <a href="http://dynamics.eng.unipr.it/tasora">Alessandro Tasora</a> - Associate Professor, Università degli Studi di Parma, Italy
-
+<h4>Technical Leads</h4>
+- At University of Parma: <a href="http://dynamics.eng.unipr.it/tasora">Alessandro Tasora</a>, Associate Professor
+- At University of Wisconsin-Madison: <a href="http://homepages.cae.wisc.edu/~negrut/">Dan Negrut</a>, Associate Professor
 
 
 <h4>Key Project Chrono Developers</h4>
@@ -46,14 +45,21 @@ permalink: /about/
 
 The first version of the Chrono::Engine was developed in 1998 by [Prof. Alessandro Tasora](http://dynamics.eng.unipr.it/tasora) when he was a student at the Politecnico di Milano. It was the result of a thesis in Mechanical Engineering. Originally, Chrono::Engine was meant to be a multibody simulation tool for robotics and biomechanics applications.
 
+
 Until 2002, Chrono::Engine was tightly linked to the Realsoft3D modeller. In 2002-2005 the software was gradually reorganized in the form of a standalone library, just like it is today. Alessandro started working in 2005 with [Professor Mihai Anitescu](http://www.mcs.anl.gov/~anitescu/) from University of Chicago and Argonne National Laboratories. Their work strengthened the handling of large frictional contact models in Chrono. 
 
 [Professor Dan Negrut](http://homepages.cae.wisc.edu/~negrut/index.htm) joined the Project Chrono effort in 2007. The members of Simulation-Based Engineering Lab [\(SBEL\)](http://sbel.wisc.edu) at the University of Wisconsin-Madison have been active in its development ever since. 
 
-We took the decision to release Chrono as open source in 2013, when we started to use the name {% include module.html first="PROJECT" second="CHRONO" %} to recognize the fact that this software infrastructure had become a multi-physics simulation engine. Chrono's biggest break came in 2014, when the US Army decided to invest US $1.8 million in its development as an open source platform for physics-based modelling and simulation. Chrono development is going strong with the next release planned for August 15, 2016. 
+We took the decision to release Chrono as open source in 2013, when we started to use the name {% include module.html first="PROJECT" second="CHRONO" %} to recognize the fact that this software infrastructure had become a multi-physics simulation engine. In 2014, the US Army decided to invest US $1.8 million over a two year period to further develop Chrono as an open source platform for physics-based modelling and simulation. Chrono development is going strong with the next release planned for August 15, 2016. 
 
 ### Copyright
 Chrono is copyrighted by {% include module.html first="PROJECT" second="CHRONO" %}, a nonprofit set up in the US, and released under a BSD 3 license. 
 
+
+### Stats
+
+<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_basic_stats?format=js'></script>
+<br>
+<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_factoids?format=js'></script>
 
 <br><br>

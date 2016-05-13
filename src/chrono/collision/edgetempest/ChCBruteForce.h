@@ -12,25 +12,8 @@
 #ifndef CHC_BRUTEFORCE_H
 #define CHC_BRUTEFORCE_H
 
-//////////////////////////////////////////////////
-//
-//   ChCBruteForce.h
-//
-//   Header for a simple broad-phase collision engine,
-//   Such 'brute force' broad-phase exploits a bad
-//   combinatorial complexity. Therefore it is here just
-//   for benchmark and profiling.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "geometry/ChCGeometry.h"
-#include "ChCBroadPhaseCollider.h"
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/collision/edgetempest/ChCBroadPhaseCollider.h"
 
 namespace chrono {
 namespace collision {

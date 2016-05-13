@@ -36,7 +36,7 @@ namespace chrono {
 
 // forward references
 class ChBody;
-class ChLcpVariablesBody;
+class ChVariablesBody;
 class ChContactContainerBase;
 class ChProximityContainerBase;
 

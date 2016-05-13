@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/geometry/ChCLineBezier.h"
+#include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"

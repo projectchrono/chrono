@@ -195,9 +195,9 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);  // try also other ChSystem::LCP_XXXYYYZZZ stuff
-    mphysicalSystem.SetIterLCPmaxItersSpeed(40);
-    mphysicalSystem.SetIterLCPmaxItersStab(5);
+    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetMaxItersSolverSpeed(40);
+    mphysicalSystem.SetMaxItersSolverStab(5);
 
     // Turn off default -9.8 downward gravity
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));

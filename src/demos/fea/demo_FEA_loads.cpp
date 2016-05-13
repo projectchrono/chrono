@@ -16,24 +16,24 @@
 
 // Include some headers used by this tutorial...
 
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
-#include "physics/ChLinkMate.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementBar.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChElementTetra_10.h"
-#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementHexa_20.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLoadsBeam.h"
-#include "physics/ChLoadContainer.h"
+#include "chrono_fea/ChMesh.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -407,12 +407,13 @@ void test_1() {
 
     // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
 
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES); // <- NEEDED THIS or MKL because other solvers can't handle stiffness matrices
-	my_system.SetIterLCPwarmStarting(true); // this helps a lot to speedup convergence in this class of problems
-	my_system.SetIterLCPmaxItersSpeed(100);
-	my_system.SetIterLCPmaxItersStab(100);
-	my_system.SetTolForce(1e-13);
-	chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    my_system.SetSolverType(
+        ChSystem::SOLVER_MINRES);  // <- NEEDED THIS or MKL because other solvers can't handle stiffness matrices
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(100);
+    my_system.SetMaxItersSolverStab(100);
+    my_system.SetTolForce(1e-13);
+    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 

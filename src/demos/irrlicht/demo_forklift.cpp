@@ -494,9 +494,9 @@ int main(int argc, char* argv[]) {
     // SETTINGS
     //
 
-    my_system.SetIterLCPmaxItersSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
+    my_system.SetMaxItersSolverSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
 
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+    my_system.SetSolverType(ChSystem::SOLVER_SOR);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

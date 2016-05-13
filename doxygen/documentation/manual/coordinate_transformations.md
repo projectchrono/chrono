@@ -487,8 +487,8 @@ See @ref chrono::ChFrameMoving for API details.
 
 You can find additional details on the theoretical aspects of coordinate 
 transformations in Chrono::Engine by looking at whitepapers.
-- [PDF witepaper on rotations](http://projectchrono.org/white_papers/rotations.pdf)
-- [PDF witepaper on coordinates](http://projectchrono.org/white_papers/frame_kinematics.pdf)
+- [PDF witepaper on rotations](http://projectchrono.org/assets/white_papers/rotations.pdf)
+- [PDF witepaper on coordinates](http://projectchrono.org/assets/white_papers/frame_kinematics.pdf)
 
 
 # Examples
