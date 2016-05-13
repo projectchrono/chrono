@@ -46,7 +46,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 #ifdef CHRONO_OPENGL
@@ -87,16 +87,16 @@ RigNode::RigNode(int num_threads) {
 
     // Solver settings
 #ifdef CHRONO_MKL
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    m_system->ChangeLcpSolverStab(mkl_solver_stab);
-    m_system->ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    m_system->ChangeSolverStab(mkl_solver_stab);
+    m_system->ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
     mkl_solver_stab->SetSparsityPatternLock(true);
 #else
-    m_system->SetIterLCPmaxItersSpeed(100);
-    m_system->SetIterLCPmaxItersStab(100);
-    m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+    m_system->SetMaxItersSolverSpeed(100);
+    m_system->SetMaxItersSolverStab(100);
+    m_system->SetSolverType(ChSystem::SOLVER_SOR);
     m_system->SetTol(1e-10);
     m_system->SetTolForce(1e-8);
 #endif
