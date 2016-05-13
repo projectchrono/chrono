@@ -24,12 +24,13 @@
 #include <vector>
 
 #include "chrono/core/ChFileutils.h"
-#include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChStream.h"
 #include "chrono/physics/ChLinkDistance.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -42,7 +43,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
-#include "lcp/ChLcpIterativeSolver.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 
@@ -138,12 +138,13 @@ int main(int argc, char* argv[]) {
   // Create the vehicle system
   WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
   vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-  //vehicle.GetSystem()->SetIterLCPmaxItersSpeed(1000);
-  //vehicle.GetSystem()->SetIterLCPmaxItersStab(1000);
-  vehicle.GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-  vehicle.GetSystem()->SetIterLCPwarmStarting(true);
+
+  //vehicle.GetSystem()->SetMaxItersSolverSpeed(1000);
+  //vehicle.GetSystem()->SetMaxItersSolverStab(1000);
+  vehicle.GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
+  vehicle.GetSystem()->SetSolverWarmStarting(true);
   //vehicle.GetSystem()->SetTolForce(1e-2);
-  chrono::ChLcpIterativeSolver* msolver_speed = (chrono::ChLcpIterativeSolver*) vehicle.GetSystem()->GetLcpSolverSpeed();
+  chrono::ChIterativeSolver* msolver_speed = (chrono::ChIterativeSolver*) vehicle.GetSystem()->GetSolverSpeed();
   msolver_speed->SetRecordViolation(true);
 
   // Create the ground

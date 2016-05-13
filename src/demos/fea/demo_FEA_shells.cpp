@@ -582,8 +582,8 @@ int main(int argc, char* argv[]) {
     */
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT); 
-    if (auto msol =  dynamic_cast<chrono::ChTimestepperEulerImplicit*>(my_system.GetLcpSolverSpeed())) {
+    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
+    if (auto msol =  dynamic_cast<ChTimestepperEulerImplicit*>(my_system.GetSolverSpeed())) {
         msol->SetMaxiters(6);
         msol->SetAbsTolerances(1e-10, 1e-10);
     }
