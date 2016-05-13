@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_LINESEGMENT 18
-
 /// Geometric object representing a segment in 3D space with two end points.
 
 class ChApi ChLineSegment : public ChLine {
@@ -42,7 +40,7 @@ class ChApi ChLineSegment : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLineSegment* Clone() const override { return new ChLineSegment(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_LINESEGMENT; }
+    virtual GeometryType GetClassType() const override { return LINE_SEGMENT; }
 
     virtual int Get_complexity() const override { return 2; }
 

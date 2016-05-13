@@ -24,8 +24,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_TRIANGLEMESHCONNECTED 11
-
 /// A triangle mesh with connectivity info: vertices can be
 /// shared between faces.
 
@@ -148,7 +146,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     bool MakeOffset(const double offset);
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_TRIANGLEMESHCONNECTED; }
+    virtual GeometryType GetClassType() const override { return TRIANGLEMESH_CONNECTED; }
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number

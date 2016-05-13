@@ -27,8 +27,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_LINEBEZIER 21
-
 /// Geometric object representing a piecewise cubic Bezier curve in 3D.
 class ChApi ChLineBezier : public ChLine {
     // Chrono simulation of RTTI, needed for serialization
@@ -42,7 +40,7 @@ class ChApi ChLineBezier : public ChLine {
     ChLineBezier(const ChLineBezier* source);
     ~ChLineBezier();
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_LINEBEZIER; }
+    virtual GeometryType GetClassType() const override { return LINE_BEZIER; }
 
     virtual void Set_closed(bool mc) {}
     virtual void Set_complexity(int mc) {}

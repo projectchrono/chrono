@@ -20,8 +20,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_ROUNDEDCONE 17
-
 /// A rounded cone (sphere-swept cone) geometric object for collisions and visualization.
 
 class ChApi ChRoundedCone : public ChGeometry {
@@ -37,7 +35,7 @@ class ChApi ChRoundedCone : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedCone* Clone() const override { return new ChRoundedCone(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_ROUNDEDCONE; }
+    virtual GeometryType GetClassType() const override { return ROUNDED_CONE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_TRIANGLEMESHSOUP 12
-
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
 
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
@@ -63,7 +61,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_TRIANGLEMESHSOUP; }
+    virtual GeometryType GetClassType() const override { return TRIANGLEMESH_SOUP; }
 
     /// Method to allow de serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {

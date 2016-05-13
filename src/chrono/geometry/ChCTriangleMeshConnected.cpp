@@ -1182,7 +1182,7 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
         }
         if (!tomerge) {
             processed_verts.push_back(m_vertices[i]);
-            new_indexes[i] = processed_verts.size() - 1;
+            new_indexes[i] = (int)processed_verts.size() - 1;
         }
     }
 
@@ -1218,7 +1218,7 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
         auto mpair = map_vertex_triangles.find(i);
         if (mpair != map_vertex_triangles.end()) {
             std::vector<int>& mverttriangles = mpair->second;
-            int ntri = mverttriangles.size();
+            int ntri = (int)mverttriangles.size();
             ChMatrixDynamic<> A(ntri, ntri);
             ChMatrixDynamic<> b(ntri, 1);
             ChMatrixDynamic<> x(ntri, 1);

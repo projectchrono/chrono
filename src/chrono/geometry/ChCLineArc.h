@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_LINEARC 19
-
 /// Geometric object representing an arc or a circle in 3D space.
 /// By default it is evaluated clockwise from angle1 to angle2.
 
@@ -50,7 +48,7 @@ class ChApi ChLineArc : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLineArc* Clone() const override { return new ChLineArc(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_LINEARC; }
+    virtual GeometryType GetClassType() const override { return LINE_ARC; }
 
     virtual int Get_complexity() const override { return 2; }
 

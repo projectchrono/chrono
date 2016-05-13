@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_LINEPATH 20
-
 /// Geometric object representing an sequence of other ChLine objects,
 /// The ChLine objects are assumed to be properly concatenated and to have C0 continuity.
 
@@ -44,7 +42,7 @@ class ChApi ChLinePath : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinePath* Clone() const override { return new ChLinePath(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_LINEPATH; }
+    virtual GeometryType GetClassType() const override { return LINE_PATH; }
 
     virtual int Get_complexity() { return 2; }
 

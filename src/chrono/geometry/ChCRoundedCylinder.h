@@ -20,8 +20,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_ROUNDEDCYLINDER 15
-
 /// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
 
 class ChApi ChRoundedCylinder : public ChGeometry {
@@ -44,7 +42,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedCylinder* Clone() const override { return new ChRoundedCylinder(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_ROUNDEDCYLINDER; }
+    virtual GeometryType GetClassType() const override { return ROUNDED_CYLINDER; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

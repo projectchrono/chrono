@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_BOX 3
-
 /// A box geometric object for collisions and visualization.
 
 class ChApi ChBox : public ChGeometry {
@@ -44,7 +42,7 @@ class ChApi ChBox : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBox* Clone() const override { return new ChBox(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_BOX; }
+    virtual GeometryType GetClassType() const override { return BOX; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

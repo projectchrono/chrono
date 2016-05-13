@@ -20,8 +20,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_CONE 4
-
 /// A conical geometric object for collisions and visualization.
 
 class ChApi ChCone : public ChGeometry {
@@ -41,7 +39,7 @@ class ChApi ChCone : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChCone* Clone() const override { return new ChCone(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_CONE; }
+    virtual GeometryType GetClassType() const override { return CONE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

@@ -20,8 +20,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_CYLINDER 13
-
 /// A cylindrical geometric object for collisions and visualization.
 
 class ChApi ChCylinder : public ChGeometry {
@@ -42,7 +40,7 @@ class ChApi ChCylinder : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChCylinder* Clone() const override { return new ChCylinder(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_CYLINDER; }
+    virtual GeometryType GetClassType() const override { return CYLINDER; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

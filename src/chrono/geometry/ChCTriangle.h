@@ -24,8 +24,6 @@ namespace geometry {
 
 #define EPS_TRIDEGENERATE 1e-20
 
-#define CH_GEOCLASS_TRIANGLE 1
-
 /// A triangle geometric shape for collisions and visualization.
 
 class ChApi ChTriangle : public ChGeometry {
@@ -49,7 +47,7 @@ class ChApi ChTriangle : public ChGeometry {
     /// Assignment operator: copy from another triangle
     ChTriangle& operator=(const ChTriangle& source);
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_TRIANGLE; }
+    virtual GeometryType GetClassType() const override { return TRIANGLE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

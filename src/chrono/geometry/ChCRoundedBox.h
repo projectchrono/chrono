@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_ROUNDEDBOX 16
-
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 
 class ChApi ChRoundedBox : public ChGeometry {
@@ -47,7 +45,7 @@ class ChApi ChRoundedBox : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedBox* Clone() const override { return new ChRoundedBox(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_ROUNDEDBOX; }
+    virtual GeometryType GetClassType() const override { return ROUNDED_BOX; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

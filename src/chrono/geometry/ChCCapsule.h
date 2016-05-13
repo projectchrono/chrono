@@ -20,8 +20,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_CAPSULE 14
-
 /// A capsule geometric object for collision and visualization.
 
 class ChApi ChCapsule : public ChGeometry {
@@ -42,7 +40,7 @@ class ChApi ChCapsule : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChCapsule* Clone() const override { return new ChCapsule(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_CAPSULE; }
+    virtual GeometryType GetClassType() const override { return CAPSULE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

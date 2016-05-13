@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_LINEPOLY 5
-
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
 
 class ChApi ChLinePoly : public ChLine {
@@ -42,7 +40,7 @@ class ChApi ChLinePoly : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinePoly* Clone() const override { return new ChLinePoly(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_LINEPOLY; }
+    virtual GeometryType GetClassType() const override { return LINE_POLY; }
 
     virtual int Get_complexity() const override { return (int)points.size(); }
     virtual void Set_complexity(int mc){};

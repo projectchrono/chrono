@@ -20,8 +20,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_SPHERE 2
-
 /// An ellipsoid geometric object for collisions and such.
 
 class ChApi ChEllipsoid : public ChGeometry {
@@ -41,7 +39,7 @@ class ChApi ChEllipsoid : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChEllipsoid* Clone() const override { return new ChEllipsoid(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_SPHERE; }
+    virtual GeometryType GetClassType() const override { return SPHERE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

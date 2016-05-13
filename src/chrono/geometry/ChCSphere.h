@@ -20,8 +20,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_SPHERE 2
-
 /// A spherical geometric object for collisions and visualization.
 
 class ChApi ChSphere : public ChGeometry {
@@ -41,7 +39,7 @@ class ChApi ChSphere : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSphere* Clone() const override { return new ChSphere(*this); }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_SPHERE; }
+    virtual GeometryType GetClassType() const override { return SPHERE; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

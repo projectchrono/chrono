@@ -22,8 +22,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_TRIANGLEMESH 9
-
 /// Base class for triangle meshes.
 
 class ChApi ChTriangleMesh : public ChGeometry {
@@ -57,7 +55,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
         this->Transform(displ, ChMatrix33<>(mquat));
     }
 
-    virtual int GetClassType() const override { return CH_GEOCLASS_TRIANGLEMESH; }
+    virtual GeometryType GetClassType() const override { return TRIANGLEMESH; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,

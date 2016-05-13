@@ -23,8 +23,6 @@
 namespace chrono {
 namespace geometry {
 
-#define CH_GEOCLASS_LINE 4
-
 /// Base class for all geometric objects representing lines in 3D space.
 
 class ChApi ChLine : public ChGeometry {
@@ -46,7 +44,7 @@ class ChApi ChLine : public ChGeometry {
     /// Get the class type as unique numerical ID (faster
     /// than using ChronoRTTI mechanism).
     /// Each inherited class must return an unique ID.
-    virtual int GetClassType() const override { return CH_GEOCLASS_LINE; }
+    virtual GeometryType GetClassType() const override { return LINE; }
 
     /// Tell if the curve is closed
     virtual bool Get_closed() const { return closed; }

@@ -28,12 +28,35 @@ namespace geometry {
 /// @addtogroup chrono_geometry
 /// @{
 
-#define CH_GEOCLASS_GEOMETRY 0
-
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI_ROOT(ChGeometry);
+
+  public:
+    /// Enumeration of geometric objects
+    enum GeometryType {
+        NONE,
+        SPHERE,
+        BOX,
+        CYLINDER,
+        TRIANGLE,
+        CAPSULE,
+        CONE,
+        LINE,
+        LINE_ARC,
+        LINE_BEZIER,
+        LINE_CAM,
+        LINE_PATH,
+        LINE_POLY,
+        LINE_SEGMENT,
+        ROUNDED_BOX,
+        ROUNDED_CYLINDER,
+        ROUNDED_CONE,
+        TRIANGLEMESH,
+        TRIANGLEMESH_CONNECTED,
+        TRIANGLEMESH_SOUP
+    };
 
   public:
     ChGeometry() {}
@@ -46,7 +69,7 @@ class ChApi ChGeometry {
     /// Get the class type as unique numerical ID (faster
     /// than using ChronoRTTI mechanism).
     /// Each inherited class must return an unique ID.
-    virtual int GetClassType() const { return CH_GEOCLASS_GEOMETRY; }
+    virtual GeometryType GetClassType() const { return NONE; }
 
     /// Compute bounding box.
     /// If a matrix Rot is not null, it should compute bounding box along

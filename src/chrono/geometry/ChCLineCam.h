@@ -40,8 +40,6 @@ CH_ENUM_VAL(CAM_TYPE_FLAT);
 CH_ENUM_VAL(CAM_TYPE_FLATOSCILLATE);
 CH_ENUM_MAPPER_END(eChCamType);
 
-#define CH_GEOCLASS_LINECAM 6
-
 /// Geometric object describing the profile of a cam.
 /// The shape of a cam is specified through a ChFunction which defines the motion law of the follower.
 
@@ -79,7 +77,7 @@ class ChApi ChLineCam : public ChLine {
 
     /// Get the class type as unique numerical ID.
     /// Each inherited class must return an unique ID.
-    virtual int GetClassType() const override { return CH_GEOCLASS_LINECAM; }
+    virtual GeometryType GetClassType() const override { return LINE_CAM; }
 
     virtual bool Get_closed() const override { return true; }
     virtual void Set_closed(bool mc) override {}
