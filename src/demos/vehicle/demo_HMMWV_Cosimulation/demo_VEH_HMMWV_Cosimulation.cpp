@@ -35,9 +35,7 @@
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimManager.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 
-#include "hmmwv/powertrain/HMMWV_Powertrain.h"
-#include "hmmwv/tire/HMMWV_RigidTire.h"
-#include "hmmwv/vehicle/HMMWV_Vehicle.h"
+#include "models/vehicle/hmmwv/HMMWV.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
