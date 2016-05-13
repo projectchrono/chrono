@@ -11,7 +11,7 @@
 
 #include "chrono/physics/ChLinkPointSpline.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/geometry/ChCLineSegment.h"
+#include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
 

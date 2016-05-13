@@ -10,7 +10,7 @@
 //
 
 #include "chrono/physics/ChLinkTrajectory.h"
-#include "chrono/geometry/ChCLineSegment.h"
+#include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
 

@@ -23,7 +23,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
 

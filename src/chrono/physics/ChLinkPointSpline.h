@@ -13,7 +13,7 @@
 #define CHLINKPOINTSPLINE_H
 
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/geometry/ChCLine.h"
+#include "chrono/geometry/ChLine.h"
 
 namespace chrono {
 ///

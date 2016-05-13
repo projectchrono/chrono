@@ -35,7 +35,7 @@
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/geometry/ChCTriangleMeshSoup.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 
 #include <irrlicht.h>
 

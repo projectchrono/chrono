@@ -12,29 +12,13 @@
 #ifndef CHC_GEOMETRYCOLLIDER_H
 #define CHC_GEOMETRYCOLLIDER_H
 
-//////////////////////////////////////////////////
-//
-//   ChCGeometryCollider.h
-//
-//   Here you can find functions to compute
-//   the contact points between colliding geometries
-//   of different kinds..
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "ChCNarrowPhaseCollider.h"
-#include "geometry/ChCGeometry.h"
-#include "geometry/ChCSphere.h"
-#include "geometry/ChCTriangle.h"
-#include "geometry/ChCBox.h"
+#include "chrono/collision/edgetempest/ChCNarrowPhaseCollider.h"
+#include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChTriangle.h"
+#include "chrono/geometry/ChBox.h"
 
 namespace chrono {
 namespace collision {

@@ -17,7 +17,7 @@
 //       say CFD or SPH (here simulated as a function in this .cpp file)
 //       that is perform a cosimulation.
 
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"

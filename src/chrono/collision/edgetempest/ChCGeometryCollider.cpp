@@ -15,9 +15,9 @@
 #include "chrono/collision/edgetempest/ChCGeometryCollider.h"
 #include "chrono/collision/edgetempest/ChCOBB.h"
 #include "chrono/core/ChTransform.h"
-#include "chrono/geometry/ChCBox.h"
-#include "chrono/geometry/ChCSphere.h"
-#include "chrono/geometry/ChCTriangle.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChTriangle.h"
 
 #define COLL_PRECISION 0.000001
 

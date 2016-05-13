@@ -13,8 +13,8 @@
 #define CHTRIANGLEMESHSHAPE_H
 
 
-#include "assets/ChVisualization.h"
-#include "geometry/ChCTriangleMeshConnected.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 

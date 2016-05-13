@@ -298,50 +298,50 @@ source_group(physics FILES
 # Geometry group
 
 set(ChronoEngine_geometry_SOURCES
-    geometry/ChCGeometry.cpp
-    geometry/ChCSphere.cpp
-    geometry/ChCEllipsoid.cpp
-    geometry/ChCBox.cpp
-    geometry/ChCCone.cpp
-    geometry/ChCCylinder.cpp
-    geometry/ChCCapsule.cpp
-    geometry/ChCLine.cpp
-    geometry/ChCLineArc.cpp
-    geometry/ChCLineSegment.cpp
-    geometry/ChCLinePath.cpp
-    geometry/ChCLineBezier.cpp
-    geometry/ChCLineCam.cpp
-    geometry/ChCLinePoly.cpp
-    geometry/ChCTriangle.cpp
-    geometry/ChCTriangleMeshSoup.cpp
-    geometry/ChCTriangleMeshConnected.cpp
-    geometry/ChCRoundedBox.cpp
-    geometry/ChCRoundedCylinder.cpp
-    geometry/ChCRoundedCone.cpp
+    geometry/ChGeometry.cpp
+    geometry/ChSphere.cpp
+    geometry/ChEllipsoid.cpp
+    geometry/ChBox.cpp
+    geometry/ChCone.cpp
+    geometry/ChCylinder.cpp
+    geometry/ChCapsule.cpp
+    geometry/ChLine.cpp
+    geometry/ChLineArc.cpp
+    geometry/ChLineSegment.cpp
+    geometry/ChLinePath.cpp
+    geometry/ChLineBezier.cpp
+    geometry/ChLineCam.cpp
+    geometry/ChLinePoly.cpp
+    geometry/ChTriangle.cpp
+    geometry/ChTriangleMeshSoup.cpp
+    geometry/ChTriangleMeshConnected.cpp
+    geometry/ChRoundedBox.cpp
+    geometry/ChRoundedCylinder.cpp
+    geometry/ChRoundedCone.cpp
     )
 
 set(ChronoEngine_geometry_HEADERS
-    geometry/ChCGeometry.h
-    geometry/ChCSphere.h
-    geometry/ChCEllipsoid.h
-    geometry/ChCBox.h
-    geometry/ChCCone.h
-    geometry/ChCCylinder.h
-    geometry/ChCCapsule.h
-    geometry/ChCLine.h
-    geometry/ChCLineCam.h
-    geometry/ChCLinePoly.h
-    geometry/ChCLineArc.h
-    geometry/ChCLineSegment.h
-    geometry/ChCLinePath.h
-    geometry/ChCLineBezier.h
-    geometry/ChCTriangle.h
-    geometry/ChCTriangleMesh.h
-    geometry/ChCTriangleMeshSoup.h
-    geometry/ChCTriangleMeshConnected.h
-    geometry/ChCRoundedBox.h
-    geometry/ChCRoundedCylinder.h
-    geometry/ChCRoundedCone.h
+    geometry/ChGeometry.h
+    geometry/ChSphere.h
+    geometry/ChEllipsoid.h
+    geometry/ChBox.h
+    geometry/ChCone.h
+    geometry/ChCylinder.h
+    geometry/ChCapsule.h
+    geometry/ChLine.h
+    geometry/ChLineCam.h
+    geometry/ChLinePoly.h
+    geometry/ChLineArc.h
+    geometry/ChLineSegment.h
+    geometry/ChLinePath.h
+    geometry/ChLineBezier.h
+    geometry/ChTriangle.h
+    geometry/ChTriangleMesh.h
+    geometry/ChTriangleMeshSoup.h
+    geometry/ChTriangleMeshConnected.h
+    geometry/ChRoundedBox.h
+    geometry/ChRoundedCylinder.h
+    geometry/ChRoundedCone.h
     )
 
 source_group(geometry FILES

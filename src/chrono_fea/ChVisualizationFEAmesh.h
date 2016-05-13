@@ -15,7 +15,7 @@
 
 #include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChColor.h"
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChNodeFEAxyzP.h"

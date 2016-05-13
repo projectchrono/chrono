@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadBodyMesh.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -17,9 +17,10 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono_mkl/ChSolverMKL.h"
 
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChElementShellANCF.h"
