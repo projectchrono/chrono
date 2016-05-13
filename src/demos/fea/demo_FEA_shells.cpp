@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     // Add a SLIT ANNULAR PLATE:
     //
 
-    if (false)
+    if (true)
     {
         double plate_thickness = 0.03;
         double plate_Ri = 6;
@@ -285,9 +285,9 @@ int main(int argc, char* argv[]) {
         // Create the nodes (each with position & normal to shell)
         double node_density=0.0001;
         
-        int nels_U = 3;
-        int nels_W = 1;
-        double arc = CH_C_2PI *0.4;
+        int nels_U = 20;
+        int nels_W = 2;
+        double arc = CH_C_2PI *1;
         std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
                 mnode->SetMass(0.000); 
 
                 nodearray[iu*(nels_W+1) + iw] = mnode;
-
+//nodearray[iu*(nels_W+1) + iw]->SetPos(nodearray[iu*(nels_W+1) + iw]->GetPos() + ChVector<>(0,1,0));
                 if (iu==0)
                     nodes_start[iw] = mnode;
                 if (iu==nels_U)
@@ -326,32 +326,33 @@ int main(int argc, char* argv[]) {
                 if (iu>0 && iw>0) {
                     auto melement = std::make_shared<ChElementShellEANS4>();
                     my_mesh->AddElement(melement);
-                   /*
+                   
                     melement->SetNodes(
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                    */    
-                       
+                    /*      
                     melement->SetNodes( // not working well..
                         nodearray[(iu  )*(nels_W+1) + (iw-1)],
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)] 
                         );
-                   
+                   */
                     melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
                     melement->SetAlphaDamp(0.0);   
                     elarray[(iu-1)*(nels_W) + (iw-1)] = melement;
                     
                     ChMatrixDynamic<> mFi(24,1);
+                    //melement->SetupInitial(&my_system);
+                    //melement->ComputeInternalForces(mFi);
+                    //nodearray[(iu  )*(nels_W+1) + (iw-1)]->ConcatenatePreTransformation( ChFrameMoving<>(ChVector<>(0,1,0)));
+                    nodearray[(iu  )*(nels_W+1) + (iw-1)]->SetPos(nodearray[(iu  )*(nels_W+1) + (iw-1)]->GetPos() + ChVector<>(0,1,0));
+                    nodearray[(iu  )*(nels_W+1) + (iw-1)]->SetX0(*nodearray[(iu  )*(nels_W+1) + (iw-1)]);
                     melement->SetupInitial(&my_system);
-                    melement->ComputeInternalForces(mFi);
-                    nodearray[(iu  )*(nels_W+1) + (iw-1)]->ConcatenatePreTransformation( ChFrameMoving<>(ChVector<>(0,1,0)));
-                    melement->SetupInitial(&my_system);
-                    melement->ComputeInternalForces(mFi);
+                    //melement->ComputeInternalForces(mFi);
                     
                 }
             }
@@ -394,7 +395,7 @@ int main(int argc, char* argv[]) {
     // Add a CLAMPED HALF CYLINDER :
     //
 
-    if (true)
+    if (false)
     {
         double plate_thickness = 0.03;
         double plate_R = 1.016;
@@ -582,13 +583,15 @@ int main(int argc, char* argv[]) {
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT); 
+    /*
     if (auto msol =  dynamic_cast<chrono::ChTimestepperEulerImplicit*>(my_system.GetLcpSolverSpeed())) {
         msol->SetMaxiters(6);
         msol->SetAbsTolerances(1e-10, 1e-10);
     }
+    */
     //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
  
-    application.SetTimestep(0.1);
+    application.SetTimestep(0.01);
     application.SetPaused(true);
     my_system.Setup();
     my_system.Update();

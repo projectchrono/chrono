@@ -102,6 +102,8 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame {
     virtual void SetX0(ChFrame<> mx) { X0 = mx; }
     /// Get the initial (reference) frame
     virtual ChFrame<> GetX0() { return X0; }
+    /// Access  the initial (reference) frame
+    virtual ChFrame<>& GetX0ref() { return X0; }
 
     /// Set the 3d applied force, in absolute reference
     virtual void SetForce(ChVector<> mf) { Force = mf; }

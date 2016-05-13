@@ -226,14 +226,14 @@ void ChElementShellEANS4::AddLayer(double thickness, double theta, std::shared_p
 // Initial element setup.
 void ChElementShellEANS4::SetAsNeutral() {
 
-    GetNodeA()->GetX0().SetPos( GetNodeA()->GetX0().GetPos() );
-    GetNodeB()->GetX0().SetPos( GetNodeB()->GetX0().GetPos() );
-    GetNodeC()->GetX0().SetPos( GetNodeC()->GetX0().GetPos() );
-    GetNodeD()->GetX0().SetPos( GetNodeD()->GetX0().GetPos() );
-    GetNodeA()->GetX0().SetRot( GetNodeA()->GetX0().GetRot() );
-    GetNodeB()->GetX0().SetRot( GetNodeB()->GetX0().GetRot() );
-    GetNodeC()->GetX0().SetRot( GetNodeC()->GetX0().GetRot() );
-    GetNodeD()->GetX0().SetRot( GetNodeD()->GetX0().GetRot() );
+    GetNodeA()->GetX0ref().SetPos( GetNodeA()->GetPos() );
+    GetNodeB()->GetX0ref().SetPos( GetNodeB()->GetPos() );
+    GetNodeC()->GetX0ref().SetPos( GetNodeC()->GetPos() );
+    GetNodeD()->GetX0ref().SetPos( GetNodeD()->GetPos() );
+    GetNodeA()->GetX0ref().SetRot( GetNodeA()->GetRot() );
+    GetNodeB()->GetX0ref().SetRot( GetNodeB()->GetRot() );
+    GetNodeC()->GetX0ref().SetRot( GetNodeC()->GetRot() );
+    GetNodeD()->GetX0ref().SetRot( GetNodeD()->GetRot() );
 
 }
 
@@ -411,8 +411,9 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         #endif
         ChVector<> kur_u0 = Tavg.Rotate( Hi * F_u_tilde0);
         ChVector<> kur_v0 = Tavg.Rotate( Hi * F_v_tilde0);
-        kur_tilde_u_0_i[igp] = T_i0.RotateBack(kur_u0);
-        kur_tilde_v_0_i[igp] = T_i0.RotateBack(kur_v0);
+        //***TEST***
+        kur_tilde_u_0_i[igp] = VNULL; //T_i0.RotateBack(kur_u0);
+        kur_tilde_v_0_i[igp] = VNULL; //T_i0.RotateBack(kur_v0);
 
         // precompute iTa_i
         t1.Normalize();
