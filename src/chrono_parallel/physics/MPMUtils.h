@@ -188,27 +188,27 @@ CUDA_HOST_DEVICE static inline float3 NodeLocation(const int i,
         }                                                                                           \
     }
 
-#define Potential_Energy_Derivative_Helper()                                         \
-    float JP = Determinant(FP);                                                      \
-    float JE = Determinant(FE);                                                      \
-    /* Paper: Equation 2 */                                                          \
-    float current_mu = mu * expf(hardening_coefficient * (float(1.0) - JP));         \
-    float current_lambda = lambda * expf(hardening_coefficient * (float(1.0) - JP)); \
-    Mat33f UE, VE;                                                                   \
-    float3 EE;                                                                       \
-    SVD(FE, UE, EE, VE);                                                             \
-    /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/             \
-    Mat33f RE = MultTranspose(UE, VE);
+//#define Potential_Energy_Derivative_Helper()                                         \
+//    float JP = Determinant(FP);                                                      \
+//    float JE = Determinant(FE);                                                      \
+//    /* Paper: Equation 2 */                                                          \
+//    float current_mu = mu * expf(hardening_coefficient * (float(1.0) - JP));         \
+//    float current_lambda = lambda * expf(hardening_coefficient * (float(1.0) - JP)); \
+//    Mat33f UE, VE;                                                                   \
+//    float3 EE;                                                                       \
+//    SVD(FE, UE, EE, VE);                                                             \
+//    /* Perform a polar decomposition, FE=RE*SE, RE is the Unitary part*/             \
+//    Mat33f RE = MultTranspose(UE, VE);
 
-CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative(const Mat33f& FE,
-                                                           const Mat33f& FP,
-                                                           const float mu,
-                                                           const float lambda,
-                                                           const float hardening_coefficient) {
-    Potential_Energy_Derivative_Helper();
-
-    return float(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
-}
+//CUDA_HOST_DEVICE static Mat33f Potential_Energy_Derivative(const Mat33f& FE,
+//                                                           const Mat33f& FP,
+//                                                           const float mu,
+//                                                           const float lambda,
+//                                                           const float hardening_coefficient) {
+//    Potential_Energy_Derivative_Helper();
+//
+//    return float(2.) * current_mu * (FE - RE) + current_lambda * JE * (JE - float(1.)) * InverseTranspose(FE);
+//}
 CUDA_HOST_DEVICE static inline Mat33f Solve_dR(const Mat33f& R, const SymMat33f& S, const Mat33f& W) {
     Mat33f A;
     float3 b;

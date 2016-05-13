@@ -5,6 +5,10 @@
 #include "thirdparty/cub/cub.cuh"
 #include "chrono_parallel/math/matrixf.cuh"
 
+//#define BOX_YIELD
+#define SPHERE_YIELD
+//#define DRUCKER_PRAGER
+
 namespace chrono {
 
 struct Bounds {
@@ -287,7 +291,12 @@ CUDA_GLOBAL void kApplyForces(const float* sorted_pos,     // input
         const float J = Determinant(FE_hat);
         const float Ja = powf(J, a);
 
+#if defined(BOX_YIELD) || defined(SPHERE_YIELD)
         const float current_mu = device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
+#else
+        const float current_mu = device_settings.mu;
+#endif
+
 #if 1
         Mat33f JaFE = Ja * FE;
         Mat33f UE, VE;
@@ -400,7 +409,13 @@ CUDA_GLOBAL void kMultiplyA(const float* sorted_pos,  // input
         const Mat33f m_FE(marker_Fe, p, device_settings.num_mpm_markers);
         delta_F = delta_F * m_FE;
 
-        float current_mu = 2.0f * device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
+#if defined(BOX_YIELD) || defined(SPHERE_YIELD)
+        const float current_mu =
+            2.0f * device_settings.mu * expf(device_settings.hardening_coefficient * (plasticity[p]));
+#else
+        const float current_mu = 2.0f * device_settings.mu;
+#endif
+
         Mat33f RE(PolarR, p, device_settings.num_mpm_markers);
 
         const Mat33f F(marker_Fe_hat, p, device_settings.num_mpm_markers);
@@ -802,14 +817,14 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
         float3 E;
         SVD(Fe_tmp, U, E, V);
         float3 E_clamped = E;
-#if 1
 
-#if 0
+#if defined(BOX_YIELD)
         // Simple box clamp
         E_clamped.x = Clamp(E.x, 1.0 - device_settings.theta_c, 1.0 + device_settings.theta_s);
         E_clamped.y = Clamp(E.y, 1.0 - device_settings.theta_c, 1.0 + device_settings.theta_s);
         E_clamped.z = Clamp(E.z, 1.0 - device_settings.theta_c, 1.0 + device_settings.theta_s);
-#else
+        plasticity[p] = fabsf(E.x * E.y * E.z - E_clamped.x * E_clamped.y * E_clamped.z);
+#elif defined(SPHERE_YIELD)
         // Clamp to sphere (better)
         float center = 1.0 + (device_settings.theta_s - device_settings.theta_c) * .5;
         float radius = (device_settings.theta_s + device_settings.theta_c) * .5;
@@ -819,39 +834,50 @@ CUDA_GLOBAL void kUpdateDeformationGradient(float* grid_vel,
             offset = offset * radius / lent;
         }
         E_clamped = offset + center;
-
-#endif
-
         plasticity[p] = fabsf(E.x * E.y * E.z - E_clamped.x * E_clamped.y * E_clamped.z);
-// printf("E %d %f %f  %f\n", p, E_clamped.x * E_clamped.y * E_clamped.z, E.x * E.y * E.z, plasticity[p]);
-#else
-        float flow = Abs(Determinant(delta_F));
+#elif defined(DRUCKER_PRAGER)
+        float3 eps = make_float3(logf(E.x), logf(E.y), logf(E.z));
+        float tr_eps = (eps.x + eps.y + eps.z);
+        float3 eps_hat = make_float3(logf(E.x), logf(E.y), logf(E.z));
 
-        Mat33f P = 2 * device_settings.mu * Mat33f((E - 1));
-        //+ device_settings.lambda * Trace(Mat33f((E - 1))) * Mat33f(1.0);
-        float norm_P = Norm(P);
-        if (norm_P > device_settings.yield_stress) {
-            float gam = Min(Max(flow * (norm_P - device_settings.yield_stress
-                                        // -total_flow[p] * device_settings.hardening_coefficient
-                                        ) /
-                                    norm_P,
-                                0),
-                            1.0);
-            E_clamped = float3(powf(E.x, gam), powf(E.y, gam), powf(E.z, gam));
-            float current_lambda =
-                device_settings.lambda * Exp(device_settings.hardening_coefficient * (float(1.0) - total_flow[p]));
-            // device_settings.lambda * (1 + device_settings.poissons_ratio) *
-            //(1 - 2 * device_settings.poissons_ratio) / device_settings.poissons_ratio;
-            printf("Stress: %f %f %f %f\n", norm_P, cohesion[p], total_flow[p], Determinant(Mat33f(E_clamped)));
+        float f_norm_eps_hat = Length(eps_hat);
 
-            total_flow[p] += Norm(P);
-            // How to compute new stiffness?
+        float delta_gp = f_norm_eps_hat +
+                         (3.0f * device_settings.lambda + 2.0f * device_settings.mu) / (2.0f * device_settings.mu) *
+                             tr_eps * 0;//plasticity[p + device_settings.num_mpm_markers];
+        float delta_qp = 0;
+
+        if (delta_gp <= 0) {
+            // CASE 1
+            delta_qp = 0;
+        } else if (f_norm_eps_hat == 0 || tr_eps > 0) {
+            // CASE 2
+            delta_qp = f_norm_eps_hat;
+            E_clamped = make_float3(1.0f, 1.0f, 1.0f);
+
         } else {
-            E_clamped = E;
-            // printf("Stress: %f %f\n", norm_P, flow);
+            // CASE 3
+            delta_qp = delta_gp;
+            E_clamped.x = expf(eps.x - delta_gp * eps_hat.x / f_norm_eps_hat);
+            E_clamped.y = expf(eps.y - delta_gp * eps_hat.y / f_norm_eps_hat);
+            E_clamped.z = expf(eps.z - delta_gp * eps_hat.z / f_norm_eps_hat);
         }
+        // Holds the plasticity
+        float qp_new = plasticity[p] + delta_qp;
+        float theta_Fp = 0.00110865;
+        //   device_settings.h0 + (device_settings.h1 * qp_new - device_settings.h3) * exp(-device_settings.h2 *
+        //   qp_new);
+        // 35.0f + (9.0f * qp_new - 10.0f) * exp(-.2f * qp_new);
+        plasticity[p] = qp_new;
+        plasticity[p + device_settings.num_mpm_markers] =
+            sqrtf(2.0 / 3.0) * (2.0f * sinf(theta_Fp)) / (3.0f - sinf(theta_Fp));
+
+        printf("YLD: [%f %f %f]  %f [%f %f]\n", delta_gp, f_norm_eps_hat, tr_eps, eps_hat.x + eps_hat.y + eps_hat.z,
+               qp_new, plasticity[p + device_settings.num_mpm_markers]);
 
 #endif
+
+        // printf("E %d %f %f  %f\n", p, E_clamped.x * E_clamped.y * E_clamped.z, E.x * E.y * E.z, plasticity[p]);
 
         // Inverse of Diagonal E_clamped matrix is 1/E_clamped
         Mat33f m_FP = V * MultTranspose(Mat33f(1.0 / E_clamped), U) * F_tmp;
@@ -1054,7 +1080,7 @@ void MPM_Initialize(MPM_Settings& settings, std::vector<float>& positions) {
         PolarR.resize(host_settings.num_mpm_markers * 9);
         PolarS.resize(host_settings.num_mpm_markers * 6);
         JE_JP.resize(host_settings.num_mpm_markers * 2);
-        marker_plasticity.resize(host_settings.num_mpm_markers);
+        marker_plasticity.resize(host_settings.num_mpm_markers * 2);
         marker_plasticity = 0;
     }
     printf("Resize: %f\n", time_measured);

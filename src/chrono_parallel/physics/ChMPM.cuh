@@ -23,6 +23,7 @@ struct MPM_Settings {
     float dt, kernel_radius, inv_radius, bin_edge;
     float inv_bin_edge, max_velocity, mu, lambda;
     float hardening_coefficient, theta_c, theta_s, alpha_flip;
+    float h0, h1, h2, h3;
     float youngs_modulus, poissons_ratio;
     int num_mpm_markers;
     int num_mpm_nodes;
