@@ -258,7 +258,7 @@ namespace chrono
 		};
 	};
 	
-	double ChMklEngine::GetResidualNorm(double* res) const {
+	double ChMklEngine::GetResidualNorm(const double* res) const {
 		double norm = 0;
 		for (int i = 0; i < n; i++){
 			norm += res[i] * res[i];

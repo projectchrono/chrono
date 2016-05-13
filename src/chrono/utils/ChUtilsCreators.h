@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Arman Pazouki
 // =============================================================================
 //
 // Utility functions to facilitate adding contact and visualization geometry to
@@ -191,7 +191,7 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                                  const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                                  bool collide = true,
                                                  bool y_up = false,
-                                                 bool overlap = false,
+                                                 bool overlap = true,
                                                  bool closed = false);
 
 // -----------------------------------------------------------------------------
@@ -215,14 +215,13 @@ ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
     const ChVector<>& hdim,
     double hthick,
     int numBoxes,
-    double rho,
-    double collisionEnvelope,
     const ChVector<>& pos = ChVector<>(0, 0, 0),
     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
     bool collide = true,
-    bool overlap = false,
+    bool overlap = true,
     bool closed = false,
-    bool isBoxBase = true);
+    bool isBoxBase = true,
+    bool partialVisualization = true);
 
 ChApi void InitializeObject(std::shared_ptr<ChBody> body,
                             double mass,

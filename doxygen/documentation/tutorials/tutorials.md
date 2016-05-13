@@ -17,9 +17,14 @@ Tutorials {#tutorial_root}
 @subpage tutorial_table_of_content_chrono_solidworks
 -   Learn how to use the solidworks module
 
-Building Chorno
------------------
+Building a Chrono project
+-------------------------
 
 -   Via CMake: @subpage tutorial_cmake
 
 -   Low level alternative: @subpage advanced_build
+
+Documentation guides
+-----------------
+
+@subpage tutorial_converting_wiki

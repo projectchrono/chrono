@@ -37,8 +37,8 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     RigidTire(const rapidjson::Document& d);
     ~RigidTire() {}
 
-    virtual double getRadius() const override { return m_radius; }
-    virtual double getWidth() const override { return m_width; }
+    virtual double GetRadius() const override { return m_radius; }
+    virtual double GetWidth() const override { return m_width; }
 
   private:
     void Create(const rapidjson::Document& d);

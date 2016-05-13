@@ -214,20 +214,25 @@ void ChElementShellANCF::ComputeMassMatrix() {
                                                                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                                2                                // order of integration
                                                                );
-
         TempMassMatrix *= rho;
         m_MassMatrix += TempMassMatrix;
     }
 }
-
+/// This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
+void ChElementShellANCF::ComputeNodalMass() {
+    m_nodes[0]->m_TotalMass += m_MassMatrix(0, 0) + m_MassMatrix(0, 6) + m_MassMatrix(0, 12) + m_MassMatrix(0, 18);
+    m_nodes[1]->m_TotalMass += m_MassMatrix(6, 6) + m_MassMatrix(6, 0) + m_MassMatrix(6, 12) + m_MassMatrix(6, 18);
+    m_nodes[2]->m_TotalMass += m_MassMatrix(12, 12) + m_MassMatrix(12, 0) + m_MassMatrix(12, 6) + m_MassMatrix(12, 18);
+    m_nodes[3]->m_TotalMass += m_MassMatrix(18, 18) + m_MassMatrix(18, 0) + m_MassMatrix(18, 6) + m_MassMatrix(18, 12);
+}
 // -----------------------------------------------------------------------------
 // Gravitational force calculation
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the element gravity forces
 class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 24, 1> > {
-public:
-  MyGravity(ChElementShellANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
+  public:
+    MyGravity(ChElementShellANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
   ~MyGravity() {}
 
 private:

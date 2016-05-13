@@ -21,11 +21,10 @@
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChNodeFEAbase.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -35,9 +34,6 @@ namespace vehicle {
 
 /// @addtogroup vehicle_wheeled_tire
 /// @{
-
-/// List of nodes
-typedef std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> NodeList;
 
 /// ANCF tire model.
 /// This tire is modeled as a mesh composed of ANCF shell element.
@@ -83,48 +79,49 @@ class CH_VEHICLE_API ChANCFTire : public ChTire {
         m_pressure = pressure;
     }
 
+    /// Get the rim radius (inner tire radius).
+    virtual double GetRimRadius() const = 0;
+
+    /// Get the tire width.
+    virtual double GetWidth() const = 0;
+
     /// Get total tire mass.
     double GetMass() const;
 
     /// Get the tire force and moment.
-    /// For a rigid tire, the tire forces are automatically applied to the
-    /// associated wheel (through Chrono's frictional contact system). The values
-    /// returned here are never used.
-    virtual TireForce GetTireForce() const override;
+    /// A ChANCFTire always returns zero forces and moments if the tire is simulated
+    /// together with the associated vehicle (the tire forces are implicitly applied
+    /// to the associated wheel through the tire-wheel connections). If the tire is
+    /// co-simulated, the tire force and moment encapsulate the tire-terrain forces
+    /// as well as the weight of the tire itself.
+    virtual TireForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
+                                   ) const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the
     /// associated wheel body.
-    void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
-                    VehicleSide side                ///< left/right vehicle side
-                    );
+    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
+                            VehicleSide side                ///< left/right vehicle side
+                            ) override;
 
   protected:
-    /// Return the tire radius.
-    virtual double GetTireRadius() const = 0;
-
-    /// Return the rim radius.
-    virtual double GetRimRadius() const = 0;
-
-    /// Return the tire width.
-    virtual double GetWidth() const = 0;
-
     /// Return the default tire pressure.
     virtual double GetDefaultPressure() const = 0;
 
     /// Return list of nodes connected to the rim.
-    virtual NodeList GetConnectedNodes(const std::shared_ptr<fea::ChMesh>& mesh) const = 0;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const = 0;
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
-    virtual void CreateMesh(std::shared_ptr<fea::ChMesh> mesh,   ///< containing mesh
-                            const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
+    virtual void CreateMesh(const ChFrameMoving<>& wheel_frame,  ///< frame of associated wheel
                             VehicleSide side                     ///< left/right vehicle side
                             ) = 0;
 
-  private:
-    std::shared_ptr<fea::ChMesh> m_mesh;
+    std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
+    std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
+    std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;   ///< tire-wheel direction connections
 
+  private:
     bool m_connection_enabled;
     bool m_pressure_enabled;
     bool m_contact_enabled;

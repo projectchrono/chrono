@@ -56,6 +56,8 @@ public:
     virtual unsigned int GetIndex(){return g_index;}
 
 
+    double m_TotalMass; ///< Nodal mass obtained from element masss matrix
+
 protected:
 
     //

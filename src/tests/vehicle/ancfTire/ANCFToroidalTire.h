@@ -28,13 +28,12 @@ class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
     ANCFToroidalTire(const std::string& name);
     ~ANCFToroidalTire() {}
 
-    virtual double GetTireRadius() const override { return m_rim_radius + m_height; }
+    virtual double GetRadius() const override { return m_rim_radius + m_height; }
     virtual double GetRimRadius() const override { return m_rim_radius; }
     virtual double GetWidth() const override { return 2 * m_height; }
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
-    virtual chrono::vehicle::NodeList GetConnectedNodes(const std::shared_ptr<chrono::fea::ChMesh>& mesh) const override;
-    virtual void CreateMesh(std::shared_ptr<chrono::fea::ChMesh> mesh,
-                            const chrono::ChFrameMoving<>& wheel_frame,
+    virtual std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> GetConnectedNodes() const override;
+    virtual void CreateMesh(const chrono::ChFrameMoving<>& wheel_frame,
                             chrono::vehicle::VehicleSide side) override;
 
   private:

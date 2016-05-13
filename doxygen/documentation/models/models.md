@@ -1,4 +1,4 @@
-Chrono Model Library {#model_root}
+Model Library {#model_root}
 ==========================
 
 Under construction.

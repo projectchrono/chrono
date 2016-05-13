@@ -465,9 +465,57 @@ class ChQuaternion {
     // CONVERSIONS
     //
 
+    /// Sets the quaternion from a rotation vector (ie. a 3D axis of rotation with length as agle of rotation)
+    /// defined in absolute coords. 
+    /// If you need distinct axis and angle, use rather Q_from_AngAxis()
+    void Q_from_Rotv(const ChVector<Real>& angle_axis) {
+        const Real theta_squared = angle_axis.x * angle_axis.x + angle_axis.y * angle_axis.y + angle_axis.z * angle_axis.z;
+        // For non-zero rotation:
+        if (theta_squared > Real(0.0)) {
+            const Real theta = sqrt(theta_squared);
+            const Real half_theta = theta * Real(0.5);
+            const Real k = sin(half_theta) / theta;
+            this->e0 = cos(half_theta);
+            this->e1 = angle_axis.x * k;
+            this->e2 = angle_axis.y * k;
+            this->e3 = angle_axis.z * k;
+        } else {
+            // For almost zero rotation:
+            const Real k(0.5);
+            this->e0 = Real(1.0);
+            this->e1 = angle_axis.x * k;
+            this->e2 = angle_axis.y * k;
+            this->e3 = angle_axis.z * k;
+        }
+    }
+
+    /// Gets the rotation vector (ie. a 3D axis of rotation with length as agle of rotation)
+    /// from a quaternion. 
+    /// If you need distinct axis and angle, use rather Q_to_AngAxis()
+    ChVector<Real> Q_to_Rotv() {
+        ChVector<Real> angle_axis;
+        const Real sin_squared = e1 * e1 + e2 * e2 + e3 * e3;
+        // For non-zero rotation
+        if (sin_squared > Real(0.0)) {
+            const Real sin_theta = sqrt(sin_squared);
+            const Real k = Real(2.0) * atan2(sin_theta, e0) / sin_theta;
+            angle_axis.x = e1 * k;
+            angle_axis.y = e2 * k;
+            angle_axis.z = e3 * k;
+        } else {
+            // For almost zero rotation
+            const Real k(2.0);
+            angle_axis.x = e1 * k;
+            angle_axis.y = e2 * k;
+            angle_axis.z = e3 * k;
+        }
+        return angle_axis;
+    }
+
     /// Sets the quaternion from an agle of rotation and an axis,
     /// defined in _absolute_ coords. The axis is supposed to be fixed, i.e.
     /// it is constant during rotation! NOTE, axismust be normalized!
+    /// If you need directly the rotation vector=axis * angle, use rather Q_from_Rotv()
     void Q_from_AngAxis(const Real angle, const ChVector<Real>& axis) {
         Real halfang = ((Real)0.5 * angle);
         Real sinhalf = sin(halfang);
@@ -488,6 +536,7 @@ class ChQuaternion {
 
     /// Converts the quaternion to an agle of rotation and an axis,
     /// defined in _absolute_ coords. Resulting angle and axis must be passed as parameters
+    /// If you need directly the rotation vector=axis * angle, use rather Q_to_Rotv()
     void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const {
         Real arg, invsine;
         if (fabs(e0) < 0.99999999) {

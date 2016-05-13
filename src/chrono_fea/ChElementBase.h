@@ -63,6 +63,9 @@ class ChApiFea ChElementBase {
     /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
     virtual void ComputeMmatrixGlobal(ChMatrix<>& M) = 0;
 
+    /// Compute element's nodal masses.
+    virtual void ComputeNodalMass() {}
+
     /// Sets H as the stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and mass matrix M,
     /// scaled by Mfactor. Matrices are expressed in global reference.

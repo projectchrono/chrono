@@ -54,6 +54,19 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
                                            VisualizationType wheelVis,
                                            ChMaterialSurfaceBase::ContactMethod contactMethod)
     : ChWheeledVehicle(contactMethod), m_driveType(driveType) {
+    Create(fixed, chassisVis, wheelVis);
+}
+
+HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system,
+                                           const bool fixed,
+                                           DrivelineType driveType,
+                                           VisualizationType chassisVis,
+                                           VisualizationType wheelVis)
+    : ChWheeledVehicle(system), m_driveType(driveType) {
+    Create(fixed, chassisVis, wheelVis);
+}
+
+void HMMWV_VehicleReduced::Create(bool fixed, VisualizationType chassisVis, VisualizationType wheelVis) {
     // -------------------------------------------
     // Create the chassis body
     // -------------------------------------------

@@ -87,6 +87,9 @@ namespace chrono {
 			symmetry == LOWER_SYMMETRY && insrow>inscol)
 			return;
 
+		// WARNING: you MUST check if insval!=0 because of known issues of current release of Pardiso (11.2 Update 2);
+		// if the matrix is filled with too many zeros it gives unpredictable behaviour
+		// if you need to insert a 0 use Element() instead
 		int col_sel = rowIndex[insrow];
 		while (1)
 		{
@@ -513,6 +516,23 @@ namespace chrono {
 
 		}
 		return (uninitialized_elements_found)? 1:0;
+	}
+
+	int ChCSR3Matrix::VerifyMatrixByMKL() const
+	{
+		sparse_struct mat_sparse;
+		mat_sparse.n = rows;
+		mat_sparse.csr_ia = GetRowIndexAddress();
+		mat_sparse.csr_ja = GetColIndexAddress();
+		mat_sparse.indexing = MKL_ZERO_BASED;
+		mat_sparse.matrix_structure = MKL_GENERAL_STRUCTURE;
+		mat_sparse.matrix_format = MKL_CSR;
+		mat_sparse.message_level = MKL_PRINT;
+		mat_sparse.print_style = MKL_C_STYLE;
+
+		sparse_matrix_checker_init(&mat_sparse);
+		
+		return sparse_matrix_checker(&mat_sparse);
 	}
 
 	void ChCSR3Matrix::ImportFromDatFile(std::string path)

@@ -69,8 +69,9 @@ class HMMWV {
     void Advance(double step);
 
   protected:
-    // Protected constructor -- this class cannot be instantiated by itself.
+    // Protected constructors -- this class cannot be instantiated by itself.
     HMMWV();
+    HMMWV(chrono::ChSystem* system);
 
     virtual chrono::vehicle::ChWheeledVehicle* CreateVehicle() = 0;
 
@@ -88,6 +89,7 @@ class HMMWV {
 
     chrono::ChCoordsys<> m_initPos;
 
+    chrono::ChSystem* m_system;
     chrono::vehicle::ChWheeledVehicle* m_vehicle;
     chrono::vehicle::ChPowertrain* m_powertrain;
     chrono::vehicle::ChTire* m_tireFL;
@@ -99,7 +101,7 @@ class HMMWV {
 class HMMWV_Full : public HMMWV {
   public:
     HMMWV_Full() {}
-    ~HMMWV_Full() {}
+    HMMWV_Full(chrono::ChSystem* system) : HMMWV(system) {}
 
     void ExportMeshPovray(const std::string& out_dir) { ((HMMWV_Vehicle*)m_vehicle)->ExportMeshPovray(out_dir); }
     void LogHardpointLocations() { ((HMMWV_Vehicle*)m_vehicle)->LogHardpointLocations(); }
@@ -107,20 +109,22 @@ class HMMWV_Full : public HMMWV {
 
   private:
     virtual chrono::vehicle::ChWheeledVehicle* CreateVehicle() override {
-        return new HMMWV_Vehicle(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
+        return m_system ? new HMMWV_Vehicle(m_system, m_fixed, m_driveType, m_chassisVis, m_wheelVis)
+                        : new HMMWV_Vehicle(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };
 
 class HMMWV_Reduced : public HMMWV {
   public:
     HMMWV_Reduced() {}
-    ~HMMWV_Reduced() {}
+    HMMWV_Reduced(chrono::ChSystem* system) : HMMWV(system) {}
 
     void ExportMeshPovray(const std::string& out_dir) { ((HMMWV_VehicleReduced*)m_vehicle)->ExportMeshPovray(out_dir); }
 
   private:
     virtual chrono::vehicle::ChWheeledVehicle* CreateVehicle() override {
-        return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
+        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisVis, m_wheelVis)
+                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
     }
 };
 

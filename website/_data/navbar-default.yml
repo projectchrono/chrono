@@ -17,6 +17,9 @@ main:
          title: Model Library
          url: 'http://api.chrono.projectchrono.org/model_root.html'
        -
+         title: Validation Studies
+         url: 'http://api.chrono.projectchrono.org/validation_studies_root.html'
+       -
          title: White Papers
          url: 'http://api.chrono.projectchrono.org/whitepaper_root.html'
     - title: Movies

@@ -42,6 +42,12 @@ class HMMWV_Vehicle : public chrono::vehicle::ChWheeledVehicle {
                   chrono::vehicle::VisualizationType wheelVis = chrono::vehicle::PRIMITIVES,
                   chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
+    HMMWV_Vehicle(chrono::ChSystem* system,
+                  const bool fixed = false,
+                  chrono::vehicle::DrivelineType driveType = chrono::vehicle::AWD,
+                  chrono::vehicle::VisualizationType chassisVis = chrono::vehicle::NONE,
+                  chrono::vehicle::VisualizationType wheelVis = chrono::vehicle::PRIMITIVES);
+
     ~HMMWV_Vehicle();
 
     virtual int GetNumberAxles() const override { return 2; }
@@ -65,6 +71,8 @@ class HMMWV_Vehicle : public chrono::vehicle::ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
+    void Create(bool fixed, chrono::vehicle::VisualizationType chassisVis, chrono::vehicle::VisualizationType wheelVis);
+
     chrono::vehicle::DrivelineType m_driveType;
 
     // Chassis visualization mesh

@@ -287,7 +287,7 @@ using namespace chrono::geometry;
 // collision/   classes
 /*
 %include "ChCollisionInfo.i"
-
+*/
 
 
 
@@ -304,7 +304,7 @@ using namespace chrono::geometry;
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
-/*
+
 %DefChSharedPtrDynamicDowncast(ChAsset,ChVisualization)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChObjShapeFile)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChBoxShape)

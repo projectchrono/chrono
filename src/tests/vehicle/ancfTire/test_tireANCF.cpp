@@ -83,10 +83,6 @@ double step_size = 1e-3;  // integration step size
 // Main driver program
 
 int main(int argc, char* argv[]) {
-#ifndef CHRONO_FEA
-    if (tire_model == ANCF)
-        tire_model = RIGID;
-#endif
 
     // Create the mechanical system
     // ----------------------------
@@ -130,7 +126,7 @@ int main(int argc, char* argv[]) {
     tire->EnableRimConnection(true);
 
     tire->Initialize(wheel, LEFT);
-    double tire_radius = tire->GetTireRadius();
+    double tire_radius = tire->GetRadius();
     double rim_radius = tire->GetRimRadius();
     double tire_width = tire->GetWidth();
 

@@ -1,7 +1,7 @@
 # Site settings
-title: Project Chrono
+title: Project Chrono - An Open-Source Physics Engine
 email: info@projectchrono.org
-description: Website for Project Chrono
+description: Project Chrono is a physics-based simulation infrastructure based on a platform-independent, open-source design.
 baseurl: "" # the subpath of your site, e.g. /blog/
 url: "https://projectchrono.org" # the base hostname & protocol for your site
 twitter_username: projectchrono
@@ -11,3 +11,4 @@ permalink: /blog/:year/:month/:title/
 # Build settings
 markdown: kramdown
 highlighter: rouge
+gems:      [jekyll-sitemap]

@@ -33,7 +33,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "unit_testing.h"
-
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::utils;

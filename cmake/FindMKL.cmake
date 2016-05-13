@@ -46,6 +46,7 @@
 #   <Composer XE directory> -> C:\Program Files\Intel\ComposerXE-2011
 #     redist\ia32\mkl
 #     redist\intel64\mkl
+# Intel from version 2016 seems to provide a common path for Win and Linux: <intel_dir>/compilers_and_libraries/${OS}/mkl and so on...
 
 set(_MKL_IA32 FALSE)
 set(_MKL_INTEL64 FALSE)
@@ -104,13 +105,19 @@ set(_MKL_ROOT_SEARCH_DIRS
   ${MKL_ROOT}
 )
 
-foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
-    if (WIN32)
-        list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/Intel/Composer XE/mkl")
-    else()
-        list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl")
-    endif()
-endforeach()
+
+if (WIN32)
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
+else()
+	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
+		list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
+		list(APPEND _MKL_ROOT_SEARCH_DIRS "$HOME/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
+	endforeach()
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (root permissions)
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "$HOME/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+endif()
+
 
 if (MKL_FIND_DEBUG)
     message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "

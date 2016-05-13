@@ -102,7 +102,7 @@ namespace chrono{
 
 		virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
 		virtual double GetElement(int row, int col) override;
-		double& Element(int row, int col);
+		double& Element(int row, int col) override;
 		double& operator()(int row, int col) { return Element(row, col); }
 		double& operator()(int index) { return Element(index / GetColumns(), index % GetColumns()); }
 
@@ -135,6 +135,7 @@ namespace chrono{
 		bool CheckArraysAlignment(int alignment = 0) const;
 		void GetMemoryInfo() const;
 		int VerifyMatrix() const;
+		int VerifyMatrixByMKL() const;
 
 		// Import/Export functions
 		void ImportFromDatFile(std::string filepath);

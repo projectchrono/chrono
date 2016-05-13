@@ -5,8 +5,10 @@ endif()
 
 # ------------------------------------------------------
 
-set(TEST_FILES test_tire.cpp)
-source_group("" FILES ${TEST_FILES})
+set(TEST_PROGRAMS
+    test_tire
+    test_tireRig
+)
 
 # ------------------------------------------------------
 
@@ -33,10 +35,12 @@ endif()
 
 # ------------------------------------------------------
 
-message(STATUS "...add test_tire")
-add_executable(test_tire ${TEST_FILES})
-set_target_properties(test_tire PROPERTIES 
-                      COMPILE_FLAGS "${COMPILER_FLAGS}"
-                      LINK_FLAGS "${LINKER_FLAGS}")
-target_link_libraries(test_tire ${LIBRARIES})
-
+foreach(PROGRAM ${TEST_PROGRAMS})
+  message(STATUS "...add ${PROGRAM}")
+  source_group("" FILES "${PROGRAM}.cpp")
+  add_executable(${PROGRAM} ${PROGRAM}.cpp)
+  set_target_properties(${PROGRAM} PROPERTIES 
+                        COMPILE_FLAGS "${COMPILER_FLAGS}"
+                        LINK_FLAGS "${LINKER_FLAGS}")
+  target_link_libraries(${PROGRAM} ${LIBRARIES})
+endforeach()
