@@ -32,7 +32,7 @@
 #include "utils/ChUtilsData.h"
 
 // collision mesh
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "geometry/ChTriangleMeshSoup.h"
 // custom collision detection classes
 #include "subsys/collision/TrackCollisionCallback.h"
 

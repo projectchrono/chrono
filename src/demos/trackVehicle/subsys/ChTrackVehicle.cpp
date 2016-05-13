@@ -33,7 +33,7 @@
 #include "utils/ChUtilsInputOutput.h"
 
 // collision mesh
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "geometry/ChTriangleMeshSoup.h"
 
 namespace chrono {
 
