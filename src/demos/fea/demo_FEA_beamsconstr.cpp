@@ -19,7 +19,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChBuilderBeam.h"
@@ -29,9 +29,9 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 //#include "chrono_matlab/ChMatlabEngine.h"
-//#include "chrono_matlab/ChLcpMatlabSolver.h"
+//#include "chrono_matlab/ChSolverMatlab.h"
 
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -101,9 +101,9 @@ int main(int argc, char* argv[]) {
 
         class ChFunction_myf : public ChFunction {
           public:
-            ChFunction* new_Duplicate() { return new ChFunction_myf; }
+            virtual ChFunction_myf* Clone() const override { return new ChFunction_myf(); }
 
-            double Get_y(double x) {
+            virtual double Get_y(double x) const override {
                 if (x > 0.4)
                     return CH_C_PI;
                 else
@@ -275,29 +275,29 @@ int main(int argc, char* argv[]) {
 
         //***TEST***
         /*
-        my_system.SetLcpSolverType(
-            ChSystem::LCP_ITERATIVE_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
-        my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-        my_system.SetIterLCPmaxItersSpeed(600);
-        my_system.SetIterLCPmaxItersStab(600);
+        my_system.SetSolverType(
+            ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
+        my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+        my_system.SetMaxItersSolverSpeed(600);
+        my_system.SetMaxItersSolverStab(600);
         my_system.SetTolForce(1e-20);
-        chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
         msolver->SetVerbose(true);
         msolver->SetDiagonalPreconditioning(false);
         */
 
         //***TEST***
         /*ChMatlabEngine matlab_engine;
-        ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
-        ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-        my_system.ChangeLcpSolverStab(matlab_solver_stab);
-        my_system.ChangeLcpSolverSpeed(matlab_solver_speed);*/
+        ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
+        ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
+        my_system.ChangeSolverStab(matlab_solver_stab);
+        my_system.ChangeSolverSpeed(matlab_solver_speed);*/
 		
 		//***TEST***
-		ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-		ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-		my_system.ChangeLcpSolverStab(mkl_solver_stab);
-		my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+		ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+		ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+		my_system.ChangeSolverStab(mkl_solver_stab);
+		my_system.ChangeSolverSpeed(mkl_solver_speed);
 
         application.SetTimestep(0.0005);
         application.SetVideoframeSaveInterval(10);
@@ -486,28 +486,28 @@ int main(int argc, char* argv[]) {
 
         //***TEST*** 
         /*
-        my_system.SetLcpSolverType(
-            ChSystem::LCP_ITERATIVE_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
-        my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-        my_system.SetIterLCPmaxItersSpeed(600);
-        my_system.SetIterLCPmaxItersStab(600);
+        my_system.SetSolverType(
+            ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
+        my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+        my_system.SetMaxItersSolverSpeed(600);
+        my_system.SetMaxItersSolverStab(600);
         my_system.SetTolForce(1e-12);
-        chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
         msolver->SetDiagonalPreconditioning(true);
         */
 
         ////***TEST***
         //ChMatlabEngine matlab_engine;
-        //ChLcpMatlabSolver* matlab_solver_stab = new ChLcpMatlabSolver(matlab_engine);
-        //ChLcpMatlabSolver* matlab_solver_speed = new ChLcpMatlabSolver(matlab_engine);
-        //my_system.ChangeLcpSolverStab(matlab_solver_stab);
-        //my_system.ChangeLcpSolverSpeed(matlab_solver_speed);
+        //ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
+        //ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
+        //my_system.ChangeSolverStab(matlab_solver_stab);
+        //my_system.ChangeSolverSpeed(matlab_solver_speed);
 		
 		//***TEST***
-		ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-		ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-		my_system.ChangeLcpSolverStab(mkl_solver_stab);
-		my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+		ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+		ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+		my_system.ChangeSolverStab(mkl_solver_stab);
+		my_system.ChangeSolverSpeed(mkl_solver_speed);
 
         application.SetTimestep(0.001);
         application.SetVideoframeSaveInterval(10);

@@ -1,4 +1,4 @@
-Manual {#manual_root}
+Reference Manual {#manual_root}
 ==========================
 
 

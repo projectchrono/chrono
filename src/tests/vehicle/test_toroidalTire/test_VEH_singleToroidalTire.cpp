@@ -35,7 +35,7 @@
 #include <valarray>
 #include <vector>
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -46,7 +46,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #ifdef CHRONO_MKL
-#include "chrono_mkl/ChLcpMklSolver.h"
+#include "chrono_mkl/ChSolverMKL.h"
 #endif
 
 #include "../ancfToroidalTire/ANCFToroidalTire.h"
@@ -235,21 +235,21 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case MINRES: {
             GetLog() << "Using MINRES solver\n";
-            system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-            ChLcpIterativeMINRES* minres_solver = (ChLcpIterativeMINRES*)system.GetLcpSolverSpeed();
+            system.SetSolverType(ChSystem::SOLVER_MINRES);
+            ChSolverMINRES* minres_solver = (ChSolverMINRES*)system.GetSolverSpeed();
             ////minres_solver->SetDiagonalPreconditioning(true);
-            system.SetIterLCPwarmStarting(true);
-            system.SetIterLCPmaxItersSpeed(500);
+            system.SetSolverWarmStarting(true);
+            system.SetMaxItersSolverSpeed(500);
             system.SetTolForce(1e-5);
             break;
         }
         case MKL: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver\n";
-            ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;
-            ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-            system.ChangeLcpSolverStab(mkl_solver_stab);
-            system.ChangeLcpSolverSpeed(mkl_solver_speed);
+            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+            system.ChangeSolverStab(mkl_solver_stab);
+            system.ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
 #endif

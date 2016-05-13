@@ -35,7 +35,7 @@
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/geometry/ChCTriangleMeshSoup.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 
 #include <irrlicht.h>
 
@@ -550,8 +550,8 @@ int main(int argc, char* argv[]) {
     // SETTINGS
     //
 
-    my_system.SetIterLCPmaxItersSpeed(100);  // the higher, the easier to keep the constraints 'mounted'.
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+    my_system.SetMaxItersSolverSpeed(100);  // the higher, the easier to keep the constraints 'mounted'.
+    my_system.SetSolverType(ChSystem::SOLVER_SOR);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

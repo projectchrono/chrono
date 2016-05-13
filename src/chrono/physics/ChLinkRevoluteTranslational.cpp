@@ -409,12 +409,12 @@ void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L, 
     Qc(off_L + 3) += cnstr_dist_violation;
 }
 
-void ChLinkRevoluteTranslational::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                                           const ChStateDelta& v,
-                                           const ChVectorDynamic<>& R,
-                                           const unsigned int off_L,  ///< offset in L, Qc
-                                           const ChVectorDynamic<>& L,
-                                           const ChVectorDynamic<>& Qc) {
+void ChLinkRevoluteTranslational::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                                  const ChStateDelta& v,
+                                                  const ChVectorDynamic<>& R,
+                                                  const unsigned int off_L,  ///< offset in L, Qc
+                                                  const ChVectorDynamic<>& L,
+                                                  const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -429,10 +429,10 @@ void ChLinkRevoluteTranslational::IntToLCP(const unsigned int off_v,  ///< offse
     m_cnstr_dist.Set_b_i(Qc(off_L + 3));
 }
 
-void ChLinkRevoluteTranslational::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                             ChStateDelta& v,
-                                             const unsigned int off_L,  ///< offset in L
-                                             ChVectorDynamic<>& L) {
+void ChLinkRevoluteTranslational::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                                    ChStateDelta& v,
+                                                    const unsigned int off_L,  ///< offset in L
+                                                    ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
@@ -445,7 +445,7 @@ void ChLinkRevoluteTranslational::IntFromLCP(const unsigned int off_v,  ///< off
 // -----------------------------------------------------------------------------
 // Implementation of solver interface functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::InjectConstraints(ChLcpSystemDescriptor& descriptor) {
+void ChLinkRevoluteTranslational::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 

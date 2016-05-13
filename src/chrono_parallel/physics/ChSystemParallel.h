@@ -32,8 +32,8 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChCCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCCollisionSystemBulletParallel.h"
 #include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
@@ -85,15 +85,15 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   int GetNumBilaterals() { return data_manager->num_bilaterals; }
 
   /// Gets the time (in seconds) spent for computing the time step
-  virtual double GetTimerStep() { return data_manager->system_timer.GetTime("step"); }
-  /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-  virtual double GetTimerLcp() { return data_manager->system_timer.GetTime("lcp"); }
+  virtual double GetTimerStep() override { return data_manager->system_timer.GetTime("step"); }
+  /// Gets the fraction of time (in seconds) for the solver, within the time step
+  virtual double GetTimerSolver() override { return data_manager->system_timer.GetTime("solver"); }
   /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-  virtual double GetTimerCollisionBroad() { return data_manager->system_timer.GetTime("collision_broad"); }
+  virtual double GetTimerCollisionBroad() override { return data_manager->system_timer.GetTime("collision_broad"); }
   /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-  virtual double GetTimerCollisionNarrow() { return data_manager->system_timer.GetTime("collision_narrow"); }
+  virtual double GetTimerCollisionNarrow() override { return data_manager->system_timer.GetTime("collision_narrow"); }
   /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-  virtual double GetTimerUpdate() { return data_manager->system_timer.GetTime("update"); }
+  virtual double GetTimerUpdate() override { return data_manager->system_timer.GetTime("update"); }
 
   /// Gets the total time for the collision detection step
   double GetTimerCollision() { return data_manager->system_timer.GetTime("collision"); }
@@ -147,7 +147,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
  public:
   ChSystemParallelDVI(unsigned int max_objects = 1000);
 
-  void ChangeSolverType(SOLVERTYPE type) { ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type); }
+  void ChangeSolverType(SOLVERTYPE type) { ((ChIterativeSolverParallelDVI*)(solver_speed))->ChangeSolverType(type); }
 
   virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
   virtual ChBody* NewBody() override;
@@ -189,7 +189,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
   virtual void PrintStepStats();
 
   double GetTimerProcessContact() const {
-    return data_manager->system_timer.GetTime("ChLcpSolverParallelDEM_ProcessContact");
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");
   }
 };
 

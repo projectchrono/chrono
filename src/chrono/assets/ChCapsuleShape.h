@@ -13,8 +13,8 @@
 #define CHCAPSULESHAPE_H
 
 
-#include "assets/ChVisualization.h"
-#include "geometry/ChCCapsule.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChCapsule.h"
 
 namespace chrono {
 

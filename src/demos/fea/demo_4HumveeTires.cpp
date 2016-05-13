@@ -18,26 +18,27 @@
 // coefficients of the secondary suspension may be selected in the parameter
 // definition section.
 // =============================================================================
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
+
 #include "chrono/assets/ChTexture.h"
-#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono_mkl/ChLcpMklSolver.h"
-#include "physics/ChLoadContainer.h"
+
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include <irrlicht.h>
+#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_mkl/ChSolverMKL.h"
 
 using namespace chrono;
 using namespace fea;
@@ -639,12 +640,11 @@ int main(int argc, char* argv[]) {
     auto mtexture = std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg").c_str());
     mrigidBody->AddAsset(mtexture);
     
-
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
-    ChLcpMklSolver* mkl_solver_stab = new ChLcpMklSolver;  // MKL Solver option
-    ChLcpMklSolver* mkl_solver_speed = new ChLcpMklSolver;
-    my_system.ChangeLcpSolverStab(mkl_solver_stab);
-    my_system.ChangeLcpSolverSpeed(mkl_solver_speed);
+    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;  // MKL Solver option
+    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    my_system.ChangeSolverStab(mkl_solver_stab);
+    my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
     mkl_solver_stab->SetSparsityPatternLock(true);
 

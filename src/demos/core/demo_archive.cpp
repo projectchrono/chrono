@@ -33,7 +33,7 @@
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChException.h"
-#include "chrono/lcp/ChLcpConstraintTuple.h"
+#include "chrono/solver/ChConstraintTuple.h"
 
 
 using namespace chrono;

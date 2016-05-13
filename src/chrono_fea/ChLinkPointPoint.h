@@ -13,7 +13,7 @@
 #ifndef CHLINKPOINTPOINT_H
 #define CHLINKPOINTPOINT_H
 
-#include "chrono/lcp/ChLcpConstraintTwoGeneric.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 
@@ -35,94 +35,100 @@ class ChApiFea ChLinkPointPoint : public ChLinkBase {
 						// Chrono simulation of RTTI, needed for serialization
 	CH_RTTI(ChLinkPointPoint,ChLinkBase);
 
-private:
-			//
-	  		// DATA
-			//
+  private:
+    //
+    // DATA
+    //
 
-	ChVector<> react;					
-	
-						// used as an interface to the LCP solver.
-	ChLcpConstraintTwoGeneric constraint1;
-	ChLcpConstraintTwoGeneric constraint2;
-	ChLcpConstraintTwoGeneric constraint3;
+    ChVector<> react;
+
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric constraint1;
+    ChConstraintTwoGeneric constraint2;
+    ChConstraintTwoGeneric constraint3;
 
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
 
-public:
+  public:
+    //
+    // CONSTRUCTORS
+    //
 
-			//
-	  		// CONSTRUCTORS
-			//
+    /// Build a shaft.
+    ChLinkPointPoint();
+    /// Destructor
+    ~ChLinkPointPoint();
 
-				/// Build a shaft.
-	ChLinkPointPoint ();
-				/// Destructor
-	~ChLinkPointPoint ();
+    /// Copy from another ChLinkPointFrame.
+    void Copy(ChLinkPointPoint* source);
 
-				/// Copy from another ChLinkPointFrame. 
-	void Copy(ChLinkPointPoint* source);
+    //
+    // FUNCTIONS
+    //
 
+    /// Get the number of scalar variables affected by constraints in this link
+    virtual int GetNumCoords() { return 3 + 3; }
 
-			//
-	  		// FLAGS
-			//
+    /// Number of scalar constraints
+    virtual int GetDOC_c() { return 3; }
 
-			//
-	  		// FUNCTIONS
-			//
-
-				/// Get the number of scalar variables affected by constraints in this link 
-	virtual int GetNumCoords() {return 3 + 3;}
-
-				/// Number of scalar constraints 
-	virtual int GetDOC_c  () {return 3;}
-
-				/// To get reaction force, expressed in link coordinate system:
-	virtual ChVector<> Get_react_force() {return GetReactionOnNode();}
+    /// To get reaction force, expressed in link coordinate system:
+    virtual ChVector<> Get_react_force() { return GetReactionOnNode(); }
 
     // Get constraint violations
     ChMatrixNM<double, 3, 1> GetC();
 
-	 		//
-			// STATE FUNCTIONS
-			//
+    //
+    // STATE FUNCTIONS
+    //
 
-				// (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-	virtual void IntStateGatherReactions(const unsigned int off_L,	ChVectorDynamic<>& L);	
-	virtual void IntStateScatterReactions(const unsigned int off_L,	const ChVectorDynamic<>& L);
-	virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c);
-	virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc,	const double c, bool do_clamp,	double recovery_clamp);
-	virtual void IntToLCP(const unsigned int off_v,	const ChStateDelta& v, const ChVectorDynamic<>& R, const unsigned int off_L, const ChVectorDynamic<>& L, const ChVectorDynamic<>& Qc);
-	virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c);
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
 
-			// Override/implement LCP system functions of ChPhysicsItem
-			// (to assembly/manage data for LCP system solver
-
-	virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
 	virtual void ConstraintsBiReset();
-	virtual void ConstraintsBiLoad_C(double factor=1., double recovery_clamp=0.1, bool do_clamp=false);
-	virtual void ConstraintsBiLoad_Ct(double factor=1.);
-	virtual void ConstraintsLoadJacobians();
-	virtual void ConstraintsFetch_react(double factor=1.);
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
+    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
+    virtual void ConstraintsLoadJacobians();
+    virtual void ConstraintsFetch_react(double factor = 1.);
 
+    // Other functions
 
-			   // Other functions
-	
-	virtual ChCoordsys<> GetLinkAbsoluteCoords();
+    virtual ChCoordsys<> GetLinkAbsoluteCoords();
 
-
-				/// Use this function after object creation, to initialize it, given  
-				/// the two nodes join. 
-				/// The attachment position is the actual position of the node.
-				/// Note, mnodes must belong to the same ChSystem. 
+    /// Use this function after object creation, to initialize it, given
+    /// the two nodes join.
+    /// The attachment position is the actual position of the node.
+    /// Note, mnodes must belong to the same ChSystem.
     virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
-						   std::shared_ptr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
-						   );
+                           std::shared_ptr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
+                           );
 
-				/// Get the 1st connected xyz node (point)
+    /// Get the 1st connected xyz node (point)
     virtual std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() { return this->mnodeA; }
 
     			/// Get the 2nd connected xyz node (point)
@@ -131,35 +137,29 @@ public:
 				/// Get the reaction force considered as applied to ChShaft.
 	ChVector<> GetReactionOnNode() {return -(react);}
 
+    //
+    // UPDATE FUNCTIONS
+    //
 
-	
-			//
-			// UPDATE FUNCTIONS
-			//
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true);
 
-				/// Update all auxiliary data of the gear transmission at given time
-  virtual void Update(double mytime, bool update_assets = true);
+    //
+    // STREAMING
+    //
 
+    /// Method to allow deserializing a persistent binary archive (ex: a file)
+    /// into transient data.
+    void StreamIN(ChStreamInBinary& mstream);
 
-			//
-			// STREAMING
-			//
-
-
-				/// Method to allow deserializing a persistent binary archive (ex: a file)
-				/// into transient data.
-	void StreamIN(ChStreamInBinary& mstream);
-
-				/// Method to allow serializing transient data into a persistent
-				/// binary archive (ex: a file).
-	void StreamOUT(ChStreamOutBinary& mstream);
-
+    /// Method to allow serializing transient data into a persistent
+    /// binary archive (ex: a file).
+    void StreamOUT(ChStreamOutBinary& mstream);
 };
 
 /// @} fea_constraints
 
-} // END_OF_NAMESPACE____
-} // END_OF_NAMESPACE____
-
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

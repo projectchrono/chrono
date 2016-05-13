@@ -70,13 +70,13 @@ SET(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS}" PARENT_SCOPE)
 
 SET(ChronoEngine_MKL_HEADERS
   ChApiMkl.h
-  ChLcpMklSolver.h
+  ChSolverMKL.h
   ChMklEngine.h
   ChCSR3Matrix.h
 )
 
 SET(ChronoEngine_MKL_SOURCES
-  ChLcpMklSolver.cpp
+  ChSolverMKL.cpp
   ChMklEngine.cpp
   ChCSR3Matrix.cpp
 )

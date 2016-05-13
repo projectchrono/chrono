@@ -12,24 +12,7 @@
 #ifndef CHC_COLLISIONPAIR_H
 #define CHC_COLLISIONPAIR_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionPair.h
-//
-//   After collision detection has been computed,
-//   some 'collision pairs' are detected and
-//   reported. Class for such 'collision pairs'
-//   objects is defined here.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "geometry/ChCGeometry.h"
+#include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
 namespace collision {

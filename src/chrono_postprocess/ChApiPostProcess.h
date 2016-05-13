@@ -34,12 +34,12 @@
 
 /**
     @defgroup postprocess_module POSTPROCESS module
-    @brief Postprocessing toos (for POVray animations, GNUplot, etc.)
+    @brief Postprocessing tools (for POVray animations, GNUplot, etc.)
 
-    This module provides some postprocessing tools that can be used
+    Module provides postprocessing tools that can be used
     to output high quality renderings and other kind of post processed data.
 
-    Currently we support
+    Currently supported postprocessing targets:
     - POVray
     - GNUplot
 

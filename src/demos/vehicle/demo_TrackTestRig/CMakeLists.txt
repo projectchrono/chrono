@@ -10,32 +10,12 @@ ENDIF()
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(MODEL_FILES
-    ../m113/M113_Sprocket.h
-    ../m113/M113_Sprocket.cpp
-    ../m113/M113_Idler.h
-    ../m113/M113_Idler.cpp
-    ../m113/M113_RoadWheel.h
-    ../m113/M113_RoadWheel.cpp
-    ../m113/M113_Suspension.h
-    ../m113/M113_Suspension.cpp
-    ../m113/M113_TrackAssembly.h
-    ../m113/M113_TrackAssembly.cpp
-    ../m113/M113_TrackShoe.h
-    ../m113/M113_TrackShoe.cpp
-)
-
-SET(DEMO
-    demo_VEH_TrackTestRig
-)
-
-SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
+SET(DEMO demo_VEH_TrackTestRig)
 SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
 INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
 #--------------------------------------------------------------
@@ -50,6 +30,7 @@ SET_TARGET_PROPERTIES(${DEMO} PROPERTIES
 TARGET_LINK_LIBRARIES(${DEMO} 
                       ChronoEngine
                       ChronoEngine_irrlicht
-                      ChronoEngine_vehicle)
+                      ChronoEngine_vehicle
+                      ChronoModels_vehicle)
 INSTALL(TARGETS ${DEMO} DESTINATION bin)
 

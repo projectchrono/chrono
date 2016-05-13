@@ -197,19 +197,19 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::gui::EGET_SCROLL_BAR_CHANGED:
                 switch (id) {
                     case 9904:
-                        app->GetSystem()->SetIterLCPmaxItersSpeed(
+                        app->GetSystem()->SetMaxItersSolverSpeed(
                             ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9905:
-                        app->GetSystem()->SetIterLCPmaxItersStab(
+                        app->GetSystem()->SetMaxItersSolverStab(
                             ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9909:
-                        app->GetSystem()->SetIterLCPomega((1.0 / 50.0) *
-                                                          ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                        app->GetSystem()->SetSolverOverrelaxationParam(
+                            (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9910:
-                        app->GetSystem()->SetIterLCPsharpnessLambda(
+                        app->GetSystem()->SetSolverSharpnessParam(
                             (1.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9911:
@@ -228,31 +228,31 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
                             break;
                         case 1:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SYMMSOR);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SYMMSOR);
                             break;
                         case 2:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_JACOBI);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_JACOBI);
                             break;
                         case 3:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
                             break;
                         case 4:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
                             break;
                         case 5:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_PCG);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_PCG);
                             break;
                         case 6:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_PMINRES);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_PMINRES);
                             break;
                         case 7:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_APGD);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_APGD);
                             break;
                         case 8:
-                            app->GetSystem()->SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
+                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
                             break;
                         case 9:
                             GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
@@ -313,7 +313,7 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::gui::EGET_CHECKBOX_CHANGED:
                 switch (id) {
                     case 9906:
-                        app->GetSystem()->SetIterLCPwarmStarting(
+                        app->GetSystem()->SetSolverWarmStarting(
                             ((irr::gui::IGUICheckBox*)event.GUIEvent.Caller)->isChecked());
                         break;
                     case 9913:
@@ -660,7 +660,12 @@ void ChIrrAppInterface::DoStep() {
     else
         dt = timestep;
 
-    system->DoStepDynamics(dt);
+    try{
+        system->DoStepDynamics(dt);
+    } 
+    catch(ChException my_exception) {
+        GetLog() << my_exception.what() << "\n";
+    }
 }
 
 // Redraw all 3D shapes and GUI elements
@@ -671,14 +676,14 @@ void ChIrrAppInterface::DrawAll() {
     str += (int)(1000 * system->GetTimerStep());
     str += " ms \n  CPU Collision time =";
     str += (int)(1000 * system->GetTimerCollisionBroad());
-    str += " ms \n  CPU LCP time         =";
-    str += (int)(1000 * system->GetTimerLcp());
+    str += " ms \n  CPU Solver time         =";
+    str += (int)(1000 * system->GetTimerSolver());
     str += " ms \n  CPU Update time      =";
     str += (int)(1000 * system->GetTimerUpdate());
-    str += " ms \n\nLCP vel.iters : ";
-    str += system->GetIterLCPmaxItersSpeed();
-    str += "\nLCP pos.iters : ";
-    str += system->GetIterLCPmaxItersStab();
+    str += " ms \n\nSolver vel.iters : ";
+    str += system->GetMaxItersSolverSpeed();
+    str += "\nSolver pos.iters : ";
+    str += system->GetMaxItersSolverStab();
     str += "\n\nN.of active bodies  : ";
     str += system->GetNbodies();
     str += "\nN.of sleeping bodies  : ";
@@ -725,25 +730,25 @@ void ChIrrAppInterface::DrawAll() {
     gad_tabbed->setVisible(show_infos);
 
     if (gad_speed_iternumber_info->isVisible()) {
-        gad_warmstart->setChecked(GetSystem()->GetIterLCPwarmStarting());
+        gad_warmstart->setChecked(GetSystem()->GetSolverWarmStarting());
         gad_usesleep->setChecked(GetSystem()->GetUseSleeping());
 
         char message[50];
 
-        gad_speed_iternumber->setPos(GetSystem()->GetIterLCPmaxItersSpeed());
-        sprintf(message, "%i vel.iters", GetSystem()->GetIterLCPmaxItersSpeed());
+        gad_speed_iternumber->setPos(GetSystem()->GetMaxItersSolverSpeed());
+        sprintf(message, "%i vel.iters", GetSystem()->GetMaxItersSolverSpeed());
         gad_speed_iternumber_info->setText(irr::core::stringw(message).c_str());
 
-        gad_pos_iternumber->setPos(GetSystem()->GetIterLCPmaxItersStab());
-        sprintf(message, "%i pos.iters", GetSystem()->GetIterLCPmaxItersStab());
+        gad_pos_iternumber->setPos(GetSystem()->GetMaxItersSolverStab());
+        sprintf(message, "%i pos.iters", GetSystem()->GetMaxItersSolverStab());
         gad_pos_iternumber_info->setText(irr::core::stringw(message).c_str());
 
-        gad_omega->setPos((irr::s32)(50.0 * (GetSystem()->GetIterLCPomega())));
-        sprintf(message, "%g omega", GetSystem()->GetIterLCPomega());
+        gad_omega->setPos((irr::s32)(50.0 * (GetSystem()->GetSolverOverrelaxationParam())));
+        sprintf(message, "%g omega", GetSystem()->GetSolverOverrelaxationParam());
         gad_omega_info->setText(irr::core::stringw(message).c_str());
 
-        gad_lambda->setPos((irr::s32)(50.0 * (GetSystem()->GetIterLCPsharpnessLambda())));
-        sprintf(message, "%g lambda", GetSystem()->GetIterLCPsharpnessLambda());
+        gad_lambda->setPos((irr::s32)(50.0 * (GetSystem()->GetSolverSharpnessParam())));
+        sprintf(message, "%g lambda", GetSystem()->GetSolverSharpnessParam());
         gad_lambda_info->setText(irr::core::stringw(message).c_str());
 
         gad_clamping->setPos((irr::s32)((50.0 / 3.0) * (GetSystem()->GetMaxPenetrationRecoverySpeed())));
@@ -754,32 +759,32 @@ void ChIrrAppInterface::DrawAll() {
         sprintf(message, "%g min.bounce v", GetSystem()->GetMinBounceSpeed());
         gad_minbounce_info->setText(irr::core::stringw(message).c_str());
 
-        switch (GetSystem()->GetLcpSolverType()) {
-            case ChSystem::LCP_ITERATIVE_SOR:
+        switch (GetSystem()->GetSolverType()) {
+            case ChSystem::SOLVER_SOR:
                 gad_ccpsolver->setSelected(0);
                 break;
-            case ChSystem::LCP_ITERATIVE_SYMMSOR:
+            case ChSystem::SOLVER_SYMMSOR:
                 gad_ccpsolver->setSelected(1);
                 break;
-            case ChSystem::LCP_ITERATIVE_JACOBI:
+            case ChSystem::SOLVER_JACOBI:
                 gad_ccpsolver->setSelected(2);
                 break;
-            case ChSystem::LCP_ITERATIVE_SOR_MULTITHREAD:
+            case ChSystem::SOLVER_SOR_MULTITHREAD:
                 gad_ccpsolver->setSelected(3);
                 break;
-            case ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN:
+            case ChSystem::SOLVER_BARZILAIBORWEIN:
                 gad_ccpsolver->setSelected(4);
                 break;
-            case ChSystem::LCP_ITERATIVE_PCG:
+            case ChSystem::SOLVER_PCG:
                 gad_ccpsolver->setSelected(5);
                 break;
-            case ChSystem::LCP_ITERATIVE_PMINRES:
+            case ChSystem::SOLVER_PMINRES:
                 gad_ccpsolver->setSelected(6);
                 break;
-            case ChSystem::LCP_ITERATIVE_APGD:
+            case ChSystem::SOLVER_APGD:
                 gad_ccpsolver->setSelected(7);
                 break;
-            case ChSystem::LCP_ITERATIVE_MINRES:
+            case ChSystem::SOLVER_MINRES:
                 gad_ccpsolver->setSelected(8);
                 break;
             default:
@@ -859,7 +864,7 @@ void ChIrrAppInterface::DumpMatrices() {
     // Save the current speeds, maybe these are needed.
     try {
         ChMatrixDynamic<double> mvold;
-        GetSystem()->GetLcpSystemDescriptor()->FromVariablesToVector(mvold);
+        GetSystem()->GetSystemDescriptor()->FromVariablesToVector(mvold);
         ChStreamOutAsciiFile file_vold("dump_v_old.dat");
         mvold.StreamOUTdenseMatlabFormat(file_vold);
     } catch (ChException myexc) {
@@ -867,12 +872,12 @@ void ChIrrAppInterface::DumpMatrices() {
     }
 
     // This DoStep() is necessary because we want to get the matrices as they
-    // are set-up for the time stepping LCP/CCP problem.
+    // are set-up for the time stepping problem.
     // (If we avoid this, the previous 'mvold' vector won't be in-sync.)
     DoStep();
 
     // Now save the matrices - as they were setup by the previous time stepping scheme.
-    GetSystem()->GetLcpSystemDescriptor()->DumpLastMatrices("dump_");
+    GetSystem()->GetSystemDescriptor()->DumpLastMatrices("dump_");
 }
 
 }  // end namespace irrlicht

@@ -44,7 +44,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB) {
         nodes[0] = nodeA;
         nodes[1] = nodeB;
-        std::vector<ChLcpVariables*> mvars;
+        std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
         Kmatr.SetVariables(mvars);
@@ -128,7 +128,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     virtual double GetDamperR() { return damper_r; }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 };
 

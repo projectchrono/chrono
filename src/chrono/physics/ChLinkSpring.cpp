@@ -46,11 +46,11 @@ void ChLinkSpring::Copy(ChLinkSpring* source) {
     spr_r = source->spr_r;
     spr_react = source->spr_react;
 
-    mod_f_time = std::shared_ptr<ChFunction>(source->mod_f_time->new_Duplicate());
-    mod_k_d = std::shared_ptr<ChFunction>(source->mod_k_d->new_Duplicate());
-    mod_k_speed = std::shared_ptr<ChFunction>(source->mod_k_speed->new_Duplicate());
-    mod_r_d = std::shared_ptr<ChFunction>(source->mod_r_d->new_Duplicate());
-    mod_r_speed = std::shared_ptr<ChFunction>(source->mod_r_speed->new_Duplicate());
+    mod_f_time = std::shared_ptr<ChFunction>(source->mod_f_time->Clone());
+    mod_k_d = std::shared_ptr<ChFunction>(source->mod_k_d->Clone());
+    mod_k_speed = std::shared_ptr<ChFunction>(source->mod_k_speed->Clone());
+    mod_r_d = std::shared_ptr<ChFunction>(source->mod_r_d->Clone());
+    mod_r_speed = std::shared_ptr<ChFunction>(source->mod_r_speed->Clone());
 }
 
 ChLink* ChLinkSpring::new_Duplicate() {

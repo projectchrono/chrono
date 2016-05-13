@@ -12,23 +12,8 @@
 #ifndef CHOBJSBOXSHAPE_H
 #define CHOBJSBOXSHAPE_H
 
-///////////////////////////////////////////////////
-//
-//   ChBoxShape.h
-//
-//   Class for defining a box as an asset shape
-//   that can be visualized in some way.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "assets/ChVisualization.h"
-#include "geometry/ChCBox.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/geometry/ChBox.h"
 
 namespace chrono {
 

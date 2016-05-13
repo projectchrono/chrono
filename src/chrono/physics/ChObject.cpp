@@ -10,29 +10,16 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChObject.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <iostream>
 #include <math.h>
 #include <float.h>
 #include <memory.h>
 
-#include "physics/ChObject.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChExternalObject.h"
+#include "chrono/physics/ChObject.h"
+#include "chrono/physics/ChGlobal.h"
 
 namespace chrono {
-
-//////////////////////////////////////
-//////////////////////////////////////
 
 // BASE CLASS FOR HANDLING ITEMS
 // with linked-list handling functions

@@ -6,6 +6,10 @@ SET(DEMOS
   demo_math
   demo_stream
   demo_archive
+  demo_buildsystem
+  demo_powertrain
+  demo_chfunctions
+  demo_solver
 )
 
 

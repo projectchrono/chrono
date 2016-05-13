@@ -9,31 +9,10 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChRef.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
-#include "physics/ChRef.h"
+#include "chrono/physics/ChRef.h"
 
 namespace chrono {
-
-////////////////////////////////////
-//
-// CLASS  ChRef
-//
-////////////////////////////////////
-
-////////////////////////////////////
-//
-// CLASS  ChRefFunctionSegment
-//
-////////////////////////////////////
 
 ChRefFunctionSegment::ChRefFunctionSegment(ChFunction* mrootf, char* myIDs) {
     this->function = mrootf;
@@ -64,7 +43,7 @@ bool ChRefFunctionSegment::RestoreReference(ChFunction* mrootf) {
         buffer[mbupos] = 0;
         int mIDi = atoi(buffer);
 
-        if (this->function_segment->Get_Type() != FUNCT_SEQUENCE)
+        if (this->function_segment->Get_Type() != ChFunction::FUNCT_SEQUENCE)
             return (valid = false);
 
         //***TODO*** use shared_ptr everywhere

@@ -10,9 +10,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "chrono/geometry/ChCSphere.h"
-#include "chrono/geometry/ChCBox.h"
-#include "chrono/geometry/ChCTriangleMeshSoup.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 

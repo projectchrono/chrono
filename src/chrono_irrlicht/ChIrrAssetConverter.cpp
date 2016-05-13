@@ -11,10 +11,10 @@
 
 #include <vector>
 
-#include "chrono/geometry/ChCSphere.h"
-#include "chrono/geometry/ChCBox.h"
-#include "chrono/geometry/ChCTriangleMeshSoup.h"
-#include "chrono/geometry/ChCLinePath.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
+#include "chrono/geometry/ChLinePath.h"
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"

@@ -27,20 +27,20 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/timestepper/ChTimestepper.h"
-#include "chrono/lcp/ChLcpIterativePMINRES.h"
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChSolverPMINRES.h"
+#include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono_fea/ChLoadsBeam.h"
-#include "physics/ChLoadContainer.h"
 #include "chrono_fea/ChElementBeamANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono/core/ChVector.h"
-#include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChLoadsBeam.h"
+#include "chrono_fea/ChMesh.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -173,12 +173,12 @@ int main(int argc, char* argv[]) {
     mloadcontainer->Add(mgravity4);
 
     // Change solver settings
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(200);
-    my_system.SetIterLCPmaxItersStab(200);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(200);
+    my_system.SetMaxItersSolverStab(200);
     my_system.SetTolForce(1e-14);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 

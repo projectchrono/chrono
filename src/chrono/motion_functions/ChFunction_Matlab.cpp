@@ -1,47 +1,33 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Matlab.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Matlab.h"
+#include "chrono/motion_functions/ChFunction_Matlab.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChFunction_Matlab> a_registration_matlab;
 
 ChFunction_Matlab::ChFunction_Matlab() {
     strcpy(this->mat_command, "x*2+x^2");
 }
 
-void ChFunction_Matlab::Copy(ChFunction_Matlab* source) {
-    strcpy(this->mat_command, source->mat_command);
+ChFunction_Matlab::ChFunction_Matlab(const ChFunction_Matlab& other) {
+    strcpy(this->mat_command, other.mat_command);
 }
 
-ChFunction* ChFunction_Matlab::new_Duplicate() {
-    ChFunction_Matlab* m_func;
-    m_func = new ChFunction_Matlab;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-double ChFunction_Matlab::Get_y(double x) {
+double ChFunction_Matlab::Get_y(double x) const {
     double ret = 0;
 
 #ifdef CH_MATLAB
@@ -56,15 +42,17 @@ double ChFunction_Matlab::Get_y(double x) {
 
     // EVAL string, retrieving y = "ans"
     ret = CHGLOBALS().Mat_Eng_Eval(m_eval_command);
-
-#else
-    ret = 0.0;
 #endif
 
     return ret;
 }
 
+double ChFunction_Matlab::Get_y_dx(double x) const {
+    return ((Get_y(x + BDF_STEP_HIGH) - Get_y(x)) / BDF_STEP_HIGH);
+}
 
-}  // END_OF_NAMESPACE____
+double ChFunction_Matlab::Get_y_dxdx(double x) const {
+    return ((Get_y_dx(x + BDF_STEP_HIGH) - Get_y_dx(x)) / BDF_STEP_HIGH);
+}
 
-// eof
+}  // end namespace chrono

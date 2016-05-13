@@ -12,8 +12,8 @@
 #ifndef CH_LINK_REVOLUTE_TRANSLATIONAL_H
 #define CH_LINK_REVOLUTE_TRANSLATIONAL_H
 
-#include "physics/ChLink.h"
-#include "lcp/ChLcpConstraintTwoBodies.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
 
@@ -140,19 +140,22 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
                                      const double c,
                                      bool do_clamp,
                                      double recovery_clamp);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
     // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChLcpSystemDescriptor& descriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor);
     virtual void ConstraintsBiReset();
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
     virtual void ConstraintsLoadJacobians();
@@ -191,10 +194,10 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     double m_cur_dist;  // actual distance between pos1 and pos2
 
     // The constraint objects
-    ChLcpConstraintTwoBodies m_cnstr_par1;  // z1 perpendicualr to x2
-    ChLcpConstraintTwoBodies m_cnstr_par2;  // z1 perpendicular to y2
-    ChLcpConstraintTwoBodies m_cnstr_dot;   // d12 perpendicular to z1
-    ChLcpConstraintTwoBodies m_cnstr_dist;  // distance between axes
+    ChConstraintTwoBodies m_cnstr_par1;  // z1 perpendicualr to x2
+    ChConstraintTwoBodies m_cnstr_par2;  // z1 perpendicular to y2
+    ChConstraintTwoBodies m_cnstr_dot;   // d12 perpendicular to z1
+    ChConstraintTwoBodies m_cnstr_dist;  // distance between axes
 
     // Current constraint violations
     ChMatrix<>* m_C;

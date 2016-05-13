@@ -29,7 +29,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
-#include "hmmwv/HMMWV.h"
+#include "models/vehicle/hmmwv/HMMWV.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

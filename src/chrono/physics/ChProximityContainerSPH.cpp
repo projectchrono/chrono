@@ -122,7 +122,7 @@ void ChProximityContainerSPH::ReportAllProximities(ChReportProximityCallback* mc
     }
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
 static double W_poly6(double r, double h) {
     if (r < h) {

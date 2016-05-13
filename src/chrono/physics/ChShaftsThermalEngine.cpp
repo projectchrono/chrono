@@ -42,7 +42,7 @@ void ChShaftsThermalEngine::Copy(ChShaftsThermalEngine* source) {
     // copy class data
     throttle = source->throttle;
     error_backward = source->error_backward;
-    this->Tw = std::shared_ptr<ChFunction>(source->Tw->new_Duplicate());  // deep copy
+    this->Tw = std::shared_ptr<ChFunction>(source->Tw->Clone());  // deep copy
 }
 
 double ChShaftsThermalEngine::ComputeTorque() {

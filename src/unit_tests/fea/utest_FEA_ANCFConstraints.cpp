@@ -39,11 +39,12 @@
 
 #include <cmath>
 
-#include "chrono/lcp/ChLcpIterativeMINRES.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
+
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
@@ -312,12 +313,12 @@ int main(int argc, char* argv[]) {
     AddConstraints(my_system);
 
     // Set up linear solver
-    my_system.SetLcpSolverType(ChSystem::LCP_ITERATIVE_MINRES);
-    my_system.SetIterLCPwarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetIterLCPmaxItersSpeed(2000);
-    my_system.SetIterLCPmaxItersStab(2000);
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetMaxItersSolverSpeed(2000);
+    my_system.SetMaxItersSolverStab(2000);
     my_system.SetTolForce(1e-7);
-    chrono::ChLcpIterativeMINRES* msolver = (chrono::ChLcpIterativeMINRES*)my_system.GetLcpSolverSpeed();
+    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
