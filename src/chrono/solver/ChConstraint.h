@@ -97,7 +97,7 @@ class ChApi ChConstraint {
           disabled(false),
           redundant(false),
           broken(false),
-          _active(false),
+          _active(true),
           mode(CONSTRAINT_LOCK) {}
 
     /// Copy constructor
