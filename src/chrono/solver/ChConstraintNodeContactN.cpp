@@ -1,21 +1,54 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChConstraintNodeContactN.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChConstraintNodeContactN> a_registration_ChConstraintNodeContactN;
+
+ChConstraintNodeContactN::ChConstraintNodeContactN() : friction(0), constraint_U(NULL), constraint_V(NULL) {
+    mode = CONSTRAINT_FRIC;
+}
+
+ChConstraintNodeContactN::ChConstraintNodeContactN(ChVariablesBody* mvariables_a,
+                                                   ChVariablesNode* mvariables_b,
+                                                   ChConstraintNodeFrictionT* aU,
+                                                   ChConstraintNodeFrictionT* aV)
+    : ChConstraintTwoGeneric(mvariables_a, mvariables_b), friction(0), constraint_U(aU), constraint_V(aV) {
+    mode = CONSTRAINT_FRIC;
+}
+
+ChConstraintNodeContactN::ChConstraintNodeContactN(const ChConstraintNodeContactN& other)
+    : ChConstraintTwoGeneric(other) {
+    friction = other.friction;
+    constraint_U = other.constraint_U;
+    constraint_V = other.constraint_V;
+}
+
+ChConstraintNodeContactN& ChConstraintNodeContactN::operator=(const ChConstraintNodeContactN& other) {
+    if (&other == this)
+        return *this;
+    // copy parent class data
+    ChConstraintTwoGeneric::operator=(other);
+
+    friction = other.friction;
+    constraint_U = other.constraint_U;
+    constraint_V = other.constraint_V;
+    return *this;
+}
 
 void ChConstraintNodeContactN::Project() {
     if (!constraint_U)

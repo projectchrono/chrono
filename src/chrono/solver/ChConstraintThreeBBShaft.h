@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTTHREEBBSHAFT_H
 #define CHCONSTRAINTTHREEBBSHAFT_H
@@ -25,41 +27,25 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     CH_RTTI(ChConstraintThreeBBShaft, ChConstraintThree)
 
   protected:
-    /// The [Cq_a] jacobian of the constraint
-    ChMatrixNM<double, 1, 6> Cq_a;
-    /// The [Cq_b] jacobian of the constraint
-    ChMatrixNM<double, 1, 6> Cq_b;
-    /// The [Cq_c] jacobian of the constraint
-    ChMatrixNM<double, 1, 1> Cq_c;
+    ChMatrixNM<double, 1, 6> Cq_a;  ///< The [Cq_a] jacobian of the constraint
+    ChMatrixNM<double, 1, 6> Cq_b;  ///< The [Cq_b] jacobian of the constraint
+    ChMatrixNM<double, 1, 1> Cq_c;  ///< The [Cq_c] jacobian of the constraint
 
     // Auxiliary data: will be used by iterative constraint solvers:
 
-    /// The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixNM<double, 6, 1> Eq_a;
-    /// The [Eq_b] product [Eq_b]=[invM_b]*[Cq_b]'
-    ChMatrixNM<double, 6, 1> Eq_b;
-    /// The [Eq_c] product [Eq_c]=[invM_c]*[Cq_c]'
-    ChMatrixNM<double, 1, 1> Eq_c;
+    ChMatrixNM<double, 6, 1> Eq_a;  ///< The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
+    ChMatrixNM<double, 6, 1> Eq_b;  ///< The [Eq_b] product [Eq_b]=[invM_b]*[Cq_b]'
+    ChMatrixNM<double, 1, 1> Eq_c;  ///< The [Eq_c] product [Eq_c]=[invM_c]*[Cq_c]'
 
   public:
     /// Default constructor
     ChConstraintThreeBBShaft() {}
 
     /// Construct and immediately set references to variables
-    ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b, ChVariables* mvariables_c) {
-        assert(mvariables_c->Get_ndof() == 1);
-        SetVariables(mvariables_a, mvariables_b, mvariables_c);
-    }
+    ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b, ChVariables* mvariables_c);
 
     /// Copy constructor
-    ChConstraintThreeBBShaft(const ChConstraintThreeBBShaft& other) : ChConstraintThree(other) {
-        Cq_a = other.Cq_a;
-        Cq_b = other.Cq_b;
-        Cq_c = other.Cq_c;
-        Eq_a = other.Eq_a;
-        Eq_b = other.Eq_b;
-        Eq_c = other.Eq_c;
-    }
+    ChConstraintThreeBBShaft(const ChConstraintThreeBBShaft& other);
 
     virtual ~ChConstraintThreeBBShaft() {}
 
@@ -93,45 +79,19 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// This is often called by solvers at the beginning
     /// of the solution process.
     /// Most often, inherited classes won't need to override this.
-    virtual void Update_auxiliary();
+    virtual void Update_auxiliary() override;
 
     ///  This function must computes the product between
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
     ///  This is used for some iterative solvers.
-    virtual double Compute_Cq_q() {
-        double ret = 0;
-
-        if (variables_a->IsActive())
-            for (int i = 0; i < 6; i++)
-                ret += Cq_a.ElementN(i) * variables_a->Get_qb().ElementN(i);
-
-        if (variables_b->IsActive())
-            for (int i = 0; i < 6; i++)
-                ret += Cq_b.ElementN(i) * variables_b->Get_qb().ElementN(i);
-
-        if (variables_c->IsActive())
-            ret += Cq_c.ElementN(0) * variables_c->Get_qb().ElementN(0);
-
-        return ret;
-    }
+    virtual double Compute_Cq_q() override;
 
     ///  This function must increment the vector of variables
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///   v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative solvers.
-    virtual void Increment_q(const double deltal) {
-        if (variables_a->IsActive())
-            for (int i = 0; i < Eq_a.GetRows(); i++)
-                variables_a->Get_qb()(i) += Eq_a.ElementN(i) * deltal;
-
-        if (variables_b->IsActive())
-            for (int i = 0; i < Eq_b.GetRows(); i++)
-                variables_b->Get_qb()(i) += Eq_b.ElementN(i) * deltal;
-
-        if (variables_c->IsActive())
-            variables_c->Get_qb()(0) += Eq_c.ElementN(0) * deltal;
-    }
+    virtual void Increment_q(const double deltal) override;
 
     /// Computes the product of the corresponding block in the
     /// system matrix by 'vect', and add to 'result'.
@@ -139,18 +99,7 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
-        if (variables_a->IsActive())
-            for (int i = 0; i < Cq_a.GetRows(); i++)
-                result += vect(variables_a->GetOffset() + i) * Cq_a.ElementN(i);
-
-        if (variables_b->IsActive())
-            for (int i = 0; i < Cq_b.GetRows(); i++)
-                result += vect(variables_b->GetOffset() + i) * Cq_b.ElementN(i);
-
-        if (variables_c->IsActive())
-            result += vect(variables_c->GetOffset()) * Cq_c.ElementN(0);
-    }
+    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding transposed blocks in the
     /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
@@ -158,40 +107,15 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
-        if (variables_a->IsActive())
-            for (int i = 0; i < Cq_a.GetRows(); i++)
-                result(variables_a->GetOffset() + i) += Cq_a.ElementN(i) * l;
-
-        if (variables_b->IsActive())
-            for (int i = 0; i < Cq_b.GetRows(); i++)
-                result(variables_b->GetOffset() + i) += Cq_b.ElementN(i) * l;
-
-        if (variables_c->IsActive())
-            result(variables_c->GetOffset()) += Cq_c.ElementN(0) * l;
-    }
+    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override;
 
     /// Puts the jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
     /// offset of the corresponding ChVariable.
     /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
-        if (variables_a->IsActive())
-            storage.PasteMatrix(&Cq_a, insrow, variables_a->GetOffset());
-        if (variables_b->IsActive())
-            storage.PasteMatrix(&Cq_b, insrow, variables_b->GetOffset());
-        if (variables_c->IsActive())
-            storage.PasteMatrix(&Cq_c, insrow, variables_c->GetOffset());
-    }
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
-        if (variables_a->IsActive())
-            storage.PasteTranspMatrix(&Cq_a, variables_a->GetOffset(), inscol);
-        if (variables_b->IsActive())
-            storage.PasteTranspMatrix(&Cq_b, variables_b->GetOffset(), inscol);
-        if (variables_c->IsActive())
-            storage.PasteTranspMatrix(&Cq_c, variables_c->GetOffset(), inscol);
-    }
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override;
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override;
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

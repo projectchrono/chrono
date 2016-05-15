@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINT_H
 #define CHCONSTRAINT_H
@@ -61,12 +63,10 @@ class ChApi ChConstraint {
     CH_RTTI_ROOT(ChConstraint)
 
   protected:
-    /// The 'c_i' residual of the constraint (if satisfied, c must be =0)
-    double c_i;
-    /// The 'l_i' lagrangian multiplier (reaction)
-    double l_i;
-    /// The 'b_i' right term in [Cq_i]*q+b_i=0 , note: c_i= [Cq_i]*q + b_i
-    double b_i;
+    double c_i;  ///< The 'c_i' residual of the constraint (if satisfied, c must be =0)
+    double l_i;  ///< The 'l_i' lagrangian multiplier (reaction)
+    double b_i;  ///< The 'b_i' right term in [Cq_i]*q+b_i=0 , note: c_i= [Cq_i]*q + b_i
+
     /// The constraint force mixing, if needed (usually is zero) to add some
     /// numerical 'compliance' in the constraint, that is the equation becomes:
     /// c_i= [Cq_i]*q + b_i + cfm*l_i =0;
@@ -81,46 +81,27 @@ class ChApi ChConstraint {
     bool _active;    ///< Cached active state depending on previous flags. Internal update.
 
   protected:
-    /// The mode of the constraint: free / lock / complementar
-    eChConstraintMode mode;
-
-    // Auxiliary data, (ex. for iterative solvers):
-
-    /// The 'g_i' product [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
-    double g_i;
-
-    /// offset in global "l" state vector (needed by some solvers)
-    int offset;
+    eChConstraintMode mode;  ///< mode of the constraint: free / lock / complementar
+    double g_i;              ///<  'g_i' product [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
+    int offset;              ///< offset in global "l" state vector (needed by some solvers)
 
   public:
     /// Default constructor
-    ChConstraint() {
-        c_i = 0;
-        g_i = 0;
-        b_i = 0;
-        l_i = 0;
-        cfm_i = 0;
-        valid = false;
-        disabled = false;
-        redundant = false;
-        broken = false;
-        _active = true;
-        mode = CONSTRAINT_LOCK;
-    }
+    ChConstraint()
+        : c_i(0),
+          g_i(0),
+          b_i(0),
+          l_i(0),
+          cfm_i(0),
+          valid(false),
+          disabled(false),
+          redundant(false),
+          broken(false),
+          _active(false),
+          mode(CONSTRAINT_LOCK) {}
 
     /// Copy constructor
-    ChConstraint(const ChConstraint& other) {
-        c_i = other.c_i;
-        g_i = other.g_i;
-        b_i = other.b_i;
-        l_i = other.l_i;
-        cfm_i = other.cfm_i;
-        valid = other.valid;
-        disabled = other.disabled;
-        redundant = other.redundant;
-        broken = other.broken;
-        mode = other.mode;
-    }
+    ChConstraint(const ChConstraint& other);
 
     virtual ~ChConstraint() {}
 

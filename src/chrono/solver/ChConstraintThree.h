@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTTHREE_H
 #define CHCONSTRAINTTHREE_H
@@ -38,14 +40,10 @@ class ChApi ChConstraintThree : public ChConstraint {
 
   public:
     /// Default constructor
-    ChConstraintThree() { variables_a = variables_b = variables_c = NULL; }
+    ChConstraintThree() : variables_a(NULL), variables_b(NULL), variables_c(NULL) {}
 
     /// Copy constructor
-    ChConstraintThree(const ChConstraintThree& other) : ChConstraint(other) {
-        variables_a = other.variables_a;
-        variables_b = other.variables_b;
-        variables_c = other.variables_c;
-    }
+    ChConstraintThree(const ChConstraintThree& other);
 
     virtual ~ChConstraintThree() {}
 
