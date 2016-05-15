@@ -1718,8 +1718,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     ChLinkMasked::ConstraintsBiLoad_Qc(factor);
 }
 
-template <class Real>
-void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<Real>* mCqw, int qwrow, ChBodyFrame* mbody) {
+void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<>* mCqw, int qwrow, ChBodyFrame* mbody) {
     // traslational part - not changed
     mCqw->PasteClippedMatrix(mCq, qrow, 0, 1, 3, qwrow, 0);
 
@@ -1733,7 +1732,7 @@ void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<Real>* mCqw, in
         for (col = 0; col < 4; col++) {
             sum += ((mCq->GetElement(qrow, col + 3)) * (mGl.GetElement(colres, col)));
         }
-        mCqw->SetElement(qwrow, colres + 3, (float)(sum * 0.25));
+        mCqw->SetElement(qwrow, colres + 3, sum * 0.25);
     }
 }
 
