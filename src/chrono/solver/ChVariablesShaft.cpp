@@ -1,17 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChVariablesShaft.h"
 
 namespace chrono {
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+ChClassRegister<ChVariablesShaft> a_registration_ChVariablesShaft;
 
 ChVariablesShaft& ChVariablesShaft::operator=(const ChVariablesShaft& other) {
     if (&other == this)
@@ -25,6 +31,12 @@ ChVariablesShaft& ChVariablesShaft::operator=(const ChVariablesShaft& other) {
     m_inertia = other.m_inertia;
 
     return *this;
+}
+
+// Set the inertia associated with rotation of the shaft
+void ChVariablesShaft::SetInertia(double inertia) {
+    m_inertia = inertia;
+    m_inv_inertia = 1 / inertia;
 }
 
 // Computes the product of the inverse mass matrix by a
@@ -78,9 +90,5 @@ void ChVariablesShaft::DiagonalAdd(ChMatrix<double>& result, const double c_a) c
 void ChVariablesShaft::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
     storage.SetElement(insrow + 0, inscol + 0, c_a * m_inertia);
 }
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChVariablesShaft> a_registration_ChVariablesShaft;
 
 }  // end namespace chrono

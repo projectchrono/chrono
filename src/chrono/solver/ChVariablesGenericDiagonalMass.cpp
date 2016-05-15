@@ -1,17 +1,34 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 
 namespace chrono {
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+ChClassRegister<ChVariablesGenericDiagonalMass> a_registration_ChVariablesGenericDiagonalMass;
+
+ChVariablesGenericDiagonalMass::ChVariablesGenericDiagonalMass(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
+    MmassDiag = new ChVectorDynamic<>(ndof);
+    MmassDiag->FillElem(1.0);
+}
+
+ChVariablesGenericDiagonalMass::~ChVariablesGenericDiagonalMass() {
+    if (MmassDiag)
+        delete MmassDiag;
+    MmassDiag = NULL;
+}
 
 ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const ChVariablesGenericDiagonalMass& other) {
     if (&other == this)
@@ -46,8 +63,7 @@ void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<double>& result, c
 
 // Computes the product of the inverse mass matrix by a
 // vector, and increment result: result += [invMb]*vect
-void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& result,
-                                                            const ChMatrix<double>& vect) const {
+void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     for (int i = 0; i < vect.GetRows(); ++i)
@@ -69,7 +85,9 @@ void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<double>& result, 
 // the size of the total variables&constraints in the system; the procedure
 // will use the ChVariable offsets (that must be already updated) to know the
 // indexes in result and vect.
-void ChVariablesGenericDiagonalMass::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
+void ChVariablesGenericDiagonalMass::MultiplyAndAdd(ChMatrix<double>& result,
+                                                    const ChMatrix<double>& vect,
+                                                    const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
 
     for (int i = 0; i < MmassDiag->GetRows(); i++) {
@@ -88,8 +106,10 @@ void ChVariablesGenericDiagonalMass::DiagonalAdd(ChMatrix<double>& result, const
     }
 }
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChVariablesGenericDiagonalMass> a_registration_ChVariablesGenericDiagonalMass;
+void ChVariablesGenericDiagonalMass::Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
+    for (int i = 0; i < MmassDiag->GetRows(); ++i) {
+        storage.SetElement(insrow + i, inscol + i, c_a * (*MmassDiag)(i));
+    }
+}
 
 }  // end namespace chrono

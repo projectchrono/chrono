@@ -1,19 +1,25 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {
 
-    ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
+// Register into the object factory, to enable run-time dynamic creation and persistence
+ChClassRegister<ChVariablesNode> a_registration_ChVariablesNode;
+
+ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
     if (&other == this)
         return *this;
 
@@ -71,8 +77,8 @@ void ChVariablesNode::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<
 void ChVariablesNode::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
     // optimized unrolled operations
-    double scaledmass = c_a *mass;
-    result(this->offset)     += scaledmass * vect(this->offset);
+    double scaledmass = c_a * mass;
+    result(this->offset) += scaledmass * vect(this->offset);
     result(this->offset + 1) += scaledmass * vect(this->offset + 1);
     result(this->offset + 2) += scaledmass * vect(this->offset + 2);
 }
@@ -83,7 +89,7 @@ void ChVariablesNode::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<do
 // will use the ChVariable offset (that must be already updated) as index.
 void ChVariablesNode::DiagonalAdd(ChMatrix<double>& result, const double c_a) const {
     assert(result.GetColumns() == 1);
-    result(this->offset)     += c_a * mass;
+    result(this->offset) += c_a * mass;
     result(this->offset + 1) += c_a * mass;
     result(this->offset + 2) += c_a * mass;
 }
@@ -98,10 +104,5 @@ void ChVariablesNode::Build_M(ChSparseMatrix& storage, int insrow, int inscol, c
     storage.SetElement(insrow + 1, inscol + 1, scaledmass);
     storage.SetElement(insrow + 2, inscol + 2, scaledmass);
 }
-
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChVariablesNode> a_registration_ChVariablesNode;
 
 }  // end namespace chrono

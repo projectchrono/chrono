@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHVARIABLESBODY_H
 #define CHVARIABLESBODY_H
 
-#include "chrono/solver/ChVariables.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
@@ -31,20 +33,11 @@ class ChApi ChVariablesBody : public ChVariables {
     void* user_data;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChVariablesBody() : ChVariables(6) { user_data = 0; }
-
+    ChVariablesBody() : ChVariables(6), user_data(NULL) {}
     virtual ~ChVariablesBody() {}
 
     /// Assignment operator: copy from other object
     ChVariablesBody& operator=(const ChVariablesBody& other);
-
-    //
-    // FUNCTIONS
-    //
 
     /// Get the mass associated with translation of body
     virtual double GetBodyMass() = 0;
@@ -54,8 +47,6 @@ class ChApi ChVariablesBody : public ChVariables {
 
     /// Access the 3x3 inertia matrix inverted
     virtual ChMatrix33<>& GetBodyInvInertia() = 0;
-
-    // IMPLEMENT PARENT CLASS METHODS
 
     /// The number of scalar variables in the vector qb
     /// (dof=degrees of freedom)
