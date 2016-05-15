@@ -15,6 +15,7 @@
 #ifndef CHFUNCT_RECORDER_H
 #define CHFUNCT_RECORDER_H
 
+#include "chrono/core/ChLists.h"
 #include "chrono/motion_functions/ChFunction_Base.h"
 
 namespace chrono {

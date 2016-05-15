@@ -248,7 +248,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChParticlesClones.h
     physics/ChPhysicsItem.h
     physics/ChProbe.h
-    physics/ChProplist.h
     physics/ChProximityContainerBase.h
     physics/ChProximityContainerSPH.h
     physics/ChRef.h
