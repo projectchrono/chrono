@@ -34,20 +34,20 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
 
   protected:
     /// The [Cq_a] jacobian of the constraint
-    ChMatrixDynamic<float>* Cq_a;
+    ChMatrixDynamic<double>* Cq_a;
     /// The [Cq_b] jacobian of the constraint
-    ChMatrixDynamic<float>* Cq_b;
+    ChMatrixDynamic<double>* Cq_b;
     /// The [Cq_c] jacobian of the constraint
-    ChMatrixDynamic<float>* Cq_c;
+    ChMatrixDynamic<double>* Cq_c;
 
     // Auxiliary data: will be used by iterative constraint solvers:
 
     /// The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixDynamic<float>* Eq_a;
+    ChMatrixDynamic<double>* Eq_a;
     /// The [Eq_a] product [Eq_b]=[invM_b]*[Cq_b]'
-    ChMatrixDynamic<float>* Eq_b;
+    ChMatrixDynamic<double>* Eq_b;
     /// The [Eq_a] product [Eq_c]=[invM_b]*[Cq_c]'
-    ChMatrixDynamic<float>* Eq_c;
+    ChMatrixDynamic<double>* Eq_c;
 
   public:
     /// Default constructor
@@ -63,17 +63,17 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     ChConstraintThreeGeneric(const ChConstraintThreeGeneric& other) : ChConstraintThree(other) {
         Cq_a = Cq_b = Cq_c = Eq_a = Eq_b = Eq_c = NULL;
         if (other.Cq_a)
-            Cq_a = new ChMatrixDynamic<float>(*other.Cq_a);
+            Cq_a = new ChMatrixDynamic<double>(*other.Cq_a);
         if (other.Cq_b)
-            Cq_b = new ChMatrixDynamic<float>(*other.Cq_b);
+            Cq_b = new ChMatrixDynamic<double>(*other.Cq_b);
         if (other.Cq_c)
-            Cq_c = new ChMatrixDynamic<float>(*other.Cq_c);
+            Cq_c = new ChMatrixDynamic<double>(*other.Cq_c);
         if (other.Eq_a)
-            Eq_a = new ChMatrixDynamic<float>(*other.Eq_a);
+            Eq_a = new ChMatrixDynamic<double>(*other.Eq_a);
         if (other.Eq_b)
-            Eq_b = new ChMatrixDynamic<float>(*other.Eq_b);
+            Eq_b = new ChMatrixDynamic<double>(*other.Eq_b);
         if (other.Eq_c)
-            Eq_c = new ChMatrixDynamic<float>(*other.Eq_c);
+            Eq_c = new ChMatrixDynamic<double>(*other.Eq_c);
     }
 
     virtual ~ChConstraintThreeGeneric() {
@@ -98,18 +98,18 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     ChConstraintThreeGeneric& operator=(const ChConstraintThreeGeneric& other);
 
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_a() { return Cq_a; }
+    virtual ChMatrix<double>* Get_Cq_a() override { return Cq_a; }
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_b() { return Cq_b; }
+    virtual ChMatrix<double>* Get_Cq_b() override { return Cq_b; }
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_c() { return Cq_c; }
+    virtual ChMatrix<double>* Get_Cq_c() override { return Cq_c; }
 
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_a() { return Eq_a; }
+    virtual ChMatrix<double>* Get_Eq_a() override { return Eq_a; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_b() { return Eq_b; }
+    virtual ChMatrix<double>* Get_Eq_b() override { return Eq_b; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_c() { return Eq_c; }
+    virtual ChMatrix<double>* Get_Eq_c() override { return Eq_c; }
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
@@ -210,19 +210,19 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// don't need to know jacobians explicitly)
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())
-            storage.PasteMatrixFloat(Cq_a, insrow, variables_a->GetOffset());
+            storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
-            storage.PasteMatrixFloat(Cq_b, insrow, variables_b->GetOffset());
+            storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
         if (variables_c->IsActive())
-            storage.PasteMatrixFloat(Cq_c, insrow, variables_c->GetOffset());
+            storage.PasteMatrix(Cq_c, insrow, variables_c->GetOffset());
     }
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_a->IsActive())
-            storage.PasteTranspMatrixFloat(Cq_a, variables_a->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
-            storage.PasteTranspMatrixFloat(Cq_b, variables_b->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
         if (variables_c->IsActive())
-            storage.PasteTranspMatrixFloat(Cq_c, variables_c->GetOffset(), inscol);
+            storage.PasteTranspMatrix(Cq_c, variables_c->GetOffset(), inscol);
     }
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)

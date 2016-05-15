@@ -26,20 +26,20 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
 
   protected:
     /// The [Cq_a] jacobian of the constraint
-    ChMatrixNM<float, 1, 6> Cq_a;
+    ChMatrixNM<double, 1, 6> Cq_a;
     /// The [Cq_b] jacobian of the constraint
-    ChMatrixNM<float, 1, 6> Cq_b;
+    ChMatrixNM<double, 1, 6> Cq_b;
     /// The [Cq_c] jacobian of the constraint
-    ChMatrixNM<float, 1, 1> Cq_c;
+    ChMatrixNM<double, 1, 1> Cq_c;
 
     // Auxiliary data: will be used by iterative constraint solvers:
 
     /// The [Eq_a] product [Eq_a]=[invM_a]*[Cq_a]'
-    ChMatrixNM<float, 6, 1> Eq_a;
+    ChMatrixNM<double, 6, 1> Eq_a;
     /// The [Eq_b] product [Eq_b]=[invM_b]*[Cq_b]'
-    ChMatrixNM<float, 6, 1> Eq_b;
+    ChMatrixNM<double, 6, 1> Eq_b;
     /// The [Eq_c] product [Eq_c]=[invM_c]*[Cq_c]'
-    ChMatrixNM<float, 1, 1> Eq_c;
+    ChMatrixNM<double, 1, 1> Eq_c;
 
   public:
     /// Default constructor
@@ -70,18 +70,18 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     ChConstraintThreeBBShaft& operator=(const ChConstraintThreeBBShaft& other);
 
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_a() { return &Cq_a; }
+    virtual ChMatrix<double>* Get_Cq_a() override { return &Cq_a; }
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_b() { return &Cq_b; }
+    virtual ChMatrix<double>* Get_Cq_b() override { return &Cq_b; }
     /// Access jacobian matrix
-    virtual ChMatrix<float>* Get_Cq_c() { return &Cq_c; }
+    virtual ChMatrix<double>* Get_Cq_c() override { return &Cq_c; }
 
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_a() { return &Eq_a; }
+    virtual ChMatrix<double>* Get_Eq_a() override { return &Eq_a; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_b() { return &Eq_b; }
+    virtual ChMatrix<double>* Get_Eq_b() override { return &Eq_b; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<float>* Get_Eq_c() { return &Eq_c; }
+    virtual ChMatrix<double>* Get_Eq_c() override { return &Eq_c; }
 
     /// Set references to the constrained objects,
     /// If first two variables aren't from ChVariablesBody class, an assert failure happens.
@@ -178,19 +178,19 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// don't need to know jacobians explicitly)
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
         if (variables_a->IsActive())
-            storage.PasteMatrixFloat(&Cq_a, insrow, variables_a->GetOffset());
+            storage.PasteMatrix(&Cq_a, insrow, variables_a->GetOffset());
         if (variables_b->IsActive())
-            storage.PasteMatrixFloat(&Cq_b, insrow, variables_b->GetOffset());
+            storage.PasteMatrix(&Cq_b, insrow, variables_b->GetOffset());
         if (variables_c->IsActive())
-            storage.PasteMatrixFloat(&Cq_c, insrow, variables_c->GetOffset());
+            storage.PasteMatrix(&Cq_c, insrow, variables_c->GetOffset());
     }
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
         if (variables_a->IsActive())
-            storage.PasteTranspMatrixFloat(&Cq_a, variables_a->GetOffset(), inscol);
+            storage.PasteTranspMatrix(&Cq_a, variables_a->GetOffset(), inscol);
         if (variables_b->IsActive())
-            storage.PasteTranspMatrixFloat(&Cq_b, variables_b->GetOffset(), inscol);
+            storage.PasteTranspMatrix(&Cq_b, variables_b->GetOffset(), inscol);
         if (variables_c->IsActive())
-            storage.PasteTranspMatrixFloat(&Cq_c, variables_c->GetOffset(), inscol);
+            storage.PasteTranspMatrix(&Cq_c, variables_c->GetOffset(), inscol);
     }
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)

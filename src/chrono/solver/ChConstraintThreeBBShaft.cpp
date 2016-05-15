@@ -61,23 +61,23 @@ void ChConstraintThreeBBShaft::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]'  etc
     if (variables_a->IsActive()) {
-        ChMatrixNM<float, 6, 1> mtemp1;
+        ChMatrixNM<double, 6, 1> mtemp1;
         mtemp1.CopyFromMatrixT(Cq_a);
         variables_a->Compute_invMb_v(Eq_a, mtemp1);
     }
     if (variables_b->IsActive()) {
-        ChMatrixNM<float, 6, 1> mtemp1;
+        ChMatrixNM<double, 6, 1> mtemp1;
         mtemp1.CopyFromMatrixT(Cq_b);
         variables_b->Compute_invMb_v(Eq_b, mtemp1);
     }
     if (variables_c->IsActive()) {
-        ChMatrixNM<float, 1, 1> mtemp1;
+        ChMatrixNM<double, 1, 1> mtemp1;
         mtemp1.CopyFromMatrixT(Cq_c);
         variables_c->Compute_invMb_v(Eq_c, mtemp1);
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-    ChMatrixNM<float, 1, 1> res;
+    ChMatrixNM<double, 1, 1> res;
     g_i = 0;
     if (variables_a->IsActive()) {
         res.MatrMultiply(Cq_a, Eq_a);

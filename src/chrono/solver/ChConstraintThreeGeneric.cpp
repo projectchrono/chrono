@@ -27,7 +27,7 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
 
     if (other.Cq_a) {
         if (Cq_a == NULL)
-            Cq_a = new ChMatrixDynamic<float>;
+            Cq_a = new ChMatrixDynamic<double>;
         Cq_a->CopyFromMatrix(*other.Cq_a);
     } else {
         if (Cq_a)
@@ -37,7 +37,7 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
 
     if (other.Cq_b) {
         if (Cq_b == NULL)
-            Cq_b = new ChMatrixDynamic<float>;
+            Cq_b = new ChMatrixDynamic<double>;
         Cq_b->CopyFromMatrix(*other.Cq_b);
     } else {
         if (Cq_b)
@@ -47,7 +47,7 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
 
     if (other.Cq_c) {
         if (Cq_c == NULL)
-            Cq_c = new ChMatrixDynamic<float>;
+            Cq_c = new ChMatrixDynamic<double>;
         Cq_c->CopyFromMatrix(*other.Cq_c);
     } else {
         if (Cq_c)
@@ -57,7 +57,7 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
 
     if (other.Eq_a) {
         if (Eq_a == NULL)
-            Eq_a = new ChMatrixDynamic<float>;
+            Eq_a = new ChMatrixDynamic<double>;
         Eq_a->CopyFromMatrix(*other.Eq_a);
     } else {
         if (Eq_a)
@@ -67,7 +67,7 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
 
     if (other.Eq_b) {
         if (Eq_b == NULL)
-            Eq_b = new ChMatrixDynamic<float>;
+            Eq_b = new ChMatrixDynamic<double>;
         Eq_b->CopyFromMatrix(*other.Eq_b);
     } else {
         if (Eq_b)
@@ -77,7 +77,7 @@ ChConstraintThreeGeneric& ChConstraintThreeGeneric::operator=(const ChConstraint
 
     if (other.Eq_c) {
         if (Eq_c == NULL)
-            Eq_c = new ChMatrixDynamic<float>;
+            Eq_c = new ChMatrixDynamic<double>;
         Eq_c->CopyFromMatrix(*other.Eq_c);
     } else {
         if (Eq_c)
@@ -103,12 +103,12 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
 
     if (variables_a->Get_ndof()) {
         if (!Cq_a)
-            Cq_a = new ChMatrixDynamic<float>(1, variables_a->Get_ndof());
+            Cq_a = new ChMatrixDynamic<double>(1, variables_a->Get_ndof());
         else
             Cq_a->Resize(1, variables_a->Get_ndof());
 
         if (!Eq_a)
-            Eq_a = new ChMatrixDynamic<float>(variables_a->Get_ndof(), 1);
+            Eq_a = new ChMatrixDynamic<double>(variables_a->Get_ndof(), 1);
         else
             Eq_a->Resize(variables_a->Get_ndof(), 1);
     } else {
@@ -122,12 +122,12 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
 
     if (variables_b->Get_ndof()) {
         if (!Cq_b)
-            Cq_b = new ChMatrixDynamic<float>(1, variables_b->Get_ndof());
+            Cq_b = new ChMatrixDynamic<double>(1, variables_b->Get_ndof());
         else
             Cq_b->Resize(1, variables_b->Get_ndof());
 
         if (!Eq_b)
-            Eq_b = new ChMatrixDynamic<float>(variables_b->Get_ndof(), 1);
+            Eq_b = new ChMatrixDynamic<double>(variables_b->Get_ndof(), 1);
         else
             Eq_b->Resize(variables_b->Get_ndof(), 1);
     } else {
@@ -141,12 +141,12 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
 
     if (variables_c->Get_ndof()) {
         if (!Cq_c)
-            Cq_c = new ChMatrixDynamic<float>(1, variables_c->Get_ndof());
+            Cq_c = new ChMatrixDynamic<double>(1, variables_c->Get_ndof());
         else
             Cq_c->Resize(1, variables_c->Get_ndof());
 
         if (!Eq_c)
-            Eq_c = new ChMatrixDynamic<float>(variables_c->Get_ndof(), 1);
+            Eq_c = new ChMatrixDynamic<double>(variables_c->Get_ndof(), 1);
         else
             Eq_c->Resize(variables_c->Get_ndof(), 1);
     } else {
@@ -164,25 +164,25 @@ void ChConstraintThreeGeneric::Update_auxiliary() {
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive())
         if (variables_a->Get_ndof()) {
-            ChMatrixDynamic<float> mtemp1(variables_a->Get_ndof(), 1);
+            ChMatrixDynamic<double> mtemp1(variables_a->Get_ndof(), 1);
             mtemp1.CopyFromMatrixT(*Cq_a);
             variables_a->Compute_invMb_v(*Eq_a, mtemp1);
         }
     if (variables_b->IsActive())
         if (variables_b->Get_ndof()) {
-            ChMatrixDynamic<float> mtemp1(variables_b->Get_ndof(), 1);
+            ChMatrixDynamic<double> mtemp1(variables_b->Get_ndof(), 1);
             mtemp1.CopyFromMatrixT(*Cq_b);
             variables_b->Compute_invMb_v(*Eq_b, mtemp1);
         }
     if (variables_c->IsActive())
         if (variables_c->Get_ndof()) {
-            ChMatrixDynamic<float> mtemp1(variables_c->Get_ndof(), 1);
+            ChMatrixDynamic<double> mtemp1(variables_c->Get_ndof(), 1);
             mtemp1.CopyFromMatrixT(*Cq_c);
             variables_c->Compute_invMb_v(*Eq_c, mtemp1);
         }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-    ChMatrixDynamic<float> res(1, 1);
+    ChMatrixDynamic<double> res(1, 1);
     g_i = 0;
     if (variables_a->IsActive())
         if (variables_a->Get_ndof()) {
