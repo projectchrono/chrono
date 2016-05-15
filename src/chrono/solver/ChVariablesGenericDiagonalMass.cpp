@@ -37,13 +37,6 @@ ChVariablesGenericDiagonalMass& ChVariablesGenericDiagonalMass::operator=(const 
 
 // Computes the product of the inverse mass matrix by a
 // vector, and add to result: result = [invMb]*vect
-void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(result.GetRows() == vect.GetRows());
-    assert(vect.GetRows() == Get_ndof());
-    for (int i = 0; i < vect.GetRows(); ++i)
-        result(i) = vect(i) / (*MmassDiag)(i);
-}
-
 void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
@@ -53,14 +46,6 @@ void ChVariablesGenericDiagonalMass::Compute_invMb_v(ChMatrix<double>& result, c
 
 // Computes the product of the inverse mass matrix by a
 // vector, and increment result: result += [invMb]*vect
-void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<float>& result,
-                                                            const ChMatrix<float>& vect) const {
-    assert(result.GetRows() == vect.GetRows());
-    assert(vect.GetRows() == Get_ndof());
-    for (int i = 0; i < vect.GetRows(); ++i)
-        result(i) += vect(i) / (*MmassDiag)(i);
-}
-
 void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& result,
                                                             const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
@@ -71,13 +56,6 @@ void ChVariablesGenericDiagonalMass::Compute_inc_invMb_v(ChMatrix<double>& resul
 
 // Computes the product of the mass matrix by a
 // vector, and set in result: result = [Mb]*vect
-void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(result.GetRows() == vect.GetRows());
-    assert(vect.GetRows() == Get_ndof());
-    for (int i = 0; i < vect.GetRows(); ++i)
-        result(i) += vect(i) * (*MmassDiag)(i);
-}
-
 void ChVariablesGenericDiagonalMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());

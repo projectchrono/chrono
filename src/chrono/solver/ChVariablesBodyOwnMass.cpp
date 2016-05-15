@@ -32,18 +32,6 @@ ChVariablesBodyOwnMass& ChVariablesBodyOwnMass::operator=(const ChVariablesBodyO
 
 // Computes the product of the inverse mass matrix by a
 // vector, and set in result: result = [invMb]*vect
-void ChVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
-    // optimized unrolled operations
-    result(0) = (float)inv_mass * vect(0);
-    result(1) = (float)inv_mass * vect(1);
-    result(2) = (float)inv_mass * vect(2);
-    result(3) = (float)(inv_inertia(0, 0) * vect(3) + inv_inertia(0, 1) * vect(4) + inv_inertia(0, 2) * vect(5));
-    result(4) = (float)(inv_inertia(1, 0) * vect(3) + inv_inertia(1, 1) * vect(4) + inv_inertia(1, 2) * vect(5));
-    result(5) = (float)(inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5));
-}
-
 void ChVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -58,18 +46,6 @@ void ChVariablesBodyOwnMass::Compute_invMb_v(ChMatrix<double>& result, const ChM
 
 // Computes the product of the inverse mass matrix by a
 // vector, and increment result: result += [invMb]*vect
-void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
-    // optimized unrolled operations
-    result(0) += (float)inv_mass * vect(0);
-    result(1) += (float)inv_mass * vect(1);
-    result(2) += (float)inv_mass * vect(2);
-    result(3) += (float)(inv_inertia(0, 0) * vect(3) + inv_inertia(0, 1) * vect(4) + inv_inertia(0, 2) * vect(5));
-    result(4) += (float)(inv_inertia(1, 0) * vect(3) + inv_inertia(1, 1) * vect(4) + inv_inertia(1, 2) * vect(5));
-    result(5) += (float)(inv_inertia(2, 0) * vect(3) + inv_inertia(2, 1) * vect(4) + inv_inertia(2, 2) * vect(5));
-}
-
 void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -84,18 +60,6 @@ void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChMatrix<double>& result, const
 
 // Computes the product of the mass matrix by a
 // vector, and set in result: result = [Mb]*vect
-void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(result.GetRows() == Get_ndof());
-    assert(vect.GetRows() == Get_ndof());
-    // optimized unrolled operations
-    result(0) += (float)mass * vect(0);
-    result(1) += (float)mass * vect(1);
-    result(2) += (float)mass * vect(2);
-    result(3) += (float)(inertia(0, 0) * vect(3) + inertia(0, 1) * vect(4) + inertia(0, 2) * vect(5));
-    result(4) += (float)(inertia(1, 0) * vect(3) + inertia(1, 1) * vect(4) + inertia(1, 2) * vect(5));
-    result(5) += (float)(inertia(2, 0) * vect(3) + inertia(2, 1) * vect(4) + inertia(2, 2) * vect(5));
-}
-
 void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());

@@ -148,21 +148,18 @@ public:
     /// vector, and store in result: result = [invMb]*vect
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const = 0;
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and increment result: result += [invMb]*vect
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const = 0;
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the mass matrix by a
     /// vector, and increment result: result = [Mb]*vect
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const = 0;
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the corresponding block in the

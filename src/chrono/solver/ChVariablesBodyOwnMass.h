@@ -85,18 +85,15 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and set in result: result = [invMb]*vect
-    void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and increment result: result += [invMb]*vect
-    void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the mass matrix by a
     /// vector, and set in result: result = [Mb]*vect
-    void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the
     /// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
@@ -104,7 +101,7 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect.
-    void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const;
+    virtual void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const override;
 
     /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie
