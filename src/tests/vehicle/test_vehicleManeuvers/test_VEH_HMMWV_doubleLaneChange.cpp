@@ -47,13 +47,13 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 
 // If Irrlicht support is available...
+//#undef CHRONO_IRRLICHT
 #ifdef CHRONO_IRRLICHT
 // ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 // ...and specify whether the demo should actually use Irrlicht
-#define USE_IRRLICHT
 #endif
 
 using namespace chrono;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     //tires[i]->Initialize(vehicle.GetWheelBody(i)); 
   }
 
-#ifdef USE_IRRLICHT
+#ifdef CHRONO_IRRLICHT
 
   ChVehicleIrrApp app(&vehicle, &powertrain, L"Vehicle Demo");
 
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
   double theta = 0;
   bool pinnedTireToGround = false;
 
-#ifdef USE_IRRLICHT
+#ifdef CHRONO_IRRLICHT
 
   ChRealtimeStepTimer realtime_timer;
 

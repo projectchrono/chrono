@@ -40,7 +40,7 @@ Do this:
 
 1. install [the Chrono API](@ref tutorial_install_chrono) with C++ source code and build it,
 2. install [Python](http://www.python.org) (only Python version 3.2 or greater is supported)
-3. build the Chrono::PyEngine module, following [these instructions](@ref module_python)
+3. build the Chrono::PyEngine module, following [these instructions](@ref module_python_installation)
 
 
 ## Tips

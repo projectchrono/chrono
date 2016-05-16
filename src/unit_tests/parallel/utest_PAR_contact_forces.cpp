@@ -52,8 +52,8 @@ double rtol = 1e-3;  // validation relative error
 // ---------------------------
 
 bool use_mat_properties = false;
-bool use_history = false;
 ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
+ChSystemDEM::TangentialDisplacementModel tdispl_model = ChSystemDEM::OneStep;
 
 float young_modulus = 2e4f;
 float friction = 0.4f;
@@ -119,7 +119,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
             ChSystemParallelDEM* sys = new ChSystemParallelDEM;
             sys->GetSettings()->solver.contact_force_model = force_model;
-            sys->GetSettings()->solver.tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
+            sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
             system = sys;
 

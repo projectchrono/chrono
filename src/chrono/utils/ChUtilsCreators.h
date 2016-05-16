@@ -125,7 +125,7 @@ ChApi void AddTriangleMeshConvexDecomposition(ChBody* body,
                                               const std::string& name,
                                               const ChVector<>& pos = ChVector<>(0, 0, 0),
                                               const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                                              double skin_thickness = 0,
+                                              float skin_thickness = 0.0f,
                                               bool use_original_asset = true);
 
 ChApi void AddTriangleMeshConvexDecompositionV2(ChBody* body,
@@ -252,9 +252,9 @@ ChApi void LoadConvexMesh(const std::string& file_name,
                           int hacd_maxhullcount = 1024,
                           int hacd_maxhullmerge = 256,
                           int hacd_maxhullvertexes = 64,
-                          double hacd_concavity = 0.01,
-                          double hacd_smallclusterthreshold = 0.0,
-                          double hacd_fusetolerance = 1e-6);
+                          float hacd_concavity = 0.01f,
+                          float hacd_smallclusterthreshold = 0.0f,
+                          float hacd_fusetolerance = 1e-6f);
 
 // Given a convex mesh and it's decomposition add it to a ChBody
 // use_original_asset can be used to specify if the mesh or the convex decomp

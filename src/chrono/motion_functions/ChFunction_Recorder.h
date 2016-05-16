@@ -15,15 +15,20 @@
 #ifndef CHFUNCT_RECORDER_H
 #define CHFUNCT_RECORDER_H
 
+#include <list>
+
 #include "chrono/motion_functions/ChFunction_Base.h"
 
 namespace chrono {
 
 class ChApi ChRecPoint {
   public:
-    double x;
-    double y;
+    double x;  ///< argument value
+    double y;  ///< function value
     double w;  ///< weight
+
+    ChRecPoint() {}
+    ChRecPoint(double mx, double my, double mw) : x(mx), y(my), w(mw) {}
 
     void ArchiveOUT(ChArchiveOut& marchive) {
         marchive << CHNVP(x);
@@ -38,8 +43,6 @@ class ChApi ChRecPoint {
     }
 };
 
-#define CH_RECORDER_EPSILON 1.e-10
-
 /// Recorder function:
 ///
 /// y = interpolation of array of (x,y) data,
@@ -49,13 +52,13 @@ class ChApi ChFunction_Recorder : public ChFunction {
     CH_RTTI(ChFunction_Recorder, ChFunction);
 
   private:
-    mutable ChList<ChRecPoint> points;     ///< the list of points
-    mutable ChNode<ChRecPoint>* lastnode;  ///< speed optimization: remember the last used pointer
+    std::list<ChRecPoint> m_points;  ///< the list of points
+    mutable std::list<ChRecPoint>::const_iterator m_last;
 
   public:
-    ChFunction_Recorder() : lastnode(NULL) {}
+    ChFunction_Recorder() : m_last(m_points.end()) {}
     ChFunction_Recorder(const ChFunction_Recorder& other);
-    ~ChFunction_Recorder() { points.KillAll(); }
+    ~ChFunction_Recorder() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Recorder* Clone() const override { return new ChFunction_Recorder(*this); }
@@ -66,16 +69,14 @@ class ChApi ChFunction_Recorder : public ChFunction {
     virtual double Get_y_dx(double x) const override;
     virtual double Get_y_dxdx(double x) const override;
 
-    int AddPoint(double mx, double my, double mw);
-    int AddPoint(double mx, double my) { return AddPoint(mx, my, 1.0); }
-    int AddPointClean(double mx, double my, double dx_clean);  // also clean nodes to the right, upt to dx interval
- 
+    void AddPoint(double mx, double my, double mw = 1);
+
     void Reset() {
-        points.KillAll();
-        lastnode = NULL;
+        m_points.clear();
+        m_last = m_points.end();
     }
 
-    ChList<ChRecPoint>* GetPointList() { return &points; }
+    const std::list<ChRecPoint>& GetPoints() { return m_points; }
 
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
@@ -85,15 +86,8 @@ class ChApi ChFunction_Recorder : public ChFunction {
         marchive.VersionWrite(1);
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        std::vector<ChRecPoint> tmpvect;  // promote to modern array
-        for (ChNode<ChRecPoint>* mnode = points.GetHead(); mnode != NULL; mnode = mnode->next) {
-            ChRecPoint tmprec;
-            tmprec.x = mnode->data->x;
-            tmprec.y = mnode->data->y;
-            tmprec.w = mnode->data->w;
-            tmpvect.push_back(tmprec);
-        }
+        // serialize all member data: copy to vector and store
+        std::vector<ChRecPoint> tmpvect{std::begin(m_points), std::end(m_points)};
         marchive << CHNVP(tmpvect);
     }
 
@@ -103,17 +97,11 @@ class ChApi ChFunction_Recorder : public ChFunction {
         int version = marchive.VersionRead();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        std::vector<ChRecPoint> tmpvect;  // load from modern array
+        // stream in all member data: load vector of points and copy to list
+        std::vector<ChRecPoint> tmpvect;
         marchive >> CHNVP(tmpvect);
-        points.KillAll();
-        for (int i = 0; i < tmpvect.size(); i++) {
-            ChRecPoint* mpt = new ChRecPoint;
-            mpt->x = tmpvect[i].x;
-            mpt->y = tmpvect[i].y;
-            mpt->w = tmpvect[i].w;
-            points.AddTail(mpt);
-        }
+        m_points.clear();
+        std::copy(tmpvect.begin(), tmpvect.end(), std::back_inserter(m_points));
     }
 };
 

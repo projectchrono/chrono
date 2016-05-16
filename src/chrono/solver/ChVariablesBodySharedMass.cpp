@@ -1,17 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChVariablesBodySharedMass.h"
 
 namespace chrono {
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+ChClassRegister<ChVariablesBodySharedMass> a_registration_ChVariablesBodySharedMass;
 
 ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariablesBodySharedMass& other) {
     if (&other == this)
@@ -28,20 +34,6 @@ ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariable
 
 // Computes the product of the inverse mass matrix by a
 // vector, and set in result: result = [invMb]*vect
-void ChVariablesBodySharedMass::Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
-    // optimized unrolled operations
-    result(0) = (float)(sharedmass->inv_mass) * vect(0);
-    result(1) = (float)(sharedmass->inv_mass) * vect(1);
-    result(2) = (float)(sharedmass->inv_mass) * vect(2);
-    result(3) = (float)(sharedmass->inv_inertia(0, 0) * vect(3) + sharedmass->inv_inertia(0, 1) * vect(4) +
-                        sharedmass->inv_inertia(0, 2) * vect(5));
-    result(4) = (float)(sharedmass->inv_inertia(1, 0) * vect(3) + sharedmass->inv_inertia(1, 1) * vect(4) +
-                        sharedmass->inv_inertia(1, 2) * vect(5));
-    result(5) = (float)(sharedmass->inv_inertia(2, 0) * vect(3) + sharedmass->inv_inertia(2, 1) * vect(4) +
-                        sharedmass->inv_inertia(2, 2) * vect(5));
-}
 void ChVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -59,21 +51,6 @@ void ChVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, const 
 
 // Computes the product of the inverse mass matrix by a
 // vector, and increment result: result += [invMb]*vect
-void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(vect.GetRows() == Get_ndof());
-    assert(result.GetRows() == Get_ndof());
-    // optimized unrolled operations
-    result(0) += (float)(sharedmass->inv_mass) * vect(0);
-    result(1) += (float)(sharedmass->inv_mass) * vect(1);
-    result(2) += (float)(sharedmass->inv_mass) * vect(2);
-    result(3) += (float)(sharedmass->inv_inertia(0, 0) * vect(3) + sharedmass->inv_inertia(0, 1) * vect(4) +
-                         sharedmass->inv_inertia(0, 2) * vect(5));
-    result(4) += (float)(sharedmass->inv_inertia(1, 0) * vect(3) + sharedmass->inv_inertia(1, 1) * vect(4) +
-                         sharedmass->inv_inertia(1, 2) * vect(5));
-    result(5) += (float)(sharedmass->inv_inertia(2, 0) * vect(3) + sharedmass->inv_inertia(2, 1) * vect(4) +
-                         sharedmass->inv_inertia(2, 2) * vect(5));
-}
-
 void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -91,21 +68,6 @@ void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result, co
 
 // Computes the product of the mass matrix by a
 // vector, and set in result: result = [Mb]*vect
-void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const {
-    assert(result.GetRows() == Get_ndof());
-    assert(vect.GetRows() == Get_ndof());
-    // optimized unrolled operations
-    result(0) += (float)(sharedmass->mass) * vect(0);
-    result(1) += (float)(sharedmass->mass) * vect(1);
-    result(2) += (float)(sharedmass->mass) * vect(2);
-    result(3) += (float)(sharedmass->inertia(0, 0) * vect(3) + sharedmass->inertia(0, 1) * vect(4) +
-                         sharedmass->inertia(0, 2) * vect(5));
-    result(4) += (float)(sharedmass->inertia(1, 0) * vect(3) + sharedmass->inertia(1, 1) * vect(4) +
-                         sharedmass->inertia(1, 2) * vect(5));
-    result(5) += (float)(sharedmass->inertia(2, 0) * vect(3) + sharedmass->inertia(2, 1) * vect(4) +
-                         sharedmass->inertia(2, 2) * vect(5));
-}
-
 void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == Get_ndof());
     assert(vect.GetRows() == Get_ndof());
@@ -127,7 +89,9 @@ void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<double>& result, const
 // the size of the total variables&constraints in the system; the procedure
 // will use the ChVariable offsets (that must be already updated) to know the
 // indexes in result and vect.
-void ChVariablesBodySharedMass::MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const {
+void ChVariablesBodySharedMass::MultiplyAndAdd(ChMatrix<double>& result,
+                                               const ChMatrix<double>& vect,
+                                               const double c_a) const {
     assert(result.GetColumns() == 1 && vect.GetColumns() == 1);
     // optimized unrolled operations
     double q0 = vect(this->offset + 0);
@@ -140,12 +104,12 @@ void ChVariablesBodySharedMass::MultiplyAndAdd(ChMatrix<double>& result, const C
     result(this->offset + 0) += scaledmass * q0;
     result(this->offset + 1) += scaledmass * q1;
     result(this->offset + 2) += scaledmass * q2;
-    result(this->offset + 3) += c_a * 
-        (sharedmass->inertia(0, 0) * q3 + sharedmass->inertia(0, 1) * q4 + sharedmass->inertia(0, 2) * q5);
-    result(this->offset + 4) += c_a * 
-        (sharedmass->inertia(1, 0) * q3 + sharedmass->inertia(1, 1) * q4 + sharedmass->inertia(1, 2) * q5);
-    result(this->offset + 5) += c_a * 
-        (sharedmass->inertia(2, 0) * q3 + sharedmass->inertia(2, 1) * q4 + sharedmass->inertia(2, 2) * q5);
+    result(this->offset + 3) +=
+        c_a * (sharedmass->inertia(0, 0) * q3 + sharedmass->inertia(0, 1) * q4 + sharedmass->inertia(0, 2) * q5);
+    result(this->offset + 4) +=
+        c_a * (sharedmass->inertia(1, 0) * q3 + sharedmass->inertia(1, 1) * q4 + sharedmass->inertia(1, 2) * q5);
+    result(this->offset + 5) +=
+        c_a * (sharedmass->inertia(2, 0) * q3 + sharedmass->inertia(2, 1) * q4 + sharedmass->inertia(2, 2) * q5);
 }
 
 // Add the diagonal of the mass matrix scaled  by c_a, to 'result'.
@@ -173,9 +137,5 @@ void ChVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, int
     ChMatrix33<> scaledJ = sharedmass->inertia * c_a;
     storage.PasteMatrix(&scaledJ, insrow + 3, inscol + 3);
 }
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-ChClassRegister<ChVariablesBodySharedMass> a_registration_ChVariablesBodySharedMass;
 
 }  // end namespace chrono

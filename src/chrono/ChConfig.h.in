@@ -58,6 +58,9 @@
 // If module VEHICLE was enabled, define CHRONO_VEHICLE
 @CHRONO_VEHICLE@
 
+// If module FSI was enabled, define CHRONO_FSI
+@CHRONO_FSI@
+
 // -----------------------------------------------------------------------------
 // OpenMP settings
 // -----------------------------------------------------------------------------
