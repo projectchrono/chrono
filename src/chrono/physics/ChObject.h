@@ -13,20 +13,6 @@
 #ifndef CHOBJECT_H
 #define CHOBJECT_H
 
-//////////////////////////////////////////////////
-//
-//   ChObject.h
-//
-// Base class for objects which can be renamed,
-// copied, etc. Provides interface to link objects to
-// item in hosting applications, like geometric objects
-// in the editor of a 3d modeler.
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <iostream>
 #include <string>
@@ -34,9 +20,8 @@
 #include <float.h>
 #include <memory>
 
-#include "core/ChLog.h"
-#include "core/ChMath.h"
-#include "core/ChLists.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMath.h"
 
 #include <vector>
 

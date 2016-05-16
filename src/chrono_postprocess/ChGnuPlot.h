@@ -142,13 +142,13 @@ class ChGnuPlot {
     /// Shortcut to easy 2D plot of x,y data
     /// from a ChFunction_recorder
     void Plot(ChFunction_Recorder& mrecorder, const char* title, const char* customsettings = " with lines ") {
-        ChVectorDynamic<> mx(mrecorder.GetPointList()->Count());
+        ChVectorDynamic<> mx((const int)mrecorder.GetPoints().size());
         ChVectorDynamic<> my(mx.GetRows());
 
         int i = 0;
-        for (ChNode<ChRecPoint>* mnode = mrecorder.GetPointList()->GetHead(); mnode != NULL; mnode = mnode->next) {
-            mx(i) = mnode->data->x;
-            my(i) = mnode->data->y;
+        for (auto iter = mrecorder.GetPoints().begin(); iter != mrecorder.GetPoints().end(); ++iter) {
+            mx(i) = iter->x;
+            my(i) = iter->y;
             ++i;
         }
         Plot(mx, my, title, customsettings);
