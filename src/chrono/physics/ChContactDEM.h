@@ -264,10 +264,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         }
 
         // Coulomb law
-        double forceT_mag = std::abs(forceT);
-        double forceT_max = mat.mu_eff * std::abs(forceN);
-        double ratio = ((forceT_mag > forceT_max) && (forceT_max > CH_MICROTOL)) ? forceT_max / forceT_mag : 0;
-        forceT *= ratio;
+        forceT = std::min<double>(forceT, mat.mu_eff * std::abs(forceN));
 
         // Accumulate normal and tangential forces
         ChVector<> force = forceN * normal_dir;
