@@ -22,8 +22,10 @@
 #include <cmath>
 
 //#define CHSIMPLIFY_GAMMAS 
+#define CHUSE_ANS
+
+#define CHUSE_ANALYTIC_JACOBIAN
 //#define CHUSE_KGEOMETRIC
-//#define CHUSE_ANS
 
 namespace chrono {
 namespace fea {
@@ -361,8 +363,8 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         ChMatrixNM<double, 1, 4> Nv;
         this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
         this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
-		ChVector<> t1 = Nu(0) * pi0[0] +   Nu(1) * pi0[1] +  Nu(2) * pi0[2] +  Nu(3) * pi0[3] ;
-		ChVector<> t2 = Nv(0) * pi0[0] +   Nv(1) * pi0[1] +  Nv(2) * pi0[2] +  Nv(3) * pi0[3] ;
+		ChVector<> x_1 = Nu(0) * pi0[0] +   Nu(1) * pi0[1] +  Nu(2) * pi0[2] +  Nu(3) * pi0[3] ;
+		ChVector<> x_2 = Nv(0) * pi0[0] +   Nv(1) * pi0[1] +  Nv(2) * pi0[2] +  Nv(3) * pi0[3] ;
 
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
         ChVector<> phi_tilde_i = N(0)*phi_tilde_A + 
@@ -376,8 +378,8 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         ChQuaternion<> T_i0 = Tavg * Ri;  //... * iTa_i; see below
 
         // precompute iTa_i
-        t1.Normalize();
-		t2.Normalize();
+        ChVector<> t1 = x_1.GetNormalized();
+		ChVector<> t2 = x_2.GetNormalized();
 		ChVector<> t3 = Vcross(t1,t2);
 		t3.Normalize();
 		t2 = Vcross(t3,t1);
@@ -389,10 +391,10 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 
         ChMatrix33<> T_0_i(T_i0);
         ChMatrixNM<double,2,2> S_alpha_beta_i;
-		S_alpha_beta_i(0,0) = T_0_i.Get_A_Xaxis() ^ t1;
-		S_alpha_beta_i(1,0) = T_0_i.Get_A_Yaxis() ^ t1;
-		S_alpha_beta_i(0,1) = T_0_i.Get_A_Xaxis() ^ t2;
-		S_alpha_beta_i(1,1) = T_0_i.Get_A_Yaxis() ^ t2;
+		S_alpha_beta_i(0,0) = T_0_i.Get_A_Xaxis() ^ x_1;
+		S_alpha_beta_i(1,0) = T_0_i.Get_A_Yaxis() ^ x_1;
+		S_alpha_beta_i(0,1) = T_0_i.Get_A_Xaxis() ^ x_2;
+		S_alpha_beta_i(1,1) = T_0_i.Get_A_Yaxis() ^ x_2;
 		// alpha_i = det(S_alpha_beta_i)
 		alpha_i[igp] = S_alpha_beta_i(0,0) * S_alpha_beta_i(1,1) -
 			S_alpha_beta_i(0,1) * S_alpha_beta_i(1,0);      // -----store alpha_i;
@@ -436,8 +438,8 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         ChMatrixNM<double, 1, 4> Nv;
         this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
         this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
-		ChVector<> t1 = Nu(0) * pi0[0] +   Nu(1) * pi0[1] +  Nu(2) * pi0[2] +  Nu(3) * pi0[3] ;
-		ChVector<> t2 = Nv(0) * pi0[0] +   Nv(1) * pi0[1] +  Nv(2) * pi0[2] +  Nv(3) * pi0[3] ;
+		ChVector<> x_1 = Nu(0) * pi0[0] +   Nu(1) * pi0[1] +  Nu(2) * pi0[2] +  Nu(3) * pi0[3] ;
+		ChVector<> x_2 = Nv(0) * pi0[0] +   Nv(1) * pi0[1] +  Nv(2) * pi0[2] +  Nv(3) * pi0[3] ;
 
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
         ChVector<> phi_tilde_i = N(0)*phi_tilde_A + 
@@ -451,8 +453,8 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         ChQuaternion<> T_S0 = Tavg * Ri;   //... * iTa_S; see below
 
         // precompute iTa_S
-        t1.Normalize();
-		t2.Normalize();
+        ChVector<> t1 = x_1.GetNormalized();
+		ChVector<> t2 = x_2.GetNormalized();
 		ChVector<> t3 = Vcross(t1,t2);
 		t3.Normalize();
 		t2 = Vcross(t3,t1);
@@ -464,10 +466,10 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 
         ChMatrix33<> T_0_S(T_S0);
         ChMatrixNM<double,2,2> S_alpha_beta_S;
-		S_alpha_beta_S(0,0) = T_0_S.Get_A_Xaxis() ^ t1;
-		S_alpha_beta_S(1,0) = T_0_S.Get_A_Yaxis() ^ t1;
-		S_alpha_beta_S(0,1) = T_0_S.Get_A_Xaxis() ^ t2;
-		S_alpha_beta_S(1,1) = T_0_S.Get_A_Yaxis() ^ t2;
+		S_alpha_beta_S(0,0) = T_0_S.Get_A_Xaxis() ^ x_1;
+		S_alpha_beta_S(1,0) = T_0_S.Get_A_Yaxis() ^ x_1;
+		S_alpha_beta_S(0,1) = T_0_S.Get_A_Xaxis() ^ x_2;
+		S_alpha_beta_S(1,1) = T_0_S.Get_A_Yaxis() ^ x_2;
 
         S_alpha_beta_S.MatrInverse();
         ChMatrixNM<double,4,2> L_alpha_B_S;
@@ -823,9 +825,13 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 
     m_JacobianMatrix.Reset();
 
-    bool use_numerical_differentiation = true;
-    
-    if (use_numerical_differentiation) {
+    #ifdef CHUSE_ANALYTIC_JACOBIAN
+        bool analytic_jacobian = true;
+    #else
+        bool analytic_jacobian = false;
+    #endif
+
+    if (!analytic_jacobian) {
 
         double diff = 1e-6;
         ChMatrixNM<double,24,1> Kcolumn;
@@ -893,7 +899,8 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 5 + inode * 6);
             rot[inode] = qbackup;
         }
-    }
+    
+    } 
     else {
                // Assumed Natural Strain (ANS):  precompute m_strainANS 
         CalcStrainANSbilinearShell( GetNodeA()->GetPos(),GetNodeA()->GetRot(),
@@ -1106,26 +1113,26 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                 ChMatrixNM<double,24,24> K_g_i;
                 ChMatrixNM<double, 15,24> D_overline_i;
                 ChMatrix33<> Ieye(1);
-                block = Ieye * L_alpha_beta_i[igp](0,0);     B.PasteMatrix(&block, 0,0);
-                block = Ieye * L_alpha_beta_i[igp](0,1);     B.PasteMatrix(&block, 3,0);
-                block = Ieye * L_alpha_beta_i[igp](1,0);     B.PasteMatrix(&block, 0,6);
-                block = Ieye * L_alpha_beta_i[igp](1,1);     B.PasteMatrix(&block, 3,6);
-                block = Ieye * L_alpha_beta_i[igp](2,0);     B.PasteMatrix(&block, 0,12);
-                block = Ieye * L_alpha_beta_i[igp](2,1);     B.PasteMatrix(&block, 3,12);
-                block = Ieye * L_alpha_beta_i[igp](3,0);     B.PasteMatrix(&block, 0,18);
-                block = Ieye * L_alpha_beta_i[igp](3,1);     B.PasteMatrix(&block, 3,18);
-                B.PasteMatrix(&mKuA, 6,3);
-                B.PasteMatrix(&mKvA, 9,3);
-                B.PasteMatrix(&mKuB, 6,9);
-                B.PasteMatrix(&mKvB, 9,9);
-                B.PasteMatrix(&mKuC, 6,15);
-                B.PasteMatrix(&mKvC, 9,15);
-                B.PasteMatrix(&mKuD, 6,21);
-                B.PasteMatrix(&mKvD, 9,21);
-                block = PhiA * N(0);  B.PasteMatrix(&block, 12,3);
-                block = PhiB * N(1);  B.PasteMatrix(&block, 12,9);
-                block = PhiC * N(2);  B.PasteMatrix(&block, 12,15);
-                block = PhiD * N(3);  B.PasteMatrix(&block, 12,21);
+                block = Ieye * L_alpha_beta_i[igp](0,0);     D_overline_i.PasteMatrix(&block, 0,0);
+                block = Ieye * L_alpha_beta_i[igp](0,1);     D_overline_i.PasteMatrix(&block, 3,0);
+                block = Ieye * L_alpha_beta_i[igp](1,0);     D_overline_i.PasteMatrix(&block, 0,6);
+                block = Ieye * L_alpha_beta_i[igp](1,1);     D_overline_i.PasteMatrix(&block, 3,6);
+                block = Ieye * L_alpha_beta_i[igp](2,0);     D_overline_i.PasteMatrix(&block, 0,12);
+                block = Ieye * L_alpha_beta_i[igp](2,1);     D_overline_i.PasteMatrix(&block, 3,12);
+                block = Ieye * L_alpha_beta_i[igp](3,0);     D_overline_i.PasteMatrix(&block, 0,18);
+                block = Ieye * L_alpha_beta_i[igp](3,1);     D_overline_i.PasteMatrix(&block, 3,18);
+                D_overline_i.PasteMatrix(&mKuA, 6,3);
+                D_overline_i.PasteMatrix(&mKvA, 9,3);
+                D_overline_i.PasteMatrix(&mKuB, 6,9);
+                D_overline_i.PasteMatrix(&mKvB, 9,9);
+                D_overline_i.PasteMatrix(&mKuC, 6,15);
+                D_overline_i.PasteMatrix(&mKvC, 9,15);
+                D_overline_i.PasteMatrix(&mKuD, 6,21);
+                D_overline_i.PasteMatrix(&mKvD, 9,21);
+                block = PhiA * N(0);  D_overline_i.PasteMatrix(&block, 12,3);
+                block = PhiB * N(1);  D_overline_i.PasteMatrix(&block, 12,9);
+                block = PhiC * N(2);  D_overline_i.PasteMatrix(&block, 12,15);
+                block = PhiD * N(3);  D_overline_i.PasteMatrix(&block, 12,21);
 
                 ChMatrixNM<double, 15,15> G_i;
                 ChMatrix33<> mT_i(T_i);          
@@ -1151,15 +1158,15 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                 // K_g_i = D' * G * D
                 ChMatrixNM<double,24,15> DtG_i;
                 DtG_i.MatrTMultiply(D_overline_i,G_i);
-                K_g_i.MatrTMultiply(DtG_i, D_overline_i); 
+                K_g_i.MatrMultiply(DtG_i, D_overline_i); 
 
                 K_g_i.MatrScale(jacobian * (Kfactor + Rfactor * this->m_Alpha));
                 this->m_JacobianMatrix += K_g_i;
             #endif
 
-            //***TODO*** add optional EAS terms
-            
-        } // end loop on gauss points
+            //***TODO*** add optional EAS terms   
+        }
+
     }
 }
 

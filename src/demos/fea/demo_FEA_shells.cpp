@@ -172,9 +172,9 @@ int main(int argc, char* argv[]) {
 
     if (true)
     {
-        double rect_thickness = 1.10;
-        double rect_L = 10.0;
-        double rect_W = 1.0;
+        double rect_thickness = 0.10;
+        double rect_L = 12.0;
+        double rect_W = 1;
 
         // Create a material 
         double rho = 0.0;
@@ -188,10 +188,10 @@ int main(int argc, char* argv[]) {
                                                          0.01);
 
         // Create the nodes (each with position & normal to shell)
-        double node_density=0.01;
+        double node_density=0.00;
         
         int nels_L = 15;
-        int nels_W = 4;
+        int nels_W = 1;
         std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_L*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_L+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
                         nodearray[(il-1)*(nels_W+1) + (iw  )]
                         );
                     melement->AddLayer(rect_thickness, 0 * CH_C_DEG_TO_RAD, mat);
-                    melement->SetAlphaDamp(0.001);   
+                    melement->SetAlphaDamp(0.0);   
                     elarray[(il-1)*(nels_W) + (iw-1)] = melement;
                 }
             }
@@ -244,8 +244,9 @@ int main(int argc, char* argv[]) {
         }
         
         // applied shear
-        load_force = ChVector<>(0, 0, 0);
-        load_torque = ChVector<>(0, 50000, 0);
+        //load_force = ChVector<>(200000, 0, 0);
+        //load_force = ChVector<>(0, 4, 0);
+        load_torque = ChVector<>(0, 0, 50*CH_C_PI/3.0);
         ref_Y.AddPoint(0.10,1.309); ref_X.AddPoint(0.40,0.103);
         ref_Y.AddPoint(0.20,2.493); ref_X.AddPoint(0.80,0.381);
         ref_Y.AddPoint(0.30,3.488); ref_X.AddPoint(1.20,0.763);
@@ -446,8 +447,8 @@ int main(int argc, char* argv[]) {
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0.03); 
-                mnode->SetMass(0.3); 
+                mnode->GetInertia().FillDiag(0.00003); 
+                mnode->SetMass(0.0003); 
 
                 nodearray[iu*(nels_W+1) + iw] = mnode;
 
@@ -464,15 +465,15 @@ int main(int argc, char* argv[]) {
                 if (iu>0 && iw>0) {
                     auto melement = std::make_shared<ChElementShellEANS4>();
                     my_mesh->AddElement(melement);
-                   
+
                     melement->SetNodes(
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                        
-                    /*  
+                       
+                  /*   
                     melement->SetNodes( // not working well..
                         nodearray[(iu  )*(nels_W+1) + (iw-1)],
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
@@ -510,7 +511,7 @@ int main(int argc, char* argv[]) {
         }
         
 
-        load_force  = ChVector<>(0, -20000, 0);
+        load_force  = ChVector<>(0, -2000, 0);
         load_torque = VNULL;
         ref_X.AddPoint(0.10, 1-0.16);   
         ref_X.AddPoint(0.20, 1-0.37);   
@@ -597,9 +598,9 @@ int main(int argc, char* argv[]) {
         msol->SetAbsTolerances(1e-10, 1e-10);
     }
     */
-  my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+  //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
  
-    application.SetTimestep(0.1);
+    application.SetTimestep(0.01);
     application.SetPaused(true);
     my_system.Setup();
     my_system.Update();
