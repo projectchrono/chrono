@@ -20,6 +20,7 @@
 #define CHCONTACTDEM_H
 
 #include <cmath>
+#include <algorithm>
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChFrame.h"
