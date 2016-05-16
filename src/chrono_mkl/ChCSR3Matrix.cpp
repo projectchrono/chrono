@@ -19,8 +19,7 @@ ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int nonzeros)
     rows = insrow;
     columns = inscol;
 
-    if (nonzeros == 0)
-        nonzeros = static_cast<int>(rows * columns * SPM_DEF_FULLNESS);
+    if (nonzeros == 0) nonzeros = static_cast<int>(rows*(columns*SPM_DEF_FULLNESS));
 
     colIndex_occupancy = std::max(rows, nonzeros);
     rowIndex_occupancy = rows + 1;
