@@ -199,7 +199,7 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
                                         const std::string& name,
                                         const ChVector<>& pos,
                                         const ChQuaternion<>& rot,
-                                        double skin_thickness,
+                                        float skin_thickness,
                                         bool use_original_asset) {
     int decompdepth = 100;
     int maxhullvert = 50;
@@ -710,9 +710,9 @@ void LoadConvexMesh(const std::string& file_name,
                     int hacd_maxhullcount,
                     int hacd_maxhullmerge,
                     int hacd_maxhullvertexes,
-                    double hacd_concavity,
-                    double hacd_smallclusterthreshold,
-                    double hacd_fusetolerance) {
+                    float hacd_concavity,
+                    float hacd_smallclusterthreshold,
+                    float hacd_fusetolerance) {
     convex_mesh.LoadWavefrontMesh(file_name, true, false);
 
     for (int i = 0; i < convex_mesh.m_vertices.size(); i++) {

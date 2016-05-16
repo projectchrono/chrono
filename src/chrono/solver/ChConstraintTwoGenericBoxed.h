@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTTWOGENERICBOXED_H
 #define CHCONSTRAINTTWOGENERICBOXED_H
@@ -37,23 +39,14 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
 
   public:
     /// Default constructor
-    ChConstraintTwoGenericBoxed() {
-        l_min = -1.;
-        l_max = 1.;
-    }
+    ChConstraintTwoGenericBoxed() : l_min(-1), l_max(1) {}
 
     /// Construct and immediately set references to variables
     ChConstraintTwoGenericBoxed(ChVariables* mvariables_a, ChVariables* mvariables_b)
-        : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
-        l_min = -1;
-        l_max = 1;
-    }
+        : ChConstraintTwoGeneric(mvariables_a, mvariables_b), l_min(-1), l_max(1) {}
 
     /// Copy constructor
-    ChConstraintTwoGenericBoxed(const ChConstraintTwoGenericBoxed& other) : ChConstraintTwoGeneric(other) {
-        l_min = other.l_min;
-        l_max = other.l_max;
-    }
+    ChConstraintTwoGenericBoxed(const ChConstraintTwoGenericBoxed& other);
 
     virtual ~ChConstraintTwoGenericBoxed() {}
 
@@ -61,25 +54,10 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     virtual ChConstraintTwoGenericBoxed* Clone() const override { return new ChConstraintTwoGenericBoxed(*this); }
 
     /// Assignment operator: copy from other object
-    ChConstraintTwoGenericBoxed& operator=(const ChConstraintTwoGenericBoxed& other) {
-        if (&other == this)
-            return *this;
-
-        // copy parent class data
-        ChConstraintTwoGeneric::operator=(other);
-
-        l_min = other.l_min;
-        l_max = other.l_max;
-
-        return *this;
-    }
+    ChConstraintTwoGenericBoxed& operator=(const ChConstraintTwoGenericBoxed& other);
 
     /// Set lower/upper limit for the multiplier.
-    void SetBoxedMinMax(double mmin, double mmax) {
-        assert(mmin <= mmax);
-        l_min = mmin;
-        l_max = mmax;
-    }
+    void SetBoxedMinMax(double mmin, double mmax);
 
     /// Get the lower limit for the multiplier
     double GetBoxedMin() { return l_min; }
@@ -89,17 +67,12 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible orthant/set.
     /// This 'boxed implementation overrides the default do-nothing case.
-    virtual void Project() {
-        if (l_i < l_min)
-            l_i = l_min;
-        if (l_i > l_max)
-            l_i = l_max;
-    }
+    virtual void Project() override;
 
     /// Given the residual of the constraint computed as the
     /// linear map  mc_i =  [Cq]*q + b_i + cfm*l_i , returns the
     /// violation of the constraint, considering inequalities, etc.
-    virtual double Violation(double mc_i);
+    virtual double Violation(double mc_i) override;
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

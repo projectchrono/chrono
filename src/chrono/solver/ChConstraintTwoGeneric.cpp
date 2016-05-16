@@ -1,22 +1,51 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChConstraintTwoGeneric> a_registration_ChConstraintTwoGeneric;
+
+ChConstraintTwoGeneric::ChConstraintTwoGeneric(ChVariables* mvariables_a, ChVariables* mvariables_b)
+    : Cq_a(NULL), Cq_b(NULL), Eq_a(NULL), Eq_b(NULL) {
+    SetVariables(mvariables_a, mvariables_b);
+}
+
+ChConstraintTwoGeneric::ChConstraintTwoGeneric(const ChConstraintTwoGeneric& other) : ChConstraintTwo(other) {
+    Cq_a = Cq_b = Eq_a = Eq_b = NULL;
+    if (other.Cq_a)
+        Cq_a = new ChMatrixDynamic<double>(*other.Cq_a);
+    if (other.Cq_b)
+        Cq_b = new ChMatrixDynamic<double>(*other.Cq_b);
+    if (other.Eq_a)
+        Eq_a = new ChMatrixDynamic<double>(*other.Eq_a);
+    if (other.Eq_b)
+        Eq_b = new ChMatrixDynamic<double>(*other.Eq_b);
+}
+
+ChConstraintTwoGeneric::~ChConstraintTwoGeneric() {
+    if (Cq_a)
+        delete Cq_a;
+    if (Cq_b)
+        delete Cq_b;
+    if (Eq_a)
+        delete Eq_a;
+    if (Eq_b)
+        delete Eq_b;
+}
 
 ChConstraintTwoGeneric& ChConstraintTwoGeneric::operator=(const ChConstraintTwoGeneric& other) {
     if (&other == this)
@@ -150,6 +179,70 @@ void ChConstraintTwoGeneric::Update_auxiliary() {
     // 3- adds the constraint force mixing term (usually zero):
     if (cfm_i)
         g_i += cfm_i;
+}
+
+double ChConstraintTwoGeneric::Compute_Cq_q() {
+    double ret = 0;
+
+    if (variables_a->IsActive())
+        for (int i = 0; i < Cq_a->GetColumns(); i++)
+            ret += Cq_a->ElementN(i) * variables_a->Get_qb().ElementN(i);
+
+    if (variables_b->IsActive())
+        for (int i = 0; i < Cq_b->GetColumns(); i++)
+            ret += Cq_b->ElementN(i) * variables_b->Get_qb().ElementN(i);
+
+    return ret;
+}
+
+void ChConstraintTwoGeneric::Increment_q(const double deltal) {
+    if (variables_a->IsActive())
+        for (int i = 0; i < Eq_a->GetRows(); i++)
+            variables_a->Get_qb()(i) += Eq_a->ElementN(i) * deltal;
+
+    if (variables_b->IsActive())
+        for (int i = 0; i < Eq_b->GetRows(); i++)
+            variables_b->Get_qb()(i) += Eq_b->ElementN(i) * deltal;
+}
+
+void ChConstraintTwoGeneric::MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    int off_a = variables_a->GetOffset();
+    int off_b = variables_b->GetOffset();
+
+    if (variables_a->IsActive())
+        for (int i = 0; i < Cq_a->GetColumns(); i++)
+            result += vect(off_a + i) * Cq_a->ElementN(i);
+
+    if (variables_b->IsActive())
+        for (int i = 0; i < Cq_b->GetColumns(); i++)
+            result += vect(off_b + i) * Cq_b->ElementN(i);
+}
+
+void ChConstraintTwoGeneric::MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    int off_a = variables_a->GetOffset();
+    int off_b = variables_b->GetOffset();
+
+    if (variables_a->IsActive())
+        for (int i = 0; i < Cq_a->GetColumns(); i++)
+            result(off_a + i) += Cq_a->ElementN(i) * l;
+
+    if (variables_b->IsActive())
+        for (int i = 0; i < Cq_b->GetColumns(); i++)
+            result(off_b + i) += Cq_b->ElementN(i) * l;
+}
+
+void ChConstraintTwoGeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
+    if (variables_a->IsActive())
+        storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
+    if (variables_b->IsActive())
+        storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
+}
+
+void ChConstraintTwoGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
+    if (variables_a->IsActive())
+        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
+    if (variables_b->IsActive())
+        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
 }
 
 void ChConstraintTwoGeneric::StreamOUT(ChStreamOutBinary& mstream) {
