@@ -11,6 +11,7 @@ Chrono has been used by various universities, companies, research centers. A par
 ### Universities:
 - University of Wisconsin-Madison (USA): Chrono has been use in a variety of applications, see Simulation-Based Engineering Lab web site [link](http://sbel.wisc.edu/)
 - University of Parma (Italy): Chrono has been used in robotics, controls, waste management, etc. [link](http://www.chronoengine.info/tasora/)
+- Multibody dynamics support in [GPUSPH](http://www.gpusph.org/about/)
 - Georgia Tech University (USA): robotics, bio-inspired robots (Dan Goldman) [link](http://crablab.gatech.edu/)
 - Politecnico di Milano (Italy): planet formation, waste management, etc. (Pierangelo Masarati) [link](https://home.aero.polimi.it/masarati/)
 - University of Washington (USA): shock wave propagation in granular media (Nicholas Boechler) [link](http://faculty.washington.edu/boechler/)

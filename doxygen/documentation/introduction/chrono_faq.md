@@ -7,7 +7,7 @@ Chrono is owned and copyrighted by **Project Chrono**, a non-profit organization
 <br><br>
 
 #### Is Chrono free?
-The entire Chrono software infrastructure is open source and released under a permissive [BSD3](https://opensource.org/licenses/BSD-3-Clause) license. As such, one can use, modify, redistribute, sell, etc., the software. 
+The entire Chrono software infrastructure is open source and released under a [BSD3](https://opensource.org/licenses/BSD-3-Clause) license. As such, one can use, modify, redistribute, sell, etc., the software. 
 <br><br>
 
 #### Does Chrono have a graphical user interface?
