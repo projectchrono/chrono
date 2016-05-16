@@ -21,12 +21,12 @@ ChSolverMKL::ChSolverMKL()
       sparsity_pattern_lock(false),
       use_perm(false),
       use_rhs_sparsity(false),
-      manual_factorization(false) {}
+      manual_factorization(false),
+      nnz(0) {}
 
 double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
-    int pardiso_message_phase12 = 0;
     if (!manual_factorization)
-        pardiso_message_phase12 = static_cast<int>(Factorize(sysd));
+        Factorize(sysd);
 
     sysd.ConvertToMatrixForm(nullptr, &rhs);
 
@@ -34,8 +34,8 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     int pardiso_message_phase33 = mkl_engine.PardisoCall(33, 0);
 
     solver_call++;
-    if (pardiso_message_phase12 || pardiso_message_phase33) {
-        GetLog() << "Pardiso solve&refinement error code = " << pardiso_message_phase33 << "\n";
+    if (pardiso_message_phase33) {
+        GetLog() << "Pardiso solve+refine error code = " << pardiso_message_phase33 << "\n";
         GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
         GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
     }
@@ -56,15 +56,17 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
 
 double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
     // Initial resizing;
-    if (solver_call == 0) {
-        // not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE
-        // ConvertToMatrixForm()
+    if (solver_call == 0)
+    {
+        // not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE ConvertToMatrixForm()
         n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-        matCSR3.Reset(n, n, static_cast<int>(n * (n * SPM_DEF_FULLNESS)));
-        sol.Resize(n, 1);  // ConvertToMatrixForm() takes care of eventually resizing matCSR3 and rhs, but not sol; this
-                           // can be done also AFTER CTMF()
+        nnz ? matCSR3.Reset(n, n, nnz) : matCSR3.Reset(n, n, static_cast<int>(n*(n*SPM_DEF_FULLNESS)));
+        sol.Resize(n, 1); // ConvertToMatrixForm() takes care of eventually resizing matCSR3 and rhs, but not sol; this can be done also AFTER CTMF()
         res.Resize(n, 1);
     }
+    else
+        if (nnz)
+            matCSR3.Reset(n, n, nnz);
 
     // Build matrix and rhs;
     // in case the matrix changes size (rows) then RowIndexLockBroken is turned on
@@ -114,7 +116,7 @@ double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
     int pardiso_message_phase12 = mkl_engine.PardisoCall(12, 0);
 
     if (pardiso_message_phase12) {
-        GetLog() << "Pardiso reordering&factorization error code = " << pardiso_message_phase12 << "\n";
+        GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
         GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
         GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
     }
