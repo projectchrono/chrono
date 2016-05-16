@@ -1,31 +1,29 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
+#include <float.h>
+#include <math.h>
+#include <memory.h>
 #include <stdlib.h>
 #include <iostream>
-#include <math.h>
-#include <float.h>
-#include <memory.h>
 
-#include "chrono/physics/ChObject.h"
 #include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChObject.h"
 
 namespace chrono {
 
-// BASE CLASS FOR HANDLING ITEMS
-// with linked-list handling functions
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChObj> a_registration_ChObj;
 
 ChObj::ChObj() {
@@ -35,7 +33,10 @@ ChObj::ChObj() {
     identifier = 0;
 }
 
-ChObj::~ChObj() {
+ChObj::ChObj(const ChObj& other) {
+    identifier = other.identifier;
+    name = other.name;
+    ChTime = other.ChTime;
 }
 
 void ChObj::Copy(ChObj* source) {
@@ -45,26 +46,22 @@ void ChObj::Copy(ChObj* source) {
     ChTime = source->ChTime;
 }
 
-//
-// OTHER FUNCTIONS
-//
+void ChObj::ArchiveOUT(ChArchiveOut& marchive) {
+    marchive.VersionWrite(1);
 
-const char* ChObj::GetName() const {
-    return (char*)this->name.c_str();
+    // stream out all member data
+    marchive << CHNVP(name);
+    marchive << CHNVP(identifier);
+    marchive << CHNVP(ChTime);
 }
 
-void ChObj::SetName(const char myname[]) {
-    name = myname;
+void ChObj::ArchiveIN(ChArchiveIn& marchive) {
+    int version = marchive.VersionRead();
+
+    // stream out all member data
+    marchive >> CHNVP(name);
+    marchive >> CHNVP(identifier);
+    marchive >> CHNVP(ChTime);
 }
 
-std::string ChObj::GetNameString() const {
-    return this->name;
-}
-
-void ChObj::SetNameString(const std::string& myname) {
-    name = myname;
-}
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

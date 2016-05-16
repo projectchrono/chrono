@@ -1,53 +1,37 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdlib.h>
 #include <algorithm>
 
-#include "core/ChTransform.h"
-#include "physics/ChBody.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChMarker.h"
-#include "physics/ChForce.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChForce.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChMarker.h"
+#include "chrono/physics/ChSystem.h"
 
-#include "collision/ChCModelBullet.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChBody> a_registration_ChBody;
-
-// Hierarchy-handling shortcuts
-
-#define MARKpointer (*imarker)
-#define HIER_MARKER_INIT std::vector<std::shared_ptr<ChMarker>>::iterator imarker = marklist.begin();
-#define HIER_MARKER_NOSTOP (imarker != marklist.end())
-#define HIER_MARKER_NEXT imarker++;
-
-#define FORCEpointer (*iforce)
-#define HIER_FORCE_INIT std::vector<std::shared_ptr<ChForce>>::iterator iforce = forcelist.begin();
-#define HIER_FORCE_NOSTOP (iforce != forcelist.end())
-#define HIER_FORCE_NEXT iforce++;
-
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR SOLID BODIES
 
 ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
     marklist.clear();
@@ -140,6 +124,39 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::Con
     body_id = 0;
 }
 
+ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
+    bflag = other.bflag;
+
+    variables = other.variables;
+    variables.SetUserData((void*)this);
+
+    gyro = other.Get_gyro();
+
+    RemoveAllForces();   // also copy-duplicate the forces? Let the user handle this..
+    RemoveAllMarkers();  // also copy-duplicate the markers? Let the user handle this..
+
+    ChTime = other.ChTime;
+
+    collision_model->ClearModel();  // also copy-duplicate the collision model? Let the user handle this..
+
+    matsurface = other.matsurface;  // also copy-duplicate the material? Let the user handle this..
+
+    density = other.density;
+
+    Scr_force = other.Scr_force;
+    Scr_torque = other.Scr_torque;
+
+    last_coll_pos = other.last_coll_pos;
+
+    max_speed = other.max_speed;
+    max_wvel = other.max_wvel;
+
+    sleep_time = other.sleep_time;
+    sleep_starttime = other.sleep_starttime;
+    sleep_minspeed = other.sleep_minspeed;
+    sleep_minwvel = other.sleep_minwvel;
+}
+
 ChBody::~ChBody() {
     RemoveAllForces();
     RemoveAllMarkers();
@@ -195,24 +212,24 @@ ChCollisionModel* ChBody::InstanceCollisionModel() {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChBody::IntStateGather(const unsigned int off_x,  ///< offset in x state vector
-                            ChState& x,                ///< state vector, position part
-                            const unsigned int off_v,  ///< offset in v state vector
-                            ChStateDelta& v,           ///< state vector, speed part
-                            double& T)                 ///< time
-{
+void ChBody::IntStateGather(const unsigned int off_x,  // offset in x state vector
+                            ChState& x,                // state vector, position part
+                            const unsigned int off_v,  // offset in v state vector
+                            ChStateDelta& v,           // state vector, speed part
+                            double& T                  // time
+                            ) {
     x.PasteCoordsys(this->coord, off_x, 0);
     v.PasteVector(this->coord_dt.pos, off_v, 0);
     v.PasteVector(this->GetWvel_loc(), off_v + 3, 0);
     T = this->GetChTime();
 }
 
-void ChBody::IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
-                             const ChState& x,          ///< state vector, position part
-                             const unsigned int off_v,  ///< offset in v state vector
-                             const ChStateDelta& v,     ///< state vector, speed part
-                             const double T)            ///< time
-{
+void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vector
+                             const ChState& x,          // state vector, position part
+                             const unsigned int off_v,  // offset in v state vector
+                             const ChStateDelta& v,     // state vector, speed part
+                             const double T             // time
+                             ) {
     this->SetCoord(x.ClipCoordsys(off_x, 0));
     this->SetPos_dt(v.ClipVector(off_v, 0));
     this->SetWvel_loc(v.ClipVector(off_v + 3, 0));
@@ -230,12 +247,12 @@ void ChBody::IntStateScatterAcceleration(const unsigned int off_a, const ChState
     this->SetWacc_loc(a.ClipVector(off_a + 3, 0));
 }
 
-void ChBody::IntStateIncrement(const unsigned int off_x,  ///< offset in x state vector
-                               ChState& x_new,            ///< state vector, position part, incremented result
-                               const ChState& x,          ///< state vector, initial position part
-                               const unsigned int off_v,  ///< offset in v state vector
-                               const ChStateDelta& Dv)    ///< state vector, increment
-{
+void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
+                               ChState& x_new,            // state vector, position part, incremented result
+                               const ChState& x,          // state vector, initial position part
+                               const unsigned int off_v,  // offset in v state vector
+                               const ChStateDelta& Dv     // state vector, increment
+                               ) {
     // ADVANCE POSITION:
     x_new(off_x) = x(off_x) + Dv(off_v);
     x_new(off_x + 1) = x(off_x + 1) + Dv(off_v + 1);
@@ -252,9 +269,9 @@ void ChBody::IntStateIncrement(const unsigned int off_x,  ///< offset in x state
     x_new.PasteQuaternion(mnewrot, off_x + 3, 0);
 }
 
-void ChBody::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
-                               ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-                               const double c           ///< a scaling factor
+void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                               ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                               const double c           // a scaling factor
                                ) {
     // add applied forces to 'fb' vector
     R.PasteSumVector(Xforce * c, off, 0);
@@ -266,10 +283,10 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  ///< offset in R residua
         R.PasteSumVector((Xtorque - gyro) * c, off + 3, 0);
 }
 
-void ChBody::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-                                ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                                const ChVectorDynamic<>& w,  ///< the w vector
-                                const double c               ///< a scaling factor
+void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
+                                ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                                const ChVectorDynamic<>& w,  // the w vector
+                                const double c               // a scaling factor
                                 ) {
     R(off + 0) += c * GetMass() * w(off + 0);
     R(off + 1) += c * GetMass() * w(off + 1);
@@ -279,19 +296,19 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     R.PasteSumVector(Iw, off + 3, 0);
 }
 
-void ChBody::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChBody::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,
-                             const unsigned int off_L,  ///< offset in L, Qc
+                             const unsigned int off_L,  // offset in L, Qc
                              const ChVectorDynamic<>& L,
                              const ChVectorDynamic<>& Qc) {
     this->variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 6, 1, 0, 0);  // for solver warm starting only
     this->variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 6, 1, 0, 0);  // solver known term
 }
 
-void ChBody::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChBody::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                ChStateDelta& v,
-                               const unsigned int off_L,  ///< offset in L
+                               const unsigned int off_L,  // offset in L
                                ChVectorDynamic<>& L) {
     v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
 }
@@ -394,7 +411,7 @@ void ChBody::ClampSpeed() {
 }
 
 //// Utilities for coordinate transformations
-///
+
 ChVector<> ChBody::Point_World2Body(const ChVector<>& mpoint) {
     return ChFrame<double>::TransformParentToLocal(mpoint);
 }
@@ -419,7 +436,6 @@ ChVector<> ChBody::RelPoint_AbsAcc(const ChVector<>& mrelpoint) {
     return PointAccelerationLocalToParent(mrelpoint);
 }
 
-////
 // The inertia tensor functions
 
 void ChBody::SetInertia(const ChMatrix33<>& newXInertia) {
@@ -489,7 +505,6 @@ void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMat
     mQf->PasteSumQuaternion(ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3, 0);
 }
 
-
 //////
 
 void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, int local) {
@@ -531,11 +546,9 @@ void ChBody::ComputeGyro() {
 }
 
 bool ChBody::TrySleeping() {
-
     BFlagSet(BF_COULDSLEEP, false);
 
     if (this->GetUseSleeping()) {
-
         if (!this->IsActive())
             return false;
 
@@ -543,8 +556,8 @@ bool ChBody::TrySleeping() {
         if ((this->coord_dt.pos.LengthInf() < this->sleep_minspeed) &&
             (2.0 * this->coord_dt.rot.LengthInf() < this->sleep_minwvel)) {
             if ((this->GetChTime() - this->sleep_starttime) > this->sleep_time) {
-                BFlagSet(BF_COULDSLEEP, true); // mark as sleep candidate
-                return true; // could go to sleep!
+                BFlagSet(BF_COULDSLEEP, true);  // mark as sleep candidate
+                return true;                    // could go to sleep!
             }
         } else {
             this->sleep_starttime = float(this->GetChTime());
@@ -596,21 +609,16 @@ void ChBody::RemoveMarker(std::shared_ptr<ChMarker> mmarker) {
 }
 
 void ChBody::RemoveAllForces() {
-    HIER_FORCE_INIT
-    while (HIER_FORCE_NOSTOP) {
-        FORCEpointer->SetBody(0);
-        HIER_FORCE_NEXT
+    for (auto& force : forcelist) {
+        force->SetBody(NULL);
     }
     forcelist.clear();
 }
 
 void ChBody::RemoveAllMarkers() {
-    HIER_MARKER_INIT
-    while (HIER_MARKER_NOSTOP) {
-        MARKpointer->SetBody(0);
-        HIER_MARKER_NEXT
+    for (auto& marker : marklist) {
+        marker->SetBody(NULL);
     }
-
     marklist.clear();
 }
 
@@ -630,11 +638,8 @@ std::shared_ptr<ChForce> ChBody::SearchForce(const char* m_name) {
 // linked to the body will be updated.
 
 void ChBody::UpdateMarkers(double mytime) {
-    HIER_MARKER_INIT
-    while (HIER_MARKER_NOSTOP) {
-        MARKpointer->Update(mytime);
-
-        HIER_MARKER_NEXT
+    for (auto& marker : marklist) {
+        marker->Update(mytime);
     }
 }
 
@@ -654,16 +659,14 @@ void ChBody::UpdateForces(double mytime) {
     // 2 - accumulation of other applied forces
     ChVector<> mforce;
     ChVector<> mtorque;
-    HIER_FORCE_INIT
-    while (HIER_FORCE_NOSTOP) {
-        // update positions, f=f(t,q)
-        FORCEpointer->Update(mytime);
 
-        FORCEpointer->GetBodyForceTorque(&mforce, &mtorque);
+    for (auto& force : forcelist) {
+        // update positions, f=f(t,q)
+        force->Update(mytime);
+
+        force->GetBodyForceTorque(&mforce, &mtorque);
         Xforce += mforce;
         Xtorque += mtorque;
-
-        HIER_FORCE_NEXT
     }
 
     // 3 - accumulation of script forces
@@ -771,7 +774,6 @@ void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
     collision_model->SetContactable(this);
 }
 
-
 int ChBody::RecomputeCollisionModel() {
     if (!GetCollide())
         return FALSE;  // do nothing unless collision enabled
@@ -810,15 +812,12 @@ void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
         ChPhysicsItem::GetTotalAABB(bbmin, bbmax);  // default: infinite aabb
 }
 
-
-
 ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& abs_point) {
     ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
     return this->PointSpeedLocalToParent(m_p1_loc);
 }
 
-void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                             ChVectorDynamic<>& R) {
+void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
     ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
     ChVector<> force1_loc = this->Dir_World2Body(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
@@ -866,7 +865,7 @@ void ChBody::ComputeJacobianForRollingContactPart(
     Jr1.MatrTMultiply(contact_plane, this->GetA());
     if (!second)
         Jr1.MatrNeg();
-    
+
     jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
     jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
@@ -885,8 +884,7 @@ ChVector<> ChBody::GetContactTorque() {
 
 //////// FILE I/O
 
-void ChBody::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -896,37 +894,36 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive)
     ChBodyFrame::ArchiveOUT(marchive);
 
     // serialize all member data:
-    
 
     marchive << CHNVP(bflag);
-    bool mflag; // more readable flag output in case of ASCII in/out
+    bool mflag;  // more readable flag output in case of ASCII in/out
     mflag = BFlagGet(BF_FIXED);
-    marchive << CHNVP(mflag,"is_fixed");
+    marchive << CHNVP(mflag, "is_fixed");
     mflag = BFlagGet(BF_COLLIDE);
-    marchive << CHNVP(mflag,"collide");
+    marchive << CHNVP(mflag, "collide");
     mflag = BFlagGet(BF_LIMITSPEED);
-    marchive << CHNVP(mflag,"limit_speed");
+    marchive << CHNVP(mflag, "limit_speed");
     mflag = BFlagGet(BF_NOGYROTORQUE);
-    marchive << CHNVP(mflag,"no_gyro_torque");
+    marchive << CHNVP(mflag, "no_gyro_torque");
     mflag = BFlagGet(BF_USESLEEPING);
-    marchive << CHNVP(mflag,"use_sleeping");
+    marchive << CHNVP(mflag, "use_sleeping");
     mflag = BFlagGet(BF_SLEEPING);
-    marchive << CHNVP(mflag,"is_sleeping");
+    marchive << CHNVP(mflag, "is_sleeping");
 
-    //marchive << CHNVP(marklist);
+    // marchive << CHNVP(marklist);
     // do rather a custom array save:
     marchive.out_array_pre("markers", marklist.size(), "ChMarker");
     for (int i = 0; i < marklist.size(); i++) {
-        marchive << CHNVP(marklist[i],"");
+        marchive << CHNVP(marklist[i], "");
         marchive.out_array_between(marklist.size(), "markers");
     }
     marchive.out_array_end(marklist.size(), "markers");
 
-    //marchive << CHNVP(forcelist);
+    // marchive << CHNVP(forcelist);
     // do rather a custom array save:
     marchive.out_array_pre("forces", forcelist.size(), "ChForce");
     for (int i = 0; i < forcelist.size(); i++) {
-        marchive << CHNVP(forcelist[i],"");
+        marchive << CHNVP(forcelist[i], "");
         marchive.out_array_between(forcelist.size(), "forces");
     }
     marchive.out_array_end(forcelist.size(), "forces");
@@ -936,12 +933,12 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(gyro);
     marchive << CHNVP(Xforce);
     marchive << CHNVP(Xtorque);
-    //marchive << CHNVP(Force_acc); // not useful in serialization
-    //marchive << CHNVP(Torque_acc);// not useful in serialization
-    //marchive << CHNVP(Scr_force); // not useful in serialization
-    //marchive << CHNVP(Scr_torque);// not useful in serialization
+    // marchive << CHNVP(Force_acc); // not useful in serialization
+    // marchive << CHNVP(Torque_acc);// not useful in serialization
+    // marchive << CHNVP(Scr_force); // not useful in serialization
+    // marchive << CHNVP(Scr_torque);// not useful in serialization
     marchive << CHNVP(matsurface);
-    //marchive << CHNVP(last_coll_pos);// not useful in serialization
+    // marchive << CHNVP(last_coll_pos);// not useful in serialization
     marchive << CHNVP(density);
     marchive << CHNVP(variables);
     marchive << CHNVP(max_speed);
@@ -953,8 +950,7 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChBody::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -966,41 +962,41 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
     // stream in all member data:
 
     marchive >> CHNVP(bflag);
-    bool mflag; // more readable flag output in case of ASCII in/out
-    marchive >> CHNVP(mflag,"is_fixed");
-    BFlagSet(BF_FIXED,mflag);
-    marchive >> CHNVP(mflag,"collide");
-    BFlagSet(BF_COLLIDE,mflag);
-    marchive >> CHNVP(mflag,"limit_speed");
-    BFlagSet(BF_LIMITSPEED,mflag);
-    marchive >> CHNVP(mflag,"no_gyro_torque");
-    BFlagSet(BF_NOGYROTORQUE,mflag);
-    marchive >> CHNVP(mflag,"use_sleeping");
-    BFlagSet(BF_USESLEEPING,mflag);
-    marchive >> CHNVP(mflag,"is_sleeping");
-    BFlagSet(BF_SLEEPING,mflag);
+    bool mflag;  // more readable flag output in case of ASCII in/out
+    marchive >> CHNVP(mflag, "is_fixed");
+    BFlagSet(BF_FIXED, mflag);
+    marchive >> CHNVP(mflag, "collide");
+    BFlagSet(BF_COLLIDE, mflag);
+    marchive >> CHNVP(mflag, "limit_speed");
+    BFlagSet(BF_LIMITSPEED, mflag);
+    marchive >> CHNVP(mflag, "no_gyro_torque");
+    BFlagSet(BF_NOGYROTORQUE, mflag);
+    marchive >> CHNVP(mflag, "use_sleeping");
+    BFlagSet(BF_USESLEEPING, mflag);
+    marchive >> CHNVP(mflag, "is_sleeping");
+    BFlagSet(BF_SLEEPING, mflag);
 
-    //marchive >> CHNVP(marklist);
+    // marchive >> CHNVP(marklist);
     // do rather a custom array load:
     this->RemoveAllMarkers();
     size_t nummarkers;
     marchive.in_array_pre("markers", nummarkers);
     for (int i = 0; i < nummarkers; i++) {
         std::shared_ptr<ChMarker> a_marker;
-        marchive >> CHNVP(a_marker,"");
+        marchive >> CHNVP(a_marker, "");
         this->AddMarker(a_marker);
         marchive.in_array_between("markers");
     }
     marchive.in_array_end("markers");
 
-    //marchive >> CHNVP(forcelist);
+    // marchive >> CHNVP(forcelist);
     // do rather a custom array load:
     this->RemoveAllForces();
     size_t numforces;
     marchive.in_array_pre("forces", numforces);
     for (int i = 0; i < numforces; i++) {
         std::shared_ptr<ChForce> a_force;
-        marchive >> CHNVP(a_force,"");
+        marchive >> CHNVP(a_force, "");
         this->AddForce(a_force);
         marchive.in_array_between("forces");
     }
@@ -1008,16 +1004,16 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
 
     marchive >> CHNVP(body_id);
     marchive >> CHNVP(collision_model);
-     collision_model->SetContactable(this);
+    collision_model->SetContactable(this);
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);
     marchive >> CHNVP(Xtorque);
-    //marchive << CHNVP(Force_acc); // not useful in serialization
-    //marchive << CHNVP(Torque_acc);// not useful in serialization
-    //marchive << CHNVP(Scr_force); // not useful in serialization
-    //marchive << CHNVP(Scr_torque);// not useful in serialization
+    // marchive << CHNVP(Force_acc); // not useful in serialization
+    // marchive << CHNVP(Torque_acc);// not useful in serialization
+    // marchive << CHNVP(Scr_force); // not useful in serialization
+    // marchive << CHNVP(Scr_torque);// not useful in serialization
     marchive >> CHNVP(matsurface);
-    //marchive << CHNVP(last_coll_pos);// not useful in serialization
+    // marchive << CHNVP(last_coll_pos);// not useful in serialization
     marchive >> CHNVP(density);
     marchive >> CHNVP(variables);
     marchive >> CHNVP(max_speed);
@@ -1027,8 +1023,6 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(sleep_minwvel);
     marchive >> CHNVP(sleep_starttime);
 }
-
-
 
 void ChBody::StreamOUTstate(ChStreamOutBinary& mstream) {
     // Do not serialize parent classes and do not
@@ -1075,8 +1069,4 @@ void ChBody::StreamINstate(ChStreamInBinary& mstream) {
     this->SyncCollisionModels();
 }
 
-
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono
