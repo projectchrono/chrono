@@ -89,13 +89,13 @@ void ChMklEngine::SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx
 /// Tells the solver to store the permutation vector \c perm and use it in the next calls.
 void ChMklEngine::UsePermutationVector(bool on_off) {
     // The perm array is not set yet; it is built by Pardiso during the next factorization phase.
-    // IPARM(5)=2 (perm as output) says to Pardiso to output the perm vector used by the factorization;
-    // PardisoCall() will then switch IPARM(5) to 1 (perm as input)
-    IPARM(5) = (on_off) ? 2 : 0;
+    // iparm[4]=2 (perm as output) says to Pardiso to output the perm vector used by the factorization;
+    // PardisoCall() will then switch iparm[4] to 1 (perm as input)
+    iparm[4] = (on_off) ? 2 : 0;
 
     if (on_off == true) {
-        resetIparmElement(31);
-        resetIparmElement(36);
+        resetIparmElement(30);
+        resetIparmElement(35);
 
         perm.resize(n);
     }
@@ -103,30 +103,24 @@ void ChMklEngine::UsePermutationVector(bool on_off) {
 
 /// Warns if a incompatible parameter has been previously set
 void ChMklEngine::resetIparmElement(int iparm_num, int reset_value) {
-    if (IPARM(iparm_num) != reset_value) {
-        IPARM(iparm_num) = reset_value;
+    if (iparm[iparm_num] != reset_value) {
+        iparm[iparm_num] = reset_value;
 
         switch (iparm_num) {
-            case 4:
-                printf("Preconditioned CGS has been disabled. IPARM(4) = 0");
-                break;
-            case 5:
-                printf("Permutation vector has been disabled.IPARM(5) = 0");
-                break;
-            case 8:
-                printf("Iterative refinement steps has been disabled. IPARM(8) = 0");
-                break;
-            case 31:
-                printf("Partial solution has been disabled. IPARM(31) = 0");
-                break;
-            case 36:
-                printf("Schur computation has been disabled. IPARM(36) = 0");
-                break;
-            case 60:
-                printf("Mkl is now running in-core. IPARM(60) = 0");
-                break;
-            default:
-                printf("WARN: IparmReset not handled");
+        case 3:
+            printf("Preconditioned CGS has been disabled. iparm[3] = 0"); break;
+        case 4:
+            printf("Permutation vector has been disabled.iparm[4] = 0"); break;
+        case 7:
+            printf("Iterative refinement steps has been disabled. iparm[7] = 0"); break;
+        case 30:
+            printf("Partial solution has been disabled. iparm[30] = 0"); break;
+        case 35:
+            printf("Schur computation has been disabled. iparm[35] = 0"); break;
+        case 59:
+            printf("Mkl is now running in-core. iparm[59] = 0"); break;
+        default:
+            printf("WARN: IparmReset not handled");
         }
     }
 }
@@ -134,14 +128,15 @@ void ChMklEngine::resetIparmElement(int iparm_num, int reset_value) {
 void ChMklEngine::UsePartialSolution(int option, int start_row, int end_row) {
     assert(option == 0 || option == 1 || option == 2 || option == 3);
 
-    IPARM(31) = option;
+    iparm[30] = option;
 
     if (option) {
+
+        resetIparmElement(3);
         resetIparmElement(4);
-        resetIparmElement(5);
-        resetIparmElement(8);
-        resetIparmElement(36);
-        resetIparmElement(60);
+        resetIparmElement(7);
+        resetIparmElement(35);
+        resetIparmElement(59);
 
         perm.resize(n);
 
@@ -163,11 +158,11 @@ void ChMklEngine::UsePartialSolution(int option, int start_row, int end_row) {
 /// The element (\param[end_row],\param[end_row] must be the bottom-right element of the matrix on which the Schur
 /// complement will be computed;
 void ChMklEngine::OutputSchurComplement(int option, int start_row, int end_row) {
-    IPARM(36) = option;
+    iparm[35] = option;
 
     if (option) {
-        resetIparmElement(5);
-        resetIparmElement(31);
+        resetIparmElement(4);
+        resetIparmElement(30);
 
         perm.resize(n);
 
@@ -184,9 +179,9 @@ void ChMklEngine::OutputSchurComplement(int option, int start_row, int end_row) 
 void ChMklEngine::SetPreconditionedCGS(bool on_off, int L) {
     if (on_off) {
         int K = (mtype == 11 || mtype == 1) ? 1 : 2;
-        IPARM(4) = 10 * L + K;
+        iparm[3] = 10 * L + K;
     } else
-        IPARM(4) = 0;
+        iparm[3] = 0;
 }
 
 int ChMklEngine::PardisoCall(int set_phase, int message_level) {
@@ -196,8 +191,8 @@ int ChMklEngine::PardisoCall(int set_phase, int message_level) {
     PARDISO(pt, &maxfct, &mnum, &mtype, &phase_now, &n, a, ia, ja, perm.data(), &nrhs, iparm, &message_level, b, x,
             &error);
 
-    if (IPARM(5) == 2)
-        IPARM(5) = 1;
+    if (iparm[4] == 2)
+        iparm[4] = 1;
 
     return error;
 }
@@ -210,27 +205,29 @@ void ChMklEngine::ResetSolver(int new_mat_type) {
 
     /*
     * NOTE: for highly indefinite symmetric matrices (e.g. interior point optimizations or saddle point problems)
-    * use IPARM(11) = 1 (scaling) and IPARM(13) = 1 (matchings);
+    * use iparm[10] = 1 (scaling) and iparm[12] = 1 (matchings);
     */
 
-    /*IPARM easy settings*/
-    IPARM(1) = 1;   /* No default values for solver */
-    IPARM(6) = 0;   /* Write solution on u */
-    IPARM(12) = 0;  /* Solve with transposed/conjugate transposed matrix [def: 0, solve simply A*x=b]*/
-    IPARM(18) = -1; /* Report number of nonzeros */
-    IPARM(19) = -1; /* Report number of floating point operations */
-    IPARM(35) = 1;  /* Zero based indexing */
-    IPARM(27) = 0;  /* Matrix checker */
-    IPARM(28) = 0;  /* Double precision */
-    IPARM(36) = 0;  /* Schur complement matrix computation control [def:0, do not compute Schur] */
-    IPARM(56) = 0;  /* Diagonal and pivoting control [def:0, disabled] */
-    IPARM(60) = 0;  /* In-Core (OC) / Out-Of-Core (OOC) switch [def:0, IC mode] */
+    /* IPARM easy settings */
+    iparm[0] = 1;                /* No default values for solver */
+    iparm[5] = 0;                /* Write solution on u */
+    iparm[11] = 0;                /* Solve with transposed/conjugate transposed matrix [def: 0, solve simply A*x=b]*/
+    iparm[17] = -1;                /* Report number of nonzeros */
+    iparm[18] = -1;                /* Report number of floating point operations */
+    iparm[34] = 1;                /* Zero based indexing */
+    iparm[26] = 0;                /* Matrix checker */
+    iparm[27] = 0;                /* Double precision */
+    iparm[35] = 0;                /* Schur complement matrix computation control [def:0, do not compute Schur] */
+    iparm[55] = 0;                /* Diagonal and pivoting control [def:0, disabled] */
+    iparm[59] = 0;                /* In-Core (OC) / Out-Of-Core (OOC) switch [def:0, IC mode] */
+
 
     /* IPARM fine settings */
-    IPARM(2) = 2;  /* Fill-in reducing ordering [def:2] */
-    IPARM(4) = 0;  /* Preconditioned CGS/CG [def:0] - HIGHLY RECOMMENDED */
-    IPARM(5) = 0;  /* User fill-in reducing permutation [def:0, default filling]*/
-    IPARM(8) = 10; /* Maximum number of iterative refinement steps */
+    iparm[1] = 2;                /* Fill-in reducing ordering [def:2] */
+    iparm[3] = 0;                /* Preconditioned CGS/CG [def:0] - HIGHLY RECOMMENDED */
+    iparm[4] = 0;                /* User fill-in reducing permutation [def:0, default filling]*/
+    iparm[7] = 10;                /* Maximum number of iterative refinement steps */
+
 }
 
 void ChMklEngine::GetResidual(double* res) const {
@@ -250,25 +247,25 @@ double ChMklEngine::GetResidualNorm(const double* res) const {
 };
 
 void ChMklEngine::PrintIparmOutput() const {
-    printf("\n[7] Number of iterative refinement steps performed: %d", IPARM(7));
+    printf("\n[6] Number of iterative refinement steps performed: %d", iparm[6]);
     if (mtype == 11 || mtype == 13 || mtype == -2 || mtype == -4 || mtype == -6)
-        printf("\n[14] Number of perturbed pivots: %d", IPARM(14));
+        printf("\n[13] Number of perturbed pivots: %d", iparm[13]);
     if (last_phase_called == 11 || last_phase_called == 12 || last_phase_called == 13) {
-        printf("\n[15] Peak memory on symbolic factorization (kB): %d", IPARM(15));
-        printf("\n[16] Permanent memory on symbolic factorization (kB): %d", IPARM(16));
-        printf("\n[17] Peak memory on numerical factorization and solution (kB): %d", IPARM(17));
-        printf("\nTotal peak memory consumed (kB): %d", std::max(IPARM(15), IPARM(16) + IPARM(17)));
+        printf("\n[14] Peak memory on symbolic factorization (kB): %d", iparm[14]);
+        printf("\n[15] Permanent memory on symbolic factorization (kB): %d", iparm[15]);
+        printf("\n[16] Peak memory on numerical factorization and solution (kB): %d", iparm[16]);
+        printf("\nTotal peak memory consumed (kB): %d", std::max(iparm[14], iparm[15] + iparm[16]));
     }
 
-    printf("\n[18] Number of non-zero elements in the factors: %d", IPARM(18));
-    printf("\n[19] Number of floating point operations necessary to factor the matrix (^6): %d", IPARM(19));
-    printf("\n[20] Number of completed CG/CGS iterations: %d", IPARM(20));
+    printf("\n[17] Number of non-zero elements in the factors: %d", iparm[17]);
+    printf("\n[18] Number of floating point operations necessary to factor the matrix (^6): %d", iparm[18]);
+    printf("\n[19] Number of completed CG/CGS iterations: %d", iparm[19]);
     if (mtype == -2) {
-        printf("\n[22] Number of positive eigenvalues: %d", IPARM(22));
-        printf("\n[23] Number of negative eigenvalues: %d\n", IPARM(23));
+        printf("\n[21] Number of positive eigenvalues: %d", iparm[21]);
+        printf("\n[22] Number of negative eigenvalues: %d\n", iparm[22]);
     }
     if (mtype == 2 || mtype == 4)
-        printf("\n[30] Number of zero or negative pivots: %d", IPARM(30));
+        printf("\n[29] Number of zero or negative pivots: %d", iparm[29]);
 }
 
 }  // end namespace chrono
