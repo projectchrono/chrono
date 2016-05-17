@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHVARIABLES_H
 #define CHVARIABLES_H
@@ -48,59 +50,22 @@ namespace chrono {
 
 class ChApi ChVariables {
     CH_RTTI_ROOT(ChVariables)
-public:
-
   private:
-    //
-    // DATA
-    //
-    /// the variables (accelerations, speeds, etc. depending on the problem)
-    ChMatrix<>* qb;
-    /// the known vector (forces, or impulses, etc. depending on the problem)
-    ChMatrix<>* fb;
-    /// the number of degrees of freedom (number of contained scalar variables)
-    int ndof;
-    /// user activation/deactivation of variables
-    bool disabled;
+    ChMatrix<>* qb;  ///< variables (accelerations, speeds, etc. depending on the problem)
+    ChMatrix<>* fb;  ///< known vector (forces, or impulses, etc. depending on the problem)
+    int ndof;        ///< number of degrees of freedom (number of contained scalar variables)
+    bool disabled;   ///< user activation/deactivation of variables
 
   protected:
-    /// offset in global q state vector (needed by some solvers)
-    int offset;
+    int offset;  ///< offset in global q state vector (needed by some solvers)
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-    ChVariables() {
-        disabled = false;
-        ndof = 0;
-        qb = fb = NULL;
-        offset = 0;
-    }
-
-    ChVariables(int m_ndof) {
-        disabled = false;
-        ndof = m_ndof;
-        if (Get_ndof() > 0) {
-            qb = new ChMatrixDynamic<>(Get_ndof(), 1);
-            fb = new ChMatrixDynamic<>(Get_ndof(), 1);
-        } else {
-            qb = fb = NULL;
-        }
-        offset = 0;
-    }
-
-    virtual ~ChVariables() {
-        delete qb;
-        delete fb;
-    }
+    ChVariables() : disabled(false), ndof(0), qb(NULL), fb(NULL), offset(0) {}
+    ChVariables(int m_ndof);
+    virtual ~ChVariables();
 
     /// Assignment operator: copy from other object
     ChVariables& operator=(const ChVariables& other);
-
-    //
-    // FUNCTIONS
-    //
 
     /// Deactivates/freezes the variable (these 'frozen',
     /// variables won't be modified by the system solver).
@@ -124,7 +89,7 @@ public:
     /// of freedom q in system:
     ///    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
     ///    | Cq  0 | |l|  |-b|  |c|
-    ChMatrix<>& Get_qb() { return *qb; };
+    ChMatrix<>& Get_qb() { return *qb; }
 
     /// Compute fb, body-relative part of known
     /// vector f in system.
@@ -148,21 +113,18 @@ public:
     /// vector, and store in result: result = [invMb]*vect
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const = 0;
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and increment result: result += [invMb]*vect
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const = 0;
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the mass matrix by a
     /// vector, and increment result: result = [Mb]*vect
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-    virtual void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const = 0;
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the corresponding block in the
@@ -184,22 +146,15 @@ public:
     /// Most iterative solvers don't need to know this matrix explicitly.
     /// *** This function MUST BE OVERRIDDEN by specialized
     /// inherited classes
-	virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) = 0;
-
-
+    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }
     /// Get offset in global q vector
     int GetOffset() const { return offset; }
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {};
-    virtual void ArchiveIN(ChArchiveIn& marchive) {};
-
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {}
+    virtual void ArchiveIN(ChArchiveIn& marchive) {}
 };
 
 }  // end namespace chrono

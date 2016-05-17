@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
     // ---------------------------
 
     bool use_mat_properties = false;
-    bool use_history = false;
     ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
+    ChSystemDEM::TangentialDisplacementModel tdispl_model = ChSystemDEM::None;
 
     float young_modulus = 2e9f;
     float friction = 0.4f;
@@ -135,10 +135,13 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
 
-    ChSystemDEM system(use_mat_properties, use_history);
+    ChSystemDEM system(use_mat_properties);
 
     // Set the DEM contact force model 
     system.SetContactForceModel(force_model);
+
+    // Set tangential displacement model
+    system.SetTangentialDisplacementModel(tdispl_model);
 
     // Set contact forces as stiff (to force Jacobian computation) or non-stiff
     system.SetStiffContact(stiff_contact);

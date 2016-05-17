@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTTWOTUPLES_H
 #define CHCONSTRAINTTWOTUPLES_H
@@ -58,7 +60,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// Access tuple b
     type_constraint_tuple_b& Get_tuple_b() { return tuple_b; }
 
-    virtual void Update_auxiliary() {
+    virtual void Update_auxiliary() override {
         g_i = 0;
         tuple_a.Update_auxiliary(g_i);
         tuple_b.Update_auxiliary(g_i);
@@ -71,7 +73,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// the row-jacobian of this constraint '[Cq_i]' and the
     /// vector of variables, 'v'. that is    CV=[Cq_i]*v
     /// This is used for some iterative solvers.
-    virtual double Compute_Cq_q() {
+    virtual double Compute_Cq_q() override {
         double ret = 0;
         ret += tuple_a.Compute_Cq_q();
         ret += tuple_b.Compute_Cq_q();
@@ -82,7 +84,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
     ///  v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
     ///  This is used for some iterative solvers.
-    virtual void Increment_q(const double deltal) {
+    virtual void Increment_q(const double deltal) override {
         tuple_a.Increment_q(deltal);
         tuple_b.Increment_q(deltal);
     }
@@ -93,7 +95,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const {
+    virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const override {
         tuple_a.MultiplyAndAdd(result, vect);
         tuple_b.MultiplyAndAdd(result, vect);
     }
@@ -104,7 +106,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) {
+    virtual void MultiplyTandAdd(ChMatrix<double>& result, double l) override {
         tuple_a.MultiplyTandAdd(result, l);
         tuple_b.MultiplyTandAdd(result, l);
     }
@@ -115,11 +117,11 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
     /// This is used only by the ChSolverSimplex solver (iterative solvers
     /// don't need to know jacobians explicitly)
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override {
         tuple_a.Build_Cq(storage, insrow);
         tuple_b.Build_Cq(storage, insrow);
     }
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override {
         tuple_a.Build_CqT(storage, inscol);
         tuple_b.Build_CqT(storage, inscol);
     }

@@ -14,7 +14,6 @@
 
 #include <math.h>
 
-#include "chrono/core/ChLists.h"
 #include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {

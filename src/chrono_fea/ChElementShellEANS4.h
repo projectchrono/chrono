@@ -225,7 +225,23 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
                                     const ChVector<>& pC, const ChQuaternion<>& rC,
                                     const ChVector<>& pD, const ChQuaternion<>& rD);
 
-  private:
+    ChVector<> EvaluateGP(int igp) {
+        double u = xi_i[igp][0];
+        double v = xi_i[igp][1];
+        ChMatrixNM<double, 1, 4> N;
+        this->ShapeFunctions(N, u, v, 0);
+        return   N(0)*GetNodeA()->GetPos() + N(1)*GetNodeB()->GetPos() + N(2)*GetNodeC()->GetPos() + N(3)*GetNodeD()->GetPos();
+    }
+    ChVector<> EvaluatePT(int ipt) {
+        double u = xi_n[ipt][0];
+        double v = xi_n[ipt][1];
+        ChMatrixNM<double, 1, 4> N;
+        this->ShapeFunctions(N, u, v, 0);
+        return   N(0)*GetNodeA()->GetPos() + N(1)*GetNodeB()->GetPos() + N(2)*GetNodeC()->GetPos() + N(3)*GetNodeD()->GetPos();
+    }
+
+  //***TEST*** to make private
+  public:
 
     //
     // DATA
@@ -256,6 +272,13 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     std::array<ChQuaternion<>, NUMNO> iTa;                 ///< inverse of reference rotations at nodes
     std::array<ChQuaternion<>, NUMGP> iTa_i;               ///< inverse of reference rotations at gauss points
     std::array<ChQuaternion<>, NUMSP> iTa_S;               ///< inverse of reference rotations at shear points
+
+    std::array<ChVector<>, NUMNO> phi_tilde;
+    std::array<ChQuaternion<>, NUMGP> T_i;
+    std::array<ChVector<>, NUMGP> eps_tilde_u;
+    std::array<ChVector<>, NUMGP> eps_tilde_v;
+    std::array<ChVector<>, NUMGP> kur_u_tilde;
+    std::array<ChVector<>, NUMGP> kur_v_tilde;
 
     std::array<ChVector<>, NUMGP> eps_tilde_u_0_i;           ///< initial strains at gauss points
     std::array<ChVector<>, NUMGP> eps_tilde_v_0_i;           ///< initial strains at gauss points

@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTNODECONTACTN_H
 #define CHCONSTRAINTNODECONTACTN_H
@@ -25,41 +27,23 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
     CH_RTTI(ChConstraintNodeContactN, ChConstraintTwoGeneric)
 
   protected:
-    /// the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
-    float friction;
-
-    /// the pointer to U tangential component
-    ChConstraintNodeFrictionT* constraint_U;
-    /// the pointer to V tangential component
-    ChConstraintNodeFrictionT* constraint_V;
+    float friction;                           ///< the friction coefficient 'f', for  sqrt(Tx^2+Ty^2)<f*Nz
+    ChConstraintNodeFrictionT* constraint_U;  ///< the pointer to U tangential component
+    ChConstraintNodeFrictionT* constraint_V;  ///< the pointer to V tangential component
 
   public:
     /// Default constructor
-    ChConstraintNodeContactN() {
-        mode = CONSTRAINT_FRIC;
-        friction = 0.0;
-        constraint_U = constraint_V = 0;
-    }
+    ChConstraintNodeContactN();
 
     /// Construct and immediately set references to variables,
     /// also setting the U and V tangential friction constraints
     ChConstraintNodeContactN(ChVariablesBody* mvariables_a,
                              ChVariablesNode* mvariables_b,
                              ChConstraintNodeFrictionT* aU = 0,
-                             ChConstraintNodeFrictionT* aV = 0)
-        : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
-        mode = CONSTRAINT_FRIC;
-        friction = 0.0;
-        constraint_U = aU;
-        constraint_V = aV;
-    }
+                             ChConstraintNodeFrictionT* aV = 0);
 
     /// Copy constructor
-    ChConstraintNodeContactN(const ChConstraintNodeContactN& other) : ChConstraintTwoGeneric(other) {
-        friction = other.friction;
-        constraint_U = other.constraint_U;
-        constraint_V = other.constraint_V;
-    }
+    ChConstraintNodeContactN(const ChConstraintNodeContactN& other);
 
     virtual ~ChConstraintNodeContactN() {}
 
@@ -67,17 +51,7 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
     virtual ChConstraintNodeContactN* Clone() const override { return new ChConstraintNodeContactN(*this); }
 
     /// Assignment operator: copy from other object
-    ChConstraintNodeContactN& operator=(const ChConstraintNodeContactN& other) {
-        if (&other == this)
-            return *this;
-        // copy parent class data
-        ChConstraintTwoGeneric::operator=(other);
-
-        friction = other.friction;
-        constraint_U = other.constraint_U;
-        constraint_V = other.constraint_V;
-        return *this;
-    }
+    ChConstraintNodeContactN& operator=(const ChConstraintNodeContactN& other);
 
     /// Get the friction coefficient
     float GetFrictionCoefficient() { return friction; }
@@ -99,7 +73,7 @@ class ChApi ChConstraintNodeContactN : public ChConstraintTwoGeneric {
     /// This projection will also modify the l_i values of the two
     /// tangential friction constraints (projection onto the friction cone,
     /// as by Anitescu-Tasora theory).
-    virtual void Project();
+    virtual void Project() override;
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

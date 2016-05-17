@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         // Create a material 
         double rho = 0.0;
         double E = 1e9;
-        double nu = 0.4; 
+        double nu = 0.0; 
         auto mat = std::make_shared<ChMaterialShellEANS>(shell_thickness,
                                                          rho, 
                                                          E, 
@@ -136,13 +136,17 @@ int main(int argc, char* argv[]) {
         elementeans->AddLayer(shell_thickness, 0 * CH_C_DEG_TO_RAD, mat);
 
         // Set other element properties
-        elementeans->SetAlphaDamp(0.02);    // Structural damping for this element
+        elementeans->SetAlphaDamp(0.00);    // Structural damping for this element
 
         // Apply a lumped force to a node:
        // hnodeeans3->SetPos(hnodeeans3->GetPos()+ChVector<>(0, 0, 0.01));
        // hnodeeans4->SetPos(hnodeeans4->GetPos()+ChVector<>(0, 0, 0.01));
-       // hnodeeans3->SetForce(ChVector<>(0, 3000, 0));
-       // hnodeeans4->SetForce(ChVector<>(0, 3000, 0));
+        hnodeeans3->SetForce(ChVector<>( 200000, 0, 0));
+        hnodeeans4->SetForce(ChVector<>( 200000, 0, 0));
+        /*
+        hnodeeans3->SetTorque(ChVector<>( 0, 0, 200000));
+        hnodeeans4->SetTorque(ChVector<>( 0, 0, 200000));
+        */
        //hnodeeans3->SetForce(ChVector<>(0, 0, 100));
        //hnodeeans4->SetForce(ChVector<>(0, 0, 100));
        // hnodeeans3->SetForce(ChVector<>(0, 50, 0));
@@ -151,6 +155,8 @@ int main(int argc, char* argv[]) {
        //hnodeeans4->SetTorque(ChVector<>(0.2, 0, 0));
        // hnodeeans4->SetMass(2000);
  
+        nodePlotA = hnodeeans3;
+        nodePlotB = hnodeeans4;
         
     }
 
@@ -164,11 +170,11 @@ int main(int argc, char* argv[]) {
     // Add an EANS SHELL cantilever:
     //
 
-    if (false)
+    if (true)
     {
         double rect_thickness = 0.10;
-        double rect_L = 10.0;
-        double rect_W = 1.0;
+        double rect_L = 12.0;
+        double rect_W = 1;
 
         // Create a material 
         double rho = 0.0;
@@ -182,7 +188,7 @@ int main(int argc, char* argv[]) {
                                                          0.01);
 
         // Create the nodes (each with position & normal to shell)
-        double node_density=0.0001;
+        double node_density=0.00;
         
         int nels_L = 15;
         int nels_W = 1;
@@ -194,7 +200,7 @@ int main(int argc, char* argv[]) {
         for (int il = 0; il<= nels_L; ++il) {
             for (int iw = 0; iw<= nels_W; ++iw) {
                 // Make nodes
-                ChVector<> nodepos(rect_L*((double)il/(double)nels_L),   0, rect_W*((double)iw/(double)nels_W));
+                ChVector<> nodepos(rect_L*((double)il/(double)nels_L), 0,  rect_W*((double)iw/(double)nels_W));
                 //ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos,noderot);
@@ -224,7 +230,7 @@ int main(int argc, char* argv[]) {
                         nodearray[(il-1)*(nels_W+1) + (iw  )]
                         );
                     melement->AddLayer(rect_thickness, 0 * CH_C_DEG_TO_RAD, mat);
-                    melement->SetAlphaDamp(0.001);   
+                    melement->SetAlphaDamp(0.0);   
                     elarray[(il-1)*(nels_W) + (iw-1)] = melement;
                 }
             }
@@ -238,8 +244,9 @@ int main(int argc, char* argv[]) {
         }
         
         // applied shear
-        load_force = ChVector<>(0, 4, 0);
-        load_torque = VNULL;
+        //load_force = ChVector<>(200000, 0, 0);
+        //load_force = ChVector<>(0, 4, 0);
+        load_torque = ChVector<>(0, 0, 50*CH_C_PI/3.0);
         ref_Y.AddPoint(0.10,1.309); ref_X.AddPoint(0.40,0.103);
         ref_Y.AddPoint(0.20,2.493); ref_X.AddPoint(0.80,0.381);
         ref_Y.AddPoint(0.30,3.488); ref_X.AddPoint(1.20,0.763);
@@ -286,9 +293,9 @@ int main(int argc, char* argv[]) {
         // Create the nodes (each with position & normal to shell)
         double node_density=0.0001;
         
-        int nels_U = 3;
-        int nels_W = 1;
-        double arc = CH_C_2PI *0.4;
+        int nels_U = 30;
+        int nels_W = 6;
+        double arc = CH_C_2PI *1;
         std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
@@ -306,16 +313,16 @@ int main(int argc, char* argv[]) {
                 //ChMatrix33<> nr;
                 //nr.Set_A_Xdir (ChVector<>(cos(u*CH_C_2PI), 0, sin(u*CH_C_2PI)),VECT_Y);
                 //ChQuaternion<> noderot(nr.Get_A_quaternion());
-                //ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
-                ChQuaternion<> noderot(QUNIT);
+                ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
+                //ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0); 
-                mnode->SetMass(0.000); 
-
+                mnode->GetInertia().FillDiag(0.0); 
+                mnode->SetMass(0);//0.00002); 
+                
                 nodearray[iu*(nels_W+1) + iw] = mnode;
 
                 if (iu==0)
@@ -327,32 +334,33 @@ int main(int argc, char* argv[]) {
                 if (iu>0 && iw>0) {
                     auto melement = std::make_shared<ChElementShellEANS4>();
                     my_mesh->AddElement(melement);
-                   /*
+                    
                     melement->SetNodes(
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                    */    
-                       
+                    /* 
                     melement->SetNodes( // not working well..
                         nodearray[(iu  )*(nels_W+1) + (iw-1)],
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)] 
                         );
-                   
+                   */
                     melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
                     melement->SetAlphaDamp(0.0);   
                     elarray[(iu-1)*(nels_W) + (iw-1)] = melement;
                     
                     ChMatrixDynamic<> mFi(24,1);
+                    //melement->SetupInitial(&my_system);
+                    //melement->ComputeInternalForces(mFi);
+                    //nodearray[(iu  )*(nels_W+1) + (iw-1)]->ConcatenatePreTransformation( ChFrameMoving<>(ChVector<>(0,1,0)));
+                    //nodearray[(iu  )*(nels_W+1) + (iw-1)]->SetPos(nodearray[(iu  )*(nels_W+1) + (iw-1)]->GetPos() + ChVector<>(0,1,0));
+                    //nodearray[(iu  )*(nels_W+1) + (iw-1)]->SetX0(*nodearray[(iu  )*(nels_W+1) + (iw-1)]);
                     melement->SetupInitial(&my_system);
-                    melement->ComputeInternalForces(mFi);
-                    nodearray[(iu  )*(nels_W+1) + (iw-1)]->ConcatenatePreTransformation( ChFrameMoving<>(ChVector<>(0,1,0)));
-                    melement->SetupInitial(&my_system);
-                    melement->ComputeInternalForces(mFi);
+                    //melement->ComputeInternalForces(mFi);
                     
                 }
             }
@@ -395,7 +403,7 @@ int main(int argc, char* argv[]) {
     // Add a CLAMPED HALF CYLINDER :
     //
 
-    if (true)
+    if (false)
     {
         double plate_thickness = 0.03;
         double plate_R = 1.016;
@@ -439,8 +447,8 @@ int main(int argc, char* argv[]) {
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0.03); 
-                mnode->SetMass(0.3); 
+                mnode->GetInertia().FillDiag(0.00003); 
+                mnode->SetMass(0.0003); 
 
                 nodearray[iu*(nels_W+1) + iw] = mnode;
 
@@ -457,22 +465,22 @@ int main(int argc, char* argv[]) {
                 if (iu>0 && iw>0) {
                     auto melement = std::make_shared<ChElementShellEANS4>();
                     my_mesh->AddElement(melement);
-                   
+
                     melement->SetNodes(
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                        
-                      /* 
+                       
+                  /*   
                     melement->SetNodes( // not working well..
                         nodearray[(iu  )*(nels_W+1) + (iw-1)],
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)] 
                         );
-                   */
+                    */
                     melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
                     melement->SetAlphaDamp(0.0);   
                     elarray[(iu-1)*(nels_W) + (iw-1)] = melement;                    
@@ -530,20 +538,21 @@ int main(int argc, char* argv[]) {
     mvisualizeshellA->SetSmoothFaces(true);
 	mvisualizeshellA->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizeshellA);
-
+/*
     auto mvisualizeshellB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.01);
     my_mesh->AddAsset(mvisualizeshellB);
-/*
+    */
+
     auto mvisualizeshellC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeshellC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizeshellC->SetSymbolsThickness(0.05);
     mvisualizeshellC->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizeshellC);
-*/
+
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
@@ -583,13 +592,15 @@ int main(int argc, char* argv[]) {
 
     // Change type of integrator:
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
+    /*
     if (auto msol =  dynamic_cast<ChTimestepperEulerImplicit*>(my_system.GetSolverSpeed())) {
         msol->SetMaxiters(6);
         msol->SetAbsTolerances(1e-10, 1e-10);
     }
-    //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    */
+  //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
  
-    application.SetTimestep(0.1);
+    application.SetTimestep(0.01);
     application.SetPaused(true);
     my_system.Setup();
     my_system.Update();
@@ -597,6 +608,7 @@ int main(int argc, char* argv[]) {
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
     
+my_system.DoStaticLinear();
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
@@ -615,7 +627,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        if(!application.GetPaused() ) {
+        if(!application.GetPaused() && nodePlotA && nodePlotB) {
             rec_Y.AddPoint( load_scale, nodePlotA->GetPos().y);
             rec_X.AddPoint( load_scale, nodePlotB->GetPos().y);
         }

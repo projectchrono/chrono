@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTTWOTUPLESROLLINGN_H
 #define CHCONSTRAINTTWOTUPLESROLLINGN_H
@@ -38,25 +41,18 @@ template <class Ta, class Tb>
 class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>,
                                             public ChConstraintTwoTuplesRollingNall {
   protected:
-    /// the rolling friction coefficient
-    float rollingfriction;
-    float spinningfriction;
+    float rollingfriction;   ///< the rolling friction coefficient
+    float spinningfriction;  ///< the spinning friction coefficient
 
-    /// the pointer to U tangential component
-    ChConstraintTwoTuplesRollingT<Ta, Tb>* constraint_U;
-    /// the pointer to V tangential component
-    ChConstraintTwoTuplesRollingT<Ta, Tb>* constraint_V;
-    /// the pointer to N  component
-    ChConstraintTwoTuplesContactN<Ta, Tb>* constraint_N;
+    ChConstraintTwoTuplesRollingT<Ta, Tb>* constraint_U;  ///< the pointer to U tangential component
+    ChConstraintTwoTuplesRollingT<Ta, Tb>* constraint_V;  ///< the pointer to V tangential component
+    ChConstraintTwoTuplesContactN<Ta, Tb>* constraint_N;  ///< the pointer to N  component
 
   public:
     /// Default constructor
-    ChConstraintTwoTuplesRollingN() {
+    ChConstraintTwoTuplesRollingN()
+        : rollingfriction(0), spinningfriction(0), constraint_U(NULL), constraint_V(NULL), constraint_N(NULL) {
         this->mode = CONSTRAINT_FRIC;
-        rollingfriction = 0.0;
-        spinningfriction = 0.0;
-        constraint_U = constraint_V = 0;
-        constraint_N = 0;
     }
 
     /// Copy constructor
@@ -117,7 +113,7 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
     /// This projection will also modify the l_i values of the two
     /// tangential friction constraints (projection onto the friction cone,
     /// as by Anitescu-Tasora theory).
-    virtual void Project() {
+    virtual void Project() override {
         if (!constraint_U)
             return;
 
@@ -138,12 +134,12 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
         double t_tang = sqrt(t_v * t_v + t_u * t_u);
         double t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
 
-        // A Project the spinning friction (approximate - should do cone
+        // A. Project the spinning friction (approximate - should do cone
         //   projection stuff as in B, but spinning friction is usually very low...)
 
         if (spinningfriction) {
-            // inside upper cone? keep untouched!
             if (t_sptang < spinningfriction * f_n) {
+                // inside upper cone? keep untouched!
             } else {
                 // inside lower cone? reset  normal,u,v to zero!
                 if ((t_sptang < -(1.0 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
@@ -162,7 +158,7 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
             }
         }
 
-        // B Project the rolling friction
+        // B. Project the rolling friction
 
         // shortcut
         if (!rollingfriction) {

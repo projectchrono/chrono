@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTNODEFRICTIONT_H
 #define CHCONSTRAINTNODEFRICTIONT_H
@@ -27,16 +29,13 @@ class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
 
   public:
     /// Default constructor
-    ChConstraintNodeFrictionT() { mode = CONSTRAINT_FRIC; }
+    ChConstraintNodeFrictionT();
 
     /// Construct and immediately set references to variables,
     /// also setting the  and the normal constraint
     /// other tangential constraint (the latter is mandatory only
     /// for the second of the two tangential constraints)
-    ChConstraintNodeFrictionT(ChVariablesBody* mvariables_a, ChVariablesNode* mvariables_b)
-        : ChConstraintTwoGeneric(mvariables_a, mvariables_b) {
-        mode = CONSTRAINT_FRIC;
-    }
+    ChConstraintNodeFrictionT(ChVariablesBody* mvariables_a, ChVariablesNode* mvariables_b);
 
     /// Copy constructor
     ChConstraintNodeFrictionT(const ChConstraintNodeFrictionT& other) : ChConstraintTwoGeneric(other) {}
@@ -47,22 +46,14 @@ class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
     virtual ChConstraintNodeFrictionT* Clone() const override { return new ChConstraintNodeFrictionT(*this); }
 
     /// Assignment operator: copy from other object
-    ChConstraintNodeFrictionT& operator=(const ChConstraintNodeFrictionT& other) {
-        if (&other == this)
-            return *this;
-
-        // copy parent class data
-        ChConstraintTwoGeneric::operator=(other);
-
-        return *this;
-    }
+    ChConstraintNodeFrictionT& operator=(const ChConstraintNodeFrictionT& other);
 
     /// Tells that this constraint is not linear, that is: it cannot
     /// be solved with a plain simplex solver.
-    virtual bool IsLinear() const { return false; }
+    virtual bool IsLinear() const override { return false; }
 
     /// The constraint is satisfied?
-    virtual double Violation(double mc_i);
+    virtual double Violation(double mc_i) override;
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.

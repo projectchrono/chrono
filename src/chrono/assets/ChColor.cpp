@@ -41,15 +41,15 @@ ChColor ChColor::ComputeFalseColor(double v,double vmin,double vmax, bool out_of
 
    if (v < (vmin + 0.25 * dv)) {
       c.R = 0;
-      c.G = 4 * (v - vmin) / dv;
+      c.G = (float)(4 * (v - vmin) / dv);
    } else if (v < (vmin + 0.5 * dv)) {
       c.R = 0;
-      c.B = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
+      c.B = (float)(1 + 4 * (vmin + 0.25 * dv - v) / dv);
    } else if (v < (vmin + 0.75 * dv)) {
-      c.R = 4 * (v - vmin - 0.5 * dv) / dv;
+      c.R = (float)(4 * (v - vmin - 0.5 * dv) / dv);
       c.B = 0;
    } else {
-      c.G = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
+      c.G = (float)(1 + 4 * (vmin + 0.75 * dv - v) / dv);
       c.B = 0;
    }
 
