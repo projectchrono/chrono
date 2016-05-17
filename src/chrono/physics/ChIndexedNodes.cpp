@@ -1,46 +1,33 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdlib.h>
 #include <algorithm>
 
+#include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegisterABSTRACT<ChIndexedNodes> a_registration_ChIndexedNodes;
 
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR INDEXED NODES CONTAINER
-
-ChIndexedNodes::ChIndexedNodes() {
-}
-
-ChIndexedNodes::~ChIndexedNodes() {
-}
-
-//////// FILE I/O
-
 void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) {
-
     // class version number
     marchive.VersionWrite(1);
 
@@ -51,7 +38,6 @@ void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 void ChIndexedNodes::ArchiveIN(ChArchiveIn& marchive) {
-
     // class version number
     int version = marchive.VersionRead();
 
@@ -61,8 +47,4 @@ void ChIndexedNodes::ArchiveIN(ChArchiveIn& marchive) {
     // stream in all member data
 }
 
-
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

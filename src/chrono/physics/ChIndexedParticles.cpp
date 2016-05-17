@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdlib.h>
 #include <algorithm>
@@ -23,23 +26,10 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time  dynamic creation and persistence
 ChClassRegisterABSTRACT<ChIndexedParticles> a_registration_ChIndexedParticles;
 
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR A PARTICLE
-
-ChParticleBase::ChParticleBase() {
-}
-
-ChParticleBase::~ChParticleBase() {
-}
-
-ChParticleBase::ChParticleBase(const ChParticleBase& other) : ChFrameMoving<double>(other) {
-}
+// Base class for particles
 
 ChParticleBase& ChParticleBase::operator=(const ChParticleBase& other) {
     if (&other == this)
@@ -51,21 +41,15 @@ ChParticleBase& ChParticleBase::operator=(const ChParticleBase& other) {
     return *this;
 }
 
-//////////////////////////////////////
-//////////////////////////////////////
+/// Base class for particle clusters
 
-/// CLASS FOR PARTICLE CLUSTER
-
-ChIndexedParticles::ChIndexedParticles() {
+ChFrame<> ChIndexedParticles::GetAssetsFrame(unsigned int nclone) {
+    ChFrame<> res;
+    res = GetParticle(nclone);
+    return res;
 }
-
-ChIndexedParticles::~ChIndexedParticles() {
-}
-
-//////// FILE I/O
 
 void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
-
     // class version number
     marchive.VersionWrite(1);
 
@@ -76,7 +60,6 @@ void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 void ChIndexedParticles::ArchiveIN(ChArchiveIn& marchive) {
-
     // class version number
     int version = marchive.VersionRead();
 
@@ -86,6 +69,4 @@ void ChIndexedParticles::ArchiveIN(ChArchiveIn& marchive) {
     // stream in all member data
 }
 
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

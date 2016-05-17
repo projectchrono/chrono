@@ -1,70 +1,54 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   ChParticlesClones.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdlib.h>
 #include <algorithm>
 
-#include "core/ChTransform.h"
-#include "physics/ChParticlesClones.h"
-#include "physics/ChSystem.h"
-#include "physics/ChGlobal.h"
-
-#include "collision/ChCModelBullet.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
+// -----------------------------------------------------------------------------
+// CLASS FOR A PARTICLE
+// -----------------------------------------------------------------------------
 
+ChAparticle::ChAparticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {
+    collision_model = new ChModelBullet;
+    collision_model->SetContactable(this);
+}
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
+    collision_model = new ChModelBullet;
+    collision_model->AddCopyOfAnotherModel(other.collision_model);
+    collision_model->SetContactable(this);
 
-/// CLASS FOR A PARTICLE
-
-
-
-
-ChAparticle::ChAparticle() {
-    this->collision_model = new ChModelBullet;
-    this->collision_model->SetContactable(this);
-    this->container = 0;
-    this->UserForce = VNULL;
-    this->UserTorque = VNULL;
+    container = other.container;
+    UserForce = other.UserForce;
+    UserTorque = other.UserTorque;
+    variables = other.variables;
 }
 
 ChAparticle::~ChAparticle() {
     delete collision_model;
-}
-
-ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
-    this->collision_model = new ChModelBullet;
-    this->collision_model->AddCopyOfAnotherModel(other.collision_model);
-    this->collision_model->SetContactable(this);
-
-    this->container = other.container;
-    this->UserForce = other.UserForce;
-    this->UserTorque = other.UserTorque;
-    this->variables = other.variables;
 }
 
 ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
@@ -74,38 +58,84 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     // parent class copy
     ChParticleBase::operator=(other);
 
-    this->collision_model->ClearModel();
-    this->collision_model->AddCopyOfAnotherModel(other.collision_model);
-    this->collision_model->SetContactable(this);
+    collision_model->ClearModel();
+    collision_model->AddCopyOfAnotherModel(other.collision_model);
+    collision_model->SetContactable(this);
 
-    this->container = other.container;
-    this->UserForce = other.UserForce;
-    this->UserTorque = other.UserTorque;
-    this->variables = other.variables;
+    container = other.container;
+    UserForce = other.UserForce;
+    UserTorque = other.UserTorque;
+    variables = other.variables;
 
     return *this;
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChAparticle::GetMaterialSurfaceBase()
-{
+std::shared_ptr<ChMaterialSurfaceBase>& ChAparticle::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
+void ChAparticle::ContactableGetStateBlock_w(ChStateDelta& w) {
+    w.PasteVector(this->GetPos_dt(), 0, 0);
+    w.PasteVector(this->GetWvel_loc(), 3, 0);
+}
+
+void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+    // Increment position
+    x_new(0) = x(0) + dw(0);
+    x_new(1) = x(1) + dw(1);
+    x_new(2) = x(2) + dw(2);
+
+    // Increment rotation: rot' = delta*rot  (use quaternion for delta rotation)
+    ChQuaternion<> mdeltarot;
+    ChQuaternion<> moldrot = x.ClipQuaternion(3, 0);
+    ChVector<> newwel_abs = Amatrix * dw.ClipVector(3, 0);
+    double mangle = newwel_abs.Length();
+    newwel_abs.Normalize();
+    mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
+    ChQuaternion<> mnewrot = mdeltarot * moldrot;  // quaternion product
+    x_new.PasteQuaternion(mnewrot, 3, 0);
+}
+
+ChVector<> ChAparticle::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+    ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+    return csys.TransformPointLocalToParent(loc_point);
+}
+
+ChVector<> ChAparticle::GetContactPointSpeed(const ChVector<>& loc_point,
+                                             const ChState& state_x,
+                                             const ChStateDelta& state_w) {
+    ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+    ChVector<> abs_vel = state_w.ClipVector(0, 0);
+    ChVector<> loc_omg = state_w.ClipVector(3, 0);
+    ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
+
+    return abs_vel + Vcross(abs_omg, loc_point);
+}
 
 ChVector<> ChAparticle::GetContactPointSpeed(const ChVector<>& abs_point) {
     ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
     return this->PointSpeedLocalToParent(m_p1_loc);
 }
 
-
-
-void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, 
-                                ChVectorDynamic<>& R) {
+void ChAparticle::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
     ChVector<> m_p1_loc = this->TransformPointParentToLocal(abs_point);
     ChVector<> force1_loc = this->TransformDirectionParentToLocal(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
-    R.PasteSumVector(F , this->Variables().GetOffset() + 0, 0); //***TODO*** implement this->NodeGetOffset_w()
-    R.PasteSumVector(torque1_loc , this->Variables().GetOffset() + 3, 0); //***TODO*** implement this->NodeGetOffset_w()
+    R.PasteSumVector(F, Variables().GetOffset() + 0, 0);            //***TODO*** implement NodeGetOffset_w()
+    R.PasteSumVector(torque1_loc, Variables().GetOffset() + 3, 0);  //***TODO*** implement NodeGetOffset_w()
+}
+
+void ChAparticle::ContactForceLoadQ(const ChVector<>& F,
+                                    const ChVector<>& point,
+                                    const ChState& state_x,
+                                    ChVectorDynamic<>& Q,
+                                    int offset) {
+    ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
+    ChVector<> point_loc = csys.TransformPointParentToLocal(point);
+    ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
+    ChVector<> torque_loc = Vcross(point_loc, force_loc);
+    Q.PasteVector(F, offset + 0, 0);
+    Q.PasteVector(torque_loc, offset + 3, 0);
 }
 
 void ChAparticle::ComputeJacobianForContactPart(
@@ -149,7 +179,7 @@ void ChAparticle::ComputeJacobianForRollingContactPart(
     Jr1.MatrTMultiply(contact_plane, this->GetA());
     if (!second)
         Jr1.MatrNeg();
-    
+
     jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
     jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
@@ -158,13 +188,11 @@ void ChAparticle::ComputeJacobianForRollingContactPart(
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
 }
 
-ChPhysicsItem* ChAparticle::GetPhysicsItem()
-{
+ChPhysicsItem* ChAparticle::GetPhysicsItem() {
     return container;
 }
 
-void ChAparticle::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChAparticle::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -172,15 +200,14 @@ void ChAparticle::ArchiveOUT(ChArchiveOut& marchive)
     ChParticleBase::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //marchive << CHNVP(container);
+    // marchive << CHNVP(container);
     marchive << CHNVP(collision_model);
     marchive << CHNVP(UserForce);
     marchive << CHNVP(UserTorque);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChAparticle::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChAparticle::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -193,49 +220,65 @@ void ChAparticle::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(UserTorque);
 }
 
+// -----------------------------------------------------------------------------
+// CLASS FOR PARTICLE CLUSTER
+// -----------------------------------------------------------------------------
 
-
-
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR PARTICLE CLUSTER
-
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChParticlesClones> a_registration_ChParticlesClones;
 
-
-ChParticlesClones::ChParticlesClones() {
-    do_collide = false;
-    do_limit_speed = false;
-    do_sleep = false;
-
-    this->SetMass(1.0);
-    this->SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
-    this->SetInertiaXY(ChVector<double>(0, 0, 0));
+ChParticlesClones::ChParticlesClones()
+    : do_collide(false),
+      do_limit_speed(false),
+      do_sleep(false),
+      max_speed(0.5f),
+      max_wvel((float)CH_C_2PI),
+      sleep_time(0.6f),
+      sleep_starttime(0),
+      sleep_minspeed(0.1f),
+      sleep_minwvel(0.04f) {
+    SetMass(1.0);
+    SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
+    SetInertiaXY(ChVector<double>(0, 0, 0));
 
     particle_collision_model = new ChModelBullet();
     particle_collision_model->SetContactable(0);
 
-    this->particles.clear();
-    // this->ResizeNparticles(num_particles); // caused memory corruption.. why?
+    particles.clear();
+    // ResizeNparticles(num_particles); // caused memory corruption.. why?
 
     // default DVI material
     matsurface = std::make_shared<ChMaterialSurface>();
+}
 
-    max_speed = 0.5f;
-    max_wvel = 2.0f * float(CH_C_PI);
+ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexedParticles(other) {
+    do_collide = other.do_collide;
+    do_sleep = other.do_sleep;
+    do_limit_speed = other.do_limit_speed;
 
-    sleep_time = 0.6f;
-    sleep_starttime = 0;
-    sleep_minspeed = 0.1f;
-    sleep_minwvel = 0.04f;
+    //// RADU:  fix const correctness
+    ////SetMass(other.GetMass());
+    ////SetInertiaXX(other.GetInertiaXX());
+    ////SetInertiaXY(other.GetInertiaXY());
+
+    particle_collision_model->ClearModel();
+
+    //// RADU: need Clone on MaterialSurface
+    matsurface = other.matsurface;  // also copy-duplicate the material? Let the user handle this..
+
+    ResizeNparticles((int)other.GetNparticles());
+
+    max_speed = other.max_speed;
+    max_wvel = other.max_wvel;
+
+    sleep_time = other.sleep_time;
+    sleep_starttime = other.sleep_starttime;
+    sleep_minspeed = other.sleep_minspeed;
+    sleep_minwvel = other.sleep_minwvel;
 }
 
 ChParticlesClones::~ChParticlesClones() {
-    this->ResizeNparticles(0);
+    ResizeNparticles(0);
 
     if (particle_collision_model)
         delete particle_collision_model;
@@ -250,13 +293,13 @@ void ChParticlesClones::Copy(ChParticlesClones* source) {
     do_sleep = source->do_sleep;
     do_limit_speed = source->do_limit_speed;
 
-    this->SetMass(source->GetMass());
-    this->SetInertiaXX(source->GetInertiaXX());
-    this->SetInertiaXY(source->GetInertiaXY());
+    SetMass(source->GetMass());
+    SetInertiaXX(source->GetInertiaXX());
+    SetInertiaXY(source->GetInertiaXY());
 
     particle_collision_model->ClearModel();
 
-    this->matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
+    matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
 
     ResizeNparticles((int)source->GetNparticles());
 
@@ -270,31 +313,31 @@ void ChParticlesClones::Copy(ChParticlesClones* source) {
 }
 
 void ChParticlesClones::ResizeNparticles(int newsize) {
-    bool oldcoll = this->GetCollide();
-    this->SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added
+    bool oldcoll = GetCollide();
+    SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added
 
     for (unsigned int j = 0; j < particles.size(); j++) {
-        delete (this->particles[j]);
-        this->particles[j] = 0;
+        delete (particles[j]);
+        particles[j] = 0;
     }
 
-    this->particles.resize(newsize);
+    particles.resize(newsize);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j] = new ChAparticle;
+        particles[j] = new ChAparticle;
 
-        this->particles[j]->SetContainer(this);
+        particles[j]->SetContainer(this);
 
-        this->particles[j]->variables.SetSharedMass(&this->particle_mass);
-        this->particles[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
-        
-        this->particles[j]->collision_model->SetContactable(this->particles[j]);
-        // this->particles[j]->collision_model->ClearModel();
-        this->particles[j]->collision_model->AddCopyOfAnotherModel(this->particle_collision_model);
-        this->particles[j]->collision_model->BuildModel();
+        particles[j]->variables.SetSharedMass(&particle_mass);
+        particles[j]->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
+
+        particles[j]->collision_model->SetContactable(particles[j]);
+        // articles[j]->collision_model->ClearModel();
+        particles[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
+        particles[j]->collision_model->BuildModel();
     }
 
-    this->SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
+    SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
 }
 
 void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state) {
@@ -303,68 +346,68 @@ void ChParticlesClones::AddParticle(ChCoordsys<double> initial_state) {
 
     newp->SetContainer(this);
 
-    this->particles.push_back(newp);
+    particles.push_back(newp);
 
-    newp->variables.SetSharedMass(&this->particle_mass);
-    newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
-    
+    newp->variables.SetSharedMass(&particle_mass);
+    newp->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
+
     newp->collision_model->SetContactable(newp);
     // newp->collision_model->ClearModel(); // wasn't already added to system, no need to remove
-    newp->collision_model->AddCopyOfAnotherModel(this->particle_collision_model);
+    newp->collision_model->AddCopyOfAnotherModel(particle_collision_model);
     newp->collision_model->BuildModel();  // will also add to system, if collision is on.
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
+// STATE BOOKKEEPING FUNCTIONS
 
-void ChParticlesClones::IntStateGather(const unsigned int off_x,  ///< offset in x state vector
-                                       ChState& x,                ///< state vector, position part
-                                       const unsigned int off_v,  ///< offset in v state vector
-                                       ChStateDelta& v,           ///< state vector, speed part
-                                       double& T)                 ///< time
-{
+void ChParticlesClones::IntStateGather(const unsigned int off_x,  // offset in x state vector
+                                       ChState& x,                // state vector, position part
+                                       const unsigned int off_v,  // offset in v state vector
+                                       ChStateDelta& v,           // state vector, speed part
+                                       double& T                  // time
+                                       ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        x.PasteCoordsys(this->particles[j]->coord, off_x + 7 * j, 0);
-        v.PasteVector(this->particles[j]->coord_dt.pos, off_v + 6 * j, 0);
-        v.PasteVector(this->particles[j]->GetWvel_loc(), off_v + 6 * j + 3, 0);
-        T = this->GetChTime();
+        x.PasteCoordsys(particles[j]->coord, off_x + 7 * j, 0);
+        v.PasteVector(particles[j]->coord_dt.pos, off_v + 6 * j, 0);
+        v.PasteVector(particles[j]->GetWvel_loc(), off_v + 6 * j + 3, 0);
+        T = GetChTime();
     }
 }
 
-void ChParticlesClones::IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
-                                        const ChState& x,          ///< state vector, position part
-                                        const unsigned int off_v,  ///< offset in v state vector
-                                        const ChStateDelta& v,     ///< state vector, speed part
-                                        const double T)            ///< time
-{
+void ChParticlesClones::IntStateScatter(const unsigned int off_x,  // offset in x state vector
+                                        const ChState& x,          // state vector, position part
+                                        const unsigned int off_v,  // offset in v state vector
+                                        const ChStateDelta& v,     // state vector, speed part
+                                        const double T             // time
+                                        ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->SetCoord(x.ClipCoordsys(off_x + 7 * j, 0));
-        this->particles[j]->SetPos_dt(v.ClipVector(off_v + 6 * j, 0));
-        this->particles[j]->SetWvel_loc(v.ClipVector(off_v + 6 * j + 3, 0));
+        particles[j]->SetCoord(x.ClipCoordsys(off_x + 7 * j, 0));
+        particles[j]->SetPos_dt(v.ClipVector(off_v + 6 * j, 0));
+        particles[j]->SetWvel_loc(v.ClipVector(off_v + 6 * j + 3, 0));
     }
-    this->SetChTime(T);
-    this->Update();
+    SetChTime(T);
+    Update();
 }
 
 void ChParticlesClones::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        a.PasteVector(this->particles[j]->coord_dtdt.pos, off_a + 6 * j, 0);
-        a.PasteVector(this->particles[j]->GetWacc_loc(), off_a + 6 * j + 3, 0);
+        a.PasteVector(particles[j]->coord_dtdt.pos, off_a + 6 * j, 0);
+        a.PasteVector(particles[j]->GetWacc_loc(), off_a + 6 * j + 3, 0);
     }
 }
 
 void ChParticlesClones::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->SetPos_dtdt(a.ClipVector(off_a + 6 * j, 0));
-        this->particles[j]->SetWacc_loc(a.ClipVector(off_a + 6 * j + 3, 0));
+        particles[j]->SetPos_dtdt(a.ClipVector(off_a + 6 * j, 0));
+        particles[j]->SetWacc_loc(a.ClipVector(off_a + 6 * j + 3, 0));
     }
 }
 
-void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  ///< offset in x state vector
-                                          ChState& x_new,    ///< state vector, position part, incremented result
-                                          const ChState& x,  ///< state vector, initial position part
-                                          const unsigned int off_v,  ///< offset in v state vector
-                                          const ChStateDelta& Dv)    ///< state vector, increment
-{
+void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
+                                          ChState& x_new,            // state vector, position part, incremented result
+                                          const ChState& x,          // state vector, initial position part
+                                          const unsigned int off_v,  // offset in v state vector
+                                          const ChStateDelta& Dv     // state vector, increment
+                                          ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // ADVANCE POSITION:
         x_new(off_x + 7 * j) = x(off_x + 7 * j) + Dv(off_v + 6 * j);
@@ -374,7 +417,7 @@ void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  ///< offset
         // ADVANCE ROTATION: rot' = delta*rot  (use quaternion for delta rotation)
         ChQuaternion<> mdeltarot;
         ChQuaternion<> moldrot = x.ClipQuaternion(off_x + 7 * j + 3, 0);
-        ChVector<> newwel_abs = this->particles[j]->Amatrix * Dv.ClipVector(off_v + 6 * j + 3, 0);
+        ChVector<> newwel_abs = particles[j]->Amatrix * Dv.ClipVector(off_v + 6 * j + 3, 0);
         double mangle = newwel_abs.Length();
         newwel_abs.Normalize();
         mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
@@ -383,220 +426,212 @@ void ChParticlesClones::IntStateIncrement(const unsigned int off_x,  ///< offset
     }
 }
 
-void ChParticlesClones::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
-                                          ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-                                          const double c           ///< a scaling factor
+void ChParticlesClones::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                                          ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                          const double c           // a scaling factor
                                           ) {
     ChVector<> Gforce;
     if (GetSystem())
-        Gforce = GetSystem()->Get_G_acc() * this->particle_mass.GetBodyMass();
+        Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:
-        ChVector<> Wvel = this->particles[j]->GetWvel_loc();
-        ChVector<> gyro = Vcross(Wvel, (this->particle_mass.GetBodyInertia().Matr_x_Vect(Wvel)));
+        ChVector<> Wvel = particles[j]->GetWvel_loc();
+        ChVector<> gyro = Vcross(Wvel, (particle_mass.GetBodyInertia().Matr_x_Vect(Wvel)));
 
         // add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
-        R.PasteSumVector((this->particles[j]->UserForce + Gforce) * c, off + 6 * j, 0);
-        R.PasteSumVector((this->particles[j]->UserTorque - gyro) * c, off + 6 * j + 3, 0);
+        R.PasteSumVector((particles[j]->UserForce + Gforce) * c, off + 6 * j, 0);
+        R.PasteSumVector((particles[j]->UserTorque - gyro) * c, off + 6 * j + 3, 0);
     }
 }
 
-void ChParticlesClones::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-                                           ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                                           const ChVectorDynamic<>& w,  ///< the w vector
-                                           const double c               ///< a scaling factor
+void ChParticlesClones::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
+                                           ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                                           const ChVectorDynamic<>& w,  // the w vector
+                                           const double c               // a scaling factor
                                            ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         R(off + 6 * j + 0) += c * GetMass() * w(off + 6 * j + 0);
         R(off + 6 * j + 1) += c * GetMass() * w(off + 6 * j + 1);
         R(off + 6 * j + 2) += c * GetMass() * w(off + 6 * j + 2);
-        ChVector<> Iw = this->particle_mass.GetBodyInertia() * w.ClipVector(off + 6 * j + 3, 0);
+        ChVector<> Iw = particle_mass.GetBodyInertia() * w.ClipVector(off + 6 * j + 3, 0);
         Iw *= c;
         R.PasteSumVector(Iw, off + 6 * j + 3, 0);
     }
 }
 
-void ChParticlesClones::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChParticlesClones::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                         const ChStateDelta& v,
                                         const ChVectorDynamic<>& R,
-                                        const unsigned int off_L,  ///< offset in L, Qc
+                                        const unsigned int off_L,  // offset in L, Qc
                                         const ChVectorDynamic<>& L,
                                         const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v + 6 * j, 0, 6, 1, 0, 0);
-        this->particles[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v + 6 * j, 0, 6, 1, 0, 0);
+        particles[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v + 6 * j, 0, 6, 1, 0, 0);
+        particles[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v + 6 * j, 0, 6, 1, 0, 0);
     }
 }
 
-void ChParticlesClones::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChParticlesClones::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                           ChStateDelta& v,
-                                          const unsigned int off_L,  ///< offset in L
+                                          const unsigned int off_L,  // offset in L
                                           ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        v.PasteMatrix(&this->particles[j]->variables.Get_qb(), off_v + 6 * j, 0);
+        v.PasteMatrix(&particles[j]->variables.Get_qb(), off_v + 6 * j, 0);
     }
 }
 
-////
 void ChParticlesClones::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    // this->variables.SetDisabled(!this->IsActive());
+    // variables.SetDisabled(!IsActive());
     for (unsigned int j = 0; j < particles.size(); j++) {
-        mdescriptor.InsertVariables(&(this->particles[j]->variables));
+        mdescriptor.InsertVariables(&(particles[j]->variables));
     }
 }
 
 void ChParticlesClones::VariablesFbReset() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->variables.Get_fb().FillElem(0.0);
+        particles[j]->variables.Get_fb().FillElem(0.0);
     }
 }
 
 void ChParticlesClones::VariablesFbLoadForces(double factor) {
     ChVector<> Gforce;
     if (GetSystem())
-        Gforce = GetSystem()->Get_G_acc() * this->particle_mass.GetBodyMass();
+        Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:
-        ChVector<> Wvel = this->particles[j]->GetWvel_loc();
-        ChVector<> gyro = Vcross(Wvel, (this->particle_mass.GetBodyInertia().Matr_x_Vect(Wvel)));
+        ChVector<> Wvel = particles[j]->GetWvel_loc();
+        ChVector<> gyro = Vcross(Wvel, (particle_mass.GetBodyInertia().Matr_x_Vect(Wvel)));
 
         // add applied forces and torques (and also the gyroscopic torque and gravity!) to 'fb' vector
-        this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserForce + Gforce) * factor, 0, 0);
-        this->particles[j]->variables.Get_fb().PasteSumVector((this->particles[j]->UserTorque - gyro) * factor, 3, 0);
+        particles[j]->variables.Get_fb().PasteSumVector((particles[j]->UserForce + Gforce) * factor, 0, 0);
+        particles[j]->variables.Get_fb().PasteSumVector((particles[j]->UserTorque - gyro) * factor, 3, 0);
     }
 }
 
 void ChParticlesClones::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // set current speed in 'qb', it can be used by the solver when working in incremental mode
-        this->particles[j]->variables.Get_qb().PasteVector(this->particles[j]->GetCoord_dt().pos, 0, 0);
-        this->particles[j]->variables.Get_qb().PasteVector(this->particles[j]->GetWvel_loc(), 3, 0);
+        particles[j]->variables.Get_qb().PasteVector(particles[j]->GetCoord_dt().pos, 0, 0);
+        particles[j]->variables.Get_qb().PasteVector(particles[j]->GetWvel_loc(), 3, 0);
     }
 }
 
 void ChParticlesClones::VariablesFbIncrementMq() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->variables.Compute_inc_Mb_v(this->particles[j]->variables.Get_fb(),
-                                                       this->particles[j]->variables.Get_qb());
+        particles[j]->variables.Compute_inc_Mb_v(particles[j]->variables.Get_fb(), particles[j]->variables.Get_qb());
     }
 }
 
 void ChParticlesClones::VariablesQbSetSpeed(double step) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        ChCoordsys<> old_coord_dt = this->particles[j]->GetCoord_dt();
+        ChCoordsys<> old_coord_dt = particles[j]->GetCoord_dt();
 
         // from 'qb' vector, sets body speed, and updates auxiliary data
-        this->particles[j]->SetPos_dt(this->particles[j]->variables.Get_qb().ClipVector(0, 0));
-        this->particles[j]->SetWvel_loc(this->particles[j]->variables.Get_qb().ClipVector(3, 0));
+        particles[j]->SetPos_dt(particles[j]->variables.Get_qb().ClipVector(0, 0));
+        particles[j]->SetWvel_loc(particles[j]->variables.Get_qb().ClipVector(3, 0));
 
         // apply limits (if in speed clamping mode) to speeds.
         // ClampSpeed(); NO - do only per-particle, here.. (but.. really needed here?)
 
         // Compute accel. by BDF (approximate by differentiation);
         if (step) {
-            this->particles[j]->SetPos_dtdt((this->particles[j]->GetCoord_dt().pos - old_coord_dt.pos) / step);
-            this->particles[j]->SetRot_dtdt((this->particles[j]->GetCoord_dt().rot - old_coord_dt.rot) / step);
+            particles[j]->SetPos_dtdt((particles[j]->GetCoord_dt().pos - old_coord_dt.pos) / step);
+            particles[j]->SetRot_dtdt((particles[j]->GetCoord_dt().rot - old_coord_dt.rot) / step);
         }
     }
 }
 
 void ChParticlesClones::VariablesQbIncrementPosition(double dt_step) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // Updates position with incremental action of speed contained in the
         // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
 
-        ChVector<> newspeed = this->particles[j]->variables.Get_qb().ClipVector(0, 0);
-        ChVector<> newwel = this->particles[j]->variables.Get_qb().ClipVector(3, 0);
+        ChVector<> newspeed = particles[j]->variables.Get_qb().ClipVector(0, 0);
+        ChVector<> newwel = particles[j]->variables.Get_qb().ClipVector(3, 0);
 
         // ADVANCE POSITION: pos' = pos + dt * vel
-        this->particles[j]->SetPos(this->particles[j]->GetPos() + newspeed * dt_step);
+        particles[j]->SetPos(particles[j]->GetPos() + newspeed * dt_step);
 
         // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
         ChQuaternion<> mdeltarot;
-        ChQuaternion<> moldrot = this->particles[j]->GetRot();
+        ChQuaternion<> moldrot = particles[j]->GetRot();
         ChVector<> newwel_abs = particles[j]->GetA() * newwel;
         double mangle = newwel_abs.Length() * dt_step;
         newwel_abs.Normalize();
         mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
         ChQuaternion<> mnewrot = mdeltarot % moldrot;
-        this->particles[j]->SetRot(mnewrot);
+        particles[j]->SetRot(mnewrot);
     }
 }
-
-//////////////
 
 void ChParticlesClones::SetNoSpeedNoAcceleration() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->SetPos_dt(VNULL);
-        this->particles[j]->SetWvel_loc(VNULL);
-        this->particles[j]->SetPos_dtdt(VNULL);
-        this->particles[j]->SetRot_dtdt(QNULL);
+        particles[j]->SetPos_dt(VNULL);
+        particles[j]->SetWvel_loc(VNULL);
+        particles[j]->SetPos_dtdt(VNULL);
+        particles[j]->SetRot_dtdt(QNULL);
     }
 }
 
-////
 void ChParticlesClones::ClampSpeed() {
-    if (this->GetLimitSpeed()) {
+    if (GetLimitSpeed()) {
         for (unsigned int j = 0; j < particles.size(); j++) {
-            double w = 2.0 * this->particles[j]->GetRot_dt().Length();
+            double w = 2.0 * particles[j]->GetRot_dt().Length();
             if (w > max_wvel)
-                this->particles[j]->SetRot_dt(this->particles[j]->GetRot_dt() * max_wvel / w);
+                particles[j]->SetRot_dt(particles[j]->GetRot_dt() * max_wvel / w);
 
-            double v = this->particles[j]->GetPos_dt().Length();
+            double v = particles[j]->GetPos_dt().Length();
             if (v > max_speed)
-                this->particles[j]->SetPos_dt(this->particles[j]->GetPos_dt() * max_speed / v);
+                particles[j]->SetPos_dt(particles[j]->GetPos_dt() * max_speed / v);
         }
     }
 }
 
-////
 // The inertia tensor functions
 
 void ChParticlesClones::SetInertia(const ChMatrix33<>& newXInertia) {
-    this->particle_mass.SetBodyInertia(newXInertia);
+    particle_mass.SetBodyInertia(newXInertia);
 }
 
 void ChParticlesClones::SetInertiaXX(const ChVector<>& iner) {
-    this->particle_mass.GetBodyInertia().SetElement(0, 0, iner.x);
-    this->particle_mass.GetBodyInertia().SetElement(1, 1, iner.y);
-    this->particle_mass.GetBodyInertia().SetElement(2, 2, iner.z);
-    this->particle_mass.GetBodyInertia().FastInvert(&this->particle_mass.GetBodyInvInertia());
+    particle_mass.GetBodyInertia().SetElement(0, 0, iner.x);
+    particle_mass.GetBodyInertia().SetElement(1, 1, iner.y);
+    particle_mass.GetBodyInertia().SetElement(2, 2, iner.z);
+    particle_mass.GetBodyInertia().FastInvert(&particle_mass.GetBodyInvInertia());
 }
 void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
-    this->particle_mass.GetBodyInertia().SetElement(0, 1, iner.x);
-    this->particle_mass.GetBodyInertia().SetElement(0, 2, iner.y);
-    this->particle_mass.GetBodyInertia().SetElement(1, 2, iner.z);
-    this->particle_mass.GetBodyInertia().SetElement(1, 0, iner.x);
-    this->particle_mass.GetBodyInertia().SetElement(2, 0, iner.y);
-    this->particle_mass.GetBodyInertia().SetElement(2, 1, iner.z);
-    this->particle_mass.GetBodyInertia().FastInvert(&this->particle_mass.GetBodyInvInertia());
+    particle_mass.GetBodyInertia().SetElement(0, 1, iner.x);
+    particle_mass.GetBodyInertia().SetElement(0, 2, iner.y);
+    particle_mass.GetBodyInertia().SetElement(1, 2, iner.z);
+    particle_mass.GetBodyInertia().SetElement(1, 0, iner.x);
+    particle_mass.GetBodyInertia().SetElement(2, 0, iner.y);
+    particle_mass.GetBodyInertia().SetElement(2, 1, iner.z);
+    particle_mass.GetBodyInertia().FastInvert(&particle_mass.GetBodyInvInertia());
 }
 
 ChVector<> ChParticlesClones::GetInertiaXX() {
     ChVector<> iner;
-    iner.x = this->particle_mass.GetBodyInertia().GetElement(0, 0);
-    iner.y = this->particle_mass.GetBodyInertia().GetElement(1, 1);
-    iner.z = this->particle_mass.GetBodyInertia().GetElement(2, 2);
+    iner.x = particle_mass.GetBodyInertia().GetElement(0, 0);
+    iner.y = particle_mass.GetBodyInertia().GetElement(1, 1);
+    iner.z = particle_mass.GetBodyInertia().GetElement(2, 2);
     return iner;
 }
 
 ChVector<> ChParticlesClones::GetInertiaXY() {
     ChVector<> iner;
-    iner.x = this->particle_mass.GetBodyInertia().GetElement(0, 1);
-    iner.y = this->particle_mass.GetBodyInertia().GetElement(0, 2);
-    iner.z = this->particle_mass.GetBodyInertia().GetElement(1, 2);
+    iner.x = particle_mass.GetBodyInertia().GetElement(0, 1);
+    iner.y = particle_mass.GetBodyInertia().GetElement(0, 2);
+    iner.z = particle_mass.GetBodyInertia().GetElement(1, 2);
     return iner;
 }
 
-//////
-
 void ChParticlesClones::Update(bool update_assets) {
-    ChParticlesClones::Update(this->GetChTime(), update_assets);
+    ChParticlesClones::Update(GetChTime(), update_assets);
 }
 
 void ChParticlesClones::Update(double mytime, bool update_assets) {
@@ -608,21 +643,21 @@ void ChParticlesClones::Update(double mytime, bool update_assets) {
 
 // collision stuff
 void ChParticlesClones::SetCollide(bool mcoll) {
-    if (mcoll == this->do_collide)
+    if (mcoll == do_collide)
         return;
 
     if (mcoll) {
-        this->do_collide = true;
+        do_collide = true;
         if (GetSystem()) {
             for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Add(this->particles[j]->collision_model);
+                GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model);
             }
         }
     } else {
-        this->do_collide = false;
+        do_collide = false;
         if (GetSystem()) {
             for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Remove(this->particles[j]->collision_model);
+                GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model);
             }
         }
     }
@@ -630,39 +665,38 @@ void ChParticlesClones::SetCollide(bool mcoll) {
 
 void ChParticlesClones::SyncCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->collision_model->SyncPosition();
+        particles[j]->collision_model->SyncPosition();
     }
 }
 
 void ChParticlesClones::AddCollisionModelsToSystem() {
-    assert(this->GetSystem());
+    assert(GetSystem());
     SyncCollisionModels();
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->GetSystem()->GetCollisionSystem()->Add(this->particles[j]->collision_model);
+        GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model);
     }
 }
 
 void ChParticlesClones::RemoveCollisionModelsFromSystem() {
-    assert(this->GetSystem());
+    assert(GetSystem());
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->GetSystem()->GetCollisionSystem()->Remove(this->particles[j]->collision_model);
+        GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model);
     }
 }
 
-////
+//
 
 void ChParticlesClones::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->collision_model->ClearModel();
-        this->particles[j]->collision_model->AddCopyOfAnotherModel(this->particle_collision_model);
-        this->particles[j]->collision_model->BuildModel();
+        particles[j]->collision_model->ClearModel();
+        particles[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
+        particles[j]->collision_model->BuildModel();
     }
 }
 
-//////// FILE I/O
+// FILE I/O
 
-void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -671,7 +705,7 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     marchive << CHNVP(particles);
-    //marchive << CHNVP(particle_mass); //***TODO***
+    // marchive << CHNVP(particle_mass); //***TODO***
     marchive << CHNVP(particle_collision_model);
     marchive << CHNVP(matsurface);
     marchive << CHNVP(do_collide);
@@ -685,8 +719,7 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(sleep_starttime);
 }
 
-void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -698,7 +731,7 @@ void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive)
     RemoveCollisionModelsFromSystem();
 
     marchive >> CHNVP(particles);
-    //marchive >> CHNVP(particle_mass); //***TODO***
+    // marchive >> CHNVP(particle_mass); //***TODO***
     marchive >> CHNVP(particle_collision_model);
     marchive >> CHNVP(matsurface);
     marchive >> CHNVP(do_collide);
@@ -712,13 +745,9 @@ void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(sleep_starttime);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
-        this->particles[j]->SetContainer(this);
+        particles[j]->SetContainer(this);
     }
     AddCollisionModelsToSystem();
 }
 
-
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono
