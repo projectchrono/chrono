@@ -115,7 +115,7 @@ void ChProximityContainerMeshless::ReportAllProximities(ChReportProximityCallbac
     }
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
 static double W_sph(double r, double h) {
     if (r < h) {

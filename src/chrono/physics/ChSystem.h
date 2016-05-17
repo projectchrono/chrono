@@ -13,12 +13,6 @@
 #ifndef CHSYSTEM_H
 #define CHSYSTEM_H
 
-
-//   The physical system definition.
-//   A phisical system encloses bodies, links,
-//   probes, etc.
-
-
 #include <stdlib.h>
 #include <iostream>
 #include <string.h>
@@ -49,14 +43,12 @@ namespace chrono {
 
 // forward references & shortcuts..
 
-class ChLcpSolver;
-class ChLcpSystemDescriptor;
+class ChSolver;
+class ChSystemDescriptor;
 class ChContactContainerBase;
 
-
-
-
-
+/// Physical system.
+///
 /// This class is used to represent a multibody physical system,
 /// so it acts also as a database for most items involved in
 /// simulations, most noticeably objects of ChBody and ChLink
@@ -71,6 +63,7 @@ class ChContactContainerBase;
 /// order to perform simulations (you'll insert rigid bodies and
 /// links into it..)
 ///
+/// Further info at the @ref simulation_system  manual page.
 
 class ChApi ChSystem : public ChAssembly, 
                        public ChIntegrableIIorderEasy {
@@ -229,121 +222,117 @@ class ChApi ChSystem : public ChAssembly,
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() { return max_penetration_recovery_speed; }
 
-    /// Available types of solvers for the LCP problem. Note: compared to iterative methods,
+    /// Available types of solvers. Note: compared to iterative methods,
     /// the simplex solver is so slow that it's mostly for experiments.
     /// Also, Jacobi is slower than SOR - hence it's here for benchmarks & tests.
-    enum eCh_lcpSolver {
-        LCP_ITERATIVE_SOR = 0,
-        LCP_ITERATIVE_SYMMSOR,
-        LCP_SIMPLEX,  // OBSOLETE!
-        LCP_ITERATIVE_JACOBI,
-        LCP_ITERATIVE_SOR_MULTITHREAD,
-        LCP_ITERATIVE_PMINRES,
-        LCP_ITERATIVE_BARZILAIBORWEIN,
-        LCP_ITERATIVE_PCG,
-        LCP_ITERATIVE_APGD,
-        LCP_DEM,
-        LCP_ITERATIVE_MINRES,
-        LCP_CUSTOM,
+    enum eCh_solverType {
+        SOLVER_SOR = 0,
+        SOLVER_SYMMSOR,
+        SOLVER_SIMPLEX,  // OBSOLETE!
+        SOLVER_JACOBI,
+        SOLVER_SOR_MULTITHREAD,
+        SOLVER_PMINRES,
+        SOLVER_BARZILAIBORWEIN,
+        SOLVER_PCG,
+        SOLVER_APGD,
+        SOLVER_DEM,
+        SOLVER_MINRES,
+        SOLVER_CUSTOM,
     };
-    CH_ENUM_MAPPER_BEGIN(eCh_lcpSolver);
-      CH_ENUM_VAL(LCP_ITERATIVE_SOR);
-      CH_ENUM_VAL(LCP_ITERATIVE_SYMMSOR);
-      CH_ENUM_VAL(LCP_SIMPLEX);
-      CH_ENUM_VAL(LCP_ITERATIVE_JACOBI);
-      CH_ENUM_VAL(LCP_ITERATIVE_SOR_MULTITHREAD);
-      CH_ENUM_VAL(LCP_ITERATIVE_PMINRES);
-      CH_ENUM_VAL(LCP_ITERATIVE_BARZILAIBORWEIN);
-      CH_ENUM_VAL(LCP_ITERATIVE_PCG);
-      CH_ENUM_VAL(LCP_ITERATIVE_APGD);
-      CH_ENUM_VAL(LCP_DEM);
-      CH_ENUM_VAL(LCP_ITERATIVE_MINRES);
-      CH_ENUM_VAL(LCP_CUSTOM);
-    CH_ENUM_MAPPER_END(eCh_lcpSolver);
+    CH_ENUM_MAPPER_BEGIN(eCh_solverType);
+      CH_ENUM_VAL(SOLVER_SOR);
+      CH_ENUM_VAL(SOLVER_SYMMSOR);
+      CH_ENUM_VAL(SOLVER_SIMPLEX);
+      CH_ENUM_VAL(SOLVER_JACOBI);
+      CH_ENUM_VAL(SOLVER_SOR_MULTITHREAD);
+      CH_ENUM_VAL(SOLVER_PMINRES);
+      CH_ENUM_VAL(SOLVER_BARZILAIBORWEIN);
+      CH_ENUM_VAL(SOLVER_PCG);
+      CH_ENUM_VAL(SOLVER_APGD);
+      CH_ENUM_VAL(SOLVER_DEM);
+      CH_ENUM_VAL(SOLVER_MINRES);
+      CH_ENUM_VAL(SOLVER_CUSTOM);
+    CH_ENUM_MAPPER_END(eCh_solverType);
 
-    /// Choose the LCP solver type, to be used for the simultaneous
-    /// solution of the constraints in dynamical simulations (as well as
-    /// in kinematics, statics, etc.)
-    /// You can choose between the eCh_lcpSolver types, ex. LCP_ITERATIVE_SOR
-    /// for speed and low precision, LCP_ITERATIVE_BARZILAIBORWEIN for precision, etc.
-    /// NOTE: Do not use LCP_CUSTOM, this type will be set automatically set if one 
-    /// provides its solver via ChangeLcpSolverStab etc.
-    /// NOTE: This is a shortcut, that internally is equivalent to the two
-    ///  calls ChangeLcpSolverStab(..) and ChangeLcpSolverSpeed(...)
-    virtual void SetLcpSolverType(eCh_lcpSolver mval);
-    /// Gets the current LCP solver type.
-    eCh_lcpSolver GetLcpSolverType() { return lcp_solver_type; }
+    /// Choose the solver type, to be used for the simultaneous solution of the constraints
+    /// in dynamical simulations (as well as in kinematics, statics, etc.)
+    /// You can choose between the eCh_solverType types, ex. SOLVER_SOR for speed and low
+    /// precision, SOLVER_BARZILAIBORWEIN for precision, etc.
+    /// NOTE: Do not use SOLVER_CUSTOM, this type will be set automatically set if one 
+    /// provides its solver via ChangeSolverStab etc.
+    /// NOTE: This is a shortcut, that internally is equivalent to the two calls
+    /// ChangeSolverStab(..) and ChangeSolverSpeed(...)
+    virtual void SetSolverType(eCh_solverType mval);
+    /// Gets the current solver type.
+    eCh_solverType GetSolverType() { return solver_type; }
 
-    /// In case you are using an iterative LCP solver (es. LCP_ITERATIVE_SOR)
+    /// In case you are using an iterative solver (es. SOLVER_SOR)
     /// you can set the maximum number of iterations. The higher the
     /// iteration number, the more precise the simulation (but more CPU time)
-    void SetIterLCPmaxItersSpeed(int mval) { iterLCPmaxIters = mval; }
-    /// Current maximum number of iterations, if using an iterative LCP solver.
-    int GetIterLCPmaxItersSpeed() { return iterLCPmaxIters; }
+    void SetMaxItersSolverSpeed(int mval) { max_iter_solver_speed = mval; }
+    /// Current maximum number of iterations, if using an iterative solver.
+    int GetMaxItersSolverSpeed() { return max_iter_solver_speed; }
 
-    /// In case you are using an iterative LCP solver (es. LCP_ITERATIVE_SOR)
+    /// In case you are using an iterative solver (es. SOLVER_SOR)
     /// and an integration method requiring post-stabilization (es. INT_TASORA)
     /// you can set the maximum number of stabilization iterations. The higher the
     /// iteration number, the more precise the simulation (but more CPU time)
-    int GetIterLCPmaxItersStab() { return iterLCPmaxItersStab; }
-    /// Current maxi. number of iterations, if using an iterative LCP solver for stabilization.
-    void SetIterLCPmaxItersStab(int mval) { iterLCPmaxItersStab = mval; }
+    void SetMaxItersSolverStab(int mval) { max_iter_solver_stab = mval; }
+    /// Current maxi. number of iterations, if using an iterative solver for stabilization.
+    int GetMaxItersSolverStab() { return max_iter_solver_stab; }
 
-
-    /// If you want to easily turn ON/OFF the warm starting feature of both LCP iterative solvers
+    /// If you want to easily turn ON/OFF the warm starting feature of both iterative solvers
     /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetLcpSolverSpeed() and GetLcpSolverStab()
-    void SetIterLCPwarmStarting(bool usewarm = true);
+    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab()
+    void SetSolverWarmStarting(bool usewarm = true);
     /// Tell if the warm starting is enabled for the speed solver, (if iterative type).
-    bool GetIterLCPwarmStarting();
+    bool GetSolverWarmStarting();
 
-    /// If you want to easily adjust the omega overrelaxation parameter of both LCP iterative solvers
-    /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetLcpSolverSpeed() and GetLcpSolverStab().
+    /// If you want to easily adjust the omega overrelaxation parameter of both iterative solvers
+    /// (the one for speed and the other for position stabilization) you can simply use the
+    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab().
     /// Note, usually a good omega for Jacobi or GPU solver is 0.2; for other iter.solvers can be up to 1.0
-    void SetIterLCPomega(double momega = 1.0);
+    void SetSolverOverrelaxationParam(double momega = 1.0);
     /// Tell the omega overrelaxation factor for the speed solver, (if iterative type).
-    double GetIterLCPomega();
+    double GetSolverOverrelaxationParam();
 
-    /// If you want to easily adjust the 'sharpness lambda' parameter of both LCP iterative solvers
+    /// If you want to easily adjust the 'sharpness lambda' parameter of both iterative solvers
     /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetLcpSolverSpeed() and GetLcpSolverStab().
+    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab().
     /// Note, usually a good sharpness value is in 1..0.8 range (the lower, the more it helps exact
     /// convergence, but overall convergence gets also much slower so maybe better to tolerate some error)
-    void SetIterLCPsharpnessLambda(double momega = 1.0);
+    void SetSolverSharpnessParam(double momega = 1.0);
     /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
-    double GetIterLCPsharpnessLambda();
+    double GetSolverSharpnessParam();
 
-    /// Instead of using SetLcpSolverType(), you can create your own
-    /// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
-    /// it into the system using this function. The replaced solver is automatically deleted.
-    /// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetLcpSolverType() later.
-    virtual void ChangeLcpSolverStab(ChLcpSolver* newsolver);
+    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
+    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
+    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
+    /// Note: this also sets the SOLVER_CUSTOM mode, should you ever call GetSolverType() later.
+    virtual void ChangeSolverStab(ChSolver* newsolver);
 
-    /// Access directly the LCP solver, configured to be used for the stabilization
+    /// Access directly the solver, configured to be used for the stabilization
     /// of constraints (solve delta positions). Use mostly for diagnostics.
-    virtual ChLcpSolver* GetLcpSolverStab();
+    virtual ChSolver* GetSolverStab();
 
-    /// Instead of using SetLcpSolverType(), you can create your own
-    /// custom lcp solver (suffice it is inherited from ChLcpSolver) and plug
-    /// it into the system using this function. The replaced solver is automatically deleted.
-    /// When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the LCP_CUSTOM mode, should you ever call GetLcpSolverType() later.
-    virtual void ChangeLcpSolverSpeed(ChLcpSolver* newsolver);
+    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
+    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
+    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
+    /// Note: this also sets the SOLVER_CUSTOM mode, should you ever call GetSolverType() later.
+    virtual void ChangeSolverSpeed(ChSolver* newsolver);
 
-    /// Access directly the LCP solver, configured to be used for the main differential
-    /// inclusion problem (LCP on speed-impulses). Use mostly for diagnostics.
-    virtual ChLcpSolver* GetLcpSolverSpeed();
+    /// Access directly the solver, configured to be used for the main differential
+    /// inclusion problem (on speed-impulses). Use mostly for diagnostics.
+    virtual ChSolver* GetSolverSpeed();
 
-    /// Instead of using the default LCP 'system descriptor', you can create your own
-    /// custom descriptor (suffice it is inherited from ChLcpSystemDescriptor) and plug
-    /// it into the system using this function. The replaced descriptor is automatically deleted.
-    /// When the system is deleted, the custom descriptor that you plugged will be automatically deleted.
-    void ChangeLcpSystemDescriptor(ChLcpSystemDescriptor* newdescriptor);
+    /// Instead of using the default 'system descriptor', you can create your own custom descriptor (suffice
+    /// it is inherited from ChSystemDescriptor) and plug it into the system using this function. The replaced
+    /// descriptor is automatically deleted. When the system is deleted, the custom descriptor that you plugged
+    /// will be automatically deleted.
+    void ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor);
 
-    /// Access directly the LCP 'system descriptor'. Use mostly for diagnostics.
-    ChLcpSystemDescriptor* GetLcpSystemDescriptor() { return this->LCP_descriptor; };
+    /// Access directly the 'system descriptor'. Use mostly for diagnostics.
+    ChSystemDescriptor* GetSystemDescriptor() { return this->descriptor; }
 
     /// Changes the number of parallel threads (by default is n.of cores).
     /// Note that not all solvers use parallel computation.
@@ -361,7 +350,6 @@ class ChApi ChSystem : public ChAssembly,
     /// Initial system setup before analysis.
     /// This function must be called once the system construction is completed.
     void SetupInitial();
-
 
     //
     // DATABASE HANDLING.
@@ -417,14 +405,13 @@ class ChApi ChSystem : public ChAssembly,
     // STATISTICS
     //
 
-    
     /// Gets the number of contacts.
     int GetNcontacts();
 
     /// Gets the time (in seconds) spent for computing the time step
     virtual double GetTimerStep() { return timer_step(); }
-    /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-    virtual double GetTimerLcp() { return timer_lcp(); }
+    /// Gets the fraction of time (in seconds) for the solver, within the time step
+    virtual double GetTimerSolver() { return timer_solver(); }
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
     virtual double GetTimerCollisionBroad() { return timer_collision_broad(); }
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
@@ -435,31 +422,25 @@ class ChApi ChSystem : public ChAssembly,
     /// Resets the timers.
     void ResetTimers() {
         timer_step.reset();
-        timer_lcp.reset();
+        timer_solver.reset();
         timer_collision_broad.reset();
         timer_collision_narrow.reset();
         timer_update.reset();
     }
 
-    
     /// Gets the cyclic event buffer of this system (it can be used for
     /// debugging/profiling etc.)
     ChEvents* Get_events() { return events; }
 
   protected:
-    //
-    // LCP SOLVER
-    //
+    /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc.
+    /// into the system descriptor.
+    virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
 
-    /// Pushes back all ChConstraints and ChVariables contained in links,bodies,etc.
-    /// into the LCP descriptor.
-    virtual void LCPprepare_inject(ChLcpSystemDescriptor& mdescriptor);
-
-public:
+  public:
     //
     // PHYSICS ITEM INTERFACE
     //
-
 
     /// Counts the number of bodies and links.
     /// Computes the offsets of object states in the global state.
@@ -508,23 +489,23 @@ public:
                                      bool do_clamp,
                                      double recovery_clamp);
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, 
-                            ChStateDelta& v, 
-                            const unsigned int off_L, 
-                            ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
     
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
-    
-    virtual void InjectConstraints(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
     virtual void ConstraintsLoadJacobians();
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
 
     // Old bookkeeping system - to be removed soon
@@ -917,26 +898,25 @@ public:
     double tol;        // tolerance
     double tol_force;  // tolerance for forces (used to obtain a tolerance for impulses)
 
-    int maxiter;       // max iterations for nonlinear convergence in DoAssembly()
+    int maxiter;  // max iterations for nonlinear convergence in DoAssembly()
 
-    bool use_sleeping;   // if true, can put to sleep objects that come to rest, to speed up simulation (but decreasing
-                         // the precision)
+    bool use_sleeping;  // if true, can put to sleep objects that come to rest, to speed up simulation (but decreasing
+                        // the precision)
 
     eCh_integrationType integration_type;  // integration scheme
 
-    ChLcpSystemDescriptor* LCP_descriptor;  // the LCP system descriptor
-    ChLcpSolver* LCP_solver_speed;          // the LCP solver for speed problem
-    ChLcpSolver* LCP_solver_stab;           // the LCP solver for position (stabilization) problem, if any
-    eCh_lcpSolver lcp_solver_type;  // Type of LCP solver (iterative= fastest, but may fail satisfying constraints)
+    ChSystemDescriptor* descriptor;  // the system descriptor
+    ChSolver* solver_speed;          // the solver for speed problem
+    ChSolver* solver_stab;           // the solver for position (stabilization) problem, if any
+    eCh_solverType solver_type;      // Type of solver (iterative= fastest, but may fail satisfying constraints)
 
-    int iterLCPmaxIters;      // maximum n.of iterations for the iterative LCP solver
-    int iterLCPmaxItersStab;  // maximum n.of iterations for the iterative LCP solver when used for stabilizing
-                              // constraints
-    int simplexLCPmaxSteps;   // maximum number of steps for the simplex solver.
+    int max_iter_solver_speed;  // maximum num iterations for the iterative solver
+    int max_iter_solver_stab;   // maximum num iterations for the iterative solver for constraint stabilization
+    int max_steps_simplex;      // maximum number of steps for the simplex solver.
 
     double min_bounce_speed;  // maximum speed for rebounce after impacts. If lower speed at rebounce, it is clamped to
                               // zero.
-    double max_penetration_recovery_speed;  // For Anitescu/Eulero impl. linearized stepper, this limits the speed of penetration recovery
+    double max_penetration_recovery_speed;  // For Euler impl. linearized stepper, this limits the speed of penetration recovery
                                             // (>0, speed of exiting)
 
     int parallel_thread_number;  // used for multithreaded solver etc.
@@ -958,8 +938,8 @@ public:
     ChCustomCollisionPointCallback* collisionpoint_callback;
 
   private:
-    int last_err;                    // If null, no error during last kinematic/dynamics/statics etc.
-                                     // otherwise see CHSYS_ERR_xxxx  code
+    int last_err;  // If null, no error during last kinematic/dynamics/statics etc.
+                   // otherwise see CHSYS_ERR_xxxx  code
 
     ChEvents* events;  // the cyclic buffer which records event IDs
 
@@ -976,15 +956,13 @@ public:
     // timers for profiling execution speed
   protected:
     ChTimer<double> timer_step;
-    ChTimer<double> timer_lcp;
+    ChTimer<double> timer_solver;
     ChTimer<double> timer_collision_broad;
     ChTimer<double> timer_collision_narrow;
     ChTimer<double> timer_update;
 
     std::shared_ptr<ChTimestepper> timestepper;
 };
-
-
 
 }  // END_OF_NAMESPACE____
 

@@ -125,27 +125,27 @@ void ChShaftsGearbox::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
     Qc(off_L) += cnstr_violation;
 }
 
-void ChShaftsGearbox::IntToLCP(const unsigned int off_v,  ///< offset in v, R
-                               const ChStateDelta& v,
-                               const ChVectorDynamic<>& R,
-                               const unsigned int off_L,  ///< offset in L, Qc
-                               const ChVectorDynamic<>& L,
-                               const ChVectorDynamic<>& Qc) {
+void ChShaftsGearbox::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+                                      const ChStateDelta& v,
+                                      const ChVectorDynamic<>& R,
+                                      const unsigned int off_L,  ///< offset in L, Qc
+                                      const ChVectorDynamic<>& L,
+                                      const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
 
     constraint.Set_b_i(Qc(off_L));
 }
 
-void ChShaftsGearbox::IntFromLCP(const unsigned int off_v,  ///< offset in v
-                                 ChStateDelta& v,
-                                 const unsigned int off_L,  ///< offset in L
-                                 ChVectorDynamic<>& L) {
+void ChShaftsGearbox::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+                                        ChStateDelta& v,
+                                        const unsigned int off_L,  ///< offset in L
+                                        ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
 
-////////// LCP INTERFACES ////
+// SOLVER INTERFACES
 
-void ChShaftsGearbox::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChShaftsGearbox::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!this->IsActive())
     //	return;
 

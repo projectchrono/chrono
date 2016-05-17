@@ -16,7 +16,7 @@
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/lcp/ChLcpSystemDescriptor.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
 namespace chrono {
@@ -104,21 +104,21 @@ class ChApiFea ChElementBase {
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
     /// Tell to a system descriptor that there are item(s) of type
-    /// ChLcpKblock in this object (for further passing it to a LCP solver)
+    /// ChKblock in this object (for further passing it to a solver)
     /// Basically does nothing, but inherited classes must specialize this.
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) = 0;
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) = 0;
 
     /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChLcpKblock item(s), if any. The K, R, M matrices are added with scaling
+    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
     /// values Kfactor, Rfactor, Mfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) = 0;
 
     /// Adds the internal forces, expressed as nodal forces, into the
-    /// encapsulated ChLcpVariables, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
     /// WILL BE DEPRECATED - see EleIntLoadResidual_F
     virtual void VariablesFbLoadInternalForces(double factor = 1.) {}
 
@@ -131,7 +131,7 @@ class ChApiFea ChElementBase {
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

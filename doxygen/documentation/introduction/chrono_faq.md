@@ -3,7 +3,7 @@ Chrono Frequently Asked Questions {#faq_root}
 
 
 #### Who owns Chrono?
-Chrono is owned and copyrighted by Project::Chrono, a non-profit set up in the US. 
+Chrono is owned and copyrighted by **Project Chrono**, a non-profit organization set up in the US. 
 <br><br>
 
 #### Is Chrono free?
@@ -20,7 +20,7 @@ Chrono is a simulation tool that can be used to understand how physical systems 
 <br><br>
 
 #### What applications has Chrono been used for?
-Vehicle dynamics (wheeled and tracked), terramechanics, robotics, granular dynamics, mechanism design, oil well capping, farming, food processing, building collapse, connected autonomous vehicles.
+Robotics, vehicle dynamics (wheeled and tracked), terramechanics, granular dynamics, mechanism design, farming, food processing, building collapse, connected autonomous vehicles.
 <br><br>
 
 #### Why shouldn't I use Bullet@copy, or ODE@copy, or Physx@copy? They too look at how systems change in time and for some problems they do it many times faster than Chrono.

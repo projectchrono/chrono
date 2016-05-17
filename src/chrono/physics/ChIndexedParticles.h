@@ -51,8 +51,8 @@ class ChApi ChParticleBase : public ChFrameMoving<double> {
     ChParticleBase(const ChParticleBase& other);             // Copy constructor
     ChParticleBase& operator=(const ChParticleBase& other);  // Assignment operator
 
-    // Access the 'LCP variables' of the node
-    virtual ChLcpVariables& Variables() = 0;
+    // Access the variables of the node
+    virtual ChVariables& Variables() = 0;
 };
 
 /// Interface class for clusters of particles that can

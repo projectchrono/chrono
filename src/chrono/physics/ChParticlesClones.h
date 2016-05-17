@@ -12,29 +12,13 @@
 #ifndef CHPARTICLESCLONES_H
 #define CHPARTICLESCLONES_H
 
-//////////////////////////////////////////////////
-//
-//   ChParticlesClones.h
-//
-//   Class for clusters of particle 'clones', that is many
-//   rigid objects that share the same shape and mass.
-//   This can be used to make granular flows.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "physics/ChIndexedParticles.h"
-#include "collision/ChCCollisionModel.h"
-#include "lcp/ChLcpVariablesBodySharedMass.h"
-#include "physics/ChMaterialSurface.h"
-#include "physics/ChContactable.h"
+#include "chrono/physics/ChIndexedParticles.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/solver/ChVariablesBodySharedMass.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactable.h"
 
 namespace chrono {
 
@@ -54,8 +38,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     ChAparticle(const ChAparticle& other);             // Copy constructor
     ChAparticle& operator=(const ChAparticle& other);  // Assignment operator
 
-    // Access the 'LCP variables' of the node
-    virtual ChLcpVariables& Variables() { return variables; }
+    // Access the variables of the node
+    virtual ChVariables& Variables() override { return variables; }
 
     // Get the container
     ChParticlesClones* GetContainer() const {return container;}
@@ -67,7 +51,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     //
 
     /// Access variables.
-    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
+    virtual ChVariables* GetVariables1() override { return &Variables(); }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -166,9 +150,9 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ComputeJacobianForContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
         bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
@@ -176,9 +160,9 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChLcpVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
         bool second) override;
 
     /// used by some DEM code
@@ -197,7 +181,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     //
 
     ChParticlesClones* container;
-    ChLcpVariablesBodySharedMass variables;
+    ChVariablesBodySharedMass variables;
     collision::ChCollisionModel* collision_model;
     ChVector<> UserForce;
     ChVector<> UserTorque;
@@ -345,20 +329,23 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP FUNCTIONS
+    // SOLVER FUNCTIONS
     //
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
 
     void VariablesFbReset();
     void VariablesFbLoadForces(double factor = 1.);
@@ -366,7 +353,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void VariablesFbIncrementMq();
     void VariablesQbSetSpeed(double step = 0.);
     void VariablesQbIncrementPosition(double step);
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     // Other functions
 
@@ -456,6 +443,6 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

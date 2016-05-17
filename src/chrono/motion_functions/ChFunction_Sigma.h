@@ -1,40 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHFUNCT_SIGMA_H
 #define CHFUNCT_SIGMA_H
 
-//////////////////////////////////////////////////
-//
-//   ChFunction_Sigma.h
-//
-//   Function objects,
-//   as scalar functions of scalar variable y=f(t)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Base.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
 
 namespace chrono {
 
-#define FUNCT_SIGMA 5
-
-/// SIGMA FUNCTION:
-/// y = polynomial smooth ramp
+/// Sigma function:
+///   y = polynomial smooth ramp
 
 class ChApi ChFunction_Sigma : public ChFunction {
     CH_RTTI(ChFunction_Sigma, ChFunction);
@@ -45,48 +31,35 @@ class ChApi ChFunction_Sigma : public ChFunction {
     double end;
 
   public:
-    ChFunction_Sigma() {
-        amp = 1;
-        start = 0;
-        end = 1;
-    }
-    ChFunction_Sigma(double m_amp, double m_start, double m_end) {
-        start = m_start;
-        end = m_end;
-        amp = m_amp;
-    };
-    ~ChFunction_Sigma(){};
-    void Copy(ChFunction_Sigma* source);
-    ChFunction* new_Duplicate();
+    ChFunction_Sigma() : amp(1), start(0), end(1) {}
+    ChFunction_Sigma(double m_amp, double m_start, double m_end) : amp(m_amp), start(m_start), end(m_end) {}
+    ChFunction_Sigma(const ChFunction_Sigma& other);
+    ~ChFunction_Sigma() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChFunction_Sigma* Clone() const override { return new ChFunction_Sigma(*this); }
+
+    virtual FunctionType Get_Type() const override { return FUNCT_SIGMA; }
+
+    virtual double Get_y(double x) const override;
+    virtual double Get_y_dx(double x) const override;
+    virtual double Get_y_dxdx(double x) const override;
 
     void Set_start(double m_start) { start = m_start; }
     void Set_end(double m_end) { end = m_end; }
     void Set_amp(double m_amp) { amp = m_amp; }
-    double Get_start() { return start; }
-    double Get_end() { return end; }
-    double Get_amp() { return amp; }
+    double Get_start() const { return start; }
+    double Get_end() const { return end; }
+    double Get_amp() const { return amp; }
 
-    double Get_y(double x);
-    double Get_y_dx(double x);
-    double Get_y_dxdx(double x);
+    virtual double Get_Ca_pos() const override { return 6.0; }
+    virtual double Get_Ca_neg() const override { return 6.0; }
+    virtual double Get_Cv() const override { return 1.5; }
 
-    double Get_Ca_pos() { return 6.0; };
-    double Get_Ca_neg() { return 6.0; };
-    double Get_Cv() { return 1.5; };
-
-    void Estimate_x_range(double& xmin, double& xmax);
-    int Get_Type() { return (FUNCT_SIGMA); }
-
-    OPT_VARIABLES_START
-    "start", "end", "amp", OPT_VARIABLES_END
-
-    //
-    // SERIALIZATION
-    //
+    virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -98,8 +71,7 @@ class ChApi ChFunction_Sigma : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -109,10 +81,8 @@ class ChApi ChFunction_Sigma : public ChFunction {
         marchive >> CHNVP(start);
         marchive >> CHNVP(end);
     }
-
-
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

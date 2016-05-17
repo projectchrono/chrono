@@ -3,7 +3,7 @@ Writing white papers       {#tutorial_writing_whitepapers}
 
 The documentation of the more 'technical' and theorietical parts
 of Chrono::Engine can be put in LaTeX documents to generate _white papers_
-like the one that you can see [in the white papers page](whitepaper_root).
+like the one that you can see [in the white papers page](@ref whitepaper_root).
 
 To this end, we provide a **chrono.cls** LaTeX class that you can use instead of
 the article class.

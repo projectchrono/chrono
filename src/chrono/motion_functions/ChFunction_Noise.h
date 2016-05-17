@@ -1,41 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHFUNCT_NOISE_H
 #define CHFUNCT_NOISE_H
 
-//////////////////////////////////////////////////
-//
-//   ChFunction_Noise.h
-//
-//   Function objects,
-//   as scalar functions of scalar variable y=f(t)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Base.h"
+#include "chrono/motion_functions/ChFunction_Base.h"
 
 namespace chrono {
 
-#define FUNCT_NOISE 15
-
-/// NOISE FUNCTION:
+/// Noise function:
 /// y = multi-octave noise with cubic interpolation
-///
 
 class ChApi ChFunction_Noise : public ChFunction {
     CH_RTTI(ChFunction_Noise, ChFunction);
@@ -47,31 +32,31 @@ class ChApi ChFunction_Noise : public ChFunction {
     int octaves;
 
   public:
-    ChFunction_Noise();
-    ~ChFunction_Noise(){};
-    void Copy(ChFunction_Noise* source);
-    ChFunction* new_Duplicate();
+    ChFunction_Noise() : amp(1), freq(1), amp_ratio(0.5), octaves(2) {}
+    ChFunction_Noise(const ChFunction_Noise& other);
+    ~ChFunction_Noise() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChFunction_Noise* Clone() const override { return new ChFunction_Noise(*this); }
+
+    virtual FunctionType Get_Type() const override { return FUNCT_NOISE; }
+
+    virtual double Get_y(double x) const override;
 
     void Set_Amp(double mamp) { amp = mamp; }
-    double Get_Amp() { return amp; };
+    double Get_Amp() const { return amp; }
+
     void Set_Freq(double mf) { freq = mf; }
-    double Get_Freq() { return freq; };
+    double Get_Freq() const { return freq; }
+
     void Set_AmpRatio(double ma) { amp_ratio = ma; }
-    double Get_AmpRatio() { return amp_ratio; };
+    double Get_AmpRatio() const { return amp_ratio; }
+
     void Set_Octaves(int mo) { octaves = mo; }
-    int Get_Octaves() { return octaves; };
-
-    double Get_y(double x);
-
-    int Get_Type() { return (FUNCT_NOISE); }
-
-    //
-    // SERIALIZATION
-    //
+    int Get_Octaves() const { return octaves; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -84,8 +69,7 @@ class ChApi ChFunction_Noise : public ChFunction {
     }
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -96,9 +80,8 @@ class ChApi ChFunction_Noise : public ChFunction {
         marchive >> CHNVP(amp_ratio);
         marchive >> CHNVP(octaves);
     }
-
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

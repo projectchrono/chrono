@@ -28,7 +28,7 @@
 #include "assets/ChColorAsset.h"
 #include "assets/ChAssetLevel.h"
 
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "geometry/ChTriangleMeshSoup.h"
 
 #include "utils/ChUtilsInputOutput.h"
 

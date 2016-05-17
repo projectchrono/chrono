@@ -39,10 +39,11 @@ $( document ).ready(function() {
     $(".memproto").addClass("panel-heading");
     $(".memdoc").addClass("panel-body");
     $("span.mlabel").addClass("label label-info");
-
+	/*
+	  // avoid this, otherwise too tall list lines
     $("table.memberdecls").addClass("table");
     $("[class^=memitem]").addClass("active");
-
+	*/
     $("div.ah").addClass("btn btn-default");
     $("span.mlabels").addClass("pull-right");
     $("table.mlabels").css("width", "100%")
@@ -57,7 +58,7 @@ $( document ).ready(function() {
 
     $('div.fragment.well div.line:first').css('margin-top', '15px');
     $('div.fragment.well div.line:last').css('margin-bottom', '15px');
-	
+		
 	$('table.doxtable').removeClass('doxtable').addClass('table table-striped table-bordered').each(function(){
 		$(this).prepend('<thead></thead>');
 		$(this).find('tbody > tr:first').prependTo($(this).find('thead'));
@@ -68,17 +69,17 @@ $( document ).ready(function() {
 	});
 	
 	
-
     if($('div.fragment.well div.ttc').length > 0)
     {
         $('div.fragment.well div.line:first').parent().removeClass('fragment well');
     }
-
-    $('table.memberdecls').find('.memItemRight').each(function(){
+    /*
+	  // do not use this otherwise Doxygen member lists are not tabbed
+	$('table.memberdecls').find('.memItemRight').each(function(){
         $(this).contents().appendTo($(this).siblings('.memItemLeft'));
         $(this).siblings('.memItemLeft').attr('align', 'left');
     });
-	
+	*/
 	function getOriginalWidthOfImg(img_element) {
 		var t = new Image();
 		t.src = (img_element.getAttribute ? img_element.getAttribute("src") : false) || img_element.src;
@@ -96,25 +97,12 @@ $( document ).ready(function() {
 	$("span.mlabel").removeClass('mlabel');
 	$("table.memberdecls").removeClass('memberdecls');
     $("[class^=memitem]").removeClass('memitem');
-    $("span.mlabels").removeClass('mlabels');
-    $("table.mlabels").removeClass('mlabels');
+	$("span.mlabels").removeClass('mlabels');
+	$("table.mlabels").removeClass('mlabels');
     $("td.mlabels-right").removeClass('mlabels-right');
 	$(".navpath").removeClass('navpath');
 	$("li.navelem").removeClass('navelem');
 	$("a.el").removeClass('el');
 	$("div.ah").removeClass('ah');
 	$("div.header").removeClass("header");
-	
-	$('.mdescLeft').each(function(){
-		if($(this).html()=="&nbsp;") {
-			$(this).siblings('.mdescRight').attr('colspan', 2);
-			$(this).remove();
-		}
-	});
-	$('td.memItemLeft').each(function(){
-		if($(this).siblings('.memItemRight').html()=="") {
-			$(this).attr('colspan', 2);
-			$(this).siblings('.memItemRight').remove();
-		}
-	});
 });

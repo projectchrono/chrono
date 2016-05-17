@@ -1,4 +1,4 @@
-Manual {#manual_root}
+Reference Manual {#manual_root}
 ==========================
 
 
@@ -15,35 +15,37 @@ Manual {#manual_root}
 	
 * @subpage shared_pointers
 	
-* @subpage Coordinate_transformations
-	* @subpage Vectors
-	* @subpage Quaternions
-	* @subpage Rotation_matrices
-	* @subpage ChCoordsys
-	* @subpage ChFrame
-	* @subpage ChFrameMoving
+* @subpage coordinate_transformations
+	* [Vectors](@ref manual_ChVector)
+	* [Quaternions](@ref manual_ChQuaternion)
+	* [Rotation matrices](@ref manual_ChMatrix33)
+	* [ChCoordsys](@ref manual_ChCoordsys)
+	* [ChFrame](@ref manual_ChFrame)
+	* [ChFrameMoving](@ref manual_ChFrameMoving)
 	
-* @subpage Rigid_bodies
-	* @subpage ChBody
-	* @subpage ChBodyAuxRef
-	* @subpage Other_bodies
+* @subpage rigid_bodies
+	* [ChBody](@ref manual_ChBody)
+	* [ChBodyAuxRef](@ref manual_ChBodyAuxRef)
+	* [Other_bodies](@ref manual_otherbodies)
 	
-* @subpage Markers
+* @subpage markers
 	
-* @subpage Collision_shapes
-	* @subpage Collision_model
-	* @subpage Collision_families
-	* @subpage Collision_materials
+* @subpage collision_shapes
+	* [Collision models](@ref collision_models)
+	* [Collision families](@ref collision_families)
+	* [Collision materials](@ref collision_materials)
 	
-* @subpage Visualization_assets
-	* @subpage ChAsset
-	* @subpage Visualization_assets
+* @subpage visualization_assets
+	* [ChAsset](@ref manual_ChAsset)
+	* [Visualization shapes](@ref manual_ChVisualization)
 	
-* @subpage Links
+* @subpage links
 
-* @subpage Simulation_system
-	* @subpage ChSystem
-	* @subpage Simulation_parameters
+* @subpage simulation_system
+	* [ChSystem](@ref manual_ChSystem)
+	* [Time steppers](@ref time_steppers)
+	* [Solvers](@ref solvers)
+	* [Other simulation parameters](@ref other_simulation_parameters)
 	
 * @subpage introduction_chrono_pyengine
 

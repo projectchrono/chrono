@@ -14,10 +14,9 @@
 //
 // =============================================================================
 
-#include "assets/ChColorAsset.h"
-#include "geometry/ChCLineBezier.h"
-
-#include "utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/geometry/ChLineBezier.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 namespace chrono {
 namespace utils {

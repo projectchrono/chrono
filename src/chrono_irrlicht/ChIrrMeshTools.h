@@ -15,7 +15,7 @@
 
 #include <irrlicht.h>
 
-#include "chrono/geometry/ChCTriangleMesh.h"
+#include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono_irrlicht/ChApiIrr.h"
 
 namespace chrono {

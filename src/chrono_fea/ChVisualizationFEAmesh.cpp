@@ -18,6 +18,7 @@
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementShell.h"
+#include "chrono_fea/ChElementShellEANS4.h"
 #include "chrono_fea/ChFaceTetra_4.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
@@ -29,7 +30,7 @@ namespace fea {
 
 ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
 	FEMmesh = &mymesh;
-	fem_data_type = E_PLOT_NODE_DISP_NORM;
+	fem_data_type = E_PLOT_SURFACE;
 	fem_glyph = E_GLYPH_NONE;
 
 	colorscale_min= 0;
@@ -1112,7 +1113,21 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 				++nglyvect;
 			}
 	}
-	
+    
+    //***TEST***
+    /*
+    for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
+            // ------------ELEMENT IS A ChElementShellEANS4?
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementShellEANS4>(this->FEMmesh->GetElement(iel))) {
+                glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
+                glyphs_asset->SetGlyphsSize(1);
+                glyphs_asset->GetNumberOfGlyphs();
+                glyphs_asset->SetGlyphCoordsys(glyphs_asset->GetNumberOfGlyphs(), 
+                    ChCoordsys<>((mytetra->GetNodeA()->GetPos()+mytetra->GetNodeB()->GetPos()+mytetra->GetNodeC()->GetPos()+mytetra->GetNodeD()->GetPos())*0.25, 
+                    mytetra->GetAvgRot()) );
+            }
+    }
+    */
 	// Finally, update also the children, in case they implemented Update(), 
 	// and do this by calling the parent class implementation of ChAssetLevel
 	ChAssetLevel::Update(updater, coords);

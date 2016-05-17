@@ -9,18 +9,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChLinkPointSpline.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkPointSpline.h"
-#include "physics/ChSystem.h"
-#include "geometry/ChCLineSegment.h"
+#include "chrono/physics/ChLinkPointSpline.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
 
@@ -55,7 +46,7 @@ void ChLinkPointSpline::Copy(ChLinkPointSpline* source) {
 
     // copy own data
 
-    trajectory_line = std::shared_ptr<ChLine>((ChLine*)source->trajectory_line->Duplicate());  // deep copy
+    trajectory_line = std::shared_ptr<ChLine>(source->trajectory_line->Clone());  // deep copy
 }
 
 ChLink* ChLinkPointSpline::new_Duplicate() {

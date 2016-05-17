@@ -2,8 +2,14 @@ Chrono::PyEngine tutorials  {#tutorial_table_of_content_chrono_pyengine}
 ==========================
 
 
-Tutorials for users that installed [Chrono::PyEngine](@ref introduction_chrono_pyengine)
+Tutorials for users that installed the [Chrono::PyEngine](@ref introduction_chrono_pyengine) module.
 
+<div class="ce-info">
+These examples show how to use Chrono API **from the Python side**.
+If you want to learn how to parse and execute Python programs
+**from the C++ side** see also 
+[the tutorials for Chrono::PyEngine](@ref tutorial_table_of_content_chrono_python)
+</div>
 
 -   @subpage tutorial_chrono_pyengine_demo_python1
 

@@ -9,7 +9,7 @@
 
   "Contact Material":
   {
-      "Use Physical Properties":  true,
+      "Use Physical Properties":  false,
 
       "Properties":
       {

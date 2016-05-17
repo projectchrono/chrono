@@ -398,9 +398,8 @@ class CH_PARALLEL_API ChParallelDataManager {
     // from when the code supported the GPU (host vs device)
     host_container host_data;
     shape_container shape_data;
-    // This pointer is used by the bilarerals for computing the jacobian and other
-    // terms
-    ChLcpSystemDescriptor* lcp_system_descriptor;
+    // This pointer is used by the bilarerals for computing the jacobian and other terms
+    ChSystemDescriptor* system_descriptor;
 
     Ch3DOFContainer* node_container;
     Ch3DOFContainer* fea_container;

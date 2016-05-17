@@ -13,24 +13,24 @@
 #ifndef CHBODYFRAME_H
 #define CHBODYFRAME_H
 
-#include "core/ChFrameMoving.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 namespace chrono {
 
 /// Class for objects that represent moving frames in space and
-/// that contain  ChLcpVariables proxies to the solver.
+/// that contain  ChVariables proxies to the solver.
 /// i.e. items with translational and rotational degrees of freedom
 /// This class is used as a base for the very used ChBody class
 
 class ChApi ChBodyFrame : public ChFrameMoving<double> {
   public:
-    /// Returns reference to the encapsulated ChLcpVariablesBody,
+    /// Returns reference to the encapsulated ChVariablesBody,
     /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
     /// and forces.
-    /// The ChLcpVariablesBodyOwnMass is the interface to the LCP system solver.
-    virtual ChLcpVariablesBodyOwnMass& VariablesBody() = 0;
-	virtual ChLcpVariables& Variables() = 0;
+    /// The ChVariablesBodyOwnMass is the interface to the system solver.
+    virtual ChVariablesBodyOwnMass& VariablesBody() = 0;
+	virtual ChVariables& Variables() = 0;
 
     /// Transform generic cartesian force into absolute force+torque applied to body COG.
     /// If local=1, force & application point are intended as expressed in local
@@ -57,6 +57,6 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

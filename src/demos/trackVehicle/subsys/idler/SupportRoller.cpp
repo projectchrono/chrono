@@ -23,7 +23,7 @@
 #include "assets/ChTexture.h"
 // #include "assets/ChColorAsset.h"
 // collision mesh
-// #include "geometry/ChCTriangleMeshSoup.h"
+// #include "geometry/ChTriangleMeshSoup.h"
 
 #include "utils/ChUtilsInputOutput.h"
 

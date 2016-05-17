@@ -158,8 +158,8 @@ pov_exporter.SetShowContacts(1,
  #    only once at the beginning of the simulation).
 pov_exporter.ExportScript()
 
-#my_system.SetLcpSolverType(chrono.ChSystem.LCP_ITERATIVE_PMINRES)
-my_system.SetIterLCPmaxItersSpeed(50)
+#my_system.SetSolverType(chrono.ChSystem.SOLVER_PMINRES)
+my_system.SetMaxItersSolverSpeed(50)
 
 
  # Perform a short simulation

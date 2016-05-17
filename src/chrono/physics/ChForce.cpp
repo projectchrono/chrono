@@ -98,15 +98,15 @@ void ChForce::Copy(ChForce* source) {
     Qf->CopyFromMatrix(*source->Qf);
 
  
-    modula = std::shared_ptr<ChFunction>(source->modula->new_Duplicate());
+    modula = std::shared_ptr<ChFunction>(source->modula->Clone());
     
-    move_x = std::shared_ptr<ChFunction>(source->move_x->new_Duplicate());
-    move_y = std::shared_ptr<ChFunction>(source->move_y->new_Duplicate());
-    move_z = std::shared_ptr<ChFunction>(source->move_z->new_Duplicate());
+    move_x = std::shared_ptr<ChFunction>(source->move_x->Clone());
+    move_y = std::shared_ptr<ChFunction>(source->move_y->Clone());
+    move_z = std::shared_ptr<ChFunction>(source->move_z->Clone());
     
-    f_x = std::shared_ptr<ChFunction>(source->f_x->new_Duplicate());
-    f_y = std::shared_ptr<ChFunction>(source->f_y->new_Duplicate());
-    f_z = std::shared_ptr<ChFunction>(source->f_z->new_Duplicate());
+    f_x = std::shared_ptr<ChFunction>(source->f_x->Clone());
+    f_y = std::shared_ptr<ChFunction>(source->f_y->Clone());
+    f_z = std::shared_ptr<ChFunction>(source->f_z->Clone());
 }
 
 ////// Impose absolute or relative positions, also

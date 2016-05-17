@@ -2,8 +2,8 @@ SET(LIBRARIES ChronoEngine)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
-    benchmark_atomic
-    benchmark_ChBody
+    utest_CH_benchmark_atomic
+    utest_CH_benchmark_ChBody
 )
 
 MESSAGE(STATUS "Unit test programs for BENCHMARK module...")

@@ -26,16 +26,16 @@
 
 #include "unit_MPI/ChContactContainerDEMMPI.h"
 
-#include "lcp/ChLcpVariablesGeneric.h"
-#include "lcp/ChLcpVariablesBody.h"
+#include "lcp/ChVariablesGeneric.h"
+#include "lcp/ChVariablesBody.h"
 #include "core/ChLinearAlgebra.h"
 #include "unit_MPI/ChMpi.h"
 #include "unit_MPI/ChSystemMPI.h"
 #include "unit_MPI/ChBodyDEMMPI.h"
-#include "unit_MPI/ChLcpSystemDescriptorMPI.h"
+#include "unit_MPI/ChSystemDescriptorMPI.h"
 #include "unit_MPI/ChDomainLatticePartitioning.h"
 #include "unit_MPI/ChDomainGridPartitioning.h"
-#include "unit_MPI/ChLcpSolverDEMMPI.h"
+#include "unit_MPI/ChSolverDEMMPI.h"
 
 // Use the namespace of Chrono
 
@@ -954,15 +954,15 @@ int main(int argc, char* argv[]) {
     ChDomainGridPartitioning mypartitioner(x_s, y_s, z_s, ChVector<>(-2, -10, -100));
     mypartitioner.SetupNode(mysystem.nodeMPI, myid);  // btw: please take care that must be numprocs=nx*ny*nz
 
-    mysystem.SetLcpSolverType(ChSystem::LCP_DEM);
+    mysystem.SetSolverType(ChSystem::SOLVER_DEM);
     // Prepare the system with a special 'system descriptor'
     // that is necessary when doing simulations with MPI.
     ChSystemDescriptorMPIgrid3D mydescriptor(mysystem.nodeMPI);  // NEW
-    mysystem.ChangeLcpSystemDescriptor(&mydescriptor);
+    mysystem.ChangeSystemDescriptor(&mydescriptor);
 
     // Use the DEMz solver
-    ChLcpSolverDEMMPI mysolver;
-    mysystem.ChangeLcpSolverSpeed(&mysolver);
+    ChSolverDEMMPI mysolver;
+    mysystem.ChangeSolverSpeed(&mysolver);
 
     GetLog() << "1\n";
     // Save on file the aabb of the boundaries of each domain, for debugging/visualization

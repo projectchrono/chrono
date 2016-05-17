@@ -1,15 +1,21 @@
+# Unit tests for the Chrono::FEA module
+# ==================================================================
+
 SET(LIBRARIES ChronoEngine ChronoEngine_fea)
 
 SET(TESTS
-    test_ANCFBeam
-    test_ANCFShell_Iso
-    test_ANCFShell_Ort
-    test_ANCFShell_OrtGrav
-    test_EASBrickIso
-    test_EASBrickIso_Grav
-test_EASBrickMooneyR_Grav
-test_ANCFConstraints
-test_ANCFContact)
+    utest_FEA_ANCFBeam
+    utest_FEA_ANCFShell_Iso
+    utest_FEA_ANCFShell_Ort
+    utest_FEA_ANCFShell_OrtGrav
+    utest_FEA_EASBrickIso
+    utest_FEA_EASBrickIso_Grav
+    utest_FEA_EASBrickMooneyR_Grav
+    utest_FEA_ANCFConstraints
+    utest_FEA_ANCFContact
+    utest_FEA_compute_contact_mesh
+)
+
 MESSAGE(STATUS "Unit test programs for FEA module...")
 # A hack to set the working directory in which to execute the CTest
 # runs.  This is needed for tests that need to access the Chrono data

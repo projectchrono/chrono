@@ -9,8 +9,8 @@
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/math/matrix.h"  // for quaternion, real4
 
 #include "chrono_fea/ChNodeFEAxyz.h"
@@ -26,7 +26,7 @@ INITIALIZE_EASYLOGGINGPP
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
     data_manager = new ChParallelDataManager();
 
-    LCP_descriptor = new ChLcpSystemDescriptorParallel(data_manager);
+    descriptor = new ChSystemDescriptorParallel(data_manager);
     contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
     collision_system = new ChCollisionSystemParallel(data_manager);
 
@@ -47,12 +47,13 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
     data_manager->system_timer.AddTimer("collision");
     data_manager->system_timer.AddTimer("collision_broad");
     data_manager->system_timer.AddTimer("collision_narrow");
-    data_manager->system_timer.AddTimer("lcp");
+    data_manager->system_timer.AddTimer("solver");
 
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_Solve");
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_Setup");
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_Stab");
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_M");
+    data_manager->system_timer.AddTimer("ChSolverParallel_Solve");
+    data_manager->system_timer.AddTimer("ChSolverParallel_Setup");
+    data_manager->system_timer.AddTimer("ChSolverParallel_Stab");
+    data_manager->system_timer.AddTimer("ChSolverParallel_M");
+
 
 #ifdef LOGGINGENABLED
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
@@ -68,7 +69,7 @@ ChSystemParallel::~ChSystemParallel() {
 int ChSystemParallel::Integrate_Y() {
     LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ChTime;
     // Get the pointer for the system descriptor and store it into the data manager
-    data_manager->lcp_system_descriptor = this->LCP_descriptor;
+    data_manager->system_descriptor = this->descriptor;
     data_manager->body_list = &this->bodylist;
     data_manager->link_list = &this->linklist;
     data_manager->other_physics_list = &this->otherphysicslist;
@@ -92,15 +93,15 @@ int ChSystemParallel::Integrate_Y() {
 
     data_manager->system_timer.stop("collision");
 
-    data_manager->system_timer.start("lcp");
-    ((ChLcpSolverParallel*)(LCP_solver_speed))->RunTimeStep();
-    data_manager->system_timer.stop("lcp");
+    data_manager->system_timer.start("solver");
+    ((ChSolverParallel*)(solver_speed))->RunTimeStep();
+    data_manager->system_timer.stop("solver");
 
     data_manager->system_timer.start("update");
 
     // Iterate over the active bilateral constraints and store their Lagrange
     // multiplier.
-    std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
     for (int index = 0; index < data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
@@ -121,6 +122,7 @@ int ChSystemParallel::Integrate_Y() {
     DynamicVector<real>& velocities = data_manager->host_data.v;
     custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
+
 
 #pragma omp parallel for
     for (int i = 0; i < bodylist.size(); i++) {
@@ -320,7 +322,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 }
 
 //
-// Reset forces for all lcp variables
+// Reset forces for all variables
 //
 void ChSystemParallel::ClearForceVariables() {
 #pragma omp parallel for
@@ -344,27 +346,28 @@ void ChSystemParallel::ClearForceVariables() {
 // 6. Process bilateral constraints
 //
 void ChSystemParallel::Update() {
-    LOG(INFO) << "ChSystemParallel::Update()";
-    // Clear the forces for all lcp variables
-    ClearForceVariables();
 
-    // Allocate space for the velocities and forces for all objects
-    data_manager->host_data.v.resize(data_manager->num_dof);
-    data_manager->host_data.hf.resize(data_manager->num_dof);
+  LOG(INFO) << "ChSystemParallel::Update()";
+  // Clear the forces for all variables
+  ClearForceVariables();
 
-    // Clear system-wide vectors for bilateral constraints
-    data_manager->host_data.bilateral_mapping.clear();
-    data_manager->host_data.bilateral_type.clear();
+  // Allocate space for the velocities and forces for all objects
+  data_manager->host_data.v.resize(data_manager->num_dof);
+  data_manager->host_data.hf.resize(data_manager->num_dof);
 
-    this->LCP_descriptor->BeginInsertion();
-    UpdateLinks();
-    UpdateOtherPhysics();
-    UpdateRigidBodies();
-    UpdateShafts();
-    Update3DOFBodies();
-    LCP_descriptor->EndInsertion();
+  // Clear system-wide vectors for bilateral constraints
+  data_manager->host_data.bilateral_mapping.clear();
+  data_manager->host_data.bilateral_type.clear();
 
-    UpdateBilaterals();
+  this->descriptor->BeginInsertion();
+  UpdateLinks();
+  UpdateOtherPhysics();
+  UpdateRigidBodies();
+  UpdateShafts();
+  UpdateFluidBodies();
+  descriptor->EndInsertion();
+
+  UpdateBilaterals();
 }
 
 //
@@ -454,23 +457,24 @@ void ChSystemParallel::Update3DOFBodies() {
 // to BODY_BODY. Note that visualization assets are not updated.
 //
 void ChSystemParallel::UpdateLinks() {
-    double oostep = 1 / GetStep();
-    real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
-    bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-    for (int i = 0; i < linklist.size(); i++) {
-        linklist[i]->Update(ChTime, false);
-        linklist[i]->ConstraintsBiReset();
-        linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
-        linklist[i]->ConstraintsBiLoad_Ct(1);
-        linklist[i]->ConstraintsFbLoadForces(GetStep());
-        linklist[i]->ConstraintsLoadJacobians();
+  double oostep = 1 / GetStep();
+  real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
+  bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-        linklist[i]->InjectConstraints(*LCP_descriptor);
+  for (int i = 0; i < linklist.size(); i++) {
+    linklist[i]->Update(ChTime, false);
+    linklist[i]->ConstraintsBiReset();
+    linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+    linklist[i]->ConstraintsBiLoad_Ct(1);
+    linklist[i]->ConstraintsFbLoadForces(GetStep());
+    linklist[i]->ConstraintsLoadJacobians();
 
-        for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
-            data_manager->host_data.bilateral_type.push_back(BODY_BODY);
-    }
+    linklist[i]->InjectConstraints(*descriptor);
+
+    for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
+      data_manager->host_data.bilateral_type.push_back(BODY_BODY);
+  }
 }
 
 //
@@ -530,7 +534,9 @@ void ChSystemParallel::UpdateOtherPhysics() {
         if (type == UNKNOWN)
             continue;
 
-        otherphysicslist[i]->InjectConstraints(*LCP_descriptor);
+
+    otherphysicslist[i]->InjectConstraints(*descriptor);
+
 
         for (int j = 0; j < otherphysicslist[i]->GetDOC_c(); j++)
             data_manager->host_data.bilateral_type.push_back(type);
@@ -542,30 +548,30 @@ void ChSystemParallel::UpdateOtherPhysics() {
 // non-zero entries in the constraint Jacobian.
 //
 void ChSystemParallel::UpdateBilaterals() {
-    data_manager->nnz_bilaterals = 0;
-    std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
 
-    for (uint ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->IsActive()) {
-            data_manager->host_data.bilateral_mapping.push_back(ic);
-            switch (data_manager->host_data.bilateral_type[ic]) {
-                case BODY_BODY:
-                    data_manager->nnz_bilaterals += 12;
-                    break;
-                case SHAFT_SHAFT:
-                    data_manager->nnz_bilaterals += 2;
-                    break;
-                case SHAFT_SHAFT_SHAFT:
-                    data_manager->nnz_bilaterals += 3;
-                    break;
-                case SHAFT_BODY:
-                    data_manager->nnz_bilaterals += 7;
-                    break;
-                case SHAFT_SHAFT_BODY:
-                    data_manager->nnz_bilaterals += 8;
-                    break;
-            }
-        }
+  data_manager->nnz_bilaterals = 0;
+  std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
+
+  for (uint ic = 0; ic < mconstraints.size(); ic++) {
+    if (mconstraints[ic]->IsActive()) {
+      data_manager->host_data.bilateral_mapping.push_back(ic);
+      switch (data_manager->host_data.bilateral_type[ic]) {
+        case BODY_BODY:
+          data_manager->nnz_bilaterals += 12;
+          break;
+        case SHAFT_SHAFT:
+          data_manager->nnz_bilaterals += 2;
+          break;
+        case SHAFT_SHAFT_SHAFT:
+          data_manager->nnz_bilaterals += 3;
+          break;
+        case SHAFT_BODY:
+          data_manager->nnz_bilaterals += 7;
+          break;
+        case SHAFT_SHAFT_BODY:
+          data_manager->nnz_bilaterals += 8;
+          break;
+      }
     }
 
     // Set the number of currently active bilateral constraints.
@@ -697,7 +703,7 @@ void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
 // the provided vector. Return the maximum constraint violation.
 //
 double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec) {
-    std::vector<ChLcpConstraint*>& mconstraints = LCP_descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
     cvec.resize(data_manager->num_bilaterals);
     double max_c = 0;
 
@@ -736,9 +742,9 @@ int ChSystemParallel::GetNumBilaterals() {
 double ChSystemParallel::GetTimerStep() {
     return data_manager->system_timer.GetTime("step");
 }
-/// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-double ChSystemParallel::GetTimerLcp() {
-    return data_manager->system_timer.GetTime("lcp");
+/// Gets the fraction of time (in seconds) for the solution of the problem, within the time step
+double ChSystemParallel::GetTimerSolver() {
+    return data_manager->system_timer.GetTime("solver");
 }
 /// Gets the fraction of time (in seconds) for finding collisions, within the time step
 double ChSystemParallel::GetTimerCollisionBroad() {
@@ -760,4 +766,5 @@ double ChSystemParallel::GetTimerCollision() {
 
 settings_container* ChSystemParallel::GetSettings() {
     return &(data_manager->settings);
+
 }

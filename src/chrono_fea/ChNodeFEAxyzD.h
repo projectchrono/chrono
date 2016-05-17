@@ -13,7 +13,7 @@
 #ifndef CHNODEFEAXYZD_H
 #define CHNODEFEAXYZD_H
 
-#include "chrono/lcp/ChLcpVariablesGenericDiagonalMass.h"
+#include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 
 namespace chrono {
@@ -27,7 +27,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
         D = initial_dir;
         D_dt = VNULL;
         D_dtdt = VNULL;
-        variables_D = new ChLcpVariablesGenericDiagonalMass(3);
+        variables_D = new ChVariablesGenericDiagonalMass(3);
         // default: no atomic mass associated to fea node, the fea element will add mass matrix
         variables_D->GetMassDiagonal().FillElem(0.0);
     }
@@ -35,6 +35,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     ~ChNodeFEAxyzD() { delete variables_D; }
 
     ChNodeFEAxyzD(const ChNodeFEAxyzD& other) : ChNodeFEAxyz(other) {
+        variables_D = new ChVariablesGenericDiagonalMass(3);
         (*this->variables_D) = (*other.variables_D);
 		this->D = other.D;
 		this->D_dt = other.D_dt;
@@ -69,7 +70,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get the direction acceleration
     virtual ChVector<> GetD_dtdt() { return D_dtdt; }
 
-    virtual ChLcpVariables& Variables_D() { return *this->variables_D; }
+    virtual ChVariables& Variables_D() { return *this->variables_D; }
 
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override {
@@ -160,22 +161,24 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
         R(off + 5) += c * GetMassDiagonal()(2) * w(off + 5);
     }
 
-    virtual void NodeIntToLCP(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) override {
-        ChNodeFEAxyz::NodeIntToLCP(off_v, v, R);
+    virtual void NodeIntToDescriptor(const unsigned int off_v,
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R) override {
+        ChNodeFEAxyz::NodeIntToDescriptor(off_v, v, R);
         this->variables_D->Get_qb().PasteClippedMatrix(&v, off_v + 3, 0, 3, 1, 0, 0);
         this->variables_D->Get_fb().PasteClippedMatrix(&R, off_v + 3, 0, 3, 1, 0, 0);
     }
 
-    virtual void NodeIntFromLCP(const unsigned int off_v, ChStateDelta& v) override {
-        ChNodeFEAxyz::NodeIntFromLCP(off_v, v);
+    virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
+        ChNodeFEAxyz::NodeIntFromDescriptor(off_v, v);
         v.PasteMatrix(&this->variables_D->Get_qb(), off_v + 3, 0);
     }
 
     //
-    // Functions for interfacing to the LCP solver
+    // Functions for interfacing to the solver
     //
 
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor) override {
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
         ChNodeFEAxyz::InjectVariables(mdescriptor);
         mdescriptor.InsertVariables(this->variables_D);
     }
@@ -192,14 +195,14 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     virtual void VariablesQbLoadSpeed() override {
         ChNodeFEAxyz::VariablesQbLoadSpeed();
-        this->variables_D->Get_qb().PasteVector(this->D_dt, 3, 0);
+        this->variables_D->Get_qb().PasteVector(this->D_dt, 0, 0);
     }
 
     virtual void VariablesQbSetSpeed(double step = 0) override {
         ChNodeFEAxyz::VariablesQbSetSpeed(step);
 
         ChVector<> oldD_dt = this->D_dt;
-        this->SetD_dt(this->variables_D->Get_qb().ClipVector(3, 0));
+        this->SetD_dt(this->variables_D->Get_qb().ClipVector(0, 0));
         if (step) {
             this->SetD_dtdt((this->D_dt - oldD_dt) / step);
         }
@@ -213,7 +216,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     virtual void VariablesQbIncrementPosition(double step) override {
         ChNodeFEAxyz::VariablesQbIncrementPosition(step);
 
-        ChVector<> newspeed_D = variables_D->Get_qb().ClipVector(3, 0);
+        ChVector<> newspeed_D = variables_D->Get_qb().ClipVector(0, 0);
 
         // ADVANCE POSITION: pos' = pos + dt * vel
         this->SetD(this->GetD() + newspeed_D * step);
@@ -248,8 +251,8 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override {
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         mvars.push_back(&this->Variables());
         mvars.push_back(&this->Variables_D());
     }
@@ -304,7 +307,7 @@ class ChNodeFEAxyzD : public ChNodeFEAxyz {
 
   private:
     /// 3D node variable - the direction part: Dx,Dy,Dz (the position part is in parent class)
-    ChLcpVariablesGenericDiagonalMass* variables_D;
+    ChVariablesGenericDiagonalMass* variables_D;
 
   public:
     ChVector<> D;

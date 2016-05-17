@@ -117,12 +117,12 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
             }
             if (!ptr_ind_map.count(trilist[i]->GetNode2().get())) {
                 ptr_ind_map.insert({trilist[i]->GetNode2().get(), vertex_index});
-                ind_ptr_map.push_back(trilist[i]->GetNode1());
+                ind_ptr_map.push_back(trilist[i]->GetNode2());
                 ++vertex_index;
             }
             if (!ptr_ind_map.count(trilist[i]->GetNode3().get())) {
                 ptr_ind_map.insert({trilist[i]->GetNode3().get(), vertex_index});
-                ind_ptr_map.push_back(trilist[i]->GetNode1());
+                ind_ptr_map.push_back(trilist[i]->GetNode3());
                 ++vertex_index;
             }
         }
@@ -218,7 +218,7 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
         }
     }
 
-    virtual void InjectKRMmatrices(ChLcpSystemDescriptor& mdescriptor) {
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->InjectKRMmatrices(mdescriptor);
         }

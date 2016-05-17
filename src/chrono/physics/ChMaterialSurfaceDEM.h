@@ -14,7 +14,7 @@
 
 #include "physics/ChMaterialSurfaceBase.h"
 
-/// Class for material surface data for DEM contact
+
 namespace chrono {
 
 struct ChCompositeMaterialDEM {
@@ -31,6 +31,7 @@ struct ChCompositeMaterialDEM {
     float gt;
 };
 
+/// Class for material surface data for DEM contact
 class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMaterialSurfaceDEM, ChMaterialSurfaceBase);

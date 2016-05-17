@@ -38,6 +38,7 @@
 #include "chrono_parallel/ChMeasures.h"
 #include "chrono_fea/ChMesh.h"
 
+
 namespace chrono {
 
 class ChParallelDataManager;
@@ -77,8 +78,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     /// Gets the time (in seconds) spent for computing the time step
     virtual double GetTimerStep();
-    /// Gets the fraction of time (in seconds) for the solution of the LCPs, within the time step
-    virtual double GetTimerLcp();
+    /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step
+    virtual double GetTimerSolver();
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
     virtual double GetTimerCollisionBroad();
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
@@ -122,6 +123,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     std::vector<ChShaft*> shaftlist;
+
 };
 //====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
@@ -145,6 +147,9 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 
     virtual real3 GetBodyContactForce(uint body_id) const;
     virtual real3 GetBodyContactTorque(uint body_id) const;
+      //using ChSystemParallel::GetBodyContactForce;
+  //using ChSystemParallel::GetBodyContactTorque;
+
 
     virtual void AssembleSystem();
     virtual void SolveSystem();
@@ -165,12 +170,16 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     virtual void Setup();
     virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
-    virtual real3 GetBodyContactForce(uint body_id) const;
-    virtual real3 GetBodyContactTorque(uint body_id) const;
+  virtual real3 GetBodyContactForce(uint body_id) const;
+  virtual real3 GetBodyContactTorque(uint body_id) const;
+  using ChSystemParallel::GetBodyContactForce;
+  using ChSystemParallel::GetBodyContactTorque;
 
     virtual void PrintStepStats();
 
-    double GetTimerProcessContact();
+  double GetTimerProcessContact() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");
+  }
 };
 
 }  // end namespace chrono

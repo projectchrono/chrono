@@ -2,10 +2,10 @@ SET(LIBRARIES ChronoEngine)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
-    test_ChVector
-    test_coords
-    test_math
-    #test_stream
+    utest_CH_ChVector
+    utest_CH_coords
+    utest_CH_math
+    #utest_CH_stream
 )
 
 MESSAGE(STATUS "Unit test programs for CORE module...")

@@ -9,25 +9,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChParticles.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <algorithm>
 
-#include "core/ChTransform.h"
-#include "physics/ChIndexedParticles.h"
-#include "physics/ChSystem.h"
-#include "physics/ChGlobal.h"
-
-#include "physics/ChExternalObject.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChIndexedParticles.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 

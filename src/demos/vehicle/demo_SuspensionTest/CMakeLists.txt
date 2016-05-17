@@ -7,16 +7,14 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-MESSAGE(STATUS "...add SUSPENSION_TEST_RIG demo")
-
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO_FILES
-    demo_SuspensionTestRig.cpp
+SET(DEMO
+    demo_VEH_SuspensionTestRig
 )
 
-SOURCE_GROUP("" FILES ${DEMO_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -37,10 +35,12 @@ SET(LIBRARIES
 #--------------------------------------------------------------
 # Add executable
 
-ADD_EXECUTABLE(demo_SuspensionTestRig ${DEMO_FILES})
-SET_TARGET_PROPERTIES(demo_SuspensionTestRig PROPERTIES 
+MESSAGE(STATUS "...add ${DEMO}")
+
+ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
+SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(demo_SuspensionTestRig ${LIBRARIES})
-INSTALL(TARGETS demo_SuspensionTestRig DESTINATION bin)
+TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES})
+INSTALL(TARGETS ${DEMO} DESTINATION bin)
 

@@ -10,12 +10,11 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "physics/ChLinkEngine.h"
+#include "chrono/physics/ChLinkEngine.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkEngine> a_registration_ChLinkEngine;
 
 ChLinkEngine::ChLinkEngine() {
@@ -87,13 +86,13 @@ void ChLinkEngine::Copy(ChLinkEngine* source) {
     last_r3relm_rot_dt = source->last_r3relm_rot_dt;
     keyed_polar_rotation = source->keyed_polar_rotation;
 
-    rot_funct = std::shared_ptr<ChFunction>(source->rot_funct->new_Duplicate());
-    spe_funct = std::shared_ptr<ChFunction>(source->spe_funct->new_Duplicate());
-    tor_funct = std::shared_ptr<ChFunction>(source->tor_funct->new_Duplicate());
-    torque_w = std::shared_ptr<ChFunction>(source->torque_w->new_Duplicate());
+    rot_funct = std::shared_ptr<ChFunction>(source->rot_funct->Clone());
+    spe_funct = std::shared_ptr<ChFunction>(source->spe_funct->Clone());
+    tor_funct = std::shared_ptr<ChFunction>(source->tor_funct->Clone());
+    torque_w = std::shared_ptr<ChFunction>(source->torque_w->Clone());
 
-    rot_funct_x = std::shared_ptr<ChFunction>(source->rot_funct_x->new_Duplicate());
-    rot_funct_y = std::shared_ptr<ChFunction>(source->rot_funct_y->new_Duplicate());
+    rot_funct_x = std::shared_ptr<ChFunction>(source->rot_funct_x->Clone());
+    rot_funct_y = std::shared_ptr<ChFunction>(source->rot_funct_y->Clone());
 
     mot_tau = source->mot_tau;
     mot_eta = source->mot_eta;
@@ -134,10 +133,10 @@ void ChLinkEngine::Set_learn(int mset) {
         ChangedLinkMask();
     }
 
-    if (eng_mode == ENG_MODE_ROTATION && rot_funct->Get_Type() != FUNCT_RECORDER)
+    if (eng_mode == ENG_MODE_ROTATION && rot_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
         rot_funct = std::make_shared<ChFunction_Recorder>();
 
-    if (eng_mode == ENG_MODE_SPEED && spe_funct->Get_Type() != FUNCT_RECORDER)
+    if (eng_mode == ENG_MODE_SPEED && spe_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
         spe_funct = std::make_shared<ChFunction_Recorder>();
 }
 
@@ -175,15 +174,15 @@ void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
         ChangedLinkMask();  // update all from new mask
     }
 
-    if (eng_mode == ENG_MODE_KEY_ROTATION && rot_funct->Get_Type() != FUNCT_CONST)
+    if (eng_mode == ENG_MODE_KEY_ROTATION && rot_funct->Get_Type() != ChFunction::FUNCT_CONST)
         rot_funct = std::make_shared<ChFunction_Const>();
 
     if (eng_mode == ENG_MODE_KEY_POLAR) {
-        if (rot_funct->Get_Type() != FUNCT_CONST)
+        if (rot_funct->Get_Type() != ChFunction::FUNCT_CONST)
             rot_funct = std::make_shared<ChFunction_Const>();
-        if (rot_funct_x->Get_Type() != FUNCT_CONST)
+        if (rot_funct_x->Get_Type() != ChFunction::FUNCT_CONST)
             rot_funct_x = std::make_shared<ChFunction_Const>();
-        if (rot_funct_y->Get_Type() != FUNCT_CONST)
+        if (rot_funct_y->Get_Type() != ChFunction::FUNCT_CONST)
             rot_funct_y = std::make_shared<ChFunction_Const>();
     }
 }
@@ -260,7 +259,7 @@ void ChLinkEngine::UpdateTime(double mytime) {
         }
 
         if (eng_mode == ENG_MODE_ROTATION) {
-            if (rot_funct->Get_Type() != FUNCT_RECORDER)
+            if (rot_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
                 rot_funct = std::make_shared<ChFunction_Recorder>();
 
             // record point
@@ -271,7 +270,7 @@ void ChLinkEngine::UpdateTime(double mytime) {
         }
 
         if (eng_mode == ENG_MODE_SPEED) {
-            if (spe_funct->Get_Type() != FUNCT_RECORDER)
+            if (spe_funct->Get_Type() != ChFunction::FUNCT_RECORDER)
                 spe_funct = std::make_shared<ChFunction_Recorder>();
 
             // record point
@@ -553,43 +552,43 @@ void ChLinkEngine::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynami
     }
 }
 
-void ChLinkEngine::IntToLCP(const unsigned int off_v,
-                            const ChStateDelta& v,
-                            const ChVectorDynamic<>& R,
-                            const unsigned int off_L,
-                            const ChVectorDynamic<>& L,
-                            const ChVectorDynamic<>& Qc) {
+void ChLinkEngine::IntToDescriptor(const unsigned int off_v,
+                                   const ChStateDelta& v,
+                                   const ChVectorDynamic<>& R,
+                                   const unsigned int off_L,
+                                   const ChVectorDynamic<>& L,
+                                   const ChVectorDynamic<>& Qc) {
     // First, inherit to parent class
-    ChLinkLock::IntToLCP(off_v, v, R, off_L, L, Qc);
+    ChLinkLock::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
     if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innershaft1->IntToLCP(off_v, v, R, off_L, L, Qc);
-        innershaft2->IntToLCP(off_v + 1, v, R, off_L, L, Qc);
-        innerconstraint1->IntToLCP(off_v, v, R, off_L, L, Qc);
-        innerconstraint2->IntToLCP(off_v, v, R, off_L + 1, L, Qc);
+        innershaft1->IntToDescriptor(off_v, v, R, off_L, L, Qc);
+        innershaft2->IntToDescriptor(off_v + 1, v, R, off_L, L, Qc);
+        innerconstraint1->IntToDescriptor(off_v, v, R, off_L, L, Qc);
+        innerconstraint2->IntToDescriptor(off_v, v, R, off_L + 1, L, Qc);
     }
 }
 
-void ChLinkEngine::IntFromLCP(const unsigned int off_v,
-                              ChStateDelta& v,
-                              const unsigned int off_L,
-                              ChVectorDynamic<>& L) {
+void ChLinkEngine::IntFromDescriptor(const unsigned int off_v,
+                                     ChStateDelta& v,
+                                     const unsigned int off_L,
+                                     ChVectorDynamic<>& L) {
     // First, inherit to parent class
-    ChLinkLock::IntFromLCP(off_v, v, off_L, L);
+    ChLinkLock::IntFromDescriptor(off_v, v, off_L, L);
 
     if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innershaft1->IntFromLCP(off_v, v, off_L, L);
-        innershaft2->IntFromLCP(off_v + 1, v, off_L, L);
-        innerconstraint1->IntFromLCP(off_v, v, off_L, L);
-        innerconstraint2->IntFromLCP(off_v, v, off_L + 1, L);
+        innershaft1->IntFromDescriptor(off_v, v, off_L, L);
+        innershaft2->IntFromDescriptor(off_v + 1, v, off_L, L);
+        innerconstraint1->IntFromDescriptor(off_v, v, off_L, L);
+        innerconstraint2->IntFromDescriptor(off_v, v, off_L + 1, L);
     }
 }
 
 //
-//  LCP functions
+//  SOLVER functions
 //
 
-void ChLinkEngine::InjectConstraints(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkEngine::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // First, inherit to parent class
     ChLinkLock::InjectConstraints(mdescriptor);
 
@@ -648,7 +647,7 @@ void ChLinkEngine::ConstraintsFetch_react(double factor) {
     }
 }
 
-void ChLinkEngine::InjectVariables(ChLcpSystemDescriptor& mdescriptor) {
+void ChLinkEngine::InjectVariables(ChSystemDescriptor& mdescriptor) {
     // First, inherit to parent class
     ChLinkLock::InjectVariables(mdescriptor);
 

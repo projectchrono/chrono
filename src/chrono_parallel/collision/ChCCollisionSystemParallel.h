@@ -6,7 +6,7 @@
 #include "collision/ChCCollisionSystem.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
 #include "chrono_parallel/collision/ChCCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChCAABBGenerator.h"

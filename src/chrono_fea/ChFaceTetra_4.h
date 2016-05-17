@@ -99,8 +99,8 @@ class ChApiFea ChFaceTetra_4 : public ChLoadableUV {
         /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
 
-        /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) {
+        /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         for (int i=0; i<3; ++i)
             mvars.push_back(&this->GetNodeN(i)->Variables());
     };

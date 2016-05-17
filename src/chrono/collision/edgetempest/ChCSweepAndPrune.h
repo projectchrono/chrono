@@ -1,47 +1,35 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-#ifndef CHC_SWEEPANDPRUNE_H
-#define CHC_SWEEPANDPRUNE_H
-
-//////////////////////////////////////////////////
-//
-//   ChCSweepAndPrune.h
-//
-//   Header for the 'sweep and prune' broad-phase
-//   collision detection stage.
-//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //   Part of the code is a modified version of the
 //   retro_sweepnprune.h code from the OpenTissue
 //   project, by K.Erleben:
 //
 //   "OpenTissue, A toolbox for physical based simulation and animation.
 //   Copyright (C) 2004 Department of Computer Science, University of Copenhagen"
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// ==============================================================================
+
+
+#ifndef CHC_SWEEPANDPRUNE_H
+#define CHC_SWEEPANDPRUNE_H
 
 #if (_MSC_VER >= 1200)
 #pragma warning(4 : 4786)
 #endif
 
-#include "geometry/ChCGeometry.h"
-#include "ChCBroadPhaseCollider.h"
-#include "core/ChWrapHashmap.h"
+#include "chrono/collision/edgetempest/ChCBroadPhaseCollider.h"
+#include "chrono/core/ChWrapHashmap.h"
+#include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
 namespace collision {

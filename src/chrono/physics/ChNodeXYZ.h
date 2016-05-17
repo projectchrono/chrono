@@ -14,10 +14,10 @@
 #ifndef CHNODEXYZ_H
 #define CHNODEXYZ_H
 
-#include "physics/ChNodeBase.h"
-#include "physics/ChLoadable.h"
-#include "lcp/ChLcpVariablesBodyOwnMass.h"
-#include "lcp/ChLcpVariablesNode.h"
+#include "chrono/physics/ChNodeBase.h"
+#include "chrono/physics/ChLoadable.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
+#include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {
 
@@ -42,8 +42,8 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     // FUNCTIONS
     //
 
-    // Access the xyz 'LCP variables' of the node
-    virtual ChLcpVariablesNode& Variables() =0;
+    // Access the xyz 'variables' of the node
+    virtual ChVariablesNode& Variables() =0;
 
     // Position of the node - in absolute csys.
     const ChVector<>& GetPos() const { return pos; }
@@ -103,8 +103,8 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     /// Get the size of the i-th sub-block of DOFs in global vector
     virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) { 
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
         mvars.push_back(&this->Variables());
     };
 
@@ -145,6 +145,6 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase,
     ChVector<> pos_dtdt;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

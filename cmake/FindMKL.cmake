@@ -112,10 +112,10 @@ if (WIN32)
 else()
 	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
 		list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
-		list(APPEND _MKL_ROOT_SEARCH_DIRS "$HOME/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
+		list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
 	endforeach()
 	list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (root permissions)
-	list(APPEND _MKL_ROOT_SEARCH_DIRS "$HOME/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
 endif()
 
 

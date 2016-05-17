@@ -83,6 +83,7 @@ ENDIF()
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
 # ----------------------------------------------------------------------------
+
 # Generate the configuration header file using substitution variables.
 # Place the header file in the library output directory and make sure it can
 # be found at compile time.
@@ -146,16 +147,6 @@ SET(ChronoEngine_Parallel_PHYSICS
 
 SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})
 
-SET(ChronoEngine_Parallel_LCP
-    lcp/ChLcpSolverParallel.h
-    lcp/ChLcpSystemDescriptorParallel.h
-    lcp/ChLcpSolverParallel.cpp
-    lcp/ChLcpSolverParallelDVI.cpp
-    lcp/ChLcpSolverParallelDEM.cpp
-    )
-
-SOURCE_GROUP(lcp FILES ${ChronoEngine_Parallel_LCP})
-
 SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
     math/matrix.h
@@ -179,6 +170,11 @@ SET(ChronoEngine_Parallel_MATH
 SOURCE_GROUP(math FILES ${ChronoEngine_Parallel_MATH})
 
 SET(ChronoEngine_Parallel_SOLVER
+    solver/ChSystemDescriptorParallel.h
+    solver/ChIterativeSolverParallel.h
+    solver/ChIterativeSolverParallel.cpp
+    solver/ChIterativeSolverParallelDVI.cpp
+    solver/ChIterativeSolverParallelDEM.cpp
     solver/ChSolverParallel.h
     #solver/ChSolverJacobi.h
     #solver/ChSolverCGS.h
@@ -365,7 +361,6 @@ IF (MSVC)
         )
 ENDIF()
 
-
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_parallel library
 # ------------------------------------------------------------------------------
@@ -373,13 +368,11 @@ ENDIF()
 CUDA_ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_BASE}
             ${ChronoEngine_Parallel_PHYSICS}
-            ${ChronoEngine_Parallel_LCP}
             ${ChronoEngine_Parallel_COLLISION}
             ${ChronoEngine_Parallel_CONSTRAINTS}
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
             )
-
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET_TARGET_PROPERTIES( ChronoEngine_parallel PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES)

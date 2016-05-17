@@ -13,30 +13,13 @@
 #ifndef CHMATTERSPH_H
 #define CHMATTERSPH_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatterSPH.h
-//
-//   Class for clusters of points that can
-//   simulate a fluid or an elastic / plastic
-//   solid with the SPH Smooth Particle Hydrodynamics
-//   approach, that is with a 'meshless' FEA approach.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "physics/ChIndexedNodes.h"
-#include "physics/ChNodeXYZ.h"
-#include "physics/ChContinuumMaterial.h"
-#include "collision/ChCCollisionModel.h"
-#include "lcp/ChLcpVariablesNode.h"
+#include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/solver/ChVariablesNode.h"
 
 namespace chrono {
 
@@ -74,8 +57,8 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     // Get the mass of the node
     double GetMass() const { return variables.GetNodeMass(); }
 
-	// Access the 'LCP variables' of the node
-	ChLcpVariablesNode& Variables() {return variables;}
+	// Access the variables of the node
+	virtual ChVariablesNode& Variables() override {return variables;}
 
     // Get the SPH container
     ChMatterSPH* GetContainer() const {return container;}
@@ -88,7 +71,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     //
 
     /// Access variables.
-    virtual ChLcpVariables* GetVariables1() override { return &Variables(); }
+    virtual ChVariables* GetVariables1() override { return &Variables(); }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -180,7 +163,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     ChMatterSPH* container;
 
-    ChLcpVariablesNode variables;
+    ChVariablesNode variables;
 
     collision::ChCollisionModel* collision_model;
 
@@ -342,30 +325,33 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c);
-    virtual void IntToLCP(const unsigned int off_v,
-                          const ChStateDelta& v,
-                          const ChVectorDynamic<>& R,
-                          const unsigned int off_L,
-                          const ChVectorDynamic<>& L,
-                          const ChVectorDynamic<>& Qc);
-    virtual void IntFromLCP(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
 
     //
-    // LCP INTERFACE
+    // SOLVER INTERFACE
     //
 
-    // Override/implement LCP system functions of ChPhysicsItem
-    // (to assembly/manage data for LCP system solver)
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
 
-    /// Sets the 'fb' part of the encapsulated ChLcpVariablesBody to zero.
+    /// Sets the 'fb' part of the encapsulated ChVariablesBody to zero.
     void VariablesFbReset();
 
     /// Adds the current forces applied to body (including gyroscopic torque) in
-    /// encapsulated ChLcpVariablesBody, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariablesBody, in the 'fb' part: qf+=forces*factor
     void VariablesFbLoadForces(double factor = 1.);
 
-    /// Initialize the 'qb' part of the ChLcpVariablesBody with the
-    /// current value of body speeds. Note: since 'qb' is the unknown of the LCP, this
+    /// Initialize the 'qb' part of the ChVariablesBody with the
+    /// current value of body speeds. Note: since 'qb' is the unknown, this
     /// function seems unuseful, unless used before VariablesFbIncrementMq()
     void VariablesQbLoadSpeed();
 
@@ -375,14 +361,14 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void VariablesFbIncrementMq();
 
     /// Fetches the body speed (both linear and angular) from the
-    /// 'qb' part of the ChLcpVariablesBody (does not updates the full body&markers state)
+    /// 'qb' part of the ChVariablesBody (does not updates the full body&markers state)
     /// and sets it as the current body speed.
     /// If 'step' is not 0, also computes the approximate acceleration of
     /// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
-    /// Mostly used after the LCP provided the solution in ChLcpVariablesBody .
+    /// Mostly used after the solver provided the solution in ChVariablesBody .
     void VariablesQbSetSpeed(double step = 0.);
 
-    /// Increment body position by the 'qb' part of the ChLcpVariablesBody,
+    /// Increment body position by the 'qb' part of the ChVariablesBody,
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
@@ -391,9 +377,9 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void VariablesQbIncrementPosition(double step);
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChLcpVariables in this object (for further passing it to a LCP solver)
+    /// ChVariables in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChLcpSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
 
     // Other functions
 
@@ -440,6 +426,6 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

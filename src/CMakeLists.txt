@@ -211,6 +211,10 @@ add_subdirectory(chrono_parallel)
 add_subdirectory(chrono_opengl)
 #add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
+add_subdirectory(chrono_fsi)
+
+# Add directories for model libraries
+add_subdirectory(models)
 
 # Add directories for demo programs, unit test programs, and additional test programs.
 if(BUILD_DEMOS)
@@ -310,6 +314,12 @@ if(ENABLE_MODULE_VEHICLE)
   set(CHRONO_VEHICLE "#define CHRONO_VEHICLE")
 else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
+endif()
+
+if(ENABLE_MODULE_FSI)
+  set(CHRONO_FSI "#define CHRONO_FSI")
+else()
+  set(CHRONO_FSI "#undef CHRONO_FSI")
 endif()
 
 if(ENABLE_OPENMP)

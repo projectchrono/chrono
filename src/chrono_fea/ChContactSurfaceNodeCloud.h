@@ -52,7 +52,7 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
     //
 
     /// Access variables
-    virtual ChLcpVariables* GetVariables1() override { return &mnode->Variables(); }
+    virtual ChVariables* GetVariables1() override { return &mnode->Variables(); }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return true; }

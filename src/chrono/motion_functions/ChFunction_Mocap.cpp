@@ -1,78 +1,56 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Mocap.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Mocap.h"
+#include "chrono/motion_functions/ChFunction_Mocap.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChFunction_Mocap> a_registration_mocap;
 
-ChFunction_Mocap::ChFunction_Mocap() {
-    array_y = NULL;
-    array_y_dt = NULL;
-    array_y_dtdt = NULL;
-
+ChFunction_Mocap::ChFunction_Mocap() : array_y(NULL), array_y_dt(NULL), array_y_dtdt(NULL) {
     Set_samples(2);  // this creates arrays
     Set_samp_freq(50);
 }
 
-ChFunction_Mocap::ChFunction_Mocap(int m_samples, double freq) {
-    array_y = NULL;
-    array_y_dt = NULL;
-    array_y_dtdt = NULL;
-
+ChFunction_Mocap::ChFunction_Mocap(int m_samples, double freq) : array_y(NULL), array_y_dt(NULL), array_y_dtdt(NULL) {
     Set_samples(m_samples);  // this creates arrays
     Set_samp_freq(freq);
 }
 
+ChFunction_Mocap::ChFunction_Mocap(const ChFunction_Mocap& other) {
+    Set_samples(other.samples);  // this creates arrays
+    Set_samp_freq(other.samp_freq);
+
+    if (other.array_y) {
+        array_y->CopyFromMatrix(*other.array_y);
+    }
+    if (other.array_y_dt) {
+        array_y_dt->CopyFromMatrix(*other.array_y_dt);
+    }
+    if (other.array_y_dtdt) {
+        array_y_dtdt->CopyFromMatrix(*other.array_y_dtdt);
+    }
+}
+
 ChFunction_Mocap::~ChFunction_Mocap() {
-    if (array_y != NULL)
-        delete array_y;
-    if (array_y_dt != NULL)
-        delete array_y_dt;
-    if (array_y_dtdt != NULL)
-        delete array_y_dtdt;
+    delete array_y;
+    delete array_y_dt;
+    delete array_y_dtdt;
 }
 
-void ChFunction_Mocap::Copy(ChFunction_Mocap* source) {
-    Set_samples(source->samples);  // this creates arrays
-    Set_samp_freq(source->samp_freq);
-
-    if (source->Get_array_y())
-        array_y->CopyFromMatrix(*source->Get_array_y());
-    if (source->Get_array_y_dt())
-        array_y_dt->CopyFromMatrix(*source->Get_array_y_dt());
-    if (source->Get_array_y_dtdt())
-        array_y_dtdt->CopyFromMatrix(*source->Get_array_y_dtdt());
-}
-
-ChFunction* ChFunction_Mocap::new_Duplicate() {
-    ChFunction_Mocap* m_func;
-    m_func = new ChFunction_Mocap;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-void ChFunction_Mocap::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Mocap::Estimate_x_range(double& xmin, double& xmax) const {
     xmin = 0.0;
     xmax = Get_timetot();
 }
@@ -90,21 +68,16 @@ void ChFunction_Mocap::Set_samples(int m_samples) {
 
     timetot = ((double)samples / samp_freq);
 
-    if (array_y != NULL)
-        delete array_y;
-    if (array_y_dt != NULL)
-        delete array_y_dt;
-    if (array_y_dtdt != NULL)
-        delete array_y_dtdt;
+    delete array_y;
+    delete array_y_dt;
+    delete array_y_dtdt;
 
     array_y = new ChMatrixDynamic<>(1, samples);
     array_y_dt = new ChMatrixDynamic<>(1, samples);
     array_y_dtdt = new ChMatrixDynamic<>(1, samples);
 }
 
-// compute all the y_dt basing on y, using the
-// trapezioidal rule for numerical differentiation
-
+// Compute all the y_dt basing on y, using the trapezioidal rule for numerical differentiation
 void ChFunction_Mocap::Compute_array_dt(ChMatrix<>* array_A, ChMatrix<>* array_A_dt) {
     int i, ia, ib;
     double y_dt;
@@ -127,8 +100,7 @@ void ChFunction_Mocap::Compute_array_dt(ChMatrix<>* array_A, ChMatrix<>* array_A
 
 // Interpolation of the in-between values, given the discrete
 // sample array (uniformly spaced points)
-
-double ChFunction_Mocap::LinInterp(ChMatrix<>* m_array, double x, double x_max) {
+double ChFunction_Mocap::LinInterp(ChMatrix<>* m_array, double x, double x_max) const {
     double position;
     double weightA, weightB;
     int ia, ib;
@@ -160,7 +132,6 @@ double ChFunction_Mocap::LinInterp(ChMatrix<>* m_array, double x, double x_max) 
 // Setup of arrays, provided as external vectors of
 // samples. These functions automatically compute the
 // derivatives (the arrays .._y_dt and y_dtdt)
-
 void ChFunction_Mocap::Set_array_y(ChMatrix<>* m_array_y) {
     array_y->CopyFromMatrix(*m_array_y);
 
@@ -178,7 +149,6 @@ void ChFunction_Mocap::Set_array_y_dtdt(ChMatrix<>* m_array_y_dtdt) {
 
 // Parsing of external files, to create mocap streams
 // from the output of mocap devices
-
 int ChFunction_Mocap::Parse_array_AOA() {
     // *** TO DO **** //
     return TRUE;
@@ -192,21 +162,16 @@ int ChFunction_Mocap::Parse_array_Elite() {
 // Return the value of the evaluated function, using
 // linear interpolation to guess the in-between points,
 // having the array samples as references.
-
-double ChFunction_Mocap::Get_y(double x) {
+double ChFunction_Mocap::Get_y(double x) const {
     return LinInterp(array_y, x, timetot);
 }
 
-double ChFunction_Mocap::Get_y_dx(double x) {
+double ChFunction_Mocap::Get_y_dx(double x) const {
     return LinInterp(array_y_dt, x, timetot);
 }
 
-double ChFunction_Mocap::Get_y_dxdx(double x) {
+double ChFunction_Mocap::Get_y_dxdx(double x) const {
     return LinInterp(array_y_dtdt, x, timetot);
 }
 
-
-
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

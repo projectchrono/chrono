@@ -24,7 +24,7 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColorAsset.h"
-#include "chrono/geometry/ChCTriangleMeshConnected.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"

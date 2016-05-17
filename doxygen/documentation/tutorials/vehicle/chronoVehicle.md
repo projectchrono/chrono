@@ -1,2 +1,2 @@
-Chrono Vehicle Tutorials {#tutorial_table_of_content_chrono_vehicle}
-==========================
+Chrono Vehicle module tutorials {#tutorial_table_of_content_chrono_vehicle}
+===============================

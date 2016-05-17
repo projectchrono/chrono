@@ -33,7 +33,7 @@
 #include "utils/ChUtilsInputOutput.h"
 
 // collision mesh
-#include "geometry/ChCTriangleMeshSoup.h"
+#include "geometry/ChTriangleMeshSoup.h"
 
 namespace chrono {
 
@@ -60,14 +60,14 @@ ChTrackVehicle::ChTrackVehicle(const std::string& name,
     m_system = new ChSystem;
     m_system->Set_G_acc(ChVector<>(0, -9.81, 0));
     m_system->SetStep(m_stepsize);
-    m_system->SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-    m_system->SetIterLCPmaxItersSpeed(150);
-    m_system->SetIterLCPmaxItersStab(150);
+    m_system->SetSolverType(ChSystem::SOLVER_SOR);
+    m_system->SetMaxItersSolverSpeed(150);
+    m_system->SetMaxItersSolverStab(150);
     m_system->SetTol(0);
     m_system->SetMaxPenetrationRecoverySpeed(1.5);
     m_system->SetMinBounceSpeed(2.0);
-    m_system->SetIterLCPomega(0.8);
-    m_system->SetIterLCPsharpnessLambda(1.0);
+    m_system->SetSolverOverrelaxationParam(0.8);
+    m_system->SetSolverSharpnessParam(1.0);
 
     // create the chassis to attach mass, inertia to.
     m_chassis = ChSharedPtr<ChBodyAuxRef>(new ChBodyAuxRef);

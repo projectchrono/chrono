@@ -13,30 +13,14 @@
 #ifndef CHC_COLLISIONMODEL_H
 #define CHC_COLLISIONMODEL_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionModel.h
-//
-//   The collision model class. Each body in the
-//   simulation may have a collision model, defining
-//   the shape for collision detection.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <vector>
-#include "core/ChCoordsys.h"
-#include "core/ChMatrix33.h"
-#include "core/ChApiCE.h"
 
-#include "geometry/ChCTriangleMesh.h"
-#include "geometry/ChCLinePath.h"
-#include "physics/ChContactable.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChMatrix33.h"
+#include "chrono/geometry/ChLinePath.h"
+#include "chrono/geometry/ChTriangleMesh.h"
+#include "chrono/physics/ChContactable.h"
 
 namespace chrono {
 

@@ -22,6 +22,8 @@ namespace chrono {
 /// base class ChBody where the COG is used also as reference.
 /// Because of the auxilary reference, this type of rigid bodies can be
 /// a bit less efficient thatn the ChBody simple class.
+///
+/// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBodyAuxRef : public ChBody {
     // Chrono simulation of RTTI, needed for serialization

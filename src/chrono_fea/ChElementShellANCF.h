@@ -66,6 +66,16 @@ class ChApiFea ChMaterialShellANCF {
 // ----------------------------------------------------------------------------
 /// ANCF laminated shell element with four nodes.
 /// This class implements composite material elastic force formulations.
+/// 
+/// The node numbering is in ccw fashion as in the following scheme:
+///         v
+///         ^
+/// D o-----+-----o C
+///   |     |     |
+/// --+-----+-----+-> u
+///   |     |     |
+/// A o-----+-----o B
+///
 class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellANCF();
@@ -195,7 +205,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 8 columns matrix!
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
-
+	/// Return a vector with three strain components
+	ChVector<> EvaluateSectionStrains();
   private:
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
     std::vector<Layer> m_layers;                           ///< element layers
@@ -367,8 +378,8 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
 
     virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
 
-    /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChLcpVariables*>& mvars) override;
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1

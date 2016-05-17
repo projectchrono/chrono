@@ -1,47 +1,33 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChFunction_Oscilloscope.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChFunction_Oscilloscope.h"
+#include "chrono/motion_functions/ChFunction_Oscilloscope.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChFunction_Oscilloscope> a_registration_oscilloscope;
 
-void ChFunction_Oscilloscope::Copy(ChFunction_Oscilloscope* source) {
-    this->values = source->values;
-    this->dx = source->dx;
-    this->end_x = source->end_x;
-    this->amount = source->amount;
-    this->max_amount = source->max_amount;
+ChFunction_Oscilloscope::ChFunction_Oscilloscope(const ChFunction_Oscilloscope& other) {
+    values = other.values;
+    dx = other.dx;
+    end_x = other.end_x;
+    amount = other.amount;
+    max_amount = other.max_amount;
 }
 
-ChFunction* ChFunction_Oscilloscope::new_Duplicate() {
-    ChFunction_Oscilloscope* m_func;
-    m_func = new ChFunction_Oscilloscope;
-    m_func->Copy(this);
-    return (m_func);
-}
-
-void ChFunction_Oscilloscope::Estimate_x_range(double& xmin, double& xmax) {
+void ChFunction_Oscilloscope::Estimate_x_range(double& xmin, double& xmax) const {
     xmin = this->end_x - this->dx * (this->amount - 1);
     xmax = this->end_x;
     if (xmin >= xmax)
@@ -62,7 +48,7 @@ int ChFunction_Oscilloscope::AddLastPoint(double mx, double my) {
     return TRUE;
 }
 
-double ChFunction_Oscilloscope::Get_y(double x) {
+double ChFunction_Oscilloscope::Get_y(double x) const {
     double y = 0;
 
     double start_x = this->end_x - this->dx * (this->amount - 1);
@@ -77,7 +63,7 @@ double ChFunction_Oscilloscope::Get_y(double x) {
     double p2x = start_x + dx * (double)i2;
     double p2y, p1y = 0;
     int count = 0;
-    std::list<double>::iterator iter = values.begin();
+    std::list<double>::const_iterator iter = values.begin();
     while (iter != values.end()) {
         if (count == i1) {
             p2y = *iter;
@@ -94,7 +80,4 @@ double ChFunction_Oscilloscope::Get_y(double x) {
     return y;
 }
 
-
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono
