@@ -17,30 +17,20 @@
 
 namespace chrono {
 
-///  Class for defining a torque converter
-///  between two one-degree-of-freedom parts, that is,
-///  shafts that can be used to build 1D models
-///  of power trains. Note that is not inherited from
-///  ChShaftsTorqueBase, because it requires a third part:
-///  the stator.
-///  The torque converter multiplies the input torque
-///  if there is slippage between input and output, then
-///  the multiplicative effect becomes closer to unity
-///  when the slippage is almost null; so it is similar
-///  to a variable-transmission-ratio gearbox, and just
-///  like any gearbox it requires a truss (the 'stator')
-///  that gets some torque.
-///  Note: it can work only in a given direction.
+/// Class for defining a torque converter between two one-degree-of-freedom parts;
+/// i.e., shafts that can be used to build 1D models of powertrains. Note that is
+/// not inherited from ChShaftsTorqueBase, because it requires a third part: the stator.
+/// The torque converter multiplies the input torque if there is slippage between input
+/// and output, then the multiplicative effect becomes closer to unity when the slippage
+/// is almost null; so it is similar to a variable-transmission-ratio gearbox, and just
+/// like any gearbox it requires a truss (the 'stator') that gets some torque.
+/// Note: it can work only in a given direction.
 
 class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChShaftsTorqueConverter, ChPhysicsItem);
 
   private:
-    //
-    // DATA
-    //
-
     ChShaft* shaft1;
     ChShaft* shaft2;
     ChShaft* shaft_stator;
@@ -55,46 +45,31 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     bool state_warning_wrongimpellerdirection;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Constructor.
     ChShaftsTorqueConverter();
-    /// Destructor
-    ~ChShaftsTorqueConverter();
+    ChShaftsTorqueConverter(const ChShaftsTorqueConverter& other);
+    ~ChShaftsTorqueConverter() {}
 
     /// Copy from another ChShaftsTorqueConverter.
     void Copy(ChShaftsTorqueConverter* source);
 
-    //
-    // FUNCTIONS
-    //
-
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 0; }
-
-    //
-    // STATE FUNCTIONS
-    //
+    virtual int GetDOC_c() override { return 0; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
 
-    virtual void VariablesFbLoadForces(double factor);
-
-    // Other functions
+    virtual void VariablesFbLoadForces(double factor) override;
 
     /// Use this function after torque converter creation, to initialize it, given
     /// input and output shafts to join (plus the stator shaft, that should be fixed).
     /// Each shaft must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChShaft> mshaft1,       ///< input shaft
-                           std::shared_ptr<ChShaft> mshaft2,       ///< output shaft
-                           std::shared_ptr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
-                           );
+    bool Initialize(std::shared_ptr<ChShaft> mshaft1,       ///< input shaft
+                    std::shared_ptr<ChShaft> mshaft2,       ///< output shaft
+                    std::shared_ptr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
+                    );
 
     /// Get the input shaft
     ChShaft* GetShaftInput() { return shaft1; }
@@ -145,24 +120,16 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// This is considered an abnormal behavior, and torques are forced to zero.
     bool StateWarningWrongImpellerDirection() { return state_warning_wrongimpellerdirection; }
 
-    //
-    // UPDATE FUNCTIONS
-    //
-
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
-
-    //
-    // SERIALIZATION
-    //
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

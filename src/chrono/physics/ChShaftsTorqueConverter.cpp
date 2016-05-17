@@ -1,43 +1,54 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include "physics/ChShaftsTorqueConverter.h"
-#include "physics/ChSystem.h"
-#include "physics/ChShaft.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsTorqueConverter.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChShaftsTorqueConverter> a_registration_ChShaftsTorqueConverter;
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChShaftsTorqueConverter::ChShaftsTorqueConverter()
+    : shaft1(NULL),
+      shaft2(NULL),
+      shaft_stator(NULL),
+      torque_in(0),
+      torque_out(0),
+      state_warning_reverseflow(false),
+      state_warning_wrongimpellerdirection(false) {
+    // mark with unique ID
+    SetIdentifier(GetUniqueIntID());
 
-ChShaftsTorqueConverter::ChShaftsTorqueConverter() {
-    this->shaft1 = 0;
-    this->shaft2 = 0;
-    this->shaft_stator = 0;
-    this->torque_in = 0;
-    this->torque_out = 0;
-    this->K = std::make_shared<ChFunction_Const>(0.9);
-    this->T = std::make_shared<ChFunction_Const>(0.9);
-    this->state_warning_reverseflow = false;
-    this->state_warning_wrongimpellerdirection = false;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
+    K = std::make_shared<ChFunction_Const>(0.9);
+    T = std::make_shared<ChFunction_Const>(0.9);
 }
 
-ChShaftsTorqueConverter::~ChShaftsTorqueConverter() {
+ChShaftsTorqueConverter::ChShaftsTorqueConverter(const ChShaftsTorqueConverter& other) : ChPhysicsItem(other) {
+    shaft1 = NULL;
+    shaft2 = NULL;
+    shaft_stator = NULL;
+
+    torque_in = other.torque_in;
+    torque_out = other.torque_out;
+
+    state_warning_reverseflow = other.state_warning_reverseflow;
+    state_warning_wrongimpellerdirection = other.state_warning_wrongimpellerdirection;
+
+    K = std::shared_ptr<ChFunction>(other.K->Clone());  // deep copy
+    T = std::shared_ptr<ChFunction>(other.T->Clone());  // deep copy
 }
 
 void ChShaftsTorqueConverter::Copy(ChShaftsTorqueConverter* source) {
@@ -55,13 +66,14 @@ void ChShaftsTorqueConverter::Copy(ChShaftsTorqueConverter* source) {
     state_warning_reverseflow = source->state_warning_reverseflow;
     state_warning_wrongimpellerdirection = source->state_warning_wrongimpellerdirection;
 
-    this->K = std::shared_ptr<ChFunction>(source->K->Clone());  // deep copy
-    this->T = std::shared_ptr<ChFunction>(source->T->Clone());  // deep copy
+    K = std::shared_ptr<ChFunction>(source->K->Clone());  // deep copy
+    T = std::shared_ptr<ChFunction>(source->T->Clone());  // deep copy
 }
 
-int ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,
-                                        std::shared_ptr<ChShaft> mshaft2,
-                                        std::shared_ptr<ChShaft> mshaft_stator) {
+bool ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,       // input shaft
+                                         std::shared_ptr<ChShaft> mshaft2,       // output shaft
+                                         std::shared_ptr<ChShaft> mshaft_stator  // stator shaft (often fixed)
+                                         ) {
     ChShaft* mm1 = mshaft1.get();
     ChShaft* mm2 = mshaft2.get();
     ChShaft* mm_stator = mshaft_stator.get();
@@ -69,18 +81,18 @@ int ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,
     assert((mm1 != mm2) && (mm1 != mm_stator));
     assert((mm1->GetSystem() == mm2->GetSystem()) && (mm1->GetSystem() == mm_stator->GetSystem()));
 
-    this->shaft1 = mm1;
-    this->shaft2 = mm2;
-    this->shaft_stator = mm_stator;
+    shaft1 = mm1;
+    shaft2 = mm2;
+    shaft_stator = mm_stator;
 
-    this->SetSystem(this->shaft1->GetSystem());
+    SetSystem(shaft1->GetSystem());
 
     return true;
 }
 
 double ChShaftsTorqueConverter::GetSpeedRatio() const {
-    double wrel1 = this->shaft1->GetPos_dt() - this->shaft_stator->GetPos_dt();
-    double wrel2 = this->shaft2->GetPos_dt() - this->shaft_stator->GetPos_dt();
+    double wrel1 = shaft1->GetPos_dt() - shaft_stator->GetPos_dt();
+    double wrel2 = shaft2->GetPos_dt() - shaft_stator->GetPos_dt();
 
     if ((fabs(wrel1) < 10e-9) || (fabs(wrel2) < 10e-9))
         return 0;
@@ -98,7 +110,7 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
     state_warning_reverseflow = false;
 
     // Compute actual speed ratio
-    double mR = this->GetSpeedRatio();
+    double mR = GetSpeedRatio();
 
     // The speed ratio must always be in the [0...1] range,
     // anyway let's correct singular cases:
@@ -118,10 +130,10 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
 
     // - if input impeller shaft is spinning in negative direction,
     //   this is assumed as an error: set all torques to zero and bail out:
-    if (this->shaft1->GetPos_dt() - this->shaft_stator->GetPos_dt() < 0) {
+    if (shaft1->GetPos_dt() - shaft_stator->GetPos_dt() < 0) {
         state_warning_wrongimpellerdirection = true;
-        this->torque_in = 0;
-        this->torque_out = 0;
+        torque_in = 0;
+        torque_out = 0;
         return;
     }
 
@@ -132,26 +144,26 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
     double mT = T->Get_y(mR);
 
     // compute input torque (with minus sign because applied TO input thaft)
-    this->torque_in = -pow((this->shaft1->GetPos_dt() / mK), 2);
+    torque_in = -pow((shaft1->GetPos_dt() / mK), 2);
 
     if (state_warning_reverseflow)
-        this->torque_in = -this->torque_in;
+        torque_in = -torque_in;
 
     // compute output torque (with opposite sign because
     // applied to output shaft, with same direction of input shaft)
-    this->torque_out = -mT * this->torque_in;
+    torque_out = -mT * torque_in;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChShaftsTorqueConverter::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
-                                                ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-                                                const double c           ///< a scaling factor
+void ChShaftsTorqueConverter::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                                const double c           // a scaling factor
                                                 ) {
     if (shaft1->IsActive())
-        R(shaft1->GetOffset_w()) += this->torque_in * c;
+        R(shaft1->GetOffset_w()) += torque_in * c;
     if (shaft2->IsActive())
-        R(shaft2->GetOffset_w()) += this->torque_out * c;
+        R(shaft2->GetOffset_w()) += torque_out * c;
     if (shaft_stator->IsActive())
         R(shaft_stator->GetOffset_w()) += GetTorqueReactionOnStator() * c;
 }
@@ -165,11 +177,9 @@ void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
     shaft_stator->Variables().Get_fb().ElementN(0) += GetTorqueReactionOnStator() * factor;
 }
 
-//////// FILE I/O
+// FILE I/O
 
-
-void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -179,14 +189,13 @@ void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive)
     // serialize all member data:
     marchive << CHNVP(K);
     marchive << CHNVP(T);
-    //marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive << CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+    // marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    // marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    // marchive << CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsTorqueConverter::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChShaftsTorqueConverter::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -196,12 +205,9 @@ void ChShaftsTorqueConverter::ArchiveIN(ChArchiveIn& marchive)
     // deserialize all member data:
     marchive >> CHNVP(K);
     marchive >> CHNVP(T);
-    //marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    //marchive >> CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
-} 
+    // marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    // marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    // marchive >> CHNVP(shaft_stator); //***TODO*** serialize with shared ptr
+}
 
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

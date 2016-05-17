@@ -1,19 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSHAFTSGEARBOXANGLED_H
 #define CHSHAFTSGEARBOXANGLED_H
 
-#include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/physics/ChBodyFrame.h"
+#include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/solver/ChConstraintThreeGeneric.h"
 
@@ -40,66 +43,49 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     CH_RTTI(ChShaftsGearboxAngled, ChPhysicsItem);
 
   private:
-    //
-    // DATA
-    //
-
     double t0;
 
-    double torque_react;
+    double torque_react;  ///< reaction torque
 
-    // used as an interface to the solver.
-    ChConstraintThreeGeneric constraint;
+    ChConstraintThreeGeneric constraint;  ///< used as an interface to the solver
 
-    ChShaft* shaft1;
-    ChShaft* shaft2;
-    ChBodyFrame* body;
+    ChShaft* shaft1;    ///< first connected shaft
+    ChShaft* shaft2;    ///< second connected shaft
+    ChBodyFrame* body;  ///< connected body
 
-    ChVector<> shaft_dir1;
-    ChVector<> shaft_dir2;
+    ChVector<> shaft_dir1;  ///< direction of first shaft
+    ChVector<> shaft_dir2;  ///< direction of second shaft
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Constructor.
     ChShaftsGearboxAngled();
-    /// Destructor
-    ~ChShaftsGearboxAngled();
+    ChShaftsGearboxAngled(const ChShaftsGearboxAngled& other);
+    ~ChShaftsGearboxAngled() {}
 
     /// Copy from another ChShaftsGearboxAngled.
     void Copy(ChShaftsGearboxAngled* source);
 
-    //
-    // FLAGS
-    //
-
-    //
-    // FUNCTIONS
-    //
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() { return 6 + 1 + 1; }
+    virtual int GetNumCoords() const { return 6 + 1 + 1; }
 
     /// Number of scalar costraints
-    virtual int GetDOC_c() { return 1; }
+    virtual int GetDOC_c() override { return 1; }
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -114,12 +100,12 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
 
@@ -128,13 +114,13 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// receives the reaction torque of the gearbox.
     /// Each shaft and body must belong to the same ChSystem.
     /// Shafts directions are considered in local body coordinates.
-    virtual int Initialize(
-        std::shared_ptr<ChShaft> mshaft1,    ///< first (input) shaft to join
-        std::shared_ptr<ChShaft> mshaft2,    ///< second  (output) shaft to join
-        std::shared_ptr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
-        ChVector<>& mdir1,                   ///< the direction of the first shaft on 3D body defining the gearbox truss
-        ChVector<>& mdir2                    ///< the direction of the first shaft on 3D body defining the gearbox truss
-        );
+    virtual bool
+    Initialize(std::shared_ptr<ChShaft> mshaft1,    ///< first (input) shaft to join
+               std::shared_ptr<ChShaft> mshaft2,    ///< second  (output) shaft to join
+               std::shared_ptr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
+               ChVector<>& mdir1,  ///< the direction of the first shaft on 3D body defining the gearbox truss
+               ChVector<>& mdir2   ///< the direction of the first shaft on 3D body defining the gearbox truss
+               );
 
     /// Get the first shaft (carrier wheel)
     ChShaft* GetShaft1() { return shaft1; }
@@ -169,7 +155,7 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     const ChVector<>& GetShaftDirection2() const { return shaft_dir2; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return (this->t0 * torque_react); }
+    double GetTorqueReactionOn1() const { return t0 * torque_react; }
 
     /// Get the reaction torque considered as applied to the 2nd axis.
     double GetTorqueReactionOn2() const { return (-1.0 * torque_react); }
@@ -177,25 +163,21 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// Get the reaction torque considered as applied to the body
     /// (the truss of the gearbox), expressed in local body coordinates.
     ChVector<> GetTorqueReactionOnBody() const {
-        return (this->shaft_dir1 * this->t0 - this->shaft_dir2) * torque_react;
+        return (shaft_dir1 * t0 - shaft_dir2) * torque_react;
     }
 
-    //
-    // UPDATE FUNCTIONS
-    //
-
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono
