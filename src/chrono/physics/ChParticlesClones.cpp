@@ -263,8 +263,7 @@ ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexed
 
     particle_collision_model->ClearModel();
 
-    //// RADU: need Clone on MaterialSurface
-    matsurface = other.matsurface;  // also copy-duplicate the material? Let the user handle this..
+    matsurface = std::shared_ptr<ChMaterialSurfaceBase>(other.matsurface->Clone());  // deep copy
 
     ResizeNparticles((int)other.GetNparticles());
 

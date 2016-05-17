@@ -1,34 +1,36 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHMATERIALSURFACEDEM_H
 #define CHMATERIALSURFACEDEM_H
 
-#include "physics/ChMaterialSurfaceBase.h"
-
+#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 namespace chrono {
 
 struct ChCompositeMaterialDEM {
-    float E_eff;             ///< Effective elasticity modulus
-    float G_eff;             ///< Effective shear modulus
-    float mu_eff;            ///< Effective coefficient of friction
-    float cr_eff;            ///< Effective coefficient of restitution
-    float adhesion_eff;      ///< Effective cohesion force
+    float E_eff;                ///< Effective elasticity modulus
+    float G_eff;                ///< Effective shear modulus
+    float mu_eff;               ///< Effective coefficient of friction
+    float cr_eff;               ///< Effective coefficient of restitution
+    float adhesion_eff;         ///< Effective cohesion force
     float adhesionMultDMT_eff;  ///< Effective adhesion multiplier (DMT model)
 
-    float kn;
-    float kt;
-    float gn;
-    float gt;
+    float kn;  ///< normal stiffness coefficient
+    float kt;  ///< tangential stiffness coefficient
+    float gn;  ///< normal viscous damping coefficient
+    float gt;  ///< tangential viscuous damping coefficient
 };
 
 /// Class for material surface data for DEM contact
@@ -37,18 +39,20 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     CH_RTTI(ChMaterialSurfaceDEM, ChMaterialSurfaceBase);
 
   public:
-    float young_modulus;  ///< Young's modulus (elastic modulus)
-    float poisson_ratio;  ///< Poisson ratio
+    float young_modulus;      ///< Young's modulus (elastic modulus)
+    float poisson_ratio;      ///< Poisson ratio
+    float static_friction;    ///< Static coefficient of friction
+    float sliding_friction;   ///< Kinetic coefficient of friction
+    float restitution;        ///< Coefficient of restitution
+    float constant_adhesion;  ///< Constant adhesion force, when constant adhesion model is used
+    float adhesionMultDMT;    ///< Adhesion multiplier used in DMT model.
 
-    float static_friction;   ///< Static coefficient of friction
-    float sliding_friction;  ///< Kinetic coefficient of friction
-
-    float restitution;  ///< Coefficient of restitution
-
-    float constant_adhesion;      ///< Constant adhesion force, when constant adhesion model is used
-    float adhesionMultDMT;  ///< Adhesion multiplier used in DMT model. adhesion = adhesionMultDMT * sqrt(R_eff). Given the
-                         ///surface energy, w, adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff). Given the equilibrium
-                         ///penetration distance, y_eq, adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    // DMT adhesion model:
+    //     adhesion = adhesionMultDMT * sqrt(R_eff).
+    // Given the surface energy, w,
+    //     adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff).
+    // Given the equilibrium penetration distance, y_eq,
+    //     adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 
     float kn;  ///< user-specified normal stiffness coefficient
     float kt;  ///< user-specified tangential stiffness coefficient
@@ -59,12 +63,16 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other);
     ~ChMaterialSurfaceDEM() {}
 
-    virtual ContactMethod GetContactMethod() { return DEM; };
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMaterialSurfaceDEM* Clone() const override { return new ChMaterialSurfaceDEM(*this); }
 
-    /// Young's modulus and Poisson ratio.
+    virtual ContactMethod GetContactMethod() const override { return DEM; }
+
+    /// Young's modulus.
     float GetYoungModulus() const { return young_modulus; }
     void SetYoungModulus(float val) { young_modulus = val; }
 
+    // Poisson ratio.
     float GetPoissonRatio() const { return poisson_ratio; }
     void SetPoissonRatio(float val) { poisson_ratio = val; }
 
@@ -77,10 +85,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     void SetKfriction(float val) { sliding_friction = val; }
 
     /// Set both static friction and kinetic friction at once, with same value.
-    void SetFriction(float val) {
-        SetSfriction(val);
-        SetKfriction(val);
-    }
+    void SetFriction(float val);
 
     /// Normal restitution coefficient
     float GetRestitution() const { return restitution; }
@@ -113,54 +118,11 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
     virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material DEM \n"; }
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite(1);
-
-        // serialize parent class
-        ChMaterialSurfaceBase::ArchiveOUT(marchive);
-
-        // serialize all member data:
-        marchive << CHNVP(young_modulus);
-        marchive << CHNVP(poisson_ratio);
-        marchive << CHNVP(static_friction);
-        marchive << CHNVP(sliding_friction);
-        marchive << CHNVP(restitution);
-        marchive << CHNVP(constant_adhesion);
-        marchive << CHNVP(adhesionMultDMT);
-        marchive << CHNVP(kn);
-        marchive << CHNVP(kt);
-        marchive << CHNVP(gn);
-        marchive << CHNVP(gt);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead();
-
-        // deserialize parent class
-        ChMaterialSurfaceBase::ArchiveIN(marchive);
-
-        // stream in all member data:
-        marchive >> CHNVP(young_modulus);
-        marchive >> CHNVP(poisson_ratio);
-        marchive >> CHNVP(static_friction);
-        marchive >> CHNVP(sliding_friction);
-        marchive >> CHNVP(restitution);
-        marchive >> CHNVP(constant_adhesion);
-        marchive >> CHNVP(adhesionMultDMT);
-        marchive >> CHNVP(kn);
-        marchive >> CHNVP(kt);
-        marchive >> CHNVP(gn);
-        marchive >> CHNVP(gt);
-    }
-
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono
