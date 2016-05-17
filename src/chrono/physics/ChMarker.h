@@ -1,23 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHMARKER_H
 #define CHMARKER_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 
+#include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/core/ChFrameMoving.h"
 #include "chrono/motion_functions/ChFunction.h"
 #include "chrono/physics/ChObject.h"
 
@@ -26,88 +29,57 @@ namespace chrono {
 // Forward reference
 class ChBody;
 
-#define CHCLASS_MARKER 5
-
-///
-/// Class for 'markers'.
-///
-///  Markers are auxiliary reference frames which belong to
-/// rigid bodies ChBody() , and move together with them.
-/// Most often, markers are used as references to build
+/// Markers are auxiliary reference frames which belong to rigid bodies and move
+/// together with them. Most often, markers are used as references to build
 /// ChLink() constraints between two rigid bodies.
-///  The ChMarker objects allow also to user-define a
-/// motion law of marker respect to parent ChBody, if
-/// needed to represent imposed trajectories etc.
+/// The ChMarker objects allow also to user-define a motion law of marker respect
+/// to parent ChBody, if needed to represent imposed trajectories etc.
 
 class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMarker, ChObj);
 
-    //
-    // DATA
-    //
-
   public:
     enum eChMarkerMotion {
-        /// Uses it's own  x,y,z,angle ch functions (default)
-        M_MOTION_FUNCTIONS = 0,
-        /// The marker is moved via external functions, for examples
-        /// Real3d keyframing, so backward dirrerentiation will be used
-        /// to guess derivatives.
-        M_MOTION_KEYFRAMED = 1,
-        /// Someone (i.e. a constraint object) is moving the marker and
-        /// will also provide the correct derivatives.
-        M_MOTION_EXTERNAL = 2,
+        M_MOTION_FUNCTIONS = 0,  ///< marker uses its own x, y, z functions
+        M_MOTION_KEYFRAMED = 1,  ///< marker moved via external key frames (derivatives obtained with BDF)
+        M_MOTION_EXTERNAL = 2,   ///< marker moved via external functions (derivatives provided)
     };
-    CH_ENUM_MAPPER_BEGIN(eChMarkerMotion);
-      CH_ENUM_VAL(M_MOTION_FUNCTIONS);
-      CH_ENUM_VAL(M_MOTION_KEYFRAMED);
-      CH_ENUM_VAL(M_MOTION_EXTERNAL);
-    CH_ENUM_MAPPER_END(eChMarkerMotion);
 
   private:
-    /// The way the motion of this marker (if any) is handled.
-    eChMarkerMotion motion_type;
+    eChMarkerMotion motion_type;  ///< type of marker motion
 
-    ChFunction* motion_X;    // user imposed motion for X coord, body relative
-    ChFunction* motion_Y;    // user imposed motion for Y coord, body relative
-    ChFunction* motion_Z;    // user imposed motion for Z coord, body relative
-    ChFunction* motion_ang;  // user imposed angle rotation about axis
-    Vector motion_axis;      // this is the axis for the user imposed rotation
+    ChFunction* motion_X;    ///< user imposed motion for X coord, body relative
+    ChFunction* motion_Y;    ///< user imposed motion for Y coord, body relative
+    ChFunction* motion_Z;    ///< user imposed motion for Z coord, body relative
+    ChFunction* motion_ang;  ///< user imposed angle rotation about axis
+    Vector motion_axis;      ///< this is the axis for the user imposed rotation
 
-    ChBody* Body;  // points to parent body
+    ChBody* Body;  ///< points to parent body
 
-    Coordsys rest_coord;  // relative resting position for the
-                          // coordsys, for function=0.
+    Coordsys rest_coord;  ///< relative resting position for function=0.
 
-    Coordsys last_rel_coord;     // These values are set for each marker update, and are
-    Coordsys last_rel_coord_dt;  // used internally to guess if there's some external routine
-    double last_time;            // which moves the marker, so marker motion is guessed by BDF.
+    Coordsys last_rel_coord;     ///< These values are set for each marker update, and are
+    Coordsys last_rel_coord_dt;  ///< used internally to guess if there's some external routine
+    double last_time;            ///< which moves the marker, so marker motion is guessed by BDF.
 
-    // Auxiliary variables, computed after Updating functions..
+    /// Absolute position of frame (expressed in absolute coordinate system).
+    /// Computed at each Update() call; Useful for efficiency reasons.
+    ChFrameMoving<double> abs_frame;  ///< absolute frame position
 
-    /// Absolute position of frame (frame translation and rotation
-    /// expressed in absolute coordinate system).
-    /// This is computed at each Update() call. Useful for high
-    /// performance reasons.
-    ChFrameMoving<double> abs_frame;
+    CH_ENUM_MAPPER_BEGIN(eChMarkerMotion);
+    CH_ENUM_VAL(M_MOTION_FUNCTIONS);
+    CH_ENUM_VAL(M_MOTION_KEYFRAMED);
+    CH_ENUM_VAL(M_MOTION_EXTERNAL);
+    CH_ENUM_MAPPER_END(eChMarkerMotion);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChMarker();
-
     ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt);
-
+    ChMarker(const ChMarker& other);
     ~ChMarker();
 
     void Copy(ChMarker* source);
-
-    //
-    // FUNCTIONS
-    //
 
     /// Gets the address of the parent rigid body.
     ChBody* GetBody() const { return Body; }
@@ -201,23 +173,23 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     void SetMotion_axis(Vector m_axis);
 
     /// The imposed motion law, for translation on X body axis
-    ChFunction* GetMotion_X() { return motion_X; };
+    ChFunction* GetMotion_X() const { return motion_X; }
     /// The imposed motion law, for translation on Y body axis
-    ChFunction* GetMotion_Y() { return motion_Y; };
+    ChFunction* GetMotion_Y() const { return motion_Y; }
     /// The imposed motion law, for translation on Z body axis
-    ChFunction* GetMotion_Z() { return motion_Z; };
+    ChFunction* GetMotion_Z() const { return motion_Z; }
     /// The imposed motion law, for rotation about an axis
-    ChFunction* GetMotion_ang() { return motion_ang; };
+    ChFunction* GetMotion_ang() const { return motion_ang; }
     /// Get the axis of rotation, if rotation motion law is used.
-    Vector GetMotion_axis() { return motion_axis; };
+    Vector GetMotion_axis() const { return motion_axis; }
 
     /// Sets the way the motion of this marker (if any) is handled (see
     /// the eChMarkerMotion enum options).
-    void SetMotionType(eChMarkerMotion m_motion) { motion_type = m_motion; };
+    void SetMotionType(eChMarkerMotion m_motion) { motion_type = m_motion; }
 
     /// Gets the way the motion of this marker (if any) is handled (see
     /// the eChMarkerMotion enum options).
-    eChMarkerMotion GetMotionType() { return motion_type; }
+    eChMarkerMotion GetMotionType() const { return motion_type; }
 
     //
     // UPDATING
@@ -250,21 +222,16 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     Vector Dir_Ref2World(Vector* mpoint);
 
     //
-    // STREAMING
-    //
-
-    //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
-
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

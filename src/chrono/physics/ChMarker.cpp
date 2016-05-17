@@ -1,57 +1,52 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-#include <stdlib.h>
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/core/ChTransform.h"
-#include "chrono/physics/ChMarker.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChMarker.h"
 
 namespace chrono {
 
 #define MARKER_BDF_STEP 0.0001
 
-//////////////////////////////////////
-//////////////////////////////////////
-
-// CLASS FOR MARKERS
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChMarker> a_registration_ChMarker;
 
-ChMarker::ChMarker() {
-    Body = NULL;
+ChMarker::ChMarker()
+    : Body(NULL),
+      rest_coord(CSYSNORM),
+      motion_type(M_MOTION_FUNCTIONS),
+      motion_axis(VECT_Z),
+      last_rel_coord(CSYSNORM),
+      last_rel_coord_dt(CSYSNULL),
+      last_time(0) {
+    // mark with unique ID
+    SetIdentifier(GetUniqueIntID());
 
     motion_X = new ChFunction_Const(0);  // default: no motion
     motion_Y = new ChFunction_Const(0);
     motion_Z = new ChFunction_Const(0);
     motion_ang = new ChFunction_Const(0);
-    motion_axis = VECT_Z;
-
-    rest_coord = CSYSNORM;
-
-    motion_type = M_MOTION_FUNCTIONS;
-
-    last_rel_coord = CSYSNORM;
-    last_rel_coord_dt = CSYSNULL;
-    last_time = 0;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
     UpdateState();
 }
 
 ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt) {
+    // mark with unique ID
+    SetIdentifier(GetUniqueIntID());
+
     SetName(myname);
     Body = myBody;
 
@@ -73,9 +68,41 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
     last_rel_coord_dt = CSYSNULL;
     last_time = 0;
 
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
-
     UpdateState();
+}
+
+ChMarker::ChMarker(const ChMarker& other) : ChObj(other), ChFrameMoving<double>(other) {
+    // mark with unique ID
+    SetIdentifier(GetUniqueIntID());
+
+    Body = NULL;
+
+    // Replace the default functions.
+    if (motion_X)
+        delete motion_X;
+    if (motion_Y)
+        delete motion_Y;
+    if (motion_Z)
+        delete motion_Z;
+    if (motion_ang)
+        delete motion_ang;
+
+    motion_X = other.motion_X->Clone();
+    motion_Y = other.motion_Y->Clone();
+    motion_Z = other.motion_Z->Clone();
+    motion_ang = other.motion_ang->Clone();
+
+    motion_axis = other.motion_axis;
+
+    rest_coord = other.rest_coord;
+
+    motion_type = other.motion_type;
+
+    abs_frame = other.abs_frame;
+
+    last_rel_coord = other.last_rel_coord;
+    last_rel_coord_dt = other.last_rel_coord_dt;
+    last_time = other.last_time;
 }
 
 ChMarker::~ChMarker() {
@@ -124,7 +151,7 @@ void ChMarker::Copy(ChMarker* source) {
     last_time = source->last_time;
 }
 
-// setup the functions when user changes them.
+// Setup the functions when user changes them.
 
 void ChMarker::SetMotion_X(ChFunction* m_funct) {
     if (motion_X)
@@ -184,7 +211,6 @@ void ChMarker::Impose_Abs_Coord(const Coordsys& m_coord) {
 }
 
 //// Utilities for coordinate transformations
-///
 
 Vector ChMarker::Point_World2Ref(Vector* mpoint) {
     return abs_frame / *mpoint;
@@ -221,7 +247,7 @@ void ChMarker::UpdateTime(double mytime) {
     // skip realtive-position-functions evaluation also if
     // someone is already handling this from outside..
     if (motion_type == M_MOTION_EXTERNAL)
-        return;  // >>>>
+        return;
 
     // positions:
     // update positions:    rel_pos
@@ -297,7 +323,7 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
     // a link point-surface is already moving the marker and
     // it will handle the accelerations by itself
     if (this->motion_type == M_MOTION_EXTERNAL)
-        return;  // >>>>
+        return;
 
     // otherwise see if a BDF is needed, cause an external 3rd party is moving the marker
     this->motion_type = M_MOTION_FUNCTIONS;
@@ -338,10 +364,9 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
     last_rel_coord_dt = coord_dt;
 }
 
-////////////////  FILE I/O
+//  FILE I/O
 
-void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -352,7 +377,7 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive << CHNVP(mmapper(motion_type),"motion_type");
+    marchive << CHNVP(mmapper(motion_type), "motion_type");
     marchive << CHNVP(motion_X);
     marchive << CHNVP(motion_Y);
     marchive << CHNVP(motion_Z);
@@ -361,8 +386,7 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChMarker::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChMarker::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -373,7 +397,7 @@ void ChMarker::ArchiveIN(ChArchiveIn& marchive)
 
     // stream in all member data:
     eChMarkerMotion_mapper mmapper;
-    marchive >> CHNVP(mmapper(motion_type),"motion_type");
+    marchive >> CHNVP(mmapper(motion_type), "motion_type");
     marchive >> CHNVP(motion_X);
     marchive >> CHNVP(motion_Y);
     marchive >> CHNVP(motion_Z);
@@ -381,7 +405,4 @@ void ChMarker::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(motion_axis);
 }
 
-
-}  // END_OF_NAMESPACE____
-
-////////// end
+}  // end namespace chrono

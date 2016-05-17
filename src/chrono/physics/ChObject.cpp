@@ -26,12 +26,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChObj> a_registration_ChObj;
 
-ChObj::ChObj() {
-    name.clear();
-
-    ChTime = 0;
-    identifier = 0;
-}
+ChObj::ChObj() : ChTime(0), identifier(0) {}
 
 ChObj::ChObj(const ChObj& other) {
     identifier = other.identifier;
