@@ -15,27 +15,16 @@ SET(LIBRARIES
 # List of all executables
 
 SET(TESTS
-<<<<<<< HEAD
-    test_real3
-    test_real4
-    test_matrix
-    #test_svd
-    test_gravity
-    test_rhs
-    test_r
-    test_shafts
-    #test_mpm
-    test_other_math
-    #test_blaze
-=======
     utest_PAR_real3
     utest_PAR_real4
     utest_PAR_mat33
+    utest_PAR_matrix
     utest_PAR_gravity
     utest_PAR_rhs
     utest_PAR_r
     utest_PAR_shafts
->>>>>>> develop
+    utest_PAR_other_math
+    utest_PAR_svd
 )
 
 MESSAGE(STATUS "Unit test programs for PARALLEL module...")
