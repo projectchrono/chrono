@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONTINUUMPOISSON3D_H
 #define CHCONTINUUMPOISSON3D_H
 
-#include "ChApiFEA.h"
-#include "physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -32,8 +34,10 @@ class ChApiFea ChContinuumPoisson3D : public ChContinuumMaterial {
         ConstitutiveMatrix.Resize(3, 3);
         ConstitutiveMatrix.FillDiag(1.0);
     }
-
-    virtual ~ChContinuumPoisson3D(){};
+    ChContinuumPoisson3D(const ChContinuumPoisson3D& other) : ChContinuumMaterial(other) {
+        ConstitutiveMatrix.CopyFromMatrix(other.ConstitutiveMatrix);
+    }
+    virtual ~ChContinuumPoisson3D() {}
 
     /// Get the constitutive matrix [C] to compute the bilinear form in the weak formulation
     ChMatrixDynamic<>& Get_ConstitutiveMatrix() { return ConstitutiveMatrix; }
@@ -42,7 +46,7 @@ class ChApiFea ChContinuumPoisson3D : public ChContinuumMaterial {
     virtual double Get_DtMultiplier() { return 0; }
 };
 
-}  //___end of namespace fea___
-}  //___end of namespace chrono___
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

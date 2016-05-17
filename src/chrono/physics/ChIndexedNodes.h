@@ -37,7 +37,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     //
 
     /// Get the number of nodes
-    virtual unsigned int GetNnodes() = 0;
+    virtual unsigned int GetNnodes() const = 0;
 
     /// Access the N-th node
     virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) = 0;
