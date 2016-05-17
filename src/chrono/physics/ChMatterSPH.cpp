@@ -219,8 +219,7 @@ ChMatterSPH::ChMatterSPH(const ChMatterSPH& other) : ChIndexedNodes(other) {
     material = other.material;
     matsurface = other.matsurface;
 
-    //// RADU: fix const correctness
-    ////ResizeNnodes(other.GetNnodes());
+    ResizeNnodes(other.GetNnodes());
 }
 
 ChMatterSPH::~ChMatterSPH() {

@@ -159,8 +159,7 @@ ChMatterMeshless::ChMatterMeshless(const ChMatterMeshless& other) : ChIndexedNod
 
     matsurface = other.matsurface;
 
-    //// RADU: fix const correctness
-    ////ResizeNnodes(other.GetNnodes());
+    ResizeNnodes(other.GetNnodes());
 }
 
 ChMatterMeshless::~ChMatterMeshless() {

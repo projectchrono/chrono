@@ -319,20 +319,20 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
         if (newmass > 0)
             particle_mass.SetBodyMass(newmass);
     }
-    double GetMass() { return particle_mass.GetBodyMass(); }
+    double GetMass() const { return particle_mass.GetBodyMass(); }
 
     /// Set the inertia tensor of each particle
     void SetInertia(const ChMatrix33<>& newXInertia);
     /// Set the diagonal part of the inertia tensor of each particle
     void SetInertiaXX(const ChVector<>& iner);
     /// Get the diagonal part of the inertia tensor of each particle
-    ChVector<> GetInertiaXX();
+    ChVector<> GetInertiaXX() const;
     /// Set the extradiagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
     void SetInertiaXY(const ChVector<>& iner);
     /// Get the extradiagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
-    ChVector<> GetInertiaXY();
+    ChVector<> GetInertiaXY() const;
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time

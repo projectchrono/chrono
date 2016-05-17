@@ -48,12 +48,14 @@ class ChApi ChSharedMassBody {
 
     /// Access the 3x3 inertia matrix
     ChMatrix33<>& GetBodyInertia() { return inertia; }
+    const ChMatrix33<>& GetBodyInertia() const { return inertia; }
 
     /// Access the 3x3 inertia matrix inverted
     ChMatrix33<>& GetBodyInvInertia() { return inv_inertia; }
+    const ChMatrix33<>& GetBodyInvInertia() const { return inv_inertia; }
 
     /// Get the mass associated with translation of body
-    double GetBodyMass() { return mass; }
+    double GetBodyMass() const { return mass; }
 
     void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
@@ -107,13 +109,15 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     void SetSharedMass(ChSharedMassBody* ms) { sharedmass = ms; }
 
     /// Get the mass associated with translation of body
-    double GetBodyMass() { return sharedmass->GetBodyMass(); }
+    virtual double GetBodyMass() const override { return sharedmass->GetBodyMass(); }
 
     /// Access the 3x3 inertia matrix
-    ChMatrix33<>& GetBodyInertia() { return sharedmass->GetBodyInertia(); }
+    virtual ChMatrix33<>& GetBodyInertia() override { return sharedmass->GetBodyInertia(); }
+    virtual const ChMatrix33<>& GetBodyInertia() const override { return sharedmass->GetBodyInertia(); }
 
     /// Access the 3x3 inertia matrix inverted
-    ChMatrix33<>& GetBodyInvInertia() { return sharedmass->GetBodyInvInertia(); }
+    virtual ChMatrix33<>& GetBodyInvInertia() override { return sharedmass->GetBodyInvInertia(); }
+    virtual const ChMatrix33<>& GetBodyInvInertia() const override { return sharedmass->GetBodyInvInertia(); }
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and set in result: result = [invMb]*vect

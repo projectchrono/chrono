@@ -256,10 +256,9 @@ ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexed
     do_sleep = other.do_sleep;
     do_limit_speed = other.do_limit_speed;
 
-    //// RADU:  fix const correctness
-    ////SetMass(other.GetMass());
-    ////SetInertiaXX(other.GetInertiaXX());
-    ////SetInertiaXY(other.GetInertiaXY());
+    SetMass(other.GetMass());
+    SetInertiaXX(other.GetInertiaXX());
+    SetInertiaXY(other.GetInertiaXY());
 
     particle_collision_model->ClearModel();
 
@@ -613,7 +612,7 @@ void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
     particle_mass.GetBodyInertia().FastInvert(&particle_mass.GetBodyInvInertia());
 }
 
-ChVector<> ChParticlesClones::GetInertiaXX() {
+ChVector<> ChParticlesClones::GetInertiaXX() const {
     ChVector<> iner;
     iner.x = particle_mass.GetBodyInertia().GetElement(0, 0);
     iner.y = particle_mass.GetBodyInertia().GetElement(1, 1);
@@ -621,7 +620,7 @@ ChVector<> ChParticlesClones::GetInertiaXX() {
     return iner;
 }
 
-ChVector<> ChParticlesClones::GetInertiaXY() {
+ChVector<> ChParticlesClones::GetInertiaXY() const {
     ChVector<> iner;
     iner.x = particle_mass.GetBodyInertia().GetElement(0, 1);
     iner.y = particle_mass.GetBodyInertia().GetElement(0, 2);

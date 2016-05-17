@@ -45,19 +45,19 @@ class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
 
     /// The number of scalar variables in the vector qb
     /// (dof=degrees of freedom)
-    int Get_ndof() const { return this->ndof; }
+    virtual int Get_ndof() const override { return this->ndof; }
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and add to result: result = [invMb]*vect
-    void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and increment result: result += [invMb]*vect
-    void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the mass matrix by a
     /// vector, and set in result: result = [Mb]*vect
-    void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the
     /// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
