@@ -107,10 +107,10 @@ class ChApi ChShaft : public ChPhysicsItem {
     // FUNCTIONS
     //
 
-    /// Set the shaft id
+    /// Set the shaft id for indexing (only used internally)
     void SetId(unsigned int identifier) { id = identifier; }
 
-    /// Get the shaft id
+    /// Get the shaft id for indexing (only used internally)
     unsigned int GetId() const { return id; }
 
     /// Number of coordinates of the shaft

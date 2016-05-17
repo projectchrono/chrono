@@ -32,7 +32,6 @@ ChClassRegisterABSTRACT<ChIndexedNodes> a_registration_ChIndexedNodes;
 /// CLASS FOR INDEXED NODES CONTAINER
 
 ChIndexedNodes::ChIndexedNodes() {
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
 
 ChIndexedNodes::~ChIndexedNodes() {

@@ -26,8 +26,6 @@ ChLink::ChLink() {
 
     react_force = VNULL;
     react_torque = VNULL;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
 
 // DESTROYER

@@ -18,8 +18,6 @@
 namespace chrono {
 
 ChProbe::ChProbe() {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
 }
 
 ChProbe::ChProbe(const ChProbe& other) : ChObj(other) {}

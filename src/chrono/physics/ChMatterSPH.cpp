@@ -243,8 +243,6 @@ ChMatterSPH::ChMatterSPH() {
 
     this->nodes.clear();
 
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
-
     // default DVI material
     matsurface = std::make_shared<ChMaterialSurface>();
 }

@@ -20,10 +20,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChShaftsBody> a_registration_ChShaftsBody;
 
-ChShaftsBody::ChShaftsBody() : torque_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-}
+ChShaftsBody::ChShaftsBody() : torque_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z) {}
 
 ChShaftsBody::ChShaftsBody(const ChShaftsBody& other) : ChPhysicsItem(other) {
     torque_react = other.torque_react;

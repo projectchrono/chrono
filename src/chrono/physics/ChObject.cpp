@@ -26,17 +26,18 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChObj> a_registration_ChObj;
 
-ChObj::ChObj() : ChTime(0), identifier(0) {}
+ChObj::ChObj() : ChTime(0) {
+    identifier = GetUniqueIntID();
+}
 
 ChObj::ChObj(const ChObj& other) {
-    identifier = other.identifier;
+    identifier = GetUniqueIntID();
+
     name = other.name;
     ChTime = other.ChTime;
 }
 
 void ChObj::Copy(ChObj* source) {
-    identifier = source->identifier;
-
     name = source->name;
     ChTime = source->ChTime;
 }

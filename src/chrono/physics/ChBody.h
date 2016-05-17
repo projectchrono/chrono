@@ -195,9 +195,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// it is in sleep mode.
     bool IsActive() { return !BFlagGet(BF_SLEEPING | BF_FIXED); }
 
-    /// Set the body identifier (used only internally)
-    void SetId(int identifier) { body_id = identifier; }
-    /// Set the body identifier (used only internally)
+    /// Set body id for indexing (used only internally)
+    void SetId(int id) { body_id = id; }
+    /// Set body id for indxing (used only internally)
     unsigned int GetId() { return body_id; }
 
     //

@@ -34,8 +34,6 @@ ChShaft::ChShaft()
       sleep_minspeed(0.1f),
       sleep_minwvel(0.04f),
       sleeping(false) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
     SetUseSleeping(true);
     variables.SetShaft(this);
 }

@@ -34,9 +34,6 @@ ChForce::ChForce()
       align(BODY_DIR),
       frame(BODY),
       mode(FORCE) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
     Qf = new ChMatrixDynamic<double>(7, 1);
 
     modula = std::make_shared<ChFunction_Const>(1);
@@ -49,9 +46,6 @@ ChForce::ChForce()
 }
 
 ChForce::ChForce(const ChForce& other) : ChObj(other) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
     Body = other.Body;
 
     mforce = other.mforce;

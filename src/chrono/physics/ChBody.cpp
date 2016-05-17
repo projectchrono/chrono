@@ -62,7 +62,6 @@ ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
 
     last_coll_pos = CSYSNORM;
 
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
     max_speed = 0.5f;
     max_wvel = 2.0f * float(CH_C_PI);
@@ -107,8 +106,6 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::Con
     density = 1000.0f;
 
     last_coll_pos = CSYSNORM;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
 
     max_speed = 0.5f;
     max_wvel = 2.0f * float(CH_C_PI);

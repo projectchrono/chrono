@@ -29,8 +29,6 @@ namespace chrono {
 ///
 
 ChControllerPID::ChControllerPID() {
-    this->SetIdentifier(GetUniqueIntID());  // mark with unique ID
-
     P = 1.;
     I = 0.;
     D = 0.;

@@ -26,8 +26,6 @@ ChClassRegister<ChLinkPointPoint> a_registration_ChLinkPointPoint;
 
 ChLinkPointPoint::ChLinkPointPoint() {
 	this->react= VNULL;
-
-	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 ChLinkPointPoint::~ChLinkPointPoint() {

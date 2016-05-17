@@ -32,9 +32,6 @@ ChMarker::ChMarker()
       last_rel_coord(CSYSNORM),
       last_rel_coord_dt(CSYSNULL),
       last_time(0) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
     motion_X = new ChFunction_Const(0);  // default: no motion
     motion_Y = new ChFunction_Const(0);
     motion_Z = new ChFunction_Const(0);
@@ -44,9 +41,6 @@ ChMarker::ChMarker()
 }
 
 ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
     SetName(myname);
     Body = myBody;
 
@@ -72,9 +66,6 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
 }
 
 ChMarker::ChMarker(const ChMarker& other) : ChObj(other), ChFrameMoving<double>(other) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
     Body = NULL;
 
     // Replace the default functions.

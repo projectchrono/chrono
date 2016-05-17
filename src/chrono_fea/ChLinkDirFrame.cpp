@@ -32,9 +32,6 @@ ChLinkDirFrame::ChLinkDirFrame ()
 {
 	this->react= VNULL;
 	this->direction = VECT_X;
-
-	SetIdentifier(GetUniqueIntID()); // mark with unique ID
-
 }
 
 

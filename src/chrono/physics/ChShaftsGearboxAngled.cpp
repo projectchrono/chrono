@@ -23,8 +23,6 @@ ChClassRegister<ChShaftsGearboxAngled> a_registration_ChShaftsGearboxAngled;
 
 ChShaftsGearboxAngled::ChShaftsGearboxAngled()
     : t0(1), torque_react(0), shaft1(NULL), shaft2(NULL), body(NULL), shaft_dir1(VECT_X), shaft_dir2(VECT_X) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
     SetTransmissionRatio(1);
 }
 

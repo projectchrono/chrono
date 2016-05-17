@@ -27,8 +27,6 @@ ChClassRegister<ChLinkPointFrame> a_registration_ChLinkPointFrame;
 ChLinkPointFrame::ChLinkPointFrame() {
 	this->react= VNULL;
 	this->attach_reference = CSYSNORM;
-
-	SetIdentifier(GetUniqueIntID()); // mark with unique ID
 }
 
 ChLinkPointFrame::~ChLinkPointFrame() {

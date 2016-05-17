@@ -35,7 +35,7 @@ class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
     CH_RTTI(ChShaftsTorque, ChShaftsTorqueBase);
 
   public:
-    ChShaftsTorque();
+    ChShaftsTorque() {}
     ChShaftsTorque(const ChShaftsTorque& other);
     ~ChShaftsTorque() {}
 

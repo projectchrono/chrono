@@ -22,8 +22,6 @@ namespace chrono {
 ChClassRegister<ChShaftsMotor> a_registration_ChShaftsMotor;
 
 ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_mode(MOT_MODE_TORQUE), motor_set_rot(0), motor_set_rot_dt(0) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
 }
 
 ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsCouple(other) {

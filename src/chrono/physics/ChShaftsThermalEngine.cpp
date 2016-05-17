@@ -22,9 +22,6 @@ namespace chrono {
 ChClassRegister<ChShaftsThermalEngine> a_registration_ChShaftsThermalEngine;
 
 ChShaftsThermalEngine::ChShaftsThermalEngine() : throttle(1), error_backward(false) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
     // default torque curve= constant zero. User will provide better fx.
     Tw = std::make_shared<ChFunction_Const>(0);
 }

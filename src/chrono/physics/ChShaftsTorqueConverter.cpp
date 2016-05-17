@@ -29,9 +29,6 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter()
       torque_out(0),
       state_warning_reverseflow(false),
       state_warning_wrongimpellerdirection(false) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
     K = std::make_shared<ChFunction_Const>(0.9);
     T = std::make_shared<ChFunction_Const>(0.9);
 }

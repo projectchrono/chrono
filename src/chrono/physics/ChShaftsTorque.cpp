@@ -21,11 +21,6 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChShaftsTorque> a_registration_ChShaftsTorque;
 
-ChShaftsTorque::ChShaftsTorque() {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-}
-
 ChShaftsTorque::ChShaftsTorque(const ChShaftsTorque& other) : ChShaftsTorqueBase(other) {}
 
 void ChShaftsTorque::Copy(ChShaftsTorque* source) {

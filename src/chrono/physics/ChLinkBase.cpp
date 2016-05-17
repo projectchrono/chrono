@@ -23,8 +23,6 @@ ChLinkBase::ChLinkBase() {
     broken = false;
     valid = true;
     disabled = false;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
 
 // DESTROYER

@@ -168,8 +168,6 @@ ChMatterMeshless::ChMatterMeshless() {
 
     // default DVI material
     matsurface = std::make_shared<ChMaterialSurface>();
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
 }
 
 ChMatterMeshless::~ChMatterMeshless() {

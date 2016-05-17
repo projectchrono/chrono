@@ -21,10 +21,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChShaftsTorsionSpring> a_registration_ChShaftsTorsionSpring;
 
-ChShaftsTorsionSpring::ChShaftsTorsionSpring() : stiffness(0), damping(0) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-}
+ChShaftsTorsionSpring::ChShaftsTorsionSpring() : stiffness(0), damping(0) {}
 
 ChShaftsTorsionSpring::ChShaftsTorsionSpring(const ChShaftsTorsionSpring& other) : ChShaftsTorqueBase(other) {
     stiffness = other.stiffness;

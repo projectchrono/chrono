@@ -21,10 +21,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegisterABSTRACT<ChShaftsTorqueBase> a_registration_ChShaftsTorqueBase;
 
-ChShaftsTorqueBase::ChShaftsTorqueBase() : torque(0) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-}
+ChShaftsTorqueBase::ChShaftsTorqueBase() : torque(0) {}
 
 ChShaftsTorqueBase::ChShaftsTorqueBase(const ChShaftsTorqueBase& other) : ChShaftsCouple(other) {
     torque = other.torque;

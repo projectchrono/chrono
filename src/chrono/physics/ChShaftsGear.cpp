@@ -21,12 +21,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChShaftsGear> a_registration_ChShaftsGear;
 
-ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0) {
-    // mark with unique ID
-    SetIdentifier(GetUniqueIntID());
-
-    // variables.SetUserData((void*)this);
-}
+ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0) {}
 
 ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other) {
     ratio = other.ratio;
