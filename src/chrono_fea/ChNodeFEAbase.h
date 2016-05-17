@@ -4,7 +4,7 @@
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
+// Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
@@ -46,19 +46,25 @@ class ChApiFea ChNodeFEAbase : public virtual ChNodeBase {
     /// If true, its current field value is not changed by solver.
     virtual bool GetFixed() = 0;
 
+    /// Sets the global index of the node
+    virtual void SetIndex(unsigned int mindex) { g_index = mindex; }
+
+    /// Gets the global index of the node
+    virtual unsigned int GetIndex() { return g_index; }
+
     double m_TotalMass;  ///< Nodal mass obtained from element masss matrix
+
+  protected:
+    //
+    // DATA
+    //
+
+    unsigned int g_index;  ///< global node index
 };
 
 /// @} fea_nodes
 
-} // end namespace fea
-} // end namespace chrono
-
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif
-
-
-
-
-
-
