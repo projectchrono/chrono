@@ -1,7 +1,7 @@
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChDataStructures.h"

@@ -1,11 +1,12 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 using namespace chrono;
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemParallel(max_objects) {
-    LCP_solver_speed = new ChLcpSolverParallelDVI(data_manager);
+    solver_speed = new ChIterativeSolverParallelDVI(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
     data_manager->settings.system_type = SYSTEM_DVI;
@@ -34,7 +35,7 @@ ChBody* ChSystemParallelDVI::NewBody() {
 }
 
 void ChSystemParallelDVI::ChangeSolverType(SOLVERTYPE type) {
-    ((ChLcpSolverParallelDVI*)(LCP_solver_speed))->ChangeSolverType(type);
+    ((ChIterativeSolverParallelDVI*)(solver_speed))->ChangeSolverType(type);
 }
 
 ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
@@ -120,9 +121,9 @@ void ChSystemParallelDVI::SolveSystem() {
     collision_system->Run();
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
-    data_manager->system_timer.start("lcp");
-    ((ChLcpSolverParallel*)(LCP_solver_speed))->RunTimeStep();
-    data_manager->system_timer.stop("lcp");
+    data_manager->system_timer.start("solver");
+    ((ChIterativeSolverParallelDVI*)(solver_speed))->RunTimeStep();
+    data_manager->system_timer.stop("solver");
     data_manager->system_timer.stop("step");
 }
 
@@ -203,15 +204,15 @@ void ChSystemParallelDVI::AssembleSystem() {
     contact_container->ConstraintsLoadJacobians();
 
     // Inject all variables and constraints into the system descriptor.
-    LCP_descriptor->BeginInsertion();
+    descriptor->BeginInsertion();
     for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->InjectVariables(*LCP_descriptor);
+        bodylist[ip]->InjectVariables(*descriptor);
     }
     for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->InjectConstraints(*LCP_descriptor);
+        linklist[ip]->InjectConstraints(*descriptor);
     }
-    contact_container->InjectConstraints(*LCP_descriptor);
-    LCP_descriptor->EndInsertion();
+    contact_container->InjectConstraints(*descriptor);
+    descriptor->EndInsertion();
 }
 
 void ChSystemParallelDVI::Initialize() {

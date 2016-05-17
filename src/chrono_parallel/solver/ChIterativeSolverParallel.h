@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -23,11 +23,11 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/ChIntegratorParallel.h"
-#include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "chrono_parallel/constraints/ChConstraintBilateral.h"
+
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
+
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
-#include "chrono_parallel/solver/ChSolverAPGD.h"
 
 namespace chrono {
 
@@ -43,19 +43,22 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
     virtual void ComputeImpulses() = 0;
 
     ///< Compute the inverse mass matrix and the term v+M_inv*hf
+    void ComputeInvMassMatrix();
+    // Compute mass matrix
     void ComputeMassMatrix();
     ///< Solves just the bilaterals so that they can be warm started
     void PerformStabilization();
 
-    real GetResidual() { return residual; }
     ChParallelDataManager* data_manager;
     ChSolverParallel* solver;
+    ChSolverParallel* bilateral_solver;
 
   protected:
     ChIterativeSolverParallel(ChParallelDataManager* dc);
 
-    real residual;
-    ChConstraintBilateral bilateral;
+    ChShurProductBilateral ShurProductBilateral;
+    ChShurProductFEM ShurProductFEM;
+    ChProjectNone ProjectNone;
 };
 
 class CH_PARALLEL_API ChIterativeSolverParallelDVI : public ChIterativeSolverParallel {
@@ -81,7 +84,8 @@ class CH_PARALLEL_API ChIterativeSolverParallelDVI : public ChIterativeSolverPar
     void ChangeSolverType(SOLVERTYPE type);
 
   private:
-    ChConstraintRigidRigid rigid_rigid;
+    ChShurProduct ShurProductFull;
+    ChProjectConstraints ProjectFull;
 };
 
 class CH_PARALLEL_API ChIterativeSolverParallelDEM : public ChIterativeSolverParallel {
@@ -105,7 +109,7 @@ class CH_PARALLEL_API ChIterativeSolverParallelDEM : public ChIterativeSolverPar
                                 custom_vector<real3>& ext_body_force,
                                 custom_vector<real3>& ext_body_torque,
                                 custom_vector<int2>& shape_pairs,
-                                custom_vector<bool>& shear_touch);
+                                custom_vector<char>& shear_touch);
 
     void host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id);
 

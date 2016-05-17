@@ -1,9 +1,9 @@
-#include "chrono_parallel/lcp/ChLcpSolverParallel.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "physics/ChBody.h"
 
 using namespace chrono;
 
-ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
+ChIterativeSolverParallel::ChIterativeSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
     tolerance = 1e-7;
     record_violation_history = true;
     warm_start = false;
@@ -13,13 +13,13 @@ ChLcpSolverParallel::ChLcpSolverParallel(ChParallelDataManager* dc) : data_manag
     data_manager->bilateral = new ChConstraintBilateral();
 }
 
-ChLcpSolverParallel::~ChLcpSolverParallel() {
+ChIterativeSolverParallel::~ChIterativeSolverParallel() {
     delete solver;
     delete bilateral_solver;
 }
 
-void ChLcpSolverParallel::ComputeInvMassMatrix() {
-    LOG(INFO) << "ChLcpSolverParallel::ComputeInvMassMatrix()";
+void ChIterativeSolverParallel::ComputeInvMassMatrix() {
+    LOG(INFO) << "ChIterativeSolverParallel::ComputeInvMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
@@ -101,8 +101,8 @@ void ChLcpSolverParallel::ComputeInvMassMatrix() {
     M_invk = v + M_inv * hf;
 }
 
-void ChLcpSolverParallel::ComputeMassMatrix() {
-    LOG(INFO) << "ChLcpSolverParallel::ComputeMassMatrix()";
+void ChIterativeSolverParallel::ComputeMassMatrix() {
+    LOG(INFO) << "ChIterativeSolverParallel::ComputeMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
@@ -178,8 +178,8 @@ void ChLcpSolverParallel::ComputeMassMatrix() {
     data_manager->fea_container->ComputeMass(offset + num_fluid_bodies * 3);
 }
 
-void ChLcpSolverParallel::PerformStabilization() {
-    LOG(INFO) << "ChLcpSolverParallel::PerformStabilization";
+void ChIterativeSolverParallel::PerformStabilization() {
+    LOG(INFO) << "ChIterativeSolverParallel::PerformStabilization";
     const DynamicVector<real>& R_full = data_manager->host_data.R_full;
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     uint num_unilaterals = data_manager->num_unilaterals;

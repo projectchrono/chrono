@@ -54,7 +54,6 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
     data_manager->system_timer.AddTimer("ChSolverParallel_Stab");
     data_manager->system_timer.AddTimer("ChSolverParallel_M");
 
-
 #ifdef LOGGINGENABLED
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "false");
@@ -94,7 +93,7 @@ int ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.stop("collision");
 
     data_manager->system_timer.start("solver");
-    ((ChSolverParallel*)(solver_speed))->RunTimeStep();
+    ((ChIterativeSolverParallel*)(solver_speed))->RunTimeStep();
     data_manager->system_timer.stop("solver");
 
     data_manager->system_timer.start("update");
@@ -122,7 +121,6 @@ int ChSystemParallel::Integrate_Y() {
     DynamicVector<real>& velocities = data_manager->host_data.v;
     custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
-
 
 #pragma omp parallel for
     for (int i = 0; i < bodylist.size(); i++) {
@@ -346,28 +344,27 @@ void ChSystemParallel::ClearForceVariables() {
 // 6. Process bilateral constraints
 //
 void ChSystemParallel::Update() {
+    LOG(INFO) << "ChSystemParallel::Update()";
+    // Clear the forces for all variables
+    ClearForceVariables();
 
-  LOG(INFO) << "ChSystemParallel::Update()";
-  // Clear the forces for all variables
-  ClearForceVariables();
+    // Allocate space for the velocities and forces for all objects
+    data_manager->host_data.v.resize(data_manager->num_dof);
+    data_manager->host_data.hf.resize(data_manager->num_dof);
 
-  // Allocate space for the velocities and forces for all objects
-  data_manager->host_data.v.resize(data_manager->num_dof);
-  data_manager->host_data.hf.resize(data_manager->num_dof);
+    // Clear system-wide vectors for bilateral constraints
+    data_manager->host_data.bilateral_mapping.clear();
+    data_manager->host_data.bilateral_type.clear();
 
-  // Clear system-wide vectors for bilateral constraints
-  data_manager->host_data.bilateral_mapping.clear();
-  data_manager->host_data.bilateral_type.clear();
+    this->descriptor->BeginInsertion();
+    UpdateLinks();
+    UpdateOtherPhysics();
+    UpdateRigidBodies();
+    UpdateShafts();
+    Update3DOFBodies();
+    descriptor->EndInsertion();
 
-  this->descriptor->BeginInsertion();
-  UpdateLinks();
-  UpdateOtherPhysics();
-  UpdateRigidBodies();
-  UpdateShafts();
-  UpdateFluidBodies();
-  descriptor->EndInsertion();
-
-  UpdateBilaterals();
+    UpdateBilaterals();
 }
 
 //
@@ -457,24 +454,23 @@ void ChSystemParallel::Update3DOFBodies() {
 // to BODY_BODY. Note that visualization assets are not updated.
 //
 void ChSystemParallel::UpdateLinks() {
+    double oostep = 1 / GetStep();
+    real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
+    bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-  double oostep = 1 / GetStep();
-  real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
-  bool clamp = data_manager->settings.solver.clamp_bilaterals;
+    for (int i = 0; i < linklist.size(); i++) {
+        linklist[i]->Update(ChTime, false);
+        linklist[i]->ConstraintsBiReset();
+        linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
+        linklist[i]->ConstraintsBiLoad_Ct(1);
+        linklist[i]->ConstraintsFbLoadForces(GetStep());
+        linklist[i]->ConstraintsLoadJacobians();
 
-  for (int i = 0; i < linklist.size(); i++) {
-    linklist[i]->Update(ChTime, false);
-    linklist[i]->ConstraintsBiReset();
-    linklist[i]->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
-    linklist[i]->ConstraintsBiLoad_Ct(1);
-    linklist[i]->ConstraintsFbLoadForces(GetStep());
-    linklist[i]->ConstraintsLoadJacobians();
+        linklist[i]->InjectConstraints(*descriptor);
 
-    linklist[i]->InjectConstraints(*descriptor);
-
-    for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
-      data_manager->host_data.bilateral_type.push_back(BODY_BODY);
-  }
+        for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
+            data_manager->host_data.bilateral_type.push_back(BODY_BODY);
+    }
 }
 
 //
@@ -534,9 +530,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
         if (type == UNKNOWN)
             continue;
 
-
-    otherphysicslist[i]->InjectConstraints(*descriptor);
-
+        otherphysicslist[i]->InjectConstraints(*descriptor);
 
         for (int j = 0; j < otherphysicslist[i]->GetDOC_c(); j++)
             data_manager->host_data.bilateral_type.push_back(type);
@@ -548,32 +542,31 @@ void ChSystemParallel::UpdateOtherPhysics() {
 // non-zero entries in the constraint Jacobian.
 //
 void ChSystemParallel::UpdateBilaterals() {
+    data_manager->nnz_bilaterals = 0;
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
 
-  data_manager->nnz_bilaterals = 0;
-  std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
-
-  for (uint ic = 0; ic < mconstraints.size(); ic++) {
-    if (mconstraints[ic]->IsActive()) {
-      data_manager->host_data.bilateral_mapping.push_back(ic);
-      switch (data_manager->host_data.bilateral_type[ic]) {
-        case BODY_BODY:
-          data_manager->nnz_bilaterals += 12;
-          break;
-        case SHAFT_SHAFT:
-          data_manager->nnz_bilaterals += 2;
-          break;
-        case SHAFT_SHAFT_SHAFT:
-          data_manager->nnz_bilaterals += 3;
-          break;
-        case SHAFT_BODY:
-          data_manager->nnz_bilaterals += 7;
-          break;
-        case SHAFT_SHAFT_BODY:
-          data_manager->nnz_bilaterals += 8;
-          break;
-      }
+    for (uint ic = 0; ic < mconstraints.size(); ic++) {
+        if (mconstraints[ic]->IsActive()) {
+            data_manager->host_data.bilateral_mapping.push_back(ic);
+            switch (data_manager->host_data.bilateral_type[ic]) {
+                case BODY_BODY:
+                    data_manager->nnz_bilaterals += 12;
+                    break;
+                case SHAFT_SHAFT:
+                    data_manager->nnz_bilaterals += 2;
+                    break;
+                case SHAFT_SHAFT_SHAFT:
+                    data_manager->nnz_bilaterals += 3;
+                    break;
+                case SHAFT_BODY:
+                    data_manager->nnz_bilaterals += 7;
+                    break;
+                case SHAFT_SHAFT_BODY:
+                    data_manager->nnz_bilaterals += 8;
+                    break;
+            }
+        }
     }
-
     // Set the number of currently active bilateral constraints.
     data_manager->num_bilaterals = data_manager->host_data.bilateral_mapping.size();
 }
@@ -766,5 +759,4 @@ double ChSystemParallel::GetTimerCollision() {
 
 settings_container* ChSystemParallel::GetSettings() {
     return &(data_manager->settings);
-
 }
