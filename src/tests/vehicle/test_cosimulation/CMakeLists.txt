@@ -1,6 +1,6 @@
 #=============================================================================
-# CMake configuration file for the HMMWV cosimulation demo.
-# This example program requires MPI and the Chrono::Parallel module
+# CMake configuration file for the vehicle cosimulation tests.
+# These example programs requires MPI and the Chrono::Parallel module
 #=============================================================================
 
 IF(NOT MPI_CXX_FOUND OR NOT ENABLE_MODULE_PARALLEL)
@@ -8,10 +8,11 @@ IF(NOT MPI_CXX_FOUND OR NOT ENABLE_MODULE_PARALLEL)
 ENDIF()
 
 #--------------------------------------------------------------
-# List all model files for this demo
+# List all tests
 
-SET(DEMO  demo_VEH_HMMWV_Cosimulation)
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
+SET(TEST_PROGRAMS
+  test_VEH_HMMWV_Cosimulation
+)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -31,13 +32,17 @@ SET(LIBRARIES
 )
 
 #--------------------------------------------------------------
-# Create the executable
+# Create the executables
 
-MESSAGE(STATUS "...add ${DEMO}")
+FOREACH(PROGRAM ${TEST_PROGRAMS})
+  MESSAGE(STATUS "...add ${PROGRAM}")
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE} ${MPI_CXX_LINK_FLAGS}")
-TARGET_LINK_LIBRARIES(${DEMO} ${LIBRARIES})
-INSTALL(TARGETS ${DEMO} DESTINATION bin)
+  ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+  SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+
+  SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+                        COMPILE_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+                        LINK_FLAGS "${LINKERFLAG_EXE} ${MPI_CXX_LINK_FLAGS}")
+  TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+
+ENDFOREACH()
