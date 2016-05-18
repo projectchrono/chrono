@@ -222,7 +222,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
 
                 {
                     double forceN = kn * delta - gn * relvel_n_mag;
-                    double forceT = mat.mu_eff * std::atan(2.0 * relvel_t_mag) * 2.0 / CH_C_PI * forceN;
+                    if (forceN < 0)
+                        forceN = 0;
+                    double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
                     ChVector<> force = forceN * normal_dir;
                     if (relvel_t_mag >= sys->GetSlipVelocitythreshold())
                         force -= (forceT / relvel_t_mag) * relvel_t;
