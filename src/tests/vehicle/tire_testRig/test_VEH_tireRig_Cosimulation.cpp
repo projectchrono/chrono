@@ -21,22 +21,22 @@
 // =============================================================================
 
 //// TODO: for use with granular terrain, cannot use a node cloud of proxy bodies
-
+//// TODO: send tire material contact parameters from rig node to terrain node
 
 #define RIG_NODE_RANK 0
 #define TERRAIN_NODE_RANK 1
 
-#include "mpi.h"
 #include <omp.h>
 #include <algorithm>
-#include <iostream>
 #include <fstream>
-#include <vector>
+#include <iostream>
 #include <set>
+#include <vector>
+#include "mpi.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChSystemDEM.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
@@ -60,20 +60,33 @@ using namespace chrono::vehicle;
 
 // =============================================================================
 
+static const double gacc = -9.81;
+
+static const int nthreads_rignode = 2;
+static const int nthreads_terrainnode = 2;
+
+// =============================================================================
+
 class RigNode {
   public:
     RigNode(int num_threads);
-    ~RigNode() { delete m_system; }
+    ~RigNode();
+
+    void SetOutputFile(const std::string& name);
+
     void Initialize();
     void Synchronize(int step_number, double time);
-    void Advance(double step_size, std::vector<double>& v);
+    void Advance(double step_size);
+
+    void OutputData();
 
   private:
     ChSystemDEM* m_system;
     std::shared_ptr<ChBody> m_rim;
-    std::shared_ptr<ChBody> m_ground;
     std::shared_ptr<ChDeformableTire> m_tire;
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;
+
+    std::ofstream m_outf;
 
     void PrintLowestNode();
     void PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel);
@@ -82,7 +95,7 @@ class RigNode {
 
 RigNode::RigNode(int num_threads) {
     m_system = new ChSystemDEM;
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    m_system->Set_G_acc(ChVector<>(0, 0, gacc));
 
     // Set number threads
     m_system->SetParallelThreadNumber(num_threads);
@@ -115,6 +128,16 @@ RigNode::RigNode(int num_threads) {
     integrator->SetVerbose(true);
 }
 
+RigNode::~RigNode() {
+    delete m_system;
+}
+
+void RigNode::SetOutputFile(const std::string& name) {
+    m_outf.open(name, std::ios::out | std::ios::app);
+    m_outf.precision(7);
+    m_outf << std::scientific;
+}
+
 void RigNode::Initialize() {
     // Receive initial terrain height
     double init_height;
@@ -122,22 +145,24 @@ void RigNode::Initialize() {
     MPI_Recv(&init_height, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     std::cout << "[Rig node    ] Received init_height = " << init_height << std::endl;
+
     // Model parameters
-    double desired_speed = 0;//// 20;
-    double rim_mass = 100;//// 0.1;
-    ChVector<> rim_inertia(1, 1, 1);//// (1e-2, 1e-2, 1e-2);
+    double desired_speed = 0;         //// 20;
+    double rim_mass = 100;            //// 0.1;
+    ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
 
     std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
-         // Create ground body on the tire node
-    m_ground = std::make_shared<ChBody>();
-    m_system->AddBody(m_ground);
-    m_ground->SetBodyFixed(true);
 
-    // Create the rim body
+    // Create ground body.
+    auto ground = std::make_shared<ChBody>();
+    m_system->AddBody(ground);
+    ground->SetBodyFixed(true);
+
+    // Create the rim body.
     m_rim = std::make_shared<ChBody>();
     m_system->AddBody(m_rim);
-    
-    // Create the tire
+
+    // Create the tire.
     m_tire = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
     m_tire->EnablePressure(true);
     m_tire->EnableContact(true);
@@ -156,12 +181,10 @@ void RigNode::Initialize() {
     // Initialize tire.
     m_tire->Initialize(m_rim, LEFT);
 
-         // Plane contraint on the rim
+    // Plane contraint on the rim
     auto plane_plane = std::make_shared<ChLinkLockPlanePlane>();
     m_system->AddLink(plane_plane);
-    plane_plane->SetName("plane_plane");
-    plane_plane->Initialize(m_ground, m_rim, ChCoordsys<>(m_rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
-    
+    plane_plane->Initialize(ground, m_rim, ChCoordsys<>(m_rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
 
     // Create a mesh load for contact forces and add it to the tire's load container.
     auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
@@ -178,7 +201,6 @@ void RigNode::Initialize() {
     std::cout << "[Rig node    ] vertices = " << props[0] << "  triangles = " << props[1] << std::endl;
 
     //// TODO: complete construction of the test rig
-
 
     // Mark completion of system construction
     m_system->SetupInitial();
@@ -251,18 +273,26 @@ void RigNode::Synchronize(int step_number, double time) {
     //// TODO: Perform any other required synchronization
 }
 
-void RigNode::Advance(double step_size, std::vector<double>& Data) {
-    double my_step_size =1e-4;
+void RigNode::Advance(double step_size) {
+    double my_step_size = 1e-4;
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(my_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
     }
-    Data.push_back(m_system->GetChTime()); 
-    Data.push_back(m_rim->GetPos().x);
-    Data.push_back(m_rim->GetPos().y);
-    Data.push_back(m_rim->GetPos().z);
+}
+
+void RigNode::OutputData() {
+    if (!m_outf.is_open())
+        return;
+
+    std::string del("  ");
+    const ChVector<>& rim_pos = m_rim->GetPos();
+
+    m_outf << m_system->GetChTime() << del;
+    m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
+    m_outf << std::endl;
 }
 
 void RigNode::PrintLowestNode() {
@@ -305,17 +335,22 @@ void RigNode::PrintContactData(const std::vector<ChVector<>>& forces, const std:
 // =============================================================================
 
 class TerrainNode {
-public:
-    enum Type {RIGID, GRANULAR};
+  public:
+    enum Type { RIGID, GRANULAR };
 
-    TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads);
-    ~TerrainNode() { delete m_system; }
+    TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, bool fixed_proxies, int num_threads);
+    ~TerrainNode();
+
+    void SetOutputFile(const std::string& name);
+
     void Settle();
     void Initialize();
     void Synchronize(int step_number, double time);
     void Advance(double step_size);
 
-private:
+    void OutputData();
+
+  private:
     struct ProxyNodeBody {
         ProxyNodeBody(std::shared_ptr<ChBody> body, int index) : m_body(body), m_index(index) {}
         std::shared_ptr<ChBody> m_body;
@@ -325,21 +360,22 @@ private:
     Type m_type;
     ChMaterialSurfaceBase::ContactMethod m_method;
     ChSystemParallel* m_system;
-    std::shared_ptr<ChMaterialSurfaceBase> m_material_tire;
-    std::shared_ptr<ChMaterialSurfaceBase> m_material_terrain;
     std::vector<ProxyNodeBody> m_proxies;
+    bool m_fixed_proxies;
     double m_init_height;
     double m_rg;
     double m_rp;
     unsigned int m_num_vert;
     unsigned int m_num_tri;
 
+    std::ofstream m_outf;
+
     void PrintContactData();
     void PrintLowestVertex();
 };
 
-TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
-    : m_type(type), m_method(method), m_init_height(0) {
+TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, bool fixed_proxies, int num_threads)
+    : m_type(type), m_method(method), m_fixed_proxies(fixed_proxies), m_init_height(0) {
     // Model parameters
     double hdimX = 5.0;
     double hdimY = 0.25;
@@ -357,6 +393,8 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     m_rp = 0.01;
 
     // Create parallel system and contact material for terrain
+    std::shared_ptr<ChMaterialSurfaceBase> material_terrain;
+
     switch (m_method) {
         case ChMaterialSurfaceBase::DEM: {
             ChSystemParallelDEM* sys = new ChSystemParallelDEM;
@@ -365,7 +403,6 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
             sys->GetSettings()->solver.use_material_properties = false;
             m_system = sys;
 
-            // Properties for terrain
             auto mat_ter = std::make_shared<ChMaterialSurfaceDEM>();
             mat_ter->SetYoungModulus(0.0f);
             mat_ter->SetRestitution(0.0f);
@@ -375,19 +412,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
             mat_ter->SetGn(1.0e1f);
             mat_ter->SetKt(0);
             mat_ter->SetGt(0);
-            m_material_terrain = mat_ter;
-
-            // Properties for tire
-            auto mat_tire = std::make_shared<ChMaterialSurfaceDEM>();
-            mat_tire->SetYoungModulus(0.0f);
-            mat_tire->SetRestitution(0.0f);
-            mat_tire->SetFriction(0.0f);
-            mat_tire->SetAdhesion(0);
-            mat_tire->SetKn(9.0e4f);
-            mat_tire->SetGn(0.0f);
-            mat_tire->SetKt(0);
-            mat_tire->SetGt(0);
-            m_material_tire = mat_tire;
+            material_terrain = mat_ter;
 
             break;
         }
@@ -403,22 +428,16 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
             sys->ChangeSolverType(APGD);
             m_system = sys;
 
-            // Properties for terrain
             auto mat_ter = std::make_shared<ChMaterialSurface>();
             mat_ter->SetRestitution(0.1f);
             mat_ter->SetFriction(0.9f);
-            m_material_terrain = mat_ter;
+            material_terrain = mat_ter;
 
-            // Properties for tire
-            auto mat_tire = std::make_shared<ChMaterialSurface>();
-            mat_tire->SetRestitution(0.1f);
-            mat_tire->SetFriction(0.9f);
-            m_material_tire = mat_tire;
             break;
         }
     }
 
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    m_system->Set_G_acc(ChVector<>(0, 0, gacc));
     m_system->GetSettings()->perform_thread_tuning = false;
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
@@ -435,8 +454,9 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     m_system->AddBody(container);
     container->SetIdentifier(-1);
     container->SetMass(1);
+    container->SetBodyFixed(true);
     container->SetCollide(true);
-    container->SetMaterialSurface(m_material_terrain);
+    container->SetMaterialSurface(material_terrain);
 
     container->GetCollisionModel()->ClearModel();
     // Bottom box
@@ -457,29 +477,22 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     container->GetCollisionModel()->BuildModel();
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
-    // Since collision between two bodies fixed to ground is ignored, in this case we make
-    // the ground a free body connected through a weld joint to ground.
-    // If using GRANULAR terrain, the interaction will be between the granular material and
-    // proxy bodies. We fix the container to ground.
-    switch (m_type) {
-        case GRANULAR:
-            container->SetBodyFixed(true);
-            break;
-        case RIGID: {
-            container->SetBodyFixed(false);
+    // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
+    // are fixed, we make the container a free body connected through a weld joint to ground.
+    // If using GRANULAR terrain, this is not an issue as the proxy bodies do not interact
+    // with the container, but rather with the granular material.
+    if (m_type == RIGID && m_fixed_proxies) {
+        container->SetBodyFixed(false);
 
-            auto ground = std::shared_ptr<ChBody>(m_system->NewBody());
-            ground->SetIdentifier(-2);
-            ground->SetBodyFixed(true);
-            ground->SetCollide(false);
-            m_system->AddBody(ground);
+        auto ground = std::shared_ptr<ChBody>(m_system->NewBody());
+        ground->SetIdentifier(-2);
+        ground->SetBodyFixed(true);
+        ground->SetCollide(false);
+        m_system->AddBody(ground);
 
-            auto weld = std::make_shared<ChLinkLockLock>();
-            weld->Initialize(ground, container, ChCoordsys<>(VNULL, QUNIT));
-            m_system->AddLink(weld);
-
-            break;
-        }
+        auto weld = std::make_shared<ChLinkLockLock>();
+        weld->Initialize(ground, container, ChCoordsys<>(VNULL, QUNIT));
+        m_system->AddLink(weld);
     }
 
     // Create particles
@@ -487,7 +500,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
         // Create a particle generator and a mixture entirely made out of spheres
         utils::Generator gen(m_system);
         std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::SPHERE, 1.0);
-        m1->setDefaultMaterial(m_material_terrain);
+        m1->setDefaultMaterial(material_terrain);
         m1->setDefaultDensity(rho_g);
         m1->setDefaultSize(m_rg);
 
@@ -506,6 +519,16 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
 
         std::cout << "[Terrain node] Generated particles:  " << gen.getTotalNumBodies() << std::endl;
     }
+}
+
+TerrainNode::~TerrainNode() { 
+    delete m_system; 
+}
+
+void TerrainNode::SetOutputFile(const std::string& name) {
+    m_outf.open(name, std::ios::out | std::ios::app);
+    m_outf.precision(7);
+    m_outf << std::scientific;
 }
 
 void TerrainNode::Settle() {
@@ -565,6 +588,35 @@ void TerrainNode::Initialize() {
 
     std::cout << "[Terrain node] Received vertices = " << props[0] << " triangles = " << props[1] << std::endl;
 
+    // Create the material for proxy bodies ("tire" material)
+    std::shared_ptr<ChMaterialSurfaceBase> material_tire;
+
+    switch (m_method) {
+        case ChMaterialSurfaceBase::DEM: {
+            // Properties for tire
+            auto mat_tire = std::make_shared<ChMaterialSurfaceDEM>();
+            mat_tire->SetYoungModulus(0.0f);
+            mat_tire->SetRestitution(0.0f);
+            mat_tire->SetFriction(0.0f);
+            mat_tire->SetAdhesion(0);
+            mat_tire->SetKn(9.0e4f);
+            mat_tire->SetGn(0.0f);
+            mat_tire->SetKt(0);
+            mat_tire->SetGt(0);
+            material_tire = mat_tire;
+
+            break;
+        }
+        case ChMaterialSurfaceBase::DVI: {
+            auto mat_tire = std::make_shared<ChMaterialSurface>();
+            mat_tire->SetRestitution(0.1f);
+            mat_tire->SetFriction(0.9f);
+            material_tire = mat_tire;
+
+            break;
+        }
+    }
+
     // Create bodies with spherical contact geometry as proxies for the tire
     // mesh vertices and add them to the Chrono system.
     // Assign to each body an identifier equal to the index of its corresponding
@@ -578,9 +630,9 @@ void TerrainNode::Initialize() {
         body->SetIdentifier(iv);
         body->SetMass(mass);
         body->SetInertiaXX(inertia);
-        body->SetBodyFixed(false); 
+        body->SetBodyFixed(false);
         body->SetCollide(true);
-        body->SetMaterialSurface(m_material_tire);
+        body->SetMaterialSurface(material_tire);
 
         body->GetCollisionModel()->ClearModel();
         utils::AddSphereGeometry(body.get(), m_rp, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
@@ -603,7 +655,8 @@ void TerrainNode::Synchronize(int step_number, double time) {
         unsigned int offset = 3 * iv;
         m_proxies[iv].m_body->SetPos(ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
         offset += 3 * m_num_vert;
-        m_proxies[iv].m_body->SetPos_dt(ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
+        m_proxies[iv].m_body->SetPos_dt(
+            ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
     }
 
     delete[] vert_data;
@@ -621,8 +674,7 @@ void TerrainNode::Synchronize(int step_number, double time) {
     std::vector<int> vert_indeces;
     if (step_number > 0) {
         for (unsigned int iv = 0; iv < m_num_vert; iv++) {
-            real3 force(0);
-            force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
+            real3 force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
 
             if (!IsZero(force)) {
                 vert_forces.push_back(force.x);
@@ -656,6 +708,11 @@ void TerrainNode::Advance(double step_size) {
     PrintContactData();
 }
 
+void TerrainNode::OutputData() {
+    if (!m_outf.is_open())
+        return;
+}
+
 void TerrainNode::PrintContactData() {
     // Information on all contacts.
     // Note that proxy body identifiers match the index of the associated mesh vertex.
@@ -673,8 +730,10 @@ void TerrainNode::PrintContactData() {
         int idB = bids[ic].y;
         int indexA = (*bodies)[idA]->GetIdentifier();
         int indexB = (*bodies)[idB]->GetIdentifier();
-        if (indexA > 0) vertices_in_contact.insert(indexA);
-        if (indexB > 0) vertices_in_contact.insert(indexB);
+        if (indexA > 0)
+            vertices_in_contact.insert(indexA);
+        if (indexB > 0)
+            vertices_in_contact.insert(indexB);
 
         std::cout << "  id1 = " << indexA << "  id2 = " << indexB << "   dpth = " << dpth[ic]
                   << "  normal = " << norm[ic].x << "  " << norm[ic].y << "  " << norm[ic].z << std::endl;
@@ -737,10 +796,12 @@ int main() {
 
     switch (rank) {
         case RIG_NODE_RANK:
-            my_rig = new RigNode(2);
+            my_rig = new RigNode(nthreads_rignode);
+            my_rig->SetOutputFile("TestRigCosim_RigNode.txt");
             break;
         case TERRAIN_NODE_RANK:
-            my_terrain = new TerrainNode(TerrainNode::RIGID, ChMaterialSurfaceBase::DEM, 2);
+            my_terrain = new TerrainNode(TerrainNode::RIGID, ChMaterialSurfaceBase::DEM, false, nthreads_terrainnode);
+            ////my_terrain->SetOutputFile("TestRigCosim_TerrainNode.txt");
             my_terrain->Settle();
             break;
     }
@@ -759,41 +820,33 @@ int main() {
     int num_steps = 125000;
     double step_size = 7e-5;
 
-    FILE* MyOutputFile = fopen("MPI_RigNode.txt", "w+");
-
     // Cosimulation integration loop
     for (int is = 0; is < num_steps; is++) {
         double time = is * step_size;
 
-    MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 
-    switch (rank) {
-        case RIG_NODE_RANK: {
-            std::cout << " ---------------------------- " << std::endl;
-            my_rig->Synchronize(is, time);
-            std::cout << " --- " << std::endl;
+        switch (rank) {
+            case RIG_NODE_RANK: {
+                std::cout << " ---------------------------- " << std::endl;
+                my_rig->Synchronize(is, time);
+                std::cout << " --- " << std::endl;
 
-            std::vector<double> v;
-            my_rig->Advance(step_size, v);
+                my_rig->Advance(step_size);
+                my_rig->OutputData();
 
-            fprintf(MyOutputFile, "%15.7e  ", v[0]);
-            fprintf(MyOutputFile, "%15.7e  ", v[1]);
-            fprintf(MyOutputFile, "%15.7e  ", v[2]);
-            fprintf(MyOutputFile, "%15.7e  ", v[3]);
-            fprintf(MyOutputFile, "\n  ");
+                break;
+            }
+            case TERRAIN_NODE_RANK: {
+                my_terrain->Synchronize(is, time);
+                my_terrain->Advance(step_size);
+                my_terrain->OutputData();
 
-            fflush(MyOutputFile);
-
-            break;
-        }
-        case TERRAIN_NODE_RANK: {
-            my_terrain->Synchronize(is, time);
-            my_terrain->Advance(step_size);
-            break;
+                break;
+            }
         }
     }
 
-    }
     // Cleanup.
     delete my_rig;
     delete my_terrain;
