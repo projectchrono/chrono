@@ -45,24 +45,38 @@ Currently we build Chrono under Windows&copy (32 and 64 bit with the MingW GNU&c
 <br><br>
 
 #### How is Chrono organized?
-Chrono is designed with Chrono::Engine at its core. Beyond that, it has several [modules](@ref introduction_chrono) that augment and/or replace core Chrono::Engine functionality. For instance, Chrono::Vehicle adds support for vehicle modeling and simulation; Chrono::Parallel adds support for parallel computing when handling large systems, etc.
+Chrono is designed with Chrono::Engine at its core. Beyond that, it has several [modules](@ref introduction_chrono) that augment core Chrono::Engine functionality. For instance, Chrono::Parallel adds support for parallel computing when handling large systems; Chrono::FEA enables the analysis of systems with flexible bodies; Chrono::FSI provides support for fluid-solid interaction simulations, etc. In general, we use "::" to denote a component of Chrono that under the hood; i.e., at a level that is not immediately visible to the user, provides the software implementation needed to support a class of services associated with an important feature of Chrono. We use these module names in a rather lax way since to identify parts of the code. In practice, it is actually hard to pinpoint where Chrono::Engine ends and Chrono::FEA starts.
 <br><br>
 
 #### What is the difference between Chrono::Engine and Chrono::Parallel?
-Chrono::Engine is the core of the Chrono middleware. Chrono::Engine was designed to primarily support rigid multibody dynamics, and in doing so to support as broad a spectrum of problems as possible. Chrono::Parallel is a module that can solve fast a subset of problems that Chrono::Engine can solve but can do so fast. In other words, it trades generality for speed.
+Chrono::Engine is the core of the Chrono middleware. Chrono::Engine was designed to primarily support rigid multibody dynamics, and in doing so to support as broad a spectrum of problems as possible. Chrono::Parallel is a module that solves fast a subset of problems that Chrono::Engine can solve. In other words, it trades generality for speed.
 <br><br>
 
 #### What is the difference between Chrono units and Chrono modules?
-There is no difference, we use these two terms interchangeably. 
+There is no difference, we use these two terms interchangeably. We recognize a module/unit by referring to it via the "::" notation.
+<br><br>
+
+#### What is a Chrono toolkit, and how is it identified?
+To further confuse the Chrono users, we also have toolkits. At some point, we planned to identify a toolkit  by referring to it via the "." notation. We abandoned the idea and Chrono.Vehicle became Chrono::Vehicle. In general, a toolkit is a set of services provided at the API level that allows the user to set up Chrono simulations quickly. The toolkits are focused in their purpose. For instance, there is a toolkit called Chrono.Vehicle. We are working on other toolkits that would give the user a jump start in his/her use of Chrono. For instance, at various stages of maturity, we can talk of Chrono.Robotics, Chrono.Granular, and Chrono.CAVs (from connected autonomous vehicles). In principle, any modeling functionality available via a toolkit is also available through the Chrono API. An analogy that makes this point is as follows: one can build a house from a couple of rooms (high level entities) or by using very many bricks. The former is enabled by a toolkit; the latter is enabled via the Chrono API. Toolkits buy speed in modeling. The plain vanilla Chrono API allows for generality.
+<br><br>
+
+#### What is the difference between a module and a toolkit?
+A module is a chunk of code that provides functionality. A toolkit is a collection of modelling assets that facilitate quick use of Chrono. A module is something that a developer is concerned with. A toolkit is something that the user deals with.
 <br><br>
 
 #### What is a typical Chrono work flow?
 The Chrono infrastructure is a modular set of libraries for multi-physics modeling and simulation. Some of these modules allow interfacing Chrono to external software, e.g., for pre-processing and post-processing data, displaying real-time simulations with OpenGL, or parsing Python commands. The power of Chrono stems from its open source attribute, which allows the user to mix-and-match modules to establish a work flow that matches his/her needs.
 <br><br>
 
-One possible work flow in Chrono: a model is defined in SolidWorks&copy; 
+The image below outlines one possible work flow in Chrono: a model is defined in SolidWorks&copy; 
 and enhanced with textures from some graphics package. 
 The analysis might require a co-simulation with MATLAB&copy;. 
 The results can be post-processed with Pov-Ray&copy; to obtained high quality movies.
 
 ![](workflow.png)
+
+#### What is a very high level overview on how Chrono is organized?
+There are five foundational components that provide support for equation formulation, equation solution, proximity computation, parallel computing, and post-processing. The software is organized so that it draws on parallel computing, which can come in one of several flavours: GPU computing (as enabled by CUDA), multi-core parallel computing (as enabled by OpenMP), and distributed-memory parallel computing (as enabled by MPI). The rigid body dynamics, flexible body dynamics, and fluid-solid interaction solution is built on the mentioned foundational components. An API is in place to define the model and ask Chrono to perform certain operations in relation to it. User toolkits (such as Chrono::Vehicle, Chrono::Granular, Chrono::CAVs, etc.) are in place to ease the pre/post-processing burden associated with Chrono simulation. Note that some modules are less developed than others. For instance, the MPI support is not lacking owing to poor performance we obtained out of it in some previous experiments. 
+
+![](chronoStructure2016.png)
+
