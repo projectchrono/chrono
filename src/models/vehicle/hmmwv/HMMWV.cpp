@@ -31,10 +31,7 @@ HMMWV::HMMWV()
     : m_system(NULL),
       m_vehicle(NULL),
       m_powertrain(NULL),
-      m_tireFL(NULL),
-      m_tireFR(NULL),
-      m_tireRL(NULL),
-      m_tireRR(NULL),
+      m_tires({NULL, NULL, NULL, NULL}),
       m_contactMethod(ChMaterialSurfaceBase::DVI),
       m_fixed(false),
       m_driveType(AWD),
@@ -44,17 +41,13 @@ HMMWV::HMMWV()
       m_pacejkaParamFile(""),
       m_chassisVis(PRIMITIVES),
       m_wheelVis(PRIMITIVES),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {
-}
+      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
       m_vehicle(NULL),
       m_powertrain(NULL),
-      m_tireFL(NULL),
-      m_tireFR(NULL),
-      m_tireRL(NULL),
-      m_tireRR(NULL),
+      m_tires({NULL, NULL, NULL, NULL}),
       m_contactMethod(ChMaterialSurfaceBase::DVI),
       m_fixed(false),
       m_driveType(AWD),
@@ -69,10 +62,10 @@ HMMWV::HMMWV(ChSystem* system)
 HMMWV::~HMMWV() {
     delete m_vehicle;
     delete m_powertrain;
-    delete m_tireFL;
-    delete m_tireFR;
-    delete m_tireRL;
-    delete m_tireRR;
+    delete m_tires[0];
+    delete m_tires[1];
+    delete m_tires[2];
+    delete m_tires[3];
 }
 
 // -----------------------------------------------------------------------------
@@ -105,10 +98,10 @@ void HMMWV::Initialize() {
             HMMWV_RigidTire* tire_RL = new HMMWV_RigidTire("RL");
             HMMWV_RigidTire* tire_RR = new HMMWV_RigidTire("RR");
 
-            m_tireFL = tire_FL;
-            m_tireFR = tire_FR;
-            m_tireRL = tire_RL;
-            m_tireRR = tire_RR;
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
 
             break;
         }
@@ -132,10 +125,10 @@ void HMMWV::Initialize() {
                 tire_RR->SetStepsize(m_tire_step_size);
             }
 
-            m_tireFL = tire_FL;
-            m_tireFR = tire_FR;
-            m_tireRL = tire_RL;
-            m_tireRR = tire_RR;
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
 
             break;
         }
@@ -152,10 +145,10 @@ void HMMWV::Initialize() {
                 tire_RR->SetStepsize(m_tire_step_size);
             }
 
-            m_tireFL = tire_FL;
-            m_tireFR = tire_FR;
-            m_tireRL = tire_RL;
-            m_tireRR = tire_RR;
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
 
             break;
         }
@@ -182,20 +175,20 @@ void HMMWV::Initialize() {
                 tire_RR->SetStepsize(m_tire_step_size);
             }
 
-            m_tireFL = tire_FL;
-            m_tireFR = tire_FR;
-            m_tireRL = tire_RL;
-            m_tireRR = tire_RR;
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
 
             break;
         }
     }
 
     // Initialize the tires.
-    m_tireFL->Initialize(m_vehicle->GetWheelBody(FRONT_LEFT), LEFT);
-    m_tireFR->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT), RIGHT);
-    m_tireRL->Initialize(m_vehicle->GetWheelBody(REAR_LEFT), LEFT);
-    m_tireRR->Initialize(m_vehicle->GetWheelBody(REAR_RIGHT), RIGHT);
+    m_tires[0]->Initialize(m_vehicle->GetWheelBody(FRONT_LEFT), LEFT);
+    m_tires[1]->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT), RIGHT);
+    m_tires[2]->Initialize(m_vehicle->GetWheelBody(REAR_LEFT), LEFT);
+    m_tires[3]->Initialize(m_vehicle->GetWheelBody(REAR_RIGHT), RIGHT);
 }
 
 // -----------------------------------------------------------------------------
@@ -207,10 +200,10 @@ void HMMWV::Synchronize(double time,
     TireForces tire_forces(4);
     WheelState wheel_states[4];
 
-    tire_forces[0] = m_tireFL->GetTireForce();
-    tire_forces[1] = m_tireFR->GetTireForce();
-    tire_forces[2] = m_tireRL->GetTireForce();
-    tire_forces[3] = m_tireRR->GetTireForce();
+    tire_forces[0] = m_tires[0]->GetTireForce();
+    tire_forces[1] = m_tires[1]->GetTireForce();
+    tire_forces[2] = m_tires[2]->GetTireForce();
+    tire_forces[3] = m_tires[3]->GetTireForce();
 
     wheel_states[0] = m_vehicle->GetWheelState(FRONT_LEFT);
     wheel_states[1] = m_vehicle->GetWheelState(FRONT_RIGHT);
@@ -221,10 +214,10 @@ void HMMWV::Synchronize(double time,
 
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
 
-    m_tireFL->Synchronize(time, wheel_states[0], terrain);
-    m_tireFR->Synchronize(time, wheel_states[1], terrain);
-    m_tireRL->Synchronize(time, wheel_states[2], terrain);
-    m_tireRR->Synchronize(time, wheel_states[3], terrain);
+    m_tires[0]->Synchronize(time, wheel_states[0], terrain);
+    m_tires[1]->Synchronize(time, wheel_states[1], terrain);
+    m_tires[2]->Synchronize(time, wheel_states[2], terrain);
+    m_tires[3]->Synchronize(time, wheel_states[3], terrain);
 
     m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
 
@@ -233,10 +226,10 @@ void HMMWV::Synchronize(double time,
 
 // -----------------------------------------------------------------------------
 void HMMWV::Advance(double step) {
-    m_tireFL->Advance(step);
-    m_tireFR->Advance(step);
-    m_tireRL->Advance(step);
-    m_tireRR->Advance(step);
+    m_tires[0]->Advance(step);
+    m_tires[1]->Advance(step);
+    m_tires[2]->Advance(step);
+    m_tires[3]->Advance(step);
 
     m_powertrain->Advance(step);
 

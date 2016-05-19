@@ -21,6 +21,7 @@
 #define HMMWV_H
 
 #include <string>
+#include <array>
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
@@ -57,7 +58,9 @@ class CH_MODELS_API HMMWV {
 
     chrono::ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     chrono::vehicle::ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
+    std::shared_ptr<chrono::ChBodyAuxRef> GetChassis() const { return m_vehicle->GetChassis(); }
     chrono::vehicle::ChPowertrain& GetPowertrain() const { return *m_powertrain; }
+    chrono::vehicle::ChTire& GetTire(chrono::vehicle::WheelID which) { return *m_tires[which.id()]; }
 
     void Initialize();
 
@@ -93,10 +96,7 @@ class CH_MODELS_API HMMWV {
     chrono::ChSystem* m_system;
     chrono::vehicle::ChWheeledVehicle* m_vehicle;
     chrono::vehicle::ChPowertrain* m_powertrain;
-    chrono::vehicle::ChTire* m_tireFL;
-    chrono::vehicle::ChTire* m_tireFR;
-    chrono::vehicle::ChTire* m_tireRR;
-    chrono::vehicle::ChTire* m_tireRL;
+    std::array<chrono::vehicle::ChTire*, 4> m_tires;
 };
 
 class CH_MODELS_API HMMWV_Full : public HMMWV {
