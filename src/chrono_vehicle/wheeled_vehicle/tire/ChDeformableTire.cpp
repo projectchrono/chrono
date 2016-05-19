@@ -46,14 +46,10 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDeformableTire::SetContactMaterialProperties(float friction_coefficient,
-                                                    float restitution_coefficient,
-                                                    float young_modulus,
+void ChDeformableTire::SetContactMaterialProperties(float young_modulus,
                                                     float poisson_ratio) {
     m_use_mat_props = true;
 
-    m_friction = friction_coefficient;
-    m_restitution = restitution_coefficient;
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
 }

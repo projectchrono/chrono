@@ -7,14 +7,15 @@
   "Rim Radius":      0.4,
   "Rim Width":       0.3,
 
-    "Contact Material":
+  "Contact Material":
   {
+      "Coefficient of Friction":    0.3,
+      "Coefficient of Restitution": 0.2,
+
       "Use Physical Properties":  true,
 
       "Properties":
-      {
-          "Coefficient of Friction":    0.3,
-          "Coefficient of Restitution": 0.2,
+      {       
           "Young Modulus":              1e5,
           "Poisson Ratio":              0.3
       },

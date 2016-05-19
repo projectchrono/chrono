@@ -63,13 +63,20 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     void SetContactFaceThickness(double thickness) { m_contact_face_thickness = thickness; }
     double GetContactFaceThickness() const { return m_contact_face_thickness; }
 
+    /// Set coefficient of friction.
+    /// The default value is 0.6
+    void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
+
+    /// Set coefficient of restiturion.
+    /// The default value is 0.1
+    void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
+
     /// Set contact material properties.
     /// Alternatively, the contact material coefficients can be set explicitly, using the
     /// function SetContactMaterialCoefficients.
-    void SetContactMaterialProperties(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
-                                      float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
-                                      float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
-                                      float poisson_ratio = 0.3f            ///< [in] Poisson ratio
+    /// The default values are: Y = 2e5 and nu = 0.3
+    void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
+                                      float poisson_ratio   ///< [in] Poisson ratio
                                       );
 
     /// Set contact material coefficients.
