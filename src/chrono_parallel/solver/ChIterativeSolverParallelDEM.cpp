@@ -288,7 +288,7 @@ void function_CalcContactForces(
             }
 
             kt = 0;
-            kn = 0;
+            gt = 0;
 
             {
                 real forceN_mag = kn * delta_n - gn * relvel_n_mag;
