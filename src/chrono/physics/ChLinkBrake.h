@@ -65,7 +65,7 @@ class ChApi ChLinkBrake : public ChLinkLock {
     virtual void UpdateTime(double time);
     virtual void UpdateForces(double mytime);
 
-    virtual void SetDisabled(bool mdis);
+    virtual void SetDisabled(bool mdis) override;
 
     // data get/set
     double Get_brake_torque() { return brake_torque; };

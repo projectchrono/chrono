@@ -1,32 +1,29 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkBase.h"
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChLinkBase.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegisterABSTRACT<ChLinkBase> a_registration_ChLinkBase;
 
-// BUILDERS
-ChLinkBase::ChLinkBase() {
-    broken = false;
-    valid = true;
-    disabled = false;
-}
-
-// DESTROYER
-ChLinkBase::~ChLinkBase() {
+ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
+    disabled = other.disabled;
+    valid = other.valid;
+    broken = other.broken;
 }
 
 void ChLinkBase::Copy(ChLinkBase* source) {
@@ -38,10 +35,7 @@ void ChLinkBase::Copy(ChLinkBase* source) {
     disabled = source->disabled;
 }
 
-
-
-void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -54,9 +48,7 @@ void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(broken);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChLinkBase::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -69,5 +61,4 @@ void ChLinkBase::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(broken);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

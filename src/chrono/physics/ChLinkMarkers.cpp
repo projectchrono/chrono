@@ -1,47 +1,64 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegisterABSTRACT<ChLinkMarkers> a_registration_ChLinkMarkers;
 
-// BUILDERS
-ChLinkMarkers::ChLinkMarkers() {
+ChLinkMarkers::ChLinkMarkers()
+    : marker1(NULL),
+      marker2(NULL),
+      markID1(0),
+      markID2(0),
+      relM(CSYSNORM),
+      relM_dt(CSYSNULL),
+      relM_dtdt(CSYSNULL),
+      relAngle(0),
+      relRotaxis(VNULL),
+      relWvel(VNULL),
+      relWacc(VNULL),
+      C_force(VNULL),
+      C_torque(VNULL),
+      Scr_force(VNULL),
+      Scr_torque(VNULL) {}
+
+ChLinkMarkers::ChLinkMarkers(const ChLinkMarkers& other) : ChLink(other) {
     marker1 = NULL;
     marker2 = NULL;
 
-    markID1 = 0;
-    markID2 = 0;
+    markID1 = other.markID1;
+    markID2 = other.markID2;
 
-    relM = CSYSNORM;
-    relM_dt = CSYSNULL;
-    relM_dtdt = CSYSNULL;
-    relAngle = 0;
-    relRotaxis = relWvel = relWacc = VNULL;
-    dist = dist_dt = 0;
+    relM = other.relM;  // copy vars
+    relM_dt = other.relM_dt;
+    relM_dtdt = other.relM_dtdt;
+    relAngle = other.relAngle;
+    relRotaxis = other.relRotaxis;
+    relAxis = other.relAxis;
+    relWvel = other.relWvel;
+    relWacc = other.relWacc;
+    dist = other.dist;
+    dist_dt = other.dist_dt;
 
-    C_force = VNULL;
-    C_torque = VNULL;
+    C_force = other.C_force;
+    C_torque = other.C_torque;
 
-    Scr_force = VNULL;
-    Scr_torque = VNULL;
-}
-
-// DESTROYER
-ChLinkMarkers::~ChLinkMarkers() {
+    Scr_force = other.Scr_force;
+    Scr_torque = other.Scr_torque;
 }
 
 void ChLinkMarkers::Copy(ChLinkMarkers* source) {
@@ -114,7 +131,9 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mmark1, std::shared_ptr
     ReferenceMarkers(mm1, mm2);
 }
 
-void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1, std::shared_ptr<ChBody> mbody2, const ChCoordsys<>& mpos) {
+void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
+                               std::shared_ptr<ChBody> mbody2,
+                               const ChCoordsys<>& mpos) {
     return Initialize(mbody1, mbody2, false, mpos, mpos);
 }
 
@@ -144,13 +163,6 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
         mmark2->Impose_Abs_Coord(mpos2);
     }
 }
-
-////////////////////////////////////
-///
-///    UPDATING PROCEDURES
-
-/////////      UPDATE RELATIVE MARKER COORDINATES
-/////////
 
 void ChLinkMarkers::UpdateRelMarkerCoords() {
     // FOR ALL THE 6(or3) COORDINATES OF RELATIVE MOTION OF THE TWO MARKERS:
@@ -339,9 +351,6 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     relWacc = relGw.Matr34_x_Quat(relM_dtdt.rot);
 }
 
-/////////      UPDATE FORCES
-/////////
-
 void ChLinkMarkers::UpdateForces(double mytime) {
     C_force = VNULL;  // initialize int.forces accumulators
     C_torque = VNULL;
@@ -350,11 +359,6 @@ void ChLinkMarkers::UpdateForces(double mytime) {
     C_force = Vadd(C_force, Scr_force);
     C_torque = Vadd(C_torque, Scr_torque);
 }
-
-/////////
-/////////   COMPLETE UPDATE
-/////////
-/////////
 
 void ChLinkMarkers::Update(double time, bool update_assets) {
     // 1 -
@@ -369,9 +373,9 @@ void ChLinkMarkers::Update(double time, bool update_assets) {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
-                                      ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-                                      const double c           ///< a scaling factor
+void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                                      ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                      const double c           // a scaling factor
                                       ) {
     if (!Body1 || !Body2)
         return;
@@ -381,14 +385,14 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  ///< offset in R 
     if (Vnotnull(&C_force)) {
         Vector m_abs_force = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_force));
 
-        if (Body2->Variables().IsActive()) {     
+        if (Body2->Variables().IsActive()) {
             Body2->To_abs_forcetorque(m_abs_force,
                                       marker1->GetAbsCoord().pos,  // absolute application point is always marker1
                                       FALSE,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
             R.PasteSumVector(mbody_force * -c, Body2->Variables().GetOffset(), 0);
-            R.PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -c, Body2->Variables().GetOffset() + 3,
-                             0);
+            R.PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -c,
+                             Body2->Variables().GetOffset() + 3, 0);
         }
 
         if (Body1->Variables().IsActive()) {
@@ -397,24 +401,23 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  ///< offset in R 
                                       FALSE,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
             R.PasteSumVector(mbody_force * c, Body1->Variables().GetOffset(), 0);
-            R.PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * c, Body1->Variables().GetOffset() + 3,
-                             0);
+            R.PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * c,
+                             Body1->Variables().GetOffset() + 3, 0);
         }
     }
     if (Vnotnull(&C_torque)) {
         Vector m_abs_torque = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_torque));
         // load torques in 'fb' vector accumulator of body variables (torques in local coords)
         if (Body1->Variables().IsActive()) {
-                R.PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * c, 
-                                 Body1->Variables().GetOffset() + 3, 0);
+            R.PasteSumVector(Body1->TransformDirectionParentToLocal(m_abs_torque) * c,
+                             Body1->Variables().GetOffset() + 3, 0);
         }
         if (Body2->Variables().IsActive()) {
-                R.PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -c,
-                                 Body2->Variables().GetOffset() + 3, 0);
+            R.PasteSumVector(Body2->TransformDirectionParentToLocal(m_abs_torque) * -c,
+                             Body2->Variables().GetOffset() + 3, 0);
         }
     }
 }
-
 
 // SOLVER INTERFACE
 
@@ -450,12 +453,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
     }
 }
 
-/////////
-///////// FILE I/O
-/////////
-
-void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -468,8 +466,7 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -481,4 +478,4 @@ void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(markID2);
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
