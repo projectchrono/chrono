@@ -94,10 +94,11 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
 
     // Create the contact material
     m_contact_mat = std::make_shared<ChMaterialSurfaceDEM>();
+    m_contact_mat->SetFriction(m_friction);
+    m_contact_mat->SetRestitution(m_restitution);
+
     if (m_use_mat_props) {
         m_contact_mat->SetYoungModulus(m_young_modulus);
-        m_contact_mat->SetFriction(m_friction);
-        m_contact_mat->SetRestitution(m_restitution);
         m_contact_mat->SetPoissonRatio(m_poisson_ratio);
 
         system->UseMaterialProperties(true);
