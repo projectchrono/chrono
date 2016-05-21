@@ -58,13 +58,6 @@ class ChApi ChSolverSymmSOR : public ChIterativeSolver {
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          );
 
-    /// Set the overrelaxation factor, as in SOR methods. This
-    /// factor may accelerate convergence if greater than 1. Optimal
-    /// value depends on the type of problem and it may be difficult
-    /// to estimate.
-    /// Default=1. Value clamped if less than 0.
-    // void   SetOmega(double mval) {if (mval>0.) omega= mval;}
-    // double GetOmega() {return omega;}
 };
 
 }  // end namespace chrono
