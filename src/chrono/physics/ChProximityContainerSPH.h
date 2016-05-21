@@ -70,7 +70,7 @@ class ChApi ChProximityContainerSPH : public ChProximityContainerBase {
     int n_added;
 
   public:
-    ChProximityContainerSPH() : n_added(0) {}
+    ChProximityContainerSPH();
     ChProximityContainerSPH(const ChProximityContainerSPH& other);
     virtual ~ChProximityContainerSPH();
 
