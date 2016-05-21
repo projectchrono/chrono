@@ -28,14 +28,6 @@ ChLinkPointPoint::ChLinkPointPoint(const ChLinkPointPoint& other) : ChLinkBase(o
     react = other.react;
 }
 
-void ChLinkPointPoint::Copy(ChLinkPointPoint* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-    react = source->react;
-}
-
 int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
                                  std::shared_ptr<ChNodeFEAxyz> anodeB
                                  ) {

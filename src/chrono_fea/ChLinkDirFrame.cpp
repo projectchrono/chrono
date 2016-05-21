@@ -29,16 +29,6 @@ ChLinkDirFrame::ChLinkDirFrame(const ChLinkDirFrame& other) : ChLinkBase(other) 
     direction = other.direction;
 }
 
-void ChLinkDirFrame::Copy(ChLinkDirFrame* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-
-    react = source->react;
-    direction = source->direction;
-}
-
 ChCoordsys<> ChLinkDirFrame::GetLinkAbsoluteCoords() {
     if (body) {
         ChCoordsys<> linkcsys(mnode->GetPos(), csys_direction.rot >> (*body).GetRot());

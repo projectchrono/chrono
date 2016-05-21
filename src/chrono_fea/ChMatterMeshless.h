@@ -211,8 +211,8 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     ChMatterMeshless(const ChMatterMeshless& other);
     ~ChMatterMeshless();
 
-    /// Copy from another ChMatterMeshless.
-    void Copy(ChMatterMeshless* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMatterMeshless* Clone() const override { return new ChMatterMeshless(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
     /// After setting ON, remember RecomputeCollisionModel()

@@ -167,17 +167,6 @@ ChMatterMeshless::~ChMatterMeshless() {
     ResizeNnodes(0);
 }
 
-void ChMatterMeshless::Copy(ChMatterMeshless* source) {
-    // copy the parent class data...
-    ChIndexedNodes::Copy(source);
-
-    do_collide = source->do_collide;
-
-    matsurface = source->matsurface;
-
-    ResizeNnodes(source->GetNnodes());
-}
-
 void ChMatterMeshless::ReplaceMaterial(std::shared_ptr<ChContinuumElastoplastic> newmaterial) {
     material = newmaterial;
 }

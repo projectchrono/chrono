@@ -56,8 +56,8 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     ChLinkPointFrame(const ChLinkPointFrame& other);
     ~ChLinkPointFrame() {}
 
-    /// Copy from another ChLinkPointFrame.
-    void Copy(ChLinkPointFrame* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkPointFrame* Clone() const override { return new ChLinkPointFrame(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() override { return 3 + 7; }

@@ -76,6 +76,9 @@ class ChApiFea ChProximityContainerMeshless : public ChProximityContainerBase {
     ChProximityContainerMeshless(const ChProximityContainerMeshless& other);
     virtual ~ChProximityContainerMeshless();
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChProximityContainerMeshless* Clone() const override { return new ChProximityContainerMeshless(*this); }
+
     /// Tell the number of added contacts
     virtual int GetNproximities() const override { return n_added; }
 

@@ -55,7 +55,8 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
     ChLinkDirFrame(const ChLinkDirFrame& other);
     ~ChLinkDirFrame() {}
 
-    void Copy(ChLinkDirFrame* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkDirFrame* Clone() const override { return new ChLinkDirFrame(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() override { return 3 + 4; }

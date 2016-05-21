@@ -29,15 +29,6 @@ ChLinkPointFrame::ChLinkPointFrame(const ChLinkPointFrame& other) : ChLinkBase(o
     react = other.react;
 }
 
-void ChLinkPointFrame::Copy(ChLinkPointFrame* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-    attach_reference = source->attach_reference;
-    react = source->react;
-}
-
 ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
     if (body) {
         ChCoordsys<> linkcsys = attach_reference >> (*body);

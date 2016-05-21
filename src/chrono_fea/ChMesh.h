@@ -69,6 +69,9 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     ChMesh(const ChMesh& other);
     ~ChMesh() {}
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMesh* Clone() const override { return new ChMesh(*this); }
+
     void AddNode(std::shared_ptr<ChNodeFEAbase> m_node);
     void AddElement(std::shared_ptr<ChElementBase> m_elem);
     void ClearNodes();
