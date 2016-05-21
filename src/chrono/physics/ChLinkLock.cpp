@@ -64,14 +64,14 @@ ChLinkLock::ChLinkLock()
 ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMasked(other) {
     type = other.type;
 
-    limit_X->Copy(other.limit_X);  // copy limits
-    limit_Y->Copy(other.limit_Y);
-    limit_Z->Copy(other.limit_Z);
-    limit_Rx->Copy(other.limit_Rx);
-    limit_Ry->Copy(other.limit_Ry);
-    limit_Rz->Copy(other.limit_Rz);
-    limit_Rp->Copy(other.limit_Rp);
-    limit_D->Copy(other.limit_D);
+    limit_X = other.limit_X->Clone();
+    limit_Y = other.limit_Y->Clone();
+    limit_Z = other.limit_Z->Clone();
+    limit_Rx = other.limit_Rx->Clone();
+    limit_Ry = other.limit_Ry->Clone();
+    limit_Rz = other.limit_Rz->Clone();
+    limit_Rp = other.limit_Rp->Clone();
+    limit_D = other.limit_D->Clone();
 
     deltaC = other.deltaC;
     deltaC_dt = other.deltaC_dt;
@@ -80,19 +80,6 @@ ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMasked(other) {
     relC_dt = other.relC_dt;
     relC_dtdt = other.relC_dtdt;
     Ct_temp = other.Ct_temp;
-
-    if (motion_X)
-        delete motion_X;  // replace and copy functions
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
-    if (motion_ang2)
-        delete motion_ang2;
-    if (motion_ang3)
-        delete motion_ang3;
 
     motion_X = other.motion_X->Clone();
     motion_Y = other.motion_Y->Clone();
@@ -154,15 +141,6 @@ void ChLinkLock::Copy(ChLinkLock* source) {
     ChLinkMasked::Copy(source);
 
     type = source->type;
-
-    limit_X->Copy(source->limit_X);  // copy limits
-    limit_Y->Copy(source->limit_Y);
-    limit_Z->Copy(source->limit_Z);
-    limit_Rx->Copy(source->limit_Rx);
-    limit_Ry->Copy(source->limit_Ry);
-    limit_Rz->Copy(source->limit_Rz);
-    limit_Rp->Copy(source->limit_Rp);
-    limit_D->Copy(source->limit_D);
 
     deltaC = source->deltaC;
     deltaC_dt = source->deltaC_dt;

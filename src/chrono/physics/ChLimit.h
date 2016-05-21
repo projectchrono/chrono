@@ -25,8 +25,7 @@
 
 namespace chrono {
 
-/// Class for limits in link joints (for example
-/// limits on elbow or knee rotations, etc.)
+/// Class for limits in link joints (for example limits on elbow or knee rotations, etc.)
 /// Old code: Must be improved..
 
 class ChApi ChLinkLimit {
