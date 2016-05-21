@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/physics/ChLinkEngine.h"
 
@@ -17,8 +19,30 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkEngine> a_registration_ChLinkEngine;
 
-ChLinkEngine::ChLinkEngine() {
-    type = LNK_ENGINE;  // initializes type
+ChLinkEngine::ChLinkEngine()
+    : mot_rot(0),
+      mot_rot_dt(0),
+      mot_rot_dtdt(0),
+      mot_rerot(0),
+      mot_rerot_dt(0),
+      mot_rerot_dtdt(0),
+      mot_torque(0),
+      mot_retorque(0),
+      last_r3mot_rot(0),
+      last_r3mot_rot_dt(0),
+      last_r3relm_rot(QUNIT),
+      last_r3relm_rot_dt(QNULL),
+      last_r3time(0),
+      keyed_polar_rotation(QNULL),
+      impose_reducer(false),
+      mot_tau(1),
+      mot_eta(1),
+      mot_inertia(0),
+      torque_react2(0),
+      eng_mode(ENG_MODE_ROTATION),
+      learn(false) {
+    // initializes type
+    type = LNK_ENGINE;
 
     rot_funct = std::make_shared<ChFunction_Const>(0);
     spe_funct = std::make_shared<ChFunction_Const>(0);
@@ -27,26 +51,6 @@ ChLinkEngine::ChLinkEngine() {
 
     rot_funct_x = std::make_shared<ChFunction_Const>(0);
     rot_funct_y = std::make_shared<ChFunction_Const>(0);
-
-    mot_rot = mot_rot_dt = mot_rot_dtdt = 0.0;
-    mot_rerot = mot_rerot_dt = mot_rerot_dtdt = 0.0;
-    mot_torque = mot_retorque = 0.0;
-    last_r3mot_rot = 0;
-    last_r3mot_rot_dt = 0;
-    last_r3relm_rot = QUNIT;
-    last_r3relm_rot_dt = QNULL;
-    last_r3time = 0;
-    keyed_polar_rotation = QNULL;
-    impose_reducer = FALSE;
-
-    mot_tau = 1.0;
-    mot_eta = 1.0;
-    mot_inertia = 0.0;
-
-    torque_react2 = 0;
-
-    eng_mode = ENG_MODE_ROTATION;
-    learn = FALSE;
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // to E3 only.
@@ -58,7 +62,40 @@ ChLinkEngine::ChLinkEngine() {
     Set_shaft_mode(ENG_SHAFT_LOCK);
 }
 
-ChLinkEngine::~ChLinkEngine() {
+ChLinkEngine::ChLinkEngine(const ChLinkEngine& other) : ChLinkLock(other) {
+    learn = other.learn;
+    eng_mode = other.eng_mode;
+    shaft_mode = other.shaft_mode;
+
+    mot_rot = other.mot_rot;
+    mot_rot_dt = other.mot_rot_dt;
+    mot_rot_dtdt = other.mot_rot_dtdt;
+    mot_rerot = other.mot_rerot;
+    mot_rerot_dt = other.mot_rerot_dt;
+    mot_rerot_dtdt = other.mot_rerot_dtdt;
+    mot_torque = other.mot_torque;
+    mot_retorque = other.mot_retorque;
+    impose_reducer = other.impose_reducer;
+    last_r3time = other.last_r3time;
+    last_r3mot_rot = other.last_r3mot_rot;
+    last_r3mot_rot_dt = other.last_r3mot_rot_dt;
+    last_r3relm_rot = other.last_r3relm_rot;
+    last_r3relm_rot_dt = other.last_r3relm_rot_dt;
+    keyed_polar_rotation = other.keyed_polar_rotation;
+
+    rot_funct = std::shared_ptr<ChFunction>(other.rot_funct->Clone());
+    spe_funct = std::shared_ptr<ChFunction>(other.spe_funct->Clone());
+    tor_funct = std::shared_ptr<ChFunction>(other.tor_funct->Clone());
+    torque_w = std::shared_ptr<ChFunction>(other.torque_w->Clone());
+
+    rot_funct_x = std::shared_ptr<ChFunction>(other.rot_funct_x->Clone());
+    rot_funct_y = std::shared_ptr<ChFunction>(other.rot_funct_y->Clone());
+
+    mot_tau = other.mot_tau;
+    mot_eta = other.mot_eta;
+    mot_inertia = other.mot_inertia;
+
+    torque_react2 = other.torque_react2;
 }
 
 void ChLinkEngine::Copy(ChLinkEngine* source) {
@@ -108,7 +145,7 @@ ChLink* ChLinkEngine::new_Duplicate() {
     return (m_l);
 }
 
-void ChLinkEngine::Set_learn(int mset) {
+void ChLinkEngine::Set_learn(bool mset) {
     learn = mset;
 
     if ((eng_mode == ENG_MODE_ROTATION) || (eng_mode == ENG_MODE_SPEED) || (eng_mode == ENG_MODE_KEY_ROTATION)) {
@@ -142,7 +179,7 @@ void ChLinkEngine::Set_learn(int mset) {
 
 void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
     if (Get_learn())
-        Set_learn(FALSE);  // reset learn state when changing mode
+        Set_learn(false);  // reset learn state when changing mode
 
     if (eng_mode != mset) {
         eng_mode = mset;
@@ -163,11 +200,11 @@ void ChLinkEngine::Set_eng_mode(eCh_eng_mode mset) {
                 break;
             case ENG_MODE_TO_POWERTRAIN_SHAFT:
                 ((ChLinkMaskLF*)mask)->Constr_E3().SetMode(CONSTRAINT_FREE);
-                this->innershaft1 = std::make_shared<ChShaft>();
-                this->innershaft2 = std::make_shared<ChShaft>();
-                this->innerconstraint1 = std::make_shared<ChShaftsBody>();
-                this->innerconstraint2 = std::make_shared<ChShaftsBody>();
-                this->SetUpMarkers(this->marker1, this->marker2);  // to initialize innerconstraint1 innerconstraint2
+                innershaft1 = std::make_shared<ChShaft>();
+                innershaft2 = std::make_shared<ChShaft>();
+                innerconstraint1 = std::make_shared<ChShaftsBody>();
+                innerconstraint2 = std::make_shared<ChShaftsBody>();
+                SetUpMarkers(marker1, marker2);  // to initialize innerconstraint1 innerconstraint2
                 break;
         }
 
@@ -248,7 +285,7 @@ void ChLinkEngine::UpdateTime(double mytime) {
         return;
 
     // If LEARN MODE, just record motion
-    if (learn == TRUE) {
+    if (learn) {
         deltaC.pos = VNULL;
         deltaC_dt.pos = VNULL;
         deltaC_dtdt.pos = VNULL;
@@ -281,7 +318,7 @@ void ChLinkEngine::UpdateTime(double mytime) {
         }
     }
 
-    if (learn == TRUE)
+    if (learn)
         return;  // no need to go on further...--->>>>
 
     // Impose relative positions/speeds
@@ -350,7 +387,7 @@ void ChLinkEngine::UpdateForces(double mytime) {
         //  -  M= f(t)
         double my_torque = Get_tor_funct()->Get_y(ChTime);
 
-        if (this->impose_reducer) {
+        if (impose_reducer) {
             my_torque = my_torque * Get_torque_w_funct()->Get_y(mot_rerot_dt);
             mot_retorque = my_torque;
             mot_torque = mot_retorque * (mot_eta / mot_tau);
@@ -385,8 +422,8 @@ void ChLinkEngine::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
         // Note: we wrap Body1 and Body2 in shared_ptr with custom no-op destructors
         // so that the two objects are not destroyed when these shared_ptr go out of
         // scope (since Body1 and Body2 are still managed through other shared_ptr).
-        std::shared_ptr<ChBodyFrame> b1(Body1, [](ChBodyFrame*){});
-        std::shared_ptr<ChBodyFrame> b2(Body2, [](ChBodyFrame*){});
+        std::shared_ptr<ChBodyFrame> b1(Body1, [](ChBodyFrame*) {});
+        std::shared_ptr<ChBodyFrame> b2(Body2, [](ChBodyFrame*) {});
         if (innerconstraint1)
             innerconstraint1->Initialize(innershaft1, b1, VECT_Z);
         if (innerconstraint2)
@@ -631,7 +668,7 @@ void ChLinkEngine::ConstraintsLoadJacobians() {
     // First, inherit to parent class
     ChLinkLock::ConstraintsLoadJacobians();
 
-    if (this->eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
+    if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
         innerconstraint1->ConstraintsLoadJacobians();
         innerconstraint2->ConstraintsLoadJacobians();
     }
@@ -720,27 +757,26 @@ void ChLinkEngine::VariablesQbIncrementPosition(double step) {
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
 class my_enum_mappers : public ChLinkEngine {
-public:
+  public:
     CH_ENUM_MAPPER_BEGIN(eCh_eng_mode);
-      CH_ENUM_VAL(ENG_MODE_ROTATION);
-      CH_ENUM_VAL(ENG_MODE_SPEED);
-      CH_ENUM_VAL(ENG_MODE_TORQUE);
-      CH_ENUM_VAL(ENG_MODE_KEY_ROTATION);
-      CH_ENUM_VAL(ENG_MODE_KEY_POLAR);
-      CH_ENUM_VAL(ENG_MODE_TO_POWERTRAIN_SHAFT);
+    CH_ENUM_VAL(ENG_MODE_ROTATION);
+    CH_ENUM_VAL(ENG_MODE_SPEED);
+    CH_ENUM_VAL(ENG_MODE_TORQUE);
+    CH_ENUM_VAL(ENG_MODE_KEY_ROTATION);
+    CH_ENUM_VAL(ENG_MODE_KEY_POLAR);
+    CH_ENUM_VAL(ENG_MODE_TO_POWERTRAIN_SHAFT);
     CH_ENUM_MAPPER_END(eCh_eng_mode);
 
     CH_ENUM_MAPPER_BEGIN(eCh_shaft_mode);
-      CH_ENUM_VAL(ENG_SHAFT_LOCK);
-      CH_ENUM_VAL(ENG_SHAFT_PRISM);
-      CH_ENUM_VAL(ENG_SHAFT_OLDHAM);
-      CH_ENUM_VAL(ENG_SHAFT_UNIVERSAL);
-      CH_ENUM_VAL(ENG_SHAFT_CARDANO);
+    CH_ENUM_VAL(ENG_SHAFT_LOCK);
+    CH_ENUM_VAL(ENG_SHAFT_PRISM);
+    CH_ENUM_VAL(ENG_SHAFT_OLDHAM);
+    CH_ENUM_VAL(ENG_SHAFT_UNIVERSAL);
+    CH_ENUM_VAL(ENG_SHAFT_CARDANO);
     CH_ENUM_MAPPER_END(eCh_shaft_mode);
 };
 
-void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -758,14 +794,13 @@ void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(mot_eta);
     marchive << CHNVP(mot_inertia);
     my_enum_mappers::eCh_eng_mode_mapper mengmapper;
-    marchive << CHNVP(mengmapper(eng_mode),"engine_mode");
+    marchive << CHNVP(mengmapper(eng_mode), "engine_mode");
     my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
-    marchive << CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
+    marchive << CHNVP(mshaftmapper(shaft_mode), "shaft_mode");
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -783,11 +818,9 @@ void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(mot_eta);
     marchive >> CHNVP(mot_inertia);
     my_enum_mappers::eCh_eng_mode_mapper mengmapper;
-    marchive >> CHNVP(mengmapper(eng_mode),"engine_mode");
+    marchive >> CHNVP(mengmapper(eng_mode), "engine_mode");
     my_enum_mappers::eCh_shaft_mode_mapper mshaftmapper;
-    marchive >> CHNVP(mshaftmapper(shaft_mode),"shaft_mode");
+    marchive >> CHNVP(mshaftmapper(shaft_mode), "shaft_mode");
 }
 
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

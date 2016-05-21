@@ -1,15 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkRevoluteTranslational.h"
+#include "chrono/physics/ChLinkRevoluteTranslational.h"
 
 namespace chrono {
 
@@ -34,6 +37,32 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational()
 
     for (int i = 0; i < 4; i++) {
         m_multipliers[i] = 0;
+    }
+}
+
+ChLinkRevoluteTranslational::ChLinkRevoluteTranslational(const ChLinkRevoluteTranslational& other) : ChLink(other) {
+    Body1 = other.Body1;
+    Body2 = other.Body2;
+    system = other.system;
+
+    m_p1 = other.m_p1;
+    m_p2 = other.m_p2;
+    m_z1 = other.m_z1;
+    m_x2 = other.m_x2;
+    m_y2 = other.m_y2;
+    m_dist = other.m_dist;
+    m_cur_par1 = other.m_cur_par1;
+    m_cur_par2 = other.m_cur_par2;
+    m_cur_dot = other.m_cur_dot;
+    m_cur_dist = other.m_cur_dist;
+
+    m_cnstr_par1.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_par2.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_dot.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_dist.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+
+    for (int i = 0; i < 4; i++) {
+        m_multipliers[i] = other.m_multipliers[i];
     }
 }
 
@@ -81,12 +110,10 @@ ChLink* ChLinkRevoluteTranslational::new_Duplicate() {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::Initialize(
-    std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
-    std::shared_ptr<ChBodyFrame> body2,  // second frame (translational side)
-    const ChCoordsys<>& csys,        // joint coordinate system (in absolute frame)
-    double distance                  // imposed distance between rotation axis and translation axis
-    ) {
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                             std::shared_ptr<ChBodyFrame> body2,
+                                             const ChCoordsys<>& csys,
+                                             double distance) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -113,18 +140,16 @@ void ChLinkRevoluteTranslational::Initialize(
     m_cur_dist = distance;
 }
 
-void ChLinkRevoluteTranslational::Initialize(
-    std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
-    std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
-    bool local,                      // true if data given in body local frames
-    const ChVector<>& p1,            // point on first frame (revolute side)
-    const ChVector<>& dirZ1,         // direction of revolute on first frame
-    const ChVector<>& p2,            // point on second frame (translational side)
-    const ChVector<>& dirX2,         // first direction of translational joint
-    const ChVector<>& dirY2,         // second direction of translational joint
-    bool auto_distance,              // true if imposed distance equal to distance between axes
-    double distance                  // imposed distance (used only if auto_distance = false)
-    ) {
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                             std::shared_ptr<ChBodyFrame> body2,
+                                             bool local,
+                                             const ChVector<>& p1,
+                                             const ChVector<>& dirZ1,
+                                             const ChVector<>& p2,
+                                             const ChVector<>& dirX2,
+                                             const ChVector<>& dirY2,
+                                             bool auto_distance,
+                                             double distance) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -579,9 +604,7 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body2() {
     return VNULL;
 }
 
-
-void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -598,8 +621,7 @@ void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -614,6 +636,5 @@ void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(m_y2);
     marchive >> CHNVP(m_dist);
 }
-
 
 }  // end namespace chrono

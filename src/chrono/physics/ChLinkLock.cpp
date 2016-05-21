@@ -1,44 +1,34 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkLock.cpp
-//
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkLock.h"
+#include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkLock> a_registration_ChLinkLock;
 
-// BUILDERS
-ChLinkLock::ChLinkLock() {
-    type = LNK_SPHERICAL;  // initializes type
-
-    relC = CSYSNORM;  // custom variables
-    relC_dt = CSYSNULL;
-    relC_dtdt = CSYSNULL;
-    deltaC = CSYSNORM;
-    deltaC_dt = CSYSNULL;
-    deltaC_dtdt = CSYSNULL;
-    Ct_temp = CSYSNULL;
+ChLinkLock::ChLinkLock()
+    : type(LNK_SPHERICAL),
+      relC(CSYSNORM),
+      relC_dt(CSYSNULL),
+      relC_dtdt(CSYSNULL),
+      deltaC(CSYSNORM),
+      deltaC_dt(CSYSNULL),
+      deltaC_dtdt(CSYSNULL),
+      motion_axis(VECT_Z),
+      angleset(ANGLESET_ANGLE_AXIS) {
     // matrices used by lock formulation
     Cq1_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
@@ -50,8 +40,6 @@ ChLinkLock::ChLinkLock() {
     motion_ang = new ChFunction_Const(0);
     motion_ang2 = new ChFunction_Const(0);
     motion_ang3 = new ChFunction_Const(0);
-    motion_axis = VECT_Z;
-    angleset = ANGLESET_ANGLE_AXIS;
 
     limit_X = new ChLinkLimit;  // default: inactive limits
     limit_Y = new ChLinkLimit;
@@ -73,7 +61,52 @@ ChLinkLock::ChLinkLock() {
                                    // Sets up all the matrices and  n. of DOC and DOF,
 }
 
-// DESTROYER
+ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMasked(other) {
+    type = other.type;
+
+    limit_X->Copy(other.limit_X);  // copy limits
+    limit_Y->Copy(other.limit_Y);
+    limit_Z->Copy(other.limit_Z);
+    limit_Rx->Copy(other.limit_Rx);
+    limit_Ry->Copy(other.limit_Ry);
+    limit_Rz->Copy(other.limit_Rz);
+    limit_Rp->Copy(other.limit_Rp);
+    limit_D->Copy(other.limit_D);
+
+    deltaC = other.deltaC;
+    deltaC_dt = other.deltaC_dt;
+    deltaC_dtdt = other.deltaC_dtdt;
+    relC = other.relC;
+    relC_dt = other.relC_dt;
+    relC_dtdt = other.relC_dtdt;
+    Ct_temp = other.Ct_temp;
+
+    if (motion_X)
+        delete motion_X;  // replace and copy functions
+    if (motion_Y)
+        delete motion_Y;
+    if (motion_Z)
+        delete motion_Z;
+    if (motion_ang)
+        delete motion_ang;
+    if (motion_ang2)
+        delete motion_ang2;
+    if (motion_ang3)
+        delete motion_ang3;
+
+    motion_X = other.motion_X->Clone();
+    motion_Y = other.motion_Y->Clone();
+    motion_Z = other.motion_Z->Clone();
+    motion_ang = other.motion_ang->Clone();
+    motion_ang2 = other.motion_ang2->Clone();
+    motion_ang3 = other.motion_ang3->Clone();
+
+    motion_axis = other.motion_axis;
+    angleset = other.angleset;
+
+    BuildLinkType(other.type);
+}
+
 ChLinkLock::~ChLinkLock() {
     if (Cq1_temp)
         delete Cq1_temp;
@@ -1944,9 +1977,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 ///////// FILE I/O
 /////////
 
-
-void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -1974,8 +2005,7 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -1985,7 +2015,7 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive)
     // deserialize all member data:
     int ifoo;
     marchive >> CHNVP(ifoo);
-    ChangeLinkType(ifoo); // this also setup mask flags and lot of stuff, simplifying the serialization
+    ChangeLinkType(ifoo);  // this also setup mask flags and lot of stuff, simplifying the serialization
     marchive >> CHNVP(motion_X);
     marchive >> CHNVP(motion_Y);
     marchive >> CHNVP(motion_Z);
@@ -2004,15 +2034,11 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(limit_D);
 }
 
-
-
-///////////////////////////////////////////////////////////////
-
-
+// ---------------------------------------------------------------------------------------
 // SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
+// ---------------------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 
 ChClassRegister<ChLinkLockRevolute> a_registration_ChLinkLockRevolute;
 ChClassRegister<ChLinkLockLock> a_registration_ChLinkLockLock;
@@ -2029,4 +2055,4 @@ ChClassRegister<ChLinkLockParallel> a_registration_ChLinkLockParallel;
 ChClassRegister<ChLinkLockPerpend> a_registration_ChLinkLockPerpend;
 ChClassRegister<ChLinkLockRevolutePrismatic> a_registration_ChLinkLockRevolutePrismatic;
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

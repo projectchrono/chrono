@@ -1,37 +1,25 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkMask.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkMask.h"
+#include "chrono/physics/ChLinkMask.h"
 
 namespace chrono {
 
-//////////////////////////////////////
-// CLASS "LinkMask"
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMask> a_registration_ChLinkMask;
 
-ChLinkMask::ChLinkMask() {
-    nconstr = 1;
-
+ChLinkMask::ChLinkMask() : nconstr(1) {
     constraints.resize(1);
     constraints[0] = new ChConstraintTwoBodies;
 }
@@ -44,20 +32,18 @@ ChLinkMask::ChLinkMask(int mnconstr) {
         constraints[i] = new ChConstraintTwoBodies;
 }
 
+ChLinkMask::ChLinkMask(const ChLinkMask& other) {
+    nconstr = other.nconstr;
+    constraints.resize(other.nconstr);
+    for (int i = 0; i < nconstr; i++)
+        constraints[i] = other.constraints[i]->Clone();
+}
+
 ChLinkMask::~ChLinkMask() {
     for (int i = 0; i < nconstr; i++) {
         if (constraints[i])
             delete constraints[i];
     }
-}
-
-ChLinkMask::ChLinkMask(ChLinkMask& source) {
-    nconstr = 0;
-
-    nconstr = source.nconstr;
-    constraints.resize(source.nconstr);
-    for (int i = 0; i < nconstr; i++)
-        constraints[i] = source.Constr_N(i).Clone();
 }
 
 void ChLinkMask::ResetNconstr(int newnconstr) {
@@ -214,85 +200,17 @@ int ChLinkMask::SetAllBroken(bool mdis) {
     return cnt;
 }
 
-void ChLinkMask::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(3);
-
-    // stream out all member data
-    mstream << nconstr;
-
-    for (int i = 0; i < this->nconstr; i++) {
-        mstream.AbstractWrite(this->constraints[i]);  // save the constraint states
-    }
+void ChLinkMask::ArchiveOUT(ChArchiveOut& marchive) {
+    //// TODO
 }
 
-void ChLinkMask::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-
-    // stream in all member data
-    int my_nconstr;
-    mstream >> my_nconstr;
-
-    if (version == 1) {
-        this->ResetNconstr(my_nconstr);
-        for (int i = 0; i < nconstr; i++) {
-            int loadflag;
-            mstream >> loadflag;
-            if (loadflag == 4)
-                Constr_N(i).SetRedundant(true);
-            if (loadflag == 5)
-                Constr_N(i).SetBroken(true);
-            if (loadflag == 6)
-                Constr_N(i).SetDisabled(true);
-            if (loadflag == 7)
-                Constr_N(i).SetRedundant(true);
-            if (loadflag == 8)
-                Constr_N(i).SetDisabled(true);
-            if (loadflag == 20)
-                Constr_N(i).SetMode(CONSTRAINT_FREE);
-            if (loadflag == 30)
-                Constr_N(i).SetMode(CONSTRAINT_LOCK);
-            if (loadflag == 33 || loadflag == 34)
-                Constr_N(i).SetMode(CONSTRAINT_UNILATERAL);
-        }
-    }
-
-    if (version == 2) {
-        int i;
-        for (i = 0; i < nconstr; i++)
-            if (constraints[i])
-                delete constraints[i];
-        nconstr = my_nconstr;
-        constraints.resize(nconstr);
-        for (i = 0; i < this->nconstr; i++) {
-            std::string cls_name;
-            mstream >> cls_name;
-            if (cls_name == "ChConstraintTwo")
-                constraints[i] =
-                    new ChConstraintTwoBodies();  // because in v3 ChConstraintTwo is pure virtual class
-            else
-                GetLog() << "  ERROR unknown object in v2 mask:" << cls_name.c_str() << "\n";
-            constraints[i]->ChConstraintTwo::StreamIN(mstream);
-        }
-    }
-
-    if (version >= 3) {
-        int i;
-        for (i = 0; i < nconstr; i++)
-            if (constraints[i])
-                delete constraints[i];
-        nconstr = my_nconstr;
-        constraints.resize(nconstr);
-        for (i = 0; i < this->nconstr; i++) {
-            mstream.AbstractReadCreate(&this->constraints[i]);  // load the constraint states
-        }
-    }
+void ChLinkMask::ArchiveIN(ChArchiveIn& marchive) {
+    //// TODO
 }
 
-///////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 // Lock formulation LF link mask:
-//
+// -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
@@ -349,22 +267,12 @@ void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2
         Constr_E3().SetMode(CONSTRAINT_FREE);
 }
 
-void ChLinkMaskLF::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkMask::StreamOUT(mstream);
-
-    // stream out all member data
+void ChLinkMaskLF::ArchiveOUT(ChArchiveOut& marchive) {
+    //// TODO
 }
 
-void ChLinkMaskLF::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkMask::StreamIN(mstream);
-
-    // stream in all member data
+void ChLinkMaskLF::ArchiveIN(ChArchiveIn& marchive) {
+    //// TODO
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

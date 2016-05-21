@@ -1,44 +1,25 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKLOCK_H
 #define CHLINKLOCK_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkLock.h
-//
-//
-//   Classes for constraints using the 'link lock'
-//   formulation. Such formulation allows the
-//   simulation of many joint types with the same
-//   formulas (spherical joint, revolute, and many
-//   others, etc)
-//
-//   This class is inherited from the base ChLink()
-//   class, used by all joints in 3D.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkMasked.h"
-#include "physics/ChLimit.h"
+#include "chrono/physics/ChLimit.h"
+#include "chrono/physics/ChLinkMasked.h"
 
 namespace chrono {
-///
+
 /// ChLinkLock class.
 /// This class implements lot of sub types like the revolute
 /// joint, the linear guide, the spherical joint, etc. using
@@ -46,59 +27,60 @@ namespace chrono {
 /// Also, it optionally allows the adoption of 'limits' over
 /// upper-lower motions on all the 6 degrees of freedom,
 /// thank to the ChLinkLimit objects.
-///
 
 class ChApi ChLinkLock : public ChLinkMasked {
     CH_RTTI(ChLinkLock, ChLinkMasked);
 
   protected:
-    Coordsys relC;       // relative costraint position: relC = (relM-deltaC)
-    Coordsys relC_dt;    // relative costraint speed
-    Coordsys relC_dtdt;  // relative costraint acceleration
+    Coordsys relC;       ///< relative costraint position: relC = (relM-deltaC)
+    Coordsys relC_dt;    ///< relative costraint speed
+    Coordsys relC_dtdt;  ///< relative costraint acceleration
 
-    Coordsys deltaC;       // user-imposed rel. position
-    Coordsys deltaC_dt;    // user-imposed rel. speed
-    Coordsys deltaC_dtdt;  // user-imposed rel. acceleration
+    Coordsys deltaC;       ///< user-imposed rel. position
+    Coordsys deltaC_dt;    ///< user-imposed rel. speed
+    Coordsys deltaC_dtdt;  ///< user-imposed rel. acceleration
 
     //(only for intermediate calculus)
-    ChMatrix<>* Cq1_temp;  //
-    ChMatrix<>* Cq2_temp;  //   the temporary "lock" jacobians,
-    ChMatrix<>* Qc_temp;   //   i.e. the full x,y,z,r0,r1,r2,r3 joint
-    Coordsys Ct_temp;      //
+    ChMatrix<>* Cq1_temp;  ///<
+    ChMatrix<>* Cq2_temp;  ///<   the temporary "lock" jacobians,
+    ChMatrix<>* Qc_temp;   ///<   i.e. the full x,y,z,r0,r1,r2,r3 joint
+    Coordsys Ct_temp;      ///<
 
-    Vector PQw;       // for intermediate calculus (here, for speed reasons)
-    Vector PQw_dt;    //
-    Vector PQw_dtdt;  //
+    Vector PQw;  ///< for intermediate calculus (here, for speed reasons)
+    Vector PQw_dt;
+    Vector PQw_dtdt;
     Quaternion q_AD;
     Quaternion q_BC;
     Quaternion q_8;
     Vector q_4;
 
     // imposed motion
-    ChFunction* motion_X;     // user imposed motion for X coord, marker relative
-    ChFunction* motion_Y;     // user imposed motion for Y coord, marker relative
-    ChFunction* motion_Z;     // user imposed motion for Z coord, marker relative
-    ChFunction* motion_ang;   // user imposed angle rotation about axis
-    ChFunction* motion_ang2;  // user imposed angle rotation if three-angles rot.
-    ChFunction* motion_ang3;  // user imposed angle rotation if three-angles rot.
-    Vector motion_axis;       // this is the axis for the user imposed rotation
-    int angleset;             // type of rotation (3 Eul angles, angle/axis, etc.)
-                              // limits
-    ChLinkLimit* limit_X;     // the upper/lower limits for X dof
-    ChLinkLimit* limit_Y;     // the upper/lower limits for Y dof
-    ChLinkLimit* limit_Z;     // the upper/lower limits for Z dof
-    ChLinkLimit* limit_Rx;    // the upper/lower limits for Rx dof
-    ChLinkLimit* limit_Ry;    // the upper/lower limits for Ry dof
-    ChLinkLimit* limit_Rz;    // the upper/lower limits for Rz dof
-    ChLinkLimit* limit_Rp;    // the polar (conical) limit for "shoulder"rotation
-    ChLinkLimit* limit_D;     // the polar (conical) limit for "shoulder"rotation
+    ChFunction* motion_X;     ///< user imposed motion for X coord, marker relative
+    ChFunction* motion_Y;     ///< user imposed motion for Y coord, marker relative
+    ChFunction* motion_Z;     ///< user imposed motion for Z coord, marker relative
+    ChFunction* motion_ang;   ///< user imposed angle rotation about axis
+    ChFunction* motion_ang2;  ///< user imposed angle rotation if three-angles rot.
+    ChFunction* motion_ang3;  ///< user imposed angle rotation if three-angles rot.
+    Vector motion_axis;       ///< this is the axis for the user imposed rotation
+    int angleset;             ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
-    int type;
+    // limits
+    ChLinkLimit* limit_X;   ///< the upper/lower limits for X dof
+    ChLinkLimit* limit_Y;   ///< the upper/lower limits for Y dof
+    ChLinkLimit* limit_Z;   ///< the upper/lower limits for Z dof
+    ChLinkLimit* limit_Rx;  ///< the upper/lower limits for Rx dof
+    ChLinkLimit* limit_Ry;  ///< the upper/lower limits for Ry dof
+    ChLinkLimit* limit_Rz;  ///< the upper/lower limits for Rz dof
+    ChLinkLimit* limit_Rp;  ///< the polar (conical) limit for "shoulder"rotation
+    ChLinkLimit* limit_D;   ///< the polar (conical) limit for "shoulder"rotation
+
+    int type;  ///< type of link_lock joint
 
   public:
-    // builders and destroyers
     ChLinkLock();
+    ChLinkLock(const ChLinkLock& other);
     virtual ~ChLinkLock();
+
     virtual void Copy(ChLinkLock* source);
     virtual ChLink* new_Duplicate();  // always return base link class pointer
 
@@ -106,20 +88,21 @@ class ChApi ChLinkLock : public ChLinkMasked {
 
     void ChangeLinkType(int new_link_type);
 
-    virtual int GetType() { return this->type; }
+    virtual int GetType() const override { return type; }
 
     //
     // UPDATING FUNCTIONS
     //
+
     // Inherits, and also updates motion laws: deltaC, deltaC_dt, deltaC_dtdt
-    virtual void UpdateTime(double mytime);
+    virtual void UpdateTime(double mytime) override;
 
     // Updates coords relM, relM_dt, relM_dtdt;
     // dist, dist_dt et similia, just like in parent class, but
     // overrides parent implementation of ChLinkMarkers because it can save some
     // temporary vectors (q_4, q_8 etc.) which can be useful in UpdateState(),
     // for speed reasons.
-    virtual void UpdateRelMarkerCoords();
+    virtual void UpdateRelMarkerCoords() override;
 
     // Given current time and body state, computes
     // the constraint differentiation to get the
@@ -127,11 +110,11 @@ class ChApi ChLinkLock : public ChLinkMasked {
     // C, C_dt, C_dtd.   ie. the JACOBIAN matrices and friends.
     //  NOTE!! this function uses the fast analytical approach
     // of the "lock formulation".
-    virtual void UpdateState();
+    virtual void UpdateState() override;
 
     // Inherits, and also updates the local F,M forces adding penalties from
     // the contained link ChLinkLimit objects, if any.
-    virtual void UpdateForces(double mytime);
+    virtual void UpdateForces(double mytime) override;
 
     //
     // OTHER FUNCTIONS
@@ -222,30 +205,31 @@ class ChApi ChLinkLock : public ChLinkMasked {
     //
     // STATE FUNCTIONS
     //
+
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() { return GetDOC_c() + GetDOC_d(); }
+    virtual int GetDOC() override { return GetDOC_c() + GetDOC_d(); }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
     // virtual int GetDOC_c  () {return 0;} // use parent ChLinkMasked ndof
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d();  // customized because there might be some active ChLinkLimit
+    virtual int GetDOC_d() override;  // customized because there might be some active ChLinkLimit
 
     /// Specialize the following respect to ChLinkMasked base ,in order to update intuitive react_torque and react_force
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
 
     /// Specialize the following respect to ChLinkMasked base because there might be some active ChLinkLimit
     // virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
 
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
@@ -259,31 +243,33 @@ class ChApi ChLinkLock : public ChLinkMasked {
                                    ChVectorDynamic<>& L) override;
 
     //
-    // SOLVER SYSTEM FUNCTIONS   ( functions to assemble/manage data for system solver)
+    // SOLVER SYSTEM FUNCTIONS
     //
+
     // expand parent constraint stuff from ChLinkMasked because here
     // it may also consider the	constraints caused by 'limits'..
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsBiLoad_Qc(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsBiLoad_Qc(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-
+// ---------------------------------------------------------------------------------------
 // SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
+// ---------------------------------------------------------------------------------------
 
 /// Revolute joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
@@ -305,7 +291,7 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     ChLinkLockLock() { ChangeLinkType(LNK_LOCK); }
 };
 
-/// spherical joint , with the 'ChLinkLock' formulation.
+/// Spherical joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockSpherical : public ChLinkLock {
@@ -315,7 +301,7 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
     ChLinkLockSpherical() { ChangeLinkType(LNK_SPHERICAL); }
 };
 
-/// cylindrical joint , with the 'ChLinkLock' formulation.
+/// Cylindrical joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockCylindrical : public ChLinkLock {
@@ -325,7 +311,7 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
     ChLinkLockCylindrical() { ChangeLinkType(LNK_CYLINDRICAL); }
 };
 
-/// prismatic joint , with the 'ChLinkLock' formulation.
+/// Prismatic joint , with the 'ChLinkLock' formulation.
 /// Default axis along +z
 
 class ChApi ChLinkLockPrismatic : public ChLinkLock {
@@ -335,7 +321,7 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
     ChLinkLockPrismatic() { ChangeLinkType(LNK_PRISMATIC); }
 };
 
-/// point-plane joint , with the 'ChLinkLock' formulation.
+/// Point-plane joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointPlane : public ChLinkLock {
@@ -345,7 +331,7 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
     ChLinkLockPointPlane() { ChangeLinkType(LNK_POINTPLANE); }
 };
 
-/// point-line joint , with the 'ChLinkLock' formulation.
+/// Point-line joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointLine : public ChLinkLock {
@@ -355,7 +341,7 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
     ChLinkLockPointLine() { ChangeLinkType(LNK_POINTLINE); }
 };
 
-/// plane-plane joint , with the 'ChLinkLock' formulation.
+/// Plane-plane joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPlanePlane : public ChLinkLock {
@@ -365,7 +351,7 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
     ChLinkLockPlanePlane() { ChangeLinkType(LNK_PLANEPLANE); }
 };
 
-/// oldham joint , with the 'ChLinkLock' formulation.
+/// Oldham joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockOldham : public ChLinkLock {
@@ -375,7 +361,7 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
     ChLinkLockOldham() { ChangeLinkType(LNK_OLDHAM); }
 };
 
-/// free joint , with the 'ChLinkLock' formulation.
+/// Free joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockFree : public ChLinkLock {
@@ -385,7 +371,7 @@ class ChApi ChLinkLockFree : public ChLinkLock {
     ChLinkLockFree() { ChangeLinkType(LNK_FREE); }
 };
 
-/// align joint , with the 'ChLinkLock' formulation.
+/// Align joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockAlign : public ChLinkLock {
@@ -395,7 +381,7 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
     ChLinkLockAlign() { ChangeLinkType(LNK_ALIGN); }
 };
 
-/// parallel joint , with the 'ChLinkLock' formulation.
+/// Parallel joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockParallel : public ChLinkLock {
@@ -405,7 +391,7 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
     ChLinkLockParallel() { ChangeLinkType(LNK_PARALLEL); }
 };
 
-/// perpendicularity joint , with the 'ChLinkLock' formulation.
+/// Perpendicularity joint , with the 'ChLinkLock' formulation.
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPerpend : public ChLinkLock {
@@ -424,6 +410,6 @@ class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
     ChLinkLockRevolutePrismatic() { ChangeLinkType(LNK_REVOLUTEPRISMATIC); }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

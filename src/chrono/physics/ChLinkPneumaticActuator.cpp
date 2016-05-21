@@ -1,29 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkPneumaticActuator.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkPneumaticActuator.h"
+#include "chrono/physics/ChLinkPneumaticActuator.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkPneumaticActuator> a_registration_ChLinkPneumaticActuator;
 
 ChLinkPneumaticActuator::ChLinkPneumaticActuator() {
@@ -49,6 +42,38 @@ ChLinkPneumaticActuator::ChLinkPneumaticActuator() {
     limit_X->Set_minElastic(0.0);
 
     ChangedLinkMask();
+}
+
+ChLinkPneumaticActuator::ChLinkPneumaticActuator(const ChLinkPneumaticActuator& other) : ChLinkLock(other) {
+    pneuma->Set_Ci(other.pneuma->Get_Ci());
+    pneuma->Set_Co(other.pneuma->Get_Co());
+    pneuma->Set_Bi(other.pneuma->Get_Bi());
+    pneuma->Set_Bo(other.pneuma->Get_Bo());
+    pneuma->Set_Ps(other.pneuma->Get_Ps());
+    pneuma->Set_Pma(other.pneuma->Get_Pma());
+    pneuma->Set_Pmb(other.pneuma->Get_Pmb());
+    pneuma->Set_L(other.pneuma->Get_L());
+    pneuma->Set_Wa(other.pneuma->Get_Wa());
+    pneuma->Set_Wb(other.pneuma->Get_Wb());
+    pneuma->Set_A(other.pneuma->Get_A());
+    pneuma->Set_Alfa(other.pneuma->Get_Alfa());
+    pneuma->Set_Gamma(other.pneuma->Get_Gamma());
+    pneuma->Set_ValvA_min(other.pneuma->Get_ValvA_min());
+    pneuma->Set_ValvA_max(other.pneuma->Get_ValvA_max());
+    pneuma->Set_ValvA_close(other.pneuma->Get_ValvA_close());
+    pneuma->Set_ValvB_min(other.pneuma->Get_ValvB_min());
+    pneuma->Set_ValvB_max(other.pneuma->Get_ValvB_max());
+    pneuma->Set_ValvB_close(other.pneuma->Get_ValvB_close());
+    pneuma->SetupAssePneumatico();  // setup into sub objects
+    offset = other.offset;
+    pA = other.pA;
+    pB = other.pB;
+    pA_dt = other.pA_dt;
+    pB_dt = other.pB_dt;
+    pneuma->Set_P(other.pA, other.pB);  // this also copies state into internal structures
+    pneuma->Set_Pos(other.Get_pneu_pos(), other.Get_pneu_pos_dt());
+    pneu_F = other.pneu_F;
+    last_force_time = other.last_force_time;
 }
 
 ChLinkPneumaticActuator::~ChLinkPneumaticActuator() {
@@ -84,15 +109,15 @@ void ChLinkPneumaticActuator::Copy(ChLinkPneumaticActuator* source) {
     pneuma->Set_ValvB_max(source->pneuma->Get_ValvB_max());
     pneuma->Set_ValvB_close(source->pneuma->Get_ValvB_close());
     pneuma->SetupAssePneumatico();  // setup into sub objects
-    this->offset = source->offset;
-    this->pA = source->pA;
-    this->pB = source->pB;
-    this->pA_dt = source->pA_dt;
-    this->pB_dt = source->pB_dt;
+    offset = source->offset;
+    pA = source->pA;
+    pB = source->pB;
+    pA_dt = source->pA_dt;
+    pB_dt = source->pB_dt;
     pneuma->Set_P(source->pA, source->pB);  // this also copies state into internal structures
     pneuma->Set_Pos(source->Get_pneu_pos(), source->Get_pneu_pos_dt());
-    this->pneu_F = source->pneu_F;
-    this->last_force_time = source->last_force_time;
+    pneu_F = source->pneu_F;
+    last_force_time = source->last_force_time;
 }
 
 void ChLinkPneumaticActuator::Set_lin_offset(double mset) {
@@ -153,137 +178,52 @@ void ChLinkPneumaticActuator::UpdateForces(double mytime) {
     ChLinkLock::UpdateForces(mytime);
 
     // DEFAULTS set null forces
-    this->pneu_F = 0;
+    pneu_F = 0;
 
     // COMPUTE PNEUMATIC FORCE!!
 
     // 1a - set current state (pressure A and B)
-    this->pneuma->Set_P(this->pA, this->pB);
+    pneuma->Set_P(pA, pB);
     // 1b - set current state (position, speed)
-    this->pneuma->Set_Pos(this->Get_pneu_pos(), this->Get_pneu_pos_dt());
+    pneuma->Set_Pos(Get_pneu_pos(), Get_pneu_pos_dt());
 
     // 2- compute new force for this state
-    this->pneuma->Update();  // needed, so that F is computed in pneuma*
-    this->pneu_F = this->pneuma->Get_F();
+    pneuma->Update();  // needed, so that F is computed in pneuma*
+    pneu_F = pneuma->Get_F();
 
     // Security clamping on plausible limit, to avoid divergence
-    // if (this->pneu_F > 100000) this->pneu_F = 100000;
+    // if (pneu_F > 100000) pneu_F = 100000;
 
     // 3- compute new pressures by 'local' integration, from previous
     //    values of pressures.
-    this->pneuma->Get_P_dt(&this->pA_dt, &this->pB_dt);
+    pneuma->Get_P_dt(&pA_dt, &pB_dt);
 
-    double mforce_timestep = mytime - this->last_force_time;
+    double mforce_timestep = mytime - last_force_time;
     if ((mforce_timestep < 0.1) && (mforce_timestep > 0)) {
-        this->pA = this->pA + mforce_timestep * this->pA_dt;
-        this->pB = this->pB + mforce_timestep * this->pB_dt;
+        pA = pA + mforce_timestep * pA_dt;
+        pB = pB + mforce_timestep * pB_dt;
 
-        if (this->pA < 0)
-            this->pA = 0;
-        if (this->pB < 0)
-            this->pB = 0;
+        if (pA < 0)
+            pA = 0;
+        if (pB < 0)
+            pB = 0;
 
-        this->pneuma->Set_P(this->pA, this->pB);
+        pneuma->Set_P(pA, pB);
     }
 
-    this->last_force_time = mytime;
+    last_force_time = mytime;
 
     // +++ADD PNEUMATIC FORCE TO LINK INTERNAL FORCE VECTOR (on x axis only)
 
-    C_force.x = C_force.x + this->pneu_F;
+    C_force.x = C_force.x + pneu_F;
 }
 
-/*
-void ChLinkPneumaticActuator::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-    // serialize parent class too
-    ChLinkLock::StreamOUT(mstream);
-
-    // stream out all member data
-    mstream << pneuma->Get_Ci();
-    mstream << pneuma->Get_Co();
-    mstream << pneuma->Get_Bi();
-    mstream << pneuma->Get_Bo();
-    mstream << pneuma->Get_Ps();
-    mstream << pneuma->Get_Pma();
-    mstream << pneuma->Get_Pmb();
-    mstream << pneuma->Get_L();
-    mstream << pneuma->Get_Wa();
-    mstream << pneuma->Get_Wb();
-    mstream << pneuma->Get_A();
-    mstream << pneuma->Get_Alfa();
-    mstream << pneuma->Get_Gamma();
-    mstream << pneuma->Get_ValvA_min();
-    mstream << pneuma->Get_ValvA_max();
-    mstream << pneuma->Get_ValvA_close();
-    mstream << pneuma->Get_ValvB_min();
-    mstream << pneuma->Get_ValvB_max();
-    mstream << pneuma->Get_ValvB_close();
-    mstream << pA;
-    mstream << pB;
-    mstream << pA_dt;
-    mstream << pB_dt;
-    mstream << pneu_F;
-    mstream << offset;
+void ChLinkPneumaticActuator::ArchiveOUT(ChArchiveOut& marchive) {
+    //// TODO
 }
 
-void ChLinkPneumaticActuator::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
-    // deserialize parent class too
-    ChLinkLock::StreamIN(mstream);
-
-    // stream in all member data
-    double dfoo;
-    mstream >> dfoo;
-    pneuma->Set_Ci(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Co(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Bi(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Bo(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Ps(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Pma(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Pmb(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_L(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Wa(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Wb(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_A(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Alfa(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_Gamma(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_ValvA_min(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_ValvA_max(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_ValvA_close(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_ValvB_min(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_ValvB_max(dfoo);
-    mstream >> dfoo;
-    pneuma->Set_ValvB_close(dfoo);
-    mstream >> pA;
-    mstream >> pB;
-    mstream >> pA_dt;
-    mstream >> pB_dt;
-    mstream >> pneu_F;
-    mstream >> dfoo;
-    Set_lin_offset(dfoo);
+void ChLinkPneumaticActuator::ArchiveIN(ChArchiveIn& marchive) {
+    //// TODO
 }
-*/
 
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
