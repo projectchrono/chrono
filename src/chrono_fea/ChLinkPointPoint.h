@@ -1,25 +1,27 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKPOINTPOINT_H
 #define CHLINKPOINTPOINT_H
 
-#include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/physics/ChLinkBase.h"
+#include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 
-class ChIndexedNodes; // forward ref
+class ChIndexedNodes;  // forward ref
 
 namespace fea {
 
@@ -28,18 +30,13 @@ namespace fea {
 
 /// Class for creating a constraint between two xyz FEA nodes (points).
 /// That is, the two nodes will be joined, as overlapping.
-/// Nodes are 3-DOF points that are used in point-based 
+/// Nodes are 3-DOF points that are used in point-based
 /// primitives, such as ChMatterSPH or finite elements.
 class ChApiFea ChLinkPointPoint : public ChLinkBase {
-
-						// Chrono simulation of RTTI, needed for serialization
-	CH_RTTI(ChLinkPointPoint,ChLinkBase);
+    // Chrono simulation of RTTI, needed for serialization
+    CH_RTTI(ChLinkPointPoint, ChLinkBase);
 
   private:
-    //
-    // DATA
-    //
-
     ChVector<> react;
 
     // used as an interface to the solver.
@@ -51,50 +48,41 @@ class ChApiFea ChLinkPointPoint : public ChLinkBase {
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Build a shaft.
     ChLinkPointPoint();
-    /// Destructor
-    ~ChLinkPointPoint();
+    ChLinkPointPoint(const ChLinkPointPoint& other);
+    ~ChLinkPointPoint() {}
 
     /// Copy from another ChLinkPointFrame.
     void Copy(ChLinkPointPoint* source);
 
-    //
-    // FUNCTIONS
-    //
-
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() { return 3 + 3; }
+    virtual int GetNumCoords() override { return 3 + 3; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 3; }
+    virtual int GetDOC_c() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() { return GetReactionOnNode(); }
+    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
 
     // Get constraint violations
-    ChMatrixNM<double, 3, 1> GetC();
+    ChMatrixNM<double, 3, 1> GetC() const;
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -109,16 +97,16 @@ class ChApiFea ChLinkPointPoint : public ChLinkBase {
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
-	virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords();
+    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return CSYSNORM; }
 
     /// Use this function after object creation, to initialize it, given
     /// the two nodes join.
@@ -129,32 +117,30 @@ class ChApiFea ChLinkPointPoint : public ChLinkBase {
                            );
 
     /// Get the 1st connected xyz node (point)
-    virtual std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() { return this->mnodeA; }
+    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
 
-    			/// Get the 2nd connected xyz node (point)
-    virtual std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() { return this->mnodeB; }
-				
-				/// Get the reaction force considered as applied to ChShaft.
-	ChVector<> GetReactionOnNode() {return -(react);}
+    /// Get the 2nd connected xyz node (point)
+    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() const { return this->mnodeB; }
+
+    /// Get the reaction force considered as applied to ChShaft.
+    ChVector<> GetReactionOnNode() const { return -react; }
 
     //
     // UPDATE FUNCTIONS
     //
 
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // STREAMING
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 /// @} fea_constraints
