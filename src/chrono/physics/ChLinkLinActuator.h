@@ -64,9 +64,9 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     void Set_mottorque_funct(std::shared_ptr<ChFunction> mf) { mot_torque = mf; }
 
     bool Get_learn() const { return learn; }
-    void Set_learn(int mset);
+    void Set_learn(bool mset);
     bool Get_learn_torque_rotaton() const { return learn_torque_rotation; }
-    void Set_learn_torque_rotaton(int mset);
+    void Set_learn_torque_rotaton(bool mset);
     double Get_lin_offset() const { return offset; };
     void Set_lin_offset(double mset) { offset = mset; }
 

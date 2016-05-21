@@ -84,7 +84,7 @@ ChLink* ChLinkLinActuator::new_Duplicate() {
     return (m_l);
 }
 
-void ChLinkLinActuator::Set_learn(int mset) {
+void ChLinkLinActuator::Set_learn(bool mset) {
     if (mset) {
         SetDisabled(true);  // ..just to show it as a green wireframe...
         Set_learn_torque_rotaton(false);
@@ -104,7 +104,7 @@ void ChLinkLinActuator::Set_learn(int mset) {
         dist_funct = std::make_shared<ChFunction_Recorder>();
 }
 
-void ChLinkLinActuator::Set_learn_torque_rotaton(int mset) {
+void ChLinkLinActuator::Set_learn_torque_rotaton(bool mset) {
     learn_torque_rotation = mset;
     if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)
         mot_torque = std::make_shared<ChFunction_Recorder>();
