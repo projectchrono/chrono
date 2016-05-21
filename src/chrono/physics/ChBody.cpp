@@ -134,7 +134,8 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 
     ChTime = other.ChTime;
 
-    collision_model->ClearModel();  // also copy-duplicate the collision model? Let the user handle this..
+    // also copy-duplicate the collision model? Let the user handle this..
+    collision_model = InstanceCollisionModel();
 
     matsurface = other.matsurface;  // also copy-duplicate the material? Let the user handle this..
 
