@@ -648,10 +648,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorderEasy {
     /// If ChControl() objects are added to this system, using the following commands
     /// you call the execution of their scripts. You seldom call these functions directly,
     /// since the ChSystem() methods already call them automatically, at each step, update, etc.
-    int ExecuteControlsForStart();
-    int ExecuteControlsForUpdate();
-    int ExecuteControlsForStep();
-    int ExecuteControlsFor3DStep();
+    bool ExecuteControlsForStart();
+    bool ExecuteControlsForUpdate();
+    bool ExecuteControlsForStep();
+    bool ExecuteControlsFor3DStep();
 
     /// All bodies with collision detection data are requested to
     /// store the current position as "last position collision-checked"

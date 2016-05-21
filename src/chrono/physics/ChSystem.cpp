@@ -634,32 +634,36 @@ int ChSystem::ResetAllProbes() {
 
 // CONTROLS STUFF
 
-int ChSystem::ExecuteControlsForStart() {
+bool ChSystem::ExecuteControlsForStart() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        controlslist[ip]->ExecuteForStart();
+        if (!controlslist[ip]->ExecuteForStart())
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
-int ChSystem::ExecuteControlsForUpdate() {
+bool ChSystem::ExecuteControlsForUpdate() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        controlslist[ip]->ExecuteForUpdate();
+        if (!controlslist[ip]->ExecuteForUpdate())
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
-int ChSystem::ExecuteControlsForStep() {
+bool ChSystem::ExecuteControlsForStep() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        controlslist[ip]->ExecuteForStep();
+        if (!controlslist[ip]->ExecuteForStep())
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
-int ChSystem::ExecuteControlsFor3DStep() {
+bool ChSystem::ExecuteControlsFor3DStep() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        controlslist[ip]->ExecuteFor3DStep();
+        if (!controlslist[ip]->ExecuteFor3DStep())
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
