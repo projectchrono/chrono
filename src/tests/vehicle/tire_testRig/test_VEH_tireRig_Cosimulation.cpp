@@ -650,13 +650,15 @@ void TerrainNode::Synchronize(int step_number, double time) {
     MPI_Recv(vert_data, 2 * 3 * m_num_vert, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
     MPI_Recv(tri_data, 3 * m_num_tri, MPI_INT, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-    // Set position and velocity of proxy bodies.
+    // Set position, rotation, and velocity of proxy bodies.
     for (unsigned int iv = 0; iv < m_num_vert; iv++) {
         unsigned int offset = 3 * iv;
         m_proxies[iv].m_body->SetPos(ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
         offset += 3 * m_num_vert;
         m_proxies[iv].m_body->SetPos_dt(
             ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
+        m_proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        m_proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
     }
 
     delete[] vert_data;
