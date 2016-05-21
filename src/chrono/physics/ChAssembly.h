@@ -1,54 +1,44 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHASSEMBLY_H
 #define CHASSEMBLY_H
 
-
-#include <math.h>
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChLinksAll.h"
-
+#include <cmath>
+#include "chrono/physics/ChLinksAll.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
-
-
-
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
-/// Note that an assembly can be added to another assembly, to create a tree-like 
-/// hierarchy.
-/// All the positions of rigid bodies, FEA nodes, etc. are assumed respect to 
-/// the absolute position. 
+/// Note that an assembly can be added to another assembly, to create a tree-like hierarchy.
+/// All positions of rigid bodies, FEA nodes, etc. are assumed respect to the absolute position.
 
 class ChApi ChAssembly : public ChPhysicsItem {
-    CH_RTTI(ChAssembly, ChObj);
+    CH_RTTI(ChAssembly, ChPhysicsItem);
 
-public:
+  public:
     ChAssembly();
-
-    /// Destructor
+    ChAssembly(const ChAssembly& other);
     virtual ~ChAssembly();
-
-    /// Copy from another ChAssembly.
-    void Copy(ChAssembly* source);
-
 
     //
     // CONTAINER FUNCTIONS
-    // 
+    //
 
     /// Removes all inserted items: bodies, links, etc.
     void Clear();
-
 
     // To attach/remove items (rigid bodies, links, etc.) you must use
     // shared pointer, so that you don't need to care about item deletion,
@@ -57,16 +47,16 @@ public:
     // items which haven't ever been added! This will most often cause an assert() failure
     // in debug mode.
     // Note. adding/removing items to the system doesn't call Update() automatically.
-   
+
     /// Attach a body to this system. Must be an object of exactly ChBody class.
     virtual void AddBody(std::shared_ptr<ChBody> newbody);
-    
+
     /// Attach a link to this system. Must be an object of ChLink or derived classes.
     virtual void AddLink(std::shared_ptr<ChLink> newlink);
 
     /// Attach a ChPhysicsItem object that is not a body or link
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem);
-    
+
     /// Attach whatever type of ChPhysicsItem (ex a ChBody, or a
     /// ChParticles, or a ChLink, etc.) to the system. It will take care
     /// of adding it to the proper list: of bodies, of links, or of other generic
@@ -77,7 +67,7 @@ public:
     void Add(std::shared_ptr<ChPhysicsItem> newitem);
 
     /// Items added in this way are added like in the Add() method, but not instantly,
-    /// they are simply queued in a batch of 'to add' items, that are added automatically 
+    /// they are simply queued in a batch of 'to add' items, that are added automatically
     /// at the first Setup() call. This is thread safe.
     void AddBatch(std::shared_ptr<ChPhysicsItem> newitem);
 
@@ -101,7 +91,6 @@ public:
     void RemoveAllLinks();
     /// Remove all physics items that were not added to body or link lists.
     void RemoveAllOtherPhysicsItems();
-
 
     /// Iterator to scan through the list of all ChBody items.
     class ChApi IteratorBodies {
@@ -218,126 +207,115 @@ public:
     /// Searches whatever item (body, link or other ChPhysics items)
     std::shared_ptr<ChPhysicsItem> Search(const char* m_name);
 
-    /// Searches a marker from its ChObject name 
+    /// Searches a marker from its ChObject name
     std::shared_ptr<ChMarker> SearchMarker(const char* m_name);
-    /// Searches a marker from its unique ID 
+    /// Searches a marker from its unique ID
     std::shared_ptr<ChMarker> SearchMarker(int markID);
-
 
     //
     // STATISTICS
     //
 
     /// Gets the number of active bodies (so, excluding those that are sleeping or are fixed to ground)
-    int GetNbodies() { return nbodies; }
+    int GetNbodies() const { return nbodies; }
     /// Gets the number of bodies that are in sleeping mode (excluding fixed bodies).
-    int GetNbodiesSleeping() { return nbodies_sleep; }
+    int GetNbodiesSleeping() const { return nbodies_sleep; }
     /// Gets the number of bodies that are fixed to ground.
-    int GetNbodiesFixed() { return nbodies_fixed; }
+    int GetNbodiesFixed() const { return nbodies_fixed; }
     /// Gets the total number of bodies added to the system, including the grounded and sleeping bodies.
-    int GetNbodiesTotal() { return nbodies + nbodies_fixed + nbodies_sleep; }
+    int GetNbodiesTotal() const { return nbodies + nbodies_fixed + nbodies_sleep; }
 
     /// Gets the number of links .
-    int GetNlinks() { return nlinks; }
+    int GetNlinks() const { return nlinks; }
     /// Gets the number of other physics items (not ChLinks or ChBodies).
-    int GetNphysicsItems() { return nphysicsitems; }
+    int GetNphysicsItems() const { return nphysicsitems; }
     /// Gets the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions)
-    int GetNcoords() { return ncoords; }
+    int GetNcoords() const { return ncoords; }
     /// Gets the number of degrees of freedom of the system.
-    int GetNdof() { return ndof; }
+    int GetNdof() const { return ndof; }
     /// Gets the number of scalar constraints added to the system, including constraints on quaternion norms
-    int GetNdoc() { return ndoc; }
+    int GetNdoc() const { return ndoc; }
     /// Gets the number of system variables (coordinates plus the constraint multipliers, in case of quaternions)
-    int GetNsysvars() { return nsysvars; }
+    int GetNsysvars() const { return nsysvars; }
     /// Gets the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
-    int GetNcoords_w() { return ncoords_w; }
+    int GetNcoords_w() const { return ncoords_w; }
     /// Gets the number of scalar constraints added to the system
-    int GetNdoc_w() { return ndoc_w; }
+    int GetNdoc_w() const { return ndoc_w; }
     /// Gets the number of scalar constraints added to the system (only bilaterals)
-    int GetNdoc_w_C() { return ndoc_w_C; }
+    int GetNdoc_w_C() const { return ndoc_w_C; }
     /// Gets the number of scalar constraints added to the system (only unilaterals)
-    int GetNdoc_w_D() { return ndoc_w_D; }
+    int GetNdoc_w_D() const { return ndoc_w_D; }
     /// Gets the number of system variables (coordinates plus the constraint multipliers)
-    int GetNsysvars_w() { return nsysvars_w; }
-
-    //
-    // UPDATING/SETUP FUNCTIONS
-    //
-
-    
-
+    int GetNsysvars_w() const { return nsysvars_w; }
 
     //
     // PHYSICS ITEM INTERFACE
     //
 
-    /// Set the pointer to the parent ChSystem() and 
+    /// Set the pointer to the parent ChSystem() and
     /// also add to new collision system / remove from old coll.system
-    virtual void SetSystem(ChSystem* m_system);
+    virtual void SetSystem(ChSystem* m_system) override;
 
-    virtual void SyncCollisionModels();
-    //virtual void AddCollisionModelsToSystem(); // no, already done in SetSystem iterating on all sub objects
-    //virtual void RemoveCollisionModelsFromSystem(); // no, already done in SetSystem iterating on all sub objects
+    virtual void SyncCollisionModels() override;
 
     /// Counts the number of bodies and links.
     /// Computes the offsets of object states in the global state.
     /// Assumes that this->offset_x this->offset_w this->offset_L are already set
     /// as starting point for offsetting all the contained sub objects.
-    virtual void Setup();
+    virtual void Setup() override;
 
     /// Updates all the auxiliary data and children of
     /// bodies, forces, links, given their current state.
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    virtual void SetNoSpeedNoAcceleration();
-
+    virtual void SetNoSpeedNoAcceleration() override;
 
     /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetDOF() { return GetNcoords(); }
+    virtual int GetDOF() override { return GetNcoords(); }
     /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetDOF_w() { return GetNcoords_w(); }
+    virtual int GetDOF_w() override { return GetNcoords_w(); }
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() { return GetNdoc_w(); }
+    virtual int GetDOC() override { return GetNdoc_w(); }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetDOC_c() { return GetNdoc_w_C(); };
+    virtual int GetDOC_c() override { return GetNdoc_w_C(); };
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d() { return GetNdoc_w_D(); };
+    virtual int GetDOC_d() override { return GetNdoc_w_D(); };
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
+                                   const ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
@@ -350,85 +328,67 @@ public:
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
-    virtual void ConstraintsLoadJacobians();
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsLoadJacobians() override;
 
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
+    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Old bookkeeping system - to be removed soon
-    virtual void VariablesFbReset();
-    virtual void VariablesFbLoadForces(double factor = 1.);
-    virtual void VariablesQbLoadSpeed();
-    virtual void VariablesFbIncrementMq();
-    virtual void VariablesQbSetSpeed(double step = 0.);
-    virtual void VariablesQbIncrementPosition(double step);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsBiLoad_Qc(double factor = 1.);
-    virtual void ConstraintsFbLoadForces(double factor = 1.);
-    
-    virtual void ConstraintsFetch_react(double factor = 1.);
-
+    virtual void VariablesFbReset() override;
+    virtual void VariablesFbLoadForces(double factor = 1) override;
+    virtual void VariablesQbLoadSpeed() override;
+    virtual void VariablesFbIncrementMq() override;
+    virtual void VariablesQbSetSpeed(double step = 0) override;
+    virtual void VariablesQbIncrementPosition(double step) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsBiLoad_Qc(double factor = 1) override;
+    virtual void ConstraintsFbLoadForces(double factor = 1) override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     //
     // SERIALIZATION
     //
 
-    
     /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
-    void ShowHierarchy(ChStreamOutAscii& m_file, int level=0);
-
+    void ShowHierarchy(ChStreamOutAscii& m_file, int level = 0);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-
-protected:
-
-    //
-    // DATA
-    //
-
-    // list of rigid bodies
-    std::vector<std::shared_ptr<ChBody>> bodylist;
-
-    // list of joints (links)
-    std::vector<std::shared_ptr<ChLink>> linklist;
-
-    // list of other physic objects that are not bodies or links
-    std::vector<std::shared_ptr<ChPhysicsItem>> otherphysicslist;
-
-    // list of items to insert when doing Setup() or Flush.
-    std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;
+  protected:
+    std::vector<std::shared_ptr<ChBody>> bodylist;  ///< list of rigid bodies
+    std::vector<std::shared_ptr<ChLink>> linklist;  ///< list of joints (links)
+    std::vector<std::shared_ptr<ChPhysicsItem>>
+        otherphysicslist;  ///< list of other physic objects that are not bodies or links
+    std::vector<std::shared_ptr<ChPhysicsItem>>
+        batch_to_insert;  ///< list of items to insert when doing Setup() or Flush.
 
     // Statistics:
-    int nbodies;        // number of bodies (currently active)
-    int nlinks;         // number of links
-    int nphysicsitems;  // number of other physics items
-    int ncoords;        // number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;           // number of scalar costraints (including constr. on quaternions)
-    int nsysvars;       // number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
-    int ncoords_w;      // number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w;         // number of scalar costraints  when using 3 rot. dof. per body;  for all active bodies
-    int nsysvars_w;     // number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-    int ndof;           // number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
-    int ndoc_w_C;       // number of scalar costraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int ndoc_w_D;       // number of scalar costraints D, when using 3 rot. dof. per body (only unilaterals)
-    int nbodies_sleep;  // number of bodies that are sleeping
-    int nbodies_fixed;  // number of bodies that are fixed
-
+    int nbodies;        ///< number of bodies (currently active)
+    int nlinks;         ///< number of links
+    int nphysicsitems;  ///< number of other physics items
+    int ncoords;        ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
+    int ndoc;           ///< number of scalar costraints (including constr. on quaternions)
+    int nsysvars;       ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
+    int ncoords_w;      ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int ndoc_w;         ///< number of scalar costraints  when using 3 rot. dof. per body;  for all active bodies
+    int nsysvars_w;     ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
+    int ndof;           ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
+    int ndoc_w_C;       ///< number of scalar costraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int ndoc_w_D;       ///< number of scalar costraints D, when using 3 rot. dof. per body (only unilaterals)
+    int nbodies_sleep;  ///< number of bodies that are sleeping
+    int nbodies_fixed;  ///< number of bodies that are fixed
 };
 
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif
