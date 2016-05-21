@@ -96,8 +96,8 @@ class ChApi ChLinkEngine : public ChLinkLock {
     ChLinkEngine(const ChLinkEngine& other);
     virtual ~ChLinkEngine() {}
 
-    virtual void Copy(ChLinkEngine* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkEngine* Clone() const override { return new ChLinkEngine(*this); }
 
     /// Updates motion laws, etc. for the impose rotation / impose speed modes
     virtual void UpdateTime(double mytime) override;

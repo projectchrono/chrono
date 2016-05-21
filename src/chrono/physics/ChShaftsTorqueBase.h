@@ -36,9 +36,6 @@ class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
     ChShaftsTorqueBase(const ChShaftsTorqueBase& other);
     ~ChShaftsTorqueBase() {}
 
-    /// Copy from another ChShaftsTorqueBase.
-    void Copy(ChShaftsTorqueBase* source);
-
     /// Number of scalar constraints
     virtual int GetDOC_c() override { return 0; }
 

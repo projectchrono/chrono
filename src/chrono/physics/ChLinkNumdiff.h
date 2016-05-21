@@ -43,8 +43,8 @@ class ChApi ChLinkNumdiff : public ChLinkMasked {
     ChLinkNumdiff(const ChLinkNumdiff& other) : ChLinkMasked(other) {}
     virtual ~ChLinkNumdiff() {}
 
-    virtual void Copy(ChLinkNumdiff* source);
-    virtual ChLink* new_Duplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkNumdiff* Clone() const override { return new ChLinkNumdiff(*this); }
 
     ///  Forces the system (basically: two connected bodies) into
     /// the specified states/times. Used internally by numerical

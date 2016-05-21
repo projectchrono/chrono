@@ -35,11 +35,8 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     ChShaftsCouple(const ChShaftsCouple& other) : ChPhysicsItem(other) {}
     ~ChShaftsCouple() {}
 
-    /// Copy from another ChShaftsClutch.
-    void Copy(ChShaftsCouple* source) {
-        this->shaft1 = 0;
-        this->shaft2 = 0;
-    }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsCouple* Clone() const override { return new ChShaftsCouple(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() { return 2; }

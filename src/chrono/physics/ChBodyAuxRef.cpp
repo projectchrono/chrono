@@ -27,15 +27,6 @@ ChBodyAuxRef::ChBodyAuxRef(const ChBodyAuxRef& other) : ChBody(other) {
     auxref_to_abs = other.auxref_to_abs;
 }
 
-void ChBodyAuxRef::Copy(ChBodyAuxRef* source) {
-    // copy the parent class data...
-    ChBody::Copy(source);
-
-    // copy own data
-    this->auxref_to_cog = source->auxref_to_cog;
-    this->auxref_to_abs = source->auxref_to_abs;
-}
-
 void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& mloc) {
     ChFrameMoving<> old_cog_to_abs = *this;
 

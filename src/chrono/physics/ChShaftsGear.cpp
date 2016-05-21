@@ -28,15 +28,6 @@ ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other) {
     torque_react = other.torque_react;
 }
 
-void ChShaftsGear::Copy(ChShaftsGear* source) {
-    // copy the parent class data...
-    ChShaftsCouple::Copy(source);
-
-    // copy class data
-    ratio = source->ratio;
-    torque_react = source->torque_react;
-}
-
 bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // Parent initialization
     if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))

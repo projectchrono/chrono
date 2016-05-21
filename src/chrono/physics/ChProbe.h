@@ -29,7 +29,8 @@ class ChApi ChProbe : public ChObj {
     ChProbe(const ChProbe& other);
     virtual ~ChProbe() {}
 
-    void Copy(ChProbe* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChProbe* Clone() const override { return new ChProbe(*this); }
 
     /// Record the value.
     /// Note that X and Y variables must be already set, using the probe data.

@@ -35,8 +35,8 @@ class ChApi ChLinkPointSpline : public ChLinkLock {
     ChLinkPointSpline(const ChLinkPointSpline& other);
     virtual ~ChLinkPointSpline() {}
 
-    virtual void Copy(ChLinkPointSpline* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkPointSpline* Clone() const override { return new ChLinkPointSpline(*this); }
 
     /// Get the address of the trajectory line
     std::shared_ptr<geometry::ChLine> Get_trajectory_line() const { return trajectory_line; }

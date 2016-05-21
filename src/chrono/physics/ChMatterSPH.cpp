@@ -227,18 +227,6 @@ ChMatterSPH::~ChMatterSPH() {
     ResizeNnodes(0);
 }
 
-void ChMatterSPH::Copy(ChMatterSPH* source) {
-    // copy the parent class data...
-    ChIndexedNodes::Copy(source);
-
-    do_collide = source->do_collide;
-
-    material = source->material;
-    matsurface = source->matsurface;
-
-    ResizeNnodes(source->GetNnodes());
-}
-
 void ChMatterSPH::ResizeNnodes(int newsize) {
     bool oldcoll = GetCollide();
     SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added

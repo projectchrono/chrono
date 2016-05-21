@@ -63,8 +63,8 @@ class ChApi ChShaft : public ChPhysicsItem {
     ChShaft(const ChShaft& other);
     ~ChShaft() {}
 
-    /// Copy from another ChShaft.
-    void Copy(ChShaft* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaft* Clone() const override { return new ChShaft(*this); }
 
     //
     // FLAGS

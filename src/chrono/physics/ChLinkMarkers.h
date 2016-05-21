@@ -60,7 +60,8 @@ class ChApi ChLinkMarkers : public ChLink {
     ChLinkMarkers(const ChLinkMarkers& other);
     virtual ~ChLinkMarkers() {}
 
-    virtual void Copy(ChLinkMarkers* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMarkers* Clone() const override { return new ChLinkMarkers(*this); }
 
   public:
     /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.

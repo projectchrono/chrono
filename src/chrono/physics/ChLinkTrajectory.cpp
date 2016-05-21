@@ -44,24 +44,6 @@ ChLinkTrajectory::ChLinkTrajectory(const ChLinkTrajectory& other) : ChLinkLock(o
     trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
 }
 
-void ChLinkTrajectory::Copy(ChLinkTrajectory* source) {
-    // first copy the parent class data...
-    ChLinkLock::Copy(source);
-
-    // copy own data
-
-    space_fx = std::shared_ptr<ChFunction>(source->space_fx->Clone());  // deep copy
-
-    trajectory_line = std::shared_ptr<ChLine>((ChLine*)source->trajectory_line->Clone());  // deep copy
-}
-
-ChLink* ChLinkTrajectory::new_Duplicate() {
-    ChLinkTrajectory* m_l;
-    m_l = new ChLinkTrajectory;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {
     space_fx = m_funct;
 }

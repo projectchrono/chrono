@@ -32,16 +32,6 @@ ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other)
     Tw = std::shared_ptr<ChFunction>(other.Tw->Clone());  // deep copy
 }
 
-void ChShaftsThermalEngine::Copy(ChShaftsThermalEngine* source) {
-    // copy the parent class data...
-    ChShaftsTorqueBase::Copy(source);
-
-    // copy class data
-    throttle = source->throttle;
-    error_backward = source->error_backward;
-    Tw = std::shared_ptr<ChFunction>(source->Tw->Clone());  // deep copy
-}
-
 double ChShaftsThermalEngine::ComputeTorque() {
     // COMPUTE THE TORQUE HERE!
     double mw = GetRelativeRotation_dt();

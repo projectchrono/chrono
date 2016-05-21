@@ -39,13 +39,14 @@ class ChApi ChLinkBrake : public ChLinkLock {
 
     int last_dir;     ///< 0= clockwise, 1= anticlockw.  -- internal
     bool must_stick;  ///< if true, change DOF mask to add link -- internal
+
   public:
     ChLinkBrake();
     ChLinkBrake(const ChLinkBrake& other);
     virtual ~ChLinkBrake() {}
 
-    virtual void Copy(ChLinkBrake* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkBrake* Clone() const override { return new ChLinkBrake(*this); }
 
     virtual void UpdateTime(double time) override;
     virtual void UpdateForces(double mytime) override;

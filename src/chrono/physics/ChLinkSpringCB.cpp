@@ -28,22 +28,6 @@ ChLinkSpringCB::ChLinkSpringCB(const ChLinkSpringCB& other) : ChLinkMarkers(othe
     m_force_fun = other.m_force_fun;  //// do we need a deep copy?
 }
 
-void ChLinkSpringCB::Copy(ChLinkSpringCB* source) {
-    // first copy the parent class data
-    ChLinkMarkers::Copy(source);
-
-    // copy custom data:
-    m_force_fun = source->m_force_fun;
-    m_rest_length = source->m_rest_length;
-    m_force = source->m_force;
-}
-
-ChLink* ChLinkSpringCB::new_Duplicate() {
-    ChLinkSpringCB* m_l = new ChLinkSpringCB;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkSpringCB::Initialize(std::shared_ptr<ChBody> body1,
                                 std::shared_ptr<ChBody> body2,
                                 bool pos_are_relative,

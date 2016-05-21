@@ -50,8 +50,8 @@ class ChApi ChLinkGear : public ChLinkLock {
     ChLinkGear(const ChLinkGear& other);
     virtual ~ChLinkGear() {}
 
-    virtual void Copy(ChLinkGear* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkGear* Clone() const override { return new ChLinkGear(*this); }
 
     virtual int GetType() const override { return LNK_GEAR; }
 

@@ -59,36 +59,6 @@ ChLinkRevoluteSpherical::~ChLinkRevoluteSpherical() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Copy(ChLinkRevoluteSpherical* source) {
-    // first copy the parent class data...
-    ChLink::Copy(source);
-
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-
-    m_pos1 = source->m_pos1;
-    m_pos2 = source->m_pos2;
-    m_dir1 = source->m_dir1;
-    m_dist = source->m_dist;
-    m_cur_dist = source->m_cur_dist;
-    m_cur_dot = source->m_cur_dot;
-
-    m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
-
-    m_multipliers[0] = source->m_multipliers[0];
-    m_multipliers[1] = source->m_multipliers[1];
-}
-
-ChLink* ChLinkRevoluteSpherical::new_Duplicate() {
-    ChLinkRevoluteSpherical* link = new ChLinkRevoluteSpherical;
-    link->Copy(this);
-    return (link);
-}
-
-// -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
 void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,

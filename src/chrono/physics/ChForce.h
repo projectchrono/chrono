@@ -101,7 +101,8 @@ class ChApi ChForce : public ChObj {
     ChForce(const ChForce& other);
     ~ChForce();
 
-    void Copy(ChForce* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChForce* Clone() const override { return new ChForce(*this); }
 
     /// Return the parent body (the force belongs to this rigid body)
     ChBody* GetBody() { return Body; }

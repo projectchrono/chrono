@@ -43,8 +43,8 @@ class ChApi ChLinkClearance : public ChLinkLock {
     ChLinkClearance(const ChLinkClearance& other);
     ~ChLinkClearance() {}
 
-    virtual void Copy(ChLinkClearance* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkClearance* Clone() const override { return new ChLinkClearance(*this); }
 
     // Updates marker positions, etc.
     virtual void UpdateTime(double mytime) override;

@@ -47,8 +47,8 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     ChLinkSpringCB(const ChLinkSpringCB& other);
     virtual ~ChLinkSpringCB() {}
 
-    virtual void Copy(ChLinkSpringCB* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkSpringCB* Clone() const override { return new ChLinkSpringCB(*this); }
 
     virtual int GetType() const override { return LNK_SPRING_CALLBACK; }
 

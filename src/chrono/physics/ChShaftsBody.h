@@ -48,8 +48,8 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     ChShaftsBody(const ChShaftsBody& other);
     ~ChShaftsBody() {}
 
-    /// Copy from another ChShaftsPlanetary.
-    void Copy(ChShaftsBody* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsBody* Clone() const override { return new ChShaftsBody(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() const { return 6 + 1; }

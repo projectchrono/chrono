@@ -49,8 +49,8 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     ChShaftsTorqueConverter(const ChShaftsTorqueConverter& other);
     ~ChShaftsTorqueConverter() {}
 
-    /// Copy from another ChShaftsTorqueConverter.
-    void Copy(ChShaftsTorqueConverter* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsTorqueConverter* Clone() const override { return new ChShaftsTorqueConverter(*this); }
 
     /// Number of scalar constraints
     virtual int GetDOC_c() override { return 0; }

@@ -45,8 +45,8 @@ class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
     ChLinkRackpinion(const ChLinkRackpinion& other);
     virtual ~ChLinkRackpinion() {}
 
-    virtual void Copy(ChLinkRackpinion* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkRackpinion* Clone() const override { return new ChLinkRackpinion(*this); }
 
     // Updates aux frames positions
     virtual void UpdateTime(double mytime) override;

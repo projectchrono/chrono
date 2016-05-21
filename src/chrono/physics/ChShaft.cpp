@@ -59,32 +59,6 @@ ChShaft::ChShaft(const ChShaft& other) : ChPhysicsItem(other) {
     sleep_minwvel = other.sleep_minwvel;
 }
 
-void ChShaft::Copy(ChShaft* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    torque = source->torque;
-    system = source->system;
-    pos = source->pos;
-    pos_dt = source->pos_dt;
-    pos_dtdt = source->pos_dtdt;
-    inertia = source->inertia;
-    fixed = source->fixed;
-    sleeping = source->sleeping;
-    limitspeed = source->limitspeed;
-
-    system = source->system;
-
-    variables = source->variables;
-
-    max_speed = source->max_speed;
-
-    sleep_time = source->sleep_time;
-    sleep_starttime = source->sleep_starttime;
-    sleep_minspeed = source->sleep_minspeed;
-    sleep_minwvel = source->sleep_minwvel;
-}
-
 void ChShaft::SetInertia(double newJ) {
     assert(newJ > 0.);
     if (newJ <= 0.)

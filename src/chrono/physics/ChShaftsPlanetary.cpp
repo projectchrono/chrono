@@ -35,21 +35,6 @@ ChShaftsPlanetary::ChShaftsPlanetary(const ChShaftsPlanetary& other) : ChPhysics
     shaft3 = NULL;
 }
 
-void ChShaftsPlanetary::Copy(ChShaftsPlanetary* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-    r1 = source->r1;
-    r2 = source->r2;
-    r3 = source->r3;
-
-    torque_react = source->torque_react;
-    shaft1 = 0;
-    shaft2 = 0;
-    shaft3 = 0;
-}
-
 bool ChShaftsPlanetary::Initialize(std::shared_ptr<ChShaft> mshaft1,  // first  shaft to join (carrier wheel)
                                    std::shared_ptr<ChShaft> mshaft2,  // second shaft to join (wheel)
                                    std::shared_ptr<ChShaft> mshaft3   // third  shaft to join (wheel)

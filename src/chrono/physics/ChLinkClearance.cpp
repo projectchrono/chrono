@@ -56,30 +56,6 @@ ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLock(othe
     contact_V_abs = other.contact_V_abs;
 }
 
-void ChLinkClearance::Copy(ChLinkClearance* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    clearance = source->clearance;
-    c_friction = source->c_friction;
-    c_restitution = source->c_restitution;
-    c_tang_restitution = source->c_tang_restitution;
-    c_viscous = source->c_viscous;
-    diameter = source->diameter;
-
-    contact_F_abs = source->contact_F_abs;
-    contact_V_abs = source->contact_V_abs;
-}
-
-ChLink* ChLinkClearance::new_Duplicate() {
-    ChLinkClearance* m_l;
-    m_l = new ChLinkClearance;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 // easy data getting
 
 double ChLinkClearance::Get_axis_eccentricity() {

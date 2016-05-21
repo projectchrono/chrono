@@ -107,41 +107,6 @@ ChMarker::~ChMarker() {
         delete motion_ang;
 }
 
-void ChMarker::Copy(ChMarker* source) {
-    // first copy the parent class data...
-    ChObj::Copy(source);
-
-    // first copy the parent class data...
-    ChFrameMoving<double>::operator=(*source);
-
-    Body = NULL;
-
-    // Replace the default functions.
-    if (motion_X)
-        delete motion_X;
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
-    motion_X = source->motion_X->Clone();
-    motion_Y = source->motion_Y->Clone();
-    motion_Z = source->motion_Z->Clone();
-    motion_ang = source->motion_ang->Clone();
-    motion_axis = source->motion_axis;
-
-    rest_coord = source->rest_coord;
-
-    motion_type = source->motion_type;
-
-    abs_frame = source->abs_frame;
-
-    last_rel_coord = source->last_rel_coord;
-    last_rel_coord_dt = source->last_rel_coord_dt;
-    last_time = source->last_time;
-}
-
 // Setup the functions when user changes them.
 
 void ChMarker::SetMotion_X(ChFunction* m_funct) {

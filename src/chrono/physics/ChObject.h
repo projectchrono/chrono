@@ -53,7 +53,9 @@ class ChApi ChObj {
     ChObj(const ChObj& other);
     virtual ~ChObj() {}
 
-    void Copy(ChObj* source);
+    /// "Virtual" copy constructor.
+    /// Concrete derived classes must implement this.
+    virtual ChObj* Clone() const = 0;
 
     /// Gets the numerical identifier of the object.
     int GetIdentifier() const { return identifier; }

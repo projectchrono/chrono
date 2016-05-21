@@ -26,15 +26,6 @@ ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
     broken = other.broken;
 }
 
-void ChLinkBase::Copy(ChLinkBase* source) {
-    // first copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    broken = source->broken;
-    valid = source->valid;
-    disabled = source->disabled;
-}
-
 void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);

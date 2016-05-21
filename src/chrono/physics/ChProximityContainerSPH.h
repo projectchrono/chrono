@@ -74,6 +74,9 @@ class ChApi ChProximityContainerSPH : public ChProximityContainerBase {
     ChProximityContainerSPH(const ChProximityContainerSPH& other);
     virtual ~ChProximityContainerSPH();
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChProximityContainerSPH* Clone() const override { return new ChProximityContainerSPH(*this); }
+
     /// Tell the number of added contacts
     virtual int GetNproximities() const override { return n_added; }
 

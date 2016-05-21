@@ -37,8 +37,8 @@ class ChApi ChShaftsTorsionSpring : public ChShaftsTorqueBase {
     ChShaftsTorsionSpring(const ChShaftsTorsionSpring& other);
     ~ChShaftsTorsionSpring() {}
 
-    /// Copy from another ChShaftsTorsionSpring.
-    void Copy(ChShaftsTorsionSpring* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsTorsionSpring* Clone() const override { return new ChShaftsTorsionSpring(*this); }
 
     /// Set the torsional stiffness between the two shafts
     void SetTorsionalStiffness(double mt) { stiffness = mt; }

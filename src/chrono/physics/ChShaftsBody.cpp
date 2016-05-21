@@ -29,18 +29,6 @@ ChShaftsBody::ChShaftsBody(const ChShaftsBody& other) : ChPhysicsItem(other) {
     body = NULL;
 }
 
-void ChShaftsBody::Copy(ChShaftsBody* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-
-    torque_react = source->torque_react;
-    shaft_dir = source->shaft_dir;
-    shaft = 0;
-    body = 0;
-}
-
 bool ChShaftsBody::Initialize(std::shared_ptr<ChShaft> mshaft,
                               std::shared_ptr<ChBodyFrame>
                                   mbody,

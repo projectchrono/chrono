@@ -91,7 +91,6 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     ChLinkBase() : broken(false), valid(true), disabled(false) {}
     ChLinkBase(const ChLinkBase& other);
     virtual ~ChLinkBase() {}
-    virtual void Copy(ChLinkBase* source);
 
     /// Tells if the link data is currently valid.
     /// (i.e. pointers to other items are correct)

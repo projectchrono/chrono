@@ -283,33 +283,6 @@ ChParticlesClones::~ChParticlesClones() {
     particle_collision_model = 0;
 }
 
-void ChParticlesClones::Copy(ChParticlesClones* source) {
-    // copy the parent class data...
-    ChIndexedParticles::Copy(source);
-
-    do_collide = source->do_collide;
-    do_sleep = source->do_sleep;
-    do_limit_speed = source->do_limit_speed;
-
-    SetMass(source->GetMass());
-    SetInertiaXX(source->GetInertiaXX());
-    SetInertiaXY(source->GetInertiaXY());
-
-    particle_collision_model->ClearModel();
-
-    matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
-
-    ResizeNparticles((int)source->GetNparticles());
-
-    max_speed = source->max_speed;
-    max_wvel = source->max_wvel;
-
-    sleep_time = source->sleep_time;
-    sleep_starttime = source->sleep_starttime;
-    sleep_minspeed = source->sleep_minspeed;
-    sleep_minwvel = source->sleep_minwvel;
-}
-
 void ChParticlesClones::ResizeNparticles(int newsize) {
     bool oldcoll = GetCollide();
     SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added

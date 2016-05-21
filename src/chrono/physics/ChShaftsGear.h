@@ -41,8 +41,8 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     ChShaftsGear(const ChShaftsGear& other);
     ~ChShaftsGear() {}
 
-    /// Copy from another ChShaftsGear.
-    void Copy(ChShaftsGear* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsGear* Clone() const override { return new ChShaftsGear(*this); }
 
     /// Number of scalar constraints
     virtual int GetDOC_c() { return 1; }

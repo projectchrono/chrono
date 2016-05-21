@@ -44,8 +44,8 @@ class ChApi ChLinkDistance : public ChLink {
     ChLinkDistance(const ChLinkDistance& other);
     virtual ~ChLinkDistance() {}
 
-    virtual void Copy(ChLinkDistance* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkDistance* Clone() const override { return new ChLinkDistance(*this); }
 
     virtual int GetType() const override { return LNK_GEOMETRICDISTANCE; }
 

@@ -239,8 +239,8 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     ChMatterSPH(const ChMatterSPH& other);
     ~ChMatterSPH();
 
-    /// Copy from another ChMatterSPH.
-    void Copy(ChMatterSPH* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMatterSPH* Clone() const override { return new ChMatterSPH(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
     /// After setting ON, remember RecomputeCollisionModel()

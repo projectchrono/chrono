@@ -36,6 +36,9 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
     ChLoadContainer(const ChLoadContainer& other);
     ~ChLoadContainer() {}
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadContainer* Clone() const override { return new ChLoadContainer(*this); }
+
     /// Add a load to the container list of loads
     void Add(std::shared_ptr<ChLoadBase> newload);
 

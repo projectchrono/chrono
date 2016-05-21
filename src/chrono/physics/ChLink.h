@@ -49,8 +49,8 @@ class ChApi ChLink : public ChLinkBase {
     ChLink(const ChLink& other);
     virtual ~ChLink() {}
 
-    virtual void Copy(ChLink* source);
-    virtual ChLink* new_Duplicate() = 0;
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLink* Clone() const override { return new ChLink(*this); }
 
     /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
     virtual int GetType() const override { return LNK_BASE; }

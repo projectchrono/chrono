@@ -81,8 +81,8 @@ class ChApi ChLinkLock : public ChLinkMasked {
     ChLinkLock(const ChLinkLock& other);
     virtual ~ChLinkLock();
 
-    virtual void Copy(ChLinkLock* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLock* Clone() const override { return new ChLinkLock(*this); }
 
     void BuildLinkType(int link_type);
 
@@ -279,6 +279,9 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
 
   public:
     ChLinkLockRevolute() { ChangeLinkType(LNK_REVOLUTE); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockRevolute* Clone() const override { return new ChLinkLockRevolute(*this); }
 };
 
 /// 6-dof locked joint , with the 'ChLinkLock' formulation.
@@ -289,6 +292,9 @@ class ChApi ChLinkLockLock : public ChLinkLock {
 
   public:
     ChLinkLockLock() { ChangeLinkType(LNK_LOCK); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockLock* Clone() const override { return new ChLinkLockLock(*this); }
 };
 
 /// Spherical joint , with the 'ChLinkLock' formulation.
@@ -299,6 +305,9 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
 
   public:
     ChLinkLockSpherical() { ChangeLinkType(LNK_SPHERICAL); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockSpherical* Clone() const override { return new ChLinkLockSpherical(*this); }
 };
 
 /// Cylindrical joint , with the 'ChLinkLock' formulation.
@@ -309,6 +318,9 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
 
   public:
     ChLinkLockCylindrical() { ChangeLinkType(LNK_CYLINDRICAL); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockCylindrical* Clone() const override { return new ChLinkLockCylindrical(*this); }
 };
 
 /// Prismatic joint , with the 'ChLinkLock' formulation.
@@ -319,6 +331,9 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
 
   public:
     ChLinkLockPrismatic() { ChangeLinkType(LNK_PRISMATIC); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockPrismatic* Clone() const override { return new ChLinkLockPrismatic(*this); }
 };
 
 /// Point-plane joint , with the 'ChLinkLock' formulation.
@@ -329,6 +344,9 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
 
   public:
     ChLinkLockPointPlane() { ChangeLinkType(LNK_POINTPLANE); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockPointPlane* Clone() const override { return new ChLinkLockPointPlane(*this); }
 };
 
 /// Point-line joint , with the 'ChLinkLock' formulation.
@@ -339,6 +357,9 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 
   public:
     ChLinkLockPointLine() { ChangeLinkType(LNK_POINTLINE); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockPointLine* Clone() const override { return new ChLinkLockPointLine(*this); }
 };
 
 /// Plane-plane joint , with the 'ChLinkLock' formulation.
@@ -349,6 +370,9 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
 
   public:
     ChLinkLockPlanePlane() { ChangeLinkType(LNK_PLANEPLANE); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockPlanePlane* Clone() const override { return new ChLinkLockPlanePlane(*this); }
 };
 
 /// Oldham joint , with the 'ChLinkLock' formulation.
@@ -359,6 +383,9 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
 
   public:
     ChLinkLockOldham() { ChangeLinkType(LNK_OLDHAM); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockOldham* Clone() const override { return new ChLinkLockOldham(*this); }
 };
 
 /// Free joint , with the 'ChLinkLock' formulation.
@@ -369,6 +396,9 @@ class ChApi ChLinkLockFree : public ChLinkLock {
 
   public:
     ChLinkLockFree() { ChangeLinkType(LNK_FREE); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockFree* Clone() const override { return new ChLinkLockFree(*this); }
 };
 
 /// Align joint , with the 'ChLinkLock' formulation.
@@ -379,6 +409,9 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
 
   public:
     ChLinkLockAlign() { ChangeLinkType(LNK_ALIGN); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockAlign* Clone() const override { return new ChLinkLockAlign(*this); }
 };
 
 /// Parallel joint , with the 'ChLinkLock' formulation.
@@ -389,6 +422,9 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
 
   public:
     ChLinkLockParallel() { ChangeLinkType(LNK_PARALLEL); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockParallel* Clone() const override { return new ChLinkLockParallel(*this); }
 };
 
 /// Perpendicularity joint , with the 'ChLinkLock' formulation.
@@ -399,6 +435,9 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
 
   public:
     ChLinkLockPerpend() { ChangeLinkType(LNK_PERPEND); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockPerpend* Clone() const override { return new ChLinkLockPerpend(*this); }
 };
 
 /// RevolutePrismatic joint , with the 'ChLinkLock' formulation.
@@ -408,6 +447,9 @@ class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
 
   public:
     ChLinkLockRevolutePrismatic() { ChangeLinkType(LNK_REVOLUTEPRISMATIC); }
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLockRevolutePrismatic* Clone() const override { return new ChLinkLockRevolutePrismatic(*this); }
 };
 
 }  // end namespace chrono

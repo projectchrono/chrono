@@ -23,11 +23,6 @@ ChClassRegister<ChShaftsTorque> a_registration_ChShaftsTorque;
 
 ChShaftsTorque::ChShaftsTorque(const ChShaftsTorque& other) : ChShaftsTorqueBase(other) {}
 
-void ChShaftsTorque::Copy(ChShaftsTorque* source) {
-    // copy the parent class data...
-    ChShaftsTorqueBase::Copy(source);
-}
-
 double ChShaftsTorque::ComputeTorque() {
     // Simply return the user-sspecified torque
     return torque;

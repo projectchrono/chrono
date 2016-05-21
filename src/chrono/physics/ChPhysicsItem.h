@@ -52,7 +52,8 @@ class ChApi ChPhysicsItem : public ChObj {
     ChPhysicsItem(const ChPhysicsItem& other);
     virtual ~ChPhysicsItem();
 
-    virtual void Copy(ChPhysicsItem* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChPhysicsItem* Clone() const override { return new ChPhysicsItem(*this); }
 
     /// Get the pointer to the parent ChSystem()
     ChSystem* GetSystem() const { return system; }
@@ -64,10 +65,10 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Add an optional asset (it can be used to define visualization shapes, es ChSphereShape,
     /// or textures, or custom attached properties that the user can define by
     /// creating his class inherited from ChAsset)
-    void AddAsset(std::shared_ptr<ChAsset> masset) { this->assets.push_back(masset); }
+    void AddAsset(std::shared_ptr<ChAsset> masset) { assets.push_back(masset); }
 
     /// Access to the list of optional assets.
-    std::vector<std::shared_ptr<ChAsset> >& GetAssets() { return this->assets; }
+    std::vector<std::shared_ptr<ChAsset> >& GetAssets() { return assets; }
 
     /// Access the Nth asset in the list of optional assets.
     std::shared_ptr<ChAsset> GetAssetN(unsigned int num);
@@ -172,7 +173,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Get the number of scalar coordinates of variables derivatives (usually = DOF, but might be
     /// different than DOF, ex. DOF=4 for quaternions, but DOF_w = 3 for its Lie algebra, ex angular velocity)
     /// Children classes might override this.
-    virtual int GetDOF_w() { return this->GetDOF(); }
+    virtual int GetDOF_w() { return GetDOF(); }
     /// Get the number of scalar constraints, if any, in this item
     virtual int GetDOC() { return GetDOC_c() + GetDOC_d(); }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
@@ -183,21 +184,21 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual int GetDOC_d() { return 0; }
 
     /// Get offset in the state vector (position part)
-    unsigned int GetOffset_x() { return this->offset_x; }
+    unsigned int GetOffset_x() { return offset_x; }
     /// Get offset in the state vector (speed part)
-    unsigned int GetOffset_w() { return this->offset_w; }
+    unsigned int GetOffset_w() { return offset_w; }
     /// Get offset in the lagrangian multipliers
-    unsigned int GetOffset_L() { return this->offset_L; }
+    unsigned int GetOffset_L() { return offset_L; }
 
     /// Set offset in the state vector (position part)
     /// Note: only the ChSystem::Setup function should use this
-    void SetOffset_x(const unsigned int moff) { this->offset_x = moff; }
+    void SetOffset_x(const unsigned int moff) { offset_x = moff; }
     /// Set offset in the state vector (speed part)
     /// Note: only the ChSystem::Setup function should use this
-    void SetOffset_w(const unsigned int moff) { this->offset_w = moff; }
+    void SetOffset_w(const unsigned int moff) { offset_w = moff; }
     /// Set offset in the lagrangian multipliers
     /// Note: only the ChSystem::Setup function should use this
-    void SetOffset_L(const unsigned int moff) { this->offset_L = moff; }
+    void SetOffset_L(const unsigned int moff) { offset_L = moff; }
 
     /// From item's state to global state vectors y={x,v}
     /// pasting the states at the specified offsets.
@@ -246,7 +247,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const unsigned int off_v,  ///< offset in v state vector
                                    const ChStateDelta& Dv     ///< state vector, increment
                                    ) {
-        for (int i = 0; i < this->GetDOF(); ++i) {
+        for (int i = 0; i < GetDOF(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
     }

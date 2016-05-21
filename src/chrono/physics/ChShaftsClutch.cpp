@@ -30,18 +30,6 @@ ChShaftsClutch::ChShaftsClutch(const ChShaftsClutch& other) : ChShaftsCouple(oth
     torque_react = other.torque_react;
 }
 
-void ChShaftsClutch::Copy(ChShaftsClutch* source) {
-    // copy the parent class data...
-    ChShaftsCouple::Copy(source);
-
-    // copy class data
-    maxT = source->maxT;
-    minT = source->minT;
-    modulation = source->modulation;
-
-    torque_react = source->torque_react;
-}
-
 bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // parent class initialization
     if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))

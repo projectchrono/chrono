@@ -71,31 +71,6 @@ ChOptimizer::ChOptimizer(const ChOptimizer& other) : ChObj(other) {
     user_break = other.user_break;
 }
 
-// copy
-void ChOptimizer::Copy(ChOptimizer* source) {
-    // first copy the parent class data...
-    ChObj::Copy(source);
-
-    // copy error message
-    strcpy(err_message, source->err_message);
-
-    minimize = source->minimize;
-    error_code = source->error_code;
-    fx_evaluations = source->fx_evaluations;
-    grad_evaluations = source->grad_evaluations;
-    grad_step = source->grad_step;
-    C_vars = source->C_vars;
-
-    xv = source->xv;
-    xv_sup = source->xv_sup;
-    xv_inf = source->xv_inf;
-
-    break_funct = source->break_funct;
-    break_cycles = source->break_cycles;
-    break_cyclecounter = source->break_cyclecounter;
-    user_break = source->user_break;
-}
-
 // Evaluates the function ("function" string) in database, with given state
 // of variables.
 
@@ -292,23 +267,6 @@ ChOptimizerLocal::ChOptimizerLocal(const ChOptimizerLocal& other) : ChOptimizer(
     gradstep = other.gradstep;
 
     iters_done = other.iters_done;
-}
-
-// copy
-void ChOptimizerLocal::Copy(ChOptimizerLocal* source) {
-    // first, copy  parent class
-    ChOptimizer::Copy(source);
-
-    initial_step = source->initial_step;
-    arg_tol = source->arg_tol;
-    fun_tol = source->fun_tol;
-    maxiters = source->maxiters;
-    maxevaluations = source->maxevaluations;
-    gamma = source->gamma;
-    dilation = source->dilation;
-    gradstep = source->gradstep;
-
-    iters_done = source->iters_done;
 }
 
 //// OPTIMIZE FUNCTION  , locally with pseudo-NR method
@@ -513,10 +471,6 @@ ChOptimizerGenetic::~ChOptimizerGenetic() {
 
     // delete the instance of best individual
     delete best_indiv;
-}
-
-void ChOptimizerGenetic::Copy(ChOptimizerGenetic* source) {
-    // To be removed...
 }
 
 // Genetic operations
@@ -1185,22 +1139,6 @@ ChOptimizerGradient::ChOptimizerGradient(const ChOptimizerGradient& other) : ChO
     do_conjugate = other.do_conjugate;
 }
 
-// copy
-void ChOptimizerGradient::Copy(ChOptimizerGradient* source) {
-    // first, copy  parent class
-    ChOptimizer::Copy(source);
-
-    initial_step = source->initial_step;
-    arg_tol = source->arg_tol;
-    fun_tol = source->fun_tol;
-    maxevaluations = source->maxevaluations;
-    maxgradients = source->maxgradients;
-    maxdilationsteps = source->maxdilationsteps;
-    maxbisections = source->maxbisections;
-    dilation = source->dilation;
-    do_conjugate = source->do_conjugate;
-}
-
 //// OPTIMIZE FUNCTION  , locally with pseudo-NR method
 
 int ChOptimizerGradient::DoOptimize() {
@@ -1408,28 +1346,14 @@ ChOptimizerHybrid::ChOptimizerHybrid(const ChOptimizerHybrid& other) : ChOptimiz
     use_genetic = other.use_genetic;
     use_local = other.use_local;
 
-    genetic_opt->Copy(other.genetic_opt);
-    local_opt->Copy(other.local_opt);
+    genetic_opt = other.genetic_opt->Clone();
+    local_opt = other.local_opt->Clone();
 }
 
 ChOptimizerHybrid::~ChOptimizerHybrid() {
     // delete the two incapsulated optimizers;
     delete genetic_opt;
     delete local_opt;
-}
-
-// copy
-void ChOptimizerHybrid::Copy(ChOptimizerHybrid* source) {
-    // first, copy  parent class
-    ChOptimizer::Copy(source);
-
-    current_phase = source->current_phase;
-    use_genetic = source->use_genetic;
-    use_local = source->use_local;
-
-    // copy everything also in the two optmimizers
-    genetic_opt->Copy(source->genetic_opt);
-    local_opt->Copy(source->local_opt);
 }
 
 //// OPTIMIZE FUNCTION  ,

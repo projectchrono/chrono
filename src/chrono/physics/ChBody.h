@@ -116,10 +116,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Destructor
     ~ChBody();
 
-    /// Copy from another ChBody.
-    /// NOTE: all settings of the body are copied, but the
-    /// child hierarchy of ChForces and ChMarkers (if any) are NOT copied.
-    void Copy(ChBody* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChBody* Clone() const override { return new ChBody(*this); }
 
     //
     // FLAGS

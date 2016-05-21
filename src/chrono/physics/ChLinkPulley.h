@@ -52,8 +52,8 @@ class ChApi ChLinkPulley : public ChLinkLock {
     ChLinkPulley(const ChLinkPulley& other);
     virtual ~ChLinkPulley() {}
 
-    virtual void Copy(ChLinkPulley* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkPulley* Clone() const override { return new ChLinkPulley(*this); }
 
     virtual int GetType() const override { return LNK_PULLEY; }
 

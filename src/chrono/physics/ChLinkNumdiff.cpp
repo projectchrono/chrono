@@ -19,19 +19,6 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkNumdiff> a_registration_ChLinkNumdiff;
 
-void ChLinkNumdiff::Copy(ChLinkNumdiff* source) {
-    // first copy the parent class data...
-    ChLinkMasked::Copy(source);
-}
-
-ChLink* ChLinkNumdiff::new_Duplicate()  // inherited classes:  Link* MyInheritedLink::new_Duplicate()
-{
-    ChLinkNumdiff* m_l;
-    m_l = new ChLinkNumdiff;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkNumdiff::ComputeC() {
     // ** Child classes must implement this constraint evaluation, in order
     //    to allow this base class to perform backward differentiation to get

@@ -84,27 +84,6 @@ ChLinkMateGeneric::~ChLinkMateGeneric() {
     mask = 0;
 }
 
-void ChLinkMateGeneric::Copy(ChLinkMateGeneric* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMate::Copy(source);
-
-    c_x = source->c_x;
-    c_y = source->c_y;
-    c_z = source->c_z;
-    c_rx = source->c_rx;
-    c_ry = source->c_ry;
-    c_rz = source->c_rz;
-
-    SetupLinkMask();
-}
-
-ChLink* ChLinkMateGeneric::new_Duplicate() {
-    ChLinkMateGeneric* m_l = new ChLinkMateGeneric;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkMateGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
     c_x = mc_x;
     c_y = mc_y;
@@ -659,21 +638,6 @@ ChLinkMatePlane::ChLinkMatePlane(const ChLinkMatePlane& other) : ChLinkMateGener
     separation = other.separation;
 }
 
-void ChLinkMatePlane::Copy(ChLinkMatePlane* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    this->flipped = source->flipped;
-    this->separation = source->separation;
-}
-
-ChLink* ChLinkMatePlane::new_Duplicate() {
-    ChLinkMatePlane* m_l = new ChLinkMatePlane; 
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkMatePlane::SetFlipped(bool doflip) {
     if (doflip != this->flipped) {
         // swaps direction of X axis by flippping 180° the frame A (slave)
@@ -747,20 +711,6 @@ ChLinkMateCoaxial::ChLinkMateCoaxial(const ChLinkMateCoaxial& other) : ChLinkMat
     flipped = other.flipped;
 }
 
-void ChLinkMateCoaxial::Copy(ChLinkMateCoaxial* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    this->flipped = source->flipped;
-}
-
-ChLink* ChLinkMateCoaxial::new_Duplicate() {
-    ChLinkMateCoaxial* m_l = new ChLinkMateCoaxial;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkMateCoaxial::SetFlipped(bool doflip) {
     if (doflip != this->flipped) {
         // swaps direction of X axis by flippping 180° the frame A (slave)
@@ -821,18 +771,6 @@ ChClassRegister<ChLinkMateSpherical> a_registration_ChLinkMateSpherical;
 
 ChLinkMateSpherical::ChLinkMateSpherical(const ChLinkMateSpherical& other) : ChLinkMateGeneric(other) {}
 
-void ChLinkMateSpherical::Copy(ChLinkMateSpherical* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-}
-
-ChLink* ChLinkMateSpherical::new_Duplicate() {
-    ChLinkMateSpherical* m_l = new ChLinkMateSpherical;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkMateSpherical::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                      std::shared_ptr<ChBodyFrame> mbody2,
                                      bool pos_are_relative,
@@ -848,21 +786,6 @@ ChClassRegister<ChLinkMateXdistance> a_registration_ChLinkMateXdistance;
 
 ChLinkMateXdistance::ChLinkMateXdistance(const ChLinkMateXdistance& other) : ChLinkMateGeneric(other) {
     distance = other.distance;
-}
-
-void ChLinkMateXdistance::Copy(ChLinkMateXdistance* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    // ...then copy class data
-    this->distance = source->distance;
-}
-
-ChLink* ChLinkMateXdistance::new_Duplicate() {
-    ChLinkMateXdistance* m_l = new ChLinkMateXdistance;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 void ChLinkMateXdistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
@@ -912,18 +835,6 @@ ChClassRegister<ChLinkMateParallel> a_registration_ChLinkMateParallel;
 
 ChLinkMateParallel::ChLinkMateParallel(const ChLinkMateParallel& other) : ChLinkMateGeneric(other) {
     flipped = other.flipped;
-}
-
-void ChLinkMateParallel::Copy(ChLinkMateParallel* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-}
-
-ChLink* ChLinkMateParallel::new_Duplicate() {
-    ChLinkMateParallel* m_l = new ChLinkMateParallel;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 void ChLinkMateParallel::SetFlipped(bool doflip) {
@@ -987,21 +898,6 @@ ChClassRegister<ChLinkMateOrthogonal> a_registration_ChLinkMateOrthogonal;
 ChLinkMateOrthogonal::ChLinkMateOrthogonal(const ChLinkMateOrthogonal& other) : ChLinkMateGeneric(other) {
     reldir1 = other.reldir1;
     reldir2 = other.reldir2;
-}
-
-void ChLinkMateOrthogonal::Copy(ChLinkMateOrthogonal* source) {
-    // first copy the parent class data...
-    ChLinkMateGeneric::Copy(source);
-
-    // ..then class data
-    this->reldir1 = source->reldir1;
-    this->reldir2 = source->reldir2;
-}
-
-ChLink* ChLinkMateOrthogonal::new_Duplicate() {
-    ChLinkMateOrthogonal* m_l = new ChLinkMateOrthogonal;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> mbody1,

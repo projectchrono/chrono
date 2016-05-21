@@ -71,43 +71,6 @@ ChLinkRevoluteTranslational::~ChLinkRevoluteTranslational() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::Copy(ChLinkRevoluteTranslational* source) {
-    // first copy the parent class data...
-    ChLink::Copy(source);
-
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-
-    m_p1 = source->m_p1;
-    m_p2 = source->m_p2;
-    m_z1 = source->m_z1;
-    m_x2 = source->m_x2;
-    m_y2 = source->m_y2;
-    m_dist = source->m_dist;
-    m_cur_par1 = source->m_cur_par1;
-    m_cur_par2 = source->m_cur_par2;
-    m_cur_dot = source->m_cur_dot;
-    m_cur_dist = source->m_cur_dist;
-
-    m_cnstr_par1.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_par2.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
-
-    for (int i = 0; i < 4; i++) {
-        m_multipliers[i] = source->m_multipliers[i];
-    }
-}
-
-ChLink* ChLinkRevoluteTranslational::new_Duplicate() {
-    ChLinkRevoluteTranslational* link = new ChLinkRevoluteTranslational;
-    link->Copy(this);
-    return (link);
-}
-
-// -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
 void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,

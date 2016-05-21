@@ -44,30 +44,6 @@ ChLinkForce::~ChLinkForce() {
     delete modul_R;
 }
 
-void ChLinkForce::Copy(ChLinkForce* source) {
-    active = source->active;
-
-    iforce = source->iforce;
-    K = source->K;
-    R = source->R;
-
-    // replace functions:
-    delete modul_iforce;
-    delete modul_K;
-    delete modul_R;
-
-    modul_iforce = source->modul_iforce->Clone();
-    modul_K = source->modul_K->Clone();
-    modul_R = source->modul_R->Clone();
-}
-
-ChLinkForce* ChLinkForce::new_Duplicate() {
-    ChLinkForce* m_lim;
-    m_lim = new ChLinkForce;
-    m_lim->Copy(this);
-    return (m_lim);
-}
-
 void ChLinkForce::Set_modul_iforce(ChFunction* m_funct) {
     if (modul_iforce)
         delete modul_iforce;

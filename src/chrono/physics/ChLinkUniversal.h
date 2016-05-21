@@ -35,8 +35,8 @@ class ChApi ChLinkUniversal : public ChLink {
     ChLinkUniversal(const ChLinkUniversal& other);
     ~ChLinkUniversal();
 
-    virtual void Copy(ChLinkUniversal* source);
-    virtual ChLink* new_Duplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkUniversal* Clone() const override { return new ChLinkUniversal(*this); }
 
     /// Get the type of this joint.
     virtual int GetType() const override { return LNK_UNIVERSAL; }

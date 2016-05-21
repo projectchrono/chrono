@@ -80,39 +80,6 @@ ChForce::~ChForce() {
     delete Qf;
 }
 
-void ChForce::Copy(ChForce* source) {
-    // first copy the parent class data...
-    ChObj::Copy(source);
-
-    Body = source->Body;
-
-    mforce = source->mforce;
-    force = source->force;
-    relforce = source->relforce;
-    vdir = source->vdir;
-    vreldir = source->vreldir;
-    vpoint = source->vpoint;
-    vrelpoint = source->vrelpoint;
-    restpos = source->restpos;
-    align = source->align;
-    frame = source->frame;
-    mode = source->mode;
-
-    ChTime = source->ChTime;
-
-    Qf->CopyFromMatrix(*source->Qf);
-
-    modula = std::shared_ptr<ChFunction>(source->modula->Clone());
-
-    move_x = std::shared_ptr<ChFunction>(source->move_x->Clone());
-    move_y = std::shared_ptr<ChFunction>(source->move_y->Clone());
-    move_z = std::shared_ptr<ChFunction>(source->move_z->Clone());
-
-    f_x = std::shared_ptr<ChFunction>(source->f_x->Clone());
-    f_y = std::shared_ptr<ChFunction>(source->f_y->Clone());
-    f_z = std::shared_ptr<ChFunction>(source->f_z->Clone());
-}
-
 // Impose absolute or relative positions, also setting the correct "rest position".
 void ChForce::SetVpoint(ChVector<> mypoint) {
     // abs pos

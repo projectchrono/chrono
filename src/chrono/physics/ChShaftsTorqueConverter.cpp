@@ -48,25 +48,6 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter(const ChShaftsTorqueConverter& 
     T = std::shared_ptr<ChFunction>(other.T->Clone());  // deep copy
 }
 
-void ChShaftsTorqueConverter::Copy(ChShaftsTorqueConverter* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-    shaft1 = 0;
-    shaft2 = 0;
-    shaft_stator = 0;
-
-    torque_in = source->torque_in;
-    torque_out = source->torque_out;
-
-    state_warning_reverseflow = source->state_warning_reverseflow;
-    state_warning_wrongimpellerdirection = source->state_warning_wrongimpellerdirection;
-
-    K = std::shared_ptr<ChFunction>(source->K->Clone());  // deep copy
-    T = std::shared_ptr<ChFunction>(source->T->Clone());  // deep copy
-}
-
 bool ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,       // input shaft
                                          std::shared_ptr<ChShaft> mshaft2,       // output shaft
                                          std::shared_ptr<ChShaft> mshaft_stator  // stator shaft (often fixed)

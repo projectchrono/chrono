@@ -55,35 +55,6 @@ ChLinkUniversal::~ChLinkUniversal() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChLinkUniversal::Copy(ChLinkUniversal* source) {
-    ChLink::Copy(source);
-
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-
-    m_frame1 = source->m_frame1;
-    m_frame2 = source->m_frame2;
-
-    m_cnstr_x.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_y.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_z.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
-
-    m_multipliers[0] = source->m_multipliers[0];
-    m_multipliers[1] = source->m_multipliers[1];
-    m_multipliers[2] = source->m_multipliers[2];
-    m_multipliers[3] = source->m_multipliers[3];
-}
-
-ChLink* ChLinkUniversal::new_Duplicate() {
-    ChLinkUniversal* link = new ChLinkUniversal;
-    link->Copy(this);
-    return (link);
-}
-
-// -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
 void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,

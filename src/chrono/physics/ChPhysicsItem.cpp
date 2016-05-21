@@ -33,31 +33,17 @@ ChPhysicsItem::~ChPhysicsItem() {
     SetSystem(NULL);  // note that this might remove collision model from system
 }
 
-void ChPhysicsItem::Copy(ChPhysicsItem* source) {
-    // first copy the parent class data...
-    ChObj::Copy(source);
-
-    // copy other class data
-    system = 0;  // do not copy - must be initialized with insertion in system.
-
-    this->offset_x = source->offset_x;
-    this->offset_w = source->offset_w;
-    this->offset_L = source->offset_L;
-
-    this->assets = source->assets;  // copy the list of shared pointers to assets
-}
-
 void ChPhysicsItem::SetSystem(ChSystem* m_system) {
     if (system == m_system)  // shortcut if no change
         return;
     if (system) {
-        if (this->GetCollide())
-            this->RemoveCollisionModelsFromSystem();
+        if (GetCollide())
+            RemoveCollisionModelsFromSystem();
     }
     system = m_system;  // set here
     if (system) {
-        if (this->GetCollide())
-            this->AddCollisionModelsToSystem();
+        if (GetCollide())
+            AddCollisionModelsToSystem();
     }
 }
 
@@ -74,16 +60,16 @@ void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
 
 void ChPhysicsItem::GetCenter(ChVector<>& mcenter) {
     ChVector<> mmin, mmax;
-    this->GetTotalAABB(mmin, mmax);
+    GetTotalAABB(mmin, mmax);
     mcenter = (mmin + mmax) * 0.5;
 }
 
 void ChPhysicsItem::Update(double mytime, bool update_assets) {
-    this->ChTime = mytime;
+    ChTime = mytime;
 
     if (update_assets) {
-        for (unsigned int ia = 0; ia < this->assets.size(); ++ia)
-            assets[ia]->Update(this, this->GetAssetsFrame().GetCoord());
+        for (unsigned int ia = 0; ia < assets.size(); ++ia)
+            assets[ia]->Update(this, GetAssetsFrame().GetCoord());
     }
 }
 

@@ -63,29 +63,6 @@ int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     return true;
 }
 
-void ChLinkDistance::Copy(ChLinkDistance* source) {
-    // first copy the parent class data...
-    //
-    ChLink::Copy(source);
-
-    // copy custom data:
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-    Cx.SetVariables(&source->Body1->Variables(), &source->Body2->Variables());
-    pos1 = source->pos1;
-    pos2 = source->pos2;
-    distance = source->distance;
-    curr_dist = source->curr_dist;
-}
-
-ChLink* ChLinkDistance::new_Duplicate() {
-    ChLinkDistance* m_l;
-    m_l = new ChLinkDistance;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 double ChLinkDistance::GetCurrentDistance() const {
     return (((ChFrame<double>*)Body1)->TransformLocalToParent(pos1) -
             ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2))

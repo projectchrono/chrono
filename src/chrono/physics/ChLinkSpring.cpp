@@ -49,31 +49,6 @@ ChLinkSpring::ChLinkSpring(const ChLinkSpring& other) : ChLinkMarkers(other) {
     mod_r_speed = std::shared_ptr<ChFunction>(other.mod_r_speed->Clone());
 }
 
-void ChLinkSpring::Copy(ChLinkSpring* source) {
-    // first copy the parent class data...
-    ChLinkMarkers::Copy(source);
-
-    // copy custom data:
-    spr_restlength = source->spr_restlength;
-    spr_f = source->spr_f;
-    spr_k = source->spr_k;
-    spr_r = source->spr_r;
-    spr_react = source->spr_react;
-
-    mod_f_time = std::shared_ptr<ChFunction>(source->mod_f_time->Clone());
-    mod_k_d = std::shared_ptr<ChFunction>(source->mod_k_d->Clone());
-    mod_k_speed = std::shared_ptr<ChFunction>(source->mod_k_speed->Clone());
-    mod_r_d = std::shared_ptr<ChFunction>(source->mod_r_d->Clone());
-    mod_r_speed = std::shared_ptr<ChFunction>(source->mod_r_speed->Clone());
-}
-
-ChLink* ChLinkSpring::new_Duplicate() {
-    ChLinkSpring* m_l;
-    m_l = new ChLinkSpring;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkSpring::Initialize(std::shared_ptr<ChBody> mbody1,
                               std::shared_ptr<ChBody> mbody2,
                               bool pos_are_relative,

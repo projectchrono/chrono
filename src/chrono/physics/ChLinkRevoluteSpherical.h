@@ -36,8 +36,8 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     ChLinkRevoluteSpherical(const ChLinkRevoluteSpherical& other);
     ~ChLinkRevoluteSpherical();
 
-    virtual void Copy(ChLinkRevoluteSpherical* source);
-    virtual ChLink* new_Duplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkRevoluteSpherical* Clone() const override { return new ChLinkRevoluteSpherical(*this); }
 
     /// Get the type of this joint.
     virtual int GetType() const override { return LNK_REVOLUTESPHERICAL; }

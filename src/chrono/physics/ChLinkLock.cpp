@@ -135,53 +135,6 @@ ChLinkLock::~ChLinkLock() {
     // jacobians etc. are deleted by base class, which also calls DestroyLinkType()
 }
 
-void ChLinkLock::Copy(ChLinkLock* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMasked::Copy(source);
-
-    type = source->type;
-
-    deltaC = source->deltaC;
-    deltaC_dt = source->deltaC_dt;
-    deltaC_dtdt = source->deltaC_dtdt;
-    relC = source->relC;
-    relC_dt = source->relC_dt;
-    relC_dtdt = source->relC_dtdt;
-    Ct_temp = source->Ct_temp;
-
-    if (motion_X)
-        delete motion_X;  // replace and copy functions
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
-    if (motion_ang2)
-        delete motion_ang2;
-    if (motion_ang3)
-        delete motion_ang3;
-
-    motion_X = source->motion_X->Clone();
-    motion_Y = source->motion_Y->Clone();
-    motion_Z = source->motion_Z->Clone();
-    motion_ang = source->motion_ang->Clone();
-    motion_ang2 = source->motion_ang2->Clone();
-    motion_ang3 = source->motion_ang3->Clone();
-
-    motion_axis = source->motion_axis;
-    angleset = source->angleset;
-}
-
-ChLink* ChLinkLock::new_Duplicate()  // inherited classes:  Link* MyInheritedLink::new_Duplicate()
-{
-    ChLinkLock* m_l;
-    m_l = new ChLinkLock;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkLock::BuildLinkType(int link_type) {
     type = link_type;
 

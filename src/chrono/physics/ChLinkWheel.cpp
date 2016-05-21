@@ -110,54 +110,6 @@ ChLinkWheel::~ChLinkWheel() {
     delete fri_norm;
 }
 
-void ChLinkWheel::Copy(ChLinkWheel* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-
-    wcollision = source->wcollision;
-    speed_handled = source->speed_handled;
-    radius = source->radius;
-    thickness = source->thickness;
-    friction = source->friction;
-    allow_sticking = source->allow_sticking;
-    slip_treshold = source->slip_treshold;
-    static_friction = source->static_friction;
-    unilateral = source->unilateral;
-    pneus_krp = source->pneus_krp;
-    rad_k = source->rad_k;
-    rad_r = source->rad_r;
-    rad_p = source->rad_p;  // about 2 atm..
-    pneus_h = source->pneus_h;
-
-    if (wheel_rotation)
-        delete wheel_rotation;
-    wheel_rotation = source->wheel_rotation->Clone();
-    if (fri_spe)
-        delete fri_spe;
-    fri_spe = source->fri_spe->Clone();
-    if (fri_norm)
-        delete fri_norm;
-    fri_norm = source->fri_norm->Clone();
-    if (rad_k_def)
-        delete rad_k_def;
-    rad_k_def = source->rad_k_def->Clone();
-
-    angle = angle_dt = angle_dtdt = slipping = f_slip = l_slip = derive_angle = tforce = f_tforce = l_tforce =
-        curr_friction = 0;
-    loc_iters = 0;
-    mv = mu = malpha = 0.0;
-}
-
-ChLink* ChLinkWheel::new_Duplicate() {
-    ChLinkWheel* m_l;
-    m_l = new ChLinkWheel;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkWheel::Set_radius(double mset) {
     radius = mset;
     limit_Z->Set_min(radius - thickness);

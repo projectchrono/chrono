@@ -197,8 +197,8 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     ChParticlesClones(const ChParticlesClones& other);
     ~ChParticlesClones();
 
-    /// Copy from another ChParticlesClones.
-    void Copy(ChParticlesClones* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChParticlesClones* Clone() const override { return new ChParticlesClones(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
     /// After setting ON, remember RecomputeCollisionModel()

@@ -46,8 +46,8 @@ class ChApi ChLinkPneumaticActuator : public ChLinkLock {
     ChLinkPneumaticActuator(const ChLinkPneumaticActuator& other);
     virtual ~ChLinkPneumaticActuator();
 
-    virtual void Copy(ChLinkPneumaticActuator* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkPneumaticActuator* Clone() const override { return new ChLinkPneumaticActuator(*this); }
 
     /// Updates motion laws, marker positions, etc.
     virtual void UpdateTime(double mytime) override;

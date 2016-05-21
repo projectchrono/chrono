@@ -61,35 +61,6 @@ ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLock(other) {
     shaft_dist = other.shaft_dist;
 }
 
-void ChLinkPulley::Copy(ChLinkPulley* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    tau = source->tau;
-    phase = source->phase;
-    a1 = source->a1;
-    a2 = source->a2;
-    checkphase = source->checkphase;
-    r1 = source->r1;
-    r2 = source->r2;
-    belt_up1 = source->belt_up1;
-    belt_up2 = source->belt_up2;
-    belt_low1 = source->belt_low1;
-    belt_low2 = source->belt_low2;
-    local_shaft1 = source->local_shaft1;
-    local_shaft2 = source->local_shaft2;
-    shaft_dist = source->shaft_dist;
-}
-
-ChLink* ChLinkPulley::new_Duplicate() {
-    ChLinkPulley* m_l;
-    m_l = new ChLinkPulley;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkPulley::Set_r1(double mr) {
     r1 = mr;
     tau = r1 / r2;

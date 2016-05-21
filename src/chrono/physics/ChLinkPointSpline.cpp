@@ -40,31 +40,11 @@ ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLoc
     trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
 }
 
-void ChLinkPointSpline::Copy(ChLinkPointSpline* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy own data
-
-    trajectory_line = std::shared_ptr<ChLine>(source->trajectory_line->Clone());  // deep copy
-}
-
-ChLink* ChLinkPointSpline::new_Duplicate() {
-    ChLinkPointSpline* m_l;
-    m_l = new ChLinkPointSpline;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-//////////
-
 void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
     trajectory_line = mline;
 }
 
-/////////    UPDATE TIME
-/////////
+// UPDATE TIME
 
 void ChLinkPointSpline::UpdateTime(double time) {
     ChTime = time;

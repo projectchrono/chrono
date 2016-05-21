@@ -48,8 +48,8 @@ class ChApi ChLinkLinActuator : public ChLinkLock {
     ChLinkLinActuator(const ChLinkLinActuator& other);
     virtual ~ChLinkLinActuator() {}
 
-    virtual void Copy(ChLinkLinActuator* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkLinActuator* Clone() const override { return new ChLinkLinActuator(*this); }
 
     // Updates motion laws, marker positions, etc.
     virtual void UpdateTime(double mytime) override;

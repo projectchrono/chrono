@@ -70,7 +70,8 @@ class ChApi ChOptimizer : public ChObj {
     ChOptimizer(const ChOptimizer& other);
     virtual ~ChOptimizer() {}
 
-    virtual void Copy(ChOptimizer* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChOptimizer* Clone() const override { return new ChOptimizer(*this); }
 
     /// Sets the objective function to maximize
     virtual void SetObjective(ChFx* mformula) { afunction = mformula; }
@@ -150,7 +151,8 @@ class ChApi ChOptimizerLocal : public ChOptimizer {
     ChOptimizerLocal(const ChOptimizerLocal& other);
     virtual ~ChOptimizerLocal() {}
 
-    virtual void Copy(ChOptimizerLocal* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChOptimizerLocal* Clone() const override { return new ChOptimizerLocal(*this); }
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
@@ -231,7 +233,8 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
     ChOptimizerGenetic(const ChOptimizerGenetic& other);
     virtual ~ChOptimizerGenetic();
 
-    virtual void Copy(ChOptimizerGenetic* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChOptimizerGenetic* Clone() const override { return new ChOptimizerGenetic(*this); }
 
     // The optimization procedure.
     // Performs the optimization of the PSystem pointed by "database"
@@ -323,7 +326,8 @@ class ChApi ChOptimizerGradient : public ChOptimizer {
     ChOptimizerGradient(const ChOptimizerGradient& other);
     virtual ~ChOptimizerGradient() {}
 
-    virtual void Copy(ChOptimizerGradient* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChOptimizerGradient* Clone() const override { return new ChOptimizerGradient(*this); }
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
@@ -357,7 +361,8 @@ class ChApi ChOptimizerHybrid : public ChOptimizer {
     ChOptimizerHybrid(const ChOptimizerHybrid& other);
     virtual ~ChOptimizerHybrid();
 
-    virtual void Copy(ChOptimizerHybrid* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChOptimizerHybrid* Clone() const override { return new ChOptimizerHybrid(*this); }
 
     virtual void SetObjective(ChFx* mformula);
     virtual void SetObjectiveGrad(ChFx* mformula);

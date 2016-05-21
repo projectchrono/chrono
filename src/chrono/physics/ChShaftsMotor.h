@@ -51,8 +51,8 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     ChShaftsMotor(const ChShaftsMotor& other);
     ~ChShaftsMotor() {}
 
-    /// Copy from another ChShaftsMotor.
-    void Copy(ChShaftsMotor* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsMotor* Clone() const override { return new ChShaftsMotor(*this); }
 
     /// Number of scalar constraints
     virtual int GetDOC_c() override { return (motor_mode == MOT_MODE_TORQUE) ? 0 : 1; }

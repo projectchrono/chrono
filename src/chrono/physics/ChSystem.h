@@ -88,6 +88,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorderEasy {
     /// Destructor
     virtual ~ChSystem();
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChSystem* Clone() const override { return new ChSystem(*this); }
+
     //
     // PROPERTIES
     //

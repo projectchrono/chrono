@@ -45,30 +45,6 @@ ChLinkRackpinion::ChLinkRackpinion(const ChLinkRackpinion& other) : ChLinkMateGe
     local_rack = other.local_rack;
 }
 
-void ChLinkRackpinion::Copy(ChLinkRackpinion* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    // copy custom data:
-    R = source->R;
-    alpha = source->alpha;
-    beta = source->beta;
-    phase = source->phase;
-    a1 = source->a1;
-    checkphase = source->checkphase;
-
-    contact_pt = source->contact_pt;
-    local_pinion = source->local_pinion;
-    local_rack = source->local_rack;
-}
-
-ChLink* ChLinkRackpinion::new_Duplicate() {
-    ChLinkRackpinion* m_l = new ChLinkRackpinion;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 ChVector<> ChLinkRackpinion::GetAbsPinionDir() {
     if (this->Body1) {
         ChFrame<double> absframe;

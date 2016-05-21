@@ -41,7 +41,8 @@ class ChApi ChLinkMate : public ChLink {
     ChLinkMate(const ChLinkMate& other) : ChLink(other) {}
     virtual ~ChLinkMate() {}
 
-    virtual void Copy(ChLinkMate* source) {}
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMate* Clone() const override { return new ChLinkMate(*this); }
 
     virtual int GetType() const override { return LNK_MATE; }
 
@@ -89,8 +90,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChLinkMateGeneric(const ChLinkMateGeneric& other);
     virtual ~ChLinkMateGeneric();
 
-    virtual void Copy(ChLinkMateGeneric* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateGeneric* Clone() const override { return new ChLinkMateGeneric(*this); }
 
     virtual int GetType() const override { return LNK_MATEGENERIC; }
 
@@ -238,8 +239,8 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
     ChLinkMatePlane(const ChLinkMatePlane& other);
     ~ChLinkMatePlane() {}
 
-    virtual void Copy(ChLinkMatePlane* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMatePlane* Clone() const override { return new ChLinkMatePlane(*this); }
 
     virtual int GetType() const override { return LNK_MATEPLANE; }
 
@@ -292,8 +293,8 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
     ChLinkMateCoaxial(const ChLinkMateCoaxial& other);
     virtual ~ChLinkMateCoaxial() {}
 
-    virtual void Copy(ChLinkMateCoaxial* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateCoaxial* Clone() const override { return new ChLinkMateCoaxial(*this); }
 
     virtual int GetType() const override { return LNK_MATECOAXIAL; }
 
@@ -333,8 +334,8 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     ChLinkMateSpherical(const ChLinkMateSpherical& other);
     virtual ~ChLinkMateSpherical() {}
 
-    virtual void Copy(ChLinkMateSpherical* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateSpherical* Clone() const override { return new ChLinkMateSpherical(*this); }
 
     virtual int GetType() const override { return LNK_MATESPHERICAL; }
 
@@ -364,8 +365,8 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
     ChLinkMateXdistance(const ChLinkMateXdistance& other);
     virtual ~ChLinkMateXdistance() {}
 
-    virtual void Copy(ChLinkMateXdistance* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateXdistance* Clone() const override { return new ChLinkMateXdistance(*this); }
 
     virtual int GetType() const override { return LNK_MATEXDISTANCE; }
 
@@ -413,8 +414,8 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     ChLinkMateParallel(const ChLinkMateParallel& other);
     virtual ~ChLinkMateParallel() {}
 
-    virtual void Copy(ChLinkMateParallel* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateParallel* Clone() const override { return new ChLinkMateParallel(*this); }
 
     virtual int GetType() const override { return LNK_MATEPARALLEL; }
 
@@ -461,8 +462,8 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     ChLinkMateOrthogonal(const ChLinkMateOrthogonal& other);
     virtual ~ChLinkMateOrthogonal() {}
 
-    virtual void Copy(ChLinkMateOrthogonal* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateOrthogonal* Clone() const override { return new ChLinkMateOrthogonal(*this); }
 
     virtual int GetType() const override { return LNK_MATEORTHOGONAL; }
 

@@ -33,8 +33,8 @@ class ChApi ChLinkScrew : public ChLinkLock {
     ChLinkScrew(const ChLinkScrew& other);
     virtual ~ChLinkScrew() {}
 
-    virtual void Copy(ChLinkScrew* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkScrew* Clone() const override { return new ChLinkScrew(*this); }
 
     // Inherit the link-lock computations like it were a
     // normal "revolute" joint, but then modifies the Z-lock parts of C,

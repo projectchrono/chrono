@@ -43,8 +43,8 @@ class ChApi ChLinkForce {
     ChLinkForce(const ChLinkForce& other);
     ~ChLinkForce();
 
-    void Copy(ChLinkForce* source);
-    ChLinkForce* new_Duplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    ChLinkForce* Clone() const { return new ChLinkForce(*this); }
 
     bool Get_active() const { return active; }
     void Set_active(bool m_a) { active = m_a; }

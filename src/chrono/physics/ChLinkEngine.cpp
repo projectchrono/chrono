@@ -98,53 +98,6 @@ ChLinkEngine::ChLinkEngine(const ChLinkEngine& other) : ChLinkLock(other) {
     torque_react2 = other.torque_react2;
 }
 
-void ChLinkEngine::Copy(ChLinkEngine* source) {
-    // first copy the parent class data...
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    learn = source->learn;
-    eng_mode = source->eng_mode;
-    shaft_mode = source->shaft_mode;
-
-    mot_rot = source->mot_rot;
-    mot_rot_dt = source->mot_rot_dt;
-    mot_rot_dtdt = source->mot_rot_dtdt;
-    mot_rerot = source->mot_rerot;
-    mot_rerot_dt = source->mot_rerot_dt;
-    mot_rerot_dtdt = source->mot_rerot_dtdt;
-    mot_torque = source->mot_torque;
-    mot_retorque = source->mot_retorque;
-    impose_reducer = source->impose_reducer;
-    last_r3time = source->last_r3time;
-    last_r3mot_rot = source->last_r3mot_rot;
-    last_r3mot_rot_dt = source->last_r3mot_rot_dt;
-    last_r3relm_rot = source->last_r3relm_rot;
-    last_r3relm_rot_dt = source->last_r3relm_rot_dt;
-    keyed_polar_rotation = source->keyed_polar_rotation;
-
-    rot_funct = std::shared_ptr<ChFunction>(source->rot_funct->Clone());
-    spe_funct = std::shared_ptr<ChFunction>(source->spe_funct->Clone());
-    tor_funct = std::shared_ptr<ChFunction>(source->tor_funct->Clone());
-    torque_w = std::shared_ptr<ChFunction>(source->torque_w->Clone());
-
-    rot_funct_x = std::shared_ptr<ChFunction>(source->rot_funct_x->Clone());
-    rot_funct_y = std::shared_ptr<ChFunction>(source->rot_funct_y->Clone());
-
-    mot_tau = source->mot_tau;
-    mot_eta = source->mot_eta;
-    mot_inertia = source->mot_inertia;
-
-    torque_react2 = source->torque_react2;
-}
-
-ChLink* ChLinkEngine::new_Duplicate() {
-    ChLinkEngine* m_l;
-    m_l = new ChLinkEngine;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkEngine::Set_learn(bool mset) {
     learn = mset;
 

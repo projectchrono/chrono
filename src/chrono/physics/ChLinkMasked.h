@@ -77,8 +77,8 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     ChLinkMasked(const ChLinkMasked& other);
     virtual ~ChLinkMasked();
 
-    virtual void Copy(ChLinkMasked* source);
-    virtual ChLink* new_Duplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMasked* Clone() const override { return new ChLinkMasked(*this); }
 
   protected:
     // [mostly internal], allocates matrices and, in general, initializes all stuff

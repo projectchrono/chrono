@@ -61,34 +61,6 @@ ChLinkMarkers::ChLinkMarkers(const ChLinkMarkers& other) : ChLink(other) {
     Scr_torque = other.Scr_torque;
 }
 
-void ChLinkMarkers::Copy(ChLinkMarkers* source) {
-    // first copy the parent class data...
-    ChLink::Copy(source);
-
-    marker1 = 0;
-    marker2 = 0;
-
-    markID1 = source->markID1;
-    markID2 = source->markID2;
-
-    relM = source->relM;  // copy vars
-    relM_dt = source->relM_dt;
-    relM_dtdt = source->relM_dtdt;
-    relAngle = source->relAngle;
-    relRotaxis = source->relRotaxis;
-    relAxis = source->relAxis;
-    relWvel = source->relWvel;
-    relWacc = source->relWacc;
-    dist = source->dist;
-    dist_dt = source->dist_dt;
-
-    C_force = source->C_force;
-    C_torque = source->C_torque;
-
-    Scr_force = source->Scr_force;
-    Scr_torque = source->Scr_torque;
-}
-
 void ChLinkMarkers::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
     // take care of the first link marker
     marker1 = mark1;

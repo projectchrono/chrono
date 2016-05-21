@@ -31,17 +31,6 @@ ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsCouple(other)
     motor_set_rot_dt = other.motor_set_rot_dt;
 }
 
-void ChShaftsMotor::Copy(ChShaftsMotor* source) {
-    // copy the parent class data...
-    ChShaftsCouple::Copy(source);
-
-    // copy class data
-    motor_torque = source->motor_torque;
-    motor_mode = source->motor_mode;
-    motor_set_rot = source->motor_set_rot;
-    motor_set_rot_dt = source->motor_set_rot_dt;
-}
-
 bool ChShaftsMotor::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // Parent class initialize
     if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))

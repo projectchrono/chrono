@@ -27,14 +27,6 @@ ChShaftsTorqueBase::ChShaftsTorqueBase(const ChShaftsTorqueBase& other) : ChShaf
     torque = other.torque;
 }
 
-void ChShaftsTorqueBase::Copy(ChShaftsTorqueBase* source) {
-    // copy the parent class data...
-    ChShaftsCouple::Copy(source);
-
-    // copy class data
-    torque = source->torque;
-}
-
 void ChShaftsTorqueBase::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChShaftsCouple::Update(mytime, update_assets);

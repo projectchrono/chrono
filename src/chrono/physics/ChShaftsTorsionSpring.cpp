@@ -28,15 +28,6 @@ ChShaftsTorsionSpring::ChShaftsTorsionSpring(const ChShaftsTorsionSpring& other)
     damping = other.damping;
 }
 
-void ChShaftsTorsionSpring::Copy(ChShaftsTorsionSpring* source) {
-    // copy the parent class data...
-    ChShaftsTorqueBase::Copy(source);
-
-    // copy class data
-    stiffness = source->stiffness;
-    damping = source->damping;
-}
-
 double ChShaftsTorsionSpring::ComputeTorque() {
     // COMPUTE THE TORQUE HERE!
     return -(GetRelativeRotation() * stiffness     // the torsional spring term

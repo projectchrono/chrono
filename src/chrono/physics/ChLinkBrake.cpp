@@ -40,26 +40,6 @@ ChLinkBrake::ChLinkBrake(const ChLinkBrake& other) : ChLinkLock(other) {
     must_stick = other.must_stick;
 }
 
-void ChLinkBrake::Copy(ChLinkBrake* source) {
-    // first copy the parent class data...
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    brake_torque = source->brake_torque;
-    stick_ratio = source->stick_ratio;
-    brake_mode = source->brake_mode;
-
-    last_dir = source->last_dir;
-    must_stick = source->must_stick;
-}
-
-ChLink* ChLinkBrake::new_Duplicate() {
-    ChLinkBrake* m_l;
-    m_l = new ChLinkBrake;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkBrake::Set_brake_mode(int mmode) {
     if (mmode != brake_mode) {
         brake_mode = mmode;

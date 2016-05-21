@@ -44,6 +44,9 @@ class ChApi ChControllerPID : public ChObj {
     ChControllerPID(const ChControllerPID& other);
     ~ChControllerPID() {}
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChControllerPID* Clone() const override { return new ChControllerPID(*this); }
+
     double P;  ///< proportional coefficient
     double I;  ///< integrative coefficient
     double D;  ///< derivative coefficient

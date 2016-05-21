@@ -79,8 +79,8 @@ class ChApi ChLinkWheel : public ChLinkLock {
     ChLinkWheel(const ChLinkWheel& other);
     ~ChLinkWheel();
 
-    virtual void Copy(ChLinkWheel* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkWheel* Clone() const override { return new ChLinkWheel(*this); }
 
     /// Updates the position of marker m2, moving it -tangentially- on the
     /// surf/wheel contact point (m1 representing the center of wheel)

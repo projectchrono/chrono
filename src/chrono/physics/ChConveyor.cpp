@@ -52,9 +52,9 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
 
 ChConveyor::ChConveyor(const ChConveyor& other) : ChPhysicsItem(other) {
     conveyor_speed = other.conveyor_speed;
-    internal_link->Copy(other.internal_link);
-    conveyor_plate->Copy(other.conveyor_plate);
-    conveyor_truss->Copy(other.conveyor_truss);
+    internal_link = other.internal_link->Clone();
+    conveyor_plate = other.conveyor_plate->Clone();
+    conveyor_truss = other.conveyor_truss->Clone();
 
     //// RADU: more to do here
 }
@@ -66,17 +66,6 @@ ChConveyor::~ChConveyor() {
         delete conveyor_plate;
     if (conveyor_truss)
         delete conveyor_truss;
-}
-
-void ChConveyor::Copy(ChConveyor* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    conveyor_speed = source->conveyor_speed;
-
-    internal_link->Copy(source->internal_link);
-    conveyor_plate->Copy(source->conveyor_plate);
-    conveyor_truss->Copy(source->conveyor_truss);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS

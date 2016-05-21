@@ -39,8 +39,8 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     ChShaftsClutch(const ChShaftsClutch& other);
     ~ChShaftsClutch() {}
 
-    /// Copy from another ChShaftsClutch.
-    void Copy(ChShaftsClutch* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsClutch* Clone() const override { return new ChShaftsClutch(*this); }
 
     /// Number of scalar constraints, for statistical reasons
     virtual int GetDOC_c() { return 1; }

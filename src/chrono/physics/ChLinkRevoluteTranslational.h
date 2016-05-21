@@ -33,8 +33,8 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     ChLinkRevoluteTranslational(const ChLinkRevoluteTranslational& other);
     ~ChLinkRevoluteTranslational();
 
-    virtual void Copy(ChLinkRevoluteTranslational* source);
-    virtual ChLink* new_Duplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkRevoluteTranslational* Clone() const override { return new ChLinkRevoluteTranslational(*this); }
 
     /// Get the type of this joint.
     virtual int GetType() const override { return LNK_REVOLUTETRANSLATIONAL; }

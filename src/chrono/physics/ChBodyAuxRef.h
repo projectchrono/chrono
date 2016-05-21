@@ -45,10 +45,8 @@ class ChApi ChBodyAuxRef : public ChBody {
     ChBodyAuxRef(const ChBodyAuxRef& other);
     ~ChBodyAuxRef() {}
 
-    /// Copy from another ChBodyAuxRef.
-    /// NOTE: all settings of the body are copied, but the
-    /// child hierarchy of ChForces and ChMarkers (if any) are NOT copied.
-    void Copy(ChBodyAuxRef* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChBodyAuxRef* Clone() const override { return new ChBodyAuxRef(*this); }
 
     /// Get the location of the auxiliary reference respect to COG.
     /// Viceversa, if you need to know the COG respect to auxiliary

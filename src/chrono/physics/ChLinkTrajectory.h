@@ -38,8 +38,8 @@ class ChApi ChLinkTrajectory : public ChLinkLock {
     ChLinkTrajectory(const ChLinkTrajectory& other);
     virtual ~ChLinkTrajectory() {}
 
-    virtual void Copy(ChLinkTrajectory* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkTrajectory* Clone() const override { return new ChLinkTrajectory(*this); }
 
     /// Gets the address of the function s=s(t) telling
     /// how the curvilinear parameter of the trajectory changes in time.

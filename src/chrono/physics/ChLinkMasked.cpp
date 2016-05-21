@@ -53,19 +53,19 @@ ChLinkMasked::ChLinkMasked() {
 }
 
 ChLinkMasked::ChLinkMasked(const ChLinkMasked& other) : ChLinkMarkers(other) {
-    mask->Copy(other.mask);
+    mask - other.mask->Clone();
 
     // setup -alloc all needed matrices!!
     ChangedLinkMask();
 
-    force_D->Copy(other.force_D);
-    force_R->Copy(other.force_R);
-    force_X->Copy(other.force_X);
-    force_Y->Copy(other.force_Y);
-    force_Z->Copy(other.force_Z);
-    force_Rx->Copy(other.force_Rx);
-    force_Ry->Copy(other.force_Ry);
-    force_Rz->Copy(other.force_Rz);
+    force_D = other.force_D->Clone();
+    force_R = other.force_R->Clone();
+    force_X = other.force_X->Clone();
+    force_Y = other.force_Y->Clone();
+    force_Z = other.force_Z->Clone();
+    force_Rx = other.force_Rx->Clone();
+    force_Ry = other.force_Ry->Clone();
+    force_Rz = other.force_Rz->Clone();
 
     d_restlength = other.d_restlength;
 }
@@ -92,35 +92,6 @@ ChLinkMasked::~ChLinkMasked() {
 
     delete mask;
     mask = NULL;
-}
-
-void ChLinkMasked::Copy(ChLinkMasked* source) {
-    // first copy the parent class data...
-    ChLinkMarkers::Copy(source);
-
-    mask->Copy(source->mask);
-
-    // setup -alloc all needed matrices!!
-    ChangedLinkMask();
-
-    force_D->Copy(source->force_D);  // copy int.forces
-    force_R->Copy(source->force_R);
-    force_X->Copy(source->force_X);
-    force_Y->Copy(source->force_Y);
-    force_Z->Copy(source->force_Z);
-    force_Rx->Copy(source->force_Rx);
-    force_Ry->Copy(source->force_Ry);
-    force_Rz->Copy(source->force_Rz);
-
-    d_restlength = source->d_restlength;
-}
-
-ChLink* ChLinkMasked::new_Duplicate()  // inherited classes:  Link* MyInheritedLink::new_Duplicate()
-{
-    ChLinkMasked* m_l;
-    m_l = new ChLinkMasked;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 void ChLinkMasked::BuildLink() {
@@ -157,7 +128,9 @@ void ChLinkMasked::BuildLink() {
 
 void ChLinkMasked::BuildLink(ChLinkMask* new_mask) {
     // set mask
-    mask->Copy(new_mask);
+    delete mask;
+    mask = new_mask->Clone();
+
     // setup matrices;
     BuildLink();
 }

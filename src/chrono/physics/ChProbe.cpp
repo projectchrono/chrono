@@ -22,11 +22,4 @@ ChProbe::ChProbe() {
 
 ChProbe::ChProbe(const ChProbe& other) : ChObj(other) {}
 
-void ChProbe::Copy(ChProbe* source) {
-    // first copy the parent class data...
-    ChObj::Copy(source);
-
-    // copy other data..
-}
-
 }  // end namespace chrono

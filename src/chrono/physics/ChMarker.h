@@ -79,7 +79,8 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     ChMarker(const ChMarker& other);
     ~ChMarker();
 
-    void Copy(ChMarker* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMarker* Clone() const override { return new ChMarker(*this); }
 
     /// Gets the address of the parent rigid body.
     ChBody* GetBody() const { return Body; }

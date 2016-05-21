@@ -163,45 +163,6 @@ ChBody::~ChBody() {
         delete collision_model;
 }
 
-void ChBody::Copy(ChBody* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy the parent class data...
-    ChFrameMoving<double>::operator=(*source);
-
-    bflag = source->bflag;
-
-    variables = source->variables;
-    variables.SetUserData((void*)this);
-
-    gyro = source->Get_gyro();
-
-    RemoveAllForces();   // also copy-duplicate the forces? Let the user handle this..
-    RemoveAllMarkers();  // also copy-duplicate the markers? Let the user handle this..
-
-    ChTime = source->ChTime;
-
-    collision_model->ClearModel();  // also copy-duplicate the collision model? Let the user handle this..
-
-    this->matsurface = source->matsurface;  // also copy-duplicate the material? Let the user handle this..
-
-    density = source->density;
-
-    Scr_force = source->Scr_force;
-    Scr_torque = source->Scr_torque;
-
-    last_coll_pos = source->last_coll_pos;
-
-    max_speed = source->max_speed;
-    max_wvel = source->max_wvel;
-
-    sleep_time = source->sleep_time;
-    sleep_starttime = source->sleep_starttime;
-    sleep_minspeed = source->sleep_minspeed;
-    sleep_minwvel = source->sleep_minwvel;
-}
-
 ChCollisionModel* ChBody::InstanceCollisionModel() {
     ChCollisionModel* collision_model_t = (ChModelBullet*)new ChModelBullet();
     collision_model_t->SetContactable(this);

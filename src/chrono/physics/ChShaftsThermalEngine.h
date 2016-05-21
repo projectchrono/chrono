@@ -40,8 +40,8 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
     ChShaftsThermalEngine(const ChShaftsThermalEngine& other);
     ~ChShaftsThermalEngine() {}
 
-    /// Copy from another ChShaftsThermalEngine.
-    void Copy(ChShaftsThermalEngine* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsThermalEngine* Clone() const override { return new ChShaftsThermalEngine(*this); }
 
     /// Set the torque curve T(w), function of angular speed between shaft1 and shaft2.
     /// Output units: [Nm]  , input units: [rad/s]

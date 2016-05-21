@@ -29,17 +29,6 @@ ChLink::ChLink(const ChLink& other) : ChLinkBase(other) {
     react_torque = other.react_torque;
 }
 
-void ChLink::Copy(ChLink* source) {
-    // first copy the parent class data...
-    ChLinkBase::Copy(source);
-
-    Body1 = 0;
-    Body2 = 0;
-
-    react_force = source->react_force;
-    react_torque = source->react_torque;
-}
-
 void ChLink::UpdateTime(double time) {
     ChTime = time;
 }

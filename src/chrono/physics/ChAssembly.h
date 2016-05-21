@@ -33,6 +33,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
     ChAssembly(const ChAssembly& other);
     virtual ~ChAssembly();
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChAssembly* Clone() const override { return new ChAssembly(*this); }
+
     //
     // CONTAINER FUNCTIONS
     //

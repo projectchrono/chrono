@@ -66,6 +66,9 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     ChContactContainerDEM(const ChContactContainerDEM& other);
     virtual ~ChContactContainerDEM();
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChContactContainerDEM* Clone() const override { return new ChContactContainerDEM(*this); }
+
     /// Tell the number of added contacts
     virtual int GetNcontacts() const override {
         return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_333_6 + n_added_333_3 + n_added_333_333;

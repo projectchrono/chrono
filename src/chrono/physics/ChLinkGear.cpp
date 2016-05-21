@@ -59,34 +59,6 @@ ChLinkGear::ChLinkGear(const ChLinkGear& other) : ChLinkLock(other) {
     local_shaft2 = other.local_shaft2;
 }
 
-void ChLinkGear::Copy(ChLinkGear* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    tau = source->tau;
-    alpha = source->alpha;
-    beta = source->beta;
-    phase = source->phase;
-    a1 = source->a1;
-    a2 = source->a2;
-    epicyclic = source->epicyclic;
-    checkphase = source->checkphase;
-    r1 = source->r1;
-    r2 = source->r2;
-    contact_pt = source->contact_pt;
-    local_shaft1 = source->local_shaft1;
-    local_shaft2 = source->local_shaft2;
-}
-
-ChLink* ChLinkGear::new_Duplicate() {
-    ChLinkGear* m_l;
-    m_l = new ChLinkGear;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 ChVector<> ChLinkGear::Get_shaft_dir1() const {
     if (Body1) {
         ChFrame<double> absframe;

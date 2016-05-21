@@ -36,22 +36,6 @@ ChLinkScrew::ChLinkScrew(const ChLinkScrew& other) : ChLinkLock(other) {
     tau = other.tau;
 }
 
-void ChLinkScrew::Copy(ChLinkScrew* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    tau = source->tau;
-}
-
-ChLink* ChLinkScrew::new_Duplicate() {
-    ChLinkScrew* m_l;
-    m_l = new ChLinkScrew;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkScrew::UpdateState() {
     // First, compute everything as it were a normal "revolute" joint, on z axis...
     ChLinkLock::UpdateState();

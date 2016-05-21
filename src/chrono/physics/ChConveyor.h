@@ -41,8 +41,8 @@ class ChApi ChConveyor : public ChPhysicsItem {
     ChConveyor(const ChConveyor& other);
     ~ChConveyor();
 
-    /// Copy from another ChChConveyor.
-    void Copy(ChConveyor* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChConveyor* Clone() const override { return new ChConveyor(*this); }
 
     /// Set the pointer to the parent ChSystem() and
     /// also add to new collision system / remove from old coll.system

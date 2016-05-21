@@ -59,31 +59,6 @@ ChLinkLinActuator::ChLinkLinActuator(const ChLinkLinActuator& other) : ChLinkLoc
     mot_inertia = other.mot_inertia;
 }
 
-void ChLinkLinActuator::Copy(ChLinkLinActuator* source) {
-    // first copy the parent class data...
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    learn = source->learn;
-    learn_torque_rotation = source->learn_torque_rotation;
-    offset = source->offset;
-
-    dist_funct = std::shared_ptr<ChFunction>(source->dist_funct->Clone());
-    mot_torque = std::shared_ptr<ChFunction>(source->mot_torque->Clone());
-    mot_rot = std::shared_ptr<ChFunction>(source->mot_rot->Clone());
-
-    mot_tau = source->mot_tau;
-    mot_eta = source->mot_eta;
-    mot_inertia = source->mot_inertia;
-}
-
-ChLink* ChLinkLinActuator::new_Duplicate() {
-    ChLinkLinActuator* m_l;
-    m_l = new ChLinkLinActuator;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
 void ChLinkLinActuator::Set_learn(bool mset) {
     if (mset) {
         SetDisabled(true);  // ..just to show it as a green wireframe...

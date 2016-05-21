@@ -67,26 +67,6 @@ void ChLinkMask::AddConstraint(ChConstraintTwoBodies* aconstr) {
     constraints.push_back(aconstr);
 }
 
-void ChLinkMask::Copy(ChLinkMask* source) {
-    int i;
-    for (i = 0; i < nconstr; i++)
-        if (constraints[i])
-            delete constraints[i];
-
-    nconstr = source->nconstr;
-
-    constraints.resize(nconstr);
-
-    for (i = 0; i < nconstr; i++)
-        constraints[i] = source->constraints[i]->Clone();
-}
-
-ChLinkMask* ChLinkMask::NewDuplicate() {
-    ChLinkMask* mm = new ChLinkMask();
-    mm->Copy(this);
-    return mm;
-}
-
 void ChLinkMask::SetTwoBodiesVariables(ChVariables* var1, ChVariables* var2) {
     for (int i = 0; i < nconstr; i++)
         constraints[i]->SetVariables(var1, var2);
@@ -146,19 +126,24 @@ ChConstraintTwoBodies* ChLinkMask::GetActiveConstrByNum(int mnum) {
 int ChLinkMask::SetActiveRedundantByArray(int* mvector, int mcount) {
     int cnt;
 
-    ChLinkMask* newmask;
-    newmask = this->NewDuplicate();
+    ChLinkMask* newmask = Clone();
     for (int elem = 0; elem < mcount; elem++) {
         cnt = 0;
         for (int i = 0; i < nconstr; i++) {
-            if (Constr_N(i).IsActive()) {
+            if (constraints[i]->IsActive()) {
                 if (cnt == mvector[elem])
-                    newmask->Constr_N(i).SetRedundant(true);
+                    newmask->constraints[i]->SetRedundant(true);
                 cnt++;
             }
         }
     }
-    this->Copy(newmask);  // replace the mask with updated one.
+
+    // Replace the mask with updated one.
+    for (int i = 0; i < nconstr; i++) {
+        delete constraints[i];
+        constraints[i] = newmask->constraints[i]->Clone();
+    }
+
     return mcount;
 }
 
@@ -218,16 +203,6 @@ ChClassRegister<ChLinkMaskLF> a_registration_ChLinkMaskLF;
 
 ChLinkMaskLF::ChLinkMaskLF() {
     ResetNconstr(7);  // the LF formulation uses 7 constraint flags
-}
-
-void ChLinkMaskLF::Copy(ChLinkMaskLF* source) {
-    ChLinkMask::Copy(source);  // first, inherit
-}
-
-ChLinkMask* ChLinkMaskLF::NewDuplicate() {
-    ChLinkMaskLF* mm = new ChLinkMaskLF();
-    mm->Copy(this);
-    return mm;
 }
 
 void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3) {

@@ -37,21 +37,6 @@ ChShaftsGearboxAngled::ChShaftsGearboxAngled(const ChShaftsGearboxAngled& other)
     body = NULL;
 }
 
-void ChShaftsGearboxAngled::Copy(ChShaftsGearboxAngled* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-    t0 = source->t0;
-    shaft_dir1 = source->shaft_dir1;
-    shaft_dir2 = source->shaft_dir2;
-
-    torque_react = source->torque_react;
-    shaft1 = 0;
-    shaft2 = 0;
-    body = 0;
-}
-
 bool ChShaftsGearboxAngled::Initialize(
     std::shared_ptr<ChShaft> mshaft1,    // first (input) shaft to join
     std::shared_ptr<ChShaft> mshaft2,    // second  (output) shaft to join

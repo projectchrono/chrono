@@ -47,8 +47,8 @@ class ChApi ChLinkMask {
     /// Destructor
     virtual ~ChLinkMask();
 
-    virtual void Copy(ChLinkMask* source);
-    virtual ChLinkMask* NewDuplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMask* Clone() const { return new ChLinkMask(*this); }
 
     /// Set references to variables of two connected bodies to all
     /// constraints at once, therefore also sets all the constraints as active.
@@ -128,8 +128,8 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     ChLinkMaskLF();
     ChLinkMaskLF(const ChLinkMaskLF& other) : ChLinkMask(other) {}
 
-    void Copy(ChLinkMaskLF* source);
-    ChLinkMask* NewDuplicate();
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMaskLF* Clone() const override { return new ChLinkMaskLF(*this); }
 
     /// Set all mask data at once
     void SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);

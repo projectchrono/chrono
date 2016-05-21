@@ -39,23 +39,6 @@ ChShaftsGearbox::ChShaftsGearbox(const ChShaftsGearbox& other) : ChPhysicsItem(o
     shaft_dir = other.shaft_dir;
 }
 
-void ChShaftsGearbox::Copy(ChShaftsGearbox* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-    r1 = source->r1;
-    r2 = source->r2;
-    r3 = source->r3;
-
-    torque_react = source->torque_react;
-    shaft1 = 0;
-    shaft2 = 0;
-    body = 0;
-
-    shaft_dir = source->shaft_dir;
-}
-
 bool ChShaftsGearbox::Initialize(std::shared_ptr<ChShaft> mshaft1,   // first (input) shaft to join
                                  std::shared_ptr<ChShaft> mshaft2,   // second  (output) shaft to join
                                  std::shared_ptr<ChBodyFrame> mbody, // 3D body to use as truss

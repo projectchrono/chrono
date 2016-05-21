@@ -82,44 +82,6 @@ ChLinkPneumaticActuator::~ChLinkPneumaticActuator() {
     pneuma = NULL;
 }
 
-void ChLinkPneumaticActuator::Copy(ChLinkPneumaticActuator* source) {
-    // first copy the parent class data...
-    //
-
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    pneuma->Set_Ci(source->pneuma->Get_Ci());
-    pneuma->Set_Co(source->pneuma->Get_Co());
-    pneuma->Set_Bi(source->pneuma->Get_Bi());
-    pneuma->Set_Bo(source->pneuma->Get_Bo());
-    pneuma->Set_Ps(source->pneuma->Get_Ps());
-    pneuma->Set_Pma(source->pneuma->Get_Pma());
-    pneuma->Set_Pmb(source->pneuma->Get_Pmb());
-    pneuma->Set_L(source->pneuma->Get_L());
-    pneuma->Set_Wa(source->pneuma->Get_Wa());
-    pneuma->Set_Wb(source->pneuma->Get_Wb());
-    pneuma->Set_A(source->pneuma->Get_A());
-    pneuma->Set_Alfa(source->pneuma->Get_Alfa());
-    pneuma->Set_Gamma(source->pneuma->Get_Gamma());
-    pneuma->Set_ValvA_min(source->pneuma->Get_ValvA_min());
-    pneuma->Set_ValvA_max(source->pneuma->Get_ValvA_max());
-    pneuma->Set_ValvA_close(source->pneuma->Get_ValvA_close());
-    pneuma->Set_ValvB_min(source->pneuma->Get_ValvB_min());
-    pneuma->Set_ValvB_max(source->pneuma->Get_ValvB_max());
-    pneuma->Set_ValvB_close(source->pneuma->Get_ValvB_close());
-    pneuma->SetupAssePneumatico();  // setup into sub objects
-    offset = source->offset;
-    pA = source->pA;
-    pB = source->pB;
-    pA_dt = source->pA_dt;
-    pB_dt = source->pB_dt;
-    pneuma->Set_P(source->pA, source->pB);  // this also copies state into internal structures
-    pneuma->Set_Pos(source->Get_pneu_pos(), source->Get_pneu_pos_dt());
-    pneu_F = source->pneu_F;
-    last_force_time = source->last_force_time;
-}
-
 void ChLinkPneumaticActuator::Set_lin_offset(double mset) {
     offset = mset;
     limit_X->Set_min(offset);
@@ -129,13 +91,6 @@ void ChLinkPneumaticActuator::Set_lin_offset(double mset) {
 void ChLinkPneumaticActuator::Set_pneu_L(double mset) {
     pneuma->Set_L(mset);
     limit_X->Set_max(pneuma->Get_L() + offset);
-}
-
-ChLink* ChLinkPneumaticActuator::new_Duplicate() {
-    ChLinkPneumaticActuator* m_l;
-    m_l = new ChLinkPneumaticActuator;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 void ChLinkPneumaticActuator::UpdateTime(double mytime) {
