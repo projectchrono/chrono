@@ -93,6 +93,23 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set_A_AngAxis(angle, axis);
     }
 
+    /// Complete generic constructor from 9 elements, ordered as three in first row, 
+    /// three in second row, three in third row.
+    template <class RealB>
+    ChMatrix33(const RealB& m00, const RealB& m01, const RealB& m02,
+	           const RealB& m10, const RealB& m11, const RealB& m12,
+	           const RealB& m20, const RealB& m21, const RealB& m22) {
+        this->Set33Element(0,0, m00);
+        this->Set33Element(0,1, m01);
+        this->Set33Element(0,2, m02);
+        this->Set33Element(1,0, m10);
+        this->Set33Element(1,1, m11);
+        this->Set33Element(1,2, m12);
+        this->Set33Element(2,0, m20);
+        this->Set33Element(2,1, m21);
+        this->Set33Element(2,2, m22);
+    }
+
     //
     // OPERATORS
     //
