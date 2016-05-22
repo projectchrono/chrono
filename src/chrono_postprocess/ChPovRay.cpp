@@ -143,7 +143,7 @@ void ChPovRay::SetupLists() {
 
     // See if some asset in exporter cache is not used anymore (except for 1 reference from this cache),
     // this would mean that the body/bodies that owned such asset have been removed.
-    ChHashTable<size_t, std::shared_ptr<ChAsset> >::iterator mcachedasset = pov_assets.begin();
+    std::unordered_map<size_t, std::shared_ptr<ChAsset> >::iterator mcachedasset = pov_assets.begin();
     while (mcachedasset != pov_assets.end()) {
         if (mcachedasset->second.use_count() == 1) {
             // cached asset not used anymore! remove from hashtable...
@@ -425,11 +425,11 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
     for (unsigned int k = 0; k < assetlist.size(); k++) {
         std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
-        ChHashTable<size_t, std::shared_ptr<ChAsset> >::iterator mcached = pov_assets.find((size_t)k_asset.get());
+        std::unordered_map<size_t, std::shared_ptr<ChAsset> >::iterator mcached = pov_assets.find((size_t)k_asset.get());
         if (mcached == pov_assets.end()) {
             // Ok, add the asset in POV file, it was not already saved.
             // Otherwise it was a shared asset.
-            pov_assets.insert((size_t)k_asset.get(), k_asset);
+            pov_assets.insert({(size_t)k_asset.get(), k_asset});
 
             // Do dynamic casting of the shared pointer to see which type
             // of asset is contained...

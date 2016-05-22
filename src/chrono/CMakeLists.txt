@@ -49,8 +49,6 @@ set(ChronoEngine_core_HEADERS
     core/ChException.h
     core/ChFrame.h
     core/ChFrameMoving.h
-    core/ChHashFunction.h
-    core/ChHashTable.h
     core/ChLinearAlgebra.h
     core/ChLists.h
     core/ChLog.h

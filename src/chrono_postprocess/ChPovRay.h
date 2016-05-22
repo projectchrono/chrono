@@ -28,9 +28,9 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 #include "physics/ChSystem.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
-#include "core/ChHashTable.h"
 #include "core/ChHashFunction.h"
 #include "assets/ChVisualization.h"
 
@@ -216,7 +216,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
                                ChStreamOutAsciiFile& mfilepov);
 
     std::vector<std::shared_ptr<ChPhysicsItem> > mdata;
-    ChHashTable<size_t, std::shared_ptr<ChAsset> > pov_assets;
+    std::unordered_map<size_t, std::shared_ptr<ChAsset> > pov_assets;
 
     std::string template_filename;
     std::string pic_filename;
