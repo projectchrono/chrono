@@ -807,6 +807,11 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         temp.z = this->Get33Element(2, 2);
         return temp;
     }
+    
+    /// Return the sum of the three elements on the diagonal
+    Real GetTrace() const {
+        return this->Get33Element(0, 0) + this->Get33Element(1, 1) + this->Get33Element(2, 2);
+    }
 
     /// Convert to a 2-dimensional array
     void To_Marray(double marr[3][3]) {
