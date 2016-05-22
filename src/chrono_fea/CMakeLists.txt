@@ -100,6 +100,7 @@ SET(ChronoEngine_FEA_HEADERS
 	  ChMeshSurface.h
     ChUtilsFEA.h
 	  ChLoadContactSurfaceMesh.h
+	  ChRotUtils.h
 )
 
 SOURCE_GROUP("" FILES 
