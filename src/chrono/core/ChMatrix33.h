@@ -405,6 +405,21 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set33Element(2, 2, 0);
     }
 
+    /// Fills a 3x3 matrix as product of two 'cross product' matrices, 
+    /// as double vector cross product.
+    template <class RealB>
+    void Set_XY_matrix(const ChVector<RealB>& vectA,const ChVector<RealB>& vectB) {
+        this->Set33Element(0,0, -vectA.y*vectB.y-vectA.z*vectB.z);
+        this->Set33Element(1,0,  vectA.x*vectB.y);
+        this->Set33Element(2,0,  vectA.x*vectB.z);
+        this->Set33Element(0,1,  vectA.y*vectB.x);
+        this->Set33Element(1,1, -vectA.z*vectB.z-vectA.x*vectB.x);
+        this->Set33Element(2,1,  vectA.y*vectB.z);
+        this->Set33Element(0,2,  vectA.z*vectB.x);
+        this->Set33Element(1,2,  vectA.z*vectB.y);
+        this->Set33Element(2,2, -vectA.x*vectB.x-vectA.y*vectB.y);
+    }
+
     /// Fills a 3x3 matrix as a rotation matrix, given the three
     /// versors X,Y,Z of the basis.
     template <class RealB>
