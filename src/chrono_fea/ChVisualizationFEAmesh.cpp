@@ -1178,15 +1178,15 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 // gauss strains
                 if (true) {
                     for (int igp=0; igp<4; ++igp) {
-                        
+                        double scale = 1; 
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
                             myshell->EvaluateGP(igp), 
-                            myshell->T_i[igp].Rotate(myshell->eps_tilde_u[igp]*1000), ChColor(1,0,0) );
+                            myshell->T_i[igp].Rotate(myshell->eps_tilde_u[igp]*scale), ChColor(1,0,0) );
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
                             myshell->EvaluateGP(igp), 
-                            myshell->T_i[igp].Rotate(myshell->eps_tilde_v[igp]*1000), ChColor(0,0,1) );
+                            myshell->T_i[igp].Rotate(myshell->eps_tilde_v[igp]*scale), ChColor(0,0,1) );
                         glyphs_asset->GetNumberOfGlyphs();
                         /*
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 

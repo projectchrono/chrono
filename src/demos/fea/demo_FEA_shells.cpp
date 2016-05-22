@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     // Add an EANS SHELL cantilever:
     //
 
-    if (true)
+    if (false)
     {
         double rect_thickness = 0.10;
         double rect_L = 12.0;
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
         }
         
         // applied shear
-        //load_force = ChVector<>(200000, 0, 0);
+        //load_force = ChVector<>(200000,0, 20000);
         //load_force = ChVector<>(0, 4, 0);
         load_torque = ChVector<>(0, 0, 50*CH_C_PI/3.0);
         ref_Y.AddPoint(0.10,1.309); ref_X.AddPoint(0.40,0.103);
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
     // Add a SLIT ANNULAR PLATE:
     //
 
-    if (false)
+    if (true)
     {
         double plate_thickness = 0.03;
         double plate_Ri = 6;
@@ -599,8 +599,9 @@ int main(int argc, char* argv[]) {
     }
     */
   //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
- 
-    application.SetTimestep(0.01);
+  //my_system.SetIntegrationType(ChSystem::INT_NEWMARK);
+
+    application.SetTimestep(0.1);
     application.SetPaused(true);
     my_system.Setup();
     my_system.Update();
