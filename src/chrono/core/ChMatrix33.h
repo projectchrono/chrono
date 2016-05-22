@@ -813,6 +813,28 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         return this->Get33Element(0, 0) + this->Get33Element(1, 1) + this->Get33Element(2, 2);
     }
 
+    /// Assuming it is an orthogonal rotation matrix, get Ax vector
+    ChVector<Real> GetAx() const {
+        return ChVector<Real>(
+		      0.5*(this->Get33Element(2,1)-this->Get33Element(1,2)),
+		      0.5*(this->Get33Element(0,2)-this->Get33Element(2,0)),
+		      0.5*(this->Get33Element(1,0)-this->Get33Element(0,1))
+		      );
+    };
+
+    /// Return a symmetric matrix =(1/2)*(A+A')
+    ChMatrix33<Real> GetSymm() const {
+        Real m12 = 0.5*(this->Get33Element(1,0)+this->Get33Element(0,1));
+        Real m13 = 0.5*(this->Get33Element(2,0)+this->Get33Element(0,2));
+        Real m23 = 0.5*(this->Get33Element(2,1)+this->Get33Element(1,2));
+
+        return ChMatrix33<Real>(
+		      this->Get33Element(0,0), m12, m13,
+		      m12, this->Get33Element(1,1), m23,
+		      m13, m23, this->Get33Element(2,2)
+		      );
+    };
+
     /// Convert to a 2-dimensional array
     void To_Marray(double marr[3][3]) {
         marr[0][0] = this->Get33Element(0, 0);
