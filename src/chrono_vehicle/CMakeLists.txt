@@ -321,7 +321,7 @@ set(CV_WV_WHEEL_FILES
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
-if(MPI_CXX_FOUND)
+if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
     set(CV_WV_COSIM_FILES
         wheeled_vehicle/cosim/ChCosimManager.h
         wheeled_vehicle/cosim/ChCosimManager.cpp
