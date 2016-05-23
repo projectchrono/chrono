@@ -522,7 +522,7 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 void ChElementShellEANS4::Update() {
     ChElementGeneric::Update();
     //***TEST***
-    ChMatrixDynamic<> mfoo(12,1); // just for updating coordsys
+    ChMatrixDynamic<> mfoo(24,1); // just for updating coordsys
     ComputeInternalForces(mfoo);
 }
 
