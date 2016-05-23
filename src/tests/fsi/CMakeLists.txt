@@ -2,6 +2,8 @@
 # Additional include paths and libraries
 # ------------------------------------------------------------------------------
 
+MESSAGE(STATUS "Additional test programs for FSI module...")
+
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 SET(LIBRARIES
