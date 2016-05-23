@@ -54,11 +54,14 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
+
+#ifdef CHRONO_FEA
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+#endif
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
@@ -358,6 +361,8 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Using step_size = " << step_size << std::endl;
+
+#ifdef CHRONO_FEA
     switch (tire_model) {
         case ANCF:
             std::cout << "ANCF tire mass = " << std::static_pointer_cast<ChANCFTire>(tire)->GetMass() << std::endl;
@@ -366,6 +371,7 @@ int main(int argc, char* argv[]) {
             std::cout << "FEA tire mass = " << std::static_pointer_cast<ChFEATire>(tire)->GetMass() << std::endl;
             break;
     }
+#endif
 
     // Create the Irrlicht app
     // -----------------------
