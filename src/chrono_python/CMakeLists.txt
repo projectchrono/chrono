@@ -121,7 +121,6 @@ SET(ChronoEngine_SWIG_PYTHON_WRAPPERS
 	ChCoordsys.i
 	ChVector.i
 	ChQuaternion.i
-	ChHashFunction.i
 	)
 
 			

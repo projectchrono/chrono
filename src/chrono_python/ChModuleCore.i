@@ -193,7 +193,6 @@ using namespace chrono::geometry;
 
 //  core/  classes
 %include "ChException.i"
-%include "ChHashFunction.i"
 %include "ChArchive.i"
 %include "ChVector.i" 
 #define Vector ChVector<double>
