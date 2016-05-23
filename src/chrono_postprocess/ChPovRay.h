@@ -26,13 +26,12 @@
 ///////////////////////////////////////////////////
 
 #include <fstream>
-#include <string>
 #include <sstream>
+#include <string>
 #include <unordered_map>
-#include "physics/ChSystem.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
-#include "core/ChHashFunction.h"
-#include "assets/ChVisualization.h"
 
 namespace chrono {
 
