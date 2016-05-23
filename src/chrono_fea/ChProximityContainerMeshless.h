@@ -1,48 +1,45 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHPROXIMITYCONTAINERMESHLESS_H
 #define CHPROXIMITYCONTAINERMESHLESS_H
 
-#include "physics/ChProximityContainerBase.h"
-#include "collision/ChCModelBullet.h"
 #include <list>
+
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/physics/ChProximityContainerBase.h"
 
 namespace chrono {
 
-///
 /// Class for a proximity pair information in a meshless deformable continumm,
 /// made with a cluster of particles - that is, an 'edge' topological connectivity in
 /// in a meshless FEA approach, similar to the Smoothed Particle Hydrodynamics.
-///
 
 class ChApiFea ChProximityMeshless {
   public:
     ChProximityMeshless(collision::ChCollisionModel* mmodA,  ///< model A
-                        collision::ChCollisionModel* mmodB)  ///< model B
-    {
+                        collision::ChCollisionModel* mmodB   ///< model B
+                        ) {
         Reset(mmodA, mmodB);
     }
 
-    virtual ~ChProximityMeshless(){};
-
-    //
-    // FUNCTIONS
-    //
+    virtual ~ChProximityMeshless() {}
 
     /// Initialize again this constraint.
     virtual void Reset(collision::ChCollisionModel* mmodA,  ///< model A
-                       collision::ChCollisionModel* mmodB)  ///< model B
-    {
+                       collision::ChCollisionModel* mmodB   ///< model B
+                       ) {
         assert(mmodA);
         assert(mmodB);
 
@@ -56,88 +53,79 @@ class ChApiFea ChProximityMeshless {
     virtual collision::ChCollisionModel* GetModelB() { return this->modB; }
 
   private:
-    //
-    // DATA
-    //
     collision::ChCollisionModel* modA;  ///< model A
     collision::ChCollisionModel* modB;  ///< model B
 };
 
-///
 /// Class for container of many proximity pairs for a meshless
 /// deformable continuum (necessary for inter-particle material forces),
 /// as CPU typical linked list of ChProximityMeshless objects.
 /// Such an item must be addd to the physical system if you added
 /// an object of class ChMatterMeshless.
-///
 
 class ChApiFea ChProximityContainerMeshless : public ChProximityContainerBase {
     CH_RTTI(ChProximityContainerMeshless, ChProximityContainerBase);
 
   protected:
-    //
-    // DATA
-    //
-
     std::list<ChProximityMeshless*> proximitylist;
-
+    std::list<ChProximityMeshless*>::iterator lastproximity;
     int n_added;
 
-    std::list<ChProximityMeshless*>::iterator lastproximity;
-
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChProximityContainerMeshless();
-
+    ChProximityContainerMeshless(const ChProximityContainerMeshless& other);
     virtual ~ChProximityContainerMeshless();
 
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChProximityContainerMeshless* Clone() const override { return new ChProximityContainerMeshless(*this); }
 
     /// Tell the number of added contacts
-    virtual int GetNproximities() { return n_added; }
+    virtual int GetNproximities() const override { return n_added; }
 
     /// Remove (delete) all contained contact data.
-    virtual void RemoveAllProximities();
+    virtual void RemoveAllProximities() override;
 
     /// The collision system will call BeginAddProximities() before adding
     /// all pairs (for example with AddProximity() or similar). Instead of
     /// simply deleting all list of the previous pairs, this optimized implementation
     /// rewinds the link iterator to begin and tries to reuse previous pairs objects
     /// until possible, to avoid too much allocation/deallocation.
-    virtual void BeginAddProximities();
+    virtual void BeginAddProximities() override;
 
     /// Add a proximity SPH data between two collision models, if possible.
     virtual void AddProximity(collision::ChCollisionModel* modA,  ///< get contact model 1
                               collision::ChCollisionModel* modB   ///< get contact model 2
-                              );
+                              ) override;
 
     /// The collision system will call BeginAddContact() after adding
     /// all contacts (for example with AddContact() or similar). This optimized version
     /// purges the end of the list of contacts that were not reused (if any).
-    virtual void EndAddProximities();
+    virtual void EndAddProximities() override;
 
     /// Scans all the proximity pairs of SPH type and for each pair executes the ReportProximityCallback()
     /// function of the user object inherited from ChReportProximityCallback.
-    virtual void ReportAllProximities(ChReportProximityCallback* mcallback);
+    virtual void ReportAllProximities(ChReportProximityCallback* mcallback) override;
 
     // Perform some SPH per-edge initializations and accumulations of values
     // into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )
     // Will be called by the ChMatterMeshless item.
-    virtual void AccumulateStep1();
+    void AccumulateStep1();
 
     // Perform some SPH per-edge transfer of forces, given stress tensors in A B nodes
     // Will be called by the ChMatterMeshless item.
-    virtual void AccumulateStep2();
+    void AccumulateStep2();
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

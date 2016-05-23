@@ -1,35 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHINDEXEDNODES_H
 #define CHINDEXEDNODES_H
 
-//////////////////////////////////////////////////
-//
-//   ChIndexedNodes.h
-//
-//   Interface class for clusters of points that can
-//   be accessed with an index.
-//   Must be inherited by children classes.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChNodeBase.h"
+#include "chrono/physics/ChNodeBase.h"
 
 namespace chrono {
 
@@ -41,28 +27,17 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChIndexedNodes, ChPhysicsItem);
 
-  private:
-    //
-    // DATA
-    //
-
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Build a cluster of nodes
-    ChIndexedNodes();
-
-    /// Destructor
-    virtual ~ChIndexedNodes();
+    ChIndexedNodes() {}
+    ChIndexedNodes(const ChIndexedNodes& other) : ChPhysicsItem(other) {}
+    virtual ~ChIndexedNodes() {}
 
     //
     // FUNCTIONS
     //
 
     /// Get the number of nodes
-    virtual unsigned int GetNnodes() = 0;
+    virtual unsigned int GetNnodes() const = 0;
 
     /// Access the N-th node
     virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) = 0;
@@ -83,12 +58,12 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

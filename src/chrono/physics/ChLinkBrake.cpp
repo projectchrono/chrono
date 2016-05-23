@@ -1,40 +1,28 @@
 //
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-
-#include "physics/ChLinkBrake.h"
+#include "chrono/physics/ChLinkBrake.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-//
-//   CLASS FOR BRAKE LINK
-//
-//
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkBrake> a_registration_ChLinkBrake;
 
-ChLinkBrake::ChLinkBrake() {
+ChLinkBrake::ChLinkBrake()
+    : brake_torque(0), stick_ratio(1.1), brake_mode(BRAKE_ROTATION), last_dir(0), must_stick(false) {
     type = LNK_BRAKE;  // initializes type
-
-    brake_torque = 0.0;
-    stick_ratio = 1.1;
-
-    brake_mode = BRAKE_ROTATION;
-
-    last_dir = 0;
-    must_stick = FALSE;
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // because this class inherited from LinkLock.
@@ -43,29 +31,13 @@ ChLinkBrake::ChLinkBrake() {
     ChangedLinkMask();
 }
 
-ChLinkBrake::~ChLinkBrake() {
-    // ..
-}
+ChLinkBrake::ChLinkBrake(const ChLinkBrake& other) : ChLinkLock(other) {
+    brake_torque = other.brake_torque;
+    stick_ratio = other.stick_ratio;
+    brake_mode = other.brake_mode;
 
-void ChLinkBrake::Copy(ChLinkBrake* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    brake_torque = source->brake_torque;
-    stick_ratio = source->stick_ratio;
-    brake_mode = source->brake_mode;
-
-    last_dir = source->last_dir;
-    must_stick = source->must_stick;
-}
-
-ChLink* ChLinkBrake::new_Duplicate() {
-    ChLinkBrake* m_l;
-    m_l = new ChLinkBrake;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+    last_dir = other.last_dir;
+    must_stick = other.must_stick;
 }
 
 void ChLinkBrake::Set_brake_mode(int mmode) {
@@ -89,16 +61,12 @@ void ChLinkBrake::SetDisabled(bool mdis) {
     ChangedLinkMask();
 }
 
-// UPDATING ///
-
 // Update time: just change internal time, do not let parent class modify deltaC !
-
 void ChLinkBrake::UpdateTime(double time) {
     ChTime = time;
 }
 
 // Update forces: if not sticked, apply torque
-
 void ChLinkBrake::UpdateForces(double mytime) {
     // First, inherit to parent class
     ChLinkLock::UpdateForces(mytime);
@@ -121,7 +89,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
                 }
 
                 if (mdir != this->last_dir)
-                    this->must_stick = TRUE;
+                    this->must_stick = true;
                 this->last_dir = mdir;
 
                 // +++ADD TO LINK TORQUE VECTOR
@@ -141,7 +109,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
                 }
 
                 if (mdir != this->last_dir)
-                    this->must_stick = TRUE;
+                    this->must_stick = true;
                 this->last_dir = mdir;
 
                 // +++ADD TO LINK TORQUE VECTOR
@@ -152,14 +120,10 @@ void ChLinkBrake::UpdateForces(double mytime) {
 
     // turn off sticking feature if stick ration not > 1.0
     if (this->stick_ratio <= 1.0)
-        must_stick = FALSE;
+        must_stick = false;
 }
 
-// FILE I/O
-
-
-void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -173,8 +137,7 @@ void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkBrake::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkBrake::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -187,6 +150,4 @@ void ChLinkBrake::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(brake_mode);
 }
 
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

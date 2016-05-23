@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
 #include "physics/ChLinkUniversal.h"
 
@@ -28,46 +31,35 @@ ChLinkUniversal::ChLinkUniversal() {
     m_multipliers[3] = 0;
 }
 
+ChLinkUniversal::ChLinkUniversal(const ChLinkUniversal& other) : ChLink(other) {
+    Body1 = other.Body1;
+    Body2 = other.Body2;
+    system = other.system;
+
+    m_frame1 = other.m_frame1;
+    m_frame2 = other.m_frame2;
+
+    m_cnstr_x.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_y.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_z.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_dot.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+
+    m_multipliers[0] = other.m_multipliers[0];
+    m_multipliers[1] = other.m_multipliers[1];
+    m_multipliers[2] = other.m_multipliers[2];
+    m_multipliers[3] = other.m_multipliers[3];
+}
+
 ChLinkUniversal::~ChLinkUniversal() {
     delete m_C;
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChLinkUniversal::Copy(ChLinkUniversal* source) {
-    ChLink::Copy(source);
-
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-
-    m_frame1 = source->m_frame1;
-    m_frame2 = source->m_frame2;
-
-    m_cnstr_x.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_y.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_z.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
-
-    m_multipliers[0] = source->m_multipliers[0];
-    m_multipliers[1] = source->m_multipliers[1];
-    m_multipliers[2] = source->m_multipliers[2];
-    m_multipliers[3] = source->m_multipliers[3];
-}
-
-ChLink* ChLinkUniversal::new_Duplicate() {
-    ChLinkUniversal* link = new ChLinkUniversal;
-    link->Copy(this);
-    return (link);
-}
-
-// -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first body frame
-                                 std::shared_ptr<ChBodyFrame> body2,  // second body frame
-                                 const ChFrame<>& frame)          // joint frame (in absolute frame)
-{
+void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                 std::shared_ptr<ChBodyFrame> body2,
+                                 const ChFrame<>& frame) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -88,12 +80,11 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first b
     m_C->SetElement(3, 0, 0.0);
 }
 
-void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first body frame
-                                 std::shared_ptr<ChBodyFrame> body2,  // second body frame
-                                 bool local,                      // true if data given in body local frames
-                                 const ChFrame<>& frame1,         // joint frame on body 1
-                                 const ChFrame<>& frame2)         // joint frame on body 2
-{
+void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                 std::shared_ptr<ChBodyFrame> body2,
+                                 bool local,
+                                 const ChFrame<>& frame1,
+                                 const ChFrame<>& frame2) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -422,9 +413,7 @@ void ChLinkUniversal::ConstraintsFetch_react(double factor) {
     react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
 }
 
-
-void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -437,8 +426,7 @@ void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkUniversal::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkUniversal::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -450,5 +438,4 @@ void ChLinkUniversal::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(m_frame2);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

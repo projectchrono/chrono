@@ -1,75 +1,49 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChShaftsBody.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChShaftsBody.h"
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChShaftsBody.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChShaftsBody> a_registration_ChShaftsBody;
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChShaftsBody::ChShaftsBody() : torque_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z) {}
 
-ChShaftsBody::ChShaftsBody() {
-    this->torque_react = 0;
-
-    this->shaft = 0;
-    this->body = 0;
-    this->shaft_dir = VECT_Z;
-
-    SetIdentifier(GetUniqueIntID());  // mark with unique ID
-}
-
-ChShaftsBody::~ChShaftsBody() {
-}
-
-void ChShaftsBody::Copy(ChShaftsBody* source) {
-    // copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    // copy class data
-
-    torque_react = source->torque_react;
-    this->shaft_dir = source->shaft_dir;
-    this->shaft = 0;
-    this->body = 0;
+ChShaftsBody::ChShaftsBody(const ChShaftsBody& other) : ChPhysicsItem(other) {
+    torque_react = other.torque_react;
+    shaft_dir = other.shaft_dir;
+    shaft = NULL;
+    body = NULL;
 }
 
 bool ChShaftsBody::Initialize(std::shared_ptr<ChShaft> mshaft,
-                              std::shared_ptr<ChBodyFrame> mbody,
+                              std::shared_ptr<ChBodyFrame>
+                                  mbody,
                               const ChVector<>& mdir) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
 
-    this->shaft = mm1;
-    this->body = mm2;
-    this->shaft_dir = Vnorm(mdir);
+    shaft = mm1;
+    body = mm2;
+    shaft_dir = Vnorm(mdir);
 
-    this->constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
 
-    this->SetSystem(this->shaft->GetSystem());
+    SetSystem(shaft->GetSystem());
     return true;
 }
 
@@ -84,11 +58,11 @@ void ChShaftsBody::Update(double mytime, bool update_assets) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChShaftsBody::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = this->torque_react;
+    L(off_L) = torque_react;
 }
 
 void ChShaftsBody::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    this->torque_react = L(off_L);
+    torque_react = L(off_L);
 }
 
 void ChShaftsBody::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -137,7 +111,7 @@ void ChShaftsBody::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
 // SOLVER INTERFACES
 
 void ChShaftsBody::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     mdescriptor.InsertConstraint(&constraint);
@@ -148,7 +122,7 @@ void ChShaftsBody::ConstraintsBiReset() {
 }
 
 void ChShaftsBody::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     double res = 0;  // no residual
@@ -157,7 +131,7 @@ void ChShaftsBody::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
 }
 
 void ChShaftsBody::ConstraintsBiLoad_Ct(double factor) {
-    // if (!this->IsActive())
+    // if (!IsActive())
     //	return;
 
     // nothing
@@ -165,28 +139,27 @@ void ChShaftsBody::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsBody::ConstraintsLoadJacobians() {
     // compute jacobians
-    // ChVector<> jacw = this->body->TransformDirectionParentToLocal(shaft_dir);
+    // ChVector<> jacw = body->TransformDirectionParentToLocal(shaft_dir);
     ChVector<> jacw = shaft_dir;
 
-    this->constraint.Get_Cq_a()->ElementN(0) = -1;
+    constraint.Get_Cq_a()->ElementN(0) = -1;
 
-    this->constraint.Get_Cq_b()->ElementN(0) = 0;
-    this->constraint.Get_Cq_b()->ElementN(1) = 0;
-    this->constraint.Get_Cq_b()->ElementN(2) = 0;
-    this->constraint.Get_Cq_b()->ElementN(3) = (float)jacw.x;
-    this->constraint.Get_Cq_b()->ElementN(4) = (float)jacw.y;
-    this->constraint.Get_Cq_b()->ElementN(5) = (float)jacw.z;
+    constraint.Get_Cq_b()->ElementN(0) = 0;
+    constraint.Get_Cq_b()->ElementN(1) = 0;
+    constraint.Get_Cq_b()->ElementN(2) = 0;
+    constraint.Get_Cq_b()->ElementN(3) = jacw.x;
+    constraint.Get_Cq_b()->ElementN(4) = jacw.y;
+    constraint.Get_Cq_b()->ElementN(5) = jacw.z;
 }
 
 void ChShaftsBody::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    this->torque_react = constraint.Get_l_i() * factor;
+    torque_react = constraint.Get_l_i() * factor;
 }
 
 //////// FILE I/O
 
-void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -195,13 +168,12 @@ void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     marchive << CHNVP(shaft_dir);
-    //marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    //marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    // marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    // marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -210,12 +182,8 @@ void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive)
 
     // deserialize all member data:
     marchive >> CHNVP(shaft_dir);
-    //marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    //marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    // marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    // marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
 }
 
-
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

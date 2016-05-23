@@ -1,77 +1,59 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include "chrono_fea/ChLinkPointPoint.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChIndexedNodes.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono_fea/ChLinkPointPoint.h"
 
-using namespace chrono;
-using namespace fea;
+namespace chrono {
+namespace fea {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkPointPoint> a_registration_ChLinkPointPoint;
 
-//////////////////////////////////////
-//////////////////////////////////////
+ChLinkPointPoint::ChLinkPointPoint() : react(VNULL) {}
 
-ChLinkPointPoint::ChLinkPointPoint() {
-	this->react= VNULL;
-
-	SetIdentifier(GetUniqueIntID()); // mark with unique ID
+ChLinkPointPoint::ChLinkPointPoint(const ChLinkPointPoint& other) : ChLinkBase(other) {
+    react = other.react;
 }
 
-ChLinkPointPoint::~ChLinkPointPoint() {
-}
-
-void ChLinkPointPoint::Copy(ChLinkPointPoint* source) {
-		// copy the parent class data...
-	ChPhysicsItem::Copy(source);
-
-		// copy class data
-	react = source->react;
-}
-
-ChCoordsys<> ChLinkPointPoint::GetLinkAbsoluteCoords() {
-	return CSYSNORM;
-}
-
-
-int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< node to join
-						         std::shared_ptr<ChNodeFEAxyz> anodeB  ///< node to join
+int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
+                                 std::shared_ptr<ChNodeFEAxyz> anodeB
                                  ) {
-	assert(anodeA && anodeB);
+    assert(anodeA && anodeB);
 
-	this->mnodeA = anodeA;
-    this->mnodeB = anodeB;
+    mnodeA = anodeA;
+    mnodeB = anodeB;
 
-	this->constraint1.SetVariables(&(this->mnodeA->Variables()), &(this->mnodeB->Variables()));
-	this->constraint2.SetVariables(&(this->mnodeA->Variables()), &(this->mnodeB->Variables()));
-	this->constraint3.SetVariables(&(this->mnodeA->Variables()), &(this->mnodeB->Variables()));
+    constraint1.SetVariables(&(mnodeA->Variables()), &(mnodeB->Variables()));
+    constraint2.SetVariables(&(mnodeA->Variables()), &(mnodeB->Variables()));
+    constraint3.SetVariables(&(mnodeA->Variables()), &(mnodeB->Variables()));
 
-	//this->SetSystem(this->body->GetSystem());
+    // SetSystem(body->GetSystem());
 
-	return true;
+    return true;
 }
 
 void ChLinkPointPoint::Update(double mytime, bool update_assets) {
-  // Inherit time changes of parent class
-  ChPhysicsItem::Update(mytime, update_assets);
+    // Inherit time changes of parent class
+    ChPhysicsItem::Update(mytime, update_assets);
 
-  // update class data
-  // ...
+    // update class data
+    // ...
 }
 
-ChMatrixNM<double, 3, 1> ChLinkPointPoint::GetC() {
+ChMatrixNM<double, 3, 1> ChLinkPointPoint::GetC() const {
     ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
     ChMatrixNM<double, 3, 1> C;
     C(0, 0) = res.x;
@@ -83,166 +65,147 @@ ChMatrixNM<double, 3, 1> ChLinkPointPoint::GetC() {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkPointPoint::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-	L(off_L+0) = this->react.x;
-	L(off_L+1) = this->react.y;
-	L(off_L+2) = this->react.z;
+    L(off_L + 0) = react.x;
+    L(off_L + 1) = react.y;
+    L(off_L + 2) = react.z;
 }
 
 void ChLinkPointPoint::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-	this->react.x = L(off_L+0);
-	this->react.y = L(off_L+1);
-	this->react.z = L(off_L+2);
+    react.x = L(off_L + 0);
+    react.y = L(off_L + 1);
+    react.z = L(off_L + 2);
 }
 
-void ChLinkPointPoint::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-					ChVectorDynamic<>& R,		 ///< result: the R residual, R += c*Cq'*L 
-					const ChVectorDynamic<>& L,  ///< the L vector 
-					const double c				 ///< a scaling factor
+void ChLinkPointPoint::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                           ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                           const ChVectorDynamic<>& L,  // the L vector
+                                           const double c               // a scaling factor
                                            ) {
-	if (!IsActive())
-    return;
+    if (!IsActive())
+        return;
 
-	constraint1.MultiplyTandAdd(R, L(off_L+0) *c);
-	constraint2.MultiplyTandAdd(R, L(off_L+1) *c);
-	constraint3.MultiplyTandAdd(R, L(off_L+2) *c);
+    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
+    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
+    constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
 }
 
-void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-					ChVectorDynamic<>& Qc,		 ///< result: the Qc residual, Qc += c*C 
-					const double c,				 ///< a scaling factor
-					bool do_clamp,				 ///< apply clamping to c*C?
-					double recovery_clamp		 ///< value for min/max clamping of c*C
+void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                           ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                           const double c,            // a scaling factor
+                                           bool do_clamp,             // apply clamping to c*C?
+                                           double recovery_clamp      // value for min/max clamping of c*C
                                            ) {
-	if (!IsActive())
-    return;
+    if (!IsActive())
+        return;
 
-	ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos(); 
-	ChVector<> cres = res * c;
+    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector<> cres = res * c;
 
-	if (do_clamp) {
-		cres.x = ChMin(ChMax(cres.x, -recovery_clamp), recovery_clamp);
-		cres.y = ChMin(ChMax(cres.y, -recovery_clamp), recovery_clamp);
-		cres.z = ChMin(ChMax(cres.z, -recovery_clamp), recovery_clamp);
-	}
-	Qc(off_L+0) += cres.x;
-	Qc(off_L+1) += cres.y;
-	Qc(off_L+2) += cres.z;
+    if (do_clamp) {
+        cres.x = ChMin(ChMax(cres.x, -recovery_clamp), recovery_clamp);
+        cres.y = ChMin(ChMax(cres.y, -recovery_clamp), recovery_clamp);
+        cres.z = ChMin(ChMax(cres.z, -recovery_clamp), recovery_clamp);
+    }
+    Qc(off_L + 0) += cres.x;
+    Qc(off_L + 1) += cres.y;
+    Qc(off_L + 2) += cres.z;
 }
 
-void ChLinkPointPoint::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkPointPoint::IntToDescriptor(const unsigned int off_v,
                                        const ChStateDelta& v,
                                        const ChVectorDynamic<>& R,
-                                       const unsigned int off_L,  ///< offset in L, Qc
+                                       const unsigned int off_L,
                                        const ChVectorDynamic<>& L,
                                        const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
     constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L+1));
-	constraint3.Set_l_i(L(off_L+2));
+    constraint2.Set_l_i(L(off_L + 1));
+    constraint3.Set_l_i(L(off_L + 2));
 
-	constraint1.Set_b_i(Qc(off_L+0));
-	constraint2.Set_b_i(Qc(off_L+1));
-	constraint3.Set_b_i(Qc(off_L+2));
+    constraint1.Set_b_i(Qc(off_L + 0));
+    constraint2.Set_b_i(Qc(off_L + 1));
+    constraint3.Set_b_i(Qc(off_L + 2));
 }
 
-void ChLinkPointPoint::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkPointPoint::IntFromDescriptor(const unsigned int off_v,
                                          ChStateDelta& v,
-                                         const unsigned int off_L,  ///< offset in L
+                                         const unsigned int off_L,
                                          ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
     L(off_L + 0) = constraint1.Get_l_i();
     L(off_L + 1) = constraint2.Get_l_i();
-    L(off_L+2)=constraint3.Get_l_i();
+    L(off_L + 2) = constraint3.Get_l_i();
 }
 
-////////// SOLVER INTERFACES ////
+// SOLVER INTERFACES
 
 void ChLinkPointPoint::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-	//if (!this->IsActive())
-	//	return;
+    // if (!IsActive())
+    //	return;
 
-	mdescriptor.InsertConstraint(&constraint1);
-	mdescriptor.InsertConstraint(&constraint2);
-	mdescriptor.InsertConstraint(&constraint3);
+    mdescriptor.InsertConstraint(&constraint1);
+    mdescriptor.InsertConstraint(&constraint2);
+    mdescriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkPointPoint::ConstraintsBiReset() {
-	constraint1.Set_b_i(0.);
-	constraint2.Set_b_i(0.);
-	constraint3.Set_b_i(0.);
+    constraint1.Set_b_i(0.);
+    constraint2.Set_b_i(0.);
+    constraint3.Set_b_i(0.);
 }
- 
+
 void ChLinkPointPoint::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
 
-	ChVector<> res = mnodeA->GetPos() -  mnodeB->GetPos(); 
-
-	this->constraint1.Set_b_i(constraint1.Get_b_i() +  factor * res.x);
-	this->constraint2.Set_b_i(constraint2.Get_b_i() +  factor * res.y);
-	this->constraint3.Set_b_i(constraint3.Get_b_i() +  factor * res.z);
+    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x);
+    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y);
+    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z);
 }
 
 void ChLinkPointPoint::ConstraintsBiLoad_Ct(double factor) {
-	//if (!this->IsActive())
-	//	return;
+    // if (!IsActive())
+    //	return;
 
-	// nothing
+    // nothing
 }
 
 void ChLinkPointPoint::ConstraintsLoadJacobians() {
-		// compute jacobians
-	ChMatrix33<> Jxa;
+    // compute jacobians
+    ChMatrix33<> Jxa;
     Jxa.FillDiag(1.0);
 
     ChMatrix33<> Jxb;
     Jxb.FillDiag(-1.0);
-	
 
-	this->constraint1.Get_Cq_a()->PasteClippedMatrix(&Jxa, 0,0, 1,3, 0,0);
-	this->constraint2.Get_Cq_a()->PasteClippedMatrix(&Jxa, 1,0, 1,3, 0,0);
-	this->constraint3.Get_Cq_a()->PasteClippedMatrix(&Jxa, 2,0, 1,3, 0,0);
+    constraint1.Get_Cq_a()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_a()->PasteClippedMatrix(&Jxa, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_a()->PasteClippedMatrix(&Jxa, 2, 0, 1, 3, 0, 0);
 
-	this->constraint1.Get_Cq_b()->PasteClippedMatrix(&Jxb, 0,0, 1,3, 0,0);
-	this->constraint2.Get_Cq_b()->PasteClippedMatrix(&Jxb, 1,0, 1,3, 0,0);
-	this->constraint3.Get_Cq_b()->PasteClippedMatrix(&Jxb, 2,0, 1,3, 0,0);
+    constraint1.Get_Cq_b()->PasteClippedMatrix(&Jxb, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_b()->PasteClippedMatrix(&Jxb, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_b()->PasteClippedMatrix(&Jxb, 2, 0, 1, 3, 0, 0);
 }
- 
+
 void ChLinkPointPoint::ConstraintsFetch_react(double factor) {
-	// From constraints to react vector:
-	this->react.x = constraint1.Get_l_i() * factor; 
-	this->react.y = constraint2.Get_l_i() * factor; 
-	this->react.z = constraint3.Get_l_i() * factor; 
+    // From constraints to react vector:
+    react.x = constraint1.Get_l_i() * factor;
+    react.y = constraint2.Get_l_i() * factor;
+    react.z = constraint3.Get_l_i() * factor;
 }
 
-//////// FILE I/O
+// FILE I/O
 
-void ChLinkPointPoint::StreamOUT(ChStreamOutBinary& mstream) {
-    /*
-			// class version number
-	mstream.VersionWrite(1);
-
-		// serialize parent class too
-	ChPhysicsItem::StreamOUT(mstream);
-
-		// stream out all member data
-	mstream < this->react;
-    */
+void ChLinkPointPoint::ArchiveOUT(ChArchiveOut& marchive) {
+    //// TODO
 }
 
-void ChLinkPointPoint::StreamIN(ChStreamInBinary& mstream) {
-    /*
-		// class version number
-	int version = mstream.VersionRead();
-
-		// deserialize parent class too
-	ChPhysicsItem::StreamIN(mstream);
-
-		// deserialize class
-	mstream >> this->react;
-    */
+void ChLinkPointPoint::ArchiveIN(ChArchiveIn& marchive) {
+    //// TODO
 }
 
-/////////////////////
+}  // end namespace fea
+}  // end namespace chrono

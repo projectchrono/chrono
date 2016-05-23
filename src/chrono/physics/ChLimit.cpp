@@ -1,42 +1,36 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLimit.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLimit.h"
+#include "chrono/physics/ChLimit.h"
 
 namespace chrono {
 
-ChLinkLimit::ChLinkLimit() {
-    active = 0;        // default: inactive limit
-    penalty_only = 0;  // use also link-locking
-    polar = 0;         // default: no polar limit
-    rotation = 0;
-    max = 1;
-    min = -1;
-    maxCushion = 0.0;
-    minCushion = 0.0;
-    Kmax = 1000;
-    Kmin = 1000;
-    Rmax = 100;
-    Rmin = 100;
-    minElastic = 0.0;
-    maxElastic = 0.0;
+ChLinkLimit::ChLinkLimit()
+    : active(false),
+      penalty_only(false),
+      polar(false),
+      rotation(false),
+      max(1),
+      min(-1),
+      maxCushion(0),
+      minCushion(0),
+      Kmax(1000),
+      Kmin(1000),
+      Rmax(100),
+      Rmin(100),
+      minElastic(0),
+      maxElastic(0) {
     modul_Kmax = new ChFunction_Const(1);  // default: const.modulation of K
     modul_Kmin = new ChFunction_Const(1);  // default: const.modulation of K
     modul_Rmax = new ChFunction_Const(1);  // default: const.modulation of K
@@ -46,60 +40,35 @@ ChLinkLimit::ChLinkLimit() {
     constr_lower.SetMode(CONSTRAINT_UNILATERAL);
 }
 
-ChLinkLimit::~ChLinkLimit() {
-    if (modul_Kmax)
-        delete modul_Kmax;
-    if (modul_Kmin)
-        delete modul_Kmin;
-    if (modul_Rmax)
-        delete modul_Rmax;
-    if (modul_Rmin)
-        delete modul_Rmin;
-    if (polar_Max)
-        delete polar_Max;
-}
-
-void ChLinkLimit::Copy(ChLinkLimit* source) {
-    active = source->active;
-    penalty_only = source->penalty_only;
-    polar = source->polar;
-    rotation = source->rotation;
-    max = source->max;
-    min = source->min;
-    maxCushion = source->maxCushion;
-    minCushion = source->minCushion;
-    Kmax = source->Kmax;
-    Kmin = source->Kmin;
-    Rmax = source->Rmax;
-    Rmin = source->Rmin;
-    minElastic = source->minElastic;
-    maxElastic = source->maxElastic;
+ChLinkLimit::ChLinkLimit(const ChLinkLimit& other) {
+    active = other.active;
+    penalty_only = other.penalty_only;
+    polar = other.polar;
+    rotation = other.rotation;
+    max = other.max;
+    min = other.min;
+    maxCushion = other.maxCushion;
+    minCushion = other.minCushion;
+    Kmax = other.Kmax;
+    Kmin = other.Kmin;
+    Rmax = other.Rmax;
+    Rmin = other.Rmin;
+    minElastic = other.minElastic;
+    maxElastic = other.maxElastic;
     // replace functions:
-    if (modul_Kmax)
-        delete modul_Kmax;
-    if (modul_Kmin)
-        delete modul_Kmin;
-    if (modul_Rmax)
-        delete modul_Rmax;
-    if (modul_Rmin)
-        delete modul_Rmin;
-    if (polar_Max)
-        delete polar_Max;
-    modul_Kmax = source->modul_Kmax->Clone();
-    modul_Kmin = source->modul_Kmin->Clone();
-    modul_Rmax = source->modul_Rmax->Clone();
-    modul_Rmin = source->modul_Rmin->Clone();
-    if (source->polar_Max)
-        polar_Max = source->polar_Max->Clone();
-    else
-        polar_Max = NULL;
+    modul_Kmax = other.modul_Kmax->Clone();
+    modul_Kmin = other.modul_Kmin->Clone();
+    modul_Rmax = other.modul_Rmax->Clone();
+    modul_Rmin = other.modul_Rmin->Clone();
+    polar_Max = other.polar_Max->Clone();
 }
 
-ChLinkLimit* ChLinkLimit::new_Duplicate() {
-    ChLinkLimit* m_lim;
-    m_lim = new ChLinkLimit;
-    m_lim->Copy(this);
-    return (m_lim);
+ChLinkLimit::~ChLinkLimit() {
+    delete modul_Kmax;
+    delete modul_Kmin;
+    delete modul_Rmax;
+    delete modul_Rmin;
+    delete polar_Max;
 }
 
 void ChLinkLimit::Set_max(double m_max) {
@@ -166,9 +135,7 @@ void ChLinkLimit::SetPolar_Max(ChFunction* m_funct) {
 
 // file parsing / dumping
 
-
 void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
-
     // class version number
     marchive.VersionWrite(1);
     // serialize parent class too
@@ -196,7 +163,6 @@ void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
-
     // class version number
     int version = marchive.VersionRead();
     // deserialize parent class too
@@ -223,12 +189,10 @@ void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(polar_Max);
 }
 
-
-
 ///////////////////
 
-double ChLinkLimit::GetViolation(double x) {
-    if ((active == 0) || (penalty_only == 1)) {
+double ChLinkLimit::GetViolation(double x) const {
+    if (!active || penalty_only) {
         return 0;
     } else {
         if ((x > min) && (x < max))
@@ -241,13 +205,13 @@ double ChLinkLimit::GetViolation(double x) {
     return 0;
 }
 
-double ChLinkLimit::GetForce(double x, double x_dt) {
+double ChLinkLimit::GetForce(double x, double x_dt) const {
     double cush_coord;
     double cush_coord_norm;
     double force;
     double m_min, m_max;
 
-    if (penalty_only == 0) {
+    if (!penalty_only) {
         m_min = min;
         m_max = max;
     } else {
@@ -300,15 +264,15 @@ double ChLinkLimit::GetForce(double x, double x_dt) {
 
 ////
 
-double ChLinkLimit::Get_polar_max(double pol_ang) {
+double ChLinkLimit::Get_polar_max(double pol_ang) const {
     if (!polar_Max)
         return 0.001;
-    return (polar_Max->Get_y(pol_ang));
+    return polar_Max->Get_y(pol_ang);
 }
 
 //// The same, but for conical limits, in polar coordinates
 
-double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) {
+double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) const {
     double cush_coord;
     double cush_coord_norm;
     double cushion_thick;
@@ -319,7 +283,7 @@ double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) {
     if (!polar_Max)
         return 0;
 
-    if (penalty_only == 0) {
+    if (!penalty_only) {
         m_max = max;
     } else {
         m_max = 999999999;
@@ -353,6 +317,4 @@ double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) {
     return 0;
 }
 
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

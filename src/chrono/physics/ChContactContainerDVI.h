@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONTACTCONTAINERDVI_H
 #define CHCONTACTCONTAINERDVI_H
@@ -33,20 +35,16 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     CH_RTTI(ChContactContainerDVI, ChContactContainerBase);
 
   public:
-    typedef ChContactDVI< ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVI_6_6;
-    typedef ChContactDVI< ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDVI_6_3;
-    typedef ChContactDVI< ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDVI_3_3;
-    typedef ChContactDVIrolling< ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVIrolling_6_6;
+    typedef ChContactDVI<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVI_6_6;
+    typedef ChContactDVI<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDVI_6_3;
+    typedef ChContactDVI<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDVI_3_3;
+    typedef ChContactDVIrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVIrolling_6_6;
 
   protected:
-    //
-    // DATA
-    //
-
-    std::list< ChContactDVI_6_6* > contactlist_6_6;
-    std::list< ChContactDVI_6_3* > contactlist_6_3;
-    std::list< ChContactDVI_3_3* > contactlist_3_3;
-    std::list< ChContactDVIrolling_6_6* > contactlist_6_6_rolling;
+    std::list<ChContactDVI_6_6*> contactlist_6_6;
+    std::list<ChContactDVI_6_3*> contactlist_6_3;
+    std::list<ChContactDVI_3_3*> contactlist_3_3;
+    std::list<ChContactDVIrolling_6_6*> contactlist_6_6_rolling;
 
     int n_added_6_6;
     int n_added_6_3;
@@ -59,37 +57,33 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     std::list<ChContactDVIrolling_6_6*>::iterator lastcontact_6_6_rolling;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChContactContainerDVI();
-
+    ChContactContainerDVI(const ChContactContainerDVI& other);
     virtual ~ChContactContainerDVI();
 
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChContactContainerDVI* Clone() const override { return new ChContactContainerDVI(*this); }
+
     /// Tell the number of added contacts
-    virtual int GetNcontacts() { return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_6_6_rolling; }
+    virtual int GetNcontacts() const override { return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_6_6_rolling; }
 
     /// Remove (delete) all contained contact data.
-    virtual void RemoveAllContacts();
+    virtual void RemoveAllContacts() override;
 
     /// The collision system will call BeginAddContact() before adding
     /// all contacts (for example with AddContact() or similar). Instead of
     /// simply deleting all list of the previous contacts, this optimized implementation
     /// rewinds the link iterator to begin and tries to reuse previous contact objects
     /// until possible, to avoid too much allocation/deallocation.
-    virtual void BeginAddContact();
+    virtual void BeginAddContact() override;
 
     /// Add a contact between two frames.
-    virtual void AddContact(const collision::ChCollisionInfo& mcontact);
+    virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
 
     /// The collision system will call BeginAddContact() after adding
     /// all contacts (for example with AddContact() or similar). This optimized version
     /// purges the end of the list of contacts that were not reused (if any).
-    virtual void EndAddContact();
+    virtual void EndAddContact() override;
 
     /// Scans all the contacts and for each contact executes the ReportContactCallback()
     /// function of the user object inherited from ChReportContactCallback.
@@ -97,11 +91,13 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
 
     /// Tell the number of scalar bilateral constraints (actually, friction
     /// constraints aren't exactly as unilaterals, but count them too)
-    virtual int GetDOC_d() { return 3 * (n_added_6_6 + n_added_6_3 + n_added_3_3) + 6 * (n_added_6_6_rolling); }
+    virtual int GetDOC_d() override {
+        return 3 * (n_added_6_6 + n_added_6_3 + n_added_3_3) + 6 * (n_added_6_6_rolling);
+    }
 
     /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures of contacts.
-    virtual void Update(double mtime, bool update_assets = true);
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     /// Compute contact forces on all contactable objects in this container.
     virtual void ComputeContactForces() override;
@@ -110,18 +106,17 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     // STATE FUNCTIONS
     //
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -137,37 +132,23 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChContactContainerBase::ArchiveOUT(marchive);
-        // serialize all member data:
-        // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChContactContainerBase::ArchiveIN(marchive);
-        // stream in all member data:
-        RemoveAllContacts();
-        // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

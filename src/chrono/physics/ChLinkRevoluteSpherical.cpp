@@ -1,15 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkRevoluteSpherical.h"
+#include "chrono/physics/ChLinkRevoluteSpherical.h"
 
 namespace chrono {
 
@@ -32,48 +35,36 @@ ChLinkRevoluteSpherical::ChLinkRevoluteSpherical()
     m_multipliers[1] = 0;
 }
 
+ChLinkRevoluteSpherical::ChLinkRevoluteSpherical(const ChLinkRevoluteSpherical& other) : ChLink(other) {
+    Body1 = other.Body1;
+    Body2 = other.Body2;
+    system = other.system;
+
+    m_pos1 = other.m_pos1;
+    m_pos2 = other.m_pos2;
+    m_dir1 = other.m_dir1;
+    m_dist = other.m_dist;
+    m_cur_dist = other.m_cur_dist;
+    m_cur_dot = other.m_cur_dot;
+
+    m_cnstr_dist.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_dot.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+
+    m_multipliers[0] = other.m_multipliers[0];
+    m_multipliers[1] = other.m_multipliers[1];
+}
+
 ChLinkRevoluteSpherical::~ChLinkRevoluteSpherical() {
     delete m_C;
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Copy(ChLinkRevoluteSpherical* source) {
-    // first copy the parent class data...
-    ChLink::Copy(source);
-
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-
-    m_pos1 = source->m_pos1;
-    m_pos2 = source->m_pos2;
-    m_dir1 = source->m_dir1;
-    m_dist = source->m_dist;
-    m_cur_dist = source->m_cur_dist;
-    m_cur_dot = source->m_cur_dot;
-
-    m_cnstr_dist.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_dot.SetVariables(&Body1->Variables(), &Body2->Variables());
-
-    m_multipliers[0] = source->m_multipliers[0];
-    m_multipliers[1] = source->m_multipliers[1];
-}
-
-ChLink* ChLinkRevoluteSpherical::new_Duplicate() {
-    ChLinkRevoluteSpherical* link = new ChLinkRevoluteSpherical;
-    link->Copy(this);
-    return (link);
-}
-
-// -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
-                                         std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
-                                         const ChCoordsys<>& csys,        // joint coordinate system (in absolute frame)
-                                         double distance)                 // imposed distance
-{
+void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                         std::shared_ptr<ChBodyFrame> body2,
+                                         const ChCoordsys<>& csys,
+                                         double distance) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -92,15 +83,14 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,  //
     m_cur_dot = 0;
 }
 
-void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first frame (revolute side)
-                                         std::shared_ptr<ChBodyFrame> body2,  // second frame (spherical side)
-                                         bool local,                      // true if data given in body local frames
-                                         const ChVector<>& pos1,          // point on first frame
-                                         const ChVector<>& dir1,          // direction of revolute on first frame
-                                         const ChVector<>& pos2,          // point on second frame
-                                         bool auto_distance,  // true if imposed distance equal to |pos1 - po2|
-                                         double distance)     // imposed distance (used only if auto_distance = false)
-{
+void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                         std::shared_ptr<ChBodyFrame> body2,
+                                         bool local,
+                                         const ChVector<>& pos1,
+                                         const ChVector<>& dir1,
+                                         const ChVector<>& pos2,
+                                         bool auto_distance,
+                                         double distance) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -431,9 +421,7 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2() {
     return VNULL;
 }
 
-
-void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -448,8 +436,7 @@ void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevoluteSpherical::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkRevoluteSpherical::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -463,5 +450,4 @@ void ChLinkRevoluteSpherical::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(m_dist);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

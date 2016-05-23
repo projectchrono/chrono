@@ -63,6 +63,9 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual ~ChSystemDEM() {}
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChSystemDEM* Clone() const override { return new ChSystemDEM(*this); }
+
     virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
 
     /// Create a new body, consistent with the contact method and collision model used by this system.

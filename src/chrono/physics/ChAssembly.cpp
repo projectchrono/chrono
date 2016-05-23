@@ -1,57 +1,69 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include <stdlib.h>
 #include <algorithm>
 
-#include "core/ChTransform.h"
-#include "physics/ChAssembly.h"
-#include "physics/ChSystem.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChBodyAuxRef.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/physics/ChAssembly.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChAssembly> a_registration_ChAssembly;
 
+ChAssembly::ChAssembly()
+    : nbodies(0),
+      nlinks(0),
+      nphysicsitems(0),
+      ndof(0),
+      ndoc(0),
+      ndoc_w(0),
+      ndoc_w_C(0),
+      ndoc_w_D(0),
+      ncoords(0),
+      ncoords_w(0),
+      nsysvars(0),
+      nsysvars_w(0),
+      nbodies_sleep(0),
+      nbodies_fixed(0) {}
 
-ChAssembly::ChAssembly() {
-    linklist.clear();
-    bodylist.clear();
-    otherphysicslist.clear();
-    
-    nbodies = 0;
-    nlinks = 0;
-    nphysicsitems = 0;
-    ndof = 0;
-    ndoc = 0;
-    ndoc_w = 0;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
-    nsysvars_w = 0;
-    ncoords = 0;
-    ncoords_w = 0;
-    nsysvars = 0;
-    ncoords_w = 0;
-    nbodies_sleep = 0;
-    nbodies_fixed = 0;
+ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
+    nbodies = other.nbodies;
+    nlinks = other.nlinks;
+    nphysicsitems = other.nphysicsitems;
+    ncoords = other.ncoords;
+    ncoords_w = other.ncoords_w;
+    ndoc = other.ndoc;
+    ndoc_w = other.ndoc_w;
+    ndoc_w_C = other.ndoc_w_C;
+    ndoc_w_D = other.ndoc_w_D;
+    ndof = other.ndof;
+    nsysvars = other.nsysvars;
+    nsysvars_w = other.nsysvars_w;
+    nbodies_sleep = other.nbodies_sleep;
+    nbodies_fixed = other.nbodies_fixed;
 
-    ChTime = 0;
+    //// RADU
+    //// TODO:  deep copy of the object lists (bodylist, linklist, otherphysicslist)
 }
 
 ChAssembly::~ChAssembly() {
@@ -60,40 +72,7 @@ ChAssembly::~ChAssembly() {
     RemoveAllOtherPhysicsItems();
 }
 
-void ChAssembly::Copy(ChAssembly* source) {
-    // first copy the parent class data...
-    ChPhysicsItem::Copy(source);
-
-    this->Clear();
-    /*
-    //***TO DO*** deeper copy 
-    for (unsigned int ip = 0; ip < source->Get_bodylist()->size(); ++ip)  // ITERATE on bodies
-        this->Add(source->Get_bodylist()->at(ip)->Clone());
-
-    for (unsigned int ip = 0; ip < source->Get_linklist()->size(); ++ip)  // ITERATE on bodies
-        this->Add(source->Get_linklist()->at(ip)->Clone());
-
-    for (unsigned int ip = 0; ip < source->Get_otherphysicslist()->size(); ++ip)  // ITERATE on bodies
-        this->Add(source->Get_otherphysicslist()->at(ip)->Clone());
-    */
-    nbodies = source->GetNbodies();
-    nlinks = source->GetNlinks();
-    nphysicsitems = source->GetNphysicsItems();
-    ncoords = source->GetNcoords();
-    ncoords_w = source->GetNcoords_w();
-    ndoc = source->GetNdoc();
-    ndoc_w = source->GetNdoc_w();
-    ndoc_w_C = source->GetNdoc_w_C();
-    ndoc_w_D = source->GetNdoc_w_D();
-    ndof = source->GetNdof();
-    nsysvars = source->GetNsysvars();
-    nsysvars_w = source->GetNsysvars_w();
-    nbodies_sleep = source->GetNbodiesSleeping();
-    nbodies_fixed = source->GetNbodiesFixed();
-}
-
 void ChAssembly::Clear() {
-
     RemoveAllLinks();
     RemoveAllBodies();
     RemoveAllOtherPhysicsItems();
@@ -309,7 +288,7 @@ std::shared_ptr<ChMarker> ChAssembly::SearchMarker(int markID) {
     return (std::shared_ptr<ChMarker>());  // not found; return an empty shared_ptr
 }
 
-//////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChAssembly::IteratorBodies& ChAssembly::IteratorBodies::operator=(const IteratorBodies& other) {
     node_ = other.node_;
@@ -335,7 +314,7 @@ ChAssembly::IteratorBodies ChAssembly::IterEndBodies() {
     return (IteratorBodies(this->bodylist.end()));
 }
 
-//////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChAssembly::IteratorLinks& ChAssembly::IteratorLinks::operator=(const IteratorLinks& other) {
     node_ = other.node_;
@@ -361,7 +340,7 @@ ChAssembly::IteratorLinks ChAssembly::IterEndLinks() {
     return (IteratorLinks(this->linklist.end()));
 }
 
-//////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChAssembly::IteratorOtherPhysicsItems& ChAssembly::IteratorOtherPhysicsItems::operator=(
     const IteratorOtherPhysicsItems& other) {
@@ -388,7 +367,7 @@ ChAssembly::IteratorOtherPhysicsItems ChAssembly::IterEndOtherPhysicsItems() {
     return (IteratorOtherPhysicsItems(this->otherphysicslist.end()));
 }
 
-//////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChAssembly::IteratorPhysicsItems::IteratorPhysicsItems(ChAssembly* msys) {
     this->msystem = msys;
@@ -415,7 +394,8 @@ bool ChAssembly::IteratorPhysicsItems::HasItem() {
     return false;
 }
 
-ChAssembly::IteratorPhysicsItems& ChAssembly::IteratorPhysicsItems::operator=(const ChSystem::IteratorPhysicsItems& other) {
+ChAssembly::IteratorPhysicsItems& ChAssembly::IteratorPhysicsItems::operator=(
+    const ChSystem::IteratorPhysicsItems& other) {
     msystem = other.msystem;
     node_body = other.node_body;
     node_link = other.node_link;
@@ -426,7 +406,8 @@ ChAssembly::IteratorPhysicsItems& ChAssembly::IteratorPhysicsItems::operator=(co
 }
 
 bool ChAssembly::IteratorPhysicsItems::operator==(const ChAssembly::IteratorPhysicsItems& other) {
-    return ((mptr.get() == other.mptr.get()) && (stage == other.stage) && (msystem == other.msystem));  //...***TO CHECK***
+    return ((mptr.get() == other.mptr.get()) && (stage == other.stage) &&
+            (msystem == other.msystem));  //...***TO CHECK***
 }
 
 bool ChAssembly::IteratorPhysicsItems::operator!=(const ChAssembly::IteratorPhysicsItems& other) {
@@ -501,7 +482,7 @@ ChAssembly::IteratorPhysicsItems& ChAssembly::IteratorPhysicsItems::operator++()
 }
 
 std::shared_ptr<ChPhysicsItem> ChAssembly::IteratorPhysicsItems::operator*() {
-    return mptr;  
+    return mptr;
 }
 
 ChAssembly::IteratorPhysicsItems ChAssembly::IterBeginPhysicsItems() {
@@ -513,7 +494,7 @@ ChAssembly::IteratorPhysicsItems ChAssembly::IterEndPhysicsItems() {
 }
 
 void ChAssembly::SetSystem(ChSystem* m_system) {
-    this->system = m_system;
+    system = m_system;
 
     for (int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->SetSystem(m_system);
@@ -538,17 +519,12 @@ void ChAssembly::SyncCollisionModels() {
     }
 }
 
-////////////////////////////////
-//////
-////// UPDATING ROUTINES
-//////
-//////
+// -----------------------------------------------------------------------------
+// UPDATING ROUTINES
 
 // COUNT ALL BODIES AND LINKS, ETC, COMPUTE &SET DOF FOR STATISTICS,
 // ALLOCATES OR REALLOCATE BOOKKEEPING DATA/VECTORS, IF ANY
-
 void ChAssembly::Setup() {
-    
     nbodies = 0;
     nbodies_sleep = 0;
     nbodies_fixed = 0;
@@ -581,11 +557,11 @@ void ChAssembly::Setup() {
 
             // Bpointer->Setup(); // unneded since in bodies does nothing
 
-            ncoords   += Bpointer->GetDOF();
+            ncoords += Bpointer->GetDOF();
             ncoords_w += Bpointer->GetDOF_w();
-            ndoc_w    += Bpointer->GetDOC();   // unneeded since ChBody introduces no constraints
-            ndoc_w_C  += Bpointer->GetDOC_c(); // unneeded since ChBody introduces no constraints
-            ndoc_w_D  += Bpointer->GetDOC_d(); // unneeded since ChBody introduces no constraints
+            ndoc_w += Bpointer->GetDOC();      // unneeded since ChBody introduces no constraints
+            ndoc_w_C += Bpointer->GetDOC_c();  // unneeded since ChBody introduces no constraints
+            ndoc_w_D += Bpointer->GetDOC_d();  // unneeded since ChBody introduces no constraints
         }
     }
 
@@ -604,11 +580,11 @@ void ChAssembly::Setup() {
         PHpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if assembly-type or
                              // mesh-type stuff
 
-        ncoords   += PHpointer->GetDOF();
+        ncoords += PHpointer->GetDOF();
         ncoords_w += PHpointer->GetDOF_w();
-        ndoc_w    += PHpointer->GetDOC();
-        ndoc_w_C  += PHpointer->GetDOC_c();
-        ndoc_w_D  += PHpointer->GetDOC_d();
+        ndoc_w += PHpointer->GetDOC();
+        ndoc_w_C += PHpointer->GetDOC_c();
+        ndoc_w_D += PHpointer->GetDOC_d();
     }
 
     for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
@@ -624,11 +600,11 @@ void ChAssembly::Setup() {
 
             Lpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
-            ncoords   += Lpointer->GetDOF();
+            ncoords += Lpointer->GetDOF();
             ncoords_w += Lpointer->GetDOF_w();
-            ndoc_w    += Lpointer->GetDOC();
-            ndoc_w_C  += Lpointer->GetDOC_c();
-            ndoc_w_D  += Lpointer->GetDOC_d();
+            ndoc_w += Lpointer->GetDOC();
+            ndoc_w_C += Lpointer->GetDOC_c();
+            ndoc_w_D += Lpointer->GetDOC_d();
         }
     }
 
@@ -636,14 +612,14 @@ void ChAssembly::Setup() {
     nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)
     nsysvars_w = ncoords_w + ndoc_w;  // total number of variables (with 6 dof per body)
 
-    ndof = ncoords_w-ndoc_w;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+    ndof =
+        ncoords_w - ndoc_w;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
 }
 
 // - ALL PHYSICAL ITEMS (BODIES, LINKS,ETC.) ARE UPDATED,
 //   ALSO UPDATING THEIR AUXILIARY VARIABLES (ROT.MATRICES, ETC.).
 // - UPDATES ALL FORCES  (AUTOMATIC, AS CHILDREN OF BODIES)
 // - UPDATES ALL MARKERS (AUTOMATIC, AS CHILDREN OF BODIES).
-
 void ChAssembly::Update(bool update_assets) {
     for (int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->Update(ChTime, update_assets);
@@ -739,7 +715,7 @@ void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDel
     }
 }
 
-/// From state derivative (acceleration) to system, sometimes might be needed
+// From state derivative (acceleration) to system, sometimes might be needed
 void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     unsigned int displ_a = off_a - this->offset_w;
 
@@ -759,7 +735,7 @@ void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChS
     }
 }
 
-/// From system to reaction forces (last computed) - some timestepper might need this
+// From system to reaction forces (last computed) - some timestepper might need this
 void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     unsigned int displ_L = off_L - this->offset_L;
 
@@ -779,7 +755,7 @@ void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
     }
 }
 
-/// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
 void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     unsigned int displ_L = off_L - this->offset_L;
 
@@ -954,13 +930,15 @@ void ChAssembly::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
     for (int ip = 0; ip < bodylist.size(); ++ip) {
         std::shared_ptr<ChBody> Bpointer = bodylist[ip];
         if (Bpointer->IsActive())
-            Bpointer->IntToDescriptor(displ_v + Bpointer->GetOffset_w(), v, R, displ_L + Bpointer->GetOffset_L(), L, Qc);
+            Bpointer->IntToDescriptor(displ_v + Bpointer->GetOffset_w(), v, R, displ_L + Bpointer->GetOffset_L(), L,
+                                      Qc);
     }
 
     for (int ip = 0; ip < linklist.size(); ++ip) {
         std::shared_ptr<ChLink> Lpointer = linklist[ip];
         if (Lpointer->IsActive())
-            Lpointer->IntToDescriptor(displ_v + Lpointer->GetOffset_w(), v, R, displ_L + Lpointer->GetOffset_L(), L, Qc);
+            Lpointer->IntToDescriptor(displ_v + Lpointer->GetOffset_w(), v, R, displ_L + Lpointer->GetOffset_L(), L,
+                                      Qc);
     }
 
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
@@ -994,7 +972,8 @@ void ChAssembly::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
     }
 }
 
-////
+// -----------------------------------------------------------------------------
+
 void ChAssembly::InjectVariables(ChSystemDescriptor& mdescriptor) {
     for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->InjectVariables(mdescriptor);
@@ -1199,12 +1178,8 @@ void ChAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
     }
 }
 
-
-
-
-////////
-////////  STREAMING - FILE HANDLING
-////////
+// -----------------------------------------------------------------------------
+//  STREAMING - FILE HANDLING
 
 void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
     std::string mtabs;
@@ -1273,10 +1248,7 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
     m_file << "\n\n";
 }
 
-
-
-void ChAssembly::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -1285,37 +1257,35 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
 
-    //marchive << CHNVP(bodylist);
+    // marchive << CHNVP(bodylist);
     // do rather a custom array save:
     marchive.out_array_pre("bodies", bodylist.size(), "ChBody");
     for (int i = 0; i < bodylist.size(); i++) {
-        marchive << CHNVP(bodylist[i],"");
+        marchive << CHNVP(bodylist[i], "");
         marchive.out_array_between(bodylist.size(), "bodies");
     }
     marchive.out_array_end(bodylist.size(), "bodies");
 
-    //marchive << CHNVP(linklist);
+    // marchive << CHNVP(linklist);
     // do rather a custom array save:
     marchive.out_array_pre("links", linklist.size(), "ChLink");
     for (int i = 0; i < linklist.size(); i++) {
-        marchive << CHNVP(linklist[i],"");
+        marchive << CHNVP(linklist[i], "");
         marchive.out_array_between(linklist.size(), "links");
     }
     marchive.out_array_end(linklist.size(), "links");
 
-    //marchive << CHNVP(otherphysicsitems);
+    // marchive << CHNVP(otherphysicsitems);
     // do rather a custom array save:
     marchive.out_array_pre("other_physics_list", otherphysicslist.size(), "ChPhysicsItem");
     for (int i = 0; i < otherphysicslist.size(); i++) {
-        marchive << CHNVP(otherphysicslist[i],"");
+        marchive << CHNVP(otherphysicslist[i], "");
         marchive.out_array_between(otherphysicslist.size(), "other_physics_list");
     }
     marchive.out_array_end(otherphysicslist.size(), "other_physics_list");
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChAssembly::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -1324,40 +1294,40 @@ void ChAssembly::ArchiveIN(ChArchiveIn& marchive)
 
     // stream in all member data:
 
-    //marchive >> CHNVP(bodylist);
+    // marchive >> CHNVP(bodylist);
     // do rather a custom array load:
     this->RemoveAllBodies();
     size_t num_bodies;
     marchive.in_array_pre("bodies", num_bodies);
     for (int i = 0; i < num_bodies; i++) {
         std::shared_ptr<ChBody> a_body;
-        marchive >> CHNVP(a_body,"");
+        marchive >> CHNVP(a_body, "");
         this->AddBody(a_body);
         marchive.in_array_between("bodies");
     }
     marchive.in_array_end("bodies");
 
-    //marchive >> CHNVP(linklist);
+    // marchive >> CHNVP(linklist);
     // do rather a custom array load:
     this->RemoveAllLinks();
     size_t num_links;
     marchive.in_array_pre("links", num_links);
     for (int i = 0; i < num_links; i++) {
         std::shared_ptr<ChLink> a_link;
-        marchive >> CHNVP(a_link,"");
+        marchive >> CHNVP(a_link, "");
         this->AddLink(a_link);
         marchive.in_array_between("links");
     }
     marchive.in_array_end("links");
 
-    //marchive >> CHNVP(otherphysiscslist);
+    // marchive >> CHNVP(otherphysiscslist);
     // do rather a custom array load:
     this->RemoveAllOtherPhysicsItems();
     size_t num_otherphysics;
     marchive.in_array_pre("other_physics_list", num_otherphysics);
     for (int i = 0; i < num_otherphysics; i++) {
         std::shared_ptr<ChPhysicsItem> a_item;
-        marchive >> CHNVP(a_item,"");
+        marchive >> CHNVP(a_item, "");
         this->AddOtherPhysicsItem(a_item);
         marchive.in_array_between("other_physics_list");
     }
@@ -1367,10 +1337,4 @@ void ChAssembly::ArchiveIN(ChArchiveIn& marchive)
     this->Setup();
 }
 
-
-
-
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

@@ -58,7 +58,7 @@ class ChApi ChVariablesGeneric : public ChVariables {
 
     /// The number of scalar variables in the vector qb
     /// (dof=degrees of freedom)
-    int Get_ndof() const { return this->ndof; }
+    virtual int Get_ndof() const override { return this->ndof; }
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and add to result: result = [invMb]*vect

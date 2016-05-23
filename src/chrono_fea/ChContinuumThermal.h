@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONTINUUMTHERMAL_H
 #define CHCONTINUUMTHERMAL_H
@@ -18,8 +20,7 @@
 namespace chrono {
 namespace fea {
 
-/// Class for thermal fields, for FEA problems involving
-/// temperature, heat, etc.
+/// Class for thermal fields, for FEA problems involving temperature, heat, etc.
 
 class ChContinuumThermal : public ChContinuumPoisson3D {
   private:
@@ -27,13 +28,12 @@ class ChContinuumThermal : public ChContinuumPoisson3D {
     double c_mass_specific_heat_capacity;
 
   public:
-    ChContinuumThermal() {
-        // default, almost a plastic
-        k_thermal_conductivity = 1.0;
-        c_mass_specific_heat_capacity = 1000.0;
+    ChContinuumThermal() : k_thermal_conductivity(1), c_mass_specific_heat_capacity(1000) {}
+    ChContinuumThermal(const ChContinuumThermal& other) : ChContinuumPoisson3D(other) {
+        k_thermal_conductivity = other.k_thermal_conductivity;
+        c_mass_specific_heat_capacity = other.c_mass_specific_heat_capacity;
     }
-
-    virtual ~ChContinuumThermal(){};
+    virtual ~ChContinuumThermal() {}
 
     /// Sets the k conductivity constant of the material,
     /// expressed in watts per meter kelvin [ W/(m K) ].
@@ -41,29 +41,29 @@ class ChContinuumThermal : public ChContinuumPoisson3D {
     /// Sets the conductivity matrix as isotropic (diagonal k)
     void SetThermalConductivityK(double mk) {
         k_thermal_conductivity = mk;
-        this->ConstitutiveMatrix.Reset();
-        this->ConstitutiveMatrix.FillDiag(k_thermal_conductivity);
+        ConstitutiveMatrix.Reset();
+        ConstitutiveMatrix.FillDiag(k_thermal_conductivity);
     }
 
     /// Gets the k conductivity constant of the material,
     /// expressed in watts per meter kelvin (W/(m K)).
-    double GetThermalConductivityK() { return k_thermal_conductivity; }
+    double GetThermalConductivityK() const { return k_thermal_conductivity; }
+
+    /// Sets the c mass-specific heat capacity of the material,
+    /// expressed as Joule per kg Kelvin [ J / (kg K) ]
+    void SetMassSpecificHeatCapacity(double mc) { c_mass_specific_heat_capacity = mc; }
+    /// Sets the c mass-specific heat capacity of the material,
+    /// expressed as Joule per kg Kelvin [ J / (kg K) ]
+    double GetMassSpecificHeatCapacity() const { return c_mass_specific_heat_capacity; }
 
     /// Get the k conductivity matrix
     ChMatrixDynamic<> Get_ThermalKmatrix() { return ConstitutiveMatrix; }
 
-    /// Sets the c mass-specific heat capacity of the material,
-    /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    void SetMassSpecificHeatCapacity(double mc) { this->c_mass_specific_heat_capacity = mc; }
-    /// Sets the c mass-specific heat capacity of the material,
-    /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    double GetMassSpecificHeatCapacity() { return c_mass_specific_heat_capacity; }
-
     /// override base: (the dT/dt term has multiplier rho*c with rho=density, c=heat capacity)
-    virtual double Get_DtMultiplier() { return density * this->c_mass_specific_heat_capacity; }
+    virtual double Get_DtMultiplier() override { return density * c_mass_specific_heat_capacity; }
 };
 
-}  //___end of namespace fea___
-}  //___end of namespace chrono___
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

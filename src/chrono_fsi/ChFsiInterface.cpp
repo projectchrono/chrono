@@ -80,8 +80,8 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
       hydroForce = std::make_shared<chrono::ChForce>();
       hydroTorque = std::make_shared<chrono::ChForce>();
 
-      hydroForce->SetMode(FTYPE_FORCE);
-      hydroTorque->SetMode(FTYPE_TORQUE);
+      hydroForce->SetMode(ChForce::FORCE);
+      hydroTorque->SetMode(ChForce::TORQUE);
 
       hydroForce->SetName(forceTag);
       hydroTorque->SetName(torqueTag);

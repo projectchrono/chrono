@@ -1,54 +1,42 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-
-#include "physics/ChContactContainerDEM.h"
-#include "physics/ChSystem.h"
-#include "physics/ChSystemDEM.h"
-
+#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemDEM.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChContactContainerDEM> a_registration_ChContactContainerDEM;
 
+ChContactContainerDEM::ChContactContainerDEM()
+    : n_added_6_6(0), n_added_6_3(0), n_added_3_3(0), n_added_333_6(0), n_added_333_3(0), n_added_333_333(0) {}
 
-ChContactContainerDEM::ChContactContainerDEM() {
-    contactlist_6_6.clear();
+ChContactContainerDEM::ChContactContainerDEM(const ChContactContainerDEM& other) : ChContactContainerBase(other) {
     n_added_6_6 = 0;
-
-    contactlist_6_3.clear();
     n_added_6_3 = 0;
-
-    contactlist_3_3.clear();
     n_added_3_3 = 0;
-
-    contactlist_333_6.clear();
     n_added_333_6 = 0;
-
-    contactlist_333_3.clear();
     n_added_333_3 = 0;
-
-    contactlist_333_333.clear();
     n_added_333_333 = 0;
 }
 
 ChContactContainerDEM::~ChContactContainerDEM() {
-
     RemoveAllContacts();
 }
 
@@ -56,7 +44,6 @@ void ChContactContainerDEM::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class, basically doing nothing :)
     ChContactContainerBase::Update(mytime, update_assets);
 }
-
 
 template <class Tcont, class Titer>
 void _RemoveAllContacts(std::list<Tcont*>& contactlist, Titer& lastcontact, int& n_added) {
@@ -70,7 +57,6 @@ void _RemoveAllContacts(std::list<Tcont*>& contactlist, Titer& lastcontact, int&
     lastcontact = contactlist.begin();
     n_added = 0;
 }
-
 
 void ChContactContainerDEM::RemoveAllContacts() {
     _RemoveAllContacts(contactlist_6_6, lastcontact_6_6, n_added_6_6);
@@ -138,19 +124,14 @@ void ChContactContainerDEM::EndAddContact() {
     //}
 }
 
-
-
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(
-    std::list<Tcont*>& contactlist, 
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,
                            Titer& lastcontact,
                            int& n_added,
                            ChContactContainerBase* mcontainer,
                            Ta* objA,  ///< collidable object A
                            Tb* objB,  ///< collidable object B
-    const collision::ChCollisionInfo& cinfo
-    )
-{
+                           const collision::ChCollisionInfo& cinfo) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
         (*lastcontact)->Reset(objA, objB, cinfo);
@@ -168,7 +149,6 @@ void _OptimalContactInsert(
 }
 
 void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontact) {
-
     assert(mcontact.modelA->GetContactable());
     assert(mcontact.modelB->GetContactable());
 
@@ -180,8 +160,10 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
     // of type ChMaterialSurface, trying to downcast from ChMaterialSurfaceBase.
     // If not DEM vs DEM, just bailout (ex it could be that this was a DVI vs DVI contact)
 
-    auto mmatA = std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
-    auto mmatB = std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
+    auto mmatA =
+        std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
+    auto mmatB =
+        std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
 
     if (!mmatA || !mmatB)
         return;
@@ -353,4 +335,24 @@ void ChContactContainerDEM::ConstraintsFbLoadForces(double factor) {
     GetLog() << "ChContactContainerDEM::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
 }
 
-}  // END_OF_NAMESPACE____
+void ChContactContainerDEM::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChContactContainerBase::ArchiveOUT(marchive);
+    // serialize all member data:
+    // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChContactContainerDEM::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChContactContainerBase::ArchiveIN(marchive);
+    // stream in all member data:
+    RemoveAllContacts();
+    // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
+}
+
+}  // end namespace chrono

@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include "physics/ChSystem.h"
-#include "physics/ChBody.h"
-#include "collision/ChCModelBullet.h"
-#include "ChMatterMeshless.h"
-#include "ChProximityContainerMeshless.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono_fea/ChMatterMeshless.h"
+#include "chrono_fea/ChProximityContainerMeshless.h"
 
 namespace chrono {
 
@@ -22,13 +24,18 @@ using namespace fea;
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChProximityContainerMeshless> a_registration_ChProximityContainerMeshless;
 
-ChProximityContainerMeshless::ChProximityContainerMeshless() {
-    proximitylist.clear();
-    n_added = 0;
+ChProximityContainerMeshless::ChProximityContainerMeshless() : n_added(0) {
+    lastproximity = proximitylist.begin();
+}
+
+ChProximityContainerMeshless::ChProximityContainerMeshless(const ChProximityContainerMeshless& other)
+    : ChProximityContainerBase(other) {
+    n_added = other.n_added;
+    proximitylist = other.proximitylist;
+    lastproximity = proximitylist.begin();
 }
 
 ChProximityContainerMeshless::~ChProximityContainerMeshless() {
@@ -80,7 +87,6 @@ void ChProximityContainerMeshless::AddProximity(collision::ChCollisionModel* mod
 
     if (!(mnA && mnB))
         return;
-
 
     // Launch the proximity callback, if implemented by the user
 
@@ -135,7 +141,6 @@ void ChProximityContainerMeshless::AccumulateStep1() {
     // Per-edge data computation
     std::list<ChProximityMeshless*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-
         ChNodeMeshless* mnodeA = dynamic_cast<ChNodeMeshless*>((*iterproximity)->GetModelA()->GetContactable());
         ChNodeMeshless* mnodeB = dynamic_cast<ChNodeMeshless*>((*iterproximity)->GetModelB()->GetContactable());
 
@@ -198,7 +203,6 @@ void ChProximityContainerMeshless::AccumulateStep2() {
     // Per-edge data computation (transfer stress to forces)
     std::list<ChProximityMeshless*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-
         ChNodeMeshless* mnodeA = dynamic_cast<ChNodeMeshless*>((*iterproximity)->GetModelA()->GetContactable());
         ChNodeMeshless* mnodeB = dynamic_cast<ChNodeMeshless*>((*iterproximity)->GetModelB()->GetContactable());
 
@@ -233,7 +237,8 @@ void ChProximityContainerMeshless::AccumulateStep2() {
 
         ChMatterMeshless* mmatA = (ChMatterMeshless*)(*iterproximity)->GetModelA()->GetPhysicsItem();
         ChMatterMeshless* mmatB = (ChMatterMeshless*)(*iterproximity)->GetModelB()->GetPhysicsItem();
-        double avg_viscosity = 0.5 * (mnodeA->GetMatterContainer()->GetViscosity() + mnodeB->GetMatterContainer()->GetViscosity());
+        double avg_viscosity =
+            0.5 * (mnodeA->GetMatterContainer()->GetViscosity() + mnodeB->GetMatterContainer()->GetViscosity());
 
         ChVector<> viscforceBA = velBA * (mnodeA->volume * avg_viscosity * mnodeB->volume * W_BA_visc);
         mnodeA->UserForce += viscforceBA;
@@ -243,4 +248,21 @@ void ChProximityContainerMeshless::AccumulateStep2() {
     }
 }
 
-}  // END_OF_NAMESPACE____
+void ChProximityContainerMeshless::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChProximityContainerBase::ArchiveOUT(marchive);
+    // serialize all member data:
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChProximityContainerMeshless::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChProximityContainerBase::ArchiveIN(marchive);
+    // stream in all member data:
+}
+
+}  // end namespace chrono

@@ -1,42 +1,30 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONTINUUMMATERIAL_H
 #define CHCONTINUUMMATERIAL_H
 
-//////////////////////////////////////////////////
-//
-//   ChContinuumMaterial.h
-//
-//   Class for material of elastoplatic continuum
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChApiCE.h"
-#include "core/ChMath.h"
-#include "physics/ChTensors.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/physics/ChTensors.h"
 
 namespace chrono {
 namespace fea {
 
-/// Base class for properties of materials
-/// in a continuum.
+// -----------------------------------------------------------------------------
+
+/// Base class for properties of materials in a continuum.
 
 class ChApi ChContinuumMaterial {
     // Chrono RTTI, needed for serialization
@@ -46,45 +34,40 @@ class ChApi ChContinuumMaterial {
     double density;
 
   public:
-    ChContinuumMaterial(double mdensity = 1000) : density(mdensity){};
-
-    virtual ~ChContinuumMaterial(){};
+    ChContinuumMaterial(double mdensity = 1000) : density(mdensity) {}
+    ChContinuumMaterial(const ChContinuumMaterial& other);
+    virtual ~ChContinuumMaterial() {}
 
     /// Set the density of the material, in kg/m^2.
     void Set_density(double m_density) { density = m_density; }
     /// Get the density of the material, in kg/m^2.
-    double Get_density() { return density; }
-
-    // SERIALIZATION
+    double Get_density() const { return density; }
 
     virtual void ArchiveOUT(ChArchiveOut& marchive);
-
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-/// Class for the basic properties of materials
-/// in an elastic continuum.
-/// This is a base material with isothropic hookean
-/// elasticity.
+/// Class for the basic properties of materials in an elastic continuum.
+/// This is a base material with isotropic hookean elasticity.
 
 class ChApi ChContinuumElastic : public ChContinuumMaterial {
   private:
-    double E;                              // Young Modulus
-    double v;                              // Poisson ratio
-    double G;                              // shear modulus
-    double l;                              // Lame's modulus
-    ChMatrixDynamic<> StressStrainMatrix;  // Elasticity (stiffness) matrix		σ = [E] ε
+    double E;                              ///< Young Modulus
+    double v;                              ///< Poisson ratio
+    double G;                              ///< shear modulus
+    double l;                              ///< Lame's modulus
+    ChMatrixDynamic<> StressStrainMatrix;  ///< Elasticity (stiffness) matrix :   = [E] ε
 
-    double damping_M;  // Raleigh_damping, M proportional
-    double damping_K;  // Raleigh_damping, K proportional
+    double damping_M;  ///< Raleigh_damping, M proportional
+    double damping_K;  ///< Raleigh_damping, K proportional
 
   public:
     /// Create a continuum isothropic hookean material.
     /// Default value for Young elastic modulus is low (like a
     /// rubber-type material), and same for density.
     ChContinuumElastic(double myoung = 10000000, double mpoisson = 0.4, double mdensity = 1000);
-
-    virtual ~ChContinuumElastic();
+    ChContinuumElastic(const ChContinuumElastic& other);
+    virtual ~ChContinuumElastic() {}
 
     /// Set the Young E elastic modulus, in Pa (N/m^2), as the ratio of the uniaxial
     /// stress over the uniaxial strain, for hookean materials. Intuitively, the
@@ -94,7 +77,7 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     /// problems if you do not set up the simulation integrator properly.
     void Set_E(double m_E);
     /// Get the Young E elastic modulus, in Pa (N/m^2).
-    double Get_E() { return E; }
+    double Get_E() const { return E; }
 
     /// Set the Poisson v ratio, as v=-transverse_strain/axial_strain, so
     /// takes into account the 'squeezing' effect of materials that are pulled (so,
@@ -105,22 +88,22 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     /// Setting v also changes G.
     void Set_v(double m_v);
     /// Get the Young v ratio, as v=-transverse_strain/axial_strain.
-    double Get_v() { return v; }
+    double Get_v() const { return v; }
 
     /// Set the shear modulus G, in Pa (N/m^2), as the ratio of shear stress to
     /// the shear strain. Setting G also changes Poisson ratio v.
     void Set_G(double m_G);
     /// Get the shear modulus G, in Pa (N/m^2)
-    double Get_G() { return G; }
+    double Get_G() const { return G; }
 
     /// Get Lamé first parameter (the second is shear modulus, so Get_G() )
-    double Get_l() { return l; }
+    double Get_l() const { return l; }
 
     /// Get bulk modulus (increase of pressure for decrease of volume), in Pa.
-    double Get_BulkModulus() { return E / (3. * (1. - 2. * v)); }
+    double Get_BulkModulus() const { return E / (3 * (1 - 2 * v)); }
 
     /// Get P-wave modulus (if V=speed of propagation of a P-wave, then (M/density)=V^2 )
-    double Get_WaveModulus() { return E * ((1. - v) / (1. + v) * (1. - 2. * v)); }
+    double Get_WaveModulus() const { return E * ((1 - v) / (1 + v) * (1 - 2 * v)); }
 
     /// Computes Elasticity matrix and stores the value in this->StressStrainMatrix
     /// Note: is performed every time you change a material parameter
@@ -130,51 +113,31 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
 
     /// Compute elastic stress from elastic strain
     /// (using column tensors, in Voight notation)
-    void ComputeElasticStress(ChStressTensor<>& mstress, const ChStrainTensor<>& mstrain) const {
-        mstress.XX() = mstrain.XX() * (l + 2 * G) + mstrain.YY() * l + mstrain.ZZ() * l;
-        mstress.YY() = mstrain.XX() * l + mstrain.YY() * (l + 2 * G) + mstrain.ZZ() * l;
-        mstress.ZZ() = mstrain.XX() * l + mstrain.YY() * l + mstrain.ZZ() * (l + 2 * G);
-        mstress.XY() = mstrain.XY() * 2 * G;
-        mstress.XZ() = mstrain.XZ() * 2 * G;
-        mstress.YZ() = mstrain.YZ() * 2 * G;
-    }
+    void ComputeElasticStress(ChStressTensor<>& mstress, const ChStrainTensor<>& mstrain) const;
 
     /// Compute elastic strain from elastic stress
     /// (using column tensors, in Voight notation)
-    void ComputeElasticStrain(ChStrainTensor<>& mstrain, const ChStressTensor<>& mstress) const {
-        double invE = 1. / E;
-        double invhG = 0.5 / G;
-        mstrain.XX() = invE * (mstress.XX() - mstress.YY() * v - mstress.ZZ() * v);
-        mstrain.YY() = invE * (-mstress.XX() * v + mstress.YY() - mstress.ZZ() * v);
-        mstrain.ZZ() = invE * (-mstress.XX() * v - mstress.YY() * v + mstress.ZZ());
-        mstrain.XY() = mstress.XY() * invhG;
-        mstrain.XZ() = mstress.XZ() * invhG;
-        mstrain.YZ() = mstress.YZ() * invhG;
-    }
+    void ComputeElasticStrain(ChStrainTensor<>& mstrain, const ChStressTensor<>& mstress) const;
 
     /// Set the Rayleigh mass-proportional damping factor alpha, to
     /// build damping R as  R=alpha*M + beta*K
-    void Set_RayleighDampingM(double m_d) { this->damping_M = m_d; }
+    void Set_RayleighDampingM(double m_d) { damping_M = m_d; }
     /// Set the Rayleigh mass-proportional damping factor alpha, in R=alpha*M + beta*K
-    double Get_RayleighDampingM() { return this->damping_M; }
+    double Get_RayleighDampingM() const { return damping_M; }
 
     /// Set the Rayleigh stiffness-proportional damping factor beta, to
     /// build damping R as  R=alpha*M + beta*K
-    void Set_RayleighDampingK(double m_d) { this->damping_K = m_d; }
+    void Set_RayleighDampingK(double m_d) { damping_K = m_d; }
     /// Set the Rayleigh stiffness-proportional damping factor beta, in R=alpha*M + beta*K
-    double Get_RayleighDampingK() { return this->damping_K; }
+    double Get_RayleighDampingK() const { return damping_K; }
 
-    //
-    // STREAMING
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-
-    virtual void ArchiveIN(ChArchiveIn& marchive);
-
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-/// Class for all elastic materials that can undergo plastic flow
+// -----------------------------------------------------------------------------
+
+/// Class for all elastic materials that can undergo plastic flow.
 /// Defines simply some interface functions.
 
 class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
@@ -183,7 +146,7 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
 
   public:
     ChContinuumElastoplastic(double myoung = 10000000, double mpoisson = 0.4, double mdensity = 1000)
-        : ChContinuumElastic(myoung, mpoisson, mdensity){};
+        : ChContinuumElastic(myoung, mpoisson, mdensity) {}
 
     /// Return a scalar value that is 0 on the yeld surface, <0 inside (elastic), >0 outside (incompatible->plastic
     /// flow)
@@ -205,35 +168,16 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     /// the plastic flow during dynamic simulations, with delayed plasticity.
     virtual void Set_flow_rate(double mflow_rate) = 0;
     /// Set the plastic flow rate.
-    virtual double Get_flow_rate() = 0;
+    virtual double Get_flow_rate() const = 0;
 
-    //
-    // STREAMING
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChContinuumElastic::ArchiveOUT(marchive);
-        // serialize all member data:
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChContinuumElastic::ArchiveIN(marchive);
-        // stream in all member data:
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-/// Class for the basic properties of materials
-/// in an elastoplastic continuum, with strain yeld limit
-/// based on Von Mises yeld
+// -----------------------------------------------------------------------------
+
+/// Class for the basic properties of materials in an elastoplastic continuum,
+/// with strain yeld limit based on Von Mises yeld.
 
 class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
     // Chrono RTTI, needed for serialization
@@ -254,73 +198,49 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
                                double mdensity = 1000,
                                double melastic_yeld = 0.1,
                                double mplastic_yeld = 0.2);
-
-    virtual ~ChContinuumPlasticVonMises(){};
+    ChContinuumPlasticVonMises(const ChContinuumPlasticVonMises& other);
+    virtual ~ChContinuumPlasticVonMises() {}
 
     /// Set the elastic yeld modulus as the maximum VonMises
     /// equivalent strain that can be withstood by material before
     /// starting plastic flow. It defines the transition elastic->plastic.
     void Set_elastic_yeld(double melastic_yeld) { elastic_yeld = melastic_yeld; };
     /// Get the elastic yeld modulus.
-    double Get_elastic_yeld() { return elastic_yeld; }
+    double Get_elastic_yeld() const { return elastic_yeld; }
 
     /// Set the plastic yeld modulus as the maximum VonMises
     /// equivalent strain that can be withstood by material before
     /// fracture. It defines the transition plastic->fracture.
     void Set_plastic_yeld(double mplastic_yeld) { plastic_yeld = mplastic_yeld; };
     /// Get the plastic yeld modulus.
-    double Get_plastic_yeld() { return plastic_yeld; }
+    double Get_plastic_yeld() const { return plastic_yeld; }
 
     /// Set the plastic flow rate. The lower the value, the slower
     /// the plastic flow during dynamic simulations.
-    void Set_flow_rate(double mflow_rate) { flow_rate = mflow_rate; };
+    virtual void Set_flow_rate(double mflow_rate) override { flow_rate = mflow_rate; };
     /// Set the plastic flow rate.
-    double Get_flow_rate() { return flow_rate; }
+    virtual double Get_flow_rate() const override { return flow_rate; }
 
-    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const;
+    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const override;
 
     virtual void ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow,
                                       const ChStrainTensor<>& mincrementstrain,
                                       const ChStrainTensor<>& mlastelasticstrain,
-                                      const ChStrainTensor<>& mlastplasticstrain) const;
+                                      const ChStrainTensor<>& mlastplasticstrain) const override;
 
     /// Compute plastic strain flow (flow derivative dE_plast/dt) from strain,
     /// according to VonMises strain yeld theory.
-    void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const;
+    virtual void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
+                                          const ChStrainTensor<>& mestrain) const override;
 
-    //
-    // STREAMING
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChContinuumElastoplastic::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(this->elastic_yeld);
-        marchive << CHNVP(this->plastic_yeld);
-        marchive << CHNVP(this->flow_rate);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChContinuumElastoplastic::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(this->elastic_yeld);
-        marchive >> CHNVP(this->plastic_yeld);
-        marchive >> CHNVP(this->flow_rate);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-/// Class for the basic properties of elastoplastic materials
-/// of Drucker-Prager type, that are useful for simulating
-/// soils
+// -----------------------------------------------------------------------------
+
+/// Class for the basic properties of elastoplastic materials of Drucker-Prager type,
+/// that are useful for simulating soils.
 
 class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
     // Chrono RTTI, needed for serialization
@@ -342,19 +262,19 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
                              double melastic_yeld = 0.1,
                              double malpha = 0.5,
                              double mdilatancy = 0);
-
-    virtual ~ChContinuumDruckerPrager(){};
+    ChContinuumDruckerPrager(const ChContinuumDruckerPrager& other);
+    virtual ~ChContinuumDruckerPrager() {}
 
     /// Set the D-P yeld modulus C, for Drucker-Prager
     /// yeld. It defines the transition elastic->plastic.
-    void Set_elastic_yeld(double melastic_yeld) { elastic_yeld = melastic_yeld; };
+    void Set_elastic_yeld(double melastic_yeld) { elastic_yeld = melastic_yeld; }
     /// Get the elastic yeld modulus C
-    double Get_elastic_yeld() { return elastic_yeld; }
+    double Get_elastic_yeld() const { return elastic_yeld; }
 
     /// Set the internal friction coefficient A
-    void Set_alpha(double malpha) { alpha = malpha; };
+    void Set_alpha(double malpha) { alpha = malpha; }
     /// Get the internal friction coefficient A
-    double Get_alpha() { return alpha; }
+    double Get_alpha() const { return alpha; }
 
     /// Sets the C and A parameters of the Drucker-Prager model
     /// starting from more 'practical' values of inner friction angle phi
@@ -365,74 +285,44 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
 
     /// Set the plastic flow rate multiplier. The lower the value, the slower
     /// the plastic flow during dynamic simulations.
-    void Set_flow_rate(double mflow_rate) { flow_rate = mflow_rate; };
+    virtual void Set_flow_rate(double mflow_rate) override { flow_rate = mflow_rate; }
     /// Get the flow rate multiplier.
-    double Get_flow_rate() { return flow_rate; }
+    virtual double Get_flow_rate() const override { return flow_rate; }
 
     /// Set the internal dilatancy coefficient (usually 0.. < int.friction)
-    void Set_dilatancy(double mdilatancy) { dilatancy = mdilatancy; };
+    void Set_dilatancy(double mdilatancy) { dilatancy = mdilatancy; }
     /// Get the internal dilatancy coefficient
-    double Get_dilatancy() { return dilatancy; }
+    double Get_dilatancy() const { return dilatancy; }
 
     /// Set the hardening limit (usually a bit larger than yeld), or softening
-    void Set_hardening_limit(double mhl) { hardening_limit = mhl; };
+    void Set_hardening_limit(double mhl) { hardening_limit = mhl; }
     /// Get the hardening limit
-    double Get_hardening_limit() { return hardening_limit; }
+    double Get_hardening_limit() const { return hardening_limit; }
 
     /// Set the hardening inverse speed coeff. for exponential hardening
     /// (the larger, the slower the hardening or softening process that
     /// will asymptotycally make yeld = hardening_limit )
-    void Set_hardening_speed(double mhl) { hardening_speed = mhl; };
+    void Set_hardening_speed(double mhl) { hardening_speed = mhl; }
     /// Get the hardening speed
-    double Get_hardening_speed() { return hardening_speed; }
+    double Get_hardening_speed() const { return hardening_speed; }
 
-    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const;
+    virtual double ComputeYeldFunction(const ChStressTensor<>& mstress) const override;
 
     virtual void ComputeReturnMapping(ChStrainTensor<>& mplasticstrainflow,
                                       const ChStrainTensor<>& mincrementstrain,
                                       const ChStrainTensor<>& mlastelasticstrain,
-                                      const ChStrainTensor<>& mlastplasticstrain) const;
+                                      const ChStrainTensor<>& mlastplasticstrain) const override;
 
     /// Compute plastic strain flow direction from strain
     /// according to Drucker-Prager.
-    void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow, const ChStrainTensor<>& mestrain) const;
+    virtual void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
+                                          const ChStrainTensor<>& mestrain) const override;
 
-    //
-    // STREAMING
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChContinuumElastoplastic::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(this->elastic_yeld);
-        marchive << CHNVP(this->alpha);
-        marchive << CHNVP(this->dilatancy);
-        marchive << CHNVP(this->hardening_speed);
-        marchive << CHNVP(this->hardening_limit);
-        marchive << CHNVP(this->flow_rate);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChContinuumElastoplastic::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(this->elastic_yeld);
-        marchive >> CHNVP(this->alpha);
-        marchive >> CHNVP(this->dilatancy);
-        marchive >> CHNVP(this->hardening_speed);
-        marchive >> CHNVP(this->hardening_limit);
-        marchive >> CHNVP(this->flow_rate);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
+
 #endif

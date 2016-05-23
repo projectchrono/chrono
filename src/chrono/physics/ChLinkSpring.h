@@ -1,53 +1,51 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKSPRING_H
 #define CHLINKSPRING_H
 
-#include "physics/ChLinkMarkers.h"
+#include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
-///
 /// Class for spring-damper systems, acting along the polar
 /// distance of two markers
-///
 
 class ChApi ChLinkSpring : public ChLinkMarkers {
     CH_RTTI(ChLinkSpring, ChLinkMarkers);
 
   protected:
-    double spr_restlength;
-    double spr_k;
-    double spr_r;
-    double spr_f;
-    std::shared_ptr<ChFunction> mod_f_time;   // f(t)
-    std::shared_ptr<ChFunction> mod_k_d;      // k(d)
-    std::shared_ptr<ChFunction> mod_r_d;      // r(d)
-    std::shared_ptr<ChFunction> mod_r_speed;  // k(speed)
-    std::shared_ptr<ChFunction> mod_k_speed;  // r(speed)
-    double spr_react;                     // resulting force in dist. coord / readonly
+    double spr_restlength;                    ///< spring rest (undeformed) length
+    double spr_k;                             ///< spring coefficient
+    double spr_r;                             ///< damping coefficient
+    double spr_f;                             ///< actuator force
+    std::shared_ptr<ChFunction> mod_f_time;   ///< f(t)
+    std::shared_ptr<ChFunction> mod_k_d;      ///< k(d)
+    std::shared_ptr<ChFunction> mod_r_d;      ///< r(d)
+    std::shared_ptr<ChFunction> mod_r_speed;  ///< k(speed)
+    std::shared_ptr<ChFunction> mod_k_speed;  ///< r(speed)
+    double spr_react;                         ///< resulting force in dist. coord / readonly
 
   public:
-    //
-    // FUNCTIONS
-    //
-
-    // builders and destroyers
     ChLinkSpring();
-    virtual ~ChLinkSpring();
-    virtual void Copy(ChLinkSpring* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    ChLinkSpring(const ChLinkSpring& other);
+    virtual ~ChLinkSpring() {}
 
-    virtual int GetType() { return LNK_SPRING; }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkSpring* Clone() const override { return new ChLinkSpring(*this); }
+
+    virtual int GetType() const override { return LNK_SPRING; }
 
     // data fetch/store
     double Get_SpringRestLength() const { return spr_restlength; }
@@ -84,11 +82,11 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     void Initialize(
         std::shared_ptr<ChBody> mbody1,  ///< first body to link
         std::shared_ptr<ChBody> mbody2,  ///< second body to link
-        bool pos_are_relative,  ///< true: following pos. are considered relative to bodies. false: pos.are absolute
-        ChVector<> mpos1,       ///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
-        ChVector<> mpos2,       ///< position of spring endpoint, for 2nd body (rel. or abs., see flag above)
-        bool auto_rest_length = true,  ///< if true, initializes the rest-length as the distance between mpos1 and mpos2
-        double mrest_length = 0        ///< imposed rest_length (no need to define, if auto_rest_length=true.)
+        bool pos_are_relative,           ///< true: following pos. are relative to bodies
+        ChVector<> mpos1,                ///< position of spring endpoint, for 1st body (rel. or abs., see flag above)
+        ChVector<> mpos2,                ///< position of spring endpoint, for 2nd body (rel. or abs., see flag above)
+        bool auto_rest_length = true,    ///< if true, initializes the rest-length as the distance between mpos1 and mpos2
+        double mrest_length = 0          ///< imposed rest_length (no need to define, if auto_rest_length=true.)
         );
 
     /// Get the 1st spring endpoint (expressed in Body1 coordinate system)
@@ -109,33 +107,16 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     /// Set the 1st spring endpoint (expressed in absolute coordinate system)
     void SetEndPoint2Abs(ChVector<>& mset) { marker2->Impose_Abs_Coord(ChCoordsys<>(mset, QUNIT)); }
 
-    //
-    // UPDATING FUNCTIONS
-    //
-
-    /// Inherits, then also adds the spring custom forces to
-    /// the C_force and C_torque.
-    virtual void UpdateForces(double mytime);
-
-    //
-    // STATE FUNCTIONS
-    //
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-
-    //
-    // SERIALIZATION
-    //
+    /// Inherits, then also adds the spring custom forces to the C_force and C_torque.
+    virtual void UpdateForces(double mytime) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif
