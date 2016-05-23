@@ -1,9 +1,10 @@
 #=============================================================================
 # CMake configuration file for the vehicle cosimulation tests.
-# These example programs requires MPI and the Chrono::Parallel module
+# These example programs requires MPI and the Chrono::FEA and Chrono::Parallel
+# modules
 #=============================================================================
 
-IF(NOT MPI_CXX_FOUND OR NOT ENABLE_MODULE_PARALLEL)
+IF(NOT MPI_CXX_FOUND OR NOT ENABLE_MODULE_FEA OR NOT ENABLE_MODULE_PARALLEL)
     RETURN()
 ENDIF()
 
