@@ -32,7 +32,6 @@
 #include <unordered_map>
 #include "physics/ChSystem.h"
 #include "physics/ChContactContainerBase.h"
-#include "core/ChHashFunction.h"
 
 
 namespace chrono {
