@@ -45,10 +45,10 @@ const double M113_Sprocket::m_gear_R = 0.089;
 const double M113_Sprocket::m_gear_RA = 0.245;
 
 const std::string M113_SprocketLeft::m_meshName = "Sprocket_L_POV_geom";
-const std::string M113_SprocketLeft::m_meshFile = vehicle::GetDataFile("M113/Sprocket_L.obj");
+const std::string M113_SprocketLeft::m_meshFile = "M113/Sprocket_L.obj";
 
 const std::string M113_SprocketRight::m_meshName = "Sprocket_R_POV_geom";
-const std::string M113_SprocketRight::m_meshFile = vehicle::GetDataFile("M113/Sprocket_R.obj");
+const std::string M113_SprocketRight::m_meshFile = "M113/Sprocket_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

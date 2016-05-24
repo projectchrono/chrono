@@ -22,6 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/road_wheel/ChDoubleRoadWheel.h"
 
 #include "models/ChApiModels.h"
@@ -60,8 +61,8 @@ class CH_MODELS_API M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const = 0;
 
-    virtual const std::string& GetMeshName() const = 0;
-    virtual const std::string& GetMeshFile() const = 0;
+    virtual std::string GetMeshName() const = 0;
+    virtual std::string GetMeshFile() const = 0;
 
     static const double m_wheel_mass;
     static const chrono::ChVector<> m_wheel_inertia;
@@ -79,8 +80,8 @@ class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::LEFT; }
 
-    virtual const std::string& GetMeshName() const override { return m_meshName; }
-    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+    virtual std::string GetMeshName() const override { return m_meshName; }
+    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -94,8 +95,8 @@ class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
 
     virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::RIGHT; }
 
-    virtual const std::string& GetMeshName() const override { return m_meshName; }
-    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+    virtual std::string GetMeshName() const override { return m_meshName; }
+    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;

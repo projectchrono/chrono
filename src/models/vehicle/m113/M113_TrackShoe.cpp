@@ -43,7 +43,7 @@ const double M113_TrackShoe::m_front_cyl_loc = 0.0535;
 const double M113_TrackShoe::m_rear_cyl_loc = -0.061;
 
 const std::string M113_TrackShoe::m_meshName = "TrackShoe_POV_geom";
-const std::string M113_TrackShoe::m_meshFile = vehicle::GetDataFile("M113/TrackShoe.obj");
+const std::string M113_TrackShoe::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ void M113_TrackShoe::AddShoeVisualization() {
         }
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(m_meshFile, false, false);
+            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);

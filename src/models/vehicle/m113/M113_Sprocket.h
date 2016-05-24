@@ -22,6 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChArcSprocket.h"
 
 #include "models/ChApiModels.h"
@@ -70,8 +71,8 @@ class CH_MODELS_API M113_Sprocket : public chrono::vehicle::ChArcSprocket {
   protected:
     M113_Sprocket(const std::string& name);
 
-    virtual const std::string& GetMeshName() const = 0;
-    virtual const std::string& GetMeshFile() const = 0;
+    virtual std::string GetMeshName() const = 0;
+    virtual std::string GetMeshFile() const = 0;
 
     static const int m_num_teeth;
 
@@ -94,8 +95,8 @@ class CH_MODELS_API M113_SprocketLeft : public M113_Sprocket {
     M113_SprocketLeft() : M113_Sprocket("M113_SprocketLeft") {}
     ~M113_SprocketLeft() {}
 
-    virtual const std::string& GetMeshName() const override { return m_meshName; }
-    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+    virtual std::string GetMeshName() const override { return m_meshName; }
+    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -107,8 +108,8 @@ class CH_MODELS_API M113_SprocketRight : public M113_Sprocket {
     M113_SprocketRight() : M113_Sprocket("M113_SprocketRight") {}
     ~M113_SprocketRight() {}
 
-    virtual const std::string& GetMeshName() const override { return m_meshName; }
-    virtual const std::string& GetMeshFile() const override { return m_meshFile; }
+    virtual std::string GetMeshName() const override { return m_meshName; }
+    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;

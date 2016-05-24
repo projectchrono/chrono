@@ -47,10 +47,10 @@ const double M113_Idler::m_tensioner_k = 1e6;
 const double M113_Idler::m_tensioner_c = 1.4e4;
 
 const std::string M113_IdlerLeft::m_meshName = "Idler_L_POV_geom";
-const std::string M113_IdlerLeft::m_meshFile = vehicle::GetDataFile("M113/Idler_L.obj");
+const std::string M113_IdlerLeft::m_meshFile = "M113/Idler_L.obj";
 
 const std::string M113_IdlerRight::m_meshName = "Idler_R_POV_geom";
-const std::string M113_IdlerRight::m_meshFile = vehicle::GetDataFile("M113/Idler_R.obj");
+const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -126,6 +126,12 @@ const ChVector<> M113_Idler::GetLocation(PointId which) {
         point.y *= -1;
 
     return point;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void M113_Idler::ExportMeshPovray(const std::string& out_dir) {
+    utils::WriteMeshPovray(GetMeshFile(), GetMeshName(), out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
 }  // end namespace m113
