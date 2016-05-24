@@ -20,6 +20,7 @@
 #define HMMWV_WHEEL_H
 
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 #include "models/ChApiModels.h"
@@ -36,8 +37,8 @@ class CH_MODELS_API HMMWV_Wheel : public chrono::vehicle::ChWheel {
 
     virtual void Initialize(std::shared_ptr<chrono::ChBody> spindle) override;
 
-    virtual const std::string& getMeshName() const = 0;
-    virtual const std::string& getMeshFile() const = 0;
+    virtual std::string getMeshName() const = 0;
+    virtual std::string getMeshFile() const = 0;
 
     virtual void ExportMeshPovray(const std::string& out_dir) = 0;
 
@@ -55,8 +56,8 @@ class CH_MODELS_API HMMWV_WheelLeft : public HMMWV_Wheel {
     HMMWV_WheelLeft(chrono::vehicle::VisualizationType visType);
     ~HMMWV_WheelLeft() {}
 
-    virtual const std::string& getMeshName() const override { return m_meshName; }
-    virtual const std::string& getMeshFile() const override { return m_meshFile; }
+    virtual std::string getMeshName() const override { return m_meshName; }
+    virtual std::string getMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
 
     virtual void ExportMeshPovray(const std::string& out_dir) override;
 
@@ -70,8 +71,8 @@ class CH_MODELS_API HMMWV_WheelRight : public HMMWV_Wheel {
     HMMWV_WheelRight(chrono::vehicle::VisualizationType visType);
     ~HMMWV_WheelRight() {}
 
-    virtual const std::string& getMeshName() const override { return m_meshName; }
-    virtual const std::string& getMeshFile() const override { return m_meshFile; }
+    virtual std::string getMeshName() const override { return m_meshName; }
+    virtual std::string getMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
 
     virtual void ExportMeshPovray(const std::string& out_dir) override;
 

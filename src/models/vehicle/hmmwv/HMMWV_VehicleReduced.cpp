@@ -42,7 +42,7 @@ const ChVector<> HMMWV_VehicleReduced::m_chassisCOM = in2m * ChVector<>(-18.8, -
 const ChVector<> HMMWV_VehicleReduced::m_chassisInertia(125.8, 497.4, 531.4);  // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_VehicleReduced::m_chassisMeshName = "hmmwv_chassis_POV_geom";
-const std::string HMMWV_VehicleReduced::m_chassisMeshFile = vehicle::GetDataFile("hmmwv/hmmwv_chassis.obj");
+const std::string HMMWV_VehicleReduced::m_chassisMeshFile = "hmmwv/hmmwv_chassis.obj";
 
 const ChCoordsys<> HMMWV_VehicleReduced::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
@@ -90,7 +90,7 @@ void HMMWV_VehicleReduced::Create(bool fixed, VisualizationType chassisVis, Visu
         }
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
+            trimesh.LoadWavefrontMesh(GetDataFile(m_chassisMeshFile), false, false);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
@@ -200,7 +200,7 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleReduced::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
+    utils::WriteMeshPovray(GetDataFile(m_chassisMeshFile), m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
 
     HMMWV_Wheel* wheelFL = static_cast<HMMWV_Wheel*>(m_wheels[0].get());
     HMMWV_Wheel* wheelFR = static_cast<HMMWV_Wheel*>(m_wheels[1].get());
