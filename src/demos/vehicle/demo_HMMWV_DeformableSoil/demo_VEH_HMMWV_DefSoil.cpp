@@ -44,7 +44,7 @@ using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
-using namespace hmmwv;
+using namespace chrono::vehicle::hmmwv;
 
 using std::cout;
 using std::endl;

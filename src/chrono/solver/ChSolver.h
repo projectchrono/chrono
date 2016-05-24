@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSOLVER_H
 #define CHSOLVER_H
@@ -44,17 +46,9 @@ class ChApi ChSolver {
   public:
     bool verbose;
 
-    //
-    // CONSTRUCTORS
-    //
-
-    ChSolver() { verbose = false; }
+    ChSolver() : verbose(false) {}
 
     virtual ~ChSolver() {}
-
-    //
-    // FUNCTIONS
-    //
 
     // --Following functions are generic interfaces to the solver. The
     //   Solve() function is a pure virtual method, so it MUST be implemented
@@ -72,12 +66,8 @@ class ChApi ChSolver {
     /// This method is implemented in direct solvers such as MKL
     virtual double Factorize(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                              ) {
-        return 0.0f;
-    };
-
-    //
-    // Utility functions
-    //
+        return 0;
+    }
 
     void SetVerbose(bool mv) { this->verbose = mv; }
     bool GetVerbose() const { return this->verbose; }

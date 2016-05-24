@@ -26,9 +26,13 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase
   typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;
 
   ChContactContainerParallel(ChParallelDataManager* dc);
+  ChContactContainerParallel(const ChContactContainerParallel& other);
   ~ChContactContainerParallel();
 
-  virtual int GetNcontacts() { return data_manager->num_rigid_contacts; }
+  /// "Virtual" copy constructor (covariant return type).
+  virtual ChContactContainerParallel* Clone() const override { return new ChContactContainerParallel(*this); }
+
+  virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
 
   virtual void RemoveAllContacts();
   virtual void BeginAddContact();

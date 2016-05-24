@@ -101,6 +101,9 @@ inline real Mod(real x, real y) {
 inline real Log(real x) {
     return log(x);
 }
+inline real Tanh(real x) {
+    return tanh(x);
+}
 #else
 inline real Sin(real theta) {
     return sinf(theta);
@@ -140,6 +143,9 @@ inline real Mod(real x, real y) {
 }
 inline real Log(real x) {
     return logf(x);
+}
+inline real Tanh(real x) {
+    return tanhf(x);
 }
 #endif
 

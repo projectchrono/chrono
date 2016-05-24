@@ -16,15 +16,14 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "models/vehicle/hmmwv/HMMWV_LugreTire.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -41,8 +40,7 @@ const double HMMWV_LugreTire::m_normalDamping = 1e3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_LugreTire::HMMWV_LugreTire(const std::string& name) : ChLugreTire(name) {
-}
+HMMWV_LugreTire::HMMWV_LugreTire(const std::string& name) : ChLugreTire(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -69,3 +67,5 @@ void HMMWV_LugreTire::SetLugreParams() {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

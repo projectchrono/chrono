@@ -1,58 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkNumdiff.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkNumdiff.h"
+#include "chrono/physics/ChLinkNumdiff.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkNumdiff> a_registration_ChLinkNumdiff;
-
-// BUILD
-ChLinkNumdiff::ChLinkNumdiff() {
-}
-
-// DESTROY
-ChLinkNumdiff::~ChLinkNumdiff() {
-}
-
-void ChLinkNumdiff::Copy(ChLinkNumdiff* source) {
-    // first copy the parent class data...
-    ChLinkMasked::Copy(source);
-}
-
-ChLink* ChLinkNumdiff::new_Duplicate()  // inherited classes:  Link* MyInheritedLink::new_Duplicate()
-{
-    ChLinkNumdiff* m_l;
-    m_l = new ChLinkNumdiff;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-////////////////////////////////////
-///
-///    UPDATING PROCEDURES
-
-/////////       COMPUTE C    -updates the value of C residuals, given current coordinates & time
-/////////                     C = C(q,t)
 
 void ChLinkNumdiff::ComputeC() {
     // ** Child classes must implement this constraint evaluation, in order
@@ -67,9 +32,6 @@ void ChLinkNumdiff::ComputeC() {
 
     C->Reset();  // default: always no violation. C = 0;
 }
-
-/////////     COMPUTE Ct
-/////////
 
 void ChLinkNumdiff::ComputeCt() {
     ChMatrixDynamic<> m_q(GetNumCoords(), 1);  // coordinates
@@ -88,9 +50,6 @@ void ChLinkNumdiff::ComputeCt() {
     Ct->MatrSub(C_qdt, C_qt);  // Ct
     Ct->MatrScale(1.0 / BDF_STEP_VERYLOW);
 }
-
-/////////    COMPUTE Cq
-/////////
 
 void ChLinkNumdiff::ComputeCq() {
     double orig;
@@ -120,9 +79,6 @@ void ChLinkNumdiff::ComputeCq() {
         m_q(i, 0) = orig;
     }
 }
-
-/////////     UPDATE STATE
-/////////
 
 void ChLinkNumdiff::UpdateState() {
     double m_t = ChTime;
@@ -158,9 +114,6 @@ void ChLinkNumdiff::UpdateState() {
     // now compute vector gamma for dynamics:  ???
     //***TO DO***....
 }
-
-/////////    -   SET COORDINATES of the two connected bodies
-/////////
 
 void ChLinkNumdiff::ImposeCoords(ChMatrix<>* mc, double t) {
     ChCoordsys<> mcsys;
@@ -200,12 +153,7 @@ void ChLinkNumdiff::FetchCoords_dt(ChMatrix<>* mc) {
     mc->PasteCoordsys(mcsys, 7, 0);
 }
 
-/////////
-///////// FILE I/O
-/////////
-
-void ChLinkNumdiff::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkNumdiff::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -213,12 +161,10 @@ void ChLinkNumdiff::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkMasked::ArchiveOUT(marchive);
 
     // serialize all member data:
-
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkNumdiff::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkNumdiff::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -226,7 +172,6 @@ void ChLinkNumdiff::ArchiveIN(ChArchiveIn& marchive)
     ChLinkMasked::ArchiveIN(marchive);
 
     // deserialize all member data:
-
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

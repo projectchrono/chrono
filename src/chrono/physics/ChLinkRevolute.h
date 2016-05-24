@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
 #ifndef CHLINKREVOLUTE_H
 #define CHLINKREVOLUTE_H
@@ -28,22 +31,15 @@ class ChApi ChLinkRevolute : public ChLink {
     CH_RTTI(ChLinkRevolute, ChLink);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChLinkRevolute();
+    ChLinkRevolute(const ChLinkRevolute& other);
     ~ChLinkRevolute();
 
-    virtual void Copy(ChLinkRevolute* source);
-    virtual ChLink* new_Duplicate();
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkRevolute* Clone() const override { return new ChLinkRevolute(*this); }
 
     /// Get the type of this joint.
-    virtual int GetType() { return LNK_REVOLUTE; }
+    virtual int GetType() const override { return LNK_REVOLUTE; }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
     virtual int GetDOC_c() { return 5; }
@@ -67,10 +63,9 @@ class ChApi ChLinkRevolute : public ChLink {
     /// Initialize this joint by specifying the two bodies to be connected and a
     /// joint frame specified in the absolute frame. The revolute joint is
     /// constructed such that ...
-
     void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
                     std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
-                    const ChFrame<>& frame           ///< joint frame (in absolute frame)
+                    const ChFrame<>& frame               ///< joint frame (in absolute frame)
                     );
 
     /// Initialize this joint by specifying the two bodies to be connected and the
@@ -79,9 +74,9 @@ class ChApi ChLinkRevolute : public ChLink {
     /// specified in the absolute frame.
     void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
                     std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
-                    bool local,                      ///< true if data given in body local frames
-                    const ChFrame<>& frame1,         ///< joint frame on body 1
-                    const ChFrame<>& frame2          ///< joint frame on body 2
+                    bool local,                          ///< true if data given in body local frames
+                    const ChFrame<>& frame1,             ///< joint frame on body 1
+                    const ChFrame<>& frame2              ///< joint frame on body 2
                     );
 
     //
@@ -90,24 +85,24 @@ class ChApi ChLinkRevolute : public ChLink {
 
     /// Perform the update of this joint at the specified time: compute jacobians
     /// and constraint violations, cache in internal structures
-    virtual void Update(double time, bool update_assets = true);
+    virtual void Update(double time, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -123,26 +118,26 @@ class ChApi ChLinkRevolute : public ChLink {
     // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChSystemDescriptor& descriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
-        
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
+
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
     // Joint frames (in body local frames)
-    ChFrame<> m_frame1;  // joint frame on body 1
-    ChFrame<> m_frame2;  // joint frame on body 2
+    ChFrame<> m_frame1;  ///< joint frame on body 1
+    ChFrame<> m_frame2;  ///< joint frame on body 2
 
     // Cached matrices
     ChMatrix33<> m_u1_tilde;
@@ -150,11 +145,11 @@ class ChApi ChLinkRevolute : public ChLink {
     ChMatrix33<> m_w2_tilde;
 
     // The constraint objects
-    ChConstraintTwoBodies m_cnstr_x;   // x1_abs - x2_abs = 0
-    ChConstraintTwoBodies m_cnstr_y;   // y1_abs - y2_abs = 0
-    ChConstraintTwoBodies m_cnstr_z;   // z1_abs - z2_abs = 0
-    ChConstraintTwoBodies m_cnstr_uw;  // dot(u1_abs, w2_abs) = 0
-    ChConstraintTwoBodies m_cnstr_vw;  // dot(u1_abs, w2_abs) = 0
+    ChConstraintTwoBodies m_cnstr_x;   ///< x1_abs - x2_abs = 0
+    ChConstraintTwoBodies m_cnstr_y;   ///< y1_abs - y2_abs = 0
+    ChConstraintTwoBodies m_cnstr_z;   ///< z1_abs - z2_abs = 0
+    ChConstraintTwoBodies m_cnstr_uw;  ///< dot(u1_abs, w2_abs) = 0
+    ChConstraintTwoBodies m_cnstr_vw;  ///< dot(u1_abs, w2_abs) = 0
 
     // Current constraint violations
     ChMatrix<>* m_C;

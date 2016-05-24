@@ -1,35 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKNUMDIFF_H
 #define CHLINKNUMDIFF_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkNumdiff.h
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkMasked.h"
+#include "chrono/physics/ChLinkMasked.h"
 
 namespace chrono {
 
-///
 /// Link for constraints where the jacobians and other
 /// complex terms are automatically computed by numerical
 /// differentiation. ***EXPERIMENTAL*** (UNDER DEVELOPEMENT)
@@ -45,28 +34,17 @@ namespace chrono {
 /// (that's why the ChLinkLock family is not inherited from this
 /// class and prefer to use a custom analytical expression for
 /// jacobians).
-///
 
 class ChApi ChLinkNumdiff : public ChLinkMasked {
     CH_RTTI(ChLinkNumdiff, ChLinkMasked);
 
-  protected:
-    //
-    // DATA
-    //
-
   public:
-    //
-    // CONSTRUCTORS
-    //
-    ChLinkNumdiff();
-    virtual ~ChLinkNumdiff();
-    virtual void Copy(ChLinkNumdiff* source);
-    virtual ChLink* new_Duplicate();
+    ChLinkNumdiff() {}
+    ChLinkNumdiff(const ChLinkNumdiff& other) : ChLinkMasked(other) {}
+    virtual ~ChLinkNumdiff() {}
 
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkNumdiff* Clone() const override { return new ChLinkNumdiff(*this); }
 
     ///  Forces the system (basically: two connected bodies) into
     /// the specified states/times. Used internally by numerical
@@ -117,19 +95,19 @@ class ChApi ChLinkNumdiff : public ChLinkMasked {
     // because this version will call ComputeCt, ComputeCq to get the
     // values of Cq1, Cq2, Qc, Ct. This will happen automatically if one
     // has provided a proper ComputeC() function in his inherited class.
-    virtual void UpdateState();
+    virtual void UpdateState() override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

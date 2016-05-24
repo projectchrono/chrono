@@ -24,9 +24,8 @@
 
 #include "models/vehicle/m113/M113_Sprocket.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -45,15 +44,14 @@ const double M113_Sprocket::m_gear_R = 0.089;
 const double M113_Sprocket::m_gear_RA = 0.245;
 
 const std::string M113_SprocketLeft::m_meshName = "Sprocket_L_POV_geom";
-const std::string M113_SprocketLeft::m_meshFile = vehicle::GetDataFile("M113/Sprocket_L.obj");
+const std::string M113_SprocketLeft::m_meshFile = "M113/Sprocket_L.obj";
 
 const std::string M113_SprocketRight::m_meshName = "Sprocket_R_POV_geom";
-const std::string M113_SprocketRight::m_meshFile = vehicle::GetDataFile("M113/Sprocket_R.obj");
+const std::string M113_SprocketRight::m_meshFile = "M113/Sprocket_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Sprocket::M113_Sprocket(const std::string& name)
-    : ChArcSprocket(name), m_vis_type(PRIMITIVES) {
+M113_Sprocket::M113_Sprocket(const std::string& name) : ChArcSprocket(name), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.4f, 0.1f, 1e7f, 0.3f);
 }
 
@@ -83,3 +81,5 @@ void M113_Sprocket::ExportMeshPovray(const std::string& out_dir) {
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

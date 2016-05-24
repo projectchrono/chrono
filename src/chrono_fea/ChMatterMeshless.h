@@ -1,26 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHMATTERMESHLESS_H
 #define CHMATTERMESHLESS_H
 
-#include <math.h>
+#include <cmath>
 
-#include "chrono_fea/ChApiFEA.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
-#include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/solver/ChVariablesNode.h"
-#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 
@@ -36,10 +38,10 @@ class ChMatterMeshless;
 class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
   public:
     ChNodeMeshless();
+    ChNodeMeshless(const ChNodeMeshless& other);
     ~ChNodeMeshless();
 
-    ChNodeMeshless(const ChNodeMeshless& other);  // Copy constructor
-    ChNodeMeshless& operator=(const ChNodeMeshless& other);  // Assignment operator
+    ChNodeMeshless& operator=(const ChNodeMeshless& other);
 
     //
     // FUNCTIONS
@@ -56,8 +58,8 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     void SetKernelRadius(double mr);
 
     // Set collision radius (for colliding with bodies, boundaries, etc.)
-	double GetCollisionRadius() {return coll_rad;}
-	void SetCollisionRadius(double mr);
+    double GetCollisionRadius() { return coll_rad; }
+    void SetCollisionRadius(double mr);
 
     // Set the mass of the node
     void SetMass(double mmass) { this->variables.SetNodeMass(mmass); }
@@ -165,95 +167,68 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 
     ChMatterMeshless* container;
 
-	ChVector<> pos_ref; 
-	
-	ChMatrix33<> Amoment;
-	ChMatrix33<> J;
-	ChMatrix33<> FA;
+    ChVector<> pos_ref;
 
-	ChStrainTensor<> t_strain; //
-	ChStrainTensor<> p_strain; // plastic strain
-	ChStrainTensor<> e_strain; // elastic strain
-	ChStressTensor<> e_stress; // stress
+    ChMatrix33<> Amoment;
+    ChMatrix33<> J;
+    ChMatrix33<> FA;
 
-	ChVariablesNode	variables;
-	collision::ChCollisionModel*	collision_model;
+    ChStrainTensor<> t_strain;
+    ChStrainTensor<> p_strain;  ///< plastic strain
+    ChStrainTensor<> e_strain;  ///< elastic strain
+    ChStressTensor<> e_stress;  ///< stress
 
-	ChVector<> UserForce;		
+    ChVariablesNode variables;
+    collision::ChCollisionModel* collision_model;
 
-	double volume; 
-	double density;
-	double h_rad;
-	double coll_rad;
-	double hardening;
+    ChVector<> UserForce;
+
+    double volume;
+    double density;
+    double h_rad;
+    double coll_rad;
+    double hardening;
 };
 
-/// Class for clusters of nodes that can
-/// simulate a visco-elasto-plastic deformable solid
-/// using the approach in Mueller ("Point based.." 2004 paper)
-/// that is with a 'meshless' FEA approach.
+/// Class for clusters of nodes that can simulate a visco-elasto-plastic deformable
+/// solid using the approach in Mueller ("Point based.." 2004 paper), that is with
+/// a 'meshless' FEA approach.
 class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMatterMeshless, ChIndexedNodes);
 
   private:
-    //
-    // DATA
-    //
-
     std::vector<std::shared_ptr<ChNodeMeshless> > nodes;  ///< nodes
-
-    // ChContinuumPlasticVonMises material;
-    std::shared_ptr<ChContinuumElastoplastic> material; //* ChContinuumDruckerPrager material; //***TEST***
-
-	double viscosity;
-
-    bool do_collide;
-
-    // data for surface contact and impact (can be shared):
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;
+    std::shared_ptr<ChContinuumElastoplastic> material;   ///< continuum material
+    double viscosity;                                     ///< viscosity
+    bool do_collide;                                      ///< flag indicating whether or not nodes collide
+    std::shared_ptr<ChMaterialSurfaceBase> matsurface;    ///< data for surface contact and impact
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     /// Build a cluster of nodes for Meshless and meshless FEA.
     /// By default the cluster will contain 0 particles.
     ChMatterMeshless();
-
-    /// Destructor
+    ChMatterMeshless(const ChMatterMeshless& other);
     ~ChMatterMeshless();
 
-    /// Copy from another ChMatterMeshless.
-    void Copy(ChMatterMeshless* source);
-
-    //
-    // FLAGS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMatterMeshless* Clone() const override { return new ChMatterMeshless(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
     /// After setting ON, remember RecomputeCollisionModel()
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() { return do_collide; }
-
-    // STATISTICS  - override these in child classes if needed
-    //
+    bool GetCollide() const { return do_collide; }
 
     /// Get the number of scalar coordinates (variables), if any, in this item
-    virtual int GetDOF() { return 3 * this->GetNnodes(); }
-
-    //
-    // FUNCTIONS
-    //
+    virtual int GetDOF() override { return 3 * GetNnodes(); }
 
     /// Get the number of nodes
-    unsigned int GetNnodes() { return (unsigned int)nodes.size(); }
+    virtual unsigned int GetNnodes() const override { return (unsigned int)nodes.size(); }
 
     /// Access the N-th node
-    std::shared_ptr<ChNodeBase> GetNode(unsigned int n) {
+    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) override {
         assert(n < nodes.size());
         return nodes[n];
     }
@@ -281,19 +256,19 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -312,19 +287,13 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver))
 
-    void VariablesFbReset();
-
-    void VariablesFbLoadForces(double factor = 1.);
-
-    void VariablesQbLoadSpeed();
-
-    void VariablesFbIncrementMq();
-
-    void VariablesQbSetSpeed(double step = 0.);
-
-    void VariablesQbIncrementPosition(double step);
-
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
+    virtual void VariablesFbReset() override;
+    virtual void VariablesFbLoadForces(double factor = 1) override;
+    virtual void VariablesQbLoadSpeed() override;
+    virtual void VariablesFbIncrementMq() override;
+    virtual void VariablesQbSetSpeed(double step = 0) override;
+    virtual void VariablesQbIncrementPosition(double step) override;
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
     // Other functions
 
@@ -332,9 +301,9 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     void SetNoSpeedNoAcceleration();
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
+    virtual void SyncCollisionModels() override;
+    virtual void AddCollisionModelsToSystem() override;
+    virtual void RemoveCollisionModelsFromSystem() override;
 
     void UpdateParticleCollisionModels();
 
@@ -347,7 +316,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     /// Set the Newtonian viscosity of the material
     void SetViscosity(double mvisc) { viscosity = mvisc; }
     /// Get the Newtonian viscosity of the material
-    double GetViscosity() { return viscosity; }
+    double GetViscosity() const { return viscosity; }
 
     /// Initialize the material as a prismatic region filled with nodes,
     /// initially well ordered as a lattice. This is a helper function
@@ -368,9 +337,9 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     //
 
     /// Update all auxiliary data of the particles
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
     /// Update all auxiliary data of the particles
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     //
     // STREAMING

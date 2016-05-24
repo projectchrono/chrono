@@ -1,116 +1,102 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKPNEUMATICACTUATOR_H
 #define CHLINKPNEUMATICACTUATOR_H
 
-///////////////////////////////////////////////////
-//
-//   ChLinkPneumaticActuator.h
-//
-//
-//   Classes for pneumatic actuators between two
-//   bodies.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkLock.h"
-#include "pneumatica/assepneumatico.h"
+#include "chrono/physics/ChLinkLock.h"
+#include "chrono/pneumatica/assepneumatico.h"
 
 namespace chrono {
-///
+
 /// Class for pneumatic linear actuators between two markers,
 /// as the piston were joined with two spherical
 /// bearing at the origin of the two markers.
-///
 
 class ChApi ChLinkPneumaticActuator : public ChLinkLock {
     CH_RTTI(ChLinkPneumaticActuator, ChLinkLock);
 
   protected:
-    // pointer to internal structure with all pneumatic variables
-    pneumatics::AssePneumatico* pneuma;
-    // marker distance for zero stroke
-    double offset;
-    // read-only vars  (updated in UpdateXyz() functions!!)
-    double pA;      // pressure chamber A
-    double pB;      // pressure chamber B
-    double pA_dt;   // d/dt pressure chamber A
-    double pB_dt;   // d/dt pressure chamber B
-    double pneu_F;  // applied force
+    pneumatics::AssePneumatico* pneuma;  ///< pointer to internal structure with all pneumatic variables
 
-    double last_force_time;  // internal
+    double offset;  ///< marker distance for zero stroke
+
+    // read-only vars  (updated in UpdateXyz() functions!!)
+    double pA;      ///< pressure chamber A
+    double pB;      ///< pressure chamber B
+    double pA_dt;   ///< d/dt pressure chamber A
+    double pB_dt;   ///< d/dt pressure chamber B
+    double pneu_F;  ///< applied force
+
+    double last_force_time;  ///< internal
 
   public:
-    // builders and destroyers
     ChLinkPneumaticActuator();
+    ChLinkPneumaticActuator(const ChLinkPneumaticActuator& other);
     virtual ~ChLinkPneumaticActuator();
-    virtual void Copy(ChLinkPneumaticActuator* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
 
-    // UPDATING FUNCTIONS - "lin. pneumatic actuator" custom implementations
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkPneumaticActuator* Clone() const override { return new ChLinkPneumaticActuator(*this); }
 
-    // Updates motion laws, marker positions, etc.
-    virtual void UpdateTime(double mytime);
-    // Updates forces etc.
-    virtual void UpdateForces(double mytime);
+    /// Updates motion laws, marker positions, etc.
+    virtual void UpdateTime(double mytime) override;
+    /// Updates forces etc.
+    virtual void UpdateForces(double mytime) override;
 
-    // DATA GET/ SET
-    // for straight access to all internal pneumatic data
-    pneumatics::AssePneumatico* Get_pneuma() { return this->pneuma; };
-    // after setting internal pneumatic datas in 'pneuma'
-    void SetupActuator() { pneuma->SetupAssePneumatico(); };
+    /// Direct access to all internal pneumatic data
+    pneumatics::AssePneumatico* Get_pneuma() const { return pneuma; }
+    /// After setting internal pneumatic datas in 'pneuma'
+    void SetupActuator() { pneuma->SetupAssePneumatico(); }
 
-    // joints offset for zero length stroke
-    double Get_lin_offset() { return offset; };
+    /// Joints offset for zero length stroke
+    double Get_lin_offset() const { return offset; }
     void Set_lin_offset(double mset);
-    // cylinder stroke
-    double Get_pneu_L() { return pneuma->Get_L(); };
+    /// Cylinder stroke
+    double Get_pneu_L() const { return pneuma->Get_L(); }
     void Set_pneu_L(double mset);
 
-    // state
-    double Get_pA() { return pA; }
-    double Get_pB() { return pB; }
-    double Get_pA_dt() { return pA_dt; }
-    double Get_pB_dt() { return pB_dt; }
-    // actual force
-    double Get_pneu_F() { return pneu_F; }
-    // actual position & speed
-    double Get_pneu_pos() { return relM.pos.x - this->offset; };
-    double Get_pneu_pos_dt() { return relM_dt.pos.x; };
+    /// State
+    double Get_pA() const { return pA; }
+    double Get_pB() const { return pB; }
+    double Get_pA_dt() const { return pA_dt; }
+    double Get_pB_dt() const { return pB_dt; }
+    /// Actual force
+    double Get_pneu_F() const { return pneu_F; }
+    /// Actual position & speed
+    double Get_pneu_pos() const { return relM.pos.x - offset; }
+    double Get_pneu_pos_dt() const { return relM_dt.pos.x; }
 
-    // shortcuts for valve commands
+    // Shortcuts for valve commands
+
     void Set_ComA(double ma) { pneuma->Set_ComA(ma); };
-    double Get_ComA() { return pneuma->Get_ComA(); };
+    double Get_ComA() const { return pneuma->Get_ComA(); };
     void Set_ComB(double ma) { pneuma->Set_ComB(ma); };
-    double Get_ComB() { return pneuma->Get_ComB(); };
+    double Get_ComB() const { return pneuma->Get_ComB(); };
 
-    double Get_pneu_R() { return sqrt(pneuma->Get_A() / CH_C_PI); }
+    double Get_pneu_R() const { return sqrt(pneuma->Get_A() / CH_C_PI); }
     void Set_pneu_R(double mr) {
         pneuma->Set_A(mr * mr * CH_C_PI);
         pneuma->SetupAssePneumatico();
     }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

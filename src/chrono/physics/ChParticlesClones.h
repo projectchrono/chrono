@@ -1,50 +1,51 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHPARTICLESCLONES_H
 #define CHPARTICLESCLONES_H
 
-#include <math.h>
+#include <cmath>
 
-#include "chrono/physics/ChIndexedParticles.h"
 #include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/solver/ChVariablesBodySharedMass.h"
-#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChContactable.h"
+#include "chrono/physics/ChIndexedParticles.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/solver/ChVariablesBodySharedMass.h"
 
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
-
 class ChSystem;
 class ChParticlesClones;
 
 /// Class for a single particle clone in the ChParticlesClones cluster.
 /// It does not define mass, inertia and shape because those are _shared_ among them.
 class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
-
   public:
     ChAparticle();
+    ChAparticle(const ChAparticle& other);
     ~ChAparticle();
 
-    ChAparticle(const ChAparticle& other);             // Copy constructor
-    ChAparticle& operator=(const ChAparticle& other);  // Assignment operator
+    ChAparticle& operator=(const ChAparticle& other);
 
     // Access the variables of the node
     virtual ChVariables& Variables() override { return variables; }
 
     // Get the container
-    ChParticlesClones* GetContainer() const {return container;}
+    ChParticlesClones* GetContainer() const { return container; }
     // Set the container
-    void SetContainer(ChParticlesClones* mc) { container = mc;}
+    void SetContainer(ChParticlesClones* mc) { container = mc; }
 
     //
     // INTERFACE TO ChContactable
@@ -66,52 +67,24 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteCoordsys(this->GetCoord(), 0, 0); }
 
     /// Get all the DOFs packed in a single vector (speed part)
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override {
-        w.PasteVector(this->GetPos_dt(), 0, 0);
-        w.PasteVector(this->GetWvel_loc(), 3, 0);
-    }
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
-    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
-        // Increment position
-        x_new(0) = x(0) + dw(0);
-        x_new(1) = x(1) + dw(1);
-        x_new(2) = x(2) + dw(2);
-
-        // Increment rotation: rot' = delta*rot  (use quaternion for delta rotation)
-        ChQuaternion<> mdeltarot;
-        ChQuaternion<> moldrot = x.ClipQuaternion(3, 0);
-        ChVector<> newwel_abs = Amatrix * dw.ClipVector(3, 0);
-        double mangle = newwel_abs.Length();
-        newwel_abs.Normalize();
-        mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
-        ChQuaternion<> mnewrot = mdeltarot * moldrot;  // quaternion product
-        x_new.PasteQuaternion(mnewrot, 3, 0);
-    }
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Return the pointer to the contact surface material.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
-        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
-        return csys.TransformPointLocalToParent(loc_point);
-    }
+    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
                                             const ChState& state_x,
-                                            const ChStateDelta& state_w) override {
-        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
-        ChVector<> abs_vel = state_w.ClipVector(0, 0);
-        ChVector<> loc_omg = state_w.ClipVector(3, 0);
-        ChVector<> abs_omg = csys.TransformDirectionLocalToParent(loc_omg);
-
-        return abs_vel + Vcross(abs_omg, loc_point);
-    }
+                                            const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
     /// Easy in this case because there are no roations..
@@ -136,24 +109,16 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                                    const ChVector<>& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
-                                   int offset) override {
-        ChCoordsys<> csys = state_x.ClipCoordsys(0, 0);
-        ChVector<> point_loc = csys.TransformPointParentToLocal(point);
-        ChVector<> force_loc = csys.TransformDirectionParentToLocal(F);
-        ChVector<> torque_loc = Vcross(point_loc, force_loc);
-        Q.PasteVector(F, offset + 0, 0);
-        Q.PasteVector(torque_loc, offset + 3, 0);
-    }
+                                   int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(
-        const ChVector<>& abs_point,
-        ChMatrix33<>& contact_plane,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second) override;
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
     /// (used only for rolling friction DVI contacts)
@@ -166,15 +131,15 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
         bool second) override;
 
     /// used by some DEM code
-    virtual double GetContactableMass() override { return this->variables.GetBodyMass(); }
+    virtual double GetContactableMass() override { return variables.GetBodyMass(); }
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     //
     // DATA
@@ -207,28 +172,20 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     CH_RTTI(ChParticlesClones, ChIndexedParticles);
 
   private:
-    //
-    // DATA
-    //
+    std::vector<ChAparticle*> particles;  ///< the parricles
 
-    // The particles:
-    std::vector<ChAparticle*> particles;
+    ChSharedMassBody particle_mass;  ///< shared mass of particles
 
-    // Shared mass of particles
-    ChSharedMassBody particle_mass;
+    collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
 
-    // Sample collision model
-    collision::ChCollisionModel* particle_collision_model;
-
-    // data for surface contact and impact (can be shared):
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;
+    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< data for surface contact and impact
 
     bool do_collide;
     bool do_limit_speed;
     bool do_sleep;
 
-    float max_speed;  // limit on linear speed (useful for VR & videagames)
-    float max_wvel;   // limit on angular vel. (useful for VR & videagames)
+    float max_speed;  ///< limit on linear speed (useful for increased simulation speed)
+    float max_wvel;   ///< limit on angular vel. (useful for increased simulation speed)
 
     float sleep_time;
     float sleep_minspeed;
@@ -236,41 +193,26 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     float sleep_starttime;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Build a cluster of particles.
-    /// By default the cluster will contain 0 particles.
     ChParticlesClones();
-
-    /// Destructor
+    ChParticlesClones(const ChParticlesClones& other);
     ~ChParticlesClones();
 
-    /// Copy from another ChParticlesClones.
-    void Copy(ChParticlesClones* source);
-
-    //
-    // FLAGS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChParticlesClones* Clone() const override { return new ChParticlesClones(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
     /// After setting ON, remember RecomputeCollisionModel()
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() { return do_collide; }
+    bool GetCollide() const { return do_collide; }
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// The realism is limited, but the simulation is more stable.
     void SetLimitSpeed(bool mlimit) { do_limit_speed = mlimit; };
-    bool GetLimitSpeed() { return do_limit_speed; };
-
-    //
-    // FUNCTIONS
-    //
+    bool GetLimitSpeed() const { return do_limit_speed; };
 
     /// Get the number of particles
     size_t GetNparticles() const { return particles.size(); }
@@ -293,14 +235,11 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// before adding particles!
     void AddParticle(ChCoordsys<double> initial_state = CSYSNORM);
 
-
     /// Set the material surface for contacts
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
-    /// Set the material surface for contacts 
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface;}
-
-
+    /// Set the material surface for contacts
+    std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS
@@ -311,24 +250,24 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                   const ChStateDelta& Dv) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -347,13 +286,13 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
 
-    void VariablesFbReset();
-    void VariablesFbLoadForces(double factor = 1.);
-    void VariablesQbLoadSpeed();
-    void VariablesFbIncrementMq();
-    void VariablesQbSetSpeed(double step = 0.);
-    void VariablesQbIncrementPosition(double step);
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
+    virtual void VariablesFbReset() override;
+    virtual void VariablesFbLoadForces(double factor = 1) override;
+    virtual void VariablesQbLoadSpeed() override;
+    virtual void VariablesFbIncrementMq() override;
+    virtual void VariablesQbSetSpeed(double step = 0) override;
+    virtual void VariablesQbIncrementPosition(double step) override;
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
     // Other functions
 
@@ -375,40 +314,39 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// function so that all collision models of particles will reference the sample coll.model.
     void UpdateParticleCollisionModels();
 
-
     /// Mass of each particle. Must be positive.
     void SetMass(double newmass) {
-        if (newmass > 0.)
-            this->particle_mass.SetBodyMass(newmass);
+        if (newmass > 0)
+            particle_mass.SetBodyMass(newmass);
     }
-    double GetMass() { return this->particle_mass.GetBodyMass(); }
+    double GetMass() const { return particle_mass.GetBodyMass(); }
 
     /// Set the inertia tensor of each particle
     void SetInertia(const ChMatrix33<>& newXInertia);
     /// Set the diagonal part of the inertia tensor of each particle
     void SetInertiaXX(const ChVector<>& iner);
     /// Get the diagonal part of the inertia tensor of each particle
-    ChVector<> GetInertiaXX();
+    ChVector<> GetInertiaXX() const;
     /// Set the extradiagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
     void SetInertiaXY(const ChVector<>& iner);
     /// Get the extradiagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
-    ChVector<> GetInertiaXY();
+    ChVector<> GetInertiaXY() const;
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
-    float GetMaxSpeed() { return max_speed; }
+    float GetMaxSpeed() const { return max_speed; }
 
-    /// Trick. Set the maximum angualar speed (beyond this limit it will
+    /// Trick. Set the maximum angular speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxWvel(float m_max_wvel) { max_wvel = m_max_wvel; }
-    float GetMaxWvel() { return max_wvel; }
+    float GetMaxWvel() const { return max_wvel; }
 
     /// When this function is called, the speed of particles is clamped
     /// into limits posed by max_speed and max_wvel  - but remember to
@@ -418,29 +356,31 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// Set the amount of time which must pass before going automatically in
     /// sleep mode when the body has very small movements.
     void SetSleepTime(float m_t) { sleep_time = m_t; }
-    float GetSleepTime() { return sleep_time; }
+    float GetSleepTime() const { return sleep_time; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
     void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
-    float GetSleepMinSpeed() { return sleep_minspeed; }
+    float GetSleepMinSpeed() const { return sleep_minspeed; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
     void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
-    float GetSleepMinWvel() { return sleep_minwvel; }
+    float GetSleepMinWvel() const { return sleep_minwvel; }
 
     //
     // UPDATE FUNCTIONS
     //
 
     /// Update all auxiliary data of the particles
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
     /// Update all auxiliary data of the particles
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
+    //
     // SERIALIZATION
+    //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

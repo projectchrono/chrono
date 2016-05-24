@@ -23,15 +23,17 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_RackPinion : public chrono::vehicle::ChRackPinion {
+class CH_MODELS_API HMMWV_RackPinion : public ChRackPinion {
   public:
     HMMWV_RackPinion(const std::string& name);
     ~HMMWV_RackPinion() {}
 
     virtual double GetSteeringLinkMass() const override { return m_steeringLinkMass; }
-    virtual chrono::ChVector<> GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual ChVector<> GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
     virtual double GetSteeringLinkCOM() const override { return m_steeringLinkCOM; }
     virtual double GetSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double GetSteeringLinkLength() const override { return m_steeringLinkLength; }
@@ -42,7 +44,7 @@ class CH_MODELS_API HMMWV_RackPinion : public chrono::vehicle::ChRackPinion {
 
   private:
     static const double m_steeringLinkMass;
-    static const chrono::ChVector<> m_steeringLinkInertia;
+    static const ChVector<> m_steeringLinkInertia;
     static const double m_steeringLinkCOM;
     static const double m_steeringLinkRadius;
     static const double m_steeringLinkLength;
@@ -53,5 +55,7 @@ class CH_MODELS_API HMMWV_RackPinion : public chrono::vehicle::ChRackPinion {
 };
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

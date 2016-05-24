@@ -1,36 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChController.cpp
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <math.h>
-
-#include "physics/ChController.h"
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChController.h"
+#include "chrono/physics/ChGlobal.h"
 
 namespace chrono {
 
-///   CLASS
-///
-///
-
-ChControllerPID::ChControllerPID() {
-    this->SetIdentifier(GetUniqueIntID());  // mark with unique ID
-
+ChControllerPID::ChControllerPID() : P(1), I(0), D(0) {
     P = 1.;
     I = 0.;
     D = 0.;
@@ -38,38 +25,38 @@ ChControllerPID::ChControllerPID() {
     Reset();
 }
 
-ChControllerPID::~ChControllerPID() {
+ChControllerPID::ChControllerPID(const ChControllerPID& other) : ChObj(other) {
+    P = other.P;
+    I = other.I;
+    D = other.D;
 }
 
 // Use Reset to set accumulator to zero, at beginning. For integrative part.
 
 void ChControllerPID::Reset() {
-    this->In_int = 0.0;
-    this->In_dt = 0.0;
-    this->In = 0;
-    this->Out = 0;
-    this->Pcomp = 0;
-    this->Icomp = 0;
-    this->Dcomp = 0;
-    this->last_t = 0;
+    In_int = 0.0;
+    In_dt = 0.0;
+    In = 0;
+    Out = 0;
+    Pcomp = 0;
+    Icomp = 0;
+    Dcomp = 0;
+    last_t = 0;
 }
 
-//
 // Compute controller output value
-//
-
 double ChControllerPID::Get_Out(double new_in, double new_t) {
     double mdt = (new_t - last_t);
 
     // please, no backward calling sequence!
     if (mdt < 0) {
-        this->Reset();
+        Reset();
         return 0.0;
     }
 
     // please, multiple calls at same time do not perform updates!
     if (mdt == 0) {
-        return this->Out;
+        return Out;
     }
 
     // OK......
@@ -83,7 +70,7 @@ double ChControllerPID::Get_Out(double new_in, double new_t) {
     // Go forward... synchronize time and last input recorder
     In = new_in;
     last_t = new_t;
-    this->SetChTime(new_t);
+    SetChTime(new_t);
 
     // ===  Compute PID components ================
 
@@ -96,6 +83,4 @@ double ChControllerPID::Get_Out(double new_in, double new_t) {
     return Out;
 }
 
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace chrono

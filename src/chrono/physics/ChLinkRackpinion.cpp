@@ -1,61 +1,48 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkRackpinion.h"
+#include "chrono/physics/ChLinkRackpinion.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkRackpinion> a_registration_ChLinkRackpinion;
 
-ChLinkRackpinion::ChLinkRackpinion() : ChLinkMateGeneric(true, false, false, false, false, false) {
-    R = 0.1;
-    alpha = 0;
-    beta = 0;
-    phase = 0;
-    checkphase = false;
-    a1 = 0;
-
+ChLinkRackpinion::ChLinkRackpinion()
+    : ChLinkMateGeneric(true, false, false, false, false, false),
+      R(0.1),
+      alpha(0),
+      beta(0),
+      phase(0),
+      checkphase(false),
+      a1(0),
+      contact_pt(VNULL) {
     local_pinion.SetIdentity();
     local_rack.SetIdentity();
-
-    contact_pt = VNULL;
 }
 
-ChLinkRackpinion::~ChLinkRackpinion() {
-}
+ChLinkRackpinion::ChLinkRackpinion(const ChLinkRackpinion& other) : ChLinkMateGeneric(other) {
+    R = other.R;
+    alpha = other.alpha;
+    beta = other.beta;
+    phase = other.phase;
+    a1 = other.a1;
+    checkphase = other.checkphase;
 
-void ChLinkRackpinion::Copy(ChLinkRackpinion* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    // copy custom data:
-    R = source->R;
-    alpha = source->alpha;
-    beta = source->beta;
-    phase = source->phase;
-    a1 = source->a1;
-    checkphase = source->checkphase;
-
-    contact_pt = source->contact_pt;
-    local_pinion = source->local_pinion;
-    local_rack = source->local_rack;
-}
-
-ChLink* ChLinkRackpinion::new_Duplicate() {
-    ChLinkRackpinion* m_l = new ChLinkRackpinion;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+    contact_pt = other.contact_pt;
+    local_pinion = other.local_pinion;
+    local_rack = other.local_rack;
 }
 
 ChVector<> ChLinkRackpinion::GetAbsPinionDir() {
@@ -157,9 +144,7 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact, this->frame2);
 }
 
-
-void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -178,8 +163,7 @@ void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -197,7 +181,4 @@ void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(local_rack);
 }
 
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

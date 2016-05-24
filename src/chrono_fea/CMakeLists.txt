@@ -30,6 +30,9 @@ SET(ChronoEngine_FEA_SOURCES
     ChElementBrick.cpp
     ChElementBrick_9.cpp
     ChNodeFEAxyz.cpp
+    ChNodeFEAxyzrot.cpp
+    ChNodeFEAxyzP.cpp
+    ChNodeFEAxyzD.cpp
     ChNodeFEAcurv.cpp
     ChGaussIntegrationRule.cpp
     ChGaussPoint.cpp
@@ -104,6 +107,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChMeshSurface.h
     ChUtilsFEA.h
     ChLoadContactSurfaceMesh.h
+	  ChRotUtils.h
 )
 
 SOURCE_GROUP("" FILES 

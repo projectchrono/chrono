@@ -20,12 +20,12 @@ ChNodeFluid::ChNodeFluid(real r) {
   data_manager = 0;
 }
 
-ChNodeFluid::~ChNodeFluid() {
-}
-
 ChNodeFluid::ChNodeFluid(const ChNodeFluid& other) : ChPhysicsItem(other) {
   this->body_id = other.body_id;
   this->data_manager = other.data_manager;
+}
+
+ChNodeFluid::~ChNodeFluid() {
 }
 
 ChNodeFluid& ChNodeFluid::operator=(const ChNodeFluid& other) {

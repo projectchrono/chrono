@@ -1,25 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
 #ifndef CHLINKSPRINGCB_H
 #define CHLINKSPRINGCB_H
 
-#include "physics/ChLinkMarkers.h"
+#include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
-///
 /// Base callback function for implementing a general spring-damper force
 /// A derived class must implement the virtual operator().
-///
 
 class ChSpringForceCallback {
   public:
@@ -30,10 +31,8 @@ class ChSpringForceCallback {
                               ) = 0;
 };
 
-///
 /// Class for spring-damper systems with the force specified through a
 /// callback object.
-///
 
 class ChApi ChLinkSpringCB : public ChLinkMarkers {
     CH_RTTI(ChLinkSpringCB, ChLinkMarkers);
@@ -44,17 +43,14 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     double m_force;                      ///< resulting force in dist. coord
 
   public:
-    //
-    // FUNCTIONS
-    //
-
-    // builders and destroyers
     ChLinkSpringCB();
-    virtual ~ChLinkSpringCB();
-    virtual void Copy(ChLinkSpringCB* source);
-    virtual ChLink* new_Duplicate();  // always return base link class pointer
+    ChLinkSpringCB(const ChLinkSpringCB& other);
+    virtual ~ChLinkSpringCB() {}
 
-    virtual int GetType() { return LNK_SPRING_CALLBACK; }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkSpringCB* Clone() const override { return new ChLinkSpringCB(*this); }
+
+    virtual int GetType() const override { return LNK_SPRING_CALLBACK; }
 
     // data fetch/store
     double Get_SpringRestLength() const { return m_rest_length; }
@@ -74,11 +70,11 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     void Initialize(
         std::shared_ptr<ChBody> body1,  ///< first body to link
         std::shared_ptr<ChBody> body2,  ///< second body to link
-        bool pos_are_relative,  ///< true: following pos. are considered relative to bodies. false: pos. are absolute
-        ChVector<> pos1,        ///< position of spring endpoint for 1st body (rel. or abs., see flag above)
-        ChVector<> pos2,        ///< position of spring endpoint for 2nd body (rel. or abs., see flag above)
-        bool auto_rest_length = true,  ///< if true, initializes the rest length as the distance between pos1 and pos2
-        double rest_length = 0         ///< rest length (no need to define if auto_rest_length=true.)
+        bool pos_are_relative,          ///< true: following pos. are relative to bodies
+        ChVector<> pos1,                ///< pos. of spring endpoint for 1st body (rel. or abs., see flag above)
+        ChVector<> pos2,                ///< pos. of spring endpoint for 2nd body (rel. or abs., see flag above)
+        bool auto_rest_length = true,   ///< if true, initializes the rest length as the distance between pos1 and pos2
+        double rest_length = 0          ///< rest length (no need to define if auto_rest_length=true.)
         );
 
     /// Get the 1st spring endpoint (expressed in Body1 coordinate system)
@@ -99,30 +95,16 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     /// Set the 1st spring endpoint (expressed in absolute coordinate system)
     void SetEndPoint2Abs(ChVector<>& mset) { marker2->Impose_Abs_Coord(ChCoordsys<>(mset, QUNIT)); }
 
-    //
-    // UPDATING FUNCTIONS
-    //
-
-    /// Inherits, then also adds the spring custom forces to
-    /// the C_force and C_torque.
-    virtual void UpdateForces(double time);
-
-    //
-    // STATE FUNCTIONS
-    //
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-
-    //
-    // SERIALIZATION
-    //
+    /// Inherits, then also adds the spring custom forces to the C_force and C_torque.
+    virtual void UpdateForces(double time) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

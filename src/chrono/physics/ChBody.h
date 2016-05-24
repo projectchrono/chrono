@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHBODY_H
 #define CHBODY_H
@@ -16,15 +18,15 @@
 #include <math.h>
 
 #include "chrono/physics/ChBodyFrame.h"
-#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChForce.h"
+#include "chrono/physics/ChLoadable.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChMaterialSurfaceDEM.h"
-#include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChLoadable.h"
-#include "chrono/solver/ChVariablesBodyOwnMass.h"
+#include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChConstraint.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 namespace chrono {
 
@@ -32,7 +34,7 @@ namespace chrono {
 
 class ChSystem;
 
-/////////////////////////////////////
+// --------------------------
 // Define body specific flags
 
 #define BF_COLLIDE (1L << 0)          // detects collisions
@@ -46,11 +48,9 @@ class ChSystem;
 #define BF_LIMITSPEED (1L << 8)       // body angular and linar speed is limited (clamped)
 #define BF_SLEEPING (1L << 9)         // body is sleeping [internal]
 #define BF_USESLEEPING (1L << 10)     // if body remains in same place for too long time, it will be frozen
-#define BF_NOGYROTORQUE \
-    (1L << 11)  // body do not get the gyroscopic (quadratic) term, for low-fi but stable RT simulations.
-#define BF_COULDSLEEP (1L << 12)     // if body remains in same place for too long time, it will be frozen
+#define BF_NOGYROTORQUE (1L << 11)    // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
+#define BF_COULDSLEEP (1L << 12)      // if body remains in same place for too long time, it will be frozen
 
-///
 /// Class for rigid bodies. A rigid body is an entity which
 /// can move in 3D space, and can be constrained to other rigid
 /// bodies using ChLink objects. Rigid bodies can contain auxiliary
@@ -60,59 +60,43 @@ class ChSystem;
 ///
 /// Further info at the @ref rigid_bodies  manual page.
 
-class ChApi ChBody :            public ChPhysicsItem, 
-                                public ChBodyFrame, 
-                                public ChContactable_1vars<6>,
-                                public ChLoadableUVW 
-{
+class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChBody, ChPhysicsItem);
 
   protected:
-    // Pointer to the collision model, including the
-    // colliding geometry .
-    collision::ChCollisionModel* collision_model;
+    collision::ChCollisionModel* collision_model;  ///< Pointer to the collision model
 
   protected:
-    //
-    // DATA
-    //
+    int bflag;             ///< body-specific flags.
+    unsigned int body_id;  ///< body specific identifier, used for indexing (internal use only)
 
-    int bflag;             // body-specific flags.
-    unsigned int body_id;  // HM - body specific identifier, used for indexing
+    std::vector<std::shared_ptr<ChMarker> > marklist;  ///< list of child markers
+    std::vector<std::shared_ptr<ChForce> > forcelist;  ///< list of child forces
 
-    // list of child markers
-    std::vector<std::shared_ptr<ChMarker> > marklist;
+    ChVector<> gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    // list of child forces
-    std::vector<std::shared_ptr<ChForce> > forcelist;
+    ChVector<> Xforce;   ///< force  acting on body, applied to COG -in abs. coords-
+    ChVector<> Xtorque;  ///< torque acting on body  -in body rel. coords-
 
-    ChVector<> gyro;  // The Qm gyroscopic torque, i.e. Qm= Wvel x (XInertia*Wvel)
+    ChVector<> Force_acc;   ///< force accumulator; (in abs space, applied to COG)
+    ChVector<> Torque_acc;  ///< torque accumulator;(in abs space)
 
-    ChVector<> Xforce;   // The force  acting on body, applied to COG -in abs. coords-
-    ChVector<> Xtorque;  // The torque acting on body  -in body rel. coords-
+    ChVector<> Scr_force;   ///< script force accumulator; (in abs space, applied to COG)
+    ChVector<> Scr_torque;  ///< script torque accumulator;(in abs space)
 
-    ChVector<> Force_acc;   // force accumulator; (in abs space, applied to COG)
-    ChVector<> Torque_acc;  // torque accumulator;(in abs space)
+    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< data for surface contact and impact
 
-    ChVector<> Scr_force;   // script force accumulator; (in abs space, applied to COG)
-    ChVector<> Scr_torque;  // script torque accumulator;(in abs space)
+    // Auxiliary, stores position/rotation once a while when collision detection
+    // routines require to know the last time that coll. detect. was satisfied
+    ChCoordsys<> last_coll_pos;  ///< cached position at last collision
 
-    // data for surface contact and impact (can be shared):
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;
+    float density;  ///< used when doing the 'recompute mass' operation.
 
-    // Auxiliary, stores position/rotation once a while
-    // when collision detection routines require to know
-    // the last time that coll.detect. was satisfied.
-    ChCoordsys<> last_coll_pos;
+    ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 
-    float density;  // used when doing the 'recompute mass' operation.
-
-    // Used to store mass matrix and coordinates, as an interface to the solver.
-    ChVariablesBodyOwnMass variables;
-
-    float max_speed;  // limit on linear speed (useful for VR & videogames)
-    float max_wvel;   // limit on angular vel. (useful for VR & videogames)
+    float max_speed;  ///< limit on linear speed (useful for VR & videogames)
+    float max_wvel;   ///< limit on angular vel. (useful for VR & videogames)
 
     float sleep_time;
     float sleep_minspeed;
@@ -120,11 +104,6 @@ class ChApi ChBody :            public ChPhysicsItem,
     float sleep_starttime;
 
   public:
-
-    //
-    // CONSTRUCTORS
-    //
-
     /// Build a rigid body.
     ChBody(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
@@ -132,13 +111,13 @@ class ChApi ChBody :            public ChPhysicsItem,
     ChBody(collision::ChCollisionModel* new_collision_model,
            ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
+    ChBody(const ChBody& other);
+
     /// Destructor
     ~ChBody();
 
-    /// Copy from another ChBody.
-    /// NOTE: all settings of the body are copied, but the
-    /// child hierarchy of ChForces and ChMarkers (if any) are NOT copied.
-    void Copy(ChBody* source);
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChBody* Clone() const override { return new ChBody(*this); }
 
     //
     // FLAGS
@@ -207,29 +186,29 @@ class ChApi ChBody :            public ChPhysicsItem,
     bool GetSleeping() { return BFlagGet(BF_SLEEPING); }
 
     /// Test if a body could go in sleeping state if requirements are satisfied.
-    /// Return true if state could be changed from no sleep to sleep. 
+    /// Return true if state could be changed from no sleep to sleep.
     bool TrySleeping();
 
     /// Tell if the body is active, i.e. it is neither fixed to ground nor
     /// it is in sleep mode.
     bool IsActive() { return !BFlagGet(BF_SLEEPING | BF_FIXED); }
-    /// Set the body identifier - HM
-    void SetId(int identifier) { body_id = identifier; }
-    /// Set the body identifier - HM
+
+    /// Set body id for indexing (used only internally)
+    void SetId(int id) { body_id = id; }
+    /// Set body id for indxing (used only internally)
     unsigned int GetId() { return body_id; }
 
     //
     // FUNCTIONS
     //
 
-    /// Number of coordinates of body, x7 because with quaternions for rotation
-    virtual int GetDOF() { return 7; }
-    /// Number of coordinates of body, x6 because derivatives es. angular vel.
-    virtual int GetDOF_w() { return 6; }
+    /// Number of coordinates of body: 7 because uses quaternions for rotation
+    virtual int GetDOF() override { return 7; }
+    /// Number of coordinates of body: 6 because derivatives use angular velocity
+    virtual int GetDOF_w() override { return 6; }
 
-    /// Returns reference to the encapsulated ChVariablesBody,
-    /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
-    /// and forces.
+    /// Returns reference to the encapsulated ChVariablesBody, representing
+    /// body variables (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
     ChVariablesBodyOwnMass& VariablesBody() { return variables; }
     ChVariables& Variables() { return variables; }
@@ -239,28 +218,29 @@ class ChApi ChBody :            public ChPhysicsItem,
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
-                                double& T);
+                                double& T) override;
     virtual void IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T);
-    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
+                                 const double T) override;
+    virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
+    virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
                                    const unsigned int off_v,
-                                   const ChStateDelta& Dv);
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
+                                   const ChStateDelta& Dv) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
-                                    const double c);
+                                    const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -280,21 +260,21 @@ class ChApi ChBody :            public ChPhysicsItem,
     // (to assemble/manage data for system solver)
 
     /// Sets the 'fb' part of the encapsulated ChVariablesBodyOwnMass to zero.
-    void VariablesFbReset();
+    virtual void VariablesFbReset() override;
 
     /// Adds the current forces applied to body (including gyroscopic torque) in
     /// encapsulated ChVariablesBody, in the 'fb' part: qf+=forces*factor
-    void VariablesFbLoadForces(double factor = 1.);
+    virtual void VariablesFbLoadForces(double factor = 1) override;
 
     /// Initialize the 'qb' part of the ChVariablesBody with the
     /// current value of body speeds. Note: since 'qb' is the unknown, this
     /// function seems unnecessary, unless used before VariablesFbIncrementMq()
-    void VariablesQbLoadSpeed();
+    virtual void VariablesQbLoadSpeed() override;
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
-    void VariablesFbIncrementMq();
+    virtual void VariablesFbIncrementMq() override;
 
     /// Fetches the body speed (both linear and angular) from the
     /// 'qb' part of the ChVariablesBody (does not updates the full body&markers state)
@@ -302,7 +282,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// If 'step' is not 0, also computes the approximate acceleration of
     /// the body using backward differences, that is  accel=(new_speed-old_speed)/step.
     /// Mostly used after the solver provided the solution in ChVariablesBody .
-    void VariablesQbSetSpeed(double step = 0.);
+    virtual void VariablesQbSetSpeed(double step = 0) override;
 
     /// Increment body position by the 'qb' part of the ChVariablesBody,
     /// multiplied by a 'step' factor.
@@ -310,11 +290,11 @@ class ChApi ChBody :            public ChPhysicsItem,
     /// If qb is a speed, this behaves like a single step of 1-st order
     /// numerical integration (Eulero integration).
     /// Does not automatically update markers & forces.
-    void VariablesQbIncrementPosition(double step);
+    virtual void VariablesQbIncrementPosition(double step) override;
 
     /// Tell to a system descriptor that there are variables of type
     /// ChVariables in this object (for further passing it to a solver)
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor);
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
     /// Instantiate the collision model
     virtual collision::ChCollisionModel* InstanceCollisionModel();
@@ -531,7 +511,6 @@ class ChApi ChBody :            public ChPhysicsItem,
                                  ChMatrixNM<double, 7, 1>* mQf);
     void Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double, 7, 1>* mQf);
 
-
     //
     // UTILITIES FOR FORCES/TORQUES:
     //
@@ -617,7 +596,7 @@ class ChApi ChBody :            public ChPhysicsItem,
     // INTERFACE TO ChContactable
     //
 
-    virtual ChVariables* GetVariables1() override {return &this->variables; }
+    virtual ChVariables* GetVariables1() override { return &this->variables; }
 
     /// Tell if the object must be considered in collision detection
     virtual bool IsContactActive() override { return this->IsActive(); }
@@ -707,13 +686,12 @@ class ChApi ChBody :            public ChPhysicsItem,
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     /// For a ChBody, this updates the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(
-        const ChVector<>& abs_point,
-        ChMatrix33<>& contact_plane,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second) override;
+    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
     /// Used only for rolling friction DVI contacts.
@@ -732,89 +710,89 @@ class ChApi ChBody :            public ChPhysicsItem,
     virtual ChPhysicsItem* GetPhysicsItem() override { return this; }
 
     //
-    // INTERFACE to ChLoadable 
+    // INTERFACE to ChLoadable
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 7; }
+    virtual int LoadableGet_ndof_x() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 6; }
+    virtual int LoadableGet_ndof_w() override { return 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteCoordsys(this->GetCoord(), block_offset, 0);
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
         mD.PasteVector(this->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->GetWvel_loc(), block_offset + 3, 0);
     }
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() { return 6; }
+    virtual int Get_field_ncoords() override { return 6; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 1; }
+    virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return this->GetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         mvars.push_back(&this->Variables());
-    };
+    }
 
     /// Evaluate Q=N'*F , for Q generalized lagrangian load, where N is some type of matrix
-    /// evaluated at point P(U,V,W) assumed in absolute coordinates, and 
+    /// evaluated at point P(U,V,W) assumed in absolute coordinates, and
     /// F is a load assumed in absolute coordinates.
     /// The det[J] is unused.
-    virtual void ComputeNF(const double U,              ///< x coordinate of application point in absolute space
-                           const double V,              ///< y coordinate of application point in absolute space
-                           const double W,              ///< z coordinate of application point in absolute space
-                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
-                           double& detJ,                ///< Return det[J] here
-                           const ChVectorDynamic<>& F,  ///< Input F vector, size is 6, it is {Force,Torque} in absolute coords.
-                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
-                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
-        ChVector<> abs_pos(U,V,W);
-        ChVector<> absF=F.ClipVector(0,0);
-        ChVector<> absT=F.ClipVector(3,0);
+    virtual void ComputeNF(
+        const double U,              ///< x coordinate of application point in absolute space
+        const double V,              ///< y coordinate of application point in absolute space
+        const double W,              ///< z coordinate of application point in absolute space
+        ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+        double& detJ,                ///< Return det[J] here
+        const ChVectorDynamic<>& F,  ///< Input F vector, size is 6, it is {Force,Torque} in absolute coords.
+        ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+        ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+        ) override {
+        ChVector<> abs_pos(U, V, W);
+        ChVector<> absF = F.ClipVector(0, 0);
+        ChVector<> absT = F.ClipVector(3, 0);
         ChVector<> body_absF;
         ChVector<> body_locT;
         ChCoordsys<> bodycoord;
-        if(state_x)
-            bodycoord = state_x->ClipCoordsys(0,0); // the numerical jacobian algo might change state_x
+        if (state_x)
+            bodycoord = state_x->ClipCoordsys(0, 0);  // the numerical jacobian algo might change state_x
         else
             bodycoord = this->coord;
-        // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
+        // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs
+        // csys
         body_absF = absF;
-        body_locT = bodycoord.rot.RotateBack( absT + ((abs_pos-bodycoord.pos) % absF) );
-        Qi.PasteVector(body_absF,0,0);
-        Qi.PasteVector(body_locT,3,0);
-        detJ=1; // not needed because not used in quadrature.
+        body_locT = bodycoord.rot.RotateBack(absT + ((abs_pos - bodycoord.pos) % absF));
+        Qi.PasteVector(body_absF, 0, 0);
+        Qi.PasteVector(body_locT, 3, 0);
+        detJ = 1;  // not needed because not used in quadrature.
     }
 
     /// This is not needed because not used in quadrature.
-    virtual double GetDensity() { return 1; }
-
+    virtual double GetDensity() override { return 1; }
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
-
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 const int BODY_DOF = 6;   ///< degrees of freedom of body in 3d space

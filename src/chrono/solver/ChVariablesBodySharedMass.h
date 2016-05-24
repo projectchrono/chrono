@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHVARIABLESBODYSHAREDMASS_H
 #define CHVARIABLESBODYSHAREDMASS_H
@@ -17,23 +19,19 @@
 
 namespace chrono {
 
-/// Used by ChVariablesBodySharedMass objects to
-/// reference a single mass propery.
+/// Used by ChVariablesBodySharedMass objects to reference a single mass propery.
 
 class ChApi ChSharedMassBody {
   public:
-    ChMatrix33<double> inertia;  // 3x3 inertia matrix
-    double mass;                 // mass value
-
-    ChMatrix33<double> inv_inertia;
-    double inv_mass;
+    ChMatrix33<double> inertia;      ///< 3x3 inertia matrix
+    double mass;                     ///< mass value
+    ChMatrix33<double> inv_inertia;  ///< inverse of inertia matrix
+    double inv_mass;                 ///< inverse of mass value
 
   public:
-    ChSharedMassBody() {
+    ChSharedMassBody() : mass(1), inv_mass(1) {
         inertia.Set33Identity();
         inv_inertia.Set33Identity();
-        mass = 1.;
-        inv_mass = 1.;
     }
 
     /// Set the inertia matrix
@@ -50,16 +48,16 @@ class ChApi ChSharedMassBody {
 
     /// Access the 3x3 inertia matrix
     ChMatrix33<>& GetBodyInertia() { return inertia; }
+    const ChMatrix33<>& GetBodyInertia() const { return inertia; }
 
     /// Access the 3x3 inertia matrix inverted
     ChMatrix33<>& GetBodyInvInertia() { return inv_inertia; }
+    const ChMatrix33<>& GetBodyInvInertia() const { return inv_inertia; }
 
     /// Get the mass associated with translation of body
-    double GetBodyMass() { return mass; }
+    double GetBodyMass() const { return mass; }
 
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
 
@@ -68,8 +66,7 @@ class ChApi ChSharedMassBody {
         marchive << CHNVP(inertia);
     }
 
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
 
@@ -95,25 +92,15 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     CH_RTTI(ChVariablesBodySharedMass, ChVariablesBody)
 
   private:
-    /// the data (qb, variables and fb, forces, already defined in base class)
-
-    ChSharedMassBody* sharedmass;
+    ChSharedMassBody* sharedmass;  ///< shared inertia properties
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChVariablesBodySharedMass() { sharedmass = 0; };
+    ChVariablesBodySharedMass() : sharedmass(NULL) {}
 
     virtual ~ChVariablesBodySharedMass() {}
 
     /// Assignment operator: copy from other object
     ChVariablesBodySharedMass& operator=(const ChVariablesBodySharedMass& other);
-
-    //
-    // FUNCTIONS
-    //
 
     /// Get the pointer to shared mass
     ChSharedMassBody* GetSharedMass() { return sharedmass; }
@@ -121,31 +108,28 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     /// Set pointer to shared mass
     void SetSharedMass(ChSharedMassBody* ms) { sharedmass = ms; }
 
-    // IMPLEMENT PARENT CLASS METHODS
-
     /// Get the mass associated with translation of body
-    double GetBodyMass() { return sharedmass->GetBodyMass(); }
+    virtual double GetBodyMass() const override { return sharedmass->GetBodyMass(); }
 
     /// Access the 3x3 inertia matrix
-    ChMatrix33<>& GetBodyInertia() { return sharedmass->GetBodyInertia(); }
+    virtual ChMatrix33<>& GetBodyInertia() override { return sharedmass->GetBodyInertia(); }
+    virtual const ChMatrix33<>& GetBodyInertia() const override { return sharedmass->GetBodyInertia(); }
 
     /// Access the 3x3 inertia matrix inverted
-    ChMatrix33<>& GetBodyInvInertia() { return sharedmass->GetBodyInvInertia(); }
+    virtual ChMatrix33<>& GetBodyInvInertia() override { return sharedmass->GetBodyInvInertia(); }
+    virtual const ChMatrix33<>& GetBodyInvInertia() const override { return sharedmass->GetBodyInvInertia(); }
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and set in result: result = [invMb]*vect
-    void Compute_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the inverse mass matrix by a
     /// vector, and increment result: result += [invMb]*vect
-    void Compute_inc_invMb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the mass matrix by a
     /// vector, and set in result: result = [Mb]*vect
-    void Compute_inc_Mb_v(ChMatrix<float>& result, const ChMatrix<float>& vect) const;
-    void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const;
+    virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the
     /// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
@@ -153,26 +137,23 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect.
-    void MultiplyAndAdd(ChMatrix<double>& result, const ChMatrix<double>& vect, const double c_a) const;
+    virtual void MultiplyAndAdd(ChMatrix<double>& result,
+                                const ChMatrix<double>& vect,
+                                const double c_a) const override;
 
     /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offset (that must be already updated) as index.
-    void DiagonalAdd(ChMatrix<double>& result, const double c_a) const;
+    virtual void DiagonalAdd(ChMatrix<double>& result, const double c_a) const override;
 
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
     /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
-	void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a);
+    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -182,8 +163,7 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class

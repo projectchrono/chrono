@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSHAFTSPLANETARY_H
 #define CHSHAFTSPLANETARY_H
@@ -19,91 +22,66 @@
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
-
 class ChShaft;
 
-///  Class for defining a planetary gear
-///  between three one-degree-of-freedom parts (that is,
-///  shafts that can be used to build 1D models
-///  of power trains - this is more efficient than
-///  simulating power trains modeled full 3D ChBody
-///  objects).
-///  Planetary gears can be used to make, for instance,
-///  the differentials of cars.
-///  While traditional gear reducers have one input and one
-///  output, the planetary gear have two inputs and one
-///  output (or, if you prefer, one input and two outputs).
-///  Note that you can use this class also to make a
-///  gearbox if you are interested in knowing the reaction
-///  torque transmitted to the truss (whereas the basic ChLinkGear
-///  cannot do this because it has only in and out); in this case
-///  you just use the shaft n.1 as truss and fix it.
+/// Class for defining a planetary gear between three one-degree-of-freedom parts;
+/// i.e., shafts that can be used to build 1D models of powertrains; this is more
+/// efficient than simulating power trains modeled full 3D ChBody objects).
+/// Planetary gears can be used to make, for instance, the differentials of cars.
+/// While traditional gear reducers have one input and one output, the planetary
+/// gear have two inputs and one output (or, if you prefer, one input and two outputs).
+/// Note that you can use this class also to make a gearbox if you are interested
+/// in knowing the reaction torque transmitted to the truss (whereas the basic
+/// ChLinkGear cannot do this because it has only in and out); in this case you
+/// just use the shaft n.1 as truss and fix it.
 
 class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChShaftsPlanetary, ChPhysicsItem);
 
   private:
-    //
-    // DATA
-    //
-
-    double r1;  // transmission ratios  as in   r1*w1 + r2*w2 + r3*w3 = 0
+    double r1;  ///< transmission ratios  as in   r1*w1 + r2*w2 + r3*w3 = 0
     double r2;
     double r3;
 
-    double torque_react;
+    double torque_react;  ///< shaft reaction torque
 
-    // used as an interface to the solver.
-    ChConstraintThreeGeneric constraint;
+    ChConstraintThreeGeneric constraint;  ///< used as an interface to the solver
 
-    ChShaft* shaft1;
-    ChShaft* shaft2;
-    ChShaft* shaft3;
+    ChShaft* shaft1;  ///< first connected shaft
+    ChShaft* shaft2;  ///< second connected shaft
+    ChShaft* shaft3;  ///< third connected shaft
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Constructor.
     ChShaftsPlanetary();
-    /// Destructor
-    ~ChShaftsPlanetary();
+    ChShaftsPlanetary(const ChShaftsPlanetary& other);
+    ~ChShaftsPlanetary() {}
 
-    /// Copy from another ChShaftsPlanetary.
-    void Copy(ChShaftsPlanetary* source);
-
-    //
-    // FLAGS
-    //
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsPlanetary* Clone() const override { return new ChShaftsPlanetary(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() { return 3; }
+    virtual int GetNumCoords() const { return 3; }
 
     /// Number of scalar costraints
-    virtual int GetDOC_c() { return 1; }
+    virtual int GetDOC_c() override { return 1; }
 
     //
     // STATE FUNCTIONS
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -118,12 +96,12 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsBiLoad_Ct(double factor = 1.);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
 
@@ -134,10 +112,10 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// input gear, and the gear with inner teeth that usually is kept fixed (but the
     /// ChShaftsPlanetary does not require that one shaft is fixed - it's up to you)
     /// Each shaft must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (carrier wheel)
-                           std::shared_ptr<ChShaft> mshaft2,  ///< second shaft to join (wheel)
-                           std::shared_ptr<ChShaft> mshaft3   ///< third  shaft to join (wheel)
-                           );
+    bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (carrier wheel)
+                    std::shared_ptr<ChShaft> mshaft2,  ///< second shaft to join (wheel)
+                    std::shared_ptr<ChShaft> mshaft3   ///< third  shaft to join (wheel)
+                    );
 
     /// Get the first shaft (carrier wheel)
     ChShaft* GetShaft1() { return shaft1; }
@@ -192,37 +170,33 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     double GetTransmissionRatioOrdinary() const { return -r2 / r3; }
 
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
-    double GetTransmissionR1() const { return this->r1; }
+    double GetTransmissionR1() const { return r1; }
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
-    double GetTransmissionR2() const { return this->r2; }
+    double GetTransmissionR2() const { return r2; }
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
-    double GetTransmissionR3() const { return this->r3; }
+    double GetTransmissionR3() const { return r3; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return (this->r1 * torque_react); }
+    double GetTorqueReactionOn1() const { return (r1 * torque_react); }
 
     /// Get the reaction torque considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return (this->r2 * torque_react); }
+    double GetTorqueReactionOn2() const { return (r2 * torque_react); }
 
     /// Get the reaction torque considered as applied to the 3rd axis.
-    double GetTorqueReactionOn3() const { return (this->r3 * torque_react); }
-
-    //
-    // UPDATE FUNCTIONS
-    //
+    double GetTorqueReactionOn3() const { return (r3 * torque_react); }
 
     /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

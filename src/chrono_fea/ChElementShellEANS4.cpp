@@ -19,11 +19,14 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementShellEANS4.h"
 #include "chrono_fea/ChUtilsFEA.h"
+#include "chrono_fea/ChRotUtils.h"
 #include <cmath>
 
 //#define CHSIMPLIFY_GAMMAS 
-#define CHUSE_KGEOMETRIC
 #define CHUSE_ANS
+
+#define CHUSE_ANALYTIC_JACOBIAN
+//#define CHUSE_KGEOMETRIC
 
 namespace chrono {
 namespace fea {
@@ -32,6 +35,7 @@ namespace fea {
 // UTILITIES 
 //--------------------------------------------------------------
 
+/*
 // Compute a 3x3 matrix as a tensor product between two vectors (outer product of vectors)
 ChMatrix33<> TensorProduct(const ChVector<>& vA, const ChVector<>& vB) {
     ChMatrix33<> T;
@@ -46,6 +50,7 @@ ChMatrix33<> TensorProduct(const ChVector<>& vA, const ChVector<>& vB) {
     T(2,2) = vA.z*vB.z;
     return T;
 }
+*/
 
 // eq. 101 from Felippa,Haugen: "A unified formulation of small-strain corotational
 // finite elements"
@@ -226,14 +231,14 @@ void ChElementShellEANS4::AddLayer(double thickness, double theta, std::shared_p
 // Initial element setup.
 void ChElementShellEANS4::SetAsNeutral() {
 
-    GetNodeA()->GetX0().SetPos( GetNodeA()->GetX0().GetPos() );
-    GetNodeB()->GetX0().SetPos( GetNodeB()->GetX0().GetPos() );
-    GetNodeC()->GetX0().SetPos( GetNodeC()->GetX0().GetPos() );
-    GetNodeD()->GetX0().SetPos( GetNodeD()->GetX0().GetPos() );
-    GetNodeA()->GetX0().SetRot( GetNodeA()->GetX0().GetRot() );
-    GetNodeB()->GetX0().SetRot( GetNodeB()->GetX0().GetRot() );
-    GetNodeC()->GetX0().SetRot( GetNodeC()->GetX0().GetRot() );
-    GetNodeD()->GetX0().SetRot( GetNodeD()->GetX0().GetRot() );
+    GetNodeA()->GetX0ref().SetPos( GetNodeA()->GetPos() );
+    GetNodeB()->GetX0ref().SetPos( GetNodeB()->GetPos() );
+    GetNodeC()->GetX0ref().SetPos( GetNodeC()->GetPos() );
+    GetNodeD()->GetX0ref().SetPos( GetNodeD()->GetPos() );
+    GetNodeA()->GetX0ref().SetRot( GetNodeA()->GetRot() );
+    GetNodeB()->GetX0ref().SetRot( GetNodeB()->GetRot() );
+    GetNodeC()->GetX0ref().SetRot( GetNodeC()->GetRot() );
+    GetNodeD()->GetX0ref().SetRot( GetNodeD()->GetRot() );
 
 }
 
@@ -319,12 +324,8 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         GetNodeB()->GetRot(),
         GetNodeC()->GetRot(),
         GetNodeD()->GetRot()};
-    const ChQuaternion<>& rA = GetNodeA()->GetRot();
-    const ChQuaternion<>& rB = GetNodeB()->GetRot();
-    const ChQuaternion<>& rC = GetNodeC()->GetRot();
-    const ChQuaternion<>& rD = GetNodeD()->GetRot();
 
-    // Pre-compute the iTa rotations:
+    // Pre-compute node values:
     for (int inode = 0; inode < NUMNO; inode++) {
         // Element shape functions
         double u = xi_n[inode][0];
@@ -333,8 +334,10 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         ChMatrixNM<double, 1, 4> Nv;
         this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
         this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
-		ChVector<> t1 = Nu(0) * pi[0] +   Nu(1) * pi[1] +  Nu(2) * pi[2] +  Nu(3) * pi[3] ;
-		ChVector<> t2 = Nv(0) * pi[0] +   Nv(1) * pi[1] +  Nv(2) * pi[2] +  Nv(3) * pi[3] ;
+		ChVector<> t1 = Nu(0) * pi0[0] +   Nu(1) * pi0[1] +  Nu(2) * pi0[2] +  Nu(3) * pi0[3] ;
+		ChVector<> t2 = Nv(0) * pi0[0] +   Nv(1) * pi0[1] +  Nv(2) * pi0[2] +  Nv(3) * pi0[3] ;
+
+        // precompute iTa_i
         t1.Normalize();
 		t2.Normalize();
 		ChVector<> t3 = Vcross(t1,t2);
@@ -342,15 +345,14 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 		t2 = Vcross(t3,t1);
         ChMatrix33<> T123; 
         T123.Set_A_axis(t1,t2,t3);
-        //GetLog() << "T123=" << ChMatrix33<>(T123) << "\n";
-		iTa[inode] = ri0[inode].GetConjugate()  *  T123.Get_A_quaternion();  
+		iTa[inode] = ri0[inode].GetConjugate() *  T123.Get_A_quaternion();  
 	}
 
     // Compute net node rotations, average shell rotation, rot. vectors respect to average:
     ChQuaternion<>  Ta, Tb, Tc, Td;
     ChVector<>      phi_tilde_A, phi_tilde_B, phi_tilde_C, phi_tilde_D;
     ComputeNodeAndAverageRotations(
-        rA, rB, rC, rD, //in
+        ri0[0], ri0[1], ri0[2], ri0[3], //in
         Ta, Tb, Tc, Td, phi_tilde_A, phi_tilde_B, phi_tilde_C, phi_tilde_D); //out
 
     // Precompute Gauss-point values
@@ -364,8 +366,8 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         ChMatrixNM<double, 1, 4> Nv;
         this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
         this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
-		ChVector<> t1 = Nu(0) * pi[0] +   Nu(1) * pi[1] +  Nu(2) * pi[2] +  Nu(3) * pi[3] ;
-		ChVector<> t2 = Nv(0) * pi[0] +   Nv(1) * pi[1] +  Nv(2) * pi[2] +  Nv(3) * pi[3] ;
+		ChVector<> x_1 = Nu(0) * pi0[0] +   Nu(1) * pi0[1] +  Nu(2) * pi0[2] +  Nu(3) * pi0[3] ;
+		ChVector<> x_2 = Nv(0) * pi0[0] +   Nv(1) * pi0[1] +  Nv(2) * pi0[2] +  Nv(3) * pi0[3] ;
 
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
         ChVector<> phi_tilde_i = N(0)*phi_tilde_A + 
@@ -376,14 +378,26 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         // T_i = Tavg*exp(phi_i)
         ChQuaternion<> Ri; 
         Ri.Q_from_Rotv(phi_tilde_i);
-        ChQuaternion<> T_i0 = Tavg * Ri;                          
+        ChQuaternion<> T_i0 = Tavg * Ri;  //... * iTa_i; see below
+
+        // precompute iTa_i
+        ChVector<> t1 = x_1.GetNormalized();
+		ChVector<> t2 = x_2.GetNormalized();
+		ChVector<> t3 = Vcross(t1,t2);
+		t3.Normalize();
+		t2 = Vcross(t3,t1);
+        ChMatrix33<> T123; 
+        T123.Set_A_axis(t1, t2, t3);
+		iTa_i[igp] = T_i0.GetConjugate()  *  T123.Get_A_quaternion();   // -----store iTa_i;                           
+
+        T_i0 = T_i0*iTa_i[igp];
 
         ChMatrix33<> T_0_i(T_i0);
         ChMatrixNM<double,2,2> S_alpha_beta_i;
-		S_alpha_beta_i(0,0) = T_0_i.Get_A_Xaxis() ^ t1;
-		S_alpha_beta_i(1,0) = T_0_i.Get_A_Yaxis() ^ t1;
-		S_alpha_beta_i(0,1) = T_0_i.Get_A_Xaxis() ^ t2;
-		S_alpha_beta_i(1,1) = T_0_i.Get_A_Yaxis() ^ t2;
+		S_alpha_beta_i(0,0) = T_0_i.Get_A_Xaxis() ^ x_1;
+		S_alpha_beta_i(1,0) = T_0_i.Get_A_Yaxis() ^ x_1;
+		S_alpha_beta_i(0,1) = T_0_i.Get_A_Xaxis() ^ x_2;
+		S_alpha_beta_i(1,1) = T_0_i.Get_A_Yaxis() ^ x_2;
 		// alpha_i = det(S_alpha_beta_i)
 		alpha_i[igp] = S_alpha_beta_i(0,0) * S_alpha_beta_i(1,1) -
 			S_alpha_beta_i(0,1) * S_alpha_beta_i(1,0);      // -----store alpha_i;
@@ -411,19 +425,9 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         #endif
         ChVector<> kur_u0 = Tavg.Rotate( Hi * F_u_tilde0);
         ChVector<> kur_v0 = Tavg.Rotate( Hi * F_v_tilde0);
-        kur_tilde_u_0_i[igp] = T_i0.RotateBack(kur_u0);
-        kur_tilde_v_0_i[igp] = T_i0.RotateBack(kur_v0);
-
-        // precompute iTa_i
-        t1.Normalize();
-		t2.Normalize();
-		ChVector<> t3 = Vcross(t1,t2);
-		t3.Normalize();
-		t2 = Vcross(t3,t1);
-        ChMatrix33<> T123; 
-        T123.Set_A_axis(t1, t2, t3);
-        //GetLog() << "T123=" << ChMatrix33<>(T123) << "\n";
-		iTa_i[igp] = T_i0.GetConjugate()  *  T123.Get_A_quaternion();  
+        
+        kur_tilde_u_0_i[igp] = T_i0.RotateBack(kur_u0);  // -----store kur_tilde_u_0_i;
+        kur_tilde_v_0_i[igp] = T_i0.RotateBack(kur_v0);  // -----store kur_tilde_v_0_i;
     }
 
     // Precompute shear stitching point values
@@ -437,8 +441,8 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         ChMatrixNM<double, 1, 4> Nv;
         this->ShapeFunctionsDerivativeX(Nu, u, v, 0);
         this->ShapeFunctionsDerivativeY(Nv, u, v, 0);
-		ChVector<> t1 = Nu(0) * pi[0] +   Nu(1) * pi[1] +  Nu(2) * pi[2] +  Nu(3) * pi[3] ;
-		ChVector<> t2 = Nv(0) * pi[0] +   Nv(1) * pi[1] +  Nv(2) * pi[2] +  Nv(3) * pi[3] ;
+		ChVector<> x_1 = Nu(0) * pi0[0] +   Nu(1) * pi0[1] +  Nu(2) * pi0[2] +  Nu(3) * pi0[3] ;
+		ChVector<> x_2 = Nv(0) * pi0[0] +   Nv(1) * pi0[1] +  Nv(2) * pi0[2] +  Nv(3) * pi0[3] ;
 
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
         ChVector<> phi_tilde_i = N(0)*phi_tilde_A + 
@@ -449,14 +453,26 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         // T_i = Tavg*exp(phi_i)
         ChQuaternion<> Ri; 
         Ri.Q_from_Rotv(phi_tilde_i);
-        ChQuaternion<> T_S0 = Tavg * Ri;                         
+        ChQuaternion<> T_S0 = Tavg * Ri;   //... * iTa_S; see below
+
+        // precompute iTa_S
+        ChVector<> t1 = x_1.GetNormalized();
+		ChVector<> t2 = x_2.GetNormalized();
+		ChVector<> t3 = Vcross(t1,t2);
+		t3.Normalize();
+		t2 = Vcross(t3,t1);
+        ChMatrix33<> T123; 
+        T123.Set_A_axis(t1, t2, t3);
+		iTa_S[isp] = T_S0.GetConjugate()  *  T123.Get_A_quaternion(); 
+
+        T_S0 = T_S0*iTa_S[isp];                   
 
         ChMatrix33<> T_0_S(T_S0);
         ChMatrixNM<double,2,2> S_alpha_beta_S;
-		S_alpha_beta_S(0,0) = T_0_S.Get_A_Xaxis() ^ t1;
-		S_alpha_beta_S(1,0) = T_0_S.Get_A_Yaxis() ^ t1;
-		S_alpha_beta_S(0,1) = T_0_S.Get_A_Xaxis() ^ t2;
-		S_alpha_beta_S(1,1) = T_0_S.Get_A_Yaxis() ^ t2;
+		S_alpha_beta_S(0,0) = T_0_S.Get_A_Xaxis() ^ x_1;
+		S_alpha_beta_S(1,0) = T_0_S.Get_A_Yaxis() ^ x_1;
+		S_alpha_beta_S(0,1) = T_0_S.Get_A_Xaxis() ^ x_2;
+		S_alpha_beta_S(1,1) = T_0_S.Get_A_Yaxis() ^ x_2;
 
         S_alpha_beta_S.MatrInverse();
         ChMatrixNM<double,4,2> L_alpha_B_S;
@@ -471,16 +487,7 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
         eps_tilde_u_0_S[isp]  = T_S0.RotateBack(yS_u0);   // -----store eps_tilde_u_0_S;
         eps_tilde_v_0_S[isp]  = T_S0.RotateBack(yS_v0);   // -----store eps_tilde_v_0_S;
 
-        // precompute iTa_S
-        t1.Normalize();
-		t2.Normalize();
-		ChVector<> t3 = Vcross(t1,t2);
-		t3.Normalize();
-		t2 = Vcross(t3,t1);
-        ChMatrix33<> T123; 
-        T123.Set_A_axis(t1, t2, t3);
-        //GetLog() << "T123=" << ChMatrix33<>(T123) << "\n";
-		iTa_S[isp] = T_S0.GetConjugate()  *  T123.Get_A_quaternion(); 
+        
     }
 
 
@@ -514,6 +521,9 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 // State update.
 void ChElementShellEANS4::Update() {
     ChElementGeneric::Update();
+    //***TEST***
+    ChMatrixDynamic<> mfoo(12,1); // just for updating coordsys
+    ComputeInternalForces(mfoo);
 }
 
 // Fill the D vector with the current field values at the element nodes.
@@ -628,19 +638,13 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
                                     ChMatrixDynamic<>& Fi) {
 
     Fi.Reset();
-
-    // Shortcuts
-    const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
-    const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
-    const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
-    const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
-
+    
     // Compute net node rotations, average shell rotation, rot. vectors respect to average:
     ChQuaternion<>  Ta, Tb, Tc, Td;
-    ChVector<>      phi_tilde_A, phi_tilde_B, phi_tilde_C, phi_tilde_D;
+  
     ComputeNodeAndAverageRotations(
         rA, rB, rC, rD, //in
-        Ta, Tb, Tc, Td, phi_tilde_A, phi_tilde_B, phi_tilde_C, phi_tilde_D); //out
+        Ta, Tb, Tc, Td, phi_tilde[0], phi_tilde[1], phi_tilde[2], phi_tilde[3]); //out
 
     // Assumed Natural Strain (ANS):  precompute m_strainANS 
     CalcStrainANSbilinearShell(pA,rA, pB,rB, pC,rC, pD,rD);
@@ -656,27 +660,27 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         this->ShapeFunctionANSbilinearShell(N_ANS, u, v); 
 
         // phi_i = sum ( Ni * log(R_rel_i))  at this i-th  integration point
-        ChVector<> phi_tilde_i = N(0)*phi_tilde_A + 
-                             N(1)*phi_tilde_B + 
-                             N(2)*phi_tilde_C +
-                             N(3)*phi_tilde_D;
+        ChVector<> phi_tilde_i = N(0)*phi_tilde[0] + 
+                             N(1)*phi_tilde[1] + 
+                             N(2)*phi_tilde[2] +
+                             N(3)*phi_tilde[3];
     
         // T_i = Tavg*exp(phi_i)
         ChQuaternion<> Ri; 
         Ri.Q_from_Rotv(phi_tilde_i);
-        ChQuaternion<> T_i = Tavg * Ri * iTa_i[igp];
+        T_i[igp] = Tavg * Ri * iTa_i[igp];
 
         // STRAIN 
         // eps_tilde_u = T_i'* Yi,u - T_i0'* Yi,u0 
         // eps_tilde_v = T_i'* Yi,v - T_i0'* Yi,v0 
         ChVector<> yi_u =  L_alpha_beta_i[igp](0,0) * pA +   L_alpha_beta_i[igp](1,0) * pB +  L_alpha_beta_i[igp](2,0) * pC +  L_alpha_beta_i[igp](3,0) * pD ;
         ChVector<> yi_v =  L_alpha_beta_i[igp](0,1) * pA +   L_alpha_beta_i[igp](1,1) * pB +  L_alpha_beta_i[igp](2,1) * pC +  L_alpha_beta_i[igp](3,1) * pD ;
-        ChVector<> eps_tilde_u = T_i.RotateBack ( yi_u ) - eps_tilde_u_0_i[igp];
-        ChVector<> eps_tilde_v = T_i.RotateBack ( yi_v ) - eps_tilde_v_0_i[igp];
+        eps_tilde_u[igp] = T_i[igp].RotateBack ( yi_u ) - eps_tilde_u_0_i[igp];
+        eps_tilde_v[igp] = T_i[igp].RotateBack ( yi_v ) - eps_tilde_v_0_i[igp];
 
         // CURVATURES 
-        ChVector<> F_u_tilde =  L_alpha_beta_i[igp](0,0) * phi_tilde_A +   L_alpha_beta_i[igp](1,0) * phi_tilde_B +  L_alpha_beta_i[igp](2,0) * phi_tilde_C +  L_alpha_beta_i[igp](3,0) * phi_tilde_D ;
-        ChVector<> F_v_tilde =  L_alpha_beta_i[igp](0,1) * phi_tilde_A +   L_alpha_beta_i[igp](1,1) * phi_tilde_B +  L_alpha_beta_i[igp](2,1) * phi_tilde_C +  L_alpha_beta_i[igp](3,1) * phi_tilde_D ;
+        ChVector<> phi_tilde_u_i =  L_alpha_beta_i[igp](0,0) * phi_tilde[0] +   L_alpha_beta_i[igp](1,0) * phi_tilde[1] +  L_alpha_beta_i[igp](2,0) * phi_tilde[2] +  L_alpha_beta_i[igp](3,0) * phi_tilde[3] ;
+        ChVector<> phi_tilde_v_i =  L_alpha_beta_i[igp](0,1) * phi_tilde[0] +   L_alpha_beta_i[igp](1,1) * phi_tilde[1] +  L_alpha_beta_i[igp](2,1) * phi_tilde[2] +  L_alpha_beta_i[igp](3,1) * phi_tilde[3] ;
 
         ChMatrix33<> Hi;
         ComputeGammaMatrix(Hi,phi_tilde_i);
@@ -685,48 +689,48 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
             Hi = ChMatrix33<>(1);
         #endif
 
-        // kur_u = Tavg * gammatilde * F_u_tilde 
-        // kur_v = Tavg * gammatilde * F_v_tilde
-        ChVector<> kur_u = Tavg.Rotate( Hi * F_u_tilde);
-        ChVector<> kur_v = Tavg.Rotate( Hi * F_v_tilde);
+        // kur_u = Tavg * gammatilde * phi_tilde_u_i 
+        // kur_v = Tavg * gammatilde * phi_tilde_v_i
+        ChVector<> kur_u = Tavg.Rotate( Hi * phi_tilde_u_i);
+        ChVector<> kur_v = Tavg.Rotate( Hi * phi_tilde_v_i);
 
         // kur_u_tilde = T_i' * kur_u_i - T_i0' * kur0_u_i;
         // kur_v_tilde = T_i' * kur_v_i - T_i0' * kur0_v_i;
-        ChVector<> kur_u_tilde = T_i.RotateBack ( kur_u ) - kur_tilde_u_0_i[igp]; 
-        ChVector<> kur_v_tilde = T_i.RotateBack ( kur_v ) - kur_tilde_v_0_i[igp]; 
+        kur_u_tilde[igp] = T_i[igp].RotateBack ( kur_u ) - kur_tilde_u_0_i[igp]; 
+        kur_v_tilde[igp] = T_i[igp].RotateBack ( kur_v ) - kur_tilde_v_0_i[igp]; 
 
        // GetLog() << "GP = " << igp << "\n" << "kur_u_tilde = " << kur_u_tilde << "kur_v_tilde = " << kur_v_tilde << "\n";
 
         // some complication: compute the Phi matrices:
         ChMatrix33<> Hai;
-        ComputeGammaMatrixInverse(Hai,phi_tilde_A);
+        ComputeGammaMatrixInverse(Hai,phi_tilde[0]);
         ChMatrix33<> Hbi;
-        ComputeGammaMatrixInverse(Hbi,phi_tilde_B);
+        ComputeGammaMatrixInverse(Hbi,phi_tilde[1]);
         ChMatrix33<> Hci;
-        ComputeGammaMatrixInverse(Hci,phi_tilde_C);
+        ComputeGammaMatrixInverse(Hci,phi_tilde[2]);
         ChMatrix33<> Hdi;
-        ComputeGammaMatrixInverse(Hdi,phi_tilde_D);
+        ComputeGammaMatrixInverse(Hdi,phi_tilde[3]);
 
         ChMatrix33<> mTavgT(Tavg.GetConjugate());
         ChMatrix33<> mTavg(Tavg);
-        ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * GetNodeA()->GetA(); 
-        ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * GetNodeB()->GetA();
-        ChMatrix33<> PhiC = mTavg * Hi * Hci * mTavgT * GetNodeC()->GetA();
-        ChMatrix33<> PhiD = mTavg * Hi * Hdi * mTavgT * GetNodeD()->GetA();
-        // note: respect to Masarati paper, added the ....* m_element->GetNodeA()->GetA() part because 
+        ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * ChMatrix33<>(rA);
+        ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * ChMatrix33<>(rB);
+        ChMatrix33<> PhiC = mTavg * Hi * Hci * mTavgT * ChMatrix33<>(rC);
+        ChMatrix33<> PhiD = mTavg * Hi * Hdi * mTavgT * ChMatrix33<>(rD);
+        // note: respect to Masarati paper, added the ....* ChMatrix33<>(rA); part because 
         // incremental rotations in C::E are considered in body coords, not in abs.coords 
 
         #ifdef CHSIMPLIFY_GAMMAS
-            PhiA = GetNodeA()->GetA();
-            PhiB = GetNodeB()->GetA();
-            PhiC = GetNodeC()->GetA();
-            PhiD = GetNodeD()->GetA();
+            PhiA = ChMatrix33<>(rA);
+            PhiB = ChMatrix33<>(rB);
+            PhiC = ChMatrix33<>(rC);
+            PhiD = ChMatrix33<>(rD);
         #endif
 
         // Build the B matrix:
         ChMatrixNM<double, 12,24> B;
     
-        ChMatrix33<> mT_i_t(T_i.GetConjugate());
+        ChMatrix33<> mT_i_t(T_i[igp].GetConjugate());
         ChMatrix33<> myi_u_X; myi_u_X.Set_X_matrix(yi_u);
         ChMatrix33<> myi_v_X; myi_v_X.Set_X_matrix(yi_v);
         ChMatrix33<> mk_u_X; mk_u_X.Set_X_matrix(kur_u);
@@ -751,29 +755,41 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         block = mT_i_t * myi_u_X * PhiD * N(3);     B.PasteMatrix(&block, 0,21);
         block = mT_i_t * myi_v_X * PhiD * N(3);     B.PasteMatrix(&block, 3,21);
 
-        ChMatrix33<> mKu = PhiA*L_alpha_beta_i[igp](0,0); // .. + Elle() term, to be added?
-        ChMatrix33<> mKv = PhiA*L_alpha_beta_i[igp](0,1); // .. + Elle() term, to be added?
+        ChMatrix33<> mKu;
+        ChMatrix33<> mKv;
+        ChMatrix33<> mTavg_Elle_u = mTavg * ChRotUtils::Elle(phi_tilde_i, phi_tilde_u_i);
+        ChMatrix33<> mTavg_Elle_v = mTavg * ChRotUtils::Elle(phi_tilde_i, phi_tilde_v_i);
+        mKu = PhiA*L_alpha_beta_i[igp](0,0); 
+        mKv = PhiA*L_alpha_beta_i[igp](0,1); 
+        mKu += mTavg_Elle_u * Hai * mTavgT * ChMatrix33<>(rA) * N(0);
+        mKv += mTavg_Elle_v * Hai * mTavgT * ChMatrix33<>(rA) * N(0);
         block = mT_i_t * (mk_u_X * PhiA * N(0) + mKu);      B.PasteMatrix(&block, 6,3);
         block = mT_i_t * (mk_v_X * PhiA * N(0) + mKv);      B.PasteMatrix(&block, 9,3);
-        mKu = PhiB*L_alpha_beta_i[igp](1,0); // .. + Elle() term, to be added?
-        mKv = PhiB*L_alpha_beta_i[igp](1,1); // .. + Elle() term, to be added?
+        mKu = PhiB*L_alpha_beta_i[igp](1,0); 
+        mKv = PhiB*L_alpha_beta_i[igp](1,1); 
+        mKu += mTavg_Elle_u * Hbi * mTavgT * ChMatrix33<>(rB) * N(1);
+        mKv += mTavg_Elle_v * Hbi * mTavgT * ChMatrix33<>(rB) * N(1);
         block = mT_i_t * (mk_u_X * PhiB * N(1) + mKu);      B.PasteMatrix(&block, 6,9);
         block = mT_i_t * (mk_v_X * PhiB * N(1) + mKv);      B.PasteMatrix(&block, 9,9);
-        mKu = PhiC*L_alpha_beta_i[igp](2,0); // .. + Elle() term, to be added?
-        mKv = PhiC*L_alpha_beta_i[igp](2,1); // .. + Elle() term, to be added?
+        mKu = PhiC*L_alpha_beta_i[igp](2,0); 
+        mKv = PhiC*L_alpha_beta_i[igp](2,1); 
+        mKu += mTavg_Elle_u * Hci * mTavgT * ChMatrix33<>(rC) * N(2);
+        mKv += mTavg_Elle_v * Hci * mTavgT * ChMatrix33<>(rC) * N(2);
         block = mT_i_t * (mk_u_X * PhiC * N(2) + mKu);      B.PasteMatrix(&block, 6,15);
         block = mT_i_t * (mk_v_X * PhiC * N(2) + mKv);      B.PasteMatrix(&block, 9,15);
-        mKu = PhiD*L_alpha_beta_i[igp](3,0); // .. + Elle() term, to be added?
-        mKv = PhiD*L_alpha_beta_i[igp](3,1); // .. + Elle() term, to be added?
+        mKu = PhiD*L_alpha_beta_i[igp](3,0); 
+        mKv = PhiD*L_alpha_beta_i[igp](3,1); 
+        mKu += mTavg_Elle_u * Hdi * mTavgT * ChMatrix33<>(rD) * N(3);
+        mKv += mTavg_Elle_v * Hdi * mTavgT * ChMatrix33<>(rD) * N(3);
         block = mT_i_t * (mk_u_X * PhiD * N(3) + mKu);      B.PasteMatrix(&block, 6,21);
         block = mT_i_t * (mk_v_X * PhiD * N(3) + mKv);      B.PasteMatrix(&block, 9,21);
 
         // ANS CORRECTION:
         #ifdef CHUSE_ANS
         // replace transversal shear with ANS interpolated shear from tying points:
-        eps_tilde_u.z = N_ANS(2)*this->m_strainANS(2,2)  // (0,-1)
+        eps_tilde_u[igp].z = N_ANS(2)*this->m_strainANS(2,2)  // (0,-1)
                       + N_ANS(3)*this->m_strainANS(2,3); // (0,+1)
-        eps_tilde_v.z = N_ANS(0)*this->m_strainANS(5,0)  // (-1,0)
+        eps_tilde_v[igp].z = N_ANS(0)*this->m_strainANS(5,0)  // (-1,0)
                       + N_ANS(1)*this->m_strainANS(5,1); // (+1,0)
 
         for (int ic=0; ic<24; ++ic)
@@ -783,12 +799,14 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
             B(5,ic) = N_ANS(0)* this->m_B6_ANS(0,ic) + 
                       N_ANS(1)* this->m_B6_ANS(1,ic);              
         #endif
+
+        //GetLog() << "eu ev ku kv" <<  eps_tilde_u[igp] << eps_tilde_v[igp] << kur_u_tilde[igp] << kur_v_tilde[igp];
         // STRESSES - forces n and torques m 
         ChVector<> n_u;
         ChVector<> n_v;
         ChVector<> m_u;
         ChVector<> m_v;
-        this->GetLayer(0).GetMaterial()->ComputeStress(n_u, n_v, m_u, m_v, eps_tilde_u, eps_tilde_v, kur_u_tilde, kur_v_tilde);
+        this->GetLayer(0).GetMaterial()->ComputeStress(n_u, n_v, m_u, m_v, eps_tilde_u[igp], eps_tilde_v[igp], kur_u_tilde[igp], kur_v_tilde[igp]);
 
         // CONVERT n AND m TO GENERALIZED FORCES 'result':
         ChMatrixNM<double,12,1> sigma;
@@ -810,6 +828,7 @@ void ChElementShellEANS4::ComputeInternalForces_Impl(const ChVector<>& pA, const
         //***TODO*** add optional EAS terms
 
     }  // end loop on gauss points
+    //GetLog() << "ComputeInternalForces_Impl \n" << Fi;
 }
 
 // -----------------------------------------------------------------------------
@@ -821,11 +840,15 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 
     m_JacobianMatrix.Reset();
 
-    bool use_numerical_differentiation = false;
-    
-    if (use_numerical_differentiation) {
+    #ifdef CHUSE_ANALYTIC_JACOBIAN
+        bool analytic_jacobian = true;
+    #else
+        bool analytic_jacobian = false;
+    #endif
 
-        double diff = 1e-6;
+    if (!analytic_jacobian) {
+
+        double diff = 1e-8;
         ChMatrixNM<double,24,1> Kcolumn;
         ChMatrixDynamic<> F0(24, 1);
         ChMatrixDynamic<> F1(24, 1);
@@ -891,7 +914,8 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 5 + inode * 6);
             rot[inode] = qbackup;
         }
-    }
+    
+    } 
     else {
                // Assumed Natural Strain (ANS):  precompute m_strainANS 
         CalcStrainANSbilinearShell( GetNodeA()->GetPos(),GetNodeA()->GetRot(),
@@ -900,10 +924,6 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                                     GetNodeD()->GetPos(),GetNodeD()->GetRot());
 
         // Shortcuts:
-        const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
-        const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
-        const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
-        const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
         const ChVector<>& pA = GetNodeA()->GetPos();
         const ChVector<>& pB = GetNodeB()->GetPos();
         const ChVector<>& pC = GetNodeC()->GetPos();
@@ -955,8 +975,8 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             ChVector<> eps_tilde_v = T_i.RotateBack ( yi_v ) - eps_tilde_v_0_i[igp];
 
             // CURVATURES
-            ChVector<> F_u_tilde =  L_alpha_beta_i[igp](0,0) * phi_tilde_A +   L_alpha_beta_i[igp](1,0) * phi_tilde_B +  L_alpha_beta_i[igp](2,0) * phi_tilde_C +  L_alpha_beta_i[igp](3,0) * phi_tilde_D ;
-            ChVector<> F_v_tilde =  L_alpha_beta_i[igp](0,1) * phi_tilde_A +   L_alpha_beta_i[igp](1,1) * phi_tilde_B +  L_alpha_beta_i[igp](2,1) * phi_tilde_C +  L_alpha_beta_i[igp](3,1) * phi_tilde_D ;
+            ChVector<> phi_tilde_u_i =  L_alpha_beta_i[igp](0,0) * phi_tilde_A +   L_alpha_beta_i[igp](1,0) * phi_tilde_B +  L_alpha_beta_i[igp](2,0) * phi_tilde_C +  L_alpha_beta_i[igp](3,0) * phi_tilde_D ;
+            ChVector<> phi_tilde_v_i =  L_alpha_beta_i[igp](0,1) * phi_tilde_A +   L_alpha_beta_i[igp](1,1) * phi_tilde_B +  L_alpha_beta_i[igp](2,1) * phi_tilde_C +  L_alpha_beta_i[igp](3,1) * phi_tilde_D ;
 
             ChMatrix33<> Hi;
             ComputeGammaMatrix(Hi,phi_tilde_i);
@@ -965,15 +985,15 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                 Hi = ChMatrix33<>(1);
             #endif
 
-            // kur_u = Tavg * gammatilde * F_u_tilde 
-            // kur_v = Tavg * gammatilde * F_v_tilde
-            ChVector<> kur_u = Tavg.Rotate( Hi * F_u_tilde);
-            ChVector<> kur_v = Tavg.Rotate( Hi * F_v_tilde);
+            // kur_u = Tavg * gammatilde * phi_tilde_u_i 
+            // kur_v = Tavg * gammatilde * phi_tilde_v_i
+            ChVector<> kur_u = Tavg.Rotate( Hi * phi_tilde_u_i);
+            ChVector<> kur_v = Tavg.Rotate( Hi * phi_tilde_v_i);
 
             // kur_u_tilde = T_i' * kur_u_i - T_i0' * kur0_u_i;
             // kur_v_tilde = T_i' * kur_v_i - T_i0' * kur0_v_i;
-            ChVector<> kur_u_tilde = T_i.RotateBack ( kur_u ) - kur_tilde_u_0_i[igp]; //***TODO*** precompute kur0_u_i
-            ChVector<> kur_v_tilde = T_i.RotateBack ( kur_v ) - kur_tilde_v_0_i[igp]; //***TODO*** precompute kur0_v_i
+            ChVector<> kur_u_tilde = T_i.RotateBack ( kur_u ) - kur_tilde_u_0_i[igp];
+            ChVector<> kur_v_tilde = T_i.RotateBack ( kur_v ) - kur_tilde_v_0_i[igp];
 
             // some complication: compute the Phi matrices:
             ChMatrix33<> Hai;
@@ -987,18 +1007,18 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 
             ChMatrix33<> mTavgT(Tavg.GetConjugate());
             ChMatrix33<> mTavg(Tavg);
-            ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * GetNodeA()->GetA(); 
-            ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * GetNodeB()->GetA();
-            ChMatrix33<> PhiC = mTavg * Hi * Hci * mTavgT * GetNodeC()->GetA();
-            ChMatrix33<> PhiD = mTavg * Hi * Hdi * mTavgT * GetNodeD()->GetA();
-            // note: respect to Masarati paper, added the ....* m_element->GetNodeA()->GetA() part because 
+            ChMatrix33<> PhiA = mTavg * Hi * Hai * mTavgT * ChMatrix33<>(rA); 
+            ChMatrix33<> PhiB = mTavg * Hi * Hbi * mTavgT * ChMatrix33<>(rB);
+            ChMatrix33<> PhiC = mTavg * Hi * Hci * mTavgT * ChMatrix33<>(rC);
+            ChMatrix33<> PhiD = mTavg * Hi * Hdi * mTavgT * ChMatrix33<>(rD);
+            // note: respect to Masarati paper, added the .... * ChMatrix33<>(rA)  part because 
             // incremental rotations in C::E are considered in body coords, not in abs.coords 
 
             #ifdef CHSIMPLIFY_GAMMAS
-                PhiA = GetNodeA()->GetA();
-                PhiB = GetNodeB()->GetA();
-                PhiC = GetNodeC()->GetA();
-                PhiD = GetNodeD()->GetA();
+                PhiA = ChMatrix33<>(rA);
+                PhiB = ChMatrix33<>(rB);
+                PhiC = ChMatrix33<>(rC);
+                PhiD = ChMatrix33<>(rD);
             #endif
 
             // Build the B matrix:
@@ -1029,20 +1049,30 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
             block = mT_i_t * myi_u_X * PhiD * N(3);     B.PasteMatrix(&block, 0,21);
             block = mT_i_t * myi_v_X * PhiD * N(3);     B.PasteMatrix(&block, 3,21);
 
-            ChMatrix33<> mKuA = PhiA*L_alpha_beta_i[igp](0,0); // .. + Elle() term, to be added?
-            ChMatrix33<> mKvA = PhiA*L_alpha_beta_i[igp](0,1); // .. + Elle() term, to be added?
+            ChMatrix33<> mTavg_Elle_u = mTavg * ChRotUtils::Elle(phi_tilde_i, phi_tilde_u_i);
+            ChMatrix33<> mTavg_Elle_v = mTavg * ChRotUtils::Elle(phi_tilde_i, phi_tilde_v_i);
+            ChMatrix33<> mKuA = PhiA*L_alpha_beta_i[igp](0,0); 
+            ChMatrix33<> mKvA = PhiA*L_alpha_beta_i[igp](0,1); 
+            mKuA += mTavg_Elle_u * Hai * mTavgT * ChMatrix33<>(rA) * N(0);
+            mKvA += mTavg_Elle_v * Hai * mTavgT * ChMatrix33<>(rA) * N(0);
             block = mT_i_t * (mk_u_X * PhiA * N(0) + mKuA);      B.PasteMatrix(&block, 6,3);
             block = mT_i_t * (mk_v_X * PhiA * N(0) + mKvA);      B.PasteMatrix(&block, 9,3);
-            ChMatrix33<> mKuB = PhiB*L_alpha_beta_i[igp](1,0); // .. + Elle() term, to be added?
-            ChMatrix33<> mKvB = PhiB*L_alpha_beta_i[igp](1,1); // .. + Elle() term, to be added?
+            ChMatrix33<> mKuB = PhiB*L_alpha_beta_i[igp](1,0); 
+            ChMatrix33<> mKvB = PhiB*L_alpha_beta_i[igp](1,1); 
+            mKuB += mTavg_Elle_u * Hbi * mTavgT * ChMatrix33<>(rB) * N(1);
+            mKvB += mTavg_Elle_v * Hbi * mTavgT * ChMatrix33<>(rB) * N(1);
             block = mT_i_t * (mk_u_X * PhiB * N(1) + mKuB);      B.PasteMatrix(&block, 6,9);
             block = mT_i_t * (mk_v_X * PhiB * N(1) + mKvB);      B.PasteMatrix(&block, 9,9);
-            ChMatrix33<> mKuC = PhiC*L_alpha_beta_i[igp](2,0); // .. + Elle() term, to be added?
-            ChMatrix33<> mKvC = PhiC*L_alpha_beta_i[igp](2,1); // .. + Elle() term, to be added?
+            ChMatrix33<> mKuC = PhiC*L_alpha_beta_i[igp](2,0); 
+            ChMatrix33<> mKvC = PhiC*L_alpha_beta_i[igp](2,1); 
+            mKuC += mTavg_Elle_u * Hci * mTavgT * ChMatrix33<>(rC) * N(2);
+            mKvC += mTavg_Elle_v * Hci * mTavgT * ChMatrix33<>(rC) * N(2);
             block = mT_i_t * (mk_u_X * PhiC * N(2) + mKuC);      B.PasteMatrix(&block, 6,15);
             block = mT_i_t * (mk_v_X * PhiC * N(2) + mKvC);      B.PasteMatrix(&block, 9,15);
-            ChMatrix33<> mKuD = PhiD*L_alpha_beta_i[igp](3,0); // .. + Elle() term, to be added?
-            ChMatrix33<> mKvD = PhiD*L_alpha_beta_i[igp](3,1); // .. + Elle() term, to be added?
+            ChMatrix33<> mKuD = PhiD*L_alpha_beta_i[igp](3,0); 
+            ChMatrix33<> mKvD = PhiD*L_alpha_beta_i[igp](3,1); 
+            mKuD += mTavg_Elle_u * Hdi * mTavgT * ChMatrix33<>(rD) * N(3);
+            mKvD += mTavg_Elle_v * Hdi * mTavgT * ChMatrix33<>(rD) * N(3);
             block = mT_i_t * (mk_u_X * PhiD * N(3) + mKuD);      B.PasteMatrix(&block, 6,21);
             block = mT_i_t * (mk_v_X * PhiD * N(3) + mKvD);      B.PasteMatrix(&block, 9,21);
 
@@ -1108,26 +1138,26 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                 ChMatrixNM<double,24,24> K_g_i;
                 ChMatrixNM<double, 15,24> D_overline_i;
                 ChMatrix33<> Ieye(1);
-                block = Ieye * L_alpha_beta_i[igp](0,0);     B.PasteMatrix(&block, 0,0);
-                block = Ieye * L_alpha_beta_i[igp](0,1);     B.PasteMatrix(&block, 3,0);
-                block = Ieye * L_alpha_beta_i[igp](1,0);     B.PasteMatrix(&block, 0,6);
-                block = Ieye * L_alpha_beta_i[igp](1,1);     B.PasteMatrix(&block, 3,6);
-                block = Ieye * L_alpha_beta_i[igp](2,0);     B.PasteMatrix(&block, 0,12);
-                block = Ieye * L_alpha_beta_i[igp](2,1);     B.PasteMatrix(&block, 3,12);
-                block = Ieye * L_alpha_beta_i[igp](3,0);     B.PasteMatrix(&block, 0,18);
-                block = Ieye * L_alpha_beta_i[igp](3,1);     B.PasteMatrix(&block, 3,18);
-                B.PasteMatrix(&mKuA, 6,3);
-                B.PasteMatrix(&mKvA, 9,3);
-                B.PasteMatrix(&mKuB, 6,9);
-                B.PasteMatrix(&mKvB, 9,9);
-                B.PasteMatrix(&mKuC, 6,15);
-                B.PasteMatrix(&mKvC, 9,15);
-                B.PasteMatrix(&mKuD, 6,21);
-                B.PasteMatrix(&mKvD, 9,21);
-                block = PhiA * N(0);  B.PasteMatrix(&block, 12,3);
-                block = PhiB * N(1);  B.PasteMatrix(&block, 12,9);
-                block = PhiC * N(2);  B.PasteMatrix(&block, 12,15);
-                block = PhiD * N(3);  B.PasteMatrix(&block, 12,21);
+                block = Ieye * L_alpha_beta_i[igp](0,0);     D_overline_i.PasteMatrix(&block, 0,0);
+                block = Ieye * L_alpha_beta_i[igp](0,1);     D_overline_i.PasteMatrix(&block, 3,0);
+                block = Ieye * L_alpha_beta_i[igp](1,0);     D_overline_i.PasteMatrix(&block, 0,6);
+                block = Ieye * L_alpha_beta_i[igp](1,1);     D_overline_i.PasteMatrix(&block, 3,6);
+                block = Ieye * L_alpha_beta_i[igp](2,0);     D_overline_i.PasteMatrix(&block, 0,12);
+                block = Ieye * L_alpha_beta_i[igp](2,1);     D_overline_i.PasteMatrix(&block, 3,12);
+                block = Ieye * L_alpha_beta_i[igp](3,0);     D_overline_i.PasteMatrix(&block, 0,18);
+                block = Ieye * L_alpha_beta_i[igp](3,1);     D_overline_i.PasteMatrix(&block, 3,18);
+                D_overline_i.PasteMatrix(&mKuA, 6,3);
+                D_overline_i.PasteMatrix(&mKvA, 9,3);
+                D_overline_i.PasteMatrix(&mKuB, 6,9);
+                D_overline_i.PasteMatrix(&mKvB, 9,9);
+                D_overline_i.PasteMatrix(&mKuC, 6,15);
+                D_overline_i.PasteMatrix(&mKvC, 9,15);
+                D_overline_i.PasteMatrix(&mKuD, 6,21);
+                D_overline_i.PasteMatrix(&mKvD, 9,21);
+                block = PhiA * N(0);  D_overline_i.PasteMatrix(&block, 12,3);
+                block = PhiB * N(1);  D_overline_i.PasteMatrix(&block, 12,9);
+                block = PhiC * N(2);  D_overline_i.PasteMatrix(&block, 12,15);
+                block = PhiD * N(3);  D_overline_i.PasteMatrix(&block, 12,21);
 
                 ChMatrixNM<double, 15,15> G_i;
                 ChMatrix33<> mT_i(T_i);          
@@ -1144,8 +1174,8 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                 block.Set_X_matrix(Tn_v); G_i.PasteTranspMatrix(&block, 3,12);
 
                 ChMatrix33<> Hh;
-		        Hh =  TensorProduct(Tn_u, yi_u) - ChMatrix33<>(Tn_u ^ yi_u)
-			        + TensorProduct(Tn_v, yi_v) - ChMatrix33<>(Tn_v ^ yi_v)
+		        Hh =  TensorProduct(Tn_u, yi_u)  - ChMatrix33<>(Tn_u ^ yi_u)
+			        + TensorProduct(Tn_v, yi_v)  - ChMatrix33<>(Tn_v ^ yi_v)
 			        + TensorProduct(Tm_u, kur_u) - ChMatrix33<>(Tm_u ^ kur_u)
 			        + TensorProduct(Tm_v, kur_v) - ChMatrix33<>(Tm_v ^ kur_v);
                 G_i.PasteMatrix(&Hh, 12,12);
@@ -1153,15 +1183,15 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
                 // K_g_i = D' * G * D
                 ChMatrixNM<double,24,15> DtG_i;
                 DtG_i.MatrTMultiply(D_overline_i,G_i);
-                K_g_i.MatrTMultiply(DtG_i, D_overline_i); 
+                K_g_i.MatrMultiply(DtG_i, D_overline_i); 
 
                 K_g_i.MatrScale(jacobian * (Kfactor + Rfactor * this->m_Alpha));
                 this->m_JacobianMatrix += K_g_i;
             #endif
 
-            //***TODO*** add optional EAS terms
-            
-        } // end loop on gauss points
+            //***TODO*** add optional EAS terms   
+        }
+
     }
 }
 
@@ -1217,12 +1247,6 @@ void ChElementShellEANS4::CalcStrainANSbilinearShell(const ChVector<>& pA, const
                                     const ChVector<>& pB, const ChQuaternion<>& rB,
                                     const ChVector<>& pC, const ChQuaternion<>& rC,
                                     const ChVector<>& pD, const ChQuaternion<>& rD) {
-
-    // Shortcuts
-    const ChVector<>& pA0 = GetNodeA()->GetX0().GetPos();
-    const ChVector<>& pB0 = GetNodeB()->GetX0().GetPos();
-    const ChVector<>& pC0 = GetNodeC()->GetX0().GetPos();
-    const ChVector<>& pD0 = GetNodeD()->GetX0().GetPos();
 
     ChMatrixNM<double, 1, 4> N;
 

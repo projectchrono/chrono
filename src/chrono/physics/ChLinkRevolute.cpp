@@ -1,15 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkRevolute.h"
+#include "chrono/physics/ChLinkRevolute.h"
 
 namespace chrono {
 
@@ -27,46 +30,35 @@ ChLinkRevolute::ChLinkRevolute() {
     }
 }
 
+ChLinkRevolute::ChLinkRevolute(const ChLinkRevolute& other) : ChLink(other) {
+    Body1 = other.Body1;
+    Body2 = other.Body2;
+    system = other.system;
+
+    m_frame1 = other.m_frame1;
+    m_frame2 = other.m_frame2;
+
+    m_cnstr_x.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_y.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_z.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_uw.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    m_cnstr_vw.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+
+    for (int i = 0; i < 5; i++) {
+        m_multipliers[i] = other.m_multipliers[i];
+    }
+}
+
 ChLinkRevolute::~ChLinkRevolute() {
     delete m_C;
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChLinkRevolute::Copy(ChLinkRevolute* source) {
-    ChLink::Copy(source);
-
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-
-    m_frame1 = source->m_frame1;
-    m_frame2 = source->m_frame2;
-
-    m_cnstr_x.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_y.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_z.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_uw.SetVariables(&Body1->Variables(), &Body2->Variables());
-    m_cnstr_vw.SetVariables(&Body1->Variables(), &Body2->Variables());
-
-    for (int i = 0; i < 5; i++) {
-        m_multipliers[i] = source->m_multipliers[i];
-    }
-}
-
-ChLink* ChLinkRevolute::new_Duplicate() {
-    ChLinkRevolute* link = new ChLinkRevolute;
-    link->Copy(this);
-    return (link);
-}
-
-// -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first body frame
-                                std::shared_ptr<ChBodyFrame> body2,  // second body frame
-                                const ChFrame<>& frame)          // joint frame (in absolute frame)
-{
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                std::shared_ptr<ChBodyFrame> body2,
+                                const ChFrame<>& frame) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -87,12 +79,11 @@ void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first bo
         m_C->SetElement(i, 0, 0.0);
 }
 
-void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,  // first body frame
-                                std::shared_ptr<ChBodyFrame> body2,  // second body frame
-                                bool local,                      // true if data given in body local frames
-                                const ChFrame<>& frame1,         // joint frame on body 1
-                                const ChFrame<>& frame2)         // joint frame on body 2
-{
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                                std::shared_ptr<ChBodyFrame> body2,
+                                bool local,
+                                const ChFrame<>& frame1,
+                                const ChFrame<>& frame2) {
     Body1 = body1.get();
     Body2 = body2.get();
 
@@ -465,9 +456,7 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     react_torque = -m_frame2.GetA().MatrT_x_Vect(T2);
 }
 
-
-void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -480,8 +469,7 @@ void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -491,8 +479,6 @@ void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive)
     // deserialize all member data:
     marchive >> CHNVP(m_frame1);
     marchive >> CHNVP(m_frame2);
-
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

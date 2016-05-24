@@ -129,3 +129,13 @@ if(ENABLE_MODULE_VEHICLE)
   		add_subdirectory(vehicle)
   	endif()
 endif()
+
+if(ENABLE_MODULE_FSI)
+ 	option(BUILD_DEMOS_FSI "Build demo programs for FSI module" TRUE)
+ 	mark_as_advanced(FORCE BUILD_DEMOS_FSI)
+	if(BUILD_DEMOS_FSI)
+  		add_subdirectory(fsi)
+  	endif()
+endif()
+
+

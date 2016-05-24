@@ -271,6 +271,46 @@ void function_CalcContactForces(
             }
 
             break;
+
+        case ChSystemDEM::ContactForceModel::PlainCoulomb:
+            if (use_mat_props) {
+                real sqrt_Rd = Sqrt(delta_n);
+                real Sn = 2 * E_eff * sqrt_Rd;
+                real St = 8 * G_eff * sqrt_Rd;
+                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
+                real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                kn = (2.0 / 3) * Sn;
+                gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
+            } else {
+                real tmp = Sqrt(delta_n);
+                kn = tmp * user_kn;
+                gn = tmp * user_gn;
+            }
+
+            kt = 0;
+            gt = 0;
+
+            {
+                real forceN_mag = kn * delta_n - gn * relvel_n_mag;
+                if (forceN_mag < 0)
+                    forceN_mag = 0;
+                real forceT_mag = mu_eff * Tanh(5.0 * relvel_t_mag) * forceN_mag;
+                real3 force = forceN_mag * normal[index];
+                if (relvel_t_mag >= (real)1e-4)
+                    force -= (forceT_mag / relvel_t_mag) * relvel_t;
+
+                real3 torque1_loc = cross(pt1_loc, quatRotateMatT(force, rot[body1]));
+                real3 torque2_loc = cross(pt2_loc, quatRotateMatT(force, rot[body2]));
+
+                ext_body_id[2 * index] = body1;
+                ext_body_id[2 * index + 1] = body2;
+                ext_body_force[2 * index] = -force;
+                ext_body_force[2 * index + 1] = force;
+                ext_body_torque[2 * index] = -torque1_loc;
+                ext_body_torque[2 * index + 1] = torque2_loc;
+            }
+
+            return;
     }
 
     // Calculate the the normal and tangential contact forces.

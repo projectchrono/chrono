@@ -1,27 +1,27 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
-#include "physics/ChMaterialSurfaceDEM.h"
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChMaterialSurfaceDEM> a_registration_ChMaterialSurfaceDEM;
-
 
 // Constructors for a DEM material
 ChMaterialSurfaceDEM::ChMaterialSurfaceDEM()
@@ -30,13 +30,12 @@ ChMaterialSurfaceDEM::ChMaterialSurfaceDEM()
       static_friction(0.6f),
       sliding_friction(0.6f),
       restitution(0.4f),
-	  constant_adhesion(0),
-	  adhesionMultDMT(0),
+      constant_adhesion(0),
+      adhesionMultDMT(0),
       kn(2e5),
       kt(2e5),
       gn(40),
-      gt(20) {
-}
+      gt(20) {}
 
 ChMaterialSurfaceDEM::ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) {
     young_modulus = other.young_modulus;
@@ -50,6 +49,53 @@ ChMaterialSurfaceDEM::ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) {
     kt = other.kt;
     gn = other.gn;
     gt = other.gt;
+}
+
+void ChMaterialSurfaceDEM::SetFriction(float val) {
+    SetSfriction(val);
+    SetKfriction(val);
+}
+
+void ChMaterialSurfaceDEM::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChMaterialSurfaceBase::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(young_modulus);
+    marchive << CHNVP(poisson_ratio);
+    marchive << CHNVP(static_friction);
+    marchive << CHNVP(sliding_friction);
+    marchive << CHNVP(restitution);
+    marchive << CHNVP(constant_adhesion);
+    marchive << CHNVP(adhesionMultDMT);
+    marchive << CHNVP(kn);
+    marchive << CHNVP(kt);
+    marchive << CHNVP(gn);
+    marchive << CHNVP(gt);
+}
+
+void ChMaterialSurfaceDEM::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChMaterialSurfaceBase::ArchiveIN(marchive);
+
+    // stream in all member data:
+    marchive >> CHNVP(young_modulus);
+    marchive >> CHNVP(poisson_ratio);
+    marchive >> CHNVP(static_friction);
+    marchive >> CHNVP(sliding_friction);
+    marchive >> CHNVP(restitution);
+    marchive >> CHNVP(constant_adhesion);
+    marchive >> CHNVP(adhesionMultDMT);
+    marchive >> CHNVP(kn);
+    marchive >> CHNVP(kt);
+    marchive >> CHNVP(gn);
+    marchive >> CHNVP(gt);
 }
 
 // Calculate composite material properties as a combination of the physical

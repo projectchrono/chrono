@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONTACTCONTAINERBASE_H
 #define CHCONTACTCONTAINERBASE_H
@@ -16,9 +19,9 @@
 #include <unordered_map>
 
 #include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialCouple.h"
-#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 
@@ -68,16 +71,12 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     CH_RTTI(ChContactContainerBase, ChPhysicsItem);
 
   public:
-
-    ChContactContainerBase() {
-        add_contact_callback = 0;
-        report_contact_callback = 0;
-    }
-
+    ChContactContainerBase() : add_contact_callback(NULL), report_contact_callback(NULL) {}
+    ChContactContainerBase(const ChContactContainerBase& other);
     virtual ~ChContactContainerBase() {}
 
     /// Get the number of added contacts. To be implemented by child classes.
-    virtual int GetNcontacts() = 0;
+    virtual int GetNcontacts() const = 0;
 
     /// Remove (delete) all contained contact data. To be implemented by child classes.
     virtual void RemoveAllContacts() = 0;
@@ -193,6 +192,6 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

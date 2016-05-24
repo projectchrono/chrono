@@ -51,9 +51,9 @@
 #include "models/vehicle/m113/M113_Vehicle.h"
 
 using namespace chrono;
-using namespace chrono::vehicle;
 using namespace chrono::collision;
-using namespace m113;
+using namespace chrono::vehicle;
+using namespace chrono::vehicle::m113;
 
 using std::cout;
 using std::endl;

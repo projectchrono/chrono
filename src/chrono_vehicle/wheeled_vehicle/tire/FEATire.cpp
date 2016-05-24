@@ -87,17 +87,22 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
+
+    float mu = d["Contact Material"]["Coefficient of Friction"].GetDouble();
+    float cr = d["Contact Material"]["Coefficient of Restitution"].GetDouble();
+
+    SetContactFrictionCoefficient(mu);
+    SetContactRestitutionCoefficient(cr);
+
     assert(d["Contact Material"].HasMember("Use Physical Properties"));
 
     if (d["Contact Material"]["Use Physical Properties"].GetBool()) {
         assert(d["Contact Material"].HasMember("Properties"));
 
-        float mu = d["Contact Material"]["Properties"]["Coefficient of Friction"].GetDouble();
-        float cr = d["Contact Material"]["Properties"]["Coefficient of Restitution"].GetDouble();
         float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetDouble();
         float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetDouble();
 
-        SetContactMaterialProperties(mu, cr, ym, pr);
+        SetContactMaterialProperties(ym, pr);
     } else {
         assert(d["Contact Material"].HasMember("Coefficients"));
 

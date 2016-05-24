@@ -26,11 +26,9 @@ Validation Studies {#validation_studies_root}
 
 
 #### Chrono::FEA
-- Validation of ANCF beam elements [(pdf)](http://sbel.wisc.edu/documents/TR-2016-13.pdf)
-- Validation of ANCF shell elements [(pdf)](http://sbel.wisc.edu/documents/TR-2016-13.pdf)
-- Validation of ANCF eight node elements [(pdf)](http://sbel.wisc.edu/documents/TR-2016-13.pdf)
-- Validation of ANCF nine node elements [(pdf)](http://sbel.wisc.edu/documents/TR-2016-13.pdf)
-- Validation of co-rotational shell elements [(pdf)](http://sbel.wisc.edu/documents/TR-2016-13.pdf)
+- Validation of gradient-deficient ANCF beam element  [(pdf)](http://www.projectchrono.org/assets/validations/FEA/ancfBeamValidation.pdf)
+- Validation of bilinear ANCF shell element [(pdf)](http://www.projectchrono.org/assets/validations/FEA/ancfShellValidation.pdf)
+- Validation eight node brick element [(pdf)](http://www.projectchrono.org/assets/validations/FEA/8NodeBrickVal.pdf)
 
 <br><br>
 

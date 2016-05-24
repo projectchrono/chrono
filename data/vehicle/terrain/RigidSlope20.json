@@ -1,0 +1,28 @@
+{
+  "Name":     "Rigid terrain 20% slope",
+  "Type":     "Terrain",
+  "Template": "RigidTerrain",
+
+  "Material Properties":
+  {
+    "Coefficient of Friction":  0.9,
+    "Coefficient of Restitution": 0.01,
+    "Young Modulus":  2e7,
+    "Poisson Ratio":  0.3
+  },
+
+  "Geometry":
+  {
+    "Height Map Filename":  "terrain/height_maps/slope.bmp",
+    "Mesh Name":            "terrain_slope20_geom",
+    "Size":                 [120, 40],
+    "Height Range":         [0, 8]
+  },
+
+  "Visualization":
+  {
+    "Color": [1.0, 1.0, 1.0],
+    "Texture File": "terrain/textures/tile4.jpg",
+    "Texture Scaling": [16, 16]
+  }
+}

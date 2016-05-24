@@ -18,19 +18,19 @@
 
 #include "models/vehicle/m113/M113_SimpleDriveline.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-    const double M113_SimpleDriveline::m_diff_maxBias = 1;//// 3;
+const double M113_SimpleDriveline::m_diff_maxBias = 1;  //// 3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SimpleDriveline::M113_SimpleDriveline() : ChSimpleTrackDriveline("M113_SimpleDriveline") {
-}
+M113_SimpleDriveline::M113_SimpleDriveline() : ChSimpleTrackDriveline("M113_SimpleDriveline") {}
 
-}  // end namespace hmmwv
+}  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

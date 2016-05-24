@@ -1,16 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#include "physics/ChBodyFrame.h"
+#include "chrono/physics/ChBodyFrame.h"
 
 namespace chrono {
 
@@ -30,6 +32,7 @@ void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
         resulttorque = Vcross(Vsub(appl_point, coord.pos), force);
     }
 }
+
 void ChBodyFrame::To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque) {
     if (local) {
         // local space
@@ -40,24 +43,19 @@ void ChBodyFrame::To_abs_torque(const ChVector<>& torque, int local, ChVector<>&
     }
 }
 
-
-
-
-void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
     // serialize parent class
     ChFrameMoving<double>::ArchiveOUT(marchive);
     // serialize parent class
-    //ChBodyFrame::ArchiveOUT(marchive);
+    // ChBodyFrame::ArchiveOUT(marchive);
 
     // serialize all member data:
 }
 
-void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -67,7 +65,4 @@ void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive)
     // stream in all member data:
 }
 
-
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

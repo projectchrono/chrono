@@ -141,6 +141,27 @@ FIND_PACKAGE(AVX)
   ENDIF()
   
 ENDIF()
+
+#-----------------------------------------------------------------------------
+# MPI support
+#-----------------------------------------------------------------------------
+
+message(STATUS "Searching for MPI...")
+find_package(MPI)
+message(STATUS "  MPI (C++) found: ${MPI_CXX_FOUND}")
+if(MPI_CXX_FOUND)
+  message(STATUS "  MPI compiler:      ${MPI_CXX_COMPILER}")
+  message(STATUS "  MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
+  message(STATUS "  MPI include path:  ${MPI_CXX_INCLUDE_PATH}")
+  message(STATUS "  MPI link flags:    ${MPI_CXX_LINK_FLAGS}")
+  message(STATUS "  MPI libraries:     ${MPI_CXX_LIBRARIES}")
+  message(STATUS "")
+  message(STATUS "  MPIEXEC:               ${MPIEXEC}")
+  message(STATUS "  MPIEXEC_NUMPROC_FLAG:  ${MPIEXEC_NUMPROC_FLAG}")
+  message(STATUS "  MPIEXEC_PREFLAGS:      ${MPIEXEC_PREFLAGS}")
+  message(STATUS "  MPIEXEC_POSTFLAGS:     ${MPIEXEC_POSTFLAGS}")
+endif()
+
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -212,6 +233,7 @@ add_subdirectory(chrono_parallel)
 add_subdirectory(chrono_opengl)
 #add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
+add_subdirectory(chrono_fsi)
 
 # Add directories for model libraries
 add_subdirectory(models)
@@ -314,6 +336,12 @@ if(ENABLE_MODULE_VEHICLE)
   set(CHRONO_VEHICLE "#define CHRONO_VEHICLE")
 else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
+endif()
+
+if(ENABLE_MODULE_FSI)
+  set(CHRONO_FSI "#define CHRONO_FSI")
+else()
+  set(CHRONO_FSI "#undef CHRONO_FSI")
 endif()
 
 if(ENABLE_OPENMP)

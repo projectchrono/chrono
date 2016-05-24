@@ -1,29 +1,43 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChProximityContainerBase.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainerBase.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegisterABSTRACT<ChProximityContainerBase> a_registration_ChProximityContainerBase;
 
-}  // END_OF_NAMESPACE____
+ChProximityContainerBase::ChProximityContainerBase(const ChProximityContainerBase& other) : ChPhysicsItem(other) {
+    add_proximity_callback = other.add_proximity_callback;
+    report_proximity_callback = other.report_proximity_callback;
+}
+
+void ChProximityContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChPhysicsItem::ArchiveOUT(marchive);
+    // serialize all member data:
+}
+
+void ChProximityContainerBase::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChPhysicsItem::ArchiveIN(marchive);
+    // stream in all member data:
+}
+
+}  // end namespace chrono

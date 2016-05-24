@@ -1,15 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/physics/ChContactContainerDVI.h"
 #include "chrono/physics/ChSystem.h"
@@ -20,27 +21,20 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChContactContainerDVI> a_registration_ChContactContainerDVI;
 
+ChContactContainerDVI::ChContactContainerDVI()
+    : n_added_6_6(0), n_added_6_3(0), n_added_3_3(0), n_added_6_6_rolling(0) {}
 
-ChContactContainerDVI::ChContactContainerDVI() {
-    contactlist_6_6.clear();
+ChContactContainerDVI::ChContactContainerDVI(const ChContactContainerDVI& other) : ChContactContainerBase(other) {
     n_added_6_6 = 0;
-
-    contactlist_6_3.clear();
     n_added_6_3 = 0;
-
-    contactlist_3_3.clear();
     n_added_3_3 = 0;
-
-    contactlist_6_6_rolling.clear();
     n_added_6_6_rolling = 0;
 }
 
 ChContactContainerDVI::~ChContactContainerDVI() {
-
     RemoveAllContacts();
 }
 
@@ -48,7 +42,6 @@ void ChContactContainerDVI::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class, basically doing nothing :)
     ChContactContainerBase::Update(mytime, update_assets);
 }
-
 
 template <class Tcont, class Titer>
 void _RemoveAllContacts(std::list<Tcont*>& contactlist, Titer& lastcontact, int& n_added) {
@@ -62,7 +55,6 @@ void _RemoveAllContacts(std::list<Tcont*>& contactlist, Titer& lastcontact, int&
     lastcontact = contactlist.begin();
     n_added = 0;
 }
-
 
 void ChContactContainerDVI::RemoveAllContacts() {
     _RemoveAllContacts(contactlist_6_6, lastcontact_6_6, n_added_6_6);
@@ -105,24 +97,19 @@ void ChContactContainerDVI::EndAddContact() {
     }
 }
 
-
-
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(
-    std::list<Tcont*>& contactlist, 
-    Titer& lastcontact, 
-    int& n_added,
-    ChContactContainerBase* mcontainer,
-    Ta* objA,  ///< collidable object A
-    Tb* objB,  ///< collidable object B
-    const collision::ChCollisionInfo& cinfo
-    )
-{
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,
+                           Titer& lastcontact,
+                           int& n_added,
+                           ChContactContainerBase* mcontainer,
+                           Ta* objA,  ///< collidable object A
+                           Tb* objB,  ///< collidable object B
+                           const collision::ChCollisionInfo& cinfo) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
         (*lastcontact)->Reset(objA, objB, cinfo);
         lastcontact++;
- 
+
     } else {
         // add new contact
         Tcont* mc = new Tcont(mcontainer, objA, objB, cinfo);
@@ -133,22 +120,22 @@ void _OptimalContactInsert(
 }
 
 void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontact) {
-
     assert(mcontact.modelA->GetContactable());
     assert(mcontact.modelB->GetContactable());
 
-
-    // See if both collision models use DVI i.e. 'nonsmooth dynamics' material 
+    // See if both collision models use DVI i.e. 'nonsmooth dynamics' material
     // of type ChMaterialSurface, trying to downcast from ChMaterialSurfaceBase.
     // If not DVI vs DVI, just bailout (ex it could be that this was a DEM vs DEM contact)
 
-    auto mmatA = std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
-    auto mmatB = std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
+    auto mmatA =
+        std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
+    auto mmatB =
+        std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
 
     if (!mmatA || !mmatB)
         return;
 
-    // Bail out if any of the two contactable objects is 
+    // Bail out if any of the two contactable objects is
     // not contact-active:
 
     bool inactiveA = !mcontact.modelA->GetContactable()->IsContactActive();
@@ -159,18 +146,19 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
 
     // CREATE THE CONTACTS
     //
-    // Switch among the various cases of contacts: i.e. between a 6-dof variable and another 6-dof variable, 
+    // Switch among the various cases of contacts: i.e. between a 6-dof variable and another 6-dof variable,
     // or 6 vs 3, etc.
-    // These cases are made distinct to exploit the optimization coming from templates and static data sizes 
+    // These cases are made distinct to exploit the optimization coming from templates and static data sizes
     // in contact types.
 
-    if (    ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelA->GetContactable())) {
+    if (ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelA->GetContactable())) {
         // 6_6
         if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
-            if ((mmatA->rolling_friction && mmatB->rolling_friction) || (mmatA->spinning_friction && mmatB->spinning_friction)) {
-                _OptimalContactInsert(contactlist_6_6_rolling, lastcontact_6_6_rolling, n_added_6_6_rolling, this, mmboA, mmboB, mcontact);
-            }
-            else {
+            if ((mmatA->rolling_friction && mmatB->rolling_friction) ||
+                (mmatA->spinning_friction && mmatB->spinning_friction)) {
+                _OptimalContactInsert(contactlist_6_6_rolling, lastcontact_6_6_rolling, n_added_6_6_rolling, this,
+                                      mmboA, mmboB, mcontact);
+            } else {
                 _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, mmboA, mmboB, mcontact);
             }
             return;
@@ -182,10 +170,10 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
         }
     }
 
-    if (    ChContactable_1vars<3>* mmboA = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelA->GetContactable())) {
+    if (ChContactable_1vars<3>* mmboA = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelA->GetContactable())) {
         // 3_6 -> 6_3
         if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
-            collision::ChCollisionInfo swapped_contact(mcontact,true);
+            collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboB, mmboA, swapped_contact);
             return;
         }
@@ -244,7 +232,11 @@ void ChContactContainerDVI::ReportAllContacts(ChReportContactCallback* mcallback
 ////////// STATE INTERFACE ////
 
 template <class Tcont>
-void _IntStateGatherReactions(unsigned int& coffset, std::list<Tcont*>& contactlist, const unsigned int off_L, ChVectorDynamic<>& L, const int stride) {
+void _IntStateGatherReactions(unsigned int& coffset,
+                              std::list<Tcont*>& contactlist,
+                              const unsigned int off_L,
+                              ChVectorDynamic<>& L,
+                              const int stride) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntStateGatherReactions(off_L + coffset, L);
@@ -255,14 +247,18 @@ void _IntStateGatherReactions(unsigned int& coffset, std::list<Tcont*>& contactl
 
 void ChContactContainerDVI::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     unsigned int coffset = 0;
-    _IntStateGatherReactions(coffset, contactlist_6_6, off_L,L, 3);
-    _IntStateGatherReactions(coffset, contactlist_6_3, off_L,L, 3);
-    _IntStateGatherReactions(coffset, contactlist_3_3, off_L,L, 3);
-    _IntStateGatherReactions(coffset, contactlist_6_6_rolling, off_L,L, 6);
+    _IntStateGatherReactions(coffset, contactlist_6_6, off_L, L, 3);
+    _IntStateGatherReactions(coffset, contactlist_6_3, off_L, L, 3);
+    _IntStateGatherReactions(coffset, contactlist_3_3, off_L, L, 3);
+    _IntStateGatherReactions(coffset, contactlist_6_6_rolling, off_L, L, 6);
 }
 
 template <class Tcont>
-void _IntStateScatterReactions(unsigned int& coffset, std::list<Tcont*>& contactlist, const unsigned int off_L, const ChVectorDynamic<>& L, const int stride) {
+void _IntStateScatterReactions(unsigned int& coffset,
+                               std::list<Tcont*>& contactlist,
+                               const unsigned int off_L,
+                               const ChVectorDynamic<>& L,
+                               const int stride) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntStateScatterReactions(off_L + coffset, L);
@@ -279,16 +275,14 @@ void ChContactContainerDVI::IntStateScatterReactions(const unsigned int off_L, c
     _IntStateScatterReactions(coffset, contactlist_6_6_rolling, off_L, L, 6);
 }
 
-
 template <class Tcont>
-void _IntLoadResidual_CqL(unsigned int& coffset, std::list<Tcont*>& contactlist, 
-                                             const unsigned int off_L,    ///< offset in L multipliers
-                                             ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                             const ChVectorDynamic<>& L,  ///< the L vector
-                                             const double c,               ///< a scaling factor
-                                             const int stride
-                                             )
-{
+void _IntLoadResidual_CqL(unsigned int& coffset,
+                          std::list<Tcont*>& contactlist,
+                          const unsigned int off_L,    ///< offset in L multipliers
+                          ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                          const ChVectorDynamic<>& L,  ///< the L vector
+                          const double c,              ///< a scaling factor
+                          const int stride) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntLoadResidual_CqL(off_L + coffset, R, L, c);
@@ -298,27 +292,26 @@ void _IntLoadResidual_CqL(unsigned int& coffset, std::list<Tcont*>& contactlist,
 }
 
 void ChContactContainerDVI::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                             ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                             const ChVectorDynamic<>& L,  ///< the L vector
-                                             const double c               ///< a scaling factor
-                                             ) {
+                                                ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                                                const ChVectorDynamic<>& L,  ///< the L vector
+                                                const double c               ///< a scaling factor
+                                                ) {
     unsigned int coffset = 0;
-    _IntLoadResidual_CqL(coffset, contactlist_6_6, off_L, R, L, c ,3);
-    _IntLoadResidual_CqL(coffset, contactlist_6_3, off_L, R, L, c ,3);
-    _IntLoadResidual_CqL(coffset, contactlist_3_3, off_L, R, L, c ,3);
-    _IntLoadResidual_CqL(coffset, contactlist_6_6_rolling, off_L, R, L, c ,6);
+    _IntLoadResidual_CqL(coffset, contactlist_6_6, off_L, R, L, c, 3);
+    _IntLoadResidual_CqL(coffset, contactlist_6_3, off_L, R, L, c, 3);
+    _IntLoadResidual_CqL(coffset, contactlist_3_3, off_L, R, L, c, 3);
+    _IntLoadResidual_CqL(coffset, contactlist_6_6_rolling, off_L, R, L, c, 6);
 }
 
-
 template <class Tcont>
-void _IntLoadConstraint_C(unsigned int& coffset, std::list<Tcont*>& contactlist, 
-                                             const unsigned int off,  ///< offset in Qc residual
-                                             ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
-                                             const double c,          ///< a scaling factor
-                                             bool do_clamp,           ///< apply clamping to c*C?
-                                             double recovery_clamp,   ///< value for min/max clamping of c*C
-                                             const int stride
-                                             ) {
+void _IntLoadConstraint_C(unsigned int& coffset,
+                          std::list<Tcont*>& contactlist,
+                          const unsigned int off,  ///< offset in Qc residual
+                          ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
+                          const double c,          ///< a scaling factor
+                          bool do_clamp,           ///< apply clamping to c*C?
+                          double recovery_clamp,   ///< value for min/max clamping of c*C
+                          const int stride) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntLoadConstraint_C(off + coffset, Qc, c, do_clamp, recovery_clamp);
@@ -328,11 +321,11 @@ void _IntLoadConstraint_C(unsigned int& coffset, std::list<Tcont*>& contactlist,
 }
 
 void ChContactContainerDVI::IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
-                                             ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
-                                             const double c,          ///< a scaling factor
-                                             bool do_clamp,           ///< apply clamping to c*C?
-                                             double recovery_clamp    ///< value for min/max clamping of c*C
-                                             ) {
+                                                ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
+                                                const double c,          ///< a scaling factor
+                                                bool do_clamp,           ///< apply clamping to c*C?
+                                                double recovery_clamp    ///< value for min/max clamping of c*C
+                                                ) {
     unsigned int coffset = 0;
     _IntLoadConstraint_C(coffset, contactlist_6_6, off, Qc, c, do_clamp, recovery_clamp, 3);
     _IntLoadConstraint_C(coffset, contactlist_6_3, off, Qc, c, do_clamp, recovery_clamp, 3);
@@ -469,4 +462,23 @@ void ChContactContainerDVI::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
+void ChContactContainerDVI::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChContactContainerBase::ArchiveOUT(marchive);
+    // serialize all member data:
+    // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChContactContainerDVI::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChContactContainerBase::ArchiveIN(marchive);
+    // stream in all member data:
+    RemoveAllContacts();
+    // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
+}
 }  // end namespace chrono

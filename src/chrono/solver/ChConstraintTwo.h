@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHCONSTRAINTTWO_H
 #define CHCONSTRAINTTWO_H
@@ -32,20 +34,15 @@ class ChApi ChConstraintTwo : public ChConstraint {
     CH_RTTI(ChConstraintTwo, ChConstraint)
 
   protected:
-    /// The first  constrained object
-    ChVariables* variables_a;
-    /// The second constrained object
-    ChVariables* variables_b;
+    ChVariables* variables_a;  ///< The first  constrained object
+    ChVariables* variables_b;  ///< The second constrained object
 
   public:
     /// Default constructor
-    ChConstraintTwo() { variables_a = variables_b = NULL; }
+    ChConstraintTwo() : variables_a(NULL), variables_b(NULL) {}
 
     /// Copy constructor
-    ChConstraintTwo(const ChConstraintTwo& other) : ChConstraint(other) {
-        variables_a = other.variables_a;
-        variables_b = other.variables_b;
-    }
+    ChConstraintTwo(const ChConstraintTwo& other);
 
     virtual ~ChConstraintTwo() {}
 

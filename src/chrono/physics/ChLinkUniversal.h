@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
 #ifndef CHLINKUNIVERSAL_H
 #define CHLINKUNIVERSAL_H
@@ -28,25 +31,18 @@ class ChApi ChLinkUniversal : public ChLink {
     CH_RTTI(ChLinkUniversal, ChLink);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChLinkUniversal();
+    ChLinkUniversal(const ChLinkUniversal& other);
     ~ChLinkUniversal();
 
-    virtual void Copy(ChLinkUniversal* source);
-    virtual ChLink* new_Duplicate();
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkUniversal* Clone() const override { return new ChLinkUniversal(*this); }
 
     /// Get the type of this joint.
-    virtual int GetType() { return LNK_UNIVERSAL; }
+    virtual int GetType() const override { return LNK_UNIVERSAL; }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetDOC_c() { return 4; }
+    virtual int GetDOC_c() override { return 4; }
 
     /// Get the link coordinate system, expressed relative to Body2.
     virtual ChCoordsys<> GetLinkRelativeCoords() { return m_frame2.GetCoord(); }
@@ -73,7 +69,7 @@ class ChApi ChLinkUniversal : public ChLink {
     /// the Y axis of the joint frame on body 2 are perpendicular.
     void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
                     std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
-                    const ChFrame<>& frame           ///< joint frame (in absolute frame)
+                    const ChFrame<>& frame  ///< joint frame (in absolute frame)
                     );
 
     /// Initialize this joint by specifying the two bodies to be connected and the
@@ -82,9 +78,9 @@ class ChApi ChLinkUniversal : public ChLink {
     /// specified in the absolute frame.
     void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body frame
                     std::shared_ptr<ChBodyFrame> body2,  ///< second body frame
-                    bool local,                      ///< true if data given in body local frames
-                    const ChFrame<>& frame1,         ///< joint frame on body 1
-                    const ChFrame<>& frame2          ///< joint frame on body 2
+                    bool local,               ///< true if data given in body local frames
+                    const ChFrame<>& frame1,  ///< joint frame on body 1
+                    const ChFrame<>& frame2   ///< joint frame on body 2
                     );
 
     //
@@ -100,17 +96,17 @@ class ChApi ChLinkUniversal : public ChLink {
     //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,
-                                     const double c);
+                                     const double c) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
                                      bool do_clamp,
-                                     double recovery_clamp);
+                                     double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -126,42 +122,40 @@ class ChApi ChLinkUniversal : public ChLink {
     // SOLVER INTERFACE
     //
 
-    virtual void InjectConstraints(ChSystemDescriptor& descriptor);
-    virtual void ConstraintsBiReset();
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false);
-    virtual void ConstraintsLoadJacobians();
-    virtual void ConstraintsFetch_react(double factor = 1.);
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
     // Joint frames (in body local frames)
-    ChFrame<> m_frame1;  // joint frame on body 1
-    ChFrame<> m_frame2;  // joint frame on body 2
+    ChFrame<> m_frame1;  ///< joint frame on body 1
+    ChFrame<> m_frame2;  ///< joint frame on body 2
 
     // Cached matrices
     ChMatrix33<> m_u1_tilde;
     ChMatrix33<> m_v2_tilde;
 
     // The constraint objects
-    ChConstraintTwoBodies m_cnstr_x;    // x1_abs - x2_abs = 0
-    ChConstraintTwoBodies m_cnstr_y;    // y1_abs - y2_abs = 0
-    ChConstraintTwoBodies m_cnstr_z;    // z1_abs - z2_abs = 0
-    ChConstraintTwoBodies m_cnstr_dot;  // dot(u1_abs, v2_abs) = 0
+    ChConstraintTwoBodies m_cnstr_x;    ///< constraint: x1_abs - x2_abs = 0
+    ChConstraintTwoBodies m_cnstr_y;    ///< constraint: y1_abs - y2_abs = 0
+    ChConstraintTwoBodies m_cnstr_z;    ///< constraint: z1_abs - z2_abs = 0
+    ChConstraintTwoBodies m_cnstr_dot;  ///< constraint: dot(u1_abs, v2_abs) = 0
 
-    // Current constraint violations
-    ChMatrix<>* m_C;
+    ChMatrix<>* m_C;  ////< current constraint violations
 
-    // Lagrange multipliers
-    double m_multipliers[4];
+    double m_multipliers[4];  ///< Lagrange multipliers
 };
 
 }  // end namespace chrono

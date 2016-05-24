@@ -44,13 +44,16 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_fea/ChElementShellANCF.h"
+
+#ifdef CHRONO_FEA
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+#endif
 
 // #define USE_IRRLICHT
 
@@ -635,6 +638,7 @@ int main() {
     // Optionally use the custom collision detection class
     // ---------------------------------------------------
 
+#ifdef CHRONO_FEA
     TireTestCollisionManager* my_collider = NULL;
 
     if (tire_model == ANCF && enable_tire_contact && use_custom_collision) {
@@ -656,6 +660,7 @@ int main() {
             GetLog() << "********************************************\n";
         }
     }
+#endif
 
     // Complete system construction
     // ----------------------------
@@ -926,7 +931,10 @@ int main() {
 #endif
 
     delete my_system;
+
+#ifdef CHRONO_FEA
     delete my_collider;
+#endif
 
     return 0;
 }
@@ -934,6 +942,8 @@ int main() {
 // ----------------------------------------------
 // ----------  Write Mesh Info  -----------------
 // ----------------------------------------------
+
+#ifdef CHRONO_FEA
 
 void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>> & NodeNeighborElement) {
 	// Create connectivity for plotting the tire
@@ -1037,3 +1047,6 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
 	}
 	output.close();
 }
+
+#endif  /// CHRONO_FEA
+

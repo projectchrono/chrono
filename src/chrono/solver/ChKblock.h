@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHKBLOCK_H
 #define CHKBLOCK_H
@@ -41,16 +44,9 @@ class ChApi ChKblock {
     CH_RTTI_ROOT(ChKblock)
 
   public:
-    //
-    // CONSTRUCTORS
-    //
     ChKblock() {}
-
     virtual ~ChKblock() {}
 
-    //
-    // FUNCTIONS
-    //
     /// Returns the number of referenced ChVariables items
     virtual size_t GetNvars() const = 0;
 
@@ -76,7 +72,7 @@ class ChApi ChKblock {
     /// a global 'storage' matrix, at the offsets of variables.
     /// Most solvers do not need this: the sparse 'storage' matrix is used for testing, for
     /// direct solvers, for dumping full matrix to Matlab for checks, etc.
-	virtual void Build_K(ChSparseMatrix& storage, bool add = true) = 0;
+    virtual void Build_K(ChSparseMatrix& storage, bool add = true) = 0;
 };
 
 }  // end namespace chrono

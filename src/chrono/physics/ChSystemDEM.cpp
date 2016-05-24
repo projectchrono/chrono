@@ -24,12 +24,12 @@ namespace chrono {
 // dynamic creation and persistence
 ChClassRegister<ChSystemDEM> a_registration_ChSystemDEM;
 
-ChSystemDEM::ChSystemDEM(bool use_material_properties, bool use_history, unsigned int max_objects, double scene_size)
+ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects, double scene_size)
     : ChSystem(max_objects, scene_size, false),
       m_use_mat_props(use_material_properties),
-      m_use_history(use_history),
       m_contact_model(Hertz),
       m_adhesion_model(Constant),
+      m_tdispl_model(OneStep),
       m_stiff_contact(false) {
     descriptor = new ChSystemDescriptor;
     descriptor->SetNumThreads(parallel_thread_number);
@@ -109,13 +109,14 @@ void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
 
     // serialize all member data:
     marchive << CHNVP(m_use_mat_props); 
-    marchive << CHNVP(m_use_history); 
     marchive << CHNVP(m_minSlipVelocity);
     marchive << CHNVP(m_characteristicVelocity); 
     my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
     marchive << CHNVP(mmodel_mapper(m_contact_model),"contact_model");
     my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
     marchive << CHNVP(madhesion_mapper(m_adhesion_model),"adhesion_model");
+    my_enum_mappers::TangentialDisplacementModel_mapper mtangential_mapper;
+    marchive << CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
     //***TODO*** complete...
 }
 
@@ -130,13 +131,14 @@ void ChSystemDEM::ArchiveIN(ChArchiveIn& marchive)
 
     // stream in all member data:
     marchive >> CHNVP(m_use_mat_props); 
-    marchive >> CHNVP(m_use_history); 
     marchive >> CHNVP(m_minSlipVelocity);
     marchive >> CHNVP(m_characteristicVelocity); 
     my_enum_mappers::ContactForceModel_mapper mmodel_mapper;
     marchive >> CHNVP(mmodel_mapper(m_contact_model),"contact_model");
     my_enum_mappers::AdhesionForceModel_mapper madhesion_mapper;
     marchive >> CHNVP(madhesion_mapper(m_adhesion_model),"adhesion_model");
+    my_enum_mappers::TangentialDisplacementModel_mapper mtangential_mapper;
+    marchive >> CHNVP(mtangential_mapper(m_tdispl_model), "tangential_model");
     //***TODO*** complete...
 
     // Recompute statistics, offsets, etc.

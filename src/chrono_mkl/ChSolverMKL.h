@@ -22,8 +22,12 @@ namespace chrono {
 /// @addtogroup mkl_module
 /// @{
 
-/// Class that wraps the Intel MKL 'PARDISO' parallel direct solver.
-/// It can solve linear systems. It cannot solve VI and complementarity problems.
+/// Class that wraps the Intel MKL Pardiso parallel direct solver.
+/// It can solve linear systems, but not VI and complementarity problems.
+/// This class is usually set up by the end-user in its main program.
+/// ::Solve(ChLcpSystemDescriptor&) and ::Factorize(ChLcpSystemDescriptor&) are instead called automatically during the integration step,
+/// so they are not usually called by the end-user.
+
 
 class ChApiMkl ChSolverMKL : public ChSolver {
     // Chrono RTTI, needed for serialization
@@ -37,6 +41,7 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     ChMatrixDynamic<double> res;
     ChMklEngine mkl_engine;
     size_t n;
+    size_t nnz;
 
     bool sparsity_pattern_lock;
     bool use_perm;
@@ -60,6 +65,8 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     /// If \a on_off is set to \c true then ::Solve(ChSystemDescriptor&) call
     /// must be preceded by a ::Factorize(ChSystemDescriptor&) call.
     void SetManualFactorization(bool on_off) { manual_factorization = on_off; }
+    void SetMatrixNNZ(size_t nnz_input) { nnz = nnz_input; };
+
 
     /// Solve using the MKL Pardiso sparse direct solver.
     /// If ::manual_factorization is turned off (i.e. set to \c false) then

@@ -1,21 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChConstraintTwo.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegisterABSTRACT<ChConstraintTwo> a_registration_ChConstraintTwo;
+
+ChConstraintTwo::ChConstraintTwo(const ChConstraintTwo& other) : ChConstraint(other) {
+    variables_a = other.variables_a;
+    variables_b = other.variables_b;
+}
 
 ChConstraintTwo& ChConstraintTwo::operator=(const ChConstraintTwo& other) {
     if (&other == this)

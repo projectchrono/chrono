@@ -18,9 +18,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_PitmanArm.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -40,8 +39,7 @@ const ChVector<> HMMWV_PitmanArm::m_pitmanArmInertia(0.00638, 0.00756, 0.00150);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_PitmanArm::HMMWV_PitmanArm(const std::string& name) : ChPitmanArm(name) {
-}
+HMMWV_PitmanArm::HMMWV_PitmanArm(const std::string& name) : ChPitmanArm(name) {}
 
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() and getDirection() virtual methods.
@@ -84,4 +82,6 @@ const ChVector<> HMMWV_PitmanArm::getDirection(DirectionId which) {
     }
 }
 
+}  // end namespace chrono
+}  // end namespace vehicle
 }  // end namespace chrono

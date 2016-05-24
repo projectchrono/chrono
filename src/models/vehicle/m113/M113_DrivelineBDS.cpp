@@ -18,9 +18,8 @@
 
 #include "models/vehicle/m113/M113_DrivelineBDS.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -43,3 +42,5 @@ M113_DrivelineBDS::M113_DrivelineBDS() : ChTrackDrivelineBDS("M113_DrivelineBDS"
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

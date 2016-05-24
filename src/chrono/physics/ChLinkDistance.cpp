@@ -1,95 +1,72 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alesandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkDistance.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkDistance.h"
+#include "chrono/physics/ChLinkDistance.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkDistance> a_registration_ChLinkDistance;
 
-ChLinkDistance::ChLinkDistance() {
-    pos1 = pos2 = VNULL;
-    distance = 0;
-    curr_dist = 0;
+ChLinkDistance::ChLinkDistance() : pos1(VNULL), pos2(VNULL), distance(0), curr_dist(0) {}
+
+ChLinkDistance::ChLinkDistance(const ChLinkDistance& other) : ChLink(other) {
+    Body1 = other.Body1;
+    Body2 = other.Body2;
+    system = other.system;
+    Cx.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
+    pos1 = other.pos1;
+    pos2 = other.pos2;
+    distance = other.distance;
+    curr_dist = other.curr_dist;
 }
 
-ChLinkDistance::~ChLinkDistance() {
-}
-
-int ChLinkDistance::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,                ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpos1,                     ///< position of distance endpoint, for 1st body (rel. or abs., see flag above)
-    ChVector<> mpos2,                     ///< position of distance endpoint, for 2nd body (rel. or abs., see flag above)
-    bool auto_distance,                   ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
-    double mdistance                      ///< imposed distance (no need to define, if auto_distance=true.)
-    ) {
-    this->Body1 = mbody1.get();
-    this->Body2 = mbody2.get();
-    this->Cx.SetVariables(&this->Body1->Variables(), &this->Body2->Variables());
+int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                               std::shared_ptr<ChBodyFrame> mbody2,
+                               bool pos_are_relative,
+                               ChVector<> mpos1,
+                               ChVector<> mpos2,
+                               bool auto_distance,
+                               double mdistance) {
+    Body1 = mbody1.get();
+    Body2 = mbody2.get();
+    Cx.SetVariables(&Body1->Variables(), &Body2->Variables());
 
     if (pos_are_relative) {
-        this->pos1 = mpos1;
-        this->pos2 = mpos2;
+        pos1 = mpos1;
+        pos2 = mpos2;
     } else {
-        this->pos1 = this->Body1->TransformPointParentToLocal(mpos1);
-        this->pos2 = this->Body2->TransformPointParentToLocal(mpos2);
+        pos1 = Body1->TransformPointParentToLocal(mpos1);
+        pos2 = Body2->TransformPointParentToLocal(mpos2);
     }
 
     ChVector<> AbsDist = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
-    this->curr_dist = AbsDist.Length();
+    curr_dist = AbsDist.Length();
 
     if (auto_distance) {
-        this->distance = this->curr_dist;
+        distance = curr_dist;
     } else {
-        this->distance = mdistance;
+        distance = mdistance;
     }
 
     return true;
 }
 
-void ChLinkDistance::Copy(ChLinkDistance* source) {
-    // first copy the parent class data...
-    //
-    ChLink::Copy(source);
-
-    // copy custom data:
-    Body1 = source->Body1;
-    Body2 = source->Body2;
-    system = source->system;
-    Cx.SetVariables(&source->Body1->Variables(), &source->Body2->Variables());
-    pos1 = source->pos1;
-    pos2 = source->pos2;
-    distance = source->distance;
-    curr_dist = source->curr_dist;
-}
-
-ChLink* ChLinkDistance::new_Duplicate() {
-    ChLinkDistance* m_l;
-    m_l = new ChLinkDistance;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+double ChLinkDistance::GetCurrentDistance() const {
+    return (((ChFrame<double>*)Body1)->TransformLocalToParent(pos1) -
+            ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2))
+        .Length();
 }
 
 ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
@@ -123,19 +100,19 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
     ChVector<> CqAr = -Vcross(D2relA, pos1);
     ChVector<> CqBr = Vcross(D2relB, pos2);
 
-    Cx.Get_Cq_a()->ElementN(0) = (float)CqAx.x;
-    Cx.Get_Cq_a()->ElementN(1) = (float)CqAx.y;
-    Cx.Get_Cq_a()->ElementN(2) = (float)CqAx.z;
-    Cx.Get_Cq_a()->ElementN(3) = (float)CqAr.x;
-    Cx.Get_Cq_a()->ElementN(4) = (float)CqAr.y;
-    Cx.Get_Cq_a()->ElementN(5) = (float)CqAr.z;
+    Cx.Get_Cq_a()->ElementN(0) = CqAx.x;
+    Cx.Get_Cq_a()->ElementN(1) = CqAx.y;
+    Cx.Get_Cq_a()->ElementN(2) = CqAx.z;
+    Cx.Get_Cq_a()->ElementN(3) = CqAr.x;
+    Cx.Get_Cq_a()->ElementN(4) = CqAr.y;
+    Cx.Get_Cq_a()->ElementN(5) = CqAr.z;
 
-    Cx.Get_Cq_b()->ElementN(0) = (float)CqBx.x;
-    Cx.Get_Cq_b()->ElementN(1) = (float)CqBx.y;
-    Cx.Get_Cq_b()->ElementN(2) = (float)CqBx.z;
-    Cx.Get_Cq_b()->ElementN(3) = (float)CqBr.x;
-    Cx.Get_Cq_b()->ElementN(4) = (float)CqBr.y;
-    Cx.Get_Cq_b()->ElementN(5) = (float)CqBr.z;
+    Cx.Get_Cq_b()->ElementN(0) = CqBx.x;
+    Cx.Get_Cq_b()->ElementN(1) = CqBx.y;
+    Cx.Get_Cq_b()->ElementN(2) = CqBx.z;
+    Cx.Get_Cq_b()->ElementN(3) = CqBr.x;
+    Cx.Get_Cq_b()->ElementN(4) = CqBr.y;
+    Cx.Get_Cq_b()->ElementN(5) = CqBr.z;
 
     //***TO DO***  C_dt? C_dtdt? (may be never used..)
 }
@@ -143,15 +120,15 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkDistance::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = -this->react_force.x;
+    L(off_L) = -react_force.x;
 }
 
 void ChLinkDistance::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    this->react_force.x = -L(off_L);
-    this->react_force.y = 0;
-    this->react_force.z = 0;
+    react_force.x = -L(off_L);
+    react_force.y = 0;
+    react_force.z = 0;
 
-    this->react_torque = VNULL;
+    react_torque = VNULL;
 }
 
 void ChLinkDistance::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -207,7 +184,7 @@ void ChLinkDistance::IntFromDescriptor(const unsigned int off_v,  ///< offset in
 // SOLVER INTERFACES
 
 void ChLinkDistance::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
     mdescriptor.InsertConstraint(&Cx);
@@ -218,7 +195,7 @@ void ChLinkDistance::ConstraintsBiReset() {
 }
 
 void ChLinkDistance::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
     if (do_clamp)
@@ -240,9 +217,7 @@ void ChLinkDistance::ConstraintsFetch_react(double factor) {
     react_torque = VNULL;
 }
 
-
-void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -256,8 +231,7 @@ void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -269,6 +243,5 @@ void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(pos1);
     marchive >> CHNVP(pos2);
 }
-
 
 }  // END_OF_NAMESPACE____

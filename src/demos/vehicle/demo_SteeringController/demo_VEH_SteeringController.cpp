@@ -32,9 +32,9 @@
 #include "models/vehicle/hmmwv/HMMWV.h"
 
 using namespace chrono;
+using namespace chrono::geometry;
 using namespace chrono::vehicle;
-using namespace hmmwv;
-using namespace geometry;
+using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 // Problem parameters

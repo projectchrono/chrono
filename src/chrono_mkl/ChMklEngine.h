@@ -24,39 +24,38 @@ namespace chrono {
 /// @addtogroup mkl_module
 /// @{
 
-// REMEMBER: indeces start from zero; iparm[0] is "iparm(1)" in documentation
-// use IPARM instead to avoid misalignment due to different indexing; IPARM(1) == "iparm(1)" from documentation
-#define IPARM(i) iparm[i - 1]
+/// Interface class to Intel MKL Pardiso solver. This class wraps the C interface of the solver in order to fit Chrono data structures.
+/// This class can still be called by the end-user in order to solve linear systems. See demo_MKL_MklEngine for the related demo.
+
 
 class ChApiMkl ChMklEngine {
   private:
-    // ChCSR3Matrix system_matrix;
 
     void* pt[64];  // Handle to internal data structure (must be zeroed at startup)
 
     // Matrix in CSR3 format
-    double* a;    // (pointer to the) array of non-zero elements of the A
-    MKL_INT* ja;  // columns indices
-    MKL_INT* ia;  // row index
+    double* a;                ///< (pointer to the) array of non-zero elements of the A
+    MKL_INT* ja;            ///< columns indices
+    MKL_INT* ia;            ///< row index
 
     // rhs
-    double* b;  // rhs
+    double* b;  ///< rhs
 
     // Output
-    double* x;  // solution vector
+    double* x;  ///< solution vector
 
     // Problem properties
-    MKL_INT n;      //(square-)matrix size
-    MKL_INT mtype;  // matrix type
-    MKL_INT nrhs;   // number of rhs
+    MKL_INT n;      ///< (square-)matrix size
+    MKL_INT mtype;  ///< matrix type
+    MKL_INT nrhs;   ///< number of rhs
 
     // Pardiso solver settings
-    MKL_INT iparm[64];  // Pardiso solver parameter
-    MKL_INT maxfct;     // maximum number of numerical factorizations
-    std::vector<int> perm;
+    MKL_INT iparm[64];        ///< Pardiso solver parameter
+    MKL_INT maxfct;            ///< maximum number of numerical factorizations
+    std::vector<int> perm;  ///< vector in which the permutation is stored
 
     // Pardiso solver settings
-    MKL_INT mnum;  // 1<=mnum<=maxfct : which factorizations to use; usually 1
+    MKL_INT mnum;           ///< 1<=mnum<=maxfct : which factorizations to use; usually 1
 
     // Auxiliary variables
     int last_phase_called;
@@ -68,15 +67,15 @@ class ChApiMkl ChMklEngine {
     ChMklEngine(int problem_size = 3, int matrix_type = 11);
     ~ChMklEngine();
 
-    /**Setting the linear system <tt>A*x=b</tt> to be solved means that the user must provide:
-    *	- the matrix \c Z: in \c ChCSR3Matrix format or directly through the 3 CSR3 array format
-    *	- the solution vector \c x: in any ChMatrix<> derived format or in bare C array
-    *	- the unknowns vector \c b: in any ChMatrix<> derived format or in bare C array
+    /** Setting the linear system <tt>A*x=b</tt> to be solved means that the user must provide:
+    *     - the matrix \c Z: in \c ChCSR3Matrix format or directly through the 3 CSR3 array format
+    *     - the solution vector \c x: in any ChMatrix<> derived format or in bare C array
+    *     - the unknowns vector \c b: in any ChMatrix<> derived format or in bare C array
     */
 
     // Problem input functions
     void SetMatrix(
-        ChCSR3Matrix& Z);  //< It sets the matrix, but also the problem size \c n and the matrix type \c mtype
+        ChCSR3Matrix& Z);  ///< It sets the matrix, but also the problem size \c n and the matrix type \c mtype
     void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
     void SetSolutionVector(ChMatrix<>& insx);
@@ -89,11 +88,11 @@ class ChApiMkl ChMklEngine {
     void SetProblem(
         ChCSR3Matrix& Z,
         ChMatrix<>& insb,
-        ChMatrix<>& insx);  //< It sets the data arrays, but also the problem size \c n and the matrix type \c mtype
+        ChMatrix<>& insx);  ///< It sets the data arrays, but also the problem size \c n and the matrix type \c mtype
 
     // Solver routine
     int PardisoCall(int set_phase = 13, int message_level = 0);
-    void ResetSolver(int new_mat_type = 0);  //< reinitializes the solver to default values
+    void ResetSolver(int new_mat_type = 0);  ///< reinitializes the solver to default values
     void SetProblemSize(int new_size) { n = new_size; }
 
     // Output functions
@@ -105,11 +104,11 @@ class ChApiMkl ChMklEngine {
     // Auxiliary functions
     int* GetIparmAddress() { return iparm; }
     void SetIparmValue(int parm_num, int value) {
-        IPARM(parm_num) = value;
-    };  //< Sets the \c parm_num th element of \c iparm to \c value
+        iparm[parm_num] = value;
+    };  ///< Sets the \c parm_num th element of \c iparm to \c value
     int GetIparmValue(int parm_num) const {
-        return IPARM(parm_num);
-    };  //< Returns the \c parm_num th element of \c iparm
+        return iparm[parm_num];
+    };  ///< Returns the \c parm_num th element of \c iparm
     void PrintIparmOutput() const;
 
     // Advanced functions

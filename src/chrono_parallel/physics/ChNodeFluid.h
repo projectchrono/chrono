@@ -39,6 +39,9 @@ class CH_PARALLEL_API ChNodeFluid : public ChPhysicsItem {
   ChNodeFluid(const ChNodeFluid& other);             // Copy constructor
   ChNodeFluid& operator=(const ChNodeFluid& other);  // Assignment operator
 
+  /// "Virtual" copy constructor (covariant return type).
+  virtual ChNodeFluid* Clone() const override { return new ChNodeFluid(*this); }
+
   //
   // FUNCTIONS
   //

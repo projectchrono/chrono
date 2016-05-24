@@ -1127,10 +1127,10 @@ private:
         btVector3 absN_onB ((btScalar)dabsN_onB.x, (btScalar)dabsN_onB.y, (btScalar)dabsN_onB.z);
         if (dist<0)
             absN_onB = - absN_onB; // flip norm to be coherent with dist sign
-        resultOut->addContactPoint(absN_onB, absB + absN_onB*offsetB, (btScalar)(dist - (offsetA+offsetB)));
+        resultOut->addContactPoint(absN_onB, absB + absN_onB * (btScalar)offsetB, (btScalar)(dist - (offsetA + offsetB)));
     }
 
-public:
+  public:
 
     virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
                                            btCollisionObject* body1,

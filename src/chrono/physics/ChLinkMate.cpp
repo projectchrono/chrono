@@ -1,38 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkMate.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkMate.h"
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegisterABSTRACT<ChLinkMate> a_registration_ChLinkMate;
 
-
-void ChLinkMate::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMate::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -43,8 +33,7 @@ void ChLinkMate::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -54,12 +43,9 @@ void ChLinkMate::ArchiveIN(ChArchiveIn& marchive)
     // deserialize all member data:
 }
 
+// -----------------------------------------------------------------------------
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMateGeneric> a_registration_ChLinkMateGeneric;
 
 ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
@@ -77,6 +63,17 @@ ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx
     SetupLinkMask();
 }
 
+ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMate(other) {
+    c_x = other.c_x;
+    c_y = other.c_y;
+    c_z = other.c_z;
+    c_rx = other.c_rx;
+    c_ry = other.c_ry;
+    c_rz = other.c_rz;
+
+    SetupLinkMask();
+}
+
 ChLinkMateGeneric::~ChLinkMateGeneric() {
     if (C)
         delete C;
@@ -85,27 +82,6 @@ ChLinkMateGeneric::~ChLinkMateGeneric() {
     if (mask)
         delete mask;
     mask = 0;
-}
-
-void ChLinkMateGeneric::Copy(ChLinkMateGeneric* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMate::Copy(source);
-
-    c_x = source->c_x;
-    c_y = source->c_y;
-    c_z = source->c_z;
-    c_rx = source->c_rx;
-    c_ry = source->c_ry;
-    c_rz = source->c_rz;
-
-    SetupLinkMask();
-}
-
-ChLink* ChLinkMateGeneric::new_Duplicate() {
-    ChLinkMateGeneric* m_l = new ChLinkMateGeneric;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 void ChLinkMateGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
@@ -288,13 +264,11 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChLinkMateGeneric::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChFrame<> mpos1,        ///< mate frame (slave), for 1st body (rel. or abs., see flag above)
-    ChFrame<> mpos2         ///< mate frame (master), for 2nd body (rel. or abs., see flag above)
-    ) {
+void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                   std::shared_ptr<ChBodyFrame> mbody2,
+                                   bool pos_are_relative,
+                                   ChFrame<> mpos1,
+                                   ChFrame<> mpos2) {
     assert(mbody1.get() != mbody2.get());
 
     this->Body1 = mbody1.get();
@@ -311,6 +285,59 @@ void ChLinkMateGeneric::Initialize(
         static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(mpos1, this->frame1);
         static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(mpos2, this->frame2);
     }
+}
+
+void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                   std::shared_ptr<ChBodyFrame> mbody2,
+                                   bool pos_are_relative,
+                                   ChVector<> mpt1,
+                                   ChVector<> mpt2,
+                                   ChVector<> mnorm1,
+                                   ChVector<> mnorm2) {
+    assert(mbody1.get() != mbody2.get());
+
+    this->Body1 = mbody1.get();
+    this->Body2 = mbody2.get();
+    // this->SetSystem(mbody1->GetSystem());
+
+    this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+
+    ChVector<> mx, my, mz, mN;
+    ChMatrix33<> mrot;
+
+    ChFrame<> mfr1;
+    ChFrame<> mfr2;
+
+    if (pos_are_relative) {
+        mN = mnorm1;
+        mN.DirToDxDyDz(mx, my, mz);
+        mrot.Set_A_axis(mx, my, mz);
+        mfr1.SetRot(mrot);
+        mfr1.SetPos(mpt1);
+
+        mN = mnorm2;
+        mN.DirToDxDyDz(mx, my, mz);
+        mrot.Set_A_axis(mx, my, mz);
+        mfr2.SetRot(mrot);
+        mfr2.SetPos(mpt2);
+    } else {
+        ChVector<> temp = VECT_Z;
+        // from abs to body-rel
+        mN = this->Body1->TransformDirectionParentToLocal(mnorm1);
+        mN.DirToDxDyDz(mx, my, mz, temp);
+        mrot.Set_A_axis(mx, my, mz);
+        mfr1.SetRot(mrot);
+        mfr1.SetPos(this->Body1->TransformPointParentToLocal(mpt1));
+
+        mN = this->Body2->TransformDirectionParentToLocal(mnorm2);
+        mN.DirToDxDyDz(mx, my, mz, temp);
+        mrot.Set_A_axis(mx, my, mz);
+        mfr2.SetRot(mrot);
+        mfr2.SetPos(this->Body2->TransformPointParentToLocal(mpt2));
+    }
+
+    this->frame1 = mfr1;
+    this->frame2 = mfr2;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -337,17 +364,17 @@ void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L, ChVect
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -  react_torque.x;
+            L(off_L + nc) = -react_torque.x;
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -  react_torque.y;
+            L(off_L + nc) = -react_torque.y;
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -  react_torque.z;
+            L(off_L + nc) = -react_torque.z;
         nc++;
     }
 }
@@ -377,26 +404,25 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.x = - L(off_L + nc);
+            react_torque.x = -L(off_L + nc);
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.y = - L(off_L + nc);
+            react_torque.y = -L(off_L + nc);
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.z = - L(off_L + nc);
+            react_torque.z = -L(off_L + nc);
         nc++;
     }
 }
 
-void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                            ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                            const ChVectorDynamic<>& L,  ///< the L vector
-                                            const double c               ///< a scaling factor
-                                            ) {
+void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
+                                            ChVectorDynamic<>& R,
+                                            const ChVectorDynamic<>& L,
+                                            const double c) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
         if (mask->Constr_N(i).IsActive()) {
@@ -406,12 +432,11 @@ void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,    ///< of
     }
 }
 
-void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                            ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                            const double c,            ///< a scaling factor
-                                            bool do_clamp,             ///< apply clamping to c*C?
-                                            double recovery_clamp      ///< value for min/max clamping of c*C
-                                            ) {
+void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,
+                                            ChVectorDynamic<>& Qc,
+                                            const double c,
+                                            bool do_clamp,
+                                            double recovery_clamp) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
         if (mask->Constr_N(i).IsActive()) {
@@ -427,17 +452,14 @@ void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,  ///< offs
     }
 }
 
-void ChLinkMateGeneric::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in Qc residual
-                                             ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*Ct
-                                             const double c             ///< a scaling factor
-                                             ) {
+void ChLinkMateGeneric::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     // NOT NEEDED BECAUSE NO RHEONOMIC TERM
 }
 
-void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,
                                         const ChStateDelta& v,
                                         const ChVectorDynamic<>& R,
-                                        const unsigned int off_L,  ///< offset in L, Qc
+                                        const unsigned int off_L,
                                         const ChVectorDynamic<>& L,
                                         const ChVectorDynamic<>& Qc) {
     int cnt = 0;
@@ -450,9 +472,9 @@ void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,  ///< offset i
     }
 }
 
-void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,
                                           ChStateDelta& v,
-                                          const unsigned int off_L,  ///< offset in L
+                                          const unsigned int off_L,
                                           ChVectorDynamic<>& L) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
@@ -504,8 +526,8 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
         if (mask->Constr_N(i).IsActive()) {
             if (do_clamp) {
                 if (mask->Constr_N(i).IsUnilateral())
-                    mask->Constr_N(i)
-                        .Set_b_i(mask->Constr_N(i).Get_b_i() + ChMax(factor * C->ElementN(cnt), -recovery_clamp));
+                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
+                                              ChMax(factor * C->ElementN(cnt), -recovery_clamp));
                 else
                     mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
                                               ChMin(ChMax(factor * C->ElementN(cnt), -recovery_clamp), recovery_clamp));
@@ -553,78 +575,22 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.x = - mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.x = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.y = - mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.y = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.z = - mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.z = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
 }
 
-void ChLinkMateGeneric::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpt1,
-    ChVector<> mpt2,
-    ChVector<> mnorm1,
-    ChVector<> mnorm2) {
-    assert(mbody1.get() != mbody2.get());
-
-    this->Body1 = mbody1.get();
-    this->Body2 = mbody2.get();
-    // this->SetSystem(mbody1->GetSystem());
-
-    this->mask->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
-
-    ChVector<> mx, my, mz, mN;
-    ChMatrix33<> mrot;
-
-    ChFrame<> mfr1;
-    ChFrame<> mfr2;
-
-    if (pos_are_relative) {
-        mN = mnorm1;
-        mN.DirToDxDyDz(mx, my, mz);
-        mrot.Set_A_axis(mx, my, mz);
-        mfr1.SetRot(mrot);
-        mfr1.SetPos(mpt1);
-
-        mN = mnorm2;
-        mN.DirToDxDyDz(mx, my, mz);
-        mrot.Set_A_axis(mx, my, mz);
-        mfr2.SetRot(mrot);
-        mfr2.SetPos(mpt2);
-    } else {
-        ChVector<> temp = VECT_Z;
-        // from abs to body-rel
-        mN = this->Body1->TransformDirectionParentToLocal(mnorm1);
-        mN.DirToDxDyDz(mx, my, mz, temp);
-        mrot.Set_A_axis(mx, my, mz);
-        mfr1.SetRot(mrot);
-        mfr1.SetPos(this->Body1->TransformPointParentToLocal(mpt1));
-
-        mN = this->Body2->TransformDirectionParentToLocal(mnorm2);
-        mN.DirToDxDyDz(mx, my, mz, temp);
-        mrot.Set_A_axis(mx, my, mz);
-        mfr2.SetRot(mrot);
-        mfr2.SetPos(this->Body2->TransformPointParentToLocal(mpt2));
-    }
-
-    this->frame1 = mfr1;
-    this->frame2 = mfr2;
-}
-
-
-void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -643,8 +609,7 @@ void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateGeneric::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMateGeneric::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -660,30 +625,17 @@ void ChLinkMateGeneric::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(c_rx);
     marchive >> CHNVP(c_ry);
     marchive >> CHNVP(c_rz);
-    this->SetConstrainedCoords(c_x, c_y, c_z, c_rx, c_ry, c_rz); // takes care of mask
+    this->SetConstrainedCoords(c_x, c_y, c_z, c_rx, c_ry, c_rz);  // takes care of mask
 }
 
+// -----------------------------------------------------------------------------
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMatePlane> a_registration_ChLinkMatePlane;
 
-void ChLinkMatePlane::Copy(ChLinkMatePlane* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    this->flipped = source->flipped;
-    this->separation = source->separation;
-}
-
-ChLink* ChLinkMatePlane::new_Duplicate() {
-    ChLinkMatePlane* m_l = new ChLinkMatePlane;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+ChLinkMatePlane::ChLinkMatePlane(const ChLinkMatePlane& other) : ChLinkMateGeneric(other) {
+    flipped = other.flipped;
+    separation = other.separation;
 }
 
 void ChLinkMatePlane::SetFlipped(bool doflip) {
@@ -697,15 +649,13 @@ void ChLinkMatePlane::SetFlipped(bool doflip) {
     }
 }
 
-void ChLinkMatePlane::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpt1,        ///< point on slave plane, for 1st body (rel. or abs., see flag above)
-    ChVector<> mpt2,        ///< point on master plane, for 2nd body (rel. or abs., see flag above)
-    ChVector<> mnorm1,      ///< normal of slave plane, for 1st body (rel. or abs., see flag above)
-    ChVector<> mnorm2       ///< normal of master plane, for 2nd body (rel. or abs., see flag above)
-    ) {
+void ChLinkMatePlane::Initialize(std::shared_ptr<ChBodyFrame> mbody1, 
+                                 std::shared_ptr<ChBodyFrame> mbody2,
+                                 bool pos_are_relative, 
+                                 ChVector<> mpt1,
+                                 ChVector<> mpt2,
+                                 ChVector<> mnorm1,
+                                 ChVector<> mnorm2) {
     // set the two frames so that they have the X axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
@@ -727,8 +677,7 @@ void ChLinkMatePlane::Update(double mtime, bool update_assets) {
     this->C->Element(0, 0) -= this->separation;  // for this mate, C = {Cx, Cry, Crz}
 }
 
-void ChLinkMatePlane::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMatePlane::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -741,8 +690,7 @@ void ChLinkMatePlane::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMatePlane::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMatePlane::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -754,25 +702,13 @@ void ChLinkMatePlane::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(separation);
 }
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMateCoaxial> a_registration_ChLinkMateCoaxial;
 
-void ChLinkMateCoaxial::Copy(ChLinkMateCoaxial* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    this->flipped = source->flipped;
-}
-
-ChLink* ChLinkMateCoaxial::new_Duplicate() {
-    ChLinkMateCoaxial* m_l = new ChLinkMateCoaxial;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+ChLinkMateCoaxial::ChLinkMateCoaxial(const ChLinkMateCoaxial& other) : ChLinkMateGeneric(other) {
+    flipped = other.flipped;
 }
 
 void ChLinkMateCoaxial::SetFlipped(bool doflip) {
@@ -786,14 +722,13 @@ void ChLinkMateCoaxial::SetFlipped(bool doflip) {
     }
 }
 
-void ChLinkMateCoaxial::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpt1,
-    ChVector<> mpt2,
-    ChVector<> mnorm1,
-    ChVector<> mnorm2) {
+void ChLinkMateCoaxial::Initialize(std::shared_ptr<ChBodyFrame> mbody1, 
+                                   std::shared_ptr<ChBodyFrame> mbody2,
+                                   bool pos_are_relative,
+                                   ChVector<> mpt1,
+                                   ChVector<> mpt2,
+                                   ChVector<> mnorm1,
+                                   ChVector<> mnorm2) {
     // set the two frames so that they have the X axis aligned when the
     // two normals are opposed (default behavior, otherwise is considered 'flipped')
 
@@ -806,8 +741,7 @@ void ChLinkMateCoaxial::Initialize(
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
 }
 
-void ChLinkMateCoaxial::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMateCoaxial::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -819,8 +753,7 @@ void ChLinkMateCoaxial::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateCoaxial::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMateCoaxial::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -831,65 +764,36 @@ void ChLinkMateCoaxial::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(flipped);
 }
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMateSpherical> a_registration_ChLinkMateSpherical;
 
-void ChLinkMateSpherical::Copy(ChLinkMateSpherical* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-}
+ChLinkMateSpherical::ChLinkMateSpherical(const ChLinkMateSpherical& other) : ChLinkMateGeneric(other) {}
 
-ChLink* ChLinkMateSpherical::new_Duplicate() {
-    ChLinkMateSpherical* m_l =
-        new ChLinkMateSpherical;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-void ChLinkMateSpherical::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpt1,
-    ChVector<> mpt2) {
+void ChLinkMateSpherical::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                     std::shared_ptr<ChBodyFrame> mbody2,
+                                     bool pos_are_relative,
+                                     ChVector<> mpt1,
+                                     ChVector<> mpt2) {
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, VECT_X, VECT_X);
 }
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMateXdistance> a_registration_ChLinkMateXdistance;
 
-void ChLinkMateXdistance::Copy(ChLinkMateXdistance* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-
-    // ...then copy class data
-    this->distance = source->distance;
+ChLinkMateXdistance::ChLinkMateXdistance(const ChLinkMateXdistance& other) : ChLinkMateGeneric(other) {
+    distance = other.distance;
 }
 
-ChLink* ChLinkMateXdistance::new_Duplicate() {
-    ChLinkMateXdistance* m_l =
-        new ChLinkMateXdistance;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-void ChLinkMateXdistance::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpt1,
-    ChVector<> mpt2,
-    ChVector<> mdir2) {
+void ChLinkMateXdistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                     std::shared_ptr<ChBodyFrame> mbody2,
+                                     bool pos_are_relative,
+                                     ChVector<> mpt1,
+                                     ChVector<> mpt2,
+                                     ChVector<> mdir2) {
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mdir2, mdir2);
 }
 
@@ -901,8 +805,7 @@ void ChLinkMateXdistance::Update(double mtime, bool update_assets) {
     this->C->Element(0, 0) -= this->distance;  // for this mate, C = {Cx}
 }
 
-void ChLinkMateXdistance::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMateXdistance::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -914,8 +817,7 @@ void ChLinkMateXdistance::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateXdistance::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMateXdistance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -926,24 +828,13 @@ void ChLinkMateXdistance::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(distance);
 }
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMateParallel> a_registration_ChLinkMateParallel;
 
-void ChLinkMateParallel::Copy(ChLinkMateParallel* source) {
-    // first copy the parent class data...
-    //
-    ChLinkMateGeneric::Copy(source);
-}
-
-ChLink* ChLinkMateParallel::new_Duplicate() {
-    ChLinkMateParallel* m_l =
-        new ChLinkMateParallel;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+ChLinkMateParallel::ChLinkMateParallel(const ChLinkMateParallel& other) : ChLinkMateGeneric(other) {
+    flipped = other.flipped;
 }
 
 void ChLinkMateParallel::SetFlipped(bool doflip) {
@@ -957,14 +848,13 @@ void ChLinkMateParallel::SetFlipped(bool doflip) {
     }
 }
 
-void ChLinkMateParallel::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpt1,
-    ChVector<> mpt2,
-    ChVector<> mnorm1,
-    ChVector<> mnorm2) {
+void ChLinkMateParallel::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                    std::shared_ptr<ChBodyFrame> mbody2,
+                                    bool pos_are_relative,
+                                    ChVector<> mpt1,
+                                    ChVector<> mpt2,
+                                    ChVector<> mnorm1,
+                                    ChVector<> mnorm2) {
     // set the two frames so that they have the X axis aligned when the
     // two axes are aligned (default behavior, otherwise is considered 'flipped')
 
@@ -977,8 +867,7 @@ void ChLinkMateParallel::Initialize(
     ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
 }
 
-void ChLinkMateParallel::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMateParallel::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -990,8 +879,7 @@ void ChLinkMateParallel::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateParallel::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMateParallel::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -1002,39 +890,24 @@ void ChLinkMateParallel::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(flipped);
 }
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMateOrthogonal> a_registration_ChLinkMateOrthogonal;
 
-void ChLinkMateOrthogonal::Copy(ChLinkMateOrthogonal* source) {
-    // first copy the parent class data...
-    ChLinkMateGeneric::Copy(source);
-
-    // ..then class data
-    this->reldir1 = source->reldir1;
-    this->reldir2 = source->reldir2;
+ChLinkMateOrthogonal::ChLinkMateOrthogonal(const ChLinkMateOrthogonal& other) : ChLinkMateGeneric(other) {
+    reldir1 = other.reldir1;
+    reldir2 = other.reldir2;
 }
 
-ChLink* ChLinkMateOrthogonal::new_Duplicate() {
-    ChLinkMateOrthogonal* m_l =
-        new ChLinkMateOrthogonal;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-void ChLinkMateOrthogonal::Initialize(
-    std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
-    std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
-    bool pos_are_relative,  ///< true: following posit. are considered relative to bodies. false: pos.are absolute
-    ChVector<> mpt1,
-    ChVector<> mpt2,
-    ChVector<> mnorm1,
-    ChVector<> mnorm2) {
+void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                      std::shared_ptr<ChBodyFrame> mbody2,
+                                      bool pos_are_relative,
+                                      ChVector<> mpt1,
+                                      ChVector<> mpt2,
+                                      ChVector<> mnorm1,
+                                      ChVector<> mnorm2) {
     // set the two frames so that they have the X axis aligned
-
     ChVector<> mabsnorm1, mabsnorm2;
     if (pos_are_relative) {
         this->reldir1 = mnorm1;
@@ -1112,8 +985,7 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
     ChLinkMateGeneric::Update(mtime, update_assets);
 }
 
-void ChLinkMateOrthogonal::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMateOrthogonal::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -1126,8 +998,7 @@ void ChLinkMateOrthogonal::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMateOrthogonal::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMateOrthogonal::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -1139,4 +1010,4 @@ void ChLinkMateOrthogonal::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(reldir2);
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

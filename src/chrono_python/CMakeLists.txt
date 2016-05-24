@@ -8,10 +8,15 @@ option(ENABLE_MODULE_PYTHON "Enable the Chrono Python module" OFF)
 
 # Return now if this module is not enabled
 IF(NOT ENABLE_MODULE_PYTHON)
+  mark_as_advanced(FORCE SWIG_EXECUTABLE)
   RETURN()
 ENDIF()
 
 MESSAGE(STATUS "==== Chrono Python module ====")
+
+mark_as_advanced(CLEAR SWIG_EXECUTABLE)
+
+#-----------------------------------------------------------------------------
 
 set(Python_ADDITIONAL_VERSIONS 3.4)
 FIND_PACKAGE(PythonInterp REQUIRED)
@@ -121,7 +126,6 @@ SET(ChronoEngine_SWIG_PYTHON_WRAPPERS
 	ChCoordsys.i
 	ChVector.i
 	ChQuaternion.i
-	ChHashFunction.i
 	)
 
 			
