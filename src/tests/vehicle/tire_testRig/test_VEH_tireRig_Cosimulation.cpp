@@ -537,10 +537,18 @@ class TerrainNode {
     void OutputData();
 
   private:
+    /// Association between a mesh vertex and a proxy body.
     struct ProxyNodeBody {
         ProxyNodeBody(std::shared_ptr<ChBody> body, int index) : m_body(body), m_index(index) {}
         std::shared_ptr<ChBody> m_body;
         int m_index;
+    };
+
+    /// Association between a mesh triangle and a proxy body.
+    struct ProxyFaceBody {
+        ProxyFaceBody(std::shared_ptr<ChBody> body, const std::array<int, 3>& index) : m_body(body), m_index(index) {}
+        std::shared_ptr<ChBody> m_body;
+        std::array<int, 3> m_index;
     };
 
     Type m_type;  ///< terrain type (RIGID or GRANULAR)
@@ -549,10 +557,11 @@ class TerrainNode {
     ChSystemParallel* m_system;                     ///< containing system
 
     std::shared_ptr<ChMaterialSurfaceBase> m_material_tire;  ///< material properties for proxy bodies
-    std::vector<ProxyNodeBody> m_proxies;  ///< list of proxy bodies and associated mesh vertex indices
-    bool m_fixed_proxies;                  ///< flag indicating whether or not proxy bodies are fixed to ground
-    double m_mass_p;                       ///< mass of a proxy body
-    double m_radius_p;                     ///< radius of a spherical proxy body
+    std::vector<ProxyNodeBody> m_proxiesN;  ///< list of (node) proxy bodies with associated mesh vertex
+    std::vector<ProxyFaceBody> m_proxiesF;  ///< list of (face) proxy bodies with associated mesh triangle
+    bool m_fixed_proxies;                   ///< flag indicating whether or not proxy bodies are fixed to ground
+    double m_mass_p;                        ///< mass of a proxy body
+    double m_radius_p;                      ///< radius of a spherical proxy body
 
     double m_init_height;  ///< initial terrain height (after optional settling)
     double m_radius_g;     ///< radius of one particle of granular material
@@ -563,8 +572,20 @@ class TerrainNode {
     std::ofstream m_outf;  ///< output file stream
 
     // Private methods
-    void PrintContactData();
-    void PrintLowestVertex();
+    void CreateNodeProxies();
+    void CreateFaceProxies();
+
+    void UpdateNodeProxies(double* vert_data);
+    void UpdateFaceProxies(double* vert_data, int* tri_data);
+
+    void ForcesNodeProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indeces);
+    void ForcesFaceProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indeces);
+
+    void PrintNodeProxiesContactData();
+    void PrintFaceProxiesContactData();
+
+    void PrintNodeProxiesLowestPoint();
+    void PrintFaceProxiesLowestPoint();
 };
 
 // -----------------------------------------------------------------------------
@@ -893,10 +914,22 @@ void TerrainNode::Initialize() {
     // Create proxy bodies
     // -------------------
 
-    // Create bodies with spherical contact geometry as proxies for the tire
-    // mesh vertices and add them to the Chrono system.
-    // Assign to each body an identifier equal to the index of its corresponding mesh vertex.
-    // Maintain lists of all bodies associated with the tire.
+    switch (m_type) {
+        case RIGID:
+            // For contact with rigid ground, represent the tire as spheres associated with mesh vertices.
+            CreateNodeProxies();
+            break;
+        case GRANULAR:
+            // For contact with granular terrain, represent the tire as triangles associated with mesh faces.
+            CreateFaceProxies();
+            break;
+    }
+}
+
+// Create bodies with spherical contact geometry as proxies for the tire mesh vertices.
+// Assign to each body an identifier equal to the index of its corresponding mesh vertex.
+// Maintain a list of all bodies associated with the tire.
+void TerrainNode::CreateNodeProxies() {
     ChVector<> inertia_p = 0.4 * m_mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
     for (unsigned int iv = 0; iv < m_num_vert; iv++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -912,8 +945,15 @@ void TerrainNode::Initialize() {
         utils::AddSphereGeometry(body.get(), m_radius_p, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
         body->GetCollisionModel()->BuildModel();
 
-        m_proxies.push_back(ProxyNodeBody(body, iv));
+        m_proxiesN.push_back(ProxyNodeBody(body, iv));
     }
+}
+
+// Create bodies with triangular contact geometry as proxies for the tire mesh faces.
+// assign to each body an identifier equal to the index of its corresponding mesh face.
+// Maintain a list of all bodies associated with the tire.
+void TerrainNode::CreateFaceProxies() {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------
@@ -931,39 +971,44 @@ void TerrainNode::Synchronize(int step_number, double time) {
     MPI_Recv(tri_data, 3 * m_num_tri, MPI_INT, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
     // Set position, rotation, and velocity of proxy bodies.
-    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
-        unsigned int offset = 3 * iv;
-        m_proxies[iv].m_body->SetPos(ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
-        offset += 3 * m_num_vert;
-        m_proxies[iv].m_body->SetPos_dt(
-            ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
-        m_proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        m_proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
+    switch (m_type) {
+        case RIGID:
+            UpdateNodeProxies(vert_data);
+            break;
+        case GRANULAR:
+            UpdateFaceProxies(vert_data, tri_data);
+            break;
     }
 
     delete[] vert_data;
     delete[] tri_data;
 
     // Display information on lowest proxy.
-    PrintLowestVertex();
+    switch (m_type) {
+        case RIGID:
+            PrintNodeProxiesLowestPoint();
+            break;
+        case GRANULAR:
+            PrintFaceProxiesLowestPoint();
+            break;
+    }
 
     // Calculate cumulative contact forces for all bodies in system.
     m_system->CalculateContactForces();
 
-    // Collect contact forces on proxy bodies (only if in contact).
+    // Collect contact forces on subset of mesh vertices.
     // Note that no forces are collected at the first step.
     std::vector<double> vert_forces;
     std::vector<int> vert_indeces;
-    if (step_number > 0) {
-        for (unsigned int iv = 0; iv < m_num_vert; iv++) {
-            real3 force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
 
-            if (!IsZero(force)) {
-                vert_forces.push_back(force.x);
-                vert_forces.push_back(force.y);
-                vert_forces.push_back(force.z);
-                vert_indeces.push_back(m_proxies[iv].m_index);
-            }
+    if (step_number > 0) {
+        switch (m_type) {
+            case RIGID:
+                ForcesNodeProxies(vert_forces, vert_indeces);
+                break;
+            case GRANULAR:
+                ForcesFaceProxies(vert_forces, vert_indeces);
+                break;
         }
     }
 
@@ -974,6 +1019,46 @@ void TerrainNode::Synchronize(int step_number, double time) {
 
     std::cout << "[Terrain node] step number: " << step_number << "  num contacts: " << m_system->GetNcontacts()
               << "  vertices in contact: " << num_vert << std::endl;
+}
+
+// Set position and velocity of proxy bodies based on tire mesh vertices.
+// Set orientation to identity and angular velocity to zero.
+void TerrainNode::UpdateNodeProxies(double* vert_data) {
+    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
+        unsigned int offset = 3 * iv;
+        m_proxiesN[iv].m_body->SetPos(ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
+        offset += 3 * m_num_vert;
+        m_proxiesN[iv].m_body->SetPos_dt(
+            ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]));
+        m_proxiesN[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        m_proxiesN[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
+    }
+}
+
+// Set position, orientation, and velocity of proxy bodies based on tire mesh faces.
+void TerrainNode::UpdateFaceProxies(double* vert_data, int* tri_data) {
+    //// TODO
+}
+
+// Collect contact forces on the (node) proxy bodies that are in contact.
+// Load mesh vertex forces and corresponding indices.
+void TerrainNode::ForcesNodeProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indeces) {
+    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
+        real3 force = m_system->GetBodyContactForce(m_proxiesN[iv].m_body);
+
+        if (!IsZero(force)) {
+            vert_forces.push_back(force.x);
+            vert_forces.push_back(force.y);
+            vert_forces.push_back(force.z);
+            vert_indeces.push_back(m_proxiesN[iv].m_index);
+        }
+    }
+}
+
+// Collect contact forces on the (face) proxy bodies that are in contact.
+// Load mesh vertex forces and corresponding indices.
+void TerrainNode::ForcesFaceProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indeces) {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------
@@ -990,7 +1075,14 @@ void TerrainNode::Advance(double step_size) {
     }
 #endif
 
-    PrintContactData();
+    switch (m_type) {
+        case RIGID:
+            PrintNodeProxiesContactData();
+            break;
+        case GRANULAR:
+            PrintFaceProxiesContactData();
+            break;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1002,7 +1094,7 @@ void TerrainNode::OutputData() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TerrainNode::PrintContactData() {
+void TerrainNode::PrintNodeProxiesContactData() {
     // Information on all contacts.
     // Note that proxy body identifiers match the index of the associated mesh vertex.
     auto bodies = m_system->Get_bodylist();
@@ -1033,8 +1125,8 @@ void TerrainNode::PrintContactData() {
     std::cout << "[Terrain node] vertex forces (" << vertices_in_contact.size() << ")" << std::endl;
     for (unsigned int iv = 0; iv < m_num_vert; iv++) {
         if (vertices_in_contact.find(iv) != vertices_in_contact.end()) {
-            real3 force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
-            std::cout << "  id = " << m_proxies[iv].m_index << "  force = " << force.x << "  " << force.y << "  "
+            real3 force = m_system->GetBodyContactForce(m_proxiesN[iv].m_body);
+            std::cout << "  id = " << m_proxiesN[iv].m_index << "  force = " << force.x << "  " << force.y << "  "
                       << force.z << std::endl;
         }
     }
@@ -1050,16 +1142,24 @@ void TerrainNode::PrintContactData() {
     ////}
 }
 
+void TerrainNode::PrintFaceProxiesContactData() {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TerrainNode::PrintLowestVertex() {
+void TerrainNode::PrintNodeProxiesLowestPoint() {
     auto lowest = std::min_element(
-        m_proxies.begin(), m_proxies.end(),
+        m_proxiesN.begin(), m_proxiesN.end(),
         [](const ProxyNodeBody& a, const ProxyNodeBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
     const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
     double height = (*lowest).m_body->GetPos().z;
     std::cout << "[Terrain node] lowest vertex:  index = " << (*lowest).m_index << "  height = " << height
               << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+}
+
+void TerrainNode::PrintFaceProxiesLowestPoint() {
+    //// TODO
 }
 
 // =============================================================================
