@@ -27,12 +27,14 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 ///
 ///
 ///
-class CH_MODELS_API M113_Sprocket : public chrono::vehicle::ChArcSprocket {
+class CH_MODELS_API M113_Sprocket : public ChArcSprocket {
   public:
     virtual ~M113_Sprocket() {}
 
@@ -46,7 +48,7 @@ class CH_MODELS_API M113_Sprocket : public chrono::vehicle::ChArcSprocket {
     /// Return the mass of the gear body.
     virtual double GetGearMass() const override { return m_gear_mass; }
     /// Return the moments of inertia of the gear body.
-    virtual const chrono::ChVector<>& GetGearInertia() override { return m_gear_inertia; }
+    virtual const ChVector<>& GetGearInertia() override { return m_gear_inertia; }
     /// Return the inertia of the axle shaft.
     virtual double GetAxleInertia() const override { return m_axle_inertia; }
     /// Return the distance between the two gear profiles.
@@ -63,7 +65,7 @@ class CH_MODELS_API M113_Sprocket : public chrono::vehicle::ChArcSprocket {
     virtual void AddGearVisualization() override;
 
     /// Set the sprocket visualization type.
-    void SetVisType(chrono::vehicle::VisualizationType vis) { m_vis_type = vis; }
+    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
 
     /// Export the gear mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
@@ -77,7 +79,7 @@ class CH_MODELS_API M113_Sprocket : public chrono::vehicle::ChArcSprocket {
     static const int m_num_teeth;
 
     static const double m_gear_mass;
-    static const chrono::ChVector<> m_gear_inertia;
+    static const ChVector<> m_gear_inertia;
     static const double m_axle_inertia;
     static const double m_separation;
 
@@ -87,7 +89,7 @@ class CH_MODELS_API M113_Sprocket : public chrono::vehicle::ChArcSprocket {
     static const double m_gear_R;
     static const double m_gear_RA;
 
-    chrono::vehicle::VisualizationType m_vis_type;
+    VisualizationType m_vis_type;
 };
 
 class CH_MODELS_API M113_SprocketLeft : public M113_Sprocket {
@@ -96,7 +98,7 @@ class CH_MODELS_API M113_SprocketLeft : public M113_Sprocket {
     ~M113_SprocketLeft() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -109,7 +111,7 @@ class CH_MODELS_API M113_SprocketRight : public M113_Sprocket {
     ~M113_SprocketRight() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -117,5 +119,7 @@ class CH_MODELS_API M113_SprocketRight : public M113_Sprocket {
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

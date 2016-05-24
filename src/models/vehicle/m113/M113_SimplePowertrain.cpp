@@ -21,9 +21,8 @@
 
 #include "models/vehicle/m113/M113_SimplePowertrain.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -36,7 +35,8 @@ const double M113_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SimplePowertrain::M113_SimplePowertrain() : ChSimplePowertrain() {
-}
+M113_SimplePowertrain::M113_SimplePowertrain() : ChSimplePowertrain() {}
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

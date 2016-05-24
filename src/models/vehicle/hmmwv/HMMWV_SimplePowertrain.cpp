@@ -21,9 +21,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -36,7 +35,8 @@ const double HMMWV_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_SimplePowertrain::HMMWV_SimplePowertrain() : ChSimplePowertrain() {
-}
+HMMWV_SimplePowertrain::HMMWV_SimplePowertrain() : ChSimplePowertrain() {}
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

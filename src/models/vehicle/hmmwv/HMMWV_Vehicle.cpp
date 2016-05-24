@@ -24,9 +24,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_Vehicle.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -146,8 +145,7 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
     m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>();
 }
 
-HMMWV_Vehicle::~HMMWV_Vehicle() {
-}
+HMMWV_Vehicle::~HMMWV_Vehicle() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -207,7 +205,8 @@ double HMMWV_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
 }
 
 double HMMWV_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])
+        ->GetSpringDeformation(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
@@ -221,7 +220,8 @@ double HMMWV_Vehicle::GetShockLength(const WheelID& wheel_id) const {
 }
 
 double HMMWV_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])
+        ->GetShockVelocity(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
@@ -243,10 +243,12 @@ void HMMWV_Vehicle::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
+    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])
+        ->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
 
     GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
+    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])
+        ->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
 
     GetLog() << "\n\n";
 
@@ -292,3 +294,5 @@ void HMMWV_Vehicle::DebugLog(int what) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

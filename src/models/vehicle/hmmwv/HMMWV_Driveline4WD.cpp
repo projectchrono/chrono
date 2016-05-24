@@ -18,9 +18,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -50,3 +49,5 @@ HMMWV_Driveline4WD::HMMWV_Driveline4WD() : ChShaftsDriveline4WD() {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

@@ -19,14 +19,16 @@
 #ifndef M113_SHAFTS_POWERTRAIN_H
 #define M113_SHAFTS_POWERTRAIN_H
 
-#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
-class CH_MODELS_API M113_ShaftsPowertrain : public chrono::vehicle::ChShaftsPowertrain {
+class CH_MODELS_API M113_ShaftsPowertrain : public ChShaftsPowertrain {
   public:
     M113_ShaftsPowertrain();
 
@@ -38,10 +40,10 @@ class CH_MODELS_API M113_ShaftsPowertrain : public chrono::vehicle::ChShaftsPowe
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
 
-    virtual void SetEngineTorqueMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
-    virtual void SetEngineLossesMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<chrono::ChFunction_Recorder>& map) override;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override;
 
   private:
     // Shaft inertias.
@@ -51,5 +53,7 @@ class CH_MODELS_API M113_ShaftsPowertrain : public chrono::vehicle::ChShaftsPowe
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -27,23 +27,25 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 ///
 ///
 ///
-class CH_MODELS_API M113_Idler : public chrono::vehicle::ChDoubleIdler {
+class CH_MODELS_API M113_Idler : public ChDoubleIdler {
   public:
     virtual ~M113_Idler() {}
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const chrono::ChVector<> GetLocation(PointId which) override;
+    virtual const ChVector<> GetLocation(PointId which) override;
 
     /// Return the mass of the idler wheel body.
     virtual double GetWheelMass() const override { return m_wheel_mass; }
     /// Return the moments of inertia of the idler wheel body.
-    virtual const chrono::ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
+    virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
     /// Return the radius of the idler wheel.
     virtual double GetWheelRadius() const override { return m_wheel_radius; }
     /// Return the total width of the idler wheel.
@@ -54,7 +56,7 @@ class CH_MODELS_API M113_Idler : public chrono::vehicle::ChDoubleIdler {
     /// Return the mass of the carrier body.
     virtual double GetCarrierMass() const override { return m_carrier_mass; }
     /// Return the moments of inertia of the carrier body.
-    virtual const chrono::ChVector<>& GetCarrierInertia() override { return m_carrier_inertia; }
+    virtual const ChVector<>& GetCarrierInertia() override { return m_carrier_inertia; }
     /// Return a visualization radius for the carrier body.
     virtual double GetCarrierVisRadius() const override { return m_carrier_radius; }
 
@@ -62,13 +64,13 @@ class CH_MODELS_API M113_Idler : public chrono::vehicle::ChDoubleIdler {
     virtual double GetPrismaticPitchAngle() const override { return 0; }
 
     /// Return the callback function for spring force.
-    virtual chrono::ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
     /// Add visualization of the idler wheel.
     virtual void AddWheelVisualization() override;
 
     /// Set the idler wheel visualization type.
-    void SetVisType(chrono::vehicle::VisualizationType vis) { m_vis_type = vis; }
+    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
 
     /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
@@ -76,21 +78,21 @@ class CH_MODELS_API M113_Idler : public chrono::vehicle::ChDoubleIdler {
   protected:
     M113_Idler(const std::string& name);
 
-    virtual chrono::vehicle::VehicleSide GetVehicleSide() const = 0;
+    virtual VehicleSide GetVehicleSide() const = 0;
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
-    chrono::ChSpringForceCallback* m_tensionerForceCB;
+    ChSpringForceCallback* m_tensionerForceCB;
 
     static const double m_wheel_mass;
-    static const chrono::ChVector<> m_wheel_inertia;
+    static const ChVector<> m_wheel_inertia;
     static const double m_wheel_radius;
     static const double m_wheel_width;
     static const double m_wheel_gap;
 
     static const double m_carrier_mass;
-    static const chrono::ChVector<> m_carrier_inertia;
+    static const ChVector<> m_carrier_inertia;
     static const double m_carrier_radius;
 
     static const double m_tensioner_l0;
@@ -98,7 +100,7 @@ class CH_MODELS_API M113_Idler : public chrono::vehicle::ChDoubleIdler {
     static const double m_tensioner_c;
     static const double m_tensioner_f;
 
-    chrono::vehicle::VisualizationType m_vis_type;
+    VisualizationType m_vis_type;
 };
 
 class CH_MODELS_API M113_IdlerLeft : public M113_Idler {
@@ -106,10 +108,10 @@ class CH_MODELS_API M113_IdlerLeft : public M113_Idler {
     M113_IdlerLeft() : M113_Idler("M113_IdlerLeft") {}
     ~M113_IdlerLeft() {}
 
-    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::LEFT; }
+    virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -121,10 +123,10 @@ class CH_MODELS_API M113_IdlerRight : public M113_Idler {
     M113_IdlerRight() : M113_Idler("M113_IdlerRight") {}
     ~M113_IdlerRight() {}
 
-    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::RIGHT; }
+    virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -132,5 +134,7 @@ class CH_MODELS_API M113_IdlerRight : public M113_Idler {
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

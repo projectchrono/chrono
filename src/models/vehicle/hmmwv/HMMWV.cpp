@@ -21,9 +21,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -237,3 +236,5 @@ void HMMWV::Advance(double step) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

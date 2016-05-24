@@ -23,9 +23,8 @@
 
 #include "models/vehicle/m113/M113_RoadWheel.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -45,8 +44,7 @@ const std::string M113_RoadWheelRight::m_meshFile = "M113/Roller_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_RoadWheel::M113_RoadWheel(const std::string& name)
-    : ChDoubleRoadWheel(name), m_vis_type(PRIMITIVES) {
+M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.7f, 0.1f, 1e7f, 0.3f);
 }
 
@@ -76,3 +74,5 @@ void M113_RoadWheel::ExportMeshPovray(const std::string& out_dir) {
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

@@ -20,50 +20,52 @@
 #define HMMWV_VEHICLE_H
 
 #include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "models/ChApiModels.h"
-#include "models/vehicle/hmmwv/HMMWV_Wheel.h"
+#include "models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
 #include "models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
-#include "models/vehicle/hmmwv/HMMWV_PitmanArm.h"
 #include "models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
 #include "models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
-#include "models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
+#include "models/vehicle/hmmwv/HMMWV_PitmanArm.h"
+#include "models/vehicle/hmmwv/HMMWV_Wheel.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_Vehicle : public chrono::vehicle::ChWheeledVehicle {
+class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
   public:
     HMMWV_Vehicle(const bool fixed = false,
-                  chrono::vehicle::DrivelineType driveType = chrono::vehicle::AWD,
-                  chrono::vehicle::VisualizationType chassisVis = chrono::vehicle::NONE,
-                  chrono::vehicle::VisualizationType wheelVis = chrono::vehicle::PRIMITIVES,
-                  chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
+                  DrivelineType driveType = AWD,
+                  VisualizationType chassisVis = NONE,
+                  VisualizationType wheelVis = PRIMITIVES,
+                  ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
-    HMMWV_Vehicle(chrono::ChSystem* system,
+    HMMWV_Vehicle(ChSystem* system,
                   const bool fixed = false,
-                  chrono::vehicle::DrivelineType driveType = chrono::vehicle::AWD,
-                  chrono::vehicle::VisualizationType chassisVis = chrono::vehicle::NONE,
-                  chrono::vehicle::VisualizationType wheelVis = chrono::vehicle::PRIMITIVES);
+                  DrivelineType driveType = AWD,
+                  VisualizationType chassisVis = NONE,
+                  VisualizationType wheelVis = PRIMITIVES);
 
     ~HMMWV_Vehicle();
 
     virtual int GetNumberAxles() const override { return 2; }
 
-    virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringForce(const WheelID& wheel_id) const;
+    double GetSpringLength(const WheelID& wheel_id) const;
+    double GetSpringDeformation(const WheelID& wheel_id) const;
 
-    double GetShockForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockForce(const WheelID& wheel_id) const;
+    double GetShockLength(const WheelID& wheel_id) const;
+    double GetShockVelocity(const WheelID& wheel_id) const;
 
-    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos) override;
+    virtual void Initialize(const ChCoordsys<>& chassisPos) override;
 
     void ExportMeshPovray(const std::string& out_dir);
 
@@ -72,9 +74,9 @@ class CH_MODELS_API HMMWV_Vehicle : public chrono::vehicle::ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, chrono::vehicle::VisualizationType chassisVis, chrono::vehicle::VisualizationType wheelVis);
+    void Create(bool fixed, VisualizationType chassisVis, VisualizationType wheelVis);
 
-    chrono::vehicle::DrivelineType m_driveType;
+    DrivelineType m_driveType;
 
     // Chassis visualization mesh
     static const std::string m_chassisMeshName;
@@ -82,13 +84,15 @@ class CH_MODELS_API HMMWV_Vehicle : public chrono::vehicle::ChWheeledVehicle {
 
     // Chassis mass properties
     static const double m_chassisMass;
-    static const chrono::ChVector<> m_chassisCOM;
-    static const chrono::ChVector<> m_chassisInertia;
+    static const ChVector<> m_chassisCOM;
+    static const ChVector<> m_chassisInertia;
 
     // Driver local coordinate system
-    static const chrono::ChCoordsys<> m_driverCsys;
+    static const ChCoordsys<> m_driverCsys;
 };
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -23,9 +23,11 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_Driveline2WD : public chrono::vehicle::ChShaftsDriveline2WD {
+class CH_MODELS_API HMMWV_Driveline2WD : public ChShaftsDriveline2WD {
   public:
     HMMWV_Driveline2WD();
 
@@ -48,5 +50,7 @@ class CH_MODELS_API HMMWV_Driveline2WD : public chrono::vehicle::ChShaftsDriveli
 };
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

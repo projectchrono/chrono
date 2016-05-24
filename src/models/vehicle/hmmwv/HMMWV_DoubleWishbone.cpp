@@ -25,9 +25,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -141,8 +140,7 @@ HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression_slope,
       m_ms_min_length(midstroke_lower_bound),
       m_ms_max_length(midstroke_upper_bound),
       m_min_length(metalmetal_lower_bound),
-      m_max_length(metalmetal_upper_bound) {
-}
+      m_max_length(metalmetal_upper_bound) {}
 
 double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel) {
     /*
@@ -306,3 +304,5 @@ const ChVector<> HMMWV_DoubleWishboneRear::getLocation(PointId which) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

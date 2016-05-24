@@ -31,9 +31,8 @@
 #include "models/vehicle/m113/M113_TrackShoe.h"
 #include "models/vehicle/m113/M113_Vehicle.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -88,28 +87,28 @@ void M113_Vehicle::Create(bool fixed) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_Vehicle::SetChassisVisType(chrono::vehicle::VisualizationType vis) {
+void M113_Vehicle::SetChassisVisType(VisualizationType vis) {
     m_chassisVisType = vis;
 }
 
-void M113_Vehicle::SetSprocketVisType(chrono::vehicle::VisualizationType vis) {
+void M113_Vehicle::SetSprocketVisType(VisualizationType vis) {
     std::static_pointer_cast<M113_Sprocket>(m_tracks[0]->GetSprocket())->SetVisType(vis);
     std::static_pointer_cast<M113_Sprocket>(m_tracks[1]->GetSprocket())->SetVisType(vis);
 }
 
-void M113_Vehicle::SetIdlerVisType(chrono::vehicle::VisualizationType vis) {
+void M113_Vehicle::SetIdlerVisType(VisualizationType vis) {
     std::static_pointer_cast<M113_Idler>(m_tracks[0]->GetIdler())->SetVisType(vis);
     std::static_pointer_cast<M113_Idler>(m_tracks[1]->GetIdler())->SetVisType(vis);
 }
 
-void M113_Vehicle::SetRoadWheelVisType(chrono::vehicle::VisualizationType vis) {
+void M113_Vehicle::SetRoadWheelVisType(VisualizationType vis) {
     for (size_t is = 0; is < 5; is++) {
         std::static_pointer_cast<M113_RoadWheel>(m_tracks[0]->GetRoadWheel(is))->SetVisType(vis);
         std::static_pointer_cast<M113_RoadWheel>(m_tracks[1]->GetRoadWheel(is))->SetVisType(vis);
     }
 }
 
-void M113_Vehicle::SetTrackShoeVisType(chrono::vehicle::VisualizationType vis) {
+void M113_Vehicle::SetTrackShoeVisType(VisualizationType vis) {
     for (size_t is = 0; is < m_tracks[0]->GetNumTrackShoes(); is++)
         std::static_pointer_cast<M113_TrackShoe>(m_tracks[0]->GetTrackShoe(is))->SetVisType(vis);
     for (size_t is = 0; is < m_tracks[1]->GetNumTrackShoes(); is++)
@@ -175,7 +174,10 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113_Vehicle::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(vehicle::GetDataFile(m_chassisMeshFile), m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
+    utils::WriteMeshPovray(vehicle::GetDataFile(m_chassisMeshFile), m_chassisMeshName, out_dir,
+                           ChColor(0.82f, 0.7f, 0.5f));
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

@@ -27,19 +27,21 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 ///
 ///
 ///
-class CH_MODELS_API M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
+class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
   public:
     virtual ~M113_RoadWheel() {}
 
     /// Return the mass of the idler wheel body.
     virtual double GetWheelMass() const override { return m_wheel_mass; }
     /// Return the moments of inertia of the idler wheel body.
-    virtual const chrono::ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
+    virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
     /// Return the radius of the idler wheel.
     virtual double GetWheelRadius() const override { return m_wheel_radius; }
     /// Return the total width of the idler wheel.
@@ -51,7 +53,7 @@ class CH_MODELS_API M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
     virtual void AddWheelVisualization() override;
 
     /// Set the road wheel visualization type.
-    void SetVisType(chrono::vehicle::VisualizationType vis) { m_vis_type = vis; }
+    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
 
     /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
@@ -59,18 +61,18 @@ class CH_MODELS_API M113_RoadWheel : public chrono::vehicle::ChDoubleRoadWheel {
   protected:
     M113_RoadWheel(const std::string& name);
 
-    virtual chrono::vehicle::VehicleSide GetVehicleSide() const = 0;
+    virtual VehicleSide GetVehicleSide() const = 0;
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
     static const double m_wheel_mass;
-    static const chrono::ChVector<> m_wheel_inertia;
+    static const ChVector<> m_wheel_inertia;
     static const double m_wheel_radius;
     static const double m_wheel_width;
     static const double m_wheel_gap;
 
-    chrono::vehicle::VisualizationType m_vis_type;
+    VisualizationType m_vis_type;
 };
 
 class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
@@ -78,10 +80,10 @@ class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
     M113_RoadWheelLeft() : M113_RoadWheel("M113_RoadWheelLeft") {}
     ~M113_RoadWheelLeft() {}
 
-    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::LEFT; }
+    virtual VehicleSide GetVehicleSide() const override { return LEFT; }
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -93,10 +95,10 @@ class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
     M113_RoadWheelRight() : M113_RoadWheel("M113_RoadWheelRight") {}
     ~M113_RoadWheelRight() {}
 
-    virtual chrono::vehicle::VehicleSide GetVehicleSide() const override { return chrono::vehicle::RIGHT; }
+    virtual VehicleSide GetVehicleSide() const override { return RIGHT; }
 
     virtual std::string GetMeshName() const override { return m_meshName; }
-    virtual std::string GetMeshFile() const override { return chrono::vehicle::GetDataFile(m_meshFile); }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -104,5 +106,7 @@ class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

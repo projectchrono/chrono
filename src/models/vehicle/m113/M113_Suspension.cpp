@@ -19,9 +19,8 @@
 #include "models/vehicle/m113/M113_RoadWheel.h"
 #include "models/vehicle/m113/M113_Suspension.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -114,3 +113,5 @@ const ChVector<> M113_Suspension::GetLocation(PointId which) {
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

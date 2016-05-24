@@ -24,9 +24,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -148,8 +147,7 @@ void HMMWV_VehicleReduced::Create(bool fixed, VisualizationType chassisVis, Visu
     m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>();
 }
 
-HMMWV_VehicleReduced::~HMMWV_VehicleReduced() {
-}
+HMMWV_VehicleReduced::~HMMWV_VehicleReduced() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -209,3 +207,5 @@ void HMMWV_VehicleReduced::ExportMeshPovray(const std::string& out_dir) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
