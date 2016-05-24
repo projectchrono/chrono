@@ -62,12 +62,32 @@ using namespace chrono::vehicle;
 // Value of gravitational acceleration (Z direction), common on both systems
 static const double gacc = -9.81;
 
+// Small offset to prevent interpenetration at initial step
+static const double cont_offset = 3e-6;
 // Specify whether or not contact coefficients are based on material properties
 static const bool use_mat_properties = false;
 
 // Number of OpenMP threads on each MPI node
 static const int nthreads_rignode = 2;
 static const int nthreads_terrainnode = 2;
+
+// =============================================================================
+class ChFunction_SlipAngle : public ChFunction {
+public:
+    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(); }
+
+    virtual double Get_y(double t) const override {
+        // Ramp for 1 second and stay at that value (scale)
+        double delay = 0.2;
+        double scale = -20.0 / 180 * CH_C_PI;
+        if (t <= delay)
+            return 0;
+        double t1 = t - delay;
+        if (t1 >= 1)
+            return scale;
+        return t1 * scale;
+    }
+};
 
 // =============================================================================
 // RIG NODE CLASS
@@ -92,11 +112,14 @@ class RigNode {
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     std::shared_ptr<ChBody> m_rim;     ///< wheel rim body
-
+    std::shared_ptr<ChBody> m_set_toe;     ///< set toe body
+    std::shared_ptr<ChBody> m_chassis;     ///< chassis body
     std::shared_ptr<ChLinkLockPlanePlane> m_plane_plane;  ///< ground-rim joint
-
     std::shared_ptr<ChDeformableTire> m_tire;                       ///< deformable tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
+    std::shared_ptr<ChLinkLockRevolute> m_revolute; ///< set_toe-rim revolute joint
+    std::shared_ptr<ChFunction_SlipAngle> f_slip; ///< function to set toe angle
+    std::shared_ptr<ChLinkEngine> m_slip_motor;   ///< angular motor constraint
 
     double m_init_vel;  ///< initial wheel forward linear velocity
 
@@ -123,9 +146,11 @@ RigNode::RigNode(int num_threads) {
     m_step_size = 1e-4;
 
     double rim_mass = 100;            //// 0.1;
+    double set_toe_mass = 0.1;
+    double chassis_mass = 0.1;
     ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
-
-    m_init_vel = 0;  //// 20;
+    ChVector<> set_toe_inertia(0.1, 0.1, 0.1);  
+    m_init_vel = 10;  //// 20;
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -173,6 +198,17 @@ RigNode::RigNode(int num_threads) {
     m_system->AddBody(m_ground);
     m_ground->SetBodyFixed(true);
 
+    // Create the chassis body.
+    m_chassis = std::make_shared<ChBody>();
+    m_chassis->SetMass(chassis_mass);
+    m_system->AddBody(m_chassis);
+
+    // Create the set toe body.
+    m_set_toe = std::make_shared<ChBody>();
+    m_system->AddBody(m_set_toe);
+    m_set_toe->SetMass(set_toe_mass);
+    m_set_toe->SetInertiaXX(set_toe_inertia);
+
     // Create the rim body.
     m_rim = std::make_shared<ChBody>();
     m_system->AddBody(m_rim);
@@ -182,13 +218,22 @@ RigNode::RigNode(int num_threads) {
     // -------------------------------
     // Create the rig mechanism joints
     // -------------------------------
-
+    
     // Plane contraint on the rim
     m_plane_plane = std::make_shared<ChLinkLockPlanePlane>();
     m_system->AddLink(m_plane_plane);
+    
+    // chassis ==revolute_z==>  set_toe
+    m_slip_motor = std::make_shared<ChLinkEngine>();
+    m_slip_motor->SetName("engine_set_slip");
+    m_slip_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+    m_system->AddLink(m_slip_motor);
 
-    //// TODO: complete construction of the test rig
-
+    // set_toe  ==revolute_y==> rim (wheel)
+    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_system->AddLink(m_revolute);
+    m_revolute->SetName("revolute");
+    
     // ---------------
     // Create the tire
     // ---------------
@@ -196,7 +241,7 @@ RigNode::RigNode(int num_threads) {
     std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
 
     m_tire = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
-    m_tire->EnablePressure(true);
+    m_tire->EnablePressure(false);
     m_tire->EnableContact(true);
     m_tire->EnableRimConnection(true);
     m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
@@ -260,18 +305,48 @@ void RigNode::Initialize() {
     // Initialize rim body.
     double tire_radius = m_tire->GetRadius();
 
-    m_rim->SetPos(ChVector<>(0, 0, init_height + tire_radius));
+    m_rim->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
     m_rim->SetRot(QUNIT);
     m_rim->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
     m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
+
+    // Initialize chassis body
+    m_chassis->SetBodyFixed(false);
+    m_chassis->SetCollide(false);
+    m_chassis->SetInertiaXX(ChVector<>(1, 1, 1));
+    m_chassis->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
+    m_chassis->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+    m_chassis->SetRot(ChQuaternion<>(1, 0, 0, 0));
+
+    // Initialize the set_toe body
+    m_set_toe->SetBodyFixed(false);
+    m_set_toe->SetCollide(false);
+    m_set_toe->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
+    m_set_toe->SetRot(QUNIT);
+    m_set_toe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
+    m_set_toe->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+
 
     // -----------------------------------
     // Initialize the rig mechanism joints
     // -----------------------------------
 
-    m_plane_plane->Initialize(m_ground, m_rim, ChCoordsys<>(m_rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
+    m_plane_plane->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngX(CH_C_PI_2)));
+    
+    // chassis       ==revolute_z==>   set_toe
+    // Create slip controlling function (toe angle)
+    f_slip = std::make_shared<ChFunction_SlipAngle>();
+    
+    m_slip_motor->Initialize(m_set_toe, m_chassis, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
+    m_slip_motor->SetName("engine_set_slip");
+    m_slip_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+    m_slip_motor->Set_rot_funct(f_slip);
 
-    //// TODO: complete initialization of the test rig
+    // set_toe       ==revolute_y==>   rim (wheel)
+    m_revolute->SetName("revolute");
+    m_revolute->Initialize(m_rim, m_set_toe, ChCoordsys<>(m_rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
+    
+    
 
     // ---------------
     // Initialize tire
@@ -391,9 +466,10 @@ void RigNode::OutputData() {
 
     std::string del("  ");
     const ChVector<>& rim_pos = m_rim->GetPos();
-
+    const ChVector<>& rim_vel = m_rim->GetPos_dt();
     m_outf << m_system->GetChTime() << del;
-    m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
+    m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del << rim_vel.x << del << rim_vel.y << del
+        << rim_vel.z << del;
     m_outf << std::endl;
 }
 
@@ -505,7 +581,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     // ----------------
 
     // Container dimensions
-    double hdimX = 5.0;
+    double hdimX = 15.0;
     double hdimY = 0.25;
     double hdimZ = 0.5;
     double hthick = 0.25;
@@ -524,10 +600,10 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     float restitution_terrain = 0.0f;
     float Y_terrain = 2e6f;
     float nu_terrain = 0.3f;
-    float kn_terrain = 9.0e4f;
-    float gn_terrain = 1.0e1f;
-    float kt_terrain = 0;
-    float gt_terrain = 0;
+    float kn_terrain = 1.0e7f;
+    float gn_terrain = 1.0e3f;
+    float kt_terrain = 2.86e6f;
+    float gt_terrain = 1.0e3f;
 
     // Proxy bodies properties
     m_fixed_proxies = false;
@@ -577,12 +653,12 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     // --------------------------
     // Create the parallel system
     // --------------------------
-
+     
     // Create system and set method-specific solver settings
     switch (m_method) {
         case ChMaterialSurfaceBase::DEM: {
             ChSystemParallelDEM* sys = new ChSystemParallelDEM;
-            sys->GetSettings()->solver.contact_force_model = ChSystemDEM::Hooke;
+            sys->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
             sys->GetSettings()->solver.tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
             m_system = sys;
@@ -1043,7 +1119,7 @@ int main() {
     //     rig => terrain (position information)
     //     terrain => rig (force information)
     int num_steps = 125000;
-    double step_size = 7e-5;
+    double step_size = 1e-4;
 
     for (int is = 0; is < num_steps; is++) {
         double time = is * step_size;
