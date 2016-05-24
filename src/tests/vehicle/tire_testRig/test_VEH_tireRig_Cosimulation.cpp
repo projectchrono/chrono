@@ -929,6 +929,8 @@ void TerrainNode::Initialize() {
 // Create bodies with spherical contact geometry as proxies for the tire mesh vertices.
 // Assign to each body an identifier equal to the index of its corresponding mesh vertex.
 // Maintain a list of all bodies associated with the tire.
+// Add all proxy bodies to the same collision family and disable collision between any
+// two members of this family.
 void TerrainNode::CreateNodeProxies() {
     ChVector<> inertia_p = 0.4 * m_mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
     for (unsigned int iv = 0; iv < m_num_vert; iv++) {
@@ -943,6 +945,8 @@ void TerrainNode::CreateNodeProxies() {
 
         body->GetCollisionModel()->ClearModel();
         utils::AddSphereGeometry(body.get(), m_radius_p, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), true);
+        body->GetCollisionModel()->SetFamily(1);
+        body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         body->GetCollisionModel()->BuildModel();
 
         m_proxiesN.push_back(ProxyNodeBody(body, iv));
