@@ -286,10 +286,8 @@ function(add_DLL_copy_command DLL_LIST)
     message(STATUS "==== Add custom commands for copying DLLs ====")
     message(STATUS "DLL list...")
     
-    # Create custom target for copying DLLs; add it to the default build target.
-    # Hack: add a dependency on a missing file, to force this target to run every time.
-    add_custom_target(COPY_DLLS ALL
-                      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__missing_file__)
+    # Create custom target for copying DLLs; add it to the default build target
+    add_custom_target(COPY_DLLS ALL)
     
     # Add custom command to create the destination folder
     add_custom_command(TARGET COPY_DLLS PRE_BUILD
