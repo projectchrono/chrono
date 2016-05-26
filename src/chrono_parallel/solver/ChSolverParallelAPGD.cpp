@@ -1,8 +1,8 @@
-#include "chrono_parallel/solver/ChSolverAPGD.h"
+#include "chrono_parallel/solver/ChSolverParallelAPGD.h"
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
-ChSolverAPGD::ChSolverAPGD()
+ChSolverParallelAPGD::ChSolverParallelAPGD()
     : ChSolverParallel(),
       mg_tmp_norm(0),
       mb_tmp_norm(0),
@@ -18,7 +18,7 @@ ChSolverAPGD::ChSolverAPGD()
       g_diff(0) {
 }
 
-void ChSolverAPGD::UpdateR() {
+void ChSolverParallelAPGD::UpdateR() {
   const CompressedMatrix<real>& D_n_T = data_manager->host_data.D_n_T;
   const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
   const DynamicVector<real>& b = data_manager->host_data.b;
@@ -39,10 +39,10 @@ void ChSolverAPGD::UpdateR() {
   R_n = -b_n - D_n_T * M_invk - s_n;
 }
 
-uint ChSolverAPGD::SolveAPGD(const uint max_iter,
-                             const uint size,
-                             const DynamicVector<real>& r,
-                             DynamicVector<real>& gamma) {
+uint ChSolverParallelAPGD::SolveAPGD(const uint max_iter,
+                                     const uint size,
+                                     const DynamicVector<real>& r,
+                                     DynamicVector<real>& gamma) {
   real& residual = data_manager->measures.solver.residual;
   real& objective_value = data_manager->measures.solver.objective_value;
 

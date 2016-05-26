@@ -21,10 +21,10 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 
 namespace chrono {
-class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelAPGD : public ChSolverParallel {
  public:
-  ChSolverAPGD();
-  ~ChSolverAPGD() {}
+  ChSolverParallelAPGD();
+  ~ChSolverParallelAPGD() {}
 
   void Solve() {
     if (data_manager->num_constraints == 0) {

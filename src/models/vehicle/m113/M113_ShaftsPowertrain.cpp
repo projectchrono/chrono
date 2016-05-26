@@ -18,9 +18,8 @@
 
 #include "models/vehicle/m113/M113_ShaftsPowertrain.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -140,3 +139,5 @@ void M113_ShaftsPowertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFu
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

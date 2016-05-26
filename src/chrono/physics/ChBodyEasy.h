@@ -1,36 +1,35 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHBODYEASY_H
 #define CHBODYEASY_H
 
-#include "physics/ChBody.h"
-#include "physics/ChBodyAuxRef.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChBoxShape.h"
-#include "assets/ChSphereShape.h"
-#include "assets/ChTriangleMeshShape.h"
-#include "assets/ChObjShapeFile.h"
-#include "collision/ChCCollisionUtils.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 namespace chrono {
 
-// This header includes some easy-to-use bodies, that can be used
-// to create ChBody objects that already include a visualization shape
-// without the need of adding it afterward with AddAsset().
-// Also, a collision shape is created and added automatically too, if
-// collision is needed.
+// This header includes some easy-to-use bodies, that can be used to create body
+// objects that optionally include contact and visualization shapes.
 
-/// Easy-to-use class for quick creation of rigid bodies with a
-/// spherical shape.
+/// Easy-to-use class for quick creation of rigid bodies with a spherical shape.
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
@@ -65,8 +64,7 @@ class ChBodyEasySphere : public ChBody {
     }
 };
 
-/// Easy-to-use class for quick creation of rigid bodies with a
-/// cylindrical shape.
+/// Easy-to-use class for quick creation of rigid bodies with a cylindrical shape.
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
@@ -103,8 +101,7 @@ class ChBodyEasyCylinder : public ChBody {
     }
 };
 
-/// Easy-to-use class for quick creation of rigid bodies with a
-/// box shape.
+/// Easy-to-use class for quick creation of rigid bodies with a box shape.
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
@@ -144,8 +141,7 @@ class ChBodyEasyBox : public ChBody {
     }
 };
 
-/// Easy-to-use class for quick creation of rigid bodies with a
-/// convex hull shape.
+/// Easy-to-use class for quick creation of rigid bodies with a convex hull shape.
 /// Compared to the base ChBody class, this class also does
 /// automatically, at object creation, the following tasks that
 /// you would normally do by hand if using ChBody:
@@ -160,7 +156,7 @@ class ChBodyEasyConvexHull : public ChBody {
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density.
     /// Convex hull is defined with a set of points.
-    ChBodyEasyConvexHull(std::vector<ChVector<> >& points, 
+    ChBodyEasyConvexHull(std::vector<ChVector<> >& points,
                          double mdensity,
                          bool collide = false,
                          bool visual_asset = true) {
@@ -200,11 +196,10 @@ class ChBodyEasyConvexHull : public ChBody {
     }
 };
 
-/// Easy-to-use class for quick creation of rigid bodies with a
-/// convex hull shape, that has a REF csys distinct from the COG cys (this
-/// is helpful because in many cases the convex hull might have an offset barycenter
-/// respect to the reference that we want to use for the body - otherwise use 
-/// the simplier ChBodyEasyConvexHull)
+/// Easy-to-use class for quick creation of rigid bodies with a convex hull shape,
+/// that has a REF csys distinct from the COG cys (this is helpful because in many
+/// cases the convex hull might have an offset barycenter with respect to the reference
+/// that we want to use for the body - otherwise use the simplier ChBodyEasyConvexHull)
 /// This class does automatically, at object creation:
 /// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
@@ -219,15 +214,16 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density.
     /// Convex hull is defined with a set of points.
-    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<> >& points, ///< points defined respect REF c.sys of body (initially REF=0,0,0 pos.)
-                         double mdensity,
-                         bool collide = false,
-                         bool visual_asset = true) {
+    ChBodyEasyConvexHullAuxRef(
+        std::vector<ChVector<> >& points,  ///< points defined respect REF c.sys of body (initially REF=0,0,0 pos.)
+        double mdensity,
+        bool collide = false,
+        bool visual_asset = true) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
         if (visual_asset) {
-            this->AddAsset(vshape); // assets are respect to REF c.sys
+            this->AddAsset(vshape);  // assets are respect to REF c.sys
         }
 
         double mass;
@@ -236,16 +232,15 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
         ChMatrix33<> principal_inertia_csys;
         double principal_I[3];
-        inertia.FastEigen(principal_inertia_csys,principal_I);
+        inertia.FastEigen(principal_inertia_csys, principal_I);
 
         this->SetDensity((float)mdensity);
         this->SetMass(mass * mdensity);
-        //this->SetInertia(inertia * mdensity);
+        // this->SetInertia(inertia * mdensity);
         this->SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
 
         // Set the COG coordinates to barycenter, without displacing the REF reference
-        this->SetFrame_COG_to_REF(ChFrame<>(baricenter,principal_inertia_csys));
-
+        this->SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
 
         if (collide) {
             // avoid passing to collision the inner points discarded by convex hull
@@ -256,18 +251,17 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                 points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
 
             GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddConvexHull(points_reduced); // coll.model is respect to REF c.sys
+            GetCollisionModel()->AddConvexHull(points_reduced);  // coll.model is respect to REF c.sys
             GetCollisionModel()->BuildModel();
             SetCollide(true);
         }
     }
 };
 
-
-/// Easy-to-use class for quick creation of rigid bodies with a
-/// triangle mesh shape, that has a REF csys distinct from the COG cys (this
-/// is helpful because in many cases the mesh might have an offset barycenter
-/// respect to the reference that we want to use for the body)
+/// Easy-to-use class for quick creation of rigid bodies with a triangle mesh shape,
+/// that has a REF csys distinct from the COG cys (this is helpful because in many cases
+/// the mesh might have an offset barycenter with respect to the reference that we want
+/// to use for the body)
 /// This class does automatically, at object creation:
 /// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
@@ -282,16 +276,16 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
     /// Creates a ChBody plus adds an optional visualization shape and, optionally,
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density.
-    ChBodyEasyMesh(const std::string filename, ///< .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
-                         double mdensity,
-                         bool compute_mass = true,
-                         bool collide = false,
-                         double sphere_swept = 0.001, ///< radius of 'inflating' of mesh, leads to more robust collision detection
-                         bool visual_asset = true) {
-
+    ChBodyEasyMesh(
+        const std::string filename,  ///< .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
+        double mdensity,
+        bool compute_mass = true,
+        bool collide = false,
+        double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
+        bool visual_asset = true) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
-        vshape->GetMesh().LoadWavefrontMesh(filename,true, true);
-        this->AddAsset(vshape); // assets are respect to REF c.sys
+        vshape->GetMesh().LoadWavefrontMesh(filename, true, true);
+        this->AddAsset(vshape);  // assets are respect to REF c.sys
 
         if (!visual_asset) {
             vshape->SetVisible(false);
@@ -305,27 +299,28 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
             vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
             ChMatrix33<> principal_inertia_csys;
             double principal_I[3];
-            inertia.FastEigen(principal_inertia_csys,principal_I);
+            inertia.FastEigen(principal_inertia_csys, principal_I);
             this->SetMass(mass * mdensity);
-            this->SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
+            this->SetInertiaXX(
+                ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
             // Set the COG coordinates to barycenter, without displacing the REF reference
-            this->SetFrame_COG_to_REF(ChFrame<>(baricenter,principal_inertia_csys));
+            this->SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
         }
 
         if (collide) {
             GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddTriangleMesh(vshape->GetMesh(),false, false, VNULL, ChMatrix33<>(1), sphere_swept); // coll.model is respect to REF c.sys
+            GetCollisionModel()->AddTriangleMesh(vshape->GetMesh(), false, false, VNULL, ChMatrix33<>(1),
+                                                 sphere_swept);  // coll.model is respect to REF c.sys
             GetCollisionModel()->BuildModel();
             SetCollide(true);
         }
     }
 };
 
-/// Easy-to-use class for quick creation of rigid bodies with a
-/// shape made of a cluster of spheres.
-/// Compared to the base ChBody class, this class also does
-/// automatically, at object creation, the following tasks that
-/// you would normally do by hand if using ChBody:
+/// Easy-to-use class for quick creation of rigid bodies with a shape made of a cluster
+/// of spheres.
+/// Compared to the base ChBody class, this class also does automatically, at object creation,
+/// the following tasks that you would normally do by hand if using ChBody:
 /// - a visualization shape is created and added, if visualization asset is desired
 /// - a collision shape is created and added, if collision is desired,
 /// - mass and moment of inertia is automatically set, according to the geometry.
@@ -400,6 +395,6 @@ class ChBodyEasyClusterOfSpheres : public ChBody {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -88,7 +88,25 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
                                         float gt   ///< [in] tangential contact damping
                                         );
 
+    /// Get coefficient of friction for contact material.
+    float GetCoefficientFriction() const { return m_friction; }
+    /// Get coefficient of restitution for contact material.
+    float GetCoefficientRestitution() const { return m_restitution; }
+    /// Get Young's modulus of elasticity for contact material.
+    float GetYoungModulus() const { return m_young_modulus; }
+    /// Get Poisson ratio for contact material.
+    float GetPoissonRatio() const { return m_poisson_ratio; }
+    /// Get normal stiffness coefficient for contact material.
+    float GetKn() const { return m_kn; }
+    /// Get tangential stiffness coefficient for contact material.
+    float GetKt() const { return m_kt; }
+    /// Get normal viscous damping coefficient for contact material.
+    float GetGn() const { return m_gn; }
+    /// Get tangential viscous damping coefficient for contact material.
+    float GetGt() const { return m_gt; }
+
     /// Get the tire contact material.
+    /// Note that this is not set until after tire initialization.
     std::shared_ptr<ChMaterialSurfaceDEM> GetContactMaterial() const { return m_contact_mat; }
 
     /// Enable/disable tire pressure.

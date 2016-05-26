@@ -62,7 +62,7 @@
 // FSI Interface Includes
 #include "tests/fsi/params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
 
-#define haveFluid true
+#define haveFluid 1
 
 // Chrono namespaces
 using namespace chrono;

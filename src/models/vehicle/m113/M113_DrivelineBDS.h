@@ -23,9 +23,11 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
-class CH_MODELS_API M113_DrivelineBDS : public chrono::vehicle::ChTrackDrivelineBDS {
+class CH_MODELS_API M113_DrivelineBDS : public ChTrackDrivelineBDS {
   public:
     M113_DrivelineBDS();
 
@@ -48,5 +50,7 @@ class CH_MODELS_API M113_DrivelineBDS : public chrono::vehicle::ChTrackDriveline
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

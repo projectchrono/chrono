@@ -1,18 +1,18 @@
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
-#include "chrono_parallel/solver/ChSolverAPGD.h"
-#include "chrono_parallel/solver/ChSolverAPGDREF.h"
-#include "chrono_parallel/solver/ChSolverBiCG.h"
-#include "chrono_parallel/solver/ChSolverBiCGStab.h"
-#include "chrono_parallel/solver/ChSolverCG.h"
-#include "chrono_parallel/solver/ChSolverCGS.h"
-#include "chrono_parallel/solver/ChSolverMinRes.h"
-#include "chrono_parallel/solver/ChSolverSD.h"
-#include "chrono_parallel/solver/ChSolverGD.h"
-#include "chrono_parallel/solver/ChSolverPGS.h"
-#include "chrono_parallel/solver/ChSolverJacobi.h"
-#include "chrono_parallel/solver/ChSolverPDIP.h"
+#include "chrono_parallel/solver/ChSolverParallelAPGD.h"
+#include "chrono_parallel/solver/ChSolverParallelAPGDREF.h"
+#include "chrono_parallel/solver/ChSolverParallelBiCG.h"
+#include "chrono_parallel/solver/ChSolverParallelBiCGStab.h"
+#include "chrono_parallel/solver/ChSolverParallelCG.h"
+#include "chrono_parallel/solver/ChSolverParallelCGS.h"
+#include "chrono_parallel/solver/ChSolverParallelMinRes.h"
+#include "chrono_parallel/solver/ChSolverParallelSD.h"
+#include "chrono_parallel/solver/ChSolverParallelGD.h"
+#include "chrono_parallel/solver/ChSolverParallelPGS.h"
+#include "chrono_parallel/solver/ChSolverParallelJacobi.h"
+#include "chrono_parallel/solver/ChSolverParallelPDIP.h"
 using namespace chrono;
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
@@ -395,43 +395,43 @@ void ChIterativeSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
   }
   switch (type) {
     case STEEPEST_DESCENT:
-      solver = new ChSolverSD();
+      solver = new ChSolverParallelSD();
       break;
     case GRADIENT_DESCENT:
-      solver = new ChSolverGD();
+      solver = new ChSolverParallelGD();
       break;
     case CONJUGATE_GRADIENT:
-      solver = new ChSolverCG();
+      solver = new ChSolverParallelCG();
       break;
     case CONJUGATE_GRADIENT_SQUARED:
-      solver = new ChSolverCGS();
+      solver = new ChSolverParallelCGS();
       break;
     case BICONJUGATE_GRADIENT:
-      solver = new ChSolverBiCG();
+      solver = new ChSolverParallelBiCG();
       break;
     case BICONJUGATE_GRADIENT_STAB:
-      solver = new ChSolverBiCGStab();
+      solver = new ChSolverParallelBiCGStab();
       break;
     case MINIMUM_RESIDUAL:
-      solver = new ChSolverMinRes();
+      solver = new ChSolverParallelMinRes();
       break;
-    case QUASAI_MINIMUM_RESIDUAL:
+    case QUASI_MINIMUM_RESIDUAL:
       // This solver has not been implemented yet
       break;
     case APGD:
-      solver = new ChSolverAPGD();
+      solver = new ChSolverParallelAPGD();
       break;
     case APGDREF:
-      solver = new ChSolverAPGDREF();
+      solver = new ChSolverParallelAPGDREF();
       break;
     case JACOBI:
-      solver = new ChSolverJacobi();
+      solver = new ChSolverParallelJacobi();
       break;
     case GAUSS_SEIDEL:
-      solver = new ChSolverPGS();
+      solver = new ChSolverParallelPGS();
       break;
     case PDIP:
-      solver = new ChSolverPDIP();
+      solver = new ChSolverParallelPDIP();
       break;
   }
 }

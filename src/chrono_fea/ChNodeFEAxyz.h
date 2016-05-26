@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Andrea Favali, Alessandro Tasora
+// =============================================================================
+// Authors: Andrea Favali, Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHNODEFEAXYZ_H
 #define CHNODEFEAXYZ_H
 
-#include "chrono/solver/ChVariablesNode.h"
 #include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/solver/ChVariablesNode.h"
 #include "chrono_fea/ChNodeFEAbase.h"
 
 namespace chrono {
@@ -30,59 +32,31 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     CH_RTTI(ChNodeFEAxyz, ChNodeXYZ);
 
   public:
-    ChNodeFEAxyz(ChVector<> initial_pos = VNULL) {
-        X0 = initial_pos;
-        pos = initial_pos;
-        Force = VNULL;
-        variables.SetNodeMass(0.0);
-    }
-
+    ChNodeFEAxyz(ChVector<> initial_pos = VNULL);
+    ChNodeFEAxyz(const ChNodeFEAxyz& other);
     virtual ~ChNodeFEAxyz() {}
 
-    ChNodeFEAxyz(const ChNodeFEAxyz& other) : ChNodeFEAbase(other), ChNodeXYZ(other) {
-        this->X0 = other.X0;
-        this->Force = other.Force;
-        this->variables = other.variables;
-    }
+    ChNodeFEAxyz& operator=(const ChNodeFEAxyz& other);
 
-    ChNodeFEAxyz& operator=(const ChNodeFEAxyz& other) {
-        if (&other == this)
-            return *this;
-
-        ChNodeFEAbase::operator=(other);
-        ChNodeFEAxyz::operator=(other);
-
-        this->X0 = other.X0;
-        this->Force = other.Force;
-        this->variables = other.variables;
-        return *this;
-    }
-
-    virtual ChVariablesNode& Variables() override { return this->variables; }
+    virtual ChVariablesNode& Variables() override { return variables; }
 
     /// Set the rest position as the actual position.
-    virtual void Relax() override {
-        X0 = this->pos;
-        this->SetNoSpeedNoAcceleration();
-    }
+    virtual void Relax() override;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override {
-        this->pos_dt = VNULL;
-        this->pos_dtdt = VNULL;
-    }
+    virtual void SetNoSpeedNoAcceleration() override;
 
     /// Set the 'fixed' state of the node.
     /// If true, its current field value is not changed by solver.
     virtual void SetFixed(bool mev) override { variables.SetDisabled(mev); }
     /// Get the 'fixed' state of the node.
     /// If true, its current field value is not changed by solver.
-    virtual bool GetFixed() override {return variables.IsDisabled(); }
+    virtual bool GetFixed() override { return variables.IsDisabled(); }
 
     /// Get mass of the node.
-    virtual double GetMass() const override { return this->variables.GetNodeMass(); }
+    virtual double GetMass() const override { return variables.GetNodeMass(); }
     /// Set mass of the node.
-    virtual void SetMass(double mm) override { this->variables.SetNodeMass(mm); }
+    virtual void SetMass(double mm) override { variables.SetNodeMass(mm); }
 
     /// Set the initial (reference) position
     virtual void SetX0(ChVector<> mx) { X0 = mx; }
@@ -95,7 +69,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     virtual ChVector<> GetForce() { return Force; }
 
     /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() override { return 3; }
+    virtual int Get_ndof_x() const override { return 3; }
 
     //
     // Functions for interfacing to the state bookkeeping
@@ -106,8 +80,8 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
                                     const unsigned int off_v,
                                     ChStateDelta& v,
                                     double& T) override {
-        x.PasteVector(this->pos, off_x, 0);
-        v.PasteVector(this->pos_dt, off_v, 0);
+        x.PasteVector(pos, off_x, 0);
+        v.PasteVector(pos_dt, off_v, 0);
     }
 
     virtual void NodeIntStateScatter(const unsigned int off_x,
@@ -115,16 +89,16 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
                                      const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const double T) override {
-        this->SetPos(x.ClipVector(off_x, 0));
-        this->SetPos_dt(v.ClipVector(off_v, 0));
+        SetPos(x.ClipVector(off_x, 0));
+        SetPos_dt(v.ClipVector(off_v, 0));
     }
 
     virtual void NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override {
-        a.PasteVector(this->pos_dtdt, off_a, 0);
+        a.PasteVector(pos_dtdt, off_a, 0);
     }
 
     virtual void NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override {
-        this->SetPos_dtdt(a.ClipVector(off_a, 0));
+        SetPos_dtdt(a.ClipVector(off_a, 0));
     }
 
     virtual void NodeIntStateIncrement(const unsigned int off_x,
@@ -138,7 +112,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     }
 
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override {
-        R.PasteSumVector(this->Force * c, off, 0);
+        R.PasteSumVector(Force * c, off, 0);
     }
 
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
@@ -153,83 +127,58 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     virtual void NodeIntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R) override {
-        this->variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 3, 1, 0, 0);
-        this->variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 3, 1, 0, 0);
+        variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 3, 1, 0, 0);
+        variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 3, 1, 0, 0);
     }
 
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
-        v.PasteMatrix(&this->variables.Get_qb(), off_v, 0);
+        v.PasteMatrix(&variables.Get_qb(), off_v, 0);
     }
 
     //
     // Functions for interfacing to the solver
     //
 
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override {
-        mdescriptor.InsertVariables(&this->variables);
-    }
+    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override { mdescriptor.InsertVariables(&variables); }
 
-    virtual void VariablesFbReset() override { this->variables.Get_fb().FillElem(0.0); }
+    virtual void VariablesFbReset() override { variables.Get_fb().FillElem(0.0); }
 
     virtual void VariablesFbLoadForces(double factor = 1) override {
-        this->variables.Get_fb().PasteSumVector(this->Force * factor, 0, 0);
+        variables.Get_fb().PasteSumVector(Force * factor, 0, 0);
     }
 
-    virtual void VariablesQbLoadSpeed() override { this->variables.Get_qb().PasteVector(this->pos_dt, 0, 0); }
+    virtual void VariablesQbLoadSpeed() override { variables.Get_qb().PasteVector(pos_dt, 0, 0); }
 
     virtual void VariablesQbSetSpeed(double step = 0) override {
-        ChVector<> old_dt = this->pos_dt;
-        this->SetPos_dt(this->variables.Get_qb().ClipVector(0, 0));
+        ChVector<> old_dt = pos_dt;
+        SetPos_dt(variables.Get_qb().ClipVector(0, 0));
         if (step) {
-            this->SetPos_dtdt((this->pos_dt - old_dt) / step);
+            SetPos_dtdt((pos_dt - old_dt) / step);
         }
     }
 
     virtual void VariablesFbIncrementMq() override {
-        this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+        variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
     }
 
     virtual void VariablesQbIncrementPosition(double step) override {
         ChVector<> newspeed = variables.Get_qb().ClipVector(0, 0);
 
         // ADVANCE POSITION: pos' = pos + dt * vel
-        this->SetPos(this->GetPos() + newspeed * step);
+        SetPos(GetPos() + newspeed * step);
     }
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChNodeFEAbase::ArchiveOUT(marchive);
-        // serialize parent class
-        ChNodeXYZ::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(X0);
-        marchive << CHNVP(Force);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChNodeFEAbase::ArchiveIN(marchive);
-        // serialize parent class
-        ChNodeXYZ::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(X0);
-        marchive >> CHNVP(Force);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
     ChVariablesNode variables;  /// 3D node variables, with x,y,z
-
-    ChVector<> X0;     ///< reference position
-    ChVector<> Force;  ///< applied force
+    ChVector<> X0;              ///< reference position
+    ChVector<> Force;           ///< applied force
 };
 
 }  // end namespace fea

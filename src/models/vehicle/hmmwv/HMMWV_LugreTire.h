@@ -23,9 +23,11 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_LugreTire : public chrono::vehicle::ChLugreTire {
+class CH_MODELS_API HMMWV_LugreTire : public ChLugreTire {
   public:
     HMMWV_LugreTire(const std::string& name);
     ~HMMWV_LugreTire() {}
@@ -49,5 +51,7 @@ class CH_MODELS_API HMMWV_LugreTire : public chrono::vehicle::ChLugreTire {
 };
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -18,9 +18,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_RigidTire.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -39,3 +38,5 @@ HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name) : ChRigidTire(name) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

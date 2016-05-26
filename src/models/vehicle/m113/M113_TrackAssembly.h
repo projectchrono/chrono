@@ -25,19 +25,23 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 ///
 ///
 ///
-class CH_MODELS_API M113_TrackAssembly : public chrono::vehicle::ChTrackAssembly {
+class CH_MODELS_API M113_TrackAssembly : public ChTrackAssembly {
   public:
-    M113_TrackAssembly(chrono::vehicle::VehicleSide side);
+    M113_TrackAssembly(VehicleSide side);
     ~M113_TrackAssembly() {}
 
   private:
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -23,9 +23,8 @@
 
 #include "models/vehicle/m113/M113_Idler.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
@@ -47,10 +46,10 @@ const double M113_Idler::m_tensioner_k = 1e6;
 const double M113_Idler::m_tensioner_c = 1.4e4;
 
 const std::string M113_IdlerLeft::m_meshName = "Idler_L_POV_geom";
-const std::string M113_IdlerLeft::m_meshFile = vehicle::GetDataFile("M113/Idler_L.obj");
+const std::string M113_IdlerLeft::m_meshFile = "M113/Idler_L.obj";
 
 const std::string M113_IdlerRight::m_meshName = "Idler_R_POV_geom";
-const std::string M113_IdlerRight::m_meshFile = vehicle::GetDataFile("M113/Idler_R.obj");
+const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -71,8 +70,7 @@ class M113_TensionerForce : public ChSpringForceCallback {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Idler::M113_Idler(const std::string& name)
-    : ChDoubleIdler(name), m_vis_type(PRIMITIVES) {
+M113_Idler::M113_Idler(const std::string& name) : ChDoubleIdler(name), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.7f, 0.1f, 1e8f, 0.3f);
     m_tensionerForceCB = new M113_TensionerForce(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
 }
@@ -128,4 +126,12 @@ const ChVector<> M113_Idler::GetLocation(PointId which) {
     return point;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void M113_Idler::ExportMeshPovray(const std::string& out_dir) {
+    utils::WriteMeshPovray(GetMeshFile(), GetMeshName(), out_dir, ChColor(0.15f, 0.15f, 0.15f));
+}
+
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

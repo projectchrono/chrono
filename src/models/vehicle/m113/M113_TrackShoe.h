@@ -26,12 +26,14 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 ///
 ///
 ///
-class CH_MODELS_API M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
+class CH_MODELS_API M113_TrackShoe : public ChSinglePinShoe {
   public:
     M113_TrackShoe();
     ~M113_TrackShoe() {}
@@ -39,7 +41,7 @@ class CH_MODELS_API M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     /// Return the type of track shoe (guiding pin).
     /// A derived class must specify the type of track shoe (which must be
     /// consistent with the idler and road wheels in the containing track assembly).
-    virtual chrono::vehicle::TrackShoeType GetType() const override { return chrono::vehicle::CENTRAL_PIN; }
+    virtual TrackShoeType GetType() const override { return CENTRAL_PIN; }
     /// Return the height of the track shoe.
     virtual double GetHeight() const override { return m_shoe_height; }
     /// Return the pitch length of the track shoe.
@@ -49,7 +51,7 @@ class CH_MODELS_API M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
-    virtual const chrono::ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
+    virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
 
     /// Return the location of the front contact cylinder.
     virtual double GetFrontCylinderLoc() const { return m_front_cyl_loc; }
@@ -65,13 +67,13 @@ class CH_MODELS_API M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     virtual void AddShoeContact() override;
 
     /// Set the track shoe visualization type.
-    void SetVisType(chrono::vehicle::VisualizationType vis) { m_vis_type = vis; }
+    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
 
   private:
     static const double m_shoe_height;
     static const double m_shoe_pitch;
     static const double m_shoe_mass;
-    static const chrono::ChVector<> m_shoe_inertia;
+    static const ChVector<> m_shoe_inertia;
 
     static const double m_cyl_radius;
     static const double m_front_cyl_loc;
@@ -80,9 +82,11 @@ class CH_MODELS_API M113_TrackShoe : public chrono::vehicle::ChSinglePinShoe {
     static const std::string m_meshName;
     static const std::string m_meshFile;
 
-    chrono::vehicle::VisualizationType m_vis_type;
+    VisualizationType m_vis_type;
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

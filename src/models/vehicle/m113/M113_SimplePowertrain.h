@@ -22,14 +22,16 @@
 #ifndef M113_SIMPLEPOWERTRAIN_H
 #define M113_SIMPLEPOWERTRAIN_H
 
-#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
-class CH_MODELS_API M113_SimplePowertrain : public chrono::vehicle::ChSimplePowertrain {
+class CH_MODELS_API M113_SimplePowertrain : public ChSimplePowertrain {
   public:
     M113_SimplePowertrain();
 
@@ -48,5 +50,7 @@ class CH_MODELS_API M113_SimplePowertrain : public chrono::vehicle::ChSimplePowe
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

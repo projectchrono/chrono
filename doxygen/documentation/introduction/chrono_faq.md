@@ -57,11 +57,7 @@ There is no difference, we use these two terms interchangeably. We recognize a m
 <br><br>
 
 #### What is a Chrono toolkit, and how is it identified?
-To further confuse the Chrono users, we also have toolkits. At some point, we planned to identify a toolkit  by referring to it via the "." notation. We abandoned the idea and Chrono.Vehicle became Chrono::Vehicle. In general, a toolkit is a set of services provided at the API level that allows the user to set up Chrono simulations quickly. The toolkits are focused in their purpose. For instance, there is a toolkit called Chrono.Vehicle. We are working on other toolkits that would give the user a jump start in his/her use of Chrono. For instance, at various stages of maturity, we can talk of Chrono.Robotics, Chrono.Granular, and Chrono.CAVs (from connected autonomous vehicles). In principle, any modeling functionality available via a toolkit is also available through the Chrono API. An analogy that makes this point is as follows: one can build a house from a couple of rooms (high level entities) or by using very many bricks. The former is enabled by a toolkit; the latter is enabled via the Chrono API. Toolkits buy speed in modeling. The plain vanilla Chrono API allows for generality.
-<br><br>
-
-#### What is the difference between a module and a toolkit?
-A module is a chunk of code that provides functionality. A toolkit is a collection of modelling assets that facilitate quick use of Chrono. A module is something that a developer is concerned with. A toolkit is something that the user deals with.
+A toolkit represents a collection of services provided at the API level to allow the user to set up Chrono simulations quickly. The toolkits are focused in their purpose. For instance, there is a toolkit called Chrono::Vehicle to facilitate the modeling and simulation of vehicles in Chrono.
 <br><br>
 
 #### What is a typical Chrono work flow?
@@ -75,8 +71,9 @@ The results can be post-processed with Pov-Ray&copy; to obtained high quality mo
 
 ![](workflow.png)
 
-#### What is a very high level overview on how Chrono is organized?
-There are five foundational components that provide support for equation formulation, equation solution, proximity computation, parallel computing, and post-processing. The software is organized so that it draws on parallel computing, which can come in one of several flavours: GPU computing (as enabled by CUDA), multi-core parallel computing (as enabled by OpenMP), and distributed-memory parallel computing (as enabled by MPI). The rigid body dynamics, flexible body dynamics, and fluid-solid interaction solution is built on the mentioned foundational components. An API is in place to define the model and ask Chrono to perform certain operations in relation to it. User toolkits (such as Chrono::Vehicle, Chrono::Granular, Chrono::CAVs, etc.) are in place to ease the pre/post-processing burden associated with Chrono simulation. Note that some modules are less developed than others. For instance, the MPI support is not lacking owing to poor performance we obtained out of it in some previous experiments. 
+#### What is a high level overview on how Chrono is organized?
+One can think of Chrono as having five foundational components that provide support for equation formulation, equation solution, proximity computation, parallel computing, and post-processing. The software is organized so that it draws on parallel computing: GPU computing (as enabled by CUDA), multi-core parallel computing (as enabled by OpenMP), and distributed-memory parallel computing (as enabled by MPI). The rigid body dynamics, flexible body dynamics, and fluid-solid interaction solution is built on the aforementioned foundational components. An API is in place to define a model and instruct Chrono to perform certain operations in relation to it. User toolkits (such as Chrono::Vehicle, Chrono::Granular,  etc.) are in place to ease the pre/post-processing burden associated with Chrono simulation. Some modules are less developed than others. For instance, the MPI support is not available at this time owing to poor scaling performance we obtained during previous experiments. 
 
 ![](chronoStructure2016.png)
+
 

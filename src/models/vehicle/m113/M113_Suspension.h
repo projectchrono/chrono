@@ -26,41 +26,43 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 ///
 ///
 ///
-class CH_MODELS_API M113_Suspension : public chrono::vehicle::ChLinearDamperRWAssembly {
+class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
   public:
-    M113_Suspension(chrono::vehicle::VehicleSide side, bool has_shock);
+    M113_Suspension(VehicleSide side, bool has_shock);
     ~M113_Suspension();
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const chrono::ChVector<> GetLocation(PointId which) override;
+    virtual const ChVector<> GetLocation(PointId which) override;
 
     /// Return the mass of the arm body.
     virtual double GetArmMass() const override { return m_arm_mass; }
     /// Return the moments of inertia of the arm body.
-    virtual const chrono::ChVector<>& GetArmInertia() const override { return m_arm_inertia; }
+    virtual const ChVector<>& GetArmInertia() const override { return m_arm_inertia; }
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
     /// Return the funtion for torsion force
-    virtual chrono::ChLinkForce* GetTorsionForceFunction() const override { return m_torsion_force; }
+    virtual ChLinkForce* GetTorsionForceFunction() const override { return m_torsion_force; }
 
     /// Return the callback function for shock force.
-    virtual chrono::ChSpringForceCallback* GetShockForceCallback() const override { return m_shock_forceCB; }
+    virtual ChSpringForceCallback* GetShockForceCallback() const override { return m_shock_forceCB; }
 
   private:
-    chrono::vehicle::VehicleSide m_side;
+    VehicleSide m_side;
 
-    chrono::ChLinkForce* m_torsion_force;
-    chrono::ChSpringForceCallback* m_shock_forceCB;
+    ChLinkForce* m_torsion_force;
+    ChSpringForceCallback* m_shock_forceCB;
 
     static const double m_arm_mass;
-    static const chrono::ChVector<> m_arm_inertia;
+    static const ChVector<> m_arm_inertia;
     static const double m_arm_radius;
 
     static const double m_torsion_a0;
@@ -72,5 +74,7 @@ class CH_MODELS_API M113_Suspension : public chrono::vehicle::ChLinearDamperRWAs
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -1,12 +1,12 @@
-#include "chrono_parallel/solver/ChSolverJacobi.h"
+#include "chrono_parallel/solver/ChSolverParallelJacobi.h"
 #include <blaze/math/SparseRow.h>
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
-uint ChSolverJacobi::SolveJacobi(const uint max_iter,
-                                 const uint size,
-                                 DynamicVector<real>& mb,
-                                 DynamicVector<real>& ml) {
+uint ChSolverParallelJacobi::SolveJacobi(const uint max_iter,
+                                         const uint size,
+                                         DynamicVector<real>& mb,
+                                         DynamicVector<real>& ml) {
   real& residual = data_manager->measures.solver.residual;
   real& objective_value = data_manager->measures.solver.objective_value;
 

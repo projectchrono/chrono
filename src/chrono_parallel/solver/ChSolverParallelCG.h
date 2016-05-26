@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Implementation of an iterative BiCG solver.
+// Implementation of an iterative Conjugate Gradient solver.
 // =============================================================================
 
 #pragma once
@@ -21,29 +21,28 @@
 
 namespace chrono {
 
-class CH_PARALLEL_API ChSolverBiCG : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelCG : public ChSolverParallel {
  public:
-  ChSolverBiCG() : ChSolverParallel() {}
-  ~ChSolverBiCG() {}
+  ChSolverParallelCG() : ChSolverParallel() {}
+  ~ChSolverParallelCG() {}
 
   void Solve() {
     if (data_manager->num_constraints == 0) {
       return;
     }
     data_manager->system_timer.start("ChSolverParallel_Solve");
-    data_manager->measures.solver.total_iteration += SolveBiCG(
+    data_manager->measures.solver.total_iteration += SolveCG(
         max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
     data_manager->system_timer.stop("ChSolverParallel_Solve");
   }
 
-  // Solve using the biconjugate gradient method
-  uint SolveBiCG(const uint max_iter,            // Maximum number of iterations
-                 const uint size,                // Number of unknowns
-                 DynamicVector<real>& b,  // Rhs vector
-                 DynamicVector<real>& x   // The vector of unknowns
-                 );
+  // Solve using the conjugate gradient method
+  uint SolveCG(const uint max_iter,            // Maximum number of iterations
+               const uint size,                // Number of unknowns
+               DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x   // The vector of unknowns
+               );
 
-  DynamicVector<real> z, ztilde, p, ptilde, q, qtilde, r, rtilde;
-  real rho_1, rho_2, alpha, beta;
+  DynamicVector<real> r, p, Ap;
 };
 }

@@ -1,12 +1,12 @@
-#include "chrono_parallel/solver/ChSolverPGS.h"
+#include "chrono_parallel/solver/ChSolverParallelPGS.h"
 #include <blaze/math/SparseRow.h>
 #include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
-uint ChSolverPGS::SolvePGS(const uint max_iter,
-                           const uint size,
-                           DynamicVector<real>& mb,
-                           DynamicVector<real>& ml) {
+uint ChSolverParallelPGS::SolvePGS(const uint max_iter,
+                                   const uint size,
+                                   DynamicVector<real>& mb,
+                                   DynamicVector<real>& ml) {
   //  real& residual = data_manager->measures.solver.residual;
   //  real& objective_value = data_manager->measures.solver.objective_value;
   //  custom_vector<real>& iter_hist = data_manager->measures.solver.iter_hist;

@@ -1,11 +1,11 @@
-#include "chrono_parallel/solver/ChSolverCG.h"
+#include "chrono_parallel/solver/ChSolverParallelCG.h"
 
 using namespace chrono;
 
-uint ChSolverCG::SolveCG(const uint max_iter,
-                         const uint size,
-                         DynamicVector<real>& mb,
-                         DynamicVector<real>& ml) {
+uint ChSolverParallelCG::SolveCG(const uint max_iter,
+                                 const uint size,
+                                 DynamicVector<real>& mb,
+                                 DynamicVector<real>& ml) {
   real& residual = data_manager->measures.solver.residual;
   real& objective_value = data_manager->measures.solver.objective_value;
 

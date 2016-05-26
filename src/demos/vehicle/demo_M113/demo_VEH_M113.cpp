@@ -29,7 +29,7 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace m113;
+using namespace chrono::vehicle::m113;
 
 // =============================================================================
 // USER SETTINGS

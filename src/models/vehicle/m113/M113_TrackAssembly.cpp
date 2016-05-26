@@ -16,23 +16,21 @@
 //
 // =============================================================================
 
-#include "models/vehicle/m113/M113_Sprocket.h"
-#include "models/vehicle/m113/M113_Idler.h"
 #include "models/vehicle/m113/M113_BrakeSimple.h"
+#include "models/vehicle/m113/M113_Idler.h"
 #include "models/vehicle/m113/M113_RoadWheel.h"
+#include "models/vehicle/m113/M113_Sprocket.h"
 #include "models/vehicle/m113/M113_Suspension.h"
-#include "models/vehicle/m113/M113_TrackShoe.h"
 #include "models/vehicle/m113/M113_TrackAssembly.h"
+#include "models/vehicle/m113/M113_TrackShoe.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackAssembly::M113_TrackAssembly(VehicleSide side)
-    : ChTrackAssembly("", side) {
+M113_TrackAssembly::M113_TrackAssembly(VehicleSide side) : ChTrackAssembly("", side) {
     size_t num_shoes;
     if (side == LEFT) {
         SetName("M113_TrackAssemblyLeft");
@@ -61,3 +59,5 @@ M113_TrackAssembly::M113_TrackAssembly(VehicleSide side)
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHITERATIVESOLVER_H
 #define CHITERATIVESOLVER_H
@@ -49,10 +51,6 @@ class ChApi ChIterativeSolver : public ChSolver {
     std::vector<double> dlambda_history;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChIterativeSolver(int mmax_iters = 50,       ///< max.number of iterations
                       bool mwarm_start = false,  ///< uses warm start?
                       double mtolerance = 0.0,   ///< tolerance for termination criterion
@@ -65,33 +63,26 @@ class ChApi ChIterativeSolver : public ChSolver {
           tolerance(mtolerance),
           omega(momega),
           shlambda(mshlambda),
-          record_violation_history(false) {
-        violation_history.clear();
-        dlambda_history.clear();
-    }
+          record_violation_history(false) {}
 
     virtual ~ChIterativeSolver() {}
-
-    //
-    // FUNCTIONS
-    //
 
     /// Set the maximum number of iterations (if the
     /// solver exceed this limit, it should stop even if
     /// the required tolerance isn't yet reached.
     /// Default limit: 50 iterations.
-    virtual void SetMaxIterations(int mval) { max_iterations = mval; }
-    virtual int GetMaxIterations() { return max_iterations; }
-    virtual int GetTotalIterations() { return tot_iterations; }
+    void SetMaxIterations(int mval) { max_iterations = mval; }
+    int GetMaxIterations() const { return max_iterations; }
+    int GetTotalIterations() const { return tot_iterations; }
 
     /// Set the overrelaxation factor, if used; it can be
     /// used by SOR-like methods.
     /// Default=1. Value clamped if lower than 0.
-    virtual void SetOmega(double mval) {
+    void SetOmega(double mval) {
         if (mval > 0.)
             omega = mval;
     }
-    virtual double GetOmega() { return omega; }
+    double GetOmega() const { return omega; }
 
     /// Set the sharpness factor, if used; it can be
     /// used by SOR-like methods with projection (see Mangasarian LCP method)
@@ -100,21 +91,21 @@ class ChApi ChIterativeSolver : public ChSolver {
         if (mval > 0.)
             shlambda = mval;
     }
-    virtual double GetSharpnessLambda() { return shlambda; }
+    virtual double GetSharpnessLambda() const { return shlambda; }
 
     ///	Set if the solver should 'warm start' from the
     /// actual values of the variables. Useful if the
     /// variables are already near to the solution. In
     /// most iterative schemes, this is often a good trick.
-    virtual void SetWarmStart(bool mval) { warm_start = mval; }
-    virtual bool GetWarmStart() { return warm_start; }
+    void SetWarmStart(bool mval) { warm_start = mval; }
+    bool GetWarmStart() const { return warm_start; }
 
     /// Set the tolerance (default is 0.) for stopping
     /// criterion. The iteration is stopped when the
     /// constraint feasability error goes under this
     /// tolerance.
-    virtual void SetTolerance(double mval) { tolerance = mval; }
-    virtual double GetTolerance() { return tolerance; }
+    void SetTolerance(double mval) { tolerance = mval; }
+    double GetTolerance() const { return tolerance; }
 
     /// Set 'true' if you want the iterative solver to
     /// record the values of constraint violation into
@@ -122,18 +113,18 @@ class ChApi ChIterativeSolver : public ChSolver {
     /// so you can plot a graph of how the residual decreases
     /// during iterations until solution is reached)
     void SetRecordViolation(bool mval) { record_violation_history = mval; }
-    bool GetRecordViolation() { return record_violation_history; }
+    bool GetRecordViolation() const { return record_violation_history; }
 
     /// Access the vector with the (hopefully decreasing:)
     /// history of values showing the max constraint violation
     /// changing during iterations, up to solution.
     /// Note that you must set SetRecordViolation(true) to use it.
-    std::vector<double>& GetViolationHistory() { return violation_history; };
+    const std::vector<double>& GetViolationHistory() const { return violation_history; }
 
     /// Access the vector with the (hopefully decreasing:)
     /// history of max delta in lambda multiplier values.
     /// Note that you must set SetRecordViolation(true) to use it.
-    std::vector<double>& GetDeltalambdaHistory() { return dlambda_history; };
+    const std::vector<double>& GetDeltalambdaHistory() const { return dlambda_history; };
 
   protected:
     // This method MUST be called by all iterative
@@ -160,7 +151,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -175,7 +166,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class

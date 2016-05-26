@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar, Daniel Melanz
+// Authors: Hammad Mazhar
 // =============================================================================
 //
-// Implementation of APGD that is exactly like the thesis
+// Implementation of an iterative Steepest Descent solver.
 // =============================================================================
 
 #pragma once
@@ -21,34 +21,28 @@
 
 namespace chrono {
 
-class CH_PARALLEL_API ChSolverAPGDREF : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelSD : public ChSolverParallel {
  public:
-  ChSolverAPGDREF() : ChSolverParallel() {}
-  ~ChSolverAPGDREF() {}
+  ChSolverParallelSD() : ChSolverParallel() {}
+  ~ChSolverParallelSD() {}
 
   void Solve() {
     if (data_manager->num_constraints == 0) {
       return;
     }
     data_manager->system_timer.start("ChSolverParallel_Solve");
-    data_manager->measures.solver.total_iteration += SolveAPGDREF(
+    data_manager->measures.solver.total_iteration += SolveSD(
         max_iteration, data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
     data_manager->system_timer.stop("ChSolverParallel_Solve");
   }
 
-  // Solve using the APGD method
-  uint SolveAPGDREF(const uint max_iter,                  // Maximum number of iterations
-                    const uint size,                      // Number of unknowns
-                    const DynamicVector<real>& r,  // Rhs vector
-                    DynamicVector<real>& gamma     // The vector of unknowns
-                    );
+  // Solve using the steepest descent method
+  uint SolveSD(const uint max_iter,            // Maximum number of iterations
+               const uint size,                // Number of unknowns
+               DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x   // The vector of unknowns
+               );
 
-  // Compute the residual for the solver
-  real Res4(DynamicVector<real>& gamma, const DynamicVector<real>& r, DynamicVector<real>& tmp);
-
-  // APGD specific vectors
-  DynamicVector<real> gamma_hat;
-  DynamicVector<real> gammaNew, g, y, yNew, tmp;
+  DynamicVector<real> r, temp;
 };
 }
-

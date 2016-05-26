@@ -25,9 +25,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_DoubleWishboneReduced.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -166,3 +165,5 @@ const ChVector<> HMMWV_DoubleWishboneReducedRear::getLocation(PointId which) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

@@ -2,10 +2,8 @@
 Mathematical objects in Chrono        {#mathematical_objects}
 ==============================
 
-This chapter is about mathematical functions and classes in 
-Chrono::Engine. Although reading this chapter is not mandatory, 
-we present it here, at the beginning of the manual, because these 
-concepts are quite ubiquitous in the rest of the Chrono::Engine API. 
+This documentation component focuses on Chrono mathematical functions and classes. 
+These concepts are quite ubiquitous in the rest of the Chrono API and they are discussed also in the @ref chrono::ChMatrix API documentation.
 
 \tableofcontents
 
@@ -13,12 +11,8 @@ concepts are quite ubiquitous in the rest of the Chrono::Engine API.
 
 # Linear algebra   {#linear_algebra}
 
-One of the first things to learn about the Chrono::Engine API 
-is to manage linear algebra operations, with vectors and matrices.
-
-Most of these features are detailed in the @ref chrono::ChMatrix API documentation. 
-ChMatrix is the base class for order-two tensors (matrices, vectors) 
-and it is used in many places.
+Handling vectors and matrices is a recurring theme throughout the Chrono API.
+ChMatrix is the base class for matrices and vectors and it is used extensively.
 
 Matrices are indexed starting from 0, with (row,column) indexing:
 
@@ -33,14 +27,12 @@ a_{n_{rows}-1,0} & ... & ... & a_{n_{rows}-1,n_{cols}-1}
 \right]
 \f]
 
-There are many specializations of ChMatrix, in the following we review the basic features of them.
+There are many specializations of ChMatrix and some of their basic features are outlined next.
 
 
 ##ChMatrixDynamic##
 
-Use ChMatrixDynamic<> to create a matrix with generic size, say 12 rows x 4 columns. Thank to the template argument, you can tell that you are using elements of
-type 'double' floating-point precision (note, leaving <> defaults to <double> )
-If you do not worry about performance, this is the type of matrix that you can use to do everything.
+Use ChMatrixDynamic<> to create a matrix with generic size, say 12 rows x 4 columns. Owing to the template argument, one can indicate what type of data the matrix is supposed to store. Note that the default type is 'double'. If performance is not a top issue, this is the type of matrix that is most accurate.
 
 ~~~{.cpp}
 chrono::ChMatrixDynamic<double> mh(12,4);
@@ -50,7 +42,7 @@ See @ref chrono::ChMatrixDynamic for API details.
 
 ##ChMatrixNM##
 
-Use ChMatrixNM<> to create matrices that do not need to be resized, and whose size is known at compile-time. Columns x rows are passed in template <..> brackets. Although the functionalities are the same of ChMatrixDynamic<>, this type of matrix has better performance (but avoid using it for large sizes, because it is allocated on stack).
+Use ChMatrixNM<> to create matrices that do not need to be resized and whose size is known at compile-time. Columns x rows are passed in template <..> brackets. Although the functionalities are the same of ChMatrixDynamic<>, this type of matrix has better performance. Avoid using it for large M and N sizes since it is allocated on the stack.
 
 ~~~{.cpp}
 chrono::ChMatrixNM<double,4,4> mm;
@@ -61,8 +53,8 @@ See @ref chrono::ChMatrixNM for API details.
 
 ##ChMatrix33##
 
-Use ChMatrix33<> to create 3x3 matrices, mostly used for coordinate transformations.
-It inherits the same high-performance features of ChMatrixNM<>, but also offers special functions for coordinate and rotation operations.
+Use ChMatrix33<> to create 3x3 matrices, which are mostly used for coordinate transformations.
+It inherits the same high-performance features of ChMatrixNM<> and offers additional dedicated functions for coordinate and rotation operations.
 
 ~~~{.cpp}
 	chrono::ChMatrix33<> ma;
@@ -73,8 +65,10 @@ See @ref chrono::ChMatrix33 for API details.
 
 ##ChVectorDynamic##
 
-Use ChVectorDynamic<> to create a one-column matrix with generic number of rows.
-Do not confuse it with the ChVector class that is used to represent 3D vectors in space.
+Use ChVectorDynamic<> to create a one-column matrix with a generic number of rows.
+<div class="ce-info">
+This class is different than the ChVector class. The latter is used to represent 3D vectors in space.
+</div>
 
 ~~~{.cpp}
 chrono::ChVectorDynamic<double> mv(12);
@@ -84,7 +78,7 @@ See @ref chrono::ChVectorDynamic for API details.
 
 
 
-Now let's see some basic operations with matrices:
+##Basic operations with matrices##
 
 ~~~{.cpp}
 		// Fill a matrix with an element
@@ -101,7 +95,7 @@ Now let's see some basic operations with matrices:
 		// Transpose the matrix in place
 	me.MatrTranspose();
 
-		// Resets the matrix to zero (and modify size, if necessary).
+		// Reset the matrix to zero (and modify size, if necessary).
 	me.Reset(2,2);
 
 
@@ -109,7 +103,7 @@ Now let's see some basic operations with matrices:
 	chrono::ChMatrixDynamic<> md(4,4);
 	md.FillDiag(3);
 
-		// Use the () operator to reference single elements
+		// Use the () operator to reference matrix entries
 	md(0,0) = 10;
 	md(1,2) = md(0,0)+md(1,1);
 	md.Element(2,2) = 4;	// The md.Element(.,.) function has the same effect as md(.,.)
@@ -132,12 +126,13 @@ Now let's see some basic operations with matrices:
 	ma3.CopyFromMatrixT(ma1);	
 ~~~
 
-See how one can use the  + * -  *= += -=  operators to perform matrix algebra, thanks to C++ operator overloading.
+<\br>
+Rely on C++ operator overloading to use the  + * -  *= += -=  operators to perform matrix algebra.
 
 <div class="ce-info">
-Note that the + - *  operators may introduce overhead because they may instance temporary
+Note that the + - *  operators may introduce overhead because they instantiate temporary
 matrix objects as intermediate results. Use *= -= +=  operators whenever possible,  
-or use the specific Add() Multiply() functions, for highest computational speed.
+or use the specific Add() Multiply() functions for highest computational speed.
 </div>
 
 ~~~{.cpp}
@@ -147,15 +142,15 @@ or use the specific Add() Multiply() functions, for highest computational speed.
 			// Using the assignment operator (size of result may be automatically reset)
 	result = ma1+ma2;	
 
-	 		// Another way to do operations (more intricated, but allows higher performances)
-			// Note that, doing this, you must prepare 'result' with already exact column/row size!
+	 		// Another way to do operations - more intricate, but allows higher performances.
+			// Note that you must prepare 'result' with already appropriate column/row size.
 	result.MatrAdd(ma1,ma2);
 
-			// You can also use the += operator (often this minimizes the need of intermediate temp.matrices)
+			// Use of the += operator typically minimizes the need of intermediate temporary matrices.
 	result = ma1;
 	result += ma2;
 
-			// Different ways to do subtraction..
+			// Different ways to do subtraction...
 
 	result = ma1-ma2;	
 
@@ -165,14 +160,14 @@ or use the specific Add() Multiply() functions, for highest computational speed.
 	result -= ma2;
 
 
-			// Multiplications between two matrices, different methods..
+			// Multiplications between two matrices, different methods...
 
 	result = ma1*ma2;	
 
 	result.MatrMultiply(ma1,ma2);
  
 
-			// Multiplication between matrix and scalars, different methods..
+			// Multiplication between matrix and scalars, different methods...
 
 	result = ma1*10;
 	
@@ -184,14 +179,14 @@ or use the specific Add() Multiply() functions, for highest computational speed.
 	result *=10;
 	GetLog() << result;
 
-			// The dot multiplication
+			// Dot multiplication
 	chrono::ChMatrixDynamic<> mmv1(5,1);
 	chrono::ChMatrixDynamic<> mmv2(5,1);
 	mmv1.FillRandom(1,3);
 	mmv2.FillRandom(2,4);
 	double mdot = chrono::ChMatrix<>::MatrDot(&mmv1, &mmv2);
     
-			// The comparison
+			// Elementwise matrix comparison
 	chrono::ChMatrixDynamic<> mmv3(mmv2);
 	if (mmv2==mmv3) 
 		GetLog() << "Matrices are exactly equal \n";
@@ -202,6 +197,8 @@ or use the specific Add() Multiply() functions, for highest computational speed.
 		GetLog() << "Matrices are equal within tol 0.002 \n";
 ~~~
 
+<\br>
+
 The matrices can operate also on 3D vectors \f$ \mathbf{v}=\{v_x,v_y,v_z\} \f$, 
 that are defined with the ChVector<> class (the Vector is a shortcut for ChVector<double> ). Example:
 
@@ -211,15 +208,15 @@ that are defined with the ChVector<> class (the Vector is a shortcut for ChVecto
 	chrono::ChMatrix33<> mta1;
 	mta1.FillRandom(-1, 2);
 
-			// Vector transformation, typical product  [A]*v
+			// Vector transformation, typical product [A]*v
 	chrono::Vector vres  = mta1.Matr_x_Vect(mvect);
 
-			// Also with more compact syntax: operator * between matrix and vector..
+			// More compact syntax: operator * between matrix and vector...
 	chrono::Vector vres2 = mta1*mvect;
 	if (vres == vres2) 
 		GetLog() << "vectors are equal \n";
 
-			// .. same, but transposed matrix
+			// .. same, but with a transposed matrix
 	vres = mta1.MatrT_x_Vect(mvect);
 
 			// Custom multiplication functions for 3x4 matrices and quaternions:

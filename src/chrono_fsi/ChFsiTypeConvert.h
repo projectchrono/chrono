@@ -21,12 +21,13 @@
 
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/custom_math.h"
 
 namespace chrono {
 namespace fsi {
 
-class ChFsiTypeConvert {
+class CH_FSI_API ChFsiTypeConvert {
  public:
   static ChVector<> Real3ToChVector(Real3 p3);
   static ChVector<> Real4ToChVector(Real4 p4);

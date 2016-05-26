@@ -27,7 +27,6 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
-#include "chrono_parallel/solver/ChSolverAPGD.h"
 
 namespace chrono {
 

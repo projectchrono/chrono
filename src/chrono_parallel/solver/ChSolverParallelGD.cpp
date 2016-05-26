@@ -1,11 +1,11 @@
-#include "chrono_parallel/solver/ChSolverGD.h"
+#include "chrono_parallel/solver/ChSolverParallelGD.h"
 
 using namespace chrono;
 
-uint ChSolverGD::SolveGD(const uint max_iter,
-                         const uint size,
-                         DynamicVector<real>& mb,
-                         DynamicVector<real>& ml) {
+uint ChSolverParallelGD::SolveGD(const uint max_iter,
+                                 const uint size,
+                                 DynamicVector<real>& mb,
+                                 DynamicVector<real>& ml) {
   real& residual = data_manager->measures.solver.residual;
   real& objective_value = data_manager->measures.solver.objective_value;
 

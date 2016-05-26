@@ -1,42 +1,42 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChProximityContainerMeshless.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include <list>
 
-#include "physics/ChProximityContainerSPH.h"
-#include "physics/ChMatterSPH.h"
-#include "physics/ChSystem.h"
-#include "physics/ChBody.h"
-#include "collision/ChCModelBullet.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChMatterSPH.h"
+#include "chrono/physics/ChProximityContainerSPH.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChProximityContainerSPH> a_registration_ChProximityContainerSPH;
 
-ChProximityContainerSPH::ChProximityContainerSPH() {
-    proximitylist.clear();
-    n_added = 0;
+ChProximityContainerSPH::ChProximityContainerSPH() : n_added(0) {
+    lastproximity = proximitylist.begin();
+}
+
+ChProximityContainerSPH::ChProximityContainerSPH(const ChProximityContainerSPH& other)
+    : ChProximityContainerBase(other) {
+    n_added = other.n_added;
+    proximitylist = other.proximitylist;
+    lastproximity = proximitylist.begin();
 }
 
 ChProximityContainerSPH::~ChProximityContainerSPH() {
@@ -150,7 +150,6 @@ void ChProximityContainerSPH::AccumulateStep1() {
     // Per-edge data computation
     std::list<ChProximitySPH*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-
         ChNodeSPH* mnodeA = dynamic_cast<ChNodeSPH*>((*iterproximity)->GetModelA()->GetContactable());
         ChNodeSPH* mnodeB = dynamic_cast<ChNodeSPH*>((*iterproximity)->GetModelB()->GetContactable());
 
@@ -175,10 +174,9 @@ void ChProximityContainerSPH::AccumulateStep2() {
     // Per-edge data computation (transfer stress to forces)
     std::list<ChProximitySPH*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-
         ChNodeSPH* mnodeA = dynamic_cast<ChNodeSPH*>((*iterproximity)->GetModelA()->GetContactable());
         ChNodeSPH* mnodeB = dynamic_cast<ChNodeSPH*>((*iterproximity)->GetModelB()->GetContactable());
-        
+
         ChVector<> x_A = mnodeA->GetPos();
         ChVector<> x_B = mnodeB->GetPos();
 
@@ -203,7 +201,8 @@ void ChProximityContainerSPH::AccumulateStep2() {
         double W_k_visc = W_sq_visco(dist_BA, mnodeA->GetKernelRadius());
         ChVector<> velBA = mnodeB->GetPos_dt() - mnodeA->GetPos_dt();
 
-        double avg_viscosity = 0.5 * (mnodeA->GetContainer()->GetMaterial().Get_viscosity() + mnodeB->GetContainer()->GetMaterial().Get_viscosity());
+        double avg_viscosity = 0.5 * (mnodeA->GetContainer()->GetMaterial().Get_viscosity() +
+                                      mnodeB->GetContainer()->GetMaterial().Get_viscosity());
 
         ChVector<> viscforceBA = velBA * (mnodeA->volume * avg_viscosity * mnodeB->volume * W_k_visc);
         mnodeA->UserForce += viscforceBA;
@@ -213,4 +212,21 @@ void ChProximityContainerSPH::AccumulateStep2() {
     }
 }
 
-}  // END_OF_NAMESPACE____
+void ChProximityContainerSPH::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChProximityContainerBase::ArchiveOUT(marchive);
+    // serialize all member data:
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChProximityContainerSPH::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChProximityContainerBase::ArchiveIN(marchive);
+    // stream in all member data:
+}
+
+}  // end namespace chrono

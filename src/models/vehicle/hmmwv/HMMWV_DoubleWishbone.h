@@ -30,9 +30,11 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_DoubleWishboneFront : public chrono::vehicle::ChDoubleWishbone {
+class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
   public:
     HMMWV_DoubleWishboneFront(const std::string& name);
     ~HMMWV_DoubleWishboneFront();
@@ -48,22 +50,22 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public chrono::vehicle::ChDouble
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const chrono::ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
-    virtual const chrono::ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
-    virtual const chrono::ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
+    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual chrono::ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
   private:
-    virtual const chrono::ChVector<> getLocation(PointId which) override;
+    virtual const ChVector<> getLocation(PointId which) override;
 
-    chrono::ChSpringForceCallback* m_springForceCB;
-    chrono::ChSpringForceCallback* m_shockForceCB;
+    ChSpringForceCallback* m_springForceCB;
+    ChSpringForceCallback* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_UCAMass;
@@ -76,10 +78,10 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public chrono::vehicle::ChDouble
     static const double m_LCARadius;
     static const double m_uprightRadius;
 
-    static const chrono::ChVector<> m_spindleInertia;
-    static const chrono::ChVector<> m_UCAInertia;
-    static const chrono::ChVector<> m_LCAInertia;
-    static const chrono::ChVector<> m_uprightInertia;
+    static const ChVector<> m_spindleInertia;
+    static const ChVector<> m_UCAInertia;
+    static const ChVector<> m_LCAInertia;
+    static const ChVector<> m_uprightInertia;
 
     static const double m_axleInertia;
 
@@ -89,7 +91,7 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public chrono::vehicle::ChDouble
 
 // -----------------------------------------------------------------------------
 
-class CH_MODELS_API HMMWV_DoubleWishboneRear : public chrono::vehicle::ChDoubleWishbone {
+class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
   public:
     HMMWV_DoubleWishboneRear(const std::string& name);
     ~HMMWV_DoubleWishboneRear();
@@ -105,22 +107,22 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public chrono::vehicle::ChDoubleW
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const chrono::ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
-    virtual const chrono::ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
-    virtual const chrono::ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
+    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual chrono::ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
   private:
-    virtual const chrono::ChVector<> getLocation(PointId which) override;
+    virtual const ChVector<> getLocation(PointId which) override;
 
-    chrono::ChSpringForceCallback* m_springForceCB;
-    chrono::ChSpringForceCallback* m_shockForceCB;
+    ChSpringForceCallback* m_springForceCB;
+    ChSpringForceCallback* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_UCAMass;
@@ -133,10 +135,10 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public chrono::vehicle::ChDoubleW
     static const double m_LCARadius;
     static const double m_uprightRadius;
 
-    static const chrono::ChVector<> m_spindleInertia;
-    static const chrono::ChVector<> m_UCAInertia;
-    static const chrono::ChVector<> m_LCAInertia;
-    static const chrono::ChVector<> m_uprightInertia;
+    static const ChVector<> m_spindleInertia;
+    static const ChVector<> m_UCAInertia;
+    static const ChVector<> m_LCAInertia;
+    static const ChVector<> m_uprightInertia;
 
     static const double m_axleInertia;
 
@@ -145,5 +147,7 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public chrono::vehicle::ChDoubleW
 };
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

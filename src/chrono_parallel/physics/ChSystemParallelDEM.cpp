@@ -14,6 +14,10 @@ ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemPar
   data_manager->system_timer.AddTimer("ChIterativeSolverParallelDEM_ProcessContact");
 }
 
+ChSystemParallelDEM::ChSystemParallelDEM(const ChSystemParallelDEM& other) : ChSystemParallel(other) {
+    //// TODO
+}
+
 ChBody* ChSystemParallelDEM::NewBody() {
   if (collision_system_type == COLLSYS_PARALLEL)
     return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);

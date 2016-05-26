@@ -16,19 +16,18 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "models/vehicle/hmmwv/HMMWV_Wheel.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -45,21 +44,18 @@ const double HMMWV_Wheel::m_mass = lb2kg * 100.00;
 const ChVector<> HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
 
 const std::string HMMWV_WheelLeft::m_meshName = "wheel_L_POV_geom";
-const std::string HMMWV_WheelLeft::m_meshFile = vehicle::GetDataFile("hmmwv/wheel_L.obj");
+const std::string HMMWV_WheelLeft::m_meshFile = "hmmwv/wheel_L.obj";
 
 const std::string HMMWV_WheelRight::m_meshName = "wheel_R_POV_geom";
-const std::string HMMWV_WheelRight::m_meshFile = vehicle::GetDataFile("hmmwv/wheel_R.obj");
+const std::string HMMWV_WheelRight::m_meshFile = "hmmwv/wheel_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Wheel::HMMWV_Wheel(VisualizationType visType) : m_visType(visType) {
-}
+HMMWV_Wheel::HMMWV_Wheel(VisualizationType visType) : m_visType(visType) {}
 
-HMMWV_WheelLeft::HMMWV_WheelLeft(VisualizationType visType) : HMMWV_Wheel(visType) {
-}
+HMMWV_WheelLeft::HMMWV_WheelLeft(VisualizationType visType) : HMMWV_Wheel(visType) {}
 
-HMMWV_WheelRight::HMMWV_WheelRight(VisualizationType visType) : HMMWV_Wheel(visType) {
-}
+HMMWV_WheelRight::HMMWV_WheelRight(VisualizationType visType) : HMMWV_Wheel(visType) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -110,3 +106,5 @@ void HMMWV_WheelRight::ExportMeshPovray(const std::string& out_dir) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

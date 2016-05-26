@@ -1,42 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkScrew.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkScrew.h"
+#include "chrono/physics/ChLinkScrew.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-//
-//   CLASS FOR SCREW
-//
-//
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkScrew> a_registration_ChLinkScrew;
 
 ChLinkScrew::ChLinkScrew() {
-    type = LNK_SCREW;  // initializes type
+    // initializes type
+    type = LNK_SCREW;
 
-    // tau = 0.01;
     Set_thread(0.05);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
@@ -46,23 +32,8 @@ ChLinkScrew::ChLinkScrew() {
     ChangedLinkMask();
 }
 
-ChLinkScrew::~ChLinkScrew() {
-}
-
-void ChLinkScrew::Copy(ChLinkScrew* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    tau = source->tau;
-}
-
-ChLink* ChLinkScrew::new_Duplicate() {
-    ChLinkScrew* m_l;
-    m_l = new ChLinkScrew;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+ChLinkScrew::ChLinkScrew(const ChLinkScrew& other) : ChLinkLock(other) {
+    tau = other.tau;
 }
 
 void ChLinkScrew::UpdateState() {
@@ -150,9 +121,7 @@ void ChLinkScrew::UpdateState() {
     Ct->SetElement(2, 0, scr_Ct);
 }
 
-
-void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -164,8 +133,7 @@ void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -176,7 +144,4 @@ void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(tau);
 }
 
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

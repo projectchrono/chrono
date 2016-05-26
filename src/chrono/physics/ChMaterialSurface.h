@@ -1,30 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHMATERIALSURFACE_H
 #define CHMATERIALSURFACE_H
 
-///////////////////////////////////////////////////
-//
-//   ChMaterialSurface.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 namespace chrono {
 
@@ -34,15 +25,10 @@ namespace chrono {
 /// that is used to make contacts.
 
 class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
-
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChMaterialSurface, ChMaterialSurfaceBase);
 
   public:
-    //
-    // DATA
-    //
-
     float static_friction;
     float sliding_friction;
     float rolling_friction;
@@ -55,49 +41,17 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     float complianceRoll;
     float complianceSpin;
 
-    //
-    // CONSTRUCTORS
-    //
+    ChMaterialSurface();
+    ChMaterialSurface(const ChMaterialSurface& other);
+    ~ChMaterialSurface() {}
 
-    ChMaterialSurface()
-        : static_friction(0.6f),
-          sliding_friction(0.6f),
-          rolling_friction(0),
-          spinning_friction(0),
-          restitution(0),
-          cohesion(0),
-          dampingf(0),
-          compliance(0),
-          complianceT(0),
-          complianceRoll(0),
-          complianceSpin(0){};
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChMaterialSurface* Clone() const override { return new ChMaterialSurface(*this); }
 
-    ~ChMaterialSurface(){};
-
-    // Copy constructor
-    ChMaterialSurface(const ChMaterialSurface& other) {
-        static_friction = other.static_friction;
-        sliding_friction = other.sliding_friction;
-        rolling_friction = other.rolling_friction;
-        spinning_friction = other.spinning_friction;
-        restitution = other.restitution;
-        cohesion = other.cohesion;
-        dampingf = other.dampingf;
-        compliance = other.compliance;
-        complianceT = other.complianceT;
-        complianceRoll = other.complianceRoll;
-        complianceSpin = other.complianceSpin;
-    }
-
-    virtual ContactMethod GetContactMethod() { return DVI; };
-
-    //
-    // FUNCTIONS
-    //
+    virtual ContactMethod GetContactMethod() const override { return DVI; }
 
     /// The static friction coefficient.
-    /// Usually in 0..1 range, rarely above.
-    /// Default 0.6
+    /// Usually in 0..1 range, rarely above. Default 0.6
     float GetSfriction() { return static_friction; }
     void SetSfriction(float mval) { static_friction = mval; }
 
@@ -108,10 +62,7 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     void SetKfriction(float mval) { sliding_friction = mval; }
 
     /// Set both static friction and kinetic friction at once, with same value.
-    void SetFriction(float mval) {
-        SetSfriction(mval);
-        SetKfriction(mval);
-    }
+    void SetFriction(float mval);
 
     /// The rolling friction (rolling parameter, it has the dimension of a length).
     /// Rolling resistant torque is Tr <= (normal force) * (this parameter)
@@ -176,56 +127,13 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     float GetComplianceSpinning() { return complianceSpin; }
     void SetComplianceSpinning(float mval) { complianceSpin = mval; }
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive){
-        // version number
-        marchive.VersionWrite(1);
-
-        // serialize parent class
-        ChMaterialSurfaceBase::ArchiveOUT(marchive);
-
-        // serialize all member data:
-        marchive << CHNVP(static_friction);
-        marchive << CHNVP(sliding_friction);
-        marchive << CHNVP(rolling_friction);
-        marchive << CHNVP(spinning_friction);
-        marchive << CHNVP(restitution);
-        marchive << CHNVP(cohesion);
-        marchive << CHNVP(dampingf);
-        marchive << CHNVP(compliance);
-        marchive << CHNVP(complianceT);
-        marchive << CHNVP(complianceRoll);
-        marchive << CHNVP(complianceSpin); 
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive){
-        // version number
-        int version = marchive.VersionRead();
-
-        // deserialize parent class
-        ChMaterialSurfaceBase::ArchiveIN(marchive);
-
-        // stream in all member data:
-        marchive >> CHNVP(static_friction);
-        marchive >> CHNVP(sliding_friction);
-        marchive >> CHNVP(rolling_friction);
-        marchive >> CHNVP(spinning_friction);
-        marchive >> CHNVP(restitution);
-        marchive >> CHNVP(cohesion);
-        marchive >> CHNVP(dampingf);
-        marchive >> CHNVP(compliance);
-        marchive >> CHNVP(complianceT);
-        marchive >> CHNVP(complianceRoll);
-        marchive >> CHNVP(complianceSpin);     
-    }
-
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif
