@@ -24,7 +24,7 @@
 
 #define CHUSE_ANS
 //#define CHUSE_EAS
-#define CHUSE_KGEOMETRIC
+//#define CHUSE_KGEOMETRIC
 
 namespace chrono {
 namespace fea {
@@ -318,17 +318,6 @@ double ChElementShellEANS4new::xi_i[ChElementShellEANS4new::NUMIP][2] = {
 	{ 1. / std::sqrt(3.), -1. / std::sqrt(3.)},
 	{ 1. / std::sqrt(3.),  1. / std::sqrt(3.)},
 	{-1. / std::sqrt(3.),  1. / std::sqrt(3.)}
-
-
-// 	{-0.774596669241483,  -0.774596669241483},
-// 	{-0.774596669241483,                  0.},
-// 	{-0.774596669241483,   0.774596669241483},
-// 	{                0.,  -0.774596669241483},
-// 	{                0.,                  0.},
-// 	{                0.,   0.774596669241483},
-// 	{ 0.774596669241483,  -0.774596669241483},
-// 	{ 0.774596669241483,                  0.},
-// 	{ 0.774596669241483,   0.774596669241483}
 };
 
 double ChElementShellEANS4new::w_i[ChElementShellEANS4new::NUMIP] = {
@@ -336,17 +325,6 @@ double ChElementShellEANS4new::w_i[ChElementShellEANS4new::NUMIP] = {
 	1.,
 	1.,
 	1.
-
-// 	0.555555555555556 * 0.555555555555556,
-// 	0.555555555555556 * 0.888888888888889,
-// 	0.555555555555556 * 0.555555555555556,
-// 	0.888888888888889 * 0.555555555555556,
-// 	0.888888888888889 * 0.888888888888889,
-// 	0.888888888888889 * 0.555555555555556,
-// 	0.555555555555556 * 0.555555555555556,
-// 	0.555555555555556 * 0.888888888888889,
-// 	0.555555555555556 * 0.555555555555556
-	
 };
 
 double ChElementShellEANS4new::xi_A[ChElementShellEANS4new::NUMSSEP][2] =  {
@@ -373,14 +351,31 @@ void ChElementShellEANS4new::UpdateNodalAndAveragePosAndOrientation()
 	for (int i = 0; i < NUMNODES; i++) {
 		xa[i] = this->m_nodes[i]->GetPos();
 		Tn[i] = this->m_nodes[i]->GetA() * iTa[i];
-		T_avg += this->m_nodes[i]->GetA() * iTa[i]; // pNode[i]->GetRRef() * iTa[i];
+		T_avg += this->m_nodes[i]->GetA() * iTa[i]; // pNode[i]->GetRRef() * iTa[i]; //***TODO*** use predicted rot?
 	}
 	T_avg *= 0.25;
-	//***TODO***; better with polar decomposition of T_a_avg = T0*U or with quaternion interpolation
 	T_overline = ChRotUtils::Rot(ChRotUtils::VecRot(T_avg));
+
+    // ***ALEX*** test an alternative for T_overline:
+    // average four rotations with quaternion averaging:
+    ChQuaternion<> qTa = Tn[0].Get_A_quaternion();
+    ChQuaternion<> qTb = Tn[1].Get_A_quaternion();
+    if ( (qTa ^ qTb) < 0) 
+        qTb *= -1;
+    ChQuaternion<> qTc = Tn[2].Get_A_quaternion();
+    if ( (qTa ^ qTc) < 0) 
+        qTc *= -1;
+    ChQuaternion<> qTd = Tn[3].Get_A_quaternion();
+    if ( (qTa ^ qTd) < 0) 
+        qTd *= -1;
+    ChQuaternion<> Tavg =(qTa + qTb + qTc + qTd ).GetNormalized();
+    T_overline.Set_A_quaternion(Tavg);
+
 	for (int i = 0; i < NUMNODES; i++) {
 		R_tilde_n[i].MatrTMultiply(T_overline,Tn[i]);// = T_overline.MulTM(Tn[i]);
 		phi_tilde_n[i] = ChRotUtils::VecRot(R_tilde_n[i]);
+        //if (phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG > 15) 
+        //    GetLog() << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "°\n";
 	}
 }
 
@@ -894,13 +889,15 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 			// delta epsilon_tilde_1_i
             block = T_i_t * L_alpha_beta_i[i](n, 0);  
             B_overline_i[i].PasteMatrix(&block, 0, 6*n); //B_overline_i[i].PutT(1, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 1));
-			block = T_i_t * myi_1_X * Phi_Delta_i_n_LI_i;  
+			block = T_i_t * myi_1_X * Phi_Delta_i_n_LI_i; 
+            block = block * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
             B_overline_i[i].PasteMatrix(&block, 0, 3+6*n); //B_overline_i[i].Put(1, 4 + 6 * n, T_i[i].MulTM(ChMatrix33<>(MatCross, y_i_1[i])) * Phi_Delta_i_n_LI_i);
 
 			// delta epsilon_tilde_2_i
 			block = T_i_t * L_alpha_beta_i[i](n, 1);  
             B_overline_i[i].PasteMatrix(&block, 3, 6*n); //B_overline_i[i].PutT(4, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 2));
 			block = T_i_t * myi_2_X * Phi_Delta_i_n_LI_i;  
+            block = block * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
             B_overline_i[i].PasteMatrix(&block, 3, 3+6*n); //B_overline_i[i].Put(4, 4 + 6 * n, T_i[i].MulTM(ChMatrix33<>(MatCross, y_i_2[i])) * Phi_Delta_i_n_LI_i);
 
 			ChVector<> phi_tilde_1_i;
@@ -909,10 +906,12 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
             // delta k_tilde_1_i
             block = T_i_t * mk_1_X * Phi_Delta_i_n_LI_i + T_i_t * Kappa_delta_i_1[i][n];
+            block = block * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
             B_overline_i[i].PasteMatrix(&block, 6, 3+6*n);
 
 			// delta k_tilde_2_i
             block = T_i_t * mk_2_X * Phi_Delta_i_n_LI_i + T_i_t * Kappa_delta_i_2[i][n];
+            block = block * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
             B_overline_i[i].PasteMatrix(&block, 9, 3+6*n);
 
             ChMatrix33<> Ieye(1);
@@ -925,17 +924,22 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             D_overline_i[i].PasteMatrix(&block, 3, 6*n);//D_overline_i[i].Put(4, 1 + n * 6, mb_deye<ChMatrix33<>>(L_alpha_beta_i[i](n + 1, 2)));
 
 			// delta k_1_i
-			D_overline_i[i].PasteMatrix(&Kappa_delta_i_1[i][n], 6, 3 + 6*n);//D_overline_i[i].Put(7, 4 + n * 6, Kappa_delta_i_1[i][n]);
+            block = Kappa_delta_i_1[i][n] * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
+			D_overline_i[i].PasteMatrix(&block, 6, 3 + 6*n);//D_overline_i[i].Put(7, 4 + n * 6, Kappa_delta_i_1[i][n]);
 
 			// delta k_2_i
-			D_overline_i[i].PasteMatrix(&Kappa_delta_i_2[i][n], 9, 3 + 6*n);//D_overline_i[i].Put(10, 4 + n * 6, Kappa_delta_i_2[i][n]);
+            block = Kappa_delta_i_2[i][n] * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
+			D_overline_i[i].PasteMatrix(&block, 9, 3 + 6*n);//D_overline_i[i].Put(10, 4 + n * 6, Kappa_delta_i_2[i][n]);
 
 			// phi_delta
+            block = Phi_Delta_i_n_LI_i * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
 			D_overline_i[i].PasteMatrix(&Phi_Delta_i_n_LI_i, 12, 3 + 6*n);//D_overline_i[i].Put(13, 4 + n * 6, Phi_Delta_i_n_LI_i);
 		}
 	}
+
 	// ANS
-	{
+    #ifdef CHUSE_ANS
+
 		ChMatrixNM<double, 6, 24> B_overline_A;
 		ChVector<> y_A_1;
 		ChVector<> y_A_2;
@@ -960,12 +964,14 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 block = T_A_t * L_alpha_beta_A[i](n, 0); 
 				B_overline_A.PasteMatrix(&block, 0, 6*n); 
 				block = T_A_t * myA_1_X * Phi_Delta_A_n_LI_i; 
+                block = block * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
 				B_overline_A.PasteMatrix(&block, 0, 3 + 6*n);
 
 				// delta epsilon_tilde_2_A
                 block = T_A_t * L_alpha_beta_A[i](n, 1); 
 				B_overline_A.PasteMatrix(&block, 3, 6*n); 
 				block = T_A_t * myA_2_X * Phi_Delta_A_n_LI_i; 
+                block = block * this->m_nodes[i]->GetA(); //***NEEDED because in chrono rotations are body-relative
 				B_overline_A.PasteMatrix(&block, 3, 3 + 6*n);
 			}
 
@@ -998,7 +1004,8 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
 			B_overline_i[i].PasteClippedMatrix(&tmp_B_ANS, 0,0, 1,24, 5,0); 
 		}
-	}
+
+	#endif
 	
 	// EAS: B membranali
 // 	{
@@ -1022,7 +1029,7 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 		// TODO: recupera epsilon_hat con l'ordine giusto per qua
 		epsilon_hat.MatrMultiply(P_i[i], beta);
 
-		epsilon += epsilon_hat;
+	//	epsilon += epsilon_hat; ***TODO***
 
         ChVector<> eps_tot_1, eps_tot_2, k_tot_1, k_tot_2;
         eps_tot_1 = epsilon.ClipVector(0,0);
@@ -1032,17 +1039,7 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
         // Compute strains using 
         // constitutive law of material
-/*
-#ifdef USE_CL_IN_SHELL
-		pD[i]->Update(epsilon);
-		stress_i[i] = pD[i]->GetF();
-#else // ! USE_CL_IN_SHELL
-		DRef[i].MatVecMul(stress_i[i], epsilon);
-		if (bPreStress) {
-			stress_i[i] += PreStress;
-		}
-#endif // ! USE_CL_IN_SHELL
-*/
+
         ChVector<> n1, n2, m1, m2;
         this->GetLayer(0).GetMaterial()->ComputeStress(n1, n2, m1, m2, eps_tot_1, eps_tot_2, k_tot_1, k_tot_2);
 		
@@ -1073,8 +1070,7 @@ void ChElementShellEANS4new::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         G_i[i].PasteMatrix(&Hh, 12,12);
 	}
 	
-	//Residuo
-	//forze di volume
+	//Residual
 
 	ChMatrixNM<double, 24, 1> rd;
 	ChMatrixNM<double, IDOFS, 1> rbeta;

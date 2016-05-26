@@ -249,7 +249,7 @@ static
     ChMatrix33<> pxpx; pxpx.Set_XY_matrix(phi, phi*coeff[2]);
 	Ga += pxpx;	/* += c[2] * phi x phi x */
 
-	return Ga;
+    return Ga;
 }
 
 

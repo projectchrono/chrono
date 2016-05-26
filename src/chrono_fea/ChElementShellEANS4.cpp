@@ -35,22 +35,6 @@ namespace fea {
 // UTILITIES 
 //--------------------------------------------------------------
 
-/*
-// Compute a 3x3 matrix as a tensor product between two vectors (outer product of vectors)
-ChMatrix33<> TensorProduct(const ChVector<>& vA, const ChVector<>& vB) {
-    ChMatrix33<> T;
-    T(0,0) = vA.x*vB.x;
-    T(0,1) = vA.x*vB.y;
-    T(0,2) = vA.x*vB.z;
-    T(1,0) = vA.y*vB.x;
-    T(1,1) = vA.y*vB.y;
-    T(1,2) = vA.y*vB.z;
-    T(2,0) = vA.z*vB.x;
-    T(2,1) = vA.z*vB.y;
-    T(2,2) = vA.z*vB.z;
-    return T;
-}
-*/
 
 // eq. 101 from Felippa,Haugen: "A unified formulation of small-strain corotational
 // finite elements"

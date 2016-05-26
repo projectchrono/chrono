@@ -27,10 +27,12 @@
 
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChElementShellEANS4.h"
+#include "chrono_fea/ChElementShellEANS4new.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_fea/ChRotUtils.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_mkl/ChSolverMKL.h"
 #include "chrono_postprocess/ChGnuPlot.h"
@@ -283,7 +285,7 @@ int main(int argc, char* argv[]) {
         double rho = 0.0;
         double E = 21e6;
         double nu = 0.0; 
-        auto mat = std::make_shared<ChMaterialShellEANS>(plate_thickness,
+        auto mat = std::make_shared<ChMaterialShellEANSnew>(plate_thickness,
                                                          rho, 
                                                          E, 
                                                          nu,
@@ -293,10 +295,10 @@ int main(int argc, char* argv[]) {
         // Create the nodes (each with position & normal to shell)
         double node_density=0.0001;
         
-        int nels_U = 30;
-        int nels_W = 6;
+        int nels_U = 90;
+        int nels_W = 8;
         double arc = CH_C_2PI *1;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
+        std::vector<std::shared_ptr<ChElementShellEANS4new>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -313,15 +315,15 @@ int main(int argc, char* argv[]) {
                 //ChMatrix33<> nr;
                 //nr.Set_A_Xdir (ChVector<>(cos(u*CH_C_2PI), 0, sin(u*CH_C_2PI)),VECT_Y);
                 //ChQuaternion<> noderot(nr.Get_A_quaternion());
-                ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
-                //ChQuaternion<> noderot(QUNIT);
+                //ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
+                ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
                 mnode->GetInertia().FillDiag(0.0); 
-                mnode->SetMass(0);//0.00002); 
+                mnode->SetMass(0); 
                 
                 nodearray[iu*(nels_W+1) + iw] = mnode;
 
@@ -332,7 +334,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    auto melement = std::make_shared<ChElementShellEANS4new>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes(
@@ -341,7 +343,8 @@ int main(int argc, char* argv[]) {
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                    /* 
+                     
+                    /*
                     melement->SetNodes( // not working well..
                         nodearray[(iu  )*(nels_W+1) + (iw-1)],
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
@@ -447,8 +450,8 @@ int main(int argc, char* argv[]) {
                 auto mnode = std::make_shared<ChNodeFEAxyzrot>(nodeframe);
                 my_mesh->AddNode(mnode);
 
-                mnode->GetInertia().FillDiag(0.00003); 
-                mnode->SetMass(0.0003); 
+                mnode->GetInertia().FillDiag(0.0); 
+                mnode->SetMass(0.0); 
 
                 nodearray[iu*(nels_W+1) + iw] = mnode;
 
@@ -465,15 +468,14 @@ int main(int argc, char* argv[]) {
                 if (iu>0 && iw>0) {
                     auto melement = std::make_shared<ChElementShellEANS4>();
                     my_mesh->AddElement(melement);
-
+                    
                     melement->SetNodes(
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw  )],
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                       
-                  /*   
+                    /*
                     melement->SetNodes( // not working well..
                         nodearray[(iu  )*(nels_W+1) + (iw-1)],
                         nodearray[(iu  )*(nels_W+1) + (iw  )],
@@ -591,25 +593,26 @@ int main(int argc, char* argv[]) {
     */
 
     // Change type of integrator:
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
-    /*
+   my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
+    
     if (auto msol =  dynamic_cast<ChTimestepperEulerImplicit*>(my_system.GetSolverSpeed())) {
-        msol->SetMaxiters(6);
-        msol->SetAbsTolerances(1e-10, 1e-10);
+        msol->SetMaxiters(5);
+        msol->SetAbsTolerances(1e-12, 1e-12);
     }
-    */
-  //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    
+  my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
   //my_system.SetIntegrationType(ChSystem::INT_NEWMARK);
 
-    application.SetTimestep(0.1);
-    application.SetPaused(true);
+    double timestep = 0.05;
+    application.SetTimestep(timestep);
+    //application.SetPaused(true);
     my_system.Setup();
     my_system.Update();
     
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
     
-my_system.DoStaticLinear();
+    double mtime = 0;
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
@@ -620,13 +623,17 @@ my_system.DoStaticLinear();
         ChIrrTools::drawGrid(application.GetVideoDriver(), 1, 1);
 
         // ...update load at end nodes, as simple lumped nodal forces
-        double load_scale = my_system.GetChTime()*0.1;
+        
+        double load_scale = mtime*0.1;
         for (auto mendnode : nodesLoad) {
             mendnode->SetForce (load_force  * load_scale * (1./ (double)nodesLoad.size()) );
             mendnode->SetTorque(load_torque * load_scale * (1./ (double)nodesLoad.size()) );
         }
 
-        application.DoStep();
+        //application.DoStep();
+        application.GetSystem()->DoStaticNonlinear(5);
+        //application.GetSystem()->DoStaticLinear();
+        mtime += timestep;
 
         if(!application.GetPaused() && nodePlotA && nodePlotB) {
             rec_Y.AddPoint( load_scale, nodePlotA->GetPos().y);
