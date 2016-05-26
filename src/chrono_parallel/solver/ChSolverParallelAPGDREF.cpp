@@ -1,11 +1,11 @@
-#include "chrono_parallel/solver/ChSolverAPGDREF.h"
+#include "chrono_parallel/solver/ChSolverParallelAPGDREF.h"
 #include <blaze/math/CompressedVector.h>
 
 using namespace chrono;
 
-real ChSolverAPGDREF::Res4(DynamicVector<real>& gamma,
-                           const DynamicVector<real>& r,
-                           DynamicVector<real>& tmp) {
+real ChSolverParallelAPGDREF::Res4(DynamicVector<real>& gamma,
+                                   const DynamicVector<real>& r,
+                                   DynamicVector<real>& tmp) {
   real gdiff = 1.0 / pow(data_manager->num_constraints, 2.0);
   ShurProduct(gamma, tmp);
   tmp = tmp - r;
@@ -16,10 +16,10 @@ real ChSolverAPGDREF::Res4(DynamicVector<real>& gamma,
   return Sqrt((double)(tmp, tmp));
 }
 
-uint ChSolverAPGDREF::SolveAPGDREF(const uint max_iter,
-                                   const uint size,
-                                   const DynamicVector<real>& r,
-                                   DynamicVector<real>& gamma) {
+uint ChSolverParallelAPGDREF::SolveAPGDREF(const uint max_iter,
+                                           const uint size,
+                                           const DynamicVector<real>& r,
+                                           DynamicVector<real>& gamma) {
   real& residual = data_manager->measures.solver.residual;
   real& objective_value = data_manager->measures.solver.objective_value;
 

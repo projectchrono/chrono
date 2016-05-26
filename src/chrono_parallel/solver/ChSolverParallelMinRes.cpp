@@ -1,11 +1,11 @@
-#include "chrono_parallel/solver/ChSolverMinRes.h"
+#include "chrono_parallel/solver/ChSolverParallelMinRes.h"
 
 using namespace chrono;
 
-uint ChSolverMinRes::SolveMinRes(const uint max_iter,
-                                 const uint size,
-                                 DynamicVector<real>& mb,
-                                 DynamicVector<real>& ml) {
+uint ChSolverParallelMinRes::SolveMinRes(const uint max_iter,
+                                         const uint size,
+                                         DynamicVector<real>& mb,
+                                         DynamicVector<real>& ml) {
   real& residual = data_manager->measures.solver.residual;
   real& objective_value = data_manager->measures.solver.objective_value;
 

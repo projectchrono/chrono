@@ -162,32 +162,31 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChIterativeSolverParallelDVI.cpp
     solver/ChIterativeSolverParallelDEM.cpp
     solver/ChSolverParallel.h
-    solver/ChSolverJacobi.h
-    solver/ChSolverCG.h
-    solver/ChSolverCGS.h
-    solver/ChSolverPGS.h
-    solver/ChSolverGD.h
-    solver/ChSolverSD.h
-    solver/ChSolverAPGD.h
-    solver/ChSolverAPGDREF.h
-    solver/ChSolverMinRes.h
-    solver/ChSolverBiCG.h
-    solver/ChSolverBiCGStab.h
-    solver/ChSolverPDIP.h
     solver/ChSolverParallel.cpp
-    solver/ChSolverJacobi.cpp
-    solver/ChSolverCG.cpp
-    solver/ChSolverCGS.cpp
-    solver/ChSolverPGS.cpp
-    solver/ChSolverGD.cpp
-    solver/ChSolverSD.cpp
-    #solver/ChSolverFN.cpp
-    solver/ChSolverAPGD.cpp
-    solver/ChSolverAPGDREF.cpp
-    solver/ChSolverMinRes.cpp
-    solver/ChSolverBiCG.cpp
-    solver/ChSolverBiCGStab.cpp
-    solver/ChSolverPDIP.cpp
+    solver/ChSolverParallelJacobi.h
+    solver/ChSolverParallelCG.h
+    solver/ChSolverParallelCGS.h
+    solver/ChSolverParallelPGS.h
+    solver/ChSolverParallelGD.h
+    solver/ChSolverParallelSD.h
+    solver/ChSolverParallelAPGD.h
+    solver/ChSolverParallelAPGDREF.h
+    solver/ChSolverParallelMinRes.h
+    solver/ChSolverParallelBiCG.h
+    solver/ChSolverParallelBiCGStab.h
+    solver/ChSolverParallelPDIP.h
+    solver/ChSolverParallelJacobi.cpp
+    solver/ChSolverParallelCG.cpp
+    solver/ChSolverParallelCGS.cpp
+    solver/ChSolverParallelPGS.cpp
+    solver/ChSolverParallelGD.cpp
+    solver/ChSolverParallelSD.cpp
+    solver/ChSolverParallelAPGD.cpp
+    solver/ChSolverParallelAPGDREF.cpp
+    solver/ChSolverParallelMinRes.cpp
+    solver/ChSolverParallelBiCG.cpp
+    solver/ChSolverParallelBiCGStab.cpp
+    solver/ChSolverParallelPDIP.cpp
     )
 
 SOURCE_GROUP(solver FILES ${ChronoEngine_Parallel_SOLVER})

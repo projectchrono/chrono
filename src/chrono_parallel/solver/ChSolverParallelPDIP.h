@@ -24,10 +24,10 @@
 
 namespace chrono {
 
-class CH_PARALLEL_API ChSolverPDIP : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelPDIP : public ChSolverParallel {
  public:
-  ChSolverPDIP() : ChSolverParallel() {}
-  ~ChSolverPDIP() {}
+  ChSolverParallelPDIP() : ChSolverParallel() {}
+  ~ChSolverParallelPDIP() {}
 
   void Solve() {
     if (data_manager->num_constraints == 0) {

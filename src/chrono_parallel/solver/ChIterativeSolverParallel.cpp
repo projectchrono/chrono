@@ -1,4 +1,5 @@
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_parallel/solver/ChSolverParallelAPGD.h"
 #include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 #include "physics/ChBody.h"
 using namespace chrono;
@@ -8,7 +9,7 @@ ChIterativeSolverParallel::ChIterativeSolverParallel(ChParallelDataManager* dc) 
   record_violation_history = true;
   warm_start = false;
   residual = 0;
-  solver = new ChSolverAPGD();
+  solver = new ChSolverParallelAPGD();
 }
 
 ChIterativeSolverParallel::~ChIterativeSolverParallel() {

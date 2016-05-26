@@ -1,4 +1,4 @@
-#include "chrono_parallel/solver/ChSolverPDIP.h"
+#include "chrono_parallel/solver/ChSolverParallelPDIP.h"
 #include <blaze/math/CompressedVector.h>
 
 #include "core/ChFileutils.h"
@@ -12,7 +12,7 @@ unsigned int offset = 3;
 
 #define _index_ i* offset
 
-real ChSolverPDIP::Res4(DynamicVector<real>& gamma, DynamicVector<real>& tmp) {
+real ChSolverParallelPDIP::Res4(DynamicVector<real>& gamma, DynamicVector<real>& tmp) {
   real gdiff = 1e-6;
   SchurComplementProduct(gamma, tmp);
   tmp = tmp + r;
@@ -23,13 +23,13 @@ real ChSolverPDIP::Res4(DynamicVector<real>& gamma, DynamicVector<real>& tmp) {
   return Sqrt((real)(tmp, tmp));
 }
 
-void ChSolverPDIP::SchurComplementProduct(DynamicVector<real>& src, DynamicVector<real>& dst) {
+void ChSolverParallelPDIP::SchurComplementProduct(DynamicVector<real>& src, DynamicVector<real>& dst) {
   dst = D_T * (M_invD * src);
 }
 
-void ChSolverPDIP::getConstraintVector(DynamicVector<real>& src,
-                                       DynamicVector<real>& dst,
-                                       const uint size) {
+void ChSolverParallelPDIP::getConstraintVector(DynamicVector<real>& src,
+                                               DynamicVector<real>& dst,
+                                               const uint size) {
 #pragma omp parallel for
   for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
     dst[i] = 0.5 * (pow(src[_index_ + 1], 2) + pow(src[_index_ + 2], 2) -
@@ -38,7 +38,7 @@ void ChSolverPDIP::getConstraintVector(DynamicVector<real>& src,
   }
 }
 
-void ChSolverPDIP::initializeConstraintGradient(DynamicVector<real>& src, const uint size) {
+void ChSolverParallelPDIP::initializeConstraintGradient(DynamicVector<real>& src, const uint size) {
   //#pragma omp parallel for
   for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
     grad_f.append(i, _index_ + 0, -pow(data_manager->host_data.fric_rigid_rigid[i].x, 2) * src[_index_ + 0]);
@@ -52,7 +52,7 @@ void ChSolverPDIP::initializeConstraintGradient(DynamicVector<real>& src, const 
   }
 }
 
-void ChSolverPDIP::updateConstraintGradient(DynamicVector<real>& src, const uint size) {
+void ChSolverParallelPDIP::updateConstraintGradient(DynamicVector<real>& src, const uint size) {
 #pragma omp parallel for
   for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
     grad_f(i, _index_ + 0) = -pow(data_manager->host_data.fric_rigid_rigid[i].x, 2) * src[_index_ + 0];
@@ -65,10 +65,10 @@ void ChSolverPDIP::updateConstraintGradient(DynamicVector<real>& src, const uint
   }
 }
 
-void ChSolverPDIP::initializeNewtonStepMatrix(DynamicVector<real>& gamma,
-                                              DynamicVector<real>& lambda,
-                                              DynamicVector<real>& f,
-                                              const uint size) {
+void ChSolverParallelPDIP::initializeNewtonStepMatrix(DynamicVector<real>& gamma,
+                                                      DynamicVector<real>& lambda,
+                                                      DynamicVector<real>& f,
+                                                      const uint size) {
   for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
     M_hat.append(_index_ + 0, _index_ + 0, -pow(data_manager->host_data.fric_rigid_rigid[i].x, 2) * lambda[i]);
     M_hat.finalize(_index_ + 0);
@@ -89,10 +89,10 @@ void ChSolverPDIP::initializeNewtonStepMatrix(DynamicVector<real>& gamma,
   }
 }
 
-void ChSolverPDIP::updateNewtonStepMatrix(DynamicVector<real>& gamma,
-                                          DynamicVector<real>& lambda,
-                                          DynamicVector<real>& f,
-                                          const uint size) {
+void ChSolverParallelPDIP::updateNewtonStepMatrix(DynamicVector<real>& gamma,
+                                                  DynamicVector<real>& lambda,
+                                                  DynamicVector<real>& f,
+                                                  const uint size) {
 #pragma omp parallel for
   for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
     M_hat(_index_ + 0, _index_ + 0) = -pow(data_manager->host_data.fric_rigid_rigid[i].x, 2) * lambda[i];
@@ -110,27 +110,27 @@ void ChSolverPDIP::updateNewtonStepMatrix(DynamicVector<real>& gamma,
   }
 }
 
-void ChSolverPDIP::MultiplyByDiagMatrix(DynamicVector<real>& diagVec,
-                                        DynamicVector<real>& src,
-                                        DynamicVector<real>& dst) {
+void ChSolverParallelPDIP::MultiplyByDiagMatrix(DynamicVector<real>& diagVec,
+                                                DynamicVector<real>& src,
+                                                DynamicVector<real>& dst) {
 #pragma omp parallel for
   for (int i = 0; i < 2 * data_manager->num_rigid_contacts; i++) {
     dst[i] = diagVec[i] * src[i];
   }
 }
 
-void ChSolverPDIP::updateNewtonStepVector(DynamicVector<real>& gamma,
-                                          DynamicVector<real>& lambda,
-                                          DynamicVector<real>& f,
-                                          real t,
-                                          const uint size) {
+void ChSolverParallelPDIP::updateNewtonStepVector(DynamicVector<real>& gamma,
+                                                  DynamicVector<real>& lambda,
+                                                  DynamicVector<real>& f,
+                                                  real t,
+                                                  const uint size) {
   updateConstraintGradient(gamma, size);
   r_d = D_T * (M_invD * gamma) + r + trans(grad_f) * lambda;
   MultiplyByDiagMatrix(lambda, f, r_g);
   r_g = -(1 / t) * ones - r_g;
 }
 
-void ChSolverPDIP::conjugateGradient(DynamicVector<real>& x) {
+void ChSolverParallelPDIP::conjugateGradient(DynamicVector<real>& x) {
   real rsold_cg = 0;
   real rsnew_cg = 0;
   real alpha_cg = 0;
@@ -152,7 +152,7 @@ void ChSolverPDIP::conjugateGradient(DynamicVector<real>& x) {
   }
 }
 
-void ChSolverPDIP::buildPreconditioner(const uint size) {
+void ChSolverParallelPDIP::buildPreconditioner(const uint size) {
   prec_cg.resize(size);
   CompressedMatrix<real> A = D_T * M_invD + M_hat + B * Dinv * diaglambda * grad_f;
 #pragma omp parallel for
@@ -161,14 +161,14 @@ void ChSolverPDIP::buildPreconditioner(const uint size) {
   }
 }
 
-void ChSolverPDIP::applyPreconditioning(DynamicVector<real>& src, DynamicVector<real>& dst) {
+void ChSolverParallelPDIP::applyPreconditioning(DynamicVector<real>& src, DynamicVector<real>& dst) {
 #pragma omp parallel for
   for (int i = 0; i < prec_cg.size(); i++) {
     dst[i] = src[i] / prec_cg[i];
   }
 }
 
-int ChSolverPDIP::preconditionedConjugateGradient(DynamicVector<real>& x, const uint size) {
+int ChSolverParallelPDIP::preconditionedConjugateGradient(DynamicVector<real>& x, const uint size) {
   buildPreconditioner(size);
   int iter = 0;
   real rsold_cg = 0;
@@ -197,10 +197,10 @@ int ChSolverPDIP::preconditionedConjugateGradient(DynamicVector<real>& x, const 
   return iter;
 }
 
-uint ChSolverPDIP::SolvePDIP(const uint max_iter,
-                             const uint size,
-                             const DynamicVector<real>& b,
-                             DynamicVector<real>& x) {
+uint ChSolverParallelPDIP::SolvePDIP(const uint max_iter,
+                                     const uint size,
+                                     const DynamicVector<real>& b,
+                                     DynamicVector<real>& x) {
   bool verbose = false;
   if (verbose)
     std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_manager->num_rigid_bodies
