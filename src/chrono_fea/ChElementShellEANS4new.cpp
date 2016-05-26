@@ -107,7 +107,7 @@ void ChMaterialShellEANSnew::ComputeTangentC(ChMatrix<>& mC,
     stress_0.PasteVector(nu,0,0);
     stress_0.PasteVector(nv,3,0);
     stress_0.PasteVector(mu,6,0);
-    stress_0.PasteVector(mu,9,0);
+    stress_0.PasteVector(mv,9,0);
 
     double delta = 1e-9;
     for (int i=0; i<12; ++i) {
@@ -122,12 +122,13 @@ void ChMaterialShellEANSnew::ComputeTangentC(ChMatrix<>& mC,
         stress_1.PasteVector(nu,0,0);
         stress_1.PasteVector(nv,3,0);
         stress_1.PasteVector(mu,6,0);
-        stress_1.PasteVector(mu,9,0);
+        stress_1.PasteVector(mv,9,0);
         ChMatrixNM<double, 12, 1> stress_d = stress_1 - stress_0;
         stress_d *= (1./delta);
         mC.PasteMatrix(&stress_d,0,i);
         strain_0(i,0) -= delta;
     }
+    */
 }
 
 
