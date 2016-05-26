@@ -91,8 +91,29 @@ void ChMaterialShellEANSnew::ComputeTangentC(ChMatrix<>& mC,
     assert(mC.GetRows() == 12);
     assert(mC.GetColumns() == 12);
 
-    mC.Reset();
-
+    mC.Reset(12,12);
+    double h = m_thickness;
+    double G = m_E / (2.*(1.+m_nu));
+    double C = m_E*h / (1. - m_nu*m_nu);
+    double D = C*h*h / 12.;
+    double F = G*h*h*h / 12.;
+    mC(0,0) = C;
+    mC(0,4) = m_nu * C;
+    mC(4,0) = m_nu * C;
+    mC(1,1) = 2.*G*h;
+    mC(2,2) = m_alpha * G * h;
+    mC(3,3) = 2.*G*h;
+    mC(4,4) = C;
+    mC(5,5) = m_alpha * G * h;
+    mC(6,6) = 2.*F;
+    mC(7,7) = D;
+    mC(7,9) = -m_nu*D;
+    mC(9,7) = -m_nu*D;
+    mC(8,8) = m_beta * F;
+    mC(9,9) = D;
+    mC(10,10) = 2.*F;
+    mC(11,11) = m_beta * F;
+    /*
     ChMatrixNM<double, 12, 1> strain_0;
     strain_0.PasteVector(eps_u,0,0);
     strain_0.PasteVector(eps_v,3,0);
