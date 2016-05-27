@@ -27,7 +27,6 @@
 
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChElementShellEANS4.h"
-#include "chrono_fea/ChElementShellEANS4new.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
@@ -285,7 +284,7 @@ int main(int argc, char* argv[]) {
         double rho = 0.0;
         double E = 21e6;
         double nu = 0.0; 
-        auto mat = std::make_shared<ChMaterialShellEANSnew>(plate_thickness,
+        auto mat = std::make_shared<ChMaterialShellEANS>(plate_thickness,
                                                          rho, 
                                                          E, 
                                                          nu,
@@ -298,7 +297,7 @@ int main(int argc, char* argv[]) {
         int nels_U = 90;
         int nels_W = 8;
         double arc = CH_C_2PI *1;
-        std::vector<std::shared_ptr<ChElementShellEANS4new>> elarray(nels_U*nels_W);
+        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -334,7 +333,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4new>();
+                    auto melement = std::make_shared<ChElementShellEANS4>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes(
