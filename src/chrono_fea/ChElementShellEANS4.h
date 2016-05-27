@@ -20,11 +20,11 @@
 #include <vector>
 #include <array>
 
-#include "chrono/core/ChQuadrature.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
 #include "chrono_fea/ChUtilsFEA.h"
+#include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 
 namespace chrono {
 namespace fea {
@@ -73,6 +73,18 @@ class ChApiFea ChMaterialShellEANS {
                                const ChVector<>& eps_v,
                                const ChVector<>& kur_u, 
                                const ChVector<>& kur_v);
+
+    /// Compute [C] , that is [ds/de], the tangent of the constitutive relation 
+    /// stresses/strains. In many cases this is a constant matrix, but it could
+    /// change for instance in case of hardening or softening materials, etc.
+    /// By default, it is computed by backward differentiation from the ComputeStress() function,
+    /// but it is better to provide an analytical form if possible.
+    virtual void ComputeTangentC(ChMatrix<>& mC, 
+                                const ChVector<>& eps_u, 
+                                const ChVector<>& eps_v,
+                                const ChVector<>& kur_u, 
+                                const ChVector<>& kur_v);
+
   private: 
     double m_thickness;             ///< thickness
     double m_rho;                  ///< density
@@ -81,6 +93,7 @@ class ChApiFea ChMaterialShellEANS {
     double m_alpha;                  ///< shear factor
     double m_beta ;                  ///< torque factor
 };
+
 
 // ----------------------------------------------------------------------------
 /// Shell with geometrically exact kinematics, with 4 nodes. 
@@ -101,7 +114,7 @@ class ChApiFea ChMaterialShellEANS {
 class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellEANS4();
-    ~ChElementShellEANS4() {}
+    virtual ~ChElementShellEANS4();
 
     /// Definition of a layer
     class Layer {
@@ -202,7 +215,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     /// Get the total thickness of the shell element.
     double GetThickness() { return m_thickness; }
 
-    ChQuaternion<> GetAvgRot() {return Tavg;}
+    ChQuaternion<> GetAvgRot() {return T_overline.Get_A_quaternion();}
 
     // Shape functions
     // ---------------
@@ -216,37 +229,30 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     /// Fills the Ny shape function derivative matrix with respect to Y.
     void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
 
-    // [ANS] Shape function for Assumed Naturals Strain (Interpolation of strain and strainD in a thickness direction)
-    void ShapeFunctionANSbilinearShell(ChMatrix<>& S_ANS, double x, double y);
 
-    // [ANS] Calculate the ANS strain and strain derivatives, at given node states
-    void CalcStrainANSbilinearShell(const ChVector<>& pA, const ChQuaternion<>& rA,
-                                    const ChVector<>& pB, const ChQuaternion<>& rB,
-                                    const ChVector<>& pC, const ChQuaternion<>& rC,
-                                    const ChVector<>& pD, const ChQuaternion<>& rD);
 
-    ChVector<> EvaluateGP(int igp) {
-        double u = xi_i[igp][0];
-        double v = xi_i[igp][1];
-        ChMatrixNM<double, 1, 4> N;
-        this->ShapeFunctions(N, u, v, 0);
-        return   N(0)*GetNodeA()->GetPos() + N(1)*GetNodeB()->GetPos() + N(2)*GetNodeC()->GetPos() + N(3)*GetNodeD()->GetPos();
-    }
-    ChVector<> EvaluatePT(int ipt) {
-        double u = xi_n[ipt][0];
-        double v = xi_n[ipt][1];
-        ChMatrixNM<double, 1, 4> N;
-        this->ShapeFunctions(N, u, v, 0);
-        return   N(0)*GetNodeA()->GetPos() + N(1)*GetNodeB()->GetPos() + N(2)*GetNodeC()->GetPos() + N(3)*GetNodeD()->GetPos();
-    }
+
+    ChVector<> EvaluateGP(int igp);
+    ChVector<> EvaluatePT(int ipt);
+
+    /// Inner EAS dofs
+    virtual unsigned int iGetNumDof(void) const { 
+		return 7;
+	};
+
+ private:
+	void UpdateNodalAndAveragePosAndOrientation();
+	void ComputeInitialNodeOrientation();
+	void InterpolateOrientation();
+	void ComputeIPCurvature();
+
 
   //***TEST*** to make private
-  public:
+ public:
 
     //
     // DATA
     //
-
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > m_nodes;///< element nodes
     std::vector<Layer> m_layers;                           ///< element layers
     size_t m_numLayers;                                    ///< number of layers for this element
@@ -258,60 +264,172 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
 
-    enum constants
-    {
-       NUMNO=4, // number of nodes 
-       NUMGP=4, // number of gauss points
-       NUMSP=4, // number of shear stitching points points
-    };
+    //
+    // from original MBDyn 
+    //
+public:
+	// numbered according to
+	//
+	//         ^
+	// 4 o-----+-----o 3
+	//   | 1_2 | 2_2 |
+	// --+-----+-----+->
+	//   | 1_1 | 2_1 |
+	// 1 o-----+-----o 2
+	//
+	enum IntegrationPoint {
+		IP_1_1 = 0,
+		IP_1_2 = 1,
+		IP_1_3 = 2,
+		IP_2_1 = 3,
+		IP_2_2 = 4,
+		IP_2_3 = 5,
+		IP_3_1 = 6,
+		IP_3_2 = 7,
+		IP_3_3 = 8,
 
-    ChMatrixNM<double, 6,   4> m_strainANS;                ///< ANS strains at shear stitching points
-    ChMatrixNM<double, 4,  24> m_B3_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
-    ChMatrixNM<double, 4,  24> m_B6_ANS;                   ///< ANS B matrix at shear stitching points (shear only)
+		NUMIP = 4
+	};
+	
+	static double xi_i[NUMIP][2];
+	static double w_i[NUMIP];
 
-    std::array<ChQuaternion<>, NUMNO> iTa;                 ///< inverse of reference rotations at nodes
-    std::array<ChQuaternion<>, NUMGP> iTa_i;               ///< inverse of reference rotations at gauss points
-    std::array<ChQuaternion<>, NUMSP> iTa_S;               ///< inverse of reference rotations at shear points
+	// numbered according to the side they are defined on
+	enum ShearStrainEvaluationPoint {
+		SSEP_1 = 0,
+		SSEP_2 = 1,
+		SSEP_3 = 2,
+		SSEP_4 = 3,
 
-    std::array<ChVector<>, NUMNO> phi_tilde;
-    std::array<ChQuaternion<>, NUMGP> T_i;
-    std::array<ChVector<>, NUMGP> eps_tilde_u;
-    std::array<ChVector<>, NUMGP> eps_tilde_v;
-    std::array<ChVector<>, NUMGP> kur_u_tilde;
-    std::array<ChVector<>, NUMGP> kur_v_tilde;
+		NUMSSEP = 4
+	};
 
-    std::array<ChVector<>, NUMGP> eps_tilde_u_0_i;           ///< initial strains at gauss points
-    std::array<ChVector<>, NUMGP> eps_tilde_v_0_i;           ///< initial strains at gauss points
-    std::array<ChVector<>, NUMGP> kur_tilde_u_0_i;           ///< initial curvatures at gauss points
-    std::array<ChVector<>, NUMGP> kur_tilde_v_0_i;           ///< initial curvatures at gauss points
+	static double xi_A[NUMSSEP][2];
 
-    std::array<ChVector<>, NUMSP> eps_tilde_u_0_S;           ///< initial strains at shear stitching points
-    std::array<ChVector<>, NUMSP> eps_tilde_v_0_S;           ///< initial strains at shear stitching points
+	enum NodeName {
+		NODE1 = 0,
+		NODE2 = 1,
+		NODE3 = 2,
+		NODE4 = 3,
 
-    double alpha_i[NUMGP];                                 ///< determinant of jacobian at gauss points 
-    std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_i; ///< precomputed matrices at gauss points
-    std::array<ChMatrixNM<double,4,2>, NUMGP> L_alpha_beta_S; ///< precomputed matrices at shear stitching points
+		NUMNODES = 4
+	};
 
-    ChQuaternion<> Tavg;                                  ///< average rot 
+	static double xi_n[NUMNODES][2];
+	
+	static double xi_0[2];
 
-    // static data - not instanced per each shell :
+	enum Deformations {
+		STRAIN = 0,
+		CURVAT = 1,
 
-    static double xi_i[NUMGP][2]; // gauss points coords
-	static double  w_i[NUMGP];    // gauss points weights
+		NUMDEFORM = 2
+	};
+
+    enum InnerEASdofs {
+		IDOFS = 7
+	};
+    ChVariablesGenericDiagonalMass* mvariables;
+
+     //***TODO*** make protected
+public:
+    ChMatrix33<> Tn[NUMNODES];// to move in UpdateNodalAndAveragePosAndOrientation as temp
+	// nodal positions (0: initial; otherwise current)
+	ChVector<> xa_0[NUMNODES];
+	ChVector<> xa[NUMNODES];
+	// current nodal orientation
+	ChMatrix33<> iTa[NUMNODES];
+	ChMatrix33<> iTa_i[NUMIP];
+	ChMatrix33<> iTa_A[NUMSSEP];
+	// Euler vector of Ra
+	ChVector<> phi_tilde_n[NUMNODES];
+
+	// Average orientation matrix
+	ChVector<> phi_tilde_i[NUMIP];
+	ChVector<> phi_tilde_A[NUMSSEP];
+	ChVector<> phi_tilde_0;
+	// Average orientation matrix 
+	//    .. in reference configuration
+	ChMatrix33<> T0_overline;
+	//    .. in current configuration
+	ChMatrix33<> T_overline;
+	
+	// Orientation matrix 
+	//    .. in reference configuration
+	ChMatrix33<> T_0_0;
+	ChMatrix33<> T_0_i[NUMIP];
+	ChMatrix33<> T_0_A[NUMSSEP];
+	//    .. in current configuration
+	ChMatrix33<> T_0;
+	ChMatrix33<> T_i[NUMIP];
+	ChMatrix33<> T_A[NUMSSEP];
+
+	ChMatrix33<> Phi_Delta_i[NUMIP][NUMNODES];
+	ChMatrix33<> Phi_Delta_A[NUMIP][NUMNODES];
+	ChMatrix33<> Kappa_delta_i_1[NUMIP][NUMNODES];
+	ChMatrix33<> Kappa_delta_i_2[NUMIP][NUMNODES];
+
+
+	// rotation tensors
+	ChMatrix33<> Q_i[NUMIP];
+	ChMatrix33<> Q_A[NUMSSEP];
+
+	// Orientation tensor derivative axial vector
+	ChVector<> k_1_i[NUMIP];
+	ChVector<> k_2_i[NUMIP];
+
+	// linear deformation vectors
+	//    .. in reference configuration
+	ChVector<> eps_tilde_1_0_i[NUMIP];
+	ChVector<> eps_tilde_2_0_i[NUMIP];
+	ChVector<> eps_tilde_1_0_A[NUMSSEP];
+	ChVector<> eps_tilde_2_0_A[NUMSSEP];
+	//    .. in current configuration
+	ChVector<> eps_tilde_1_i[NUMIP];
+	ChVector<> eps_tilde_2_i[NUMIP];
+	ChVector<> eps_tilde_1_A[NUMSSEP];
+	ChVector<> eps_tilde_2_A[NUMSSEP];
+
+	// angular deformation vectors
+	//    .. in reference configuration
+	ChVector<> k_tilde_1_0_i[NUMIP];
+	ChVector<> k_tilde_2_0_i[NUMIP];
+	//    .. in current configuration
+	ChVector<> k_tilde_1_i[NUMIP];
+	ChVector<> k_tilde_2_i[NUMIP];
+
+	ChMatrixNM<double,2,2> S_alpha_beta_0;
+	ChMatrixNM<double,2,2> S_alpha_beta_i[NUMIP];
+	ChMatrixNM<double,2,2> S_alpha_beta_A[NUMSSEP];
+	double alpha_0;
+	double alpha_i[NUMIP];
+	ChMatrixNM<double,4,2> L_alpha_beta_i[NUMIP];
+	ChMatrixNM<double,4,2> L_alpha_beta_A[NUMSSEP];
+
+	ChMatrixNM<double,12,24> B_overline_i[NUMIP];
+	ChMatrixNM<double,15,24> D_overline_i[NUMIP];
+	ChMatrixNM<double,15,15> G_i[NUMIP];
+
+	ChMatrixNM<double,12,IDOFS>  P_i[NUMIP];
+	
+	ChMatrixNM<double,IDOFS,IDOFS> K_beta_beta_i[NUMIP];
+	
+	ChVector<> y_i_1[NUMIP];
+	ChVector<> y_i_2[NUMIP];
+	
+	ChMatrixNM<double,IDOFS,1> beta;
+	ChMatrixNM<double,12,1> epsilon_hat;
+	ChMatrixNM<double,12,1> epsilon;
+
+	// Reference constitutive law tangent matrices
+	ChMatrixNM<double,12,12> DRef[NUMIP];
+
+	//stress
+	ChMatrixNM<double,12,1> stress_i[NUMIP];
+
+	// Is first residual
+	bool bFirstRes;
     
-    static double xi_S[NUMSP][2]; // shear stitching points coords
-    static double xi_n[NUMNO][2]; // nodes coords
-
-    
-  private:
-
-    void ComputeNodeAndAverageRotations(
-        const ChQuaternion<>& mrA, const ChQuaternion<>& mrB,
-        const ChQuaternion<>& mrC, const ChQuaternion<>& mrD,
-        ChQuaternion<>& mTa, ChQuaternion<>& mTb, 
-        ChQuaternion<>& mTc, ChQuaternion<>& mTd,
-        ChVector<>& mF_relA, ChVector<>& mF_relB,
-        ChVector<>& mF_relC, ChVector<>& mF_relD);
 
 public:
 
@@ -341,11 +459,6 @@ public:
     /// in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
 
-    void ComputeInternalForces_Impl(const ChVector<>& pA, const ChQuaternion<>& rA,
-                                    const ChVector<>& pB, const ChQuaternion<>& rB,
-                                    const ChVector<>& pC, const ChQuaternion<>& rC,
-                                    const ChVector<>& pD, const ChQuaternion<>& rD,
-                                    ChMatrixDynamic<>& Fi) ;
 
     /// Initial setup.
     /// This is used mostly to precompute matrices that do not change during the simulation,
