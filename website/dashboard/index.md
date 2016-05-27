@@ -5,12 +5,17 @@ permalink: /dashboard/
 ---
 {::options parse_block_html="true" /}
 
-benchmark_ChBody Test Results:
+Project Chrono Benchmark Test Results:
 
 <html>
 <body>
-<div id='metrics' style="width: 900px; height: 500px;">
-</div>
+
+<select id='test_names' onchange="showTest(value);">
+	<option value='default'> Select A Test!</option>
+</select>
+
+<div id='metrics' style="width: 900px; height: 500px;"></div>
+
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 
@@ -23,16 +28,17 @@ var charts = [];
 var tests;
 
 function showTestNames(test_list) {
-	console.log(test_list);
-	for (test in test_list) {
-		var div = document.createElement("a");
-        div.setAttribute('id', test.name); 
-        div.setAttribute('href', HTML_base + "/test.name");
-        div.innerHTML = test.name;
+	for (i = 0; i < test_list.length; i++) {
+		test = test_list[i];
+		// Makes a dropdown list of each available test
+		var x = document.getElementById("test_names");
+		var option = document.createElement("option");
+		option.text = test.name;
+		option.value = test.name;
+		x.add(option);
 
 	}
 }
-
 
 function drawCharts(run_name) {
     var run_names = []; // Number of machines + name
@@ -137,21 +143,6 @@ $.ajaxSetup({
 		'Authorization': "Basic " + btoa("User:Password")
 	}
 });
-
-$.ajax({
-		url: HTML_base + "/tests/benchmark_ChBody",
-		method: "GET",
-		data: "{};",
-		dataType:"json",
-		success: function (response, status, xhr) {
-			console.log(response);
-			tests = response;
-			google.charts.setOnLoadCallback(drawCharts(tests));
-		},
-		error: function (xhr, status, error_code) {
-			console.log("Error:" + status + ": " + error_code);
-		}
-})
 $.ajax({
 		url: HTML_base + "/tests",
 		method: "GET",
@@ -165,53 +156,41 @@ $.ajax({
 			console.log("Error:" + status + ": " + error_code);
 		}
 })
-
-
-function parseJSON(result) {
-	test_names = result['run_names'];
-	//Initializes test_data
-	var test_data = [];
-	for (i = 0; i < 3; i++) {
-		test_data[i]=[];
-
+function showTest(test_name) {
+	first = true;
+	$("#metrics").empty();
+	if (test_name == 'default') {
+		return;
 	}
-	// Runs through each Test Name 
-	for (i = 0; i < test_names.length; i++) {
-		test_runs = result[test_names[i]];
-
-		// Run data for one run test
-		var test_run_data = [];
-		// Different timesteps for this test
-		var timestamps = []; 
-		var metric_names = [];
-		// Holds array of test results for each test
-		var metric_results = [];
-		// Finds all metrics corresponding to the current test
-		for (var metric in test_runs[0]['metrics']) {
-			metric_names.push(metric);
+	$.ajaxSetup({
+		crossDomain: true,
+		xhrFields: {
+			withCredentials: true
+		},
+		headers: {
+			'Access-Control-Allow-Credentials': true,
+			'Authorization': "Basic " + btoa("User:Password")
 		}
-		for (i = 0; i < test_runs.length; i++) {
-			run = test_runs[i];				
-			metrics = run['metrics'];
-			// Records Timestamp for each run
-			timestamps.push( formatTimestamp(run['timestamp']) );
-
-			for (metric in metrics) {
-			test_run_data.push(metrics[metric])
-			}
-			metric_results.push(test_run_data);
+	});
+	$.ajax({
+		url: HTML_base + "/tests/" + test_name,
+		method: "GET",
+		data: "{};",
+		dataType:"json",
+		success: function (response, status, xhr) {
+			console.log(response);
+			tests = response;
+			google.charts.setOnLoadCallback(drawCharts(tests));
+		},
+		error: function (xhr, status, error_code) {
+			console.log("Error:" + status + ": " + error_code);
 		}
-		test_data[0].push(timestamps);
-		test_data[1].push(metric_names);
-		test_data[2].push(metric_results);
-	}
-	return test_data;
+	})
 }
 
-function formatTimestamp(date) {
-	var new_date = new Date(date);
-	return new_date;
-}
+
+
+
 </script>
 </body>
 </html>
