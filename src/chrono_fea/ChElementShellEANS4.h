@@ -333,7 +333,7 @@ public:
 
      //***TODO*** make protected
 public:
-    ChMatrix33<> Tn[NUMNODES];// to move in UpdateNodalAndAveragePosAndOrientation as temp
+
 	// nodal positions (0: initial; otherwise current)
 	ChVector<> xa_0[NUMNODES];
 	ChVector<> xa[NUMNODES];

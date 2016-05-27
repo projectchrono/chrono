@@ -347,7 +347,7 @@ double ChElementShellEANS4::xi_0[2] = {0., 0.};
 void ChElementShellEANS4::UpdateNodalAndAveragePosAndOrientation()
 {
 	ChMatrix33<> T_avg;
-	//ChMatrix33<> Tn[NUMNODES];
+	ChMatrix33<> Tn[NUMNODES];
 	ChMatrix33<> R_tilde_n[NUMNODES];
 	for (int i = 0; i < NUMNODES; i++) {
 		xa[i] = this->m_nodes[i]->GetPos();
