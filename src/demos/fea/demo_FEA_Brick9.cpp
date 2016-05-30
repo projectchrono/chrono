@@ -38,9 +38,9 @@ void AxialDynamics();
 void BendingQuasiStatic();
 void SwingingShell();
 int main(int argc, char* argv[]) {
-    // AxialDynamics();
+    AxialDynamics();
      // BendingQuasiStatic();
-    SwingingShell();
+    //SwingingShell();
     return 0;
 }
 // Axial Dynamic
@@ -91,8 +91,10 @@ void AxialDynamics() {
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
-
-    double timestep = 1e-2;
+	bool Hencky = true;
+	bool Plasticity = true;
+	bool DruckerPrager = true;
+    double timestep = 1e-4;
 
     // Create and add the nodes
     for (int j = 0; j <= numDiv_z; j++) {
@@ -143,7 +145,13 @@ void AxialDynamics() {
     material->Set_E(E.x);
     // material->Set_G(G.x);
     material->Set_v(nu.x);
-
+	ChMatrixNM<double, 9, 8> CCPInitial;
+	for (int k = 0; k < 8; k++)
+	{
+		CCPInitial(0, k) = 1;
+		CCPInitial(4, k) = 1;
+		CCPInitial(8, k) = 1;
+	}
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         // Adjacent nodes
@@ -179,10 +187,24 @@ void AxialDynamics() {
         element->SetAlphaDamp(0.0);    // Structural damping for this element
         element->SetGravityOn(false);  // turn internal gravitational force calculation off
         // element->SetStrainFormulation(Hencky);
-        element->SetHenckyStrain(false);
-        element->SetPlasticity(false);
-        // element->SetYieldStress(1e5);
-        // element->SetHardeningSlope(5e5);
+		element->SetHenckyStrain(Hencky);
+		if (Hencky)
+		{
+			element->SetPlasticity(Plasticity);
+			if (Plasticity)
+			{
+				element->SetYieldStress(1e5);
+				element->SetHardeningSlope(5e5);
+				element->SetCCPInitial(CCPInitial);
+				element->SetDruckerPrager(DruckerPrager);
+				if (DruckerPrager)
+				{
+					element->SetFriction1(10.0);
+					element->SetFriction2(10.0);
+					element->SetDPType(3);
+				}
+			}
+		}
 
         // Add element to mesh
         my_mesh->AddElement(element);
@@ -246,9 +268,9 @@ void AxialDynamics() {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-8, 1e-2);
+    mystepper->SetAbsTolerances(1e-5, 1e-2);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetVerbose(true);
+    mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
     application.SetTimestep(timestep);
 
@@ -263,6 +285,8 @@ void AxialDynamics() {
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
+	double start = std::clock();
+	int Iter = 0;
     while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
         application.BeginScene();
         application.DrawAll();
@@ -275,7 +299,9 @@ void AxialDynamics() {
         nodetip4->SetForce(ChVector<>(force, 0.0, 0.0));
 
         application.EndScene();
-
+		Iter += mystepper->GetNumIterations();
+		GetLog() << "t = " << my_system.GetChTime() << "\n";
+		GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
         if (!application.GetPaused()) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
@@ -284,6 +310,9 @@ void AxialDynamics() {
             fprintf(outputfile, "\n  ");
         }
     }
+	double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+	GetLog() << "Simulation Time: " << duration << "\n";
+	GetLog() << Iter << "\n";
 }
 
 // QuasiStatic

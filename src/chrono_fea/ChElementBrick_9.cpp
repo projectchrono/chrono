@@ -552,89 +552,248 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             EETD.z = LogStrain(2, 0) - EEVD3;
             double ETDNorm = std::sqrt(EETD.x * EETD.x + EETD.y * EETD.y + EETD.z * EETD.z);
 
-            // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
-            double hydroP = (StressK_eig(0, 0) + StressK_eig(1, 0) + StressK_eig(2, 0)) / 3.0;
+			double hydroP;
+			ChVector<double> devStress;
+			double NormSn;
+			double J2Rt;
+			double YieldFunc;
+			int YieldFlag;
+			double DeltaGamma;
+			ChVector<double> devStressUp;
+			ChVector<double> lambda;
 
-            // Deviatoric stress
-            ChVector<double> devStress;
-            devStress.x = StressK_eig(0, 0) - hydroP;
-            devStress.y = StressK_eig(1, 0) - hydroP;
-            devStress.z = StressK_eig(2, 0) - hydroP;
-            double NormSn = sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
+			if (!m_element->m_DP) {
+				// Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
+				hydroP = (StressK_eig(0, 0) + StressK_eig(1, 0) + StressK_eig(2, 0)) / 3.0;
+				// Deviatoric stress
+				devStress.x = StressK_eig(0, 0) - hydroP;
+				devStress.y = StressK_eig(1, 0) - hydroP;
+				devStress.z = StressK_eig(2, 0) - hydroP;
+				NormSn = sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
 
-            // Second invariant of the stress tensor (J2)
-            double J2Rt = NormSn / sqrt(2.0);
+				// Second invariant of the stress tensor (J2)
+				J2Rt = NormSn / sqrt(2.0);
 
-            // Trial stress for yield function
-            double qtrial = sqrt(3.0) * J2Rt;
+				// Trial stress for yield function
+				double qtrial = sqrt(3.0) * J2Rt;
 
-            // Evaluation of J2 yield function
-            double YieldFunc =
-                qtrial - (m_element->m_YieldStress +
-                          m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+				// Evaluation of J2 yield function
+				YieldFunc =
+					qtrial - (m_element->m_YieldStress +
+							  m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
 
-            // Set Yield flag to zero (within elastic range)
-            int YieldFlag = 0;
+				// Set Yield flag to zero (within elastic range)
+				YieldFlag = 0;
 
-            // If yield function reveals plasticity, apply return mapping algorithm
-            if (YieldFunc > 0.0) {
-                YieldFlag = 1;
+				// If yield function reveals plasticity, apply return mapping algorithm
+				if (YieldFunc > 0.0) {
+					YieldFlag = 1;
 
-                // Step variation of the plastic flow (rate)
-                double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
-                ChVector<double> devStressUp;
+					// Step variation of the plastic flow (rate)
+					double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
 
-                // Perform return mapping on deviatoric stress tensor (Up for Update)
-                if (qtrial != 0.0) {
-                    devStressUp = (1.0 - G * DeltaGamma * 3.0 / qtrial) * devStress;
-                } else {
-                    devStressUp = devStress;
-                }
+					// Perform return mapping on deviatoric stress tensor (Up for Update)
+					if (qtrial != 0.0) {
+						devStressUp = (1.0 - G * DeltaGamma * 3.0 / qtrial) * devStress;
+					}
+					else {
+						devStressUp = devStress;
+					}
 
-                // Update stress tensor
-                StressK_eig(0, 0) = devStressUp.x + hydroP;
-                StressK_eig(1, 0) = devStressUp.y + hydroP;
-                StressK_eig(2, 0) = devStressUp.z + hydroP;
+					// Update stress tensor
+					StressK_eig(0, 0) = devStressUp.x + hydroP;
+					StressK_eig(1, 0) = devStressUp.y + hydroP;
+					StressK_eig(2, 0) = devStressUp.z + hydroP;
 
-                // Update logarithmic strains
-                LogStrain(0, 0) = devStressUp.x / (2.0 * G) + EEVD3;
-                LogStrain(1, 0) = devStressUp.y / (2.0 * G) + EEVD3;
-                LogStrain(2, 0) = devStressUp.z / (2.0 * G) + EEVD3;
+					// Update logarithmic strains
+					LogStrain(0, 0) = devStressUp.x / (2.0 * G) + EEVD3;
+					LogStrain(1, 0) = devStressUp.y / (2.0 * G) + EEVD3;
+					LogStrain(2, 0) = devStressUp.z / (2.0 * G) + EEVD3;
 
-                // Obtain eigenvalues current logarithmic strains
-                ChVector<double> lambda;
-                lambda.x = exp(2.0 * LogStrain(0, 0));
-                lambda.y = exp(2.0 * LogStrain(1, 0));
-                lambda.z = exp(2.0 * LogStrain(2, 0));
+					// Obtain eigenvalues current logarithmic strains
+					lambda.x = exp(2.0 * LogStrain(0, 0));
+					lambda.y = exp(2.0 * LogStrain(1, 0));
+					lambda.z = exp(2.0 * LogStrain(2, 0));
 
-                ChMatrixNM<double, 3, 3> BEUP;  ///< Updated elastic left Cauchy strain tensor
-                MM1.MatrScale(lambda.x);
-                MM2.MatrScale(lambda.y);
-                MM3.MatrScale(lambda.z);
-                BEUP = MM1 + MM2 + MM3;
+					ChMatrixNM<double, 3, 3> BEUP;  ///< Updated elastic left Cauchy strain tensor
+					MM1.MatrScale(lambda.x);
+					MM2.MatrScale(lambda.y);
+					MM3.MatrScale(lambda.z);
+					BEUP = MM1 + MM2 + MM3;
 
-                // MM1, MM2, and MM3 are outputs of the return mapping alg. so must be re-updated
-                MM1.MatrScale(1 / lambda.x);
-                MM2.MatrScale(1 / lambda.y);
-                MM3.MatrScale(1 / lambda.z);
+					// MM1, MM2, and MM3 are outputs of the return mapping alg. so must be re-updated
+					MM1.MatrScale(1 / lambda.x);
+					MM2.MatrScale(1 / lambda.y);
+					MM3.MatrScale(1 / lambda.z);
 
-                // Keep track of plastic variable alpha for each integration point
-                m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
-                    m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + DeltaGamma;
-                Temp33.MatrMultiply(FI, BEUP);
-                CCPinv.MatrMultiplyT(Temp33, FI);
+					// Keep track of plastic variable alpha for each integration point
+					m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
+						m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + DeltaGamma;
+					Temp33.MatrMultiply(FI, BEUP);
+					CCPinv.MatrMultiplyT(Temp33, FI);
 
-                // Store plastic deformation tensor for each iteration
-                m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
-                m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
-                m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
-                m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
-                m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
-                m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
-                m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
-                m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
-                m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
+					// Store plastic deformation tensor for each iteration
+					m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
+					m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
+					m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
+					m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
+					m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
+					m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
+					m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
+					m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
+					m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
+				}
             }
+			else {
+				double EDNInv;
+				ChMatrixNM<double, 6, 1> UniDev;
+				if (ETDNorm != 0.0) {
+					EDNInv = 1.0 / ETDNorm;
+				}
+				else {
+					EDNInv = 0.0;
+				}
+				UniDev(0, 0) = EETD.x*EDNInv;
+				UniDev(1, 0) = EETD.y*EDNInv;
+				UniDev(3, 0) = EETD.z*EDNInv;
+
+				double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
+				hydroP = K*EETV;
+				devStress.x = 2.0*G*(LogStrain(0, 0) - EEVD3);
+				devStress.y = 2.0*G*(LogStrain(1, 0) - EEVD3);
+				devStress.z = 2.0*G*(LogStrain(2, 0) - EEVD3);
+				// Euclidean natural norm of the second-order tensor 
+				NormSn = sqrt(devStress.x*devStress.x + devStress.y*devStress.y + devStress.z*devStress.z);
+				
+				J2Rt = NormSn / sqrt(2.0);
+
+				double phi = m_element->m_FrictionAngle1*CH_C_PI / 180.0;  // Friction angle 
+				double phi2 = m_element->m_FrictionAngle2*CH_C_PI / 180.0; // Dilatancy angle
+				double eta;
+				double gsi;
+				double etab;
+
+				if (m_element->m_DPHardening == 1) {				// Tension corresponding to Abaqus model
+					eta = tan(phi) / sqrt(3.0);
+					gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+					etab = tan(phi2) / sqrt(3.0);
+				}
+				else if (m_element->m_DPHardening == 2) {			// Compression corresponding to Abaqus model
+					eta = tan(phi) / sqrt(3.0);
+					gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+					etab = tan(phi2) / sqrt(3.0);
+				}
+				else if (m_element->m_DPHardening == 3) {			// Shear corresponding to Abaqus model
+					eta = tan(phi) / sqrt(3.0);
+					gsi = 1.0 / sqrt(3.0);
+					etab = tan(phi2) / sqrt(3.0);
+				}
+				double alpha1;
+				double beta1;
+				if (etab == 0) {
+					alpha1 = 0;
+				}
+				else {
+					alpha1 = gsi / etab;
+				}
+				if (eta == 0) {
+					beta1 = 0;
+				}
+				else {
+					beta1 = gsi / eta;
+				}
+
+				// Yield function at trial stage
+				YieldFunc = J2Rt + eta*hydroP - gsi*(m_element->m_YieldStress + m_element->m_HardeningSlope*m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+				double SQRJ2T = J2Rt;
+				double PT = hydroP;
+
+				YieldFlag = 0;
+				if (YieldFunc > 0.0) {
+					YieldFlag = 1;
+
+					// Initialize for newton-raphson
+					double DGamma = 0.0;
+					double Yfunc1 = YieldFunc; // Initially recalculated
+
+					for (int ii = 0; ii < 50; ii++) {
+						// Compute newton residual
+						double DDGamma = Yfunc1 / (G + K*eta*etab + gsi*gsi*m_element->m_HardeningSlope);
+						DGamma = DGamma + DDGamma;
+						double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi*DGamma;
+						SQRJ2T = SQRJ2T - G*DGamma;
+						double P = PT - K*etab*DGamma;
+						Yfunc1 = SQRJ2T + eta*P - gsi*(m_element->m_YieldStress + m_element->m_HardeningSlope*EpBar);
+						if (Yfunc1 < 1e-8) {
+							break;
+						}
+						if (ii == 49) {
+							GetLog() << "Hit the max iterations for the DP model";
+						}
+					}
+					DeltaGamma = DGamma;
+					double Check_DP_Cone = J2Rt - G*DGamma;
+
+					if (Check_DP_Cone < 0.0) {          // Cone return mapping
+						GetLog() << "Cone--------!!!";
+						system("pause");
+						double Rtrial = hydroP - beta1*(m_element->m_YieldStress + m_element->m_HardeningSlope*m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+						DeltaGamma = Rtrial / (K + alpha1*beta1*m_element->m_HardeningSlope);
+
+						// Update plastic alpha parameter
+						m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + alpha1*DeltaGamma;
+
+						// Stress update 
+						StressK_eig(0, 0) = hydroP - K*DeltaGamma;
+						StressK_eig(1, 0) = hydroP - K*DeltaGamma;
+						StressK_eig(2, 0) = hydroP - K*DeltaGamma;
+
+						// Calculate update elastic logarithmic strain
+						LogStrain = StressK_eig;
+						LogStrain.MatrScale(1 / (3.0*K));
+					}
+					else {
+						// Update plastic alpha parameter
+						m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi*DeltaGamma;
+						
+						// Deviatoric stress
+						devStressUp = (1.0 - G*DeltaGamma / J2Rt)*devStress;
+						// Hydrostatic stress
+						double hydroPUp = hydroP - K*etab*DeltaGamma;
+						// Stress update
+						StressK_eig(0, 0) = devStressUp.x + hydroP;
+						StressK_eig(1, 0) = devStressUp.y + hydroP;
+						StressK_eig(2, 0) = devStressUp.z + hydroP;
+						// Calculate update elastic logarithmic strain
+						LogStrain(0, 0) = devStressUp.x / (2.0*G) + hydroPUp / (3.0*K);
+						LogStrain(1, 0) = devStressUp.y / (2.0*G) + hydroPUp / (3.0*K);
+						LogStrain(2, 0) = devStressUp.z / (2.0*G) + hydroPUp / (3.0*K);
+					}
+					lambda.x = exp(2.0*LogStrain(0, 0));
+					lambda.y = exp(2.0*LogStrain(1, 0));
+					lambda.z = exp(2.0*LogStrain(2, 0));
+					ChMatrixNM<double, 3, 3> BEUP;
+					MM1.MatrScale(lambda.x);
+					MM2.MatrScale(lambda.y);
+					MM3.MatrScale(lambda.z);
+					BEUP = MM1 + MM2 + MM3;
+					MM1.MatrScale(1 / lambda.x);
+					MM2.MatrScale(1 / lambda.y);
+					MM3.MatrScale(1 / lambda.z);
+					Temp33.MatrMultiply(FI, BEUP);
+					CCPinv.MatrMultiplyT(Temp33, FI);
+					// Store CPPinv
+					m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
+					m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
+					m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
+					m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
+					m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
+					m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
+					m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
+					m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
+					m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
+				}
+			}
         }
 
         // Obtain stress tensor from MMX matrices - either elastic or plastic
@@ -672,7 +831,12 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
         // Obtain generalized elato-(plastic) forces
         result.MatrTMultiply(strainD, Stress);
-        result.MatrScale(detJ0 * m_element->m_GaussScaling);
+		if (m_element->m_Hencky) {
+			result.MatrScale(detJ * m_element->m_GaussScaling);
+		}
+		else {
+			result.MatrScale(detJ0 * m_element->m_GaussScaling);
+		}
         m_element->m_InteCounter++;
     }
 }
@@ -1023,123 +1187,313 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             EETD.y = LogStrain(1, 0) - EEVD3;
             EETD.z = LogStrain(2, 0) - EEVD3;
             double ETDNorm = sqrt(EETD.x * EETD.x + EETD.y * EETD.y + EETD.z * EETD.z);
+			double hydroP;
+			ChVector<double> devStress;
+			double NormSn;
+			double J2Rt;
+			double YieldFunc;
+			int YieldFlag;
+			double DeltaGamma;
+			ChVector<double> devStressUp;
+			ChVector<double> lambda;
 
-            // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
-            double hydroP = (StressK_eig(0, 0) + StressK_eig(1, 0) + StressK_eig(2, 0)) / 3.0;
+			if (!m_element->m_DP) {
+				// Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
+				hydroP = (StressK_eig(0, 0) + StressK_eig(1, 0) + StressK_eig(2, 0)) / 3.0;
 
-            // Deviatoric stress
-            ChVector<double> devStress;
-            devStress.x = StressK_eig(0, 0) - hydroP;
-            devStress.y = StressK_eig(1, 0) - hydroP;
-            devStress.z = StressK_eig(2, 0) - hydroP;
-            double NormSn = sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
+				// Deviatoric stress
+				devStress.x = StressK_eig(0, 0) - hydroP;
+				devStress.y = StressK_eig(1, 0) - hydroP;
+				devStress.z = StressK_eig(2, 0) - hydroP;
+				NormSn = sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
 
-            // Second invariant of the stress tensor (J2)
-            double J2Rt = NormSn / sqrt(2.0);
-            // Trial stress for yield function
-            double qtrial = sqrt(3.0) * J2Rt;
+				// Second invariant of the stress tensor (J2)
+				J2Rt = NormSn / sqrt(2.0);
+				// Trial stress for yield function
+				double qtrial = sqrt(3.0) * J2Rt;
 
-            // Evaluation of J2 yield function
-            double YieldFunc =
-                qtrial - (m_element->m_YieldStress +
-                          m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+				// Evaluation of J2 yield function
+				YieldFunc =
+					qtrial - (m_element->m_YieldStress +
+					m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
 
-            if (YieldFunc > 0.0) {
-                // If yield function reveals plasticity, apply return mapping algorithm
-                YieldFlag = 1;
+				// Set Yield flag to zero (within elastic range)
+				YieldFlag = 0;
 
-                // Step variation of the plastic flow (rate)
-                double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
-                // Perform return mapping on deviatoric stress tensor (Up for Update)
-                ChVector<double> devStressUp;
-                if (qtrial != 0.0) {
-                    devStressUp = (1.0 - G * DeltaGamma * 3.0 / qtrial) * devStress;
-                } else {
-                    devStressUp = devStress;
-                }
-                // Update stress tensor
-                StressK_eig(0, 0) = devStressUp.x + hydroP;
-                StressK_eig(1, 0) = devStressUp.y + hydroP;
-                StressK_eig(2, 0) = devStressUp.z + hydroP;
-                // Update logarithmic strains
-                LogStrain(0, 0) = devStressUp.x / (2.0 * G) + EEVD3;
-                LogStrain(1, 0) = devStressUp.y / (2.0 * G) + EEVD3;
-                LogStrain(2, 0) = devStressUp.z / (2.0 * G) + EEVD3;
+				if (YieldFunc > 0.0) {
+					// If yield function reveals plasticity, apply return mapping algorithm
+					YieldFlag = 1;
 
-                // Obtain eigenvalues of current (map-returned) logarithmic strains
-                ChVector<double> lambda;
-                lambda.x = exp(2.0 * LogStrain(0, 0));
-                lambda.y = exp(2.0 * LogStrain(1, 0));
-                lambda.z = exp(2.0 * LogStrain(2, 0));
+					// Step variation of the plastic flow (rate)
+					double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
+					// Perform return mapping on deviatoric stress tensor (Up for Update)
+					ChVector<double> devStressUp;
+					if (qtrial != 0.0) {
+						devStressUp = (1.0 - G * DeltaGamma * 3.0 / qtrial) * devStress;
+					}
+					else {
+						devStressUp = devStress;
+					}
+					// Update stress tensor
+					StressK_eig(0, 0) = devStressUp.x + hydroP;
+					StressK_eig(1, 0) = devStressUp.y + hydroP;
+					StressK_eig(2, 0) = devStressUp.z + hydroP;
+					// Update logarithmic strains
+					LogStrain(0, 0) = devStressUp.x / (2.0 * G) + EEVD3;
+					LogStrain(1, 0) = devStressUp.y / (2.0 * G) + EEVD3;
+					LogStrain(2, 0) = devStressUp.z / (2.0 * G) + EEVD3;
 
-                ChMatrixNM<double, 3, 3> BEUP;  ///< Updated elastic left Cauchy strain tensor
-                MM1.MatrScale(lambda.x);
-                MM2.MatrScale(lambda.y);
-                MM3.MatrScale(lambda.z);
-                BEUP = MM1 + MM2 + MM3;
-                // MM1, MM2, and MM3 are outputs of the return mapping alg. so must be re-updated
-                MM1.MatrScale(1 / lambda.x);
-                MM2.MatrScale(1 / lambda.y);
-                MM3.MatrScale(1 / lambda.z);
-                // Keep track of plastic variable alpha for each integration point
-                m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
-                    m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + DeltaGamma;
-                Temp33.MatrMultiply(FI, BEUP);
-                CCPinv.MatrMultiplyT(Temp33, FI);
+					// Obtain eigenvalues of current (map-returned) logarithmic strains
+					ChVector<double> lambda;
+					lambda.x = exp(2.0 * LogStrain(0, 0));
+					lambda.y = exp(2.0 * LogStrain(1, 0));
+					lambda.z = exp(2.0 * LogStrain(2, 0));
 
-                // Store plastic deformation tensor for each iteration
-                m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
-                m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
-                m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
-                m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
-                m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
-                m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
-                m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
-                m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
-                m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
+					ChMatrixNM<double, 3, 3> BEUP;  ///< Updated elastic left Cauchy strain tensor
+					MM1.MatrScale(lambda.x);
+					MM2.MatrScale(lambda.y);
+					MM3.MatrScale(lambda.z);
+					BEUP = MM1 + MM2 + MM3;
+					// MM1, MM2, and MM3 are outputs of the return mapping alg. so must be re-updated
+					MM1.MatrScale(1 / lambda.x);
+					MM2.MatrScale(1 / lambda.y);
+					MM3.MatrScale(1 / lambda.z);
+					// Keep track of plastic variable alpha for each integration point
+					m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
+						m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + DeltaGamma;
+					Temp33.MatrMultiply(FI, BEUP);
+					CCPinv.MatrMultiplyT(Temp33, FI);
 
-                // Obtain some terms necessary for plastic Jacobian of internal forces
-                qtrial = sqrt(3.0 / 2.0) * NormSn + 3.0 * G * DeltaGamma;
-                double AFACT = 2.0 * G * (1.0 - 3.0 * G * DeltaGamma / qtrial);
-                double BFACT = 6.0 * G * G * (DeltaGamma / qtrial - 1.0 / (3.0 * G + m_element->m_HardeningSlope)) /
-                               (NormSn * NormSn);
+					// Store plastic deformation tensor for each iteration
+					m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
+					m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
+					m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
+					m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
+					m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
+					m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
+					m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
+					m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
+					m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
 
-                ChMatrixNM<double, 6, 1> devStressVec;
-                devStressVec(0, 0) = devStress.x;
-                devStressVec(1, 0) = devStress.y;
-                devStressVec(3, 0) = devStress.z;
-                // TODO, commenting this part of code
-                ChMatrixNM<double, 6, 6> FOID;
-                ChMatrixNM<double, 6, 1> SOID;
+					// Obtain some terms necessary for plastic Jacobian of internal forces
+					qtrial = sqrt(3.0 / 2.0) * NormSn + 3.0 * G * DeltaGamma;
+					double AFACT = 2.0 * G * (1.0 - 3.0 * G * DeltaGamma / qtrial);
+					double BFACT = 6.0 * G * G * (DeltaGamma / qtrial - 1.0 / (3.0 * G + m_element->m_HardeningSlope)) /
+						(NormSn * NormSn);
 
-                FOID(0, 0) = 1.0;
-                FOID(1, 1) = 1.0;
-                FOID(2, 2) = 0.5;
-                FOID(3, 3) = 1.0;
-                FOID(4, 4) = 0.5;
-                FOID(5, 5) = 0.5;
+					ChMatrixNM<double, 6, 1> devStressVec;
+					devStressVec(0, 0) = devStress.x;
+					devStressVec(1, 0) = devStress.y;
+					devStressVec(3, 0) = devStress.z;
+					// TODO, commenting this part of code
+					ChMatrixNM<double, 6, 6> FOID;
+					ChMatrixNM<double, 6, 1> SOID;
 
-                SOID(0, 0) = 1.0;
-                SOID(1, 0) = 1.0;
-                SOID(3, 0) = 1.0;
+					FOID(0, 0) = 1.0;
+					FOID(1, 1) = 1.0;
+					FOID(2, 2) = 0.5;
+					FOID(3, 3) = 1.0;
+					FOID(4, 4) = 0.5;
+					FOID(5, 5) = 0.5;
 
-                ChMatrixNM<double, 6, 6> DEVPRJ;
+					SOID(0, 0) = 1.0;
+					SOID(1, 0) = 1.0;
+					SOID(3, 0) = 1.0;
 
-                for (int i = 0; i < 6; i++) {
-                    for (int j = i; j < 6; j++) {
-                        DEVPRJ(i, j) = FOID(i, j) - SOID(i, 0) * SOID(j, 0) / 3.0;
-                        Dep(i, j) = AFACT * DEVPRJ(i, j) + BFACT * devStressVec(i, 0) * devStressVec(j, 0) +
-                                    K * SOID(i, 0) * SOID(j, 0);
-                    }
-                }
+					ChMatrixNM<double, 6, 6> DEVPRJ;
 
-                for (int j = 0; j < 5; j++) {
-                    for (int i = j + 1; i < 6; i++) {
-                        Dep(i, j) = Dep(j, i);
-                    }
-                }
-            }
-        }
+					for (int i = 0; i < 6; i++) {
+						for (int j = i; j < 6; j++) {
+							DEVPRJ(i, j) = FOID(i, j) - SOID(i, 0) * SOID(j, 0) / 3.0;
+							Dep(i, j) = AFACT * DEVPRJ(i, j) + BFACT * devStressVec(i, 0) * devStressVec(j, 0) +
+								K * SOID(i, 0) * SOID(j, 0);
+						}
+					}
+
+					for (int j = 0; j < 5; j++) {
+						for (int i = j + 1; i < 6; i++) {
+							Dep(i, j) = Dep(j, i);
+						}
+					}
+				}
+			} else {
+				double EDNInv;
+				ChMatrixNM<double, 6, 1> UniDev;
+				if (ETDNorm != 0.0)
+				{
+					EDNInv = 1.0 / ETDNorm;
+				}
+				else{
+					EDNInv = 0.0;
+				}
+				UniDev(0, 0) = EETD.x*EDNInv;
+				UniDev(1, 0) = EETD.y*EDNInv;
+				UniDev(3, 0) = EETD.z*EDNInv;
+
+				double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
+				hydroP = K*EETV;
+				devStress.x = 2.0*G*(LogStrain(0, 0) - EEVD3);
+				devStress.y = 2.0*G*(LogStrain(1, 0) - EEVD3);
+				devStress.z = 2.0*G*(LogStrain(2, 0) - EEVD3);
+				// Euclidean natural norm of the second-order tensor 
+				NormSn = sqrt(devStress.x*devStress.x + devStress.y*devStress.y + devStress.z*devStress.z);
+
+				J2Rt = NormSn / sqrt(2.0);
+
+				double phi = m_element->m_FrictionAngle1*CH_C_PI / 180.0;  // Friction angle 
+				double phi2 = m_element->m_FrictionAngle2*CH_C_PI / 180.0; // Dilatancy angle
+				double eta;
+				double gsi;
+				double etab;
+
+				if (m_element->m_DPHardening == 1) {				// Tension corresponding to Abaqus model
+					eta = tan(phi) / sqrt(3.0);
+					gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+					etab = tan(phi2) / sqrt(3.0);
+				}
+				else if (m_element->m_DPHardening == 2) {			// Compression corresponding to Abaqus model
+					eta = tan(phi) / sqrt(3.0);
+					gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+					etab = tan(phi2) / sqrt(3.0);
+				}
+				else if (m_element->m_DPHardening == 3) {			// Shear corresponding to Abaqus model
+					eta = tan(phi) / sqrt(3.0);
+					gsi = 1.0 / sqrt(3.0);
+					etab = tan(phi2) / sqrt(3.0);
+				}
+
+				double alpha1;
+				double beta1;
+				if (etab == 0) {
+					alpha1 = 0;
+				}
+				else {
+					alpha1 = gsi / etab;
+				}
+				if (eta == 0) {
+					beta1 = 0;
+				}
+				else {
+					beta1 = gsi / eta;
+				}
+
+				// Yield function at trial stage
+				YieldFunc = J2Rt + eta*hydroP - gsi*(m_element->m_YieldStress + m_element->m_HardeningSlope*m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+				double SQRJ2T = J2Rt;
+				double PT = hydroP;
+
+				YieldFlag = 0;
+				if (YieldFunc > 0.0) {
+					YieldFlag = 1;
+
+					// Initialize for newton-raphson
+					double DGamma = 0.0;
+					double Yfunc1 = YieldFunc; // Initially recalculated
+
+					for (int ii = 0; ii < 50; ii++) {
+						// Compute newton residual
+						double DDGamma = Yfunc1 / (G + K*eta*etab + gsi*gsi*m_element->m_HardeningSlope);
+						DGamma = DGamma + DDGamma;
+						double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi*DGamma;
+						SQRJ2T = SQRJ2T - G*DGamma;
+						double P = PT - K*etab*DGamma;
+						Yfunc1 = SQRJ2T + eta*P - gsi*(m_element->m_YieldStress + m_element->m_HardeningSlope*EpBar);
+						if (Yfunc1 < 1e-8) {
+							break;
+						}
+						if (ii == 49) {
+							GetLog() << "Hit the max iterations for the DP model";
+						}
+					}
+					DeltaGamma = DGamma;
+					double Check_DP_Cone = J2Rt - G*DGamma;
+
+					if (Check_DP_Cone < 0.0) {          // Cone return mapping
+						GetLog() << "Cone--------!!!";
+						system("pause");
+						double Rtrial = hydroP - beta1*(m_element->m_YieldStress + m_element->m_HardeningSlope*m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+						DeltaGamma = Rtrial / (K + alpha1*beta1*m_element->m_HardeningSlope);
+
+						// Stress update 
+						StressK_eig(0, 0) = hydroP - K*DeltaGamma;
+						StressK_eig(1, 0) = hydroP - K*DeltaGamma;
+						StressK_eig(2, 0) = hydroP - K*DeltaGamma;
+
+						// Calculate update elastic logarithmic strain
+						LogStrain = StressK_eig;
+						LogStrain.MatrScale(1 / (3.0*K));
+					}
+					else {
+						// Deviatoric stress
+						devStressUp = (1.0 - G*DeltaGamma / J2Rt)*devStress;
+						// Hydrostatic stress
+						double hydroPUp = hydroP - K*etab*DeltaGamma;
+						// Stress update
+						StressK_eig(0, 0) = devStressUp.x + hydroP;
+						StressK_eig(1, 0) = devStressUp.y + hydroP;
+						StressK_eig(2, 0) = devStressUp.z + hydroP;
+						// Calculate update elastic logarithmic strain
+						LogStrain(0, 0) = devStressUp.x / (2.0*G) + hydroPUp / (3.0*K);
+						LogStrain(1, 0) = devStressUp.y / (2.0*G) + hydroPUp / (3.0*K);
+						LogStrain(2, 0) = devStressUp.z / (2.0*G) + hydroPUp / (3.0*K);
+					}
+					lambda.x = exp(2.0*LogStrain(0, 0));
+					lambda.y = exp(2.0*LogStrain(1, 0));
+					lambda.z = exp(2.0*LogStrain(2, 0));
+					ChMatrixNM<double, 3, 3> BEUP;
+					MM1.MatrScale(lambda.x);
+					MM2.MatrScale(lambda.y);
+					MM3.MatrScale(lambda.z);
+					BEUP = MM1 + MM2 + MM3;
+					MM1.MatrScale(1 / lambda.x);
+					MM2.MatrScale(1 / lambda.y);
+					MM3.MatrScale(1 / lambda.z);
+					Temp33.MatrMultiply(FI, BEUP);
+					CCPinv.MatrMultiplyT(Temp33, FI);
+
+					double Aux = 1.0 / (G + K*eta*etab + gsi*gsi*m_element->m_HardeningSlope);
+					double AFact;
+					if (Check_DP_Cone >= 0.0) {  // for smooth cone wall reutrn 
+						AFact = 2.0*G*(1.0 - DeltaGamma / (sqrt(2.0)*ETDNorm));
+					}
+					else {                       // for cone point return
+						AFact = K*(1.0 - K / (K + alpha1*beta1*m_element->m_HardeningSlope));
+					}
+					double BFact = 2.0*G*(DeltaGamma / (sqrt(2.0)*ETDNorm) - G*Aux);
+					double CFact = -sqrt(2.0)*G*Aux*K;
+					double DFact = K*(1.0 - K*eta*etab*Aux);
+
+					ChMatrixNM<double, 6, 6> FOID;
+					ChMatrixNM<double, 6, 1> SOID;
+
+					FOID(0, 0) = 1.0;
+					FOID(1, 1) = 1.0;
+					FOID(2, 2) = 0.5;
+					FOID(3, 3) = 1.0;
+					FOID(4, 4) = 0.5;
+					FOID(5, 5) = 0.5;
+
+					SOID(0, 0) = 1.0;
+					SOID(1, 0) = 1.0;
+					SOID(3, 0) = 1.0;
+
+					if (Check_DP_Cone) {					// Consistent tangent for smooth cone wall return
+						for (int ii = 0; ii < 6; ii++) {
+							for (int jj = 0; jj < 6; jj++) {
+								Dep(ii, jj) = AFact*FOID(ii, jj) + BFact*UniDev(ii) + CFact*(eta*UniDev(ii)*SOID(jj) + etab*SOID(ii)*UniDev(jj)) + (DFact - AFact / 3.0)*SOID(ii)*SOID(jj);
+							}
+						}
+					} else {								// Consistent tangent for cone point
+						for (int ii = 0; ii < 6; ii++) {
+							for (int jj = 0; jj < 6; jj++) {
+								Dep(ii, jj) = AFact*SOID(ii)*SOID(jj);
+							}
+						}
+					}
+				} // End Yield Criteria 
+			} 
+        } // End of Plastic Deformation 
+
         // Obtain stress tensor from MMX matrices - either elastic or plastic
         ChMatrixNM<double, 3, 3> StressK;
         MM1.MatrScale(StressK_eig(0, 0));
@@ -1237,7 +1591,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
         temp339.MatrTMultiply(Gd, Sigm);  // Stress contribution to the Jacobian of internal forces
 
         result = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
-        result.MatrScale(detJ0 * m_element->m_GaussScaling);
+		if (m_element->m_Hencky) {
+			result.MatrScale(detJ * m_element->m_GaussScaling);
+		}
+		else {
+			result.MatrScale(detJ0 * m_element->m_GaussScaling);
+		}
+        
         m_element->m_InteCounter++;
     }
 }

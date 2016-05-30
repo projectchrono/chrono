@@ -101,9 +101,13 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     void SetStrainFormulation(StrainFormulation val) { m_strain_form = val; }
     void SetHenckyStrain(bool val) { m_Hencky = val; }
     void SetPlasticity(bool val) { m_Plasticity = val; }
+	void SetDruckerPrager(bool val) { m_DP = val; }
 
     void SetYieldStress(double a) { m_YieldStress = a; }
     void SetHardeningSlope(double a) { m_HardeningSlope = a; }
+	void SetFriction1(double a) { m_FrictionAngle1 = a; }
+	void SetFriction2(double a) { m_FrictionAngle2 = a; }
+	void SetDPType(int a){ m_DPHardening = a; }
 
     void SetCCPInitial(ChMatrixNM<double, 9, 8> mat) { m_CCPinv_Plast = mat; }
 
@@ -195,15 +199,19 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     ChMatrixNM<double, 11, 11> m_d0d0T;  ///< matrix m_d0 * m_d0^T
     ChMatrixNM<double, 33, 1> m_d_dt;    ///< current nodal velocities
     ChMatrixNM<double, 6, 6> m_E_eps;
+	double m_FrictionAngle1;			 ///< Drucker-Prager Friction Angle Beta
+	double m_FrictionAngle2;			 ///< Drucker-Prager Dilatancy Angle Phi
+	int m_DPHardening;					 ///< Drucker-Prager Hardening Type
 
     StrainFormulation m_strain_form;
-    bool m_Hencky;
-    bool m_Plasticity;
+    bool m_Hencky;						 ///< flag activating Hencky strain formulation
+    bool m_Plasticity;					 ///< flag activating Plastic deformation
+	bool m_DP;							 ///< flag activating Drucker-Prager formulation
 
-    double m_YieldStress;
-    double m_HardeningSlope;
-    ChMatrixNM<double, 8, 1> m_Alpha_Plast;
-    ChMatrixNM<double, 9, 8> m_CCPinv_Plast;
+    double m_YieldStress;						///< plastic yield stress
+    double m_HardeningSlope;					///< plastic hardening slope
+    ChMatrixNM<double, 8, 1> m_Alpha_Plast;		///< hardening alpha parameter
+    ChMatrixNM<double, 9, 8> m_CCPinv_Plast; 
     int m_InteCounter;
 
     // -----------------------------------
