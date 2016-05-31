@@ -12,8 +12,11 @@ White Papers {#whitepaper_root}
 - **Time integrators** 
   [download PDF](http://www.projectchrono.org/assets/white_papers/ChronoCore/integrator.pdf)
   
+- **ANCF support** 
+  [download PDF](http://www.projectchrono.org/assets/white_papers/FEA/WP_ANCF.pdf)
+  
 - **Corotational Euler-Bernoulli beams** 
-  [download PDF](http://www.projectchrono.org/assets/white_papers/FEA/euler_beams.pdf)
+  [download PDF1](http://www.projectchrono.org/assets/white_papers/FEA/euler_beams.pdf)   [download PDF2](http://www.projectchrono.org/assets/white_papers/FEA/WhitePaper_Co-rotational.pdf)
 
 
 ## Journal papers
