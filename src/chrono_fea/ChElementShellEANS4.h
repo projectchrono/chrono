@@ -221,13 +221,13 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     // ---------------
 
     /// Fills the N shape function matrix.
-    void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
+    void ShapeFunctions(ChMatrix<>& N, double x, double y);
 
     /// Fills the Nx shape function derivative matrix with respect to X.
-    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
+    void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y);
 
     /// Fills the Ny shape function derivative matrix with respect to Y.
-    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
+    void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y);
 
 
 

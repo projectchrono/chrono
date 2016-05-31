@@ -778,9 +778,10 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 // State update.
 void ChElementShellEANS4::Update() {
     ChElementGeneric::Update();
+
     //***TEST***
-    ChMatrixDynamic<> mfoo(24,1); // just for updating coordsys
-    ComputeInternalForces(mfoo);
+    //ChMatrixDynamic<> mfoo(24,1); // just for updating coordsys
+    //ComputeInternalForces(mfoo);
 }
 
 // Fill the D vector with the current field values at the element nodes.
@@ -798,8 +799,14 @@ void ChElementShellEANS4::GetStateBlock(ChMatrixDynamic<>& mD) {
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
+// NOTE! we assume that this function is computed after one computed 
+// ComputeInternalForces(), that updates inner data for the given node states.
+
 void ChElementShellEANS4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.GetRows() == 24) && (H.GetColumns() == 24));
+
+    // Calculate the mass matrix 
+    ComputeMassMatrix();
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
@@ -812,6 +819,10 @@ void ChElementShellEANS4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor
 
 // Return the mass matrix.
 void ChElementShellEANS4::ComputeMmatrixGlobal(ChMatrix<>& M) {
+
+    // Calculate the mass matrix 
+    ComputeMassMatrix();
+
     M = m_MassMatrix;
 }
 
@@ -820,7 +831,6 @@ void ChElementShellEANS4::ComputeMmatrixGlobal(ChMatrix<>& M) {
 // -----------------------------------------------------------------------------
 
 
-//***TODO*** just lumped? maybe approximating as 4 tiles for the inertias?
 void ChElementShellEANS4::ComputeMassMatrix() {
     m_MassMatrix.Reset();
 
@@ -834,41 +844,50 @@ void ChElementShellEANS4::ComputeMassMatrix() {
         // Element shape functions
         double u = xi_i[igp][0];
         double v = xi_i[igp][1];
-
+        
         ChMatrixNM<double, 1, 4> N;
-        this->ShapeFunctions(N, u, v, 0);
+        this->ShapeFunctions(N, u, v);
         double N00 = N(0)*N(0) *(rho * jacobian * thickness);
         double N11 = N(1)*N(1) *(rho * jacobian * thickness);
         double N22 = N(2)*N(2) *(rho * jacobian * thickness);
         double N33 = N(3)*N(3) *(rho * jacobian * thickness);
-        double rotfactor = 0.01; //***TODO*** this just applies a bit of mass to rotational DOFs - not needed if implicit integration btw.
+
+        // Approximate (!) inertia of a quarter of tile, note *(1/4) because only the quarter tile,
+        // in local system of Gauss point
+        double Ixx = (pow(this->GetLengthY(),2)+pow(thickness,2)) * (1/12) * (1/4);
+        double Iyy = (pow(this->GetLengthX(),2)+pow(thickness,2)) * (1/12) * (1/4);
+        double Izz = (pow(this->GetLengthY(),2)+pow(this->GetLengthY(),2)) * (1/12) * (1/4);
+        ChMatrix33<> box_inertia_i(Ixx, 0. , 0.,
+                                   0.,  Iyy, 0.,
+                                   0.,   0. , Izz);
+        // ..and inertia in absolute system of Gauss point. Note: not yet multiplied *m mass
+        ChMatrix33<> inertia_i(this->T_i[igp] * box_inertia_i);
+        ChMatrix33<> inertia_i_m;
+
         m_MassMatrix(0,0)   += N00;
         m_MassMatrix(1,1)   += N00;
         m_MassMatrix(2,2)   += N00;
-        m_MassMatrix(3,3)   += N00*rotfactor;
-        m_MassMatrix(4,4)   += N00*rotfactor;
-        m_MassMatrix(5,5)   += N00*rotfactor;
+        inertia_i_m = inertia_i*N00;
+        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 3,3);
 
         m_MassMatrix(6,6)   += N11;
         m_MassMatrix(7,7)   += N11;
         m_MassMatrix(8,8)   += N11;
-        m_MassMatrix(9,9)   += N11*rotfactor;
-        m_MassMatrix(10,10) += N11*rotfactor;
-        m_MassMatrix(11,11) += N11*rotfactor;
+        inertia_i_m = inertia_i*N11;
+        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 9,9);
 
         m_MassMatrix(12,12) += N22;
         m_MassMatrix(13,13) += N22;
         m_MassMatrix(14,14) += N22;
-        m_MassMatrix(15,15) += N22*rotfactor;
-        m_MassMatrix(16,16) += N22*rotfactor;
-        m_MassMatrix(17,17) += N22*rotfactor;
+        inertia_i_m = inertia_i*N22;
+        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 15,15);
 
         m_MassMatrix(18,18) += N33;
         m_MassMatrix(19,19) += N33;
         m_MassMatrix(20,20) += N33;
-        m_MassMatrix(21,21) += N33*rotfactor;
-        m_MassMatrix(22,22) += N33*rotfactor;
-        m_MassMatrix(23,23) += N33*rotfactor;
+        inertia_i_m = inertia_i*N33;
+        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 21,21);
+
     }// end loop on gauss points
 }
 
@@ -1206,7 +1225,7 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 // Shape functions
 // -----------------------------------------------------------------------------
 
-void ChElementShellEANS4::ShapeFunctions(ChMatrix<>& N, double x, double y, double z) {
+void ChElementShellEANS4::ShapeFunctions(ChMatrix<>& N, double x, double y) {
     double xi[2];
     xi[0]=x, xi[1]=y;
 
@@ -1216,7 +1235,7 @@ void ChElementShellEANS4::ShapeFunctions(ChMatrix<>& N, double x, double y, doub
     N(3) = L4(xi);
 }
 
-void ChElementShellEANS4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z) {
+void ChElementShellEANS4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y) {
     double xi[2];
     xi[0]=x, xi[1]=y;
     Nx(0) = L1_1(xi);
@@ -1225,7 +1244,7 @@ void ChElementShellEANS4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, do
     Nx(3) = L4_1(xi);
 }
 
-void ChElementShellEANS4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z) {
+void ChElementShellEANS4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y) {
     double xi[2];
     xi[0]=x, xi[1]=y;
     Ny(0) = L1_2(xi);
@@ -1273,21 +1292,14 @@ void ChElementShellEANS4::EvaluateSectionPoint(const double u,
                                               const ChMatrix<>& displ,
                                               ChVector<>& point) {
     ChMatrixNM<double, 1, 4> N;
-
-    double x = u;  // because ShapeFunctions() works in -1..1 range
-    double y = v;  // because ShapeFunctions() works in -1..1 range
-    double z = 0;
-
-    this->ShapeFunctions(N, x, y, z);
+    this->ShapeFunctions(N, u, v);
 
     const ChVector<>& pA = m_nodes[0]->GetPos();
     const ChVector<>& pB = m_nodes[1]->GetPos();
     const ChVector<>& pC = m_nodes[2]->GetPos();
     const ChVector<>& pD = m_nodes[3]->GetPos();
 
-    point.x = N(0) * pA.x + N(1) * pB.x + N(2) * pC.x + N(3) * pD.x;
-    point.y = N(0) * pA.y + N(1) * pB.y + N(2) * pC.y + N(3) * pD.y;
-    point.z = N(0) * pA.z + N(1) * pB.z + N(2) * pC.z + N(3) * pD.z;
+    point = N(0) * pA + N(1) * pB + N(2) * pC + N(3) * pD;
 }
 
 // -----------------------------------------------------------------------------
@@ -1320,7 +1332,7 @@ void ChElementShellEANS4::LoadableGetStateBlock_w(int block_offset, ChVectorDyna
 
 void ChElementShellEANS4::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
     ChMatrixNM<double, 4, 1> N;
-    ShapeFunctions(N, U, V, 0);
+    ShapeFunctions(N, U, V);
     for (unsigned int ii = 0; ii < 4; ii++) {
         Result += N(ii) * m_nodes[ii]->GetPos_dt();
     }
@@ -1344,9 +1356,9 @@ void ChElementShellEANS4::ComputeNF(
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
     ) {
     ChMatrixNM<double, 1, 4> N;
-    ShapeFunctions(N, U, V, 0);
+    ShapeFunctions(N, U, V);
 
-    detJ =  GetLengthX() *  GetLengthY() / 4.0;
+    detJ =  GetLengthX() *  GetLengthY() / 4.0; // approximate
 
     ChVector<> tmp;
     ChVector<> Fv = F.ClipVector(0, 0);
@@ -1381,9 +1393,9 @@ void ChElementShellEANS4::ComputeNF(
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
     ) {
     ChMatrixNM<double, 1, 4> N;
-    ShapeFunctions(N, U, V, W);
+    ShapeFunctions(N, U, V);
 
-    detJ =  GetLengthX() *  GetLengthY() / 4.0 ;
+    detJ =  GetLengthX() *  GetLengthY() / 4.0 ; // approximate
     detJ *= GetThickness();
 
     ChVector<> tmp;
@@ -1427,8 +1439,8 @@ ChVector<> ChElementShellEANS4::ComputeNormal(const double U, const double V) {
 
     ChMatrixNM<double, 1, 4> Nx;
     ChMatrixNM<double, 1, 4> Ny;
-    ShapeFunctionsDerivativeX(Nx, U, V, 0);
-    ShapeFunctionsDerivativeY(Ny, U, V, 0);
+    ShapeFunctionsDerivativeX(Nx, U, V);
+    ShapeFunctionsDerivativeY(Ny, U, V);
 
     const ChVector<>& pA = m_nodes[0]->GetPos();
     const ChVector<>& pB = m_nodes[1]->GetPos();
