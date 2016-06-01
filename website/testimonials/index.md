@@ -15,6 +15,7 @@ Chrono has been used by various universities, companies, research centers. A par
 - Georgia Tech University (USA): robotics, bio-inspired robots (Dan Goldman) [link](http://crablab.gatech.edu/)
 - Politecnico di Milano (Italy): planet formation, waste management, etc. (Pierangelo Masarati) [link](https://home.aero.polimi.it/masarati/)
 - University of Washington (USA): shock wave propagation in granular media (Nicholas Boechler) [link](http://faculty.washington.edu/boechler/)
+- Aarhus University (Denmark): wheel/terrain interaction, agroecology (Ole Balling) [link](http://pure.au.dk/portal/en/oba@iha.dk)
 
 ### Industry:
 - Intuitive Machines (USA)

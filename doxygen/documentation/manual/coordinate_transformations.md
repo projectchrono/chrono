@@ -348,7 +348,7 @@ See @ref chrono::ChFrame for API details.
 # ChFrameMoving    {#manual_ChFrameMoving}
 
 The @ref chrono::ChFrameMoving object represents a coordinate system in 3D space, like a 
-ChFrame, but it stores also information about the speed and accelerations of the frame:
+ChFrame, but it stores also information about the velocity and accelerations of the frame:
 
 \f[
 \mathbf{c}=\{\mathbf{p},\mathbf{q},\dot{\mathbf{p}}, \dot{\mathbf{q}}, \ddot{\mathbf{p}}, \ddot{\mathbf{q}} \}
@@ -392,11 +392,9 @@ X_ba.SetWacc_loc(ChVector<>(80,50,0)); // a in local frame, or..
 X_ba.SetWacc_par(ChVector<>(80,50,0)); // a in parent frame
 ~~~
 
-A ChFrameMoving can be used to transform ChVector (points in space), a ChFrame, or ChFrameMoving objects.
-Speeds are compuated and transformed.
+A ChFrameMoving can be used to transform ChVector (points in space), a ChFrame, or ChFrameMoving objects. Velocities are also computed and transformed.
 
-Example: The absolute speed and anglar velocity of **c** with respect to **a** can be computed
-if the transformation from **b** to **a** and from **c** to **b** is known:
+Example: The absolute velocity and angular velocity of **c** with respect to **a** can be computed if the transformation from **b** to **a** and from **c** to **b** is known:
 
 
 ![](coord_trasf5_framemoving.png)
@@ -411,26 +409,26 @@ X_ca = X_ba * X_cb;
 ~~~
 
 This is _exactly the same algebra_ used in ChFrame and ChCoordsys, 
-except that this time also the velocities and accelerations are transformed too.
+except that this time also the velocities and accelerations are also transformed.
 
 Note that the transformation automatically takes into account the 
 contributions of complex terms such as centripetal accelerations, 
 relative accelerations, Coriolis acceleration, etc. 
 
-The following is another example, with a longer concatenation of transformations:
+The following is another example with a longer concatenation of transformations:
 
 ![](coord_trasf6_framemoving.png)
 
 Note that one can also use the inverse of frame transformations, 
 using GetInverse(), as seen for ChFrame.
 
-Example: Computing the position, speed and acceleration of the moving target 8
-with respect to the gripper 6, expressed in the basis of the fram 6
+Example: Computing the position, velocity and acceleration of the moving target 8
+with respect to the gripper 6, expressed in the basis of the frame 6.
 
 
 ![](coord_robotexample.png)
 
-How to compute X_86 knowing all others? 
+How would one compute X_86 knowing all others? 
 Start from two equivalent expressions of X_80: 
 
 	X_86>>X_65>>X_54>>X_43>>X_32>>X_21>>X_10 = X_87>>X_70; 
@@ -442,17 +440,17 @@ also:
 Post multiply both sides by inverse of (...), remember that in general
 
 - X >> X.GetInverse() = I
-- X.GetInverse() >> X = I
+- X.GetInverse() >> X = I,
 
-Where I is the identity transformation that can be removed, and finally get:
+where I is the identity transformation that can be removed, to finally get:
 
 ~~~{.cpp}
 X_86 = X_87 >> X_70 >> (X_65 >> X_54 >> X_43 >> X_32 >> X_21 >> X_10).GetInverse();
 ~~~
 
-Example based on same figure:
-Compute speed and acceleration of the gripper with respect to the moving target 8,
-expressed in the basis of the system 8.
+Example, based on the same figure:
+Computing velocity and acceleration of the gripper with respect to the moving target 8,
+expressed in the basis of reference frame 8.
 
 
 ~~~{.cpp}
@@ -464,10 +462,10 @@ See @ref chrono::ChFrameMoving for API details.
 
 # Theory
 
-There are additional details on the theoretical aspects of coordinate 
-transformations in Chrono::Engine, whitepapers.
-- [PDF witepaper on rotations](http://projectchrono.org/assets/white_papers/rotations.pdf)
-- [PDF witepaper on coordinates](http://projectchrono.org/assets/white_papers/frame_kinematics.pdf)
+Additional details on the theoretical aspects of coordinate 
+transformations in Chrono:
+- [PDF whitepaper on rotations](http://projectchrono.org/assets/white_papers/rotations.pdf)
+- [PDF whitepaper on coordinates](http://projectchrono.org/assets/white_papers/frame_kinematics.pdf)
 
 
 # Examples

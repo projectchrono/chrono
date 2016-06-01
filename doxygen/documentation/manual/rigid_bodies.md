@@ -1,47 +1,43 @@
-
+﻿
 Rigid bodies      {#rigid_bodies}
 ============
 
-Rigid bodies are the most important objects in Chrono::Engine. 
-They represent parts of mechanisms, for example an engine is made 
+Rigid bodies play an important role in Chrono as they represent parts of mechanisms.
+For instance, an engine is made 
 of rigid bodies such as rods, pistons, crankshaft, valves, etc. 
 
-Note that in some cases the rigid body assumption 
-is an approximation of what happens in a real world, 
-for instance the crankshaft of a car engine might have 
-torsional and flexional vibrations, but in many cases 
-this can be neglected (if flexibility cannot be neglected, 
-one could use the [FEA module](@ref FEA_module) 
-that introduces flexible parts, but at the cost of more 
-complication and slower performance.)
+In some cases the rigid body assumption 
+is an approximation of what happens in the real world. For instance the crankshaft of a car engine might have 
+torsional and bending vibrations, but in many cases 
+this can be neglected. If this flexibility attribute of the time evolution cannot be neglected, 
+one should use the [FEA module](@ref FEA_module), which introduces flexible bodies at the cost of a more complex model definition/set up and longer run times.
 
 # ChBody   {#manual_ChBody}
 
 The most used type of rigid bodies is the ChBody.
-
 See @ref chrono::ChBody for API details.
 
 ![](pic_ChBody.png)
 
-- Rigid bodies inherit ChFrameMoving features (position, rotation, velocity, acceleration, etc.)
+- Rigid bodies inherit (in the C++ sense) from the ChFrameMoving classes and as such they have a position, rotation, velocity, and acceleration
 
-- The position, speed, acceleration are those of the center of mass (COG) 
+- The position, speed, acceleration are of the center of mass (COG) 
 
-- They contain a mass and a tensor of inertia
+- They contain a mass and a an inertia tensor
 
 - They can be connected by ChLink constraints
 
-- They can participate to collisions
+- They can participate in collisions
 
 
-When you create a ChBody, basically you perform those steps:
+Creating/Setting up a ChBody object typically involves the following steps:
 
-- Create the ChBody and set position/mass properties
-- Add the body to a @ref chrono::ChSystem
-- Optional: add [collision shapes](@ref collision_shapes)
-- Optional: add [visualization assets](@ref visualization_assets)
+1. Create the ChBody and set position/mass properties
+2. Add the body to a @ref chrono::ChSystem
+3. Optional: add [collision shapes](@ref collision_shapes)
+4. Optional: add [visualization assets](@ref visualization_assets)
 
-The following example shows steps 1 and 2:
+The following example illustrates Steps 1 and 2:
 
 ~~~{.cpp}
 // Create a body – use shared pointer!
@@ -59,7 +55,7 @@ body_b->SetInertiaXX( ChVector<>(4,4,4) );
 // If body is fixed to ground, use this:
 body_b->SetBodyFixed(true);
 
-// Finally do not forget this
+// Finally
 my_system.Add(body_b);
 ~~~
 
@@ -73,7 +69,7 @@ See @ref chrono::ChBodyAuxRef for API details.
 ![](pic_ChBodyAuxRef.png)
 
 - Inherited from ChBody
-- Used when the COG is not practical as the main reference for the body, and another reference is preferred, ex. from a CAD, so it adds an auxiliary REF frame
+- Used when the COG is not practical as the main reference for the body and another reference is preferred, ex. from a CAD, so it adds an auxiliary REF frame
 - Note that the straight mybody->GetPos(), mybody->GetRot(), mybody->GetPos_dt(), mybody->GetWvel() etc. will give you the kinematic quantities ''for the GOG frame''. If you need those of the REF, do mybody->GetFrame_REF_to_abs().GetPos(), etc.
 - The REF frame is used for
   - [collision shapes](@ref collision_shapes)
@@ -98,7 +94,7 @@ body_b->SetFrame_REF_to_abs(X_bref);
 # Other bodies   {#manual_otherbodies}
 
 There are other classes inherited from ChBody. Those are specializations 
-that introduce additional features. In the following we list the most relevant.
+that introduce additional features. In the following we list the most relevant:
 
 
 ## Conveyor belt   
@@ -121,15 +117,14 @@ Those are ready-to-use bodies that simplify the definition of
 body properties in case the body is a simple shape such as a box, a sphere, etc.
 In fact when you create one of these, you automatically get the following:
 
-- the mass and inertia tensor are computed from the geometry, given the density
-- optional: a visualization asset showing the shape is added automatically
-- optional: a collision shape is added automatically
+- The mass and inertia tensor are computed from the geometry, given the density
+- Optional: a visualization asset showing the shape is added automatically
+- Optional: a collision shape is added automatically
 
 
 
 # Examples
-
-Among the many examples, look at:
+See:
 - demo_crank.cpp
 - demo_buildsystem.cpp
 - demo_conveyor.cpp
